@@ -1,0 +1,29 @@
+# Local game data and research artefacts. Never publish proprietary assets.
+/local-data/
+/game/
+/games/
+/Samples/
+/captures/
+/dumps/
+/extracted/
+
+# IDE state
+.vs/
+**/.vs/
+.idea/
+*.suo
+*.user
+*.DotSettings.user
+
+# .NET build output
+**/bin/
+**/obj/
+TestResults/
+
+# Operating-system files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary files
+*.tmp

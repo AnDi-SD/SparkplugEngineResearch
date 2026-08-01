@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Tools/" />
+  <Folder Name="/Tools/SMOTextureTool/">
+    <Project Path="tools/SMOTextureTool/SMOTextureTool.Core/SMOTextureTool.Core.csproj" />
+    <Project Path="tools/SMOTextureTool/SMOTextureTool.FormatTests/SMOTextureTool.FormatTests.csproj" />
+    <Project Path="tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj" />
+  </Folder>
+  <Folder Name="/Tools/SmoViewer/">
+    <Project Path="tools/SmoViewer/SmoViewer.Core/SmoViewer.Core.csproj" />
+    <Project Path="tools/SmoViewer/SmoViewer.FormatTests/SmoViewer.FormatTests.csproj" />
+    <Project Path="tools/SmoViewer/SmoViewer.Inspect/SmoViewer.Inspect.csproj" />
+    <Project Path="tools/SmoViewer/SmoViewer/SmoViewer.csproj" />
+  </Folder>
+</Solution>

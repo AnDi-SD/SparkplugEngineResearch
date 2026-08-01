@@ -1,0 +1,6 @@
+[submodule "tools/SmoViewer"]
+	path = tools/SmoViewer
+	url = https://github.com/AnDi-SD/SmoViewer.git
+[submodule "tools/SMOTextureTool"]
+	path = tools/SMOTextureTool
+	url = https://github.com/AnDi-SD/SMOTextureTool.git
