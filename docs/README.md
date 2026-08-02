@@ -5,6 +5,7 @@
 ## Навигация
 
 - [Обзор движка и границы исследования](engine/overview.md)
+- [Свидетельства из PC/PS2 executable и модов](engine/executable-evidence.md)
 - [Контейнер и объектный граф SMO](formats/smo.md)
 - [Наблюдения по PC и PS2](platforms/pc-vs-ps2.md)
 - [Подтверждённые class ID](reference/class-ids.md)

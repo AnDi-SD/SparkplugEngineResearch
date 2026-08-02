@@ -39,6 +39,8 @@ FFPS container
 - Реестр уже содержит 17 подтверждённых class ID из семейств model/material/texture/scene/skin/collision/shadow.
 - Для части `spMeshData` подтверждены маркеры `E0`/`E1`, triangle strip и различие serialized/runtime stride.
 - Отдельный texture workflow умеет обнаруживать известные pixel layouts, применять vertex color modulation и выполнять repack.
+- В PC и PS2 executable найдены эквивалентные проверки `FFPS` и поля `0x26`, а также имена классов и токены полей `spDataBlockSerializer`.
+- PS2 ELF содержит баннер `Sparkplug Engine v1.0`; PC executable сохранил пути к serializer `.cpp` и идентификатор PDB.
 
 Точные структуры и ограничения приведены в [описании SMO](../formats/smo.md) и [реестре классов](../reference/class-ids.md).
 
@@ -64,6 +66,6 @@ FFPS container
 
 Просмотр отдельного SMO — правильный первый срез. Полноценная сцена потребует слоя SPT/SPL и анимаций поверх общего serializer.
 
-## Следующее доказательство
+## Следующие доказательства
 
-Наиболее ценный следующий шаг — получить чистые PC- и PS2-наборы, создать локальные SHA-256 manifests и повторить один и тот же scan. Это позволит отделить свойства формата от последствий старых экспериментов. Приоритеты перечислены в [открытых вопросах](../../research/open-questions.md).
+Текущая работа — разметить FFPS-проверку в PS2 ELF и восстановить serializer по xrefs. Когда появятся pristine PC/PS2-наборы, обязательной контрольной проверкой станут локальные SHA-256 manifests и повтор одного scan: это отделит свойства формата от последствий старых экспериментов. Приоритеты перечислены в [открытых вопросах](../../research/open-questions.md).
