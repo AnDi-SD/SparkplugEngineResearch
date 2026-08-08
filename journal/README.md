@@ -13,6 +13,7 @@
 - [2026-08-08 — режимы камеры SmoViewer](2026/2026-08-08-smoviewer-camera.md)
 - [2026-08-08 — навигация, object tree и журнал SmoViewer](2026/2026-08-08-smoviewer-ui.md)
 - [2026-08-08 — подготовка релиза SmoViewer 0.1.0](2026/2026-08-08-smoviewer-0.1-release.md)
+- [2026-08-08 — текстуры dating-моделей Bloom](2026/2026-08-08-bloom-dating-outfit.md)
 
 ## Шаблон новой записи
 
