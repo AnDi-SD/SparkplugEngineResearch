@@ -8,6 +8,11 @@
 
 - [2026-08-01 — от «контейнера с моделью» к объектному графу](2026/2026-08-01-smo-container.md)
 - [2026-08-01 — общий FFPS-loader и следы serializer в PC/PS2](2026/2026-08-01-pc-ps2-executable-triage.md)
+- [2026-08-08 — текстуры, UV и цвета вершин в SmoViewer](2026/2026-08-08-smoviewer-textures.md)
+- [2026-08-08 — первый transform path для составных SMO-уровней](2026/2026-08-08-level-transforms.md)
+- [2026-08-08 — режимы камеры SmoViewer](2026/2026-08-08-smoviewer-camera.md)
+- [2026-08-08 — навигация, object tree и журнал SmoViewer](2026/2026-08-08-smoviewer-ui.md)
+- [2026-08-08 — подготовка релиза SmoViewer 0.1.0](2026/2026-08-08-smoviewer-0.1-release.md)
 
 ## Шаблон новой записи
 
