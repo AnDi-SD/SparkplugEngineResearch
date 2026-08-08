@@ -19,6 +19,7 @@
 **/bin/
 **/obj/
 TestResults/
+/artifacts/release/
 
 # Operating-system files
 Thumbs.db
