@@ -30,7 +30,7 @@
 
 - Общие выводы о движке и связях форматов — здесь.
 - Байтовые структуры, которые реализует строгий parser, — здесь и в [`SmoViewer/docs`](../tools/SmoViewer/docs/SMO_FORMAT.md).
-- Правила texture repack — в [`SMOTextureTool/docs`](../tools/SMOTextureTool/docs/SMO_FORMAT.md), пока они не подтверждены общим parser.
+- История неподтверждённого texture repack — в [`SMOTextureTool/docs`](../tools/SMOTextureTool/docs/SMO_FORMAT.md); writer отключён после игровых crash.
 - Хронология и отрицательные результаты — в `journal/`.
 - Вопросы с проверяемым условием завершения — в `research/open-questions.md`.
 

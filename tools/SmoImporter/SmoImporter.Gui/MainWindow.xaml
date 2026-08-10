@@ -1,0 +1,72 @@
+<Window x:Class="SmoImporter.Gui.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="Sparkplug SMO Importer — whole model experiment" Width="1180" Height="760"
+ MinWidth="960" MinHeight="640" WindowStartupLocation="CenterScreen">
+ <Grid>
+  <Grid.ColumnDefinitions><ColumnDefinition Width="390"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+  <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Background="#F4F6F8">
+   <StackPanel Margin="20">
+    <TextBlock Text="SMO Whole Model Importer" FontSize="23" FontWeight="SemiBold"/>
+    <TextBlock Margin="0,5,0,16" Foreground="#9A3412" TextWrapping="Wrap"
+     Text="Экспериментальный режим: вся OBJ/GLB-модель разбивается по существующим mesh slots. Исходный SMO не изменяется."/>
+
+    <TextBlock Text="1. Шаблон игры" FontSize="15" FontWeight="SemiBold"/>
+    <Button Margin="0,6,0,0" Height="38" Content="Выбрать исходный SMO" Click="SelectSource_Click"/>
+    <TextBlock x:Name="SourcePathText" Margin="0,6,0,4" Text="Не выбран" TextWrapping="Wrap"/>
+    <TextBlock x:Name="SourceSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+
+    <TextBlock Margin="0,18,0,0" Text="2. Новая целая модель" FontSize="15" FontWeight="SemiBold"/>
+    <Button Margin="0,6,0,0" Height="38" Content="Импортировать OBJ или GLB" Click="SelectReplacement_Click"/>
+    <TextBlock x:Name="ReplacementPathText" Margin="0,6,0,4" Text="Не выбрана" TextWrapping="Wrap"/>
+    <TextBlock x:Name="ReplacementSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+
+    <GroupBox Header="Автоматическая нарезка" Margin="0,18,0,0" Padding="10">
+     <StackPanel>
+      <TextBlock Text="Вся модель помещается в один основной body-slot; остальные slots получают невидимый вырожденный triangle. UInt16 ограничивает вершины, но не длину index buffer." TextWrapping="Wrap"/>
+      <Button x:Name="PlanButton" Margin="0,9,0,0" Height="35" Content="Построить план и проверить" IsEnabled="False" Click="Plan_Click"/>
+      <TextBlock x:Name="PlanSummaryText" Margin="0,7,0,0" Text="План ещё не построен." TextWrapping="Wrap"/>
+     </StackPanel>
+    </GroupBox>
+
+    <TextBlock Margin="0,16,0,0" Text="Rigid bone" FontSize="15" FontWeight="SemiBold"/>
+    <ComboBox x:Name="BoneCombo" Margin="0,6,0,0" DisplayMemberPath="Display"/>
+    <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Одна выбранная palette bone применяется ко всей видимой модели." TextWrapping="Wrap"/>
+
+    <TextBlock Margin="0,16,0,0" Text="Текстура модели" FontSize="15" FontWeight="SemiBold"/>
+    <ComboBox x:Name="EmbeddedTextureCombo" Margin="0,6,0,0" DisplayMemberPath="Display" SelectionChanged="EmbeddedTexture_Changed"/>
+    <Button Height="35" Margin="0,6,0,0" Content="Выбрать PNG или JPEG" Click="SelectTexture_Click"/>
+    <TextBlock x:Name="TexturePathText" Margin="0,5,0,0" Text="Текстура исходного SMO останется без изменений" TextWrapping="Wrap"/>
+    <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Безопасный режим: RGB масштабируется под исходный атлас; Alpha, заголовки и размер файла сохраняются." TextWrapping="Wrap"/>
+
+    <TextBlock Margin="0,18,0,0" Text="3. Подгонка модели" FontSize="15" FontWeight="SemiBold"/>
+    <Button x:Name="AutoFitButton" Margin="0,7,0,7" Height="35" Content="Подогнать размер и центр по исходной модели" IsEnabled="False" Click="AutoFit_Click"/>
+    <Grid Margin="0,7,0,0">
+     <Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+     <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+     <TextBlock Grid.Row="0" Text="Scale" VerticalAlignment="Center"/><TextBox x:Name="ScaleBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="1" TextChanged="Transform_Changed"/>
+     <TextBlock Grid.Row="1" Text="Rotate" VerticalAlignment="Center"/><TextBox x:Name="RotXBox" Grid.Row="1" Grid.Column="1" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="RotYBox" Grid.Row="1" Grid.Column="2" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="RotZBox" Grid.Row="1" Grid.Column="3" Text="0" TextChanged="Transform_Changed"/>
+     <TextBlock Grid.Row="2" Text="Move" VerticalAlignment="Center"/><TextBox x:Name="MoveXBox" Grid.Row="2" Grid.Column="1" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="MoveYBox" Grid.Row="2" Grid.Column="2" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="MoveZBox" Grid.Row="2" Grid.Column="3" Text="0" TextChanged="Transform_Changed"/>
+    </Grid>
+
+    <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+     <Button x:Name="SaveButton" Width="225" Height="42" Content="4. Создать новый SMO" IsEnabled="False" Click="Save_Click"/>
+     <Button Width="105" Height="42" Margin="8,0,0,0" Content="Сброс" Click="Reset_Click"/>
+    </StackPanel>
+    <TextBlock x:Name="StatusText" Margin="0,14,0,0" Text="Выберите исходный SMO." TextWrapping="Wrap" Foreground="#52606D"/>
+   </StackPanel>
+  </ScrollViewer>
+
+  <Grid Grid.Column="1" Background="#20242A">
+   <Viewport3D x:Name="PreviewViewport">
+    <Viewport3D.Camera><PerspectiveCamera x:Name="Camera" Position="0,0,10" LookDirection="0,0,-10" UpDirection="0,1,0" FieldOfView="45"/></Viewport3D.Camera>
+    <ModelVisual3D><ModelVisual3D.Content><AmbientLight Color="#888888"/></ModelVisual3D.Content></ModelVisual3D>
+    <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
+    <ModelVisual3D x:Name="SceneVisual"/>
+   </Viewport3D>
+   <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Padding="8" Background="#AA000000">
+    <TextBlock Foreground="White" Text="Серый — вся исходная модель   Оранжевый — вся модель замены"/>
+   </Border>
+  </Grid>
+ </Grid>
+</Window>

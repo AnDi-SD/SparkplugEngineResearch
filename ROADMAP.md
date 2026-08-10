@@ -76,3 +76,31 @@
 - [ ] Добавить обезличенные regression fixtures, которые можно законно публиковать.
 - [ ] Сравнивать parser output между ревизиями в CI.
 - [ ] Связать каждое утверждение документации с кодом, manifest или записью эксперимента.
+
+## 7. Экспорт и контролируемый импорт
+
+- [x] Добавить отдельный `SmoExporter.Core` поверх общего strict decoder.
+- [x] Экспортировать meshes, normals, UV0/UV1, vertex colors, материалы и текстуры в самодостаточный GLB.
+- [x] Добавить обязательный compatibility export OBJ/MTL/PNG.
+- [x] Проверить GLB и OBJ импортом в Blender 4.5.
+- [x] Сохранить importer metadata в GLB и проверять неизменность исходного SMO.
+- [x] Реализовать topology-safe in-place replacement vertex records без изменения FFPS-каталога.
+- [x] Реализовать rigid replacement через один существующий palette slot без изменения skeleton/object graph.
+- [x] Добавить детерминированное разбиение целой OBJ/GLB-сцены по triangles с настраиваемыми лимитами vertices/indices/triangles.
+- [x] Реализовать экспериментальный catalog-safe repack существующих mesh slots для изменения vertex/index count и topology.
+- [x] Проверить первый whole-model SMO в игре: triangle-list загружается, но распределение по старым skin slots разрывает модель при анимации.
+- [x] Проверить в игре single-slot rigid вариант с нулевыми mesh slots: игра завершается аварийно.
+- [x] Проверить диагностический single-slot rigid v2: игра загружается, вырожденные primitives устраняют crash.
+- [x] Добавить single-slot rigid v2 и автоматическую подгонку размера/центра в GUI.
+- [x] Добавить ручной выбор rigid palette bone и замену основного character atlas из PNG/JPEG.
+- [x] Извлекать embedded GLB base-color textures и записывать их безопасным fixed-size RGB writer без repack; сохранять исходный Alpha и структуру SMO.
+- [x] Исследовать пересчёт FFPS directory offsets/sizes после texture resize; путь признан небезопасным и отключён после игровых crash.
+- [x] Ограничить ручной bone picker реально использованными host-mesh palette slots после crash на неподтверждённом slot 8.
+- [x] Проверить пределы 512/1024/2048/4096; размерный repack признан неподтверждённым и полностью отключён.
+- [x] Сделать замену текстуры явной и необязательной; по умолчанию сохранять исходный SMO atlas.
+- [x] Запретить resize texture без подтверждённого material owner; разрешать только замену пикселей исходного размера.
+- [x] Зафиксировать whole-model body atlas в pixel-only режиме 256×256 из-за нестабильной owner association.
+- [x] Подтвердить texture mutability однобайтовыми raw RGB pixel probes без repack и изменений headers (проверено в игре 10.08.2026).
+- [x] Подтвердить в игре полную замену RGB атласа `256×256` при побайтовом сохранении Alpha, headers, offsets и размера файла.
+- [x] Восстановить texture writer в GUI только в подтверждённом fixed-size RGB режиме; resize/repack `SMOTextureTool` не использовать.
+- [x] Добавить замену встроенной текстуры из GLB/PNG с проверкой ABGR layout и fixed-size записью только RGB.

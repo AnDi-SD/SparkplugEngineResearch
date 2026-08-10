@@ -1,5 +1,16 @@
 <Solution>
   <Folder Name="/Tools/" />
+  <Folder Name="/Tools/SmoExporter/">
+    <Project Path="tools/SmoExporter/SmoExporter.Core/SmoExporter.Core.csproj" />
+    <Project Path="tools/SmoExporter/SmoExporter.Cli/SmoExporter.Cli.csproj" />
+    <Project Path="tools/SmoExporter/SmoExporter.FormatTests/SmoExporter.FormatTests.csproj" />
+    <Project Path="tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj" />
+  </Folder>
+  <Folder Name="/Tools/SmoImporter/">
+    <Project Path="tools/SmoImporter/SmoImporter.Core/SmoImporter.Core.csproj" />
+    <Project Path="tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj" />
+    <Project Path="tools/SmoImporter/SmoImporter.FormatTests/SmoImporter.FormatTests.csproj" />
+  </Folder>
   <Folder Name="/Tools/SMOTextureTool/">
     <Project Path="tools/SMOTextureTool/SMOTextureTool.Core/SMOTextureTool.Core.csproj" />
     <Project Path="tools/SMOTextureTool/SMOTextureTool.FormatTests/SMOTextureTool.FormatTests.csproj" />

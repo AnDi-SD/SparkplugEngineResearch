@@ -15,7 +15,9 @@ SMO — не просто упаковка одной геометрии. Это
 | Путь | Назначение |
 |---|---|
 | [`tools/SmoViewer`](tools/SmoViewer) | Строгий парсер, CLI-инспектор, проверки формата и WPF-просмотрщик геометрии |
-| [`tools/SMOTextureTool`](tools/SMOTextureTool) | Avalonia-инструмент для просмотра, экспорта, замены и repack текстур |
+| [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; writer/repack отключены как несовместимые с игрой |
+| [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в самодостаточный GLB для Blender и OBJ/MTL/PNG для совместимости |
+| [`tools/SmoImporter`](tools/SmoImporter) | Подмена совместимого mesh и экспериментальный whole-model repack OBJ/GLB по существующим SMO slots |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
