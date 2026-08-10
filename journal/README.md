@@ -6,6 +6,8 @@
 
 ### 2026
 
+- [2026-08-10 — расширенный PC/PS2-корпус и GUI SMO](2026/2026-08-10-pc-ps2-comparative-research.md)
+
 - [2026-08-01 — от «контейнера с моделью» к объектному графу](2026/2026-08-01-smo-container.md)
 - [2026-08-01 — общий FFPS-loader и следы serializer в PC/PS2](2026/2026-08-01-pc-ps2-executable-triage.md)
 - [2026-08-08 — текстуры, UV и цвета вершин в SmoViewer](2026/2026-08-08-smoviewer-textures.md)

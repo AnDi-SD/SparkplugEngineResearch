@@ -55,7 +55,9 @@
 
 ## 4. Сцена, skin и анимация
 
-- [ ] Описать `spNode`, `spRenderNode`, `spSkin` и связи skeleton/bone.
+- [x] Описать `spNode`, `spSkin`, bone palette, vertex weights и логические связи `esfNodeChild` для PC-корпуса.
+- [ ] Восстановить runtime skinning formula и pose update.
+- [ ] Разобрать GUI semantics `spTextNode` / `spTextRenderable` / `spFont`.
 - [ ] Исследовать `ANM` как таблицу состояний/ссылок.
 - [ ] Исследовать `SAN` как FFPS-анимационный ресурс.
 - [ ] Добавить проигрывание анимации после стабилизации статической сцены.

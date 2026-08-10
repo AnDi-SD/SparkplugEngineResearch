@@ -14,7 +14,24 @@
 
 Сам факт одинаковой внешней сигнатуры не доказывает полностью одинаковый serializer или renderer path. Варианты следует выбирать по структуре и полям файла, а не только по имени `_ps2`.
 
-## Текущие группы расхождений
+## Проверенная сводка 2026-08-10
+
+Новый сравнительный корпус включает прямые пары Bird, Butterfly, Fish, Kikko и Gardenia01, а также восемь вариантов Bloom и дополнительные GUI/loading resources.
+
+| Область | PC | PS2 | Статус |
+|---|---|---|---|
+| Platform mask | `0x02` | `0x08` | подтверждено runtime-проверками; `0x01` — common |
+| Mesh `E1` | DX serialized buffers | metadata + DMA/VIF stream | разные layouts, общий decoder недопустим |
+| Mesh `E2` | не наблюдался в прямых PC-парах | 24-byte `minXYZ/maxXYZ` | подтверждено на 973 Gardenia mesh |
+| Skin palette capacity | 16 slots | 64 slots | подтверждено независимыми rigs |
+| Kikko body | две palettes: 16 и 9 уникальных bones | одна palette: 20 bones | bone sets и inverse-bind matrices совпадают |
+| High-level resources | ANM/SPT/SPL | ANM/SPT/SPL | ряд прямых пар побайтно идентичен |
+
+Для PS2 `E1` в Gardenia01 на всех 973 mesh выполняется `payloadSize = 0x28 + qwordCount * 16`; первый DMA tag имеет `QWC = qwordCount - 1`. Bounding sphere в начале `E1` проверена против соответствующей PC-геометрии. Значительные отличия части `E2` bounds связаны с подмножеством PC-координат и согласуются с platform optimization, но точная операция ещё неизвестна.
+
+Object ID и числовые хвосты mesh names не являются стабильными межплатформенными идентификаторами. Сопоставление должно использовать роль, имя, hierarchy и содержимое; `Kikko_alfea.smo` исключён как отдельный PC-вариант.
+
+## Текущие группы расхождений (исторический baseline раннего scan)
 
 На частично изменённом смешанном корпусе строгий mesh scan выделяет как минимум:
 

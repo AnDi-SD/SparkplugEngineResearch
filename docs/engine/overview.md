@@ -36,7 +36,7 @@ FFPS container
 - Физический адрес объекта вычисляется как `DataStart + logicalOffset`.
 - Большинство объектов начинается с `typeHash` и сигнатуры `SBOO`.
 - Размер объекта каталога может включать сериализованное поддерево; соседние объекты могут быть вложены, поэтому «до следующего offset» не является корректным размером.
-- Реестр уже содержит 17 подтверждённых class ID из семейств model/material/texture/scene/skin/collision/shadow.
+- Реестр уже содержит 20 подтверждённых class ID из семейств model/material/texture/scene/skin/collision/shadow/GUI.
 - Для части `spMeshData` подтверждены маркеры `E0`/`E1`, triangle strip и различие serialized/runtime stride.
 - Отдельный texture workflow умеет обнаруживать известные pixel layouts, применять vertex color modulation и выполнять repack.
 - В PC и PS2 executable найдены эквивалентные проверки `FFPS` и поля `0x26`, а также имена классов и токены полей `spDataBlockSerializer`.

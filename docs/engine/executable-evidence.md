@@ -67,6 +67,13 @@ Hook динамически получает `USER32.dll!GetAsyncKeyState`, пр
 
 Три tweak/resolution utility являются managed .NET PE и пригодны для прямой декомпиляции через ILSpy. Строки версии 2 ссылаются на `winx.ini` и несколько `SPT`, связанных с камерой и challenge levels; подтвердить точные операции ещё предстоит декомпиляцией. Их следует использовать как карту кандидатов на patch points, а не как источник истины формата.
 
+## Дополнительные подтверждения 2026-08-10
+
+- PC executable содержит отдельные serializer/optimizer paths `spMeshDataSerializer`, `spDXMeshDataSerializer`, `spPS2MeshDataSerializer`, `spTriangleStripper`, `spDXSceneGraphOptimizer`, `spSceneGraphOptimizer` и `spDXMeshCombiner`.
+- Диагностика `GetIndexBuffer()->Is32Bit()` показывает, что serializer различает 16- и 32-битные index buffers; наблюдаемые `ushort` indices не доказывают общий лимит 65 535.
+- Registration data подтверждает GUI class ID: `0x52E86EFE` (`spTextNode`), `0x19A745D7` (`spTextRenderable`) и `0x4693490A` (`spFont`).
+- Имена IK/controller/helper nodes согласуются с полноценным DCC rig. 3ds Max остаётся рабочей гипотезой; прямой exporter/plugin след не найден.
+
 ## Следующие шаги
 
 1. Импортировать `SLES_532.19` в Ghidra как MIPS little-endian с base `0x00100000` и разметить `0x00181D80` как кандидата на проверку FFPS-заголовка.
