@@ -12,6 +12,9 @@
 | `0x695C0F65` | `spNode` |
 | `0x603625D0` | `spRenderNode` |
 | `0x681F2043` | `spSkin` |
+| `0x52E86EFE` | `spTextNode` |
+| `0x19A745D7` | `spTextRenderable` |
+| `0x4693490A` | `spFont` |
 | `0x47A97C0E` | `spCollisionInfo` |
 | `0x3F453DE7` | `spMeshBV` |
 | `0x1C0053D6` | `spUVController` |

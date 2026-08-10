@@ -79,6 +79,10 @@ char[4] "SBOO"
 
 Подтверждённые hash/name пары вынесены в [реестр class ID](../reference/class-ids.md). Parser сверяет hash записи каталога с hash в теле и сообщает расхождение, но не перемещает объект эвристически.
 
+## Актуальная проверка PC-корпуса 2026-08-10
+
+`SmoViewer.FormatTests` на `local-data/pc-pristine/Media` успешно обработал 416/416 SMO: 177 369 записей object directory и 22 012 mesh без падения strict parser (140 269 assertions). Это актуальный baseline чистого PC-корпуса. Приведённые ниже числа прежнего смешанного/частично изменённого scan сохранены только как историческая диагностическая выборка и не должны подменять этот baseline.
+
 ## Mesh data
 
 Текущий строгий decoder подтверждает:
@@ -123,6 +127,16 @@ char[4] "SBOO"
 | primitive type `2` | 45 |
 
 Это baseline конкретного корпуса, не статистика всех игр или всех SMO. После получения чистой сборки scan должен быть повторён с manifest.
+
+## Уточнения корпуса 2026-08-10
+
+- `spNode`-иерархия skeleton восстанавливается по `esfNodeChild` (field type `5`), а не по каталожному `ParentIndex`, который описывает владение сериализованными интервалами.
+- PC-layouts `0x097E` и `0x197E` хранят четыре `float32`-веса по `+12` и четыре байтовых индекса локальной bone palette по `+28`; `spSkin` отдельно хранит palette и inverse-bind matrices.
+- В исследованном PC-корпусе palette имеет 16 slots, в PS2-корпусе — 64. Независимый Kikko rig использует для тела PC palettes `16 + 9`, тогда как PS2 хранит те же 20 уникальных костей в одной palette. Автоматическое разбиение exporter'ом остаётся сильной гипотезой.
+- PS2 `E1` содержит platform-specific DMA/VIF representation: для 973 mesh Gardenia01 выполняется `payloadSize = 0x28 + dmaQwordCount * 16`; первые четыре `float` задают bounding sphere.
+- PS2 `E2` в Gardenia01 имеет длину 24 байта и соответствует `esfMeshDataBoundingBox` (`minXYZ`, `maxXYZ`).
+- `menu.smo` — GUI scene. Button-state meshes используют layout `0x0100` (`XYZ + Diffuse ARGB`, без UV), а текст представлен `spTextNode`, `spTextRenderable` и `spFont`.
+- Наличие `Is32Bit()` в serializer подтверждает архитектурную поддержку 32-bit index buffers. Значение 65 535 нельзя считать доказанным общим лимитом Sparkplug.
 
 ## Реализации
 

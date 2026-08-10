@@ -27,7 +27,9 @@
 
 | Вопрос | Нужное evidence | Условие закрытия |
 |---|---|---|
-| Как устроены `spSkin`, bones и weights? | персонажи с mesh+skin и bind pose | корректная bind pose и проверка весов |
+| Какая runtime skinning formula и pose update используются? | controlled pose, inverse-bind и runtime trace | animated preview совпадает с игрой |
+| Как exporter строит 16-slot PC palettes и разбивает triangles? | независимые rigs >16 bones и синтетический импорт | воспроизводимое совпадение chunk/palette boundaries |
+| Почему runtime stride skinned E1 на 12 байт больше serialized stride? | loader/render trace для `0x097E`/`0x197E` | назначение дополнительных байтов подтверждено |
 | Как связаны `ANM` и `SAN`? | пары state/resource и loader trace | документированный lookup и один проигрываемый clip |
 | Где хранятся timing/interpolation? | несколько clips разной длины | воспроизводимая временная шкала без guessed constants |
 
