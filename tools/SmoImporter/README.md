@@ -1,5 +1,7 @@
 # SmoImporter
 
+Текущая версия: **0.1.0**.
+
 Первый безопасный importer изменяет только vertex records существующего `spMeshData`
 и всегда пишет новый SMO. GUI загружает исходный SMO как серый фон, OBJ/GLB как
 оранжевую модель замены и позволяет настроить uniform scale, XYZ rotation и translation.
