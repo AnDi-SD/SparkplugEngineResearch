@@ -75,11 +75,12 @@ dotnet run --project tools/SMOTextureTool/SMOTextureTool.FormatTests -- path/to/
 Начать удобнее отсюда:
 
 1. [Обзор Sparkplug](docs/engine/overview.md)
-2. [Формат SMO](docs/formats/smo.md)
-3. [PC и PS2](docs/platforms/pc-vs-ps2.md)
-4. [Подтверждённые class ID](docs/reference/class-ids.md)
-5. [План исследования](ROADMAP.md)
-6. [Открытые вопросы](research/open-questions.md)
+2. [Поиск и загрузка ресурсов Winx Club PC](docs/engine/resource-loading.md)
+3. [Формат SMO](docs/formats/smo.md)
+4. [PC и PS2](docs/platforms/pc-vs-ps2.md)
+5. [Подтверждённые class ID](docs/reference/class-ids.md)
+6. [План исследования](ROADMAP.md)
+7. [Открытые вопросы](research/open-questions.md)
 
 ## Данные игры
 

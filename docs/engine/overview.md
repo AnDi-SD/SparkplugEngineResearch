@@ -41,8 +41,9 @@ FFPS container
 - Отдельный texture workflow умеет обнаруживать известные pixel layouts, применять vertex color modulation и выполнять repack.
 - В PC и PS2 executable найдены эквивалентные проверки `FFPS` и поля `0x26`, а также имена классов и токены полей `spDataBlockSerializer`.
 - PS2 ELF содержит баннер `Sparkplug Engine v1.0`; PC executable сохранил пути к serializer `.cpp` и идентификатор PDB.
+- PC `WinxClub.exe` получает глобальный корень ресурсов из `HKLM\\Software\\Konami\\Winx Club\\MediaPath` и строит пути через таблицы каталогов, а не относительно собственного executable.
 
-Точные структуры и ограничения приведены в [описании SMO](../formats/smo.md) и [реестре классов](../reference/class-ids.md).
+Точные структуры и ограничения приведены в [описании SMO](../formats/smo.md), [реестре классов](../reference/class-ids.md) и [описании загрузки ресурсов](resource-loading.md).
 
 ## Что пока является гипотезой
 
