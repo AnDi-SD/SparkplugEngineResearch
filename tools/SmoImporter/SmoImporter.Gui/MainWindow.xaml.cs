@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Microsoft.Win32;
@@ -14,32 +15,62 @@ namespace SmoImporter.Gui;
 
 public partial class MainWindow : Window
 {
+    private const double OrbitSensitivity = 0.008;
+    private const double DragZoomSensitivity = 0.012;
+    private const double MinimumCameraDistance = 0.01;
+    private const double MaximumCameraDistance = 1_000_000;
+    private const double PitchLimit = Math.PI / 2 - 0.001;
+
     private string? _sourcePath;
     private SmoDocument? _document;
     private SmoExportScene? _sourceScene;
     private ImportedScene? _replacementScene;
     private MeshSplitPlan? _plan;
     private string? _texturePath;
+    private readonly List<Point3D> _previewBounds = new();
+    private Point3D? _selectedBonePosition;
+    private Point _lastMousePosition;
+    private Point3D _cameraTarget;
+    private double _cameraYaw;
+    private double _cameraPitch;
+    private double _cameraDistance = 10;
+    private CameraNavigationMode _cameraNavigationMode;
+    private bool _framePreviewOnRefresh = true;
 
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+        string? commandLineSource = Environment.GetCommandLineArgs().Skip(1)
+            .FirstOrDefault(argument =>
+                argument.EndsWith(".smo", StringComparison.OrdinalIgnoreCase) && File.Exists(argument));
+        if (commandLineSource is not null)
+            LoadSource(commandLineSource);
+    }
 
     private void SelectSource_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { Filter = "Sparkplug model (*.smo)|*.smo", CheckFileExists = true };
         if (dialog.ShowDialog(this) != true) return;
+        LoadSource(dialog.FileName);
+    }
+
+    private void LoadSource(string path)
+    {
         try
         {
-            _sourcePath = dialog.FileName;
+            _sourcePath = Path.GetFullPath(path);
             _document = SmoDocument.Load(_sourcePath);
             _sourceScene = SmoSceneBuilder.Build(_document);
             _plan = null;
             SourcePathText.Text = _sourcePath;
             SourceSummaryText.Text = $"{_sourceScene.Meshes.Count} mesh slots; {_sourceScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; {_sourceScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles.";
             BoneCombo.ItemsSource = SmoWholeModelReplacer.GetRigidBoneChoices(_document)
-                .Select(bone => new BoneItem(bone.Slot, $"[{bone.Slot}] {bone.Name}"))
+                .Select(bone => new BoneItem(
+                    bone.Slot, bone.ObjectId, $"[{bone.Slot}] {bone.Name}"))
                 .ToArray();
             BoneCombo.SelectedIndex = BoneCombo.Items.Count > 0 ? 0 : -1;
             StatusText.Text = "Шаблон SMO загружен.";
+            _framePreviewOnRefresh = true;
             RefreshState();
         }
         catch (Exception exception) { ShowError(exception); }
@@ -72,6 +103,7 @@ public partial class MainWindow : Window
                 ? $"Встроенных base-color текстур: {_replacementScene.Textures.Count}; выберите нужную или оставьте исходную."
                 : "Встроенная base-color текстура не найдена.";
             StatusText.Text = "Модель замены загружена. Постройте план нарезки.";
+            _framePreviewOnRefresh = true;
             RefreshState();
         }
         catch (Exception exception) { ShowError(exception); }
@@ -146,6 +178,9 @@ public partial class MainWindow : Window
             : $"Встроена в GLB: {_replacementScene.Textures[texture.Index].Name}";
     }
 
+    private void BoneCombo_Changed(object sender, SelectionChangedEventArgs e) =>
+        RefreshPreview();
+
     private void AutoFit_Click(object sender, RoutedEventArgs e)
     {
         if (_sourceScene is null || _replacementScene is null) return;
@@ -175,6 +210,7 @@ public partial class MainWindow : Window
             MoveYBox.Text = translation.Y.ToString("G9", CultureInfo.InvariantCulture);
             MoveZBox.Text = translation.Z.ToString("G9", CultureInfo.InvariantCulture);
             StatusText.Text = $"Автоподгонка: scale {scale:G5}; центры моделей совмещены.";
+            _framePreviewOnRefresh = true;
             RefreshPreview();
         }
         catch (Exception exception) { ShowError(exception); }
@@ -193,6 +229,7 @@ public partial class MainWindow : Window
         ScaleBox.Text = "1"; RotXBox.Text = RotYBox.Text = RotZBox.Text = "0";
         MoveXBox.Text = MoveYBox.Text = MoveZBox.Text = "0";
         StatusText.Text = "Выберите исходный SMO.";
+        _framePreviewOnRefresh = true;
         RefreshState();
     }
 
@@ -219,8 +256,16 @@ public partial class MainWindow : Window
                 AddModel(group, mesh.Positions.Select(value => Vector3.Transform(value, transform)).ToArray(),
                     mesh.TriangleIndices, Color.FromArgb(190, 255, 125, 35), all);
         }
+        ResolveSelectedBonePosition();
         SceneVisual.Content = group;
-        if (all.Count > 0) Frame(all);
+        _previewBounds.Clear();
+        _previewBounds.AddRange(all);
+        if (_framePreviewOnRefresh && all.Count > 0)
+        {
+            Frame(all);
+            _framePreviewOnRefresh = false;
+        }
+        UpdateBoneMarkerOverlay();
     }
 
     private static void AddModel(Model3DGroup group, Vector3[] positions, uint[] indices, Color color, List<Point3D> all)
@@ -234,13 +279,222 @@ public partial class MainWindow : Window
         group.Children.Add(new GeometryModel3D(geometry, material) { BackMaterial = material });
     }
 
+    private void ResolveSelectedBonePosition()
+    {
+        _selectedBonePosition = null;
+        if (_document is null || BoneCombo.SelectedItem is not BoneItem selected)
+        {
+            if (BoneHighlightText is not null)
+                BoneHighlightText.Text = "Красный — выбранная palette bone";
+            return;
+        }
+
+        SmoObjectEntry? node = _document.Objects.FirstOrDefault(entry =>
+            entry.Id == selected.ObjectId);
+        IReadOnlyDictionary<int, Matrix4x4> bindMatrices =
+            SmoSkinBindingResolver.ResolveBindWorldMatrices(_document);
+        if (node is null || !bindMatrices.TryGetValue(node.Index, out Matrix4x4 bindWorld))
+        {
+            BoneHighlightText.Text = $"Palette bone: {selected.Display} — позиция недоступна";
+            return;
+        }
+
+        _selectedBonePosition = new Point3D(bindWorld.M41, bindWorld.M42, bindWorld.M43);
+        BoneHighlightText.Text = $"Красный — palette bone {selected.Display}";
+    }
+
+    private void UpdateBoneMarkerOverlay()
+    {
+        if (BoneMarker is null)
+            return;
+        if (_selectedBonePosition is not Point3D bone ||
+            PreviewViewport.ActualWidth <= 0 || PreviewViewport.ActualHeight <= 0)
+        {
+            BoneMarker.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        GetCameraBasis(out Vector3D forward, out Vector3D right, out Vector3D up);
+        Vector3D fromCamera = bone - Camera.Position;
+        double depth = Vector3D.DotProduct(fromCamera, forward);
+        if (depth <= Camera.NearPlaneDistance)
+        {
+            BoneMarker.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        double halfHeight = depth * Math.Tan(Camera.FieldOfView * Math.PI / 360.0);
+        double aspect = PreviewViewport.ActualWidth / PreviewViewport.ActualHeight;
+        double normalizedX = Vector3D.DotProduct(fromCamera, right) / (halfHeight * aspect);
+        double normalizedY = Vector3D.DotProduct(fromCamera, up) / halfHeight;
+        double screenX = (normalizedX + 1) * PreviewViewport.ActualWidth * 0.5;
+        double screenY = (1 - normalizedY) * PreviewViewport.ActualHeight * 0.5;
+        if (!double.IsFinite(screenX) || !double.IsFinite(screenY) ||
+            screenX < 0 || screenX > PreviewViewport.ActualWidth ||
+            screenY < 0 || screenY > PreviewViewport.ActualHeight)
+        {
+            BoneMarker.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        Canvas.SetLeft(BoneMarker, screenX - BoneMarker.Width * 0.5);
+        Canvas.SetTop(BoneMarker, screenY - BoneMarker.Height * 0.5);
+        BoneMarker.Visibility = Visibility.Visible;
+    }
+
+    private void Preview_SizeChanged(object sender, SizeChangedEventArgs e) =>
+        UpdateBoneMarkerOverlay();
+
     private void Frame(IReadOnlyList<Point3D> points)
     {
         double minX=points.Min(p=>p.X), maxX=points.Max(p=>p.X), minY=points.Min(p=>p.Y), maxY=points.Max(p=>p.Y), minZ=points.Min(p=>p.Z), maxZ=points.Max(p=>p.Z);
-        var center = new Point3D((minX+maxX)/2,(minY+maxY)/2,(minZ+maxZ)/2);
+        _cameraTarget = new Point3D((minX+maxX)/2,(minY+maxY)/2,(minZ+maxZ)/2);
         double size = Math.Max(1, Math.Max(maxX-minX, Math.Max(maxY-minY,maxZ-minZ)));
-        Camera.Position = new Point3D(center.X, center.Y, center.Z + size * 2.5);
-        Camera.LookDirection = new Vector3D(0, 0, -size * 2.5);
+        _cameraDistance = Math.Clamp(size * 2.5, MinimumCameraDistance, MaximumCameraDistance);
+        UpdateCamera();
+    }
+
+    private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Middle)
+            return;
+
+        ModifierKeys modifiers = Keyboard.Modifiers;
+        _cameraNavigationMode = modifiers.HasFlag(ModifierKeys.Control)
+            ? CameraNavigationMode.Zoom
+            : modifiers.HasFlag(ModifierKeys.Shift)
+                ? CameraNavigationMode.Pan
+                : CameraNavigationMode.Orbit;
+        _lastMousePosition = e.GetPosition(PreviewSurface);
+        PreviewSurface.CaptureMouse();
+        PreviewSurface.Focus();
+        PreviewSurface.Cursor = _cameraNavigationMode == CameraNavigationMode.Orbit
+            ? Cursors.SizeAll
+            : Cursors.Hand;
+        e.Handled = true;
+    }
+
+    private void Preview_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Middle)
+            return;
+        EndCameraNavigation();
+        e.Handled = true;
+    }
+
+    private void Preview_LostMouseCapture(object sender, MouseEventArgs e)
+    {
+        _cameraNavigationMode = CameraNavigationMode.None;
+        PreviewSurface.Cursor = null;
+    }
+
+    private void Preview_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_cameraNavigationMode == CameraNavigationMode.None)
+            return;
+        if (e.MiddleButton != MouseButtonState.Pressed)
+        {
+            EndCameraNavigation();
+            return;
+        }
+
+        Point currentPosition = e.GetPosition(PreviewSurface);
+        System.Windows.Vector delta = currentPosition - _lastMousePosition;
+        _lastMousePosition = currentPosition;
+        switch (_cameraNavigationMode)
+        {
+            case CameraNavigationMode.Orbit:
+                _cameraYaw -= delta.X * OrbitSensitivity;
+                _cameraPitch = Math.Clamp(
+                    _cameraPitch + delta.Y * OrbitSensitivity,
+                    -PitchLimit,
+                    PitchLimit);
+                break;
+            case CameraNavigationMode.Pan:
+                PanCamera(delta.X, delta.Y);
+                break;
+            case CameraNavigationMode.Zoom:
+                ChangeCameraDistance(Math.Exp(delta.Y * DragZoomSensitivity));
+                break;
+        }
+        UpdateCamera();
+        e.Handled = true;
+    }
+
+    private void Preview_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        ChangeCameraDistance(Math.Exp(-e.Delta / 120.0 * 0.14));
+        UpdateCamera();
+        PreviewSurface.Focus();
+        e.Handled = true;
+    }
+
+    private void Preview_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Home || _previewBounds.Count == 0)
+            return;
+        Frame(_previewBounds);
+        e.Handled = true;
+    }
+
+    private void PanCamera(double horizontalPixels, double verticalPixels)
+    {
+        GetCameraBasis(out _, out Vector3D right, out Vector3D up);
+        double scale = GetWorldUnitsPerPixel();
+        _cameraTarget += -right * (horizontalPixels * scale) + up * (verticalPixels * scale);
+    }
+
+    private void ChangeCameraDistance(double factor) =>
+        _cameraDistance = Math.Clamp(
+            _cameraDistance * factor,
+            MinimumCameraDistance,
+            MaximumCameraDistance);
+
+    private double GetWorldUnitsPerPixel()
+    {
+        double viewportHeight = Math.Max(PreviewViewport.ActualHeight, 1);
+        double halfFieldOfView = Camera.FieldOfView * Math.PI / 360.0;
+        return 2 * _cameraDistance * Math.Tan(halfFieldOfView) / viewportHeight;
+    }
+
+    private void GetCameraBasis(out Vector3D forward, out Vector3D right, out Vector3D up)
+    {
+        forward = Camera.LookDirection;
+        if (forward.LengthSquared < 1e-12) forward = new Vector3D(0, 0, -1);
+        forward.Normalize();
+        Vector3D upHint = Camera.UpDirection;
+        if (upHint.LengthSquared < 1e-12) upHint = new Vector3D(0, 1, 0);
+        upHint.Normalize();
+        right = Vector3D.CrossProduct(forward, upHint);
+        if (right.LengthSquared < 1e-12) right = new Vector3D(1, 0, 0);
+        right.Normalize();
+        up = Vector3D.CrossProduct(right, forward);
+        up.Normalize();
+    }
+
+    private void UpdateCamera()
+    {
+        double horizontal = Math.Cos(_cameraPitch) * _cameraDistance;
+        Vector3D offset = new(
+            Math.Sin(_cameraYaw) * horizontal,
+            Math.Sin(_cameraPitch) * _cameraDistance,
+            Math.Cos(_cameraYaw) * horizontal);
+        Camera.Position = _cameraTarget + offset;
+        Camera.LookDirection = _cameraTarget - Camera.Position;
+        Camera.UpDirection = Math.Abs(horizontal) < 1e-9
+            ? (_cameraPitch >= 0 ? new Vector3D(0, 0, -1) : new Vector3D(0, 0, 1))
+            : new Vector3D(0, 1, 0);
+        Camera.NearPlaneDistance = Math.Max(_cameraDistance / 10000.0, 0.001);
+        Camera.FarPlaneDistance = Math.Max(_cameraDistance * 100.0, 100.0);
+        UpdateBoneMarkerOverlay();
+    }
+
+    private void EndCameraNavigation()
+    {
+        _cameraNavigationMode = CameraNavigationMode.None;
+        PreviewSurface.Cursor = null;
+        if (PreviewSurface.IsMouseCaptured)
+            PreviewSurface.ReleaseMouseCapture();
     }
 
     private static (Vector3 Min, Vector3 Max) Bounds(IEnumerable<Vector3> positions)
@@ -271,6 +525,14 @@ public partial class MainWindow : Window
         MessageBox.Show(this, exception.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    private sealed record BoneItem(int Slot, string Display);
+    private sealed record BoneItem(int Slot, uint ObjectId, string Display);
     private sealed record TextureItem(int Index, string Display);
+
+    private enum CameraNavigationMode
+    {
+        None,
+        Orbit,
+        Pan,
+        Zoom
+    }
 }

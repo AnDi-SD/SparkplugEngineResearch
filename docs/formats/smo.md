@@ -140,14 +140,26 @@ embedded GLB base-color масштабируется до исходных ра�
 - `spNode`-иерархия skeleton восстанавливается по `esfNodeChild` (field type `5`), а не по каталожному `ParentIndex`, который описывает владение сериализованными интервалами.
 - PC-layouts `0x097E` и `0x197E` хранят четыре `float32`-веса по `+12` и четыре байтовых индекса локальной bone palette по `+28`; `spSkin` отдельно хранит palette и inverse-bind matrices.
 - В исследованном PC-корпусе palette имеет 16 slots, в PS2-корпусе — 64. Независимый Kikko rig использует для тела PC palettes `16 + 9`, тогда как PS2 хранит те же 20 уникальных костей в одной palette. Автоматическое разбиение exporter'ом остаётся сильной гипотезой.
+- `bloom_jeans.smo` подтверждает распределение одного 95-node skeleton между шестью локальными PC palettes: основной body mesh не содержит arm/hand bones, которые находятся в четырёх дополнительных skin parts. Palette slot не является глобальным bone ID; надёжное объединение выполняется по node object ID.
 - PS2 `E1` содержит platform-specific DMA/VIF representation: для 973 mesh Gardenia01 выполняется `payloadSize = 0x28 + dmaQwordCount * 16`; первые четыре `float` задают bounding sphere.
 - PS2 `E2` в Gardenia01 имеет длину 24 байта и соответствует `esfMeshDataBoundingBox` (`minXYZ`, `maxXYZ`).
 - `menu.smo` — GUI scene. Button-state meshes используют layout `0x0100` (`XYZ + Diffuse ARGB`, без UV), а текст представлен `spTextNode`, `spTextRenderable` и `spFont`.
 - Наличие `Is32Bit()` в serializer подтверждает архитектурную поддержку 32-bit index buffers. Значение 65 535 нельзя считать доказанным общим лимитом Sparkplug.
 
+## Связанные PC-анимации SAN/ANM
+
+SAN использует тот же FFPS-контейнер, но хранит один animation object
+`0x56EE563A`: duration и именованные position/rotation/scale curves. Curve
+содержит служебный `UInt32=1`, `keyCount`, массив времени и затем Vector3 либо
+quaternion XYZW. ANM является текстовой восьмиколоночной таблицей состояний со
+ссылкой на SAN в последней колонке. На каталоге Bloom подтверждены 168/168 SAN;
+подробный layout записан в
+[`tools/SmoViewer/docs/SMO_FORMAT.md`](../../tools/SmoViewer/docs/SMO_FORMAT.md).
+
 ## Реализации
 
 - [`SmoDocument`](../../tools/SmoViewer/SmoViewer.Core/SmoDocument.cs) — заголовок и каталог.
+- [`SmoAnimationDecoder`](../../tools/SmoViewer/SmoViewer.Core/SmoAnimationDecoder.cs) — PC SAN curves.
 - [`SmoClassRegistry`](../../tools/SmoViewer/SmoViewer.Core/SmoClassRegistry.cs) — известные class ID.
 - [`SmoViewer.Inspect`](../../tools/SmoViewer/SmoViewer.Inspect/Program.cs) — человекочитаемый/JSON scan.
 - [`SmoViewer.FormatTests`](../../tools/SmoViewer/SmoViewer.FormatTests/Program.cs) — synthetic и corpus checks.

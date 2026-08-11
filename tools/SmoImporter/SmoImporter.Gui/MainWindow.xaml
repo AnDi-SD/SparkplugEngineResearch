@@ -30,7 +30,8 @@
     </GroupBox>
 
     <TextBlock Margin="0,16,0,0" Text="Rigid bone" FontSize="15" FontWeight="SemiBold"/>
-    <ComboBox x:Name="BoneCombo" Margin="0,6,0,0" DisplayMemberPath="Display"/>
+    <ComboBox x:Name="BoneCombo" Margin="0,6,0,0" DisplayMemberPath="Display"
+              SelectionChanged="BoneCombo_Changed"/>
     <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Одна выбранная palette bone применяется ко всей видимой модели." TextWrapping="Wrap"/>
 
     <TextBlock Margin="0,16,0,0" Text="Текстура модели" FontSize="15" FontWeight="SemiBold"/>
@@ -57,15 +58,31 @@
    </StackPanel>
   </ScrollViewer>
 
-  <Grid Grid.Column="1" Background="#20242A">
+  <Grid x:Name="PreviewSurface" Grid.Column="1" Background="#20242A" Focusable="True"
+        MouseDown="Preview_MouseDown" MouseUp="Preview_MouseUp"
+        MouseMove="Preview_MouseMove" MouseWheel="Preview_MouseWheel"
+        LostMouseCapture="Preview_LostMouseCapture" PreviewKeyDown="Preview_KeyDown"
+        SizeChanged="Preview_SizeChanged">
    <Viewport3D x:Name="PreviewViewport">
     <Viewport3D.Camera><PerspectiveCamera x:Name="Camera" Position="0,0,10" LookDirection="0,0,-10" UpDirection="0,1,0" FieldOfView="45"/></Viewport3D.Camera>
     <ModelVisual3D><ModelVisual3D.Content><AmbientLight Color="#888888"/></ModelVisual3D.Content></ModelVisual3D>
     <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
     <ModelVisual3D x:Name="SceneVisual"/>
    </Viewport3D>
+   <Canvas IsHitTestVisible="False" ClipToBounds="True">
+    <Grid x:Name="BoneMarker" Width="22" Height="22" Visibility="Collapsed">
+     <Ellipse Fill="#E6FF2D2D" Stroke="White" StrokeThickness="2"/>
+     <Ellipse Width="6" Height="6" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+   </Canvas>
    <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Padding="8" Background="#AA000000">
-    <TextBlock Foreground="White" Text="Серый — вся исходная модель   Оранжевый — вся модель замены"/>
+    <StackPanel>
+     <TextBlock Foreground="White" Text="Серый — вся исходная модель   Оранжевый — вся модель замены"/>
+     <TextBlock x:Name="BoneHighlightText" Margin="0,5,0,0" Foreground="#FF6464"
+      Text="Красный — выбранная palette bone"/>
+     <TextBlock Margin="0,5,0,0" Foreground="#D7DEE7"
+      Text="СКМ — вращение · Shift+СКМ — сдвиг · Ctrl+СКМ/колесо — масштаб · Home — показать всё"/>
+    </StackPanel>
    </Border>
   </Grid>
  </Grid>

@@ -6,6 +6,10 @@
 
 ### 2026
 
+- [2026-08-12 — релизы SmoViewer 0.3, SmoExporter 0.2 и SmoImporter 0.1.1](2026/2026-08-12-tool-releases.md)
+- [2026-08-11 — rigged GLB/FBX и SAN в SmoExporter](2026/2026-08-11-smo-exporter-rigged-fbx.md)
+- [2026-08-11 — SAN/ANM и проигрывание анимаций в SmoViewer](2026/2026-08-11-smoviewer-animation-ui.md)
+- [2026-08-11 — skeleton/palette UI и аудит исходников Butermix](2026/2026-08-11-smoviewer-skeleton-ui.md)
 - [2026-08-11 — MediaPath и глобальный корень ресурсов](2026/2026-08-11-resource-path.md)
 - [2026-08-11 — система внешних волос Bloom и первый патчер](2026/2026-08-11-bloom-hair-patcher.md)
 - [2026-08-11 — WinxHairPatcher 0.1.1 и проверка сигнатур](2026/2026-08-11-bloom-hair-patcher-0.1.1.md)

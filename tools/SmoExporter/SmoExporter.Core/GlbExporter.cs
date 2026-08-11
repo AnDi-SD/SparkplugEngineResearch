@@ -21,7 +21,52 @@ public static class GlbExporter
         var materials = new List<object>();
         var gltfMeshes = new List<object>();
         var nodes = new List<object>();
+        var gltfSkins = new List<object>();
+        var gltfAnimations = new List<object>();
         var textureIndices = new Dictionary<int, int>();
+        Dictionary<int, int> nodeIndices = scene.Nodes
+            .Select((node, index) => (node.ObjectIndex, index))
+            .ToDictionary(item => item.ObjectIndex, item => item.index);
+        Dictionary<int, int[]> children = scene.Nodes
+            .Where(node => node.ParentObjectIndex is not null)
+            .GroupBy(node => node.ParentObjectIndex!.Value)
+            .ToDictionary(group => group.Key, group => group
+                .Select(node => node.ObjectIndex).ToArray());
+        foreach (SmoExportNode node in scene.Nodes)
+        {
+            if (!Matrix4x4.Decompose(node.BindLocalMatrix,
+                    out Vector3 scale, out Quaternion rotation, out Vector3 translation))
+                throw new InvalidDataException(
+                    $"Node {node.ObjectIndex} ({node.Name}) has a non-decomposable bind transform.");
+            var value = new Dictionary<string, object>
+            {
+                ["name"] = CleanName(node.Name, $"bone_{node.ObjectIndex}"),
+                ["translation"] = new[] { translation.X, translation.Y, translation.Z },
+                ["rotation"] = new[] { rotation.X, rotation.Y, rotation.Z, rotation.W },
+                ["scale"] = new[] { scale.X, scale.Y, scale.Z },
+                ["extras"] = new { sparkplugObjectIndex = node.ObjectIndex }
+            };
+            if (children.TryGetValue(node.ObjectIndex, out int[]? nodeChildren))
+                value["children"] = nodeChildren.Where(nodeIndices.ContainsKey)
+                    .Select(index => nodeIndices[index]).ToArray();
+            nodes.Add(value);
+        }
+        Dictionary<int, int> skinIndices = new();
+        foreach (SmoExportSkin skin in scene.Skins)
+        {
+            int inverseBindAccessor = AddMatrix4Accessor(
+                binary, views, accessors, skin.InverseBindMatrices.ToArray());
+            int[] joints = skin.JointObjectIndices.Where(nodeIndices.ContainsKey)
+                .Select(index => nodeIndices[index]).ToArray();
+            skinIndices[skin.ObjectIndex] = gltfSkins.Count;
+            gltfSkins.Add(new
+            {
+                name = CleanName(skin.Name, $"skin_{skin.ObjectIndex}"),
+                joints,
+                inverseBindMatrices = inverseBindAccessor,
+                skeleton = joints.FirstOrDefault()
+            });
+        }
 
         foreach (SmoExportMesh mesh in scene.Meshes)
         {
@@ -40,6 +85,14 @@ public static class GlbExporter
             if (mesh.Colors.Length == mesh.Positions.Length)
                 attributes["COLOR_0"] = AddVector4Accessor(
                     binary, views, accessors, mesh.Colors, 34962);
+            if (mesh.BlendWeights.Length == mesh.Positions.Length &&
+                mesh.JointIndices.Length == mesh.Positions.Length)
+            {
+                attributes["WEIGHTS_0"] = AddVector4Accessor(
+                    binary, views, accessors, mesh.BlendWeights, 34962);
+                attributes["JOINTS_0"] = AddJointAccessor(
+                    binary, views, accessors, mesh.JointIndices, 34962);
+            }
 
             int indexAccessor = AddIndicesAccessor(
                 binary, views, accessors, mesh.TriangleIndices);
@@ -101,21 +154,31 @@ public static class GlbExporter
                     sparkplugRuntimeStride = mesh.RuntimeStride
                 }
             });
-            nodes.Add(new
+            var meshNode = new Dictionary<string, object>
             {
-                name = CleanName(mesh.Name, $"node_{mesh.ObjectIndex}"),
-                mesh = gltfMeshes.Count - 1
-            });
+                ["name"] = CleanName(mesh.Name, $"node_{mesh.ObjectIndex}"),
+                ["mesh"] = gltfMeshes.Count - 1
+            };
+            if (mesh.SkinObjectIndex is int skinObjectIndex &&
+                skinIndices.TryGetValue(skinObjectIndex, out int gltfSkinIndex))
+                meshNode["skin"] = gltfSkinIndex;
+            nodes.Add(meshNode);
         }
+
+        foreach (SmoExportAnimation animation in scene.Animations)
+            gltfAnimations.Add(BuildAnimation(
+                animation, nodeIndices, binary, views, accessors));
 
         int binaryLength = checked((int)binary.Length);
         var root = new
         {
             asset = new { version = "2.0", generator = "Sparkplug SmoExporter" },
             scene = 0,
-            scenes = new[] { new { name = Path.GetFileNameWithoutExtension(scene.SourcePath), nodes = Enumerable.Range(0, nodes.Count).ToArray() } },
+            scenes = new[] { new { name = Path.GetFileNameWithoutExtension(scene.SourcePath), nodes = GetSceneRoots(scene, nodeIndices, nodes.Count).ToArray() } },
             nodes,
             meshes = gltfMeshes,
+            skins = gltfSkins,
+            animations = gltfAnimations,
             materials,
             textures,
             images,
@@ -147,6 +210,104 @@ public static class GlbExporter
         output.Write(header);
         WriteChunk(output, json, 0x4E4F534A);
         WriteChunk(output, bin, 0x004E4942);
+    }
+
+    private static IEnumerable<int> GetSceneRoots(
+        SmoExportScene scene, IReadOnlyDictionary<int, int> nodeIndices, int totalNodeCount)
+    {
+        foreach (SmoExportNode node in scene.Nodes)
+            if (node.ParentObjectIndex is not int parent || !nodeIndices.ContainsKey(parent))
+                yield return nodeIndices[node.ObjectIndex];
+        for (int index = scene.Nodes.Count; index < totalNodeCount; index++)
+            yield return index;
+    }
+
+    private static object BuildAnimation(
+        SmoExportAnimation animation, IReadOnlyDictionary<int, int> nodeIndices,
+        MemoryStream binary, List<object> views, List<object> accessors)
+    {
+        var samplers = new List<object>();
+        var channels = new List<object>();
+        foreach (SmoExportAnimationTrack track in animation.Tracks)
+        {
+            if (!nodeIndices.TryGetValue(track.NodeObjectIndex, out int node)) continue;
+            Add(track.Positions.Select(key => key.Time).ToArray(),
+                track.Positions.Select(key => key.Value).ToArray(), "translation");
+            Add4(track.Rotations.Select(key => key.Time).ToArray(),
+                track.Rotations.Select(key => new Vector4(
+                    key.Value.X, key.Value.Y, key.Value.Z, key.Value.W)).ToArray(), "rotation");
+            Add(track.Scales.Select(key => key.Time).ToArray(),
+                track.Scales.Select(key => key.Value).ToArray(), "scale");
+
+            void Add(float[] times, Vector3[] values, string path)
+            {
+                if (times.Length == 0 || times.Length != values.Length) return;
+                int input = AddScalarAccessor(binary, views, accessors, times);
+                int output = AddVector3Accessor(binary, views, accessors, values, false, 34962);
+                int sampler = samplers.Count;
+                samplers.Add(new { input, output, interpolation = "LINEAR" });
+                channels.Add(new { sampler, target = new { node, path } });
+            }
+            void Add4(float[] times, Vector4[] values, string path)
+            {
+                if (times.Length == 0 || times.Length != values.Length) return;
+                int input = AddScalarAccessor(binary, views, accessors, times);
+                int output = AddVector4Accessor(binary, views, accessors, values, 34962);
+                int sampler = samplers.Count;
+                samplers.Add(new { input, output, interpolation = "LINEAR" });
+                channels.Add(new { sampler, target = new { node, path } });
+            }
+        }
+        return new { name = CleanName(animation.Name, "animation"), samplers, channels };
+    }
+
+    private static int AddScalarAccessor(
+        MemoryStream binary, List<object> views, List<object> accessors, float[] values)
+    {
+        byte[] bytes = new byte[checked(values.Length * 4)];
+        for (int i = 0; i < values.Length; i++) WriteSingle(bytes, i * 4, values[i]);
+        int view = AddBytes(binary, views, bytes, null);
+        int result = accessors.Count;
+        accessors.Add(new
+        {
+            bufferView = view, componentType = 5126, count = values.Length, type = "SCALAR",
+            min = new[] { values.Min() }, max = new[] { values.Max() }
+        });
+        return result;
+    }
+
+    private static int AddMatrix4Accessor(
+        MemoryStream binary, List<object> views, List<object> accessors, Matrix4x4[] values)
+    {
+        byte[] bytes = new byte[checked(values.Length * 64)];
+        for (int i = 0; i < values.Length; i++)
+        {
+            float[] matrix = ToArray(values[i]);
+            for (int component = 0; component < 16; component++)
+                WriteSingle(bytes, i * 64 + component * 4, matrix[component]);
+        }
+        int view = AddBytes(binary, views, bytes, null);
+        int result = accessors.Count;
+        accessors.Add(new { bufferView = view, componentType = 5126, count = values.Length, type = "MAT4" });
+        return result;
+    }
+
+    private static int AddJointAccessor(
+        MemoryStream binary, List<object> views, List<object> accessors,
+        Vector4[] values, int target)
+    {
+        byte[] bytes = new byte[checked(values.Length * 8)];
+        for (int i = 0; i < values.Length; i++)
+        {
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes.AsSpan(i * 8), checked((ushort)values[i].X));
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes.AsSpan(i * 8 + 2), checked((ushort)values[i].Y));
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes.AsSpan(i * 8 + 4), checked((ushort)values[i].Z));
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes.AsSpan(i * 8 + 6), checked((ushort)values[i].W));
+        }
+        int view = AddBytes(binary, views, bytes, target);
+        int result = accessors.Count;
+        accessors.Add(new { bufferView = view, componentType = 5123, count = values.Length, type = "VEC4" });
+        return result;
     }
 
     private static int AddVector3Accessor(
@@ -238,6 +399,13 @@ public static class GlbExporter
     private static float[] ToArray(Vector2 value) => [value.X, value.Y];
     private static float[] ToArray(Vector3 value) => [value.X, value.Y, value.Z];
     private static float[] ToArray(Vector4 value) => [value.X, value.Y, value.Z, value.W];
+    private static float[] ToArray(Matrix4x4 value) =>
+    [
+        value.M11, value.M12, value.M13, value.M14,
+        value.M21, value.M22, value.M23, value.M24,
+        value.M31, value.M32, value.M33, value.M34,
+        value.M41, value.M42, value.M43, value.M44
+    ];
 
     private static string CleanName(string value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value.Replace('\0', '_');
