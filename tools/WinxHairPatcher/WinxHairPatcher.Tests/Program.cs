@@ -29,12 +29,24 @@ Check(patchedState.DisabledMask == requested, "fashion mask round-trips");
 Check(patched.Length == original.Length, "patch preserves executable size");
 Check(!patched.SequenceEqual(original), "patch changes executable bytes");
 
+byte[] shifted = new byte[original.Length + 257];
+original.CopyTo(shifted, 257);
+Check(WinxExeHairPatcher.Inspect(shifted).IsSupported,
+    "signature scan does not depend on fixed file offsets");
+Check(WinxExeHairPatcher.Inspect(WinxExeHairPatcher.PatchBytes(shifted, requested)).DisabledMask == requested,
+    "shifted signatures are patched at their discovered offsets");
+
 ushort secondMask = (ushort)(requested | (1 << 2));
 byte[] repatched = WinxExeHairPatcher.PatchBytes(patched, secondMask);
 Check(WinxExeHairPatcher.Inspect(repatched).DisabledMask == secondMask, "compatible patch can be updated");
 
 byte[] corrupted = original.ToArray();
-corrupted[0x000E7D97] ^= 1;
+ReadOnlySpan<byte> attachmentSignature = Convert.FromHexString("8B83E806000083F805747D83F8017478");
+int attachmentOffset = corrupted.AsSpan().IndexOf(attachmentSignature);
+if (attachmentOffset < 0)
+    attachmentOffset = corrupted.AsSpan().IndexOf(Convert.FromHexString("8B83E8060000BA"));
+Check(attachmentOffset >= 0, "attachment signature is located for corruption test");
+corrupted[attachmentOffset] ^= 1;
 Check(!WinxExeHairPatcher.Inspect(corrupted).IsSupported, "unknown code signature is rejected");
 
 Console.WriteLine($"PASS: {checks} assertions; mask=0x{requested:X4}; bytes={original.Length}");

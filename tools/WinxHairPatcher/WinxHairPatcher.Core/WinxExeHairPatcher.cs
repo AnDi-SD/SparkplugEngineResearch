@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.Security.Cryptography;
 
 namespace WinxHairPatcher.Core;
 
@@ -9,7 +8,6 @@ public sealed record WinxExePatchResult(string ExePath, string BackupPath, ushor
 
 public static class WinxExeHairPatcher
 {
-    public const string SupportedOriginalMd5 = "3BBB8D47516CA7F7D7DCB8F5067380F5";
     public const ushort OriginalDisabledMask = 1 << 5;
     public const ushort OriginalControlSkipMask = (1 << 1) | (1 << 5);
 
@@ -34,17 +32,19 @@ public static class WinxExeHairPatcher
     ];
 
     private sealed record Site(
-        int Offset, byte[] Original, Func<ushort, byte[]> Patched, int MaskOffset, bool IsSetupGate);
+        string Name, byte[] Original, Func<ushort, byte[]> Patched, int MaskOffset, bool IsSetupGate);
+
+    private sealed record LocatedSite(Site Site, int Offset, bool IsOriginal, ushort Mask);
 
     private static readonly Site[] Sites =
     [
-        new(0x000E7D97,
+        new("attachment lookup",
             Hex("8B83E806000083F805747D83F8017478"),
             mask => Build("8B83E8060000BA000000000FA3C27278", 7, mask), 7, false),
-        new(0x000E7E1F,
+        new("hair setup gate",
             Hex("BFE4596F00B90F00000033C0F3A65F5E74078BCBE868BFFFFF"),
             mask => Build("8B83E8060000BA000000000FA3C25F5E72078BCBE868BFFFFF", 7, mask), 7, true),
-        new(0x000E5A94,
+        new("runtime update",
             Hex("8B86E806000083F8050F84EC09000083F8010F84E3090000"),
             mask => Build("8B86E8060000BA000000000FA3C20F82E709000090909090", 7, mask), 7, false)
     ];
@@ -53,30 +53,31 @@ public static class WinxExeHairPatcher
 
     public static WinxExePatchState Inspect(ReadOnlySpan<byte> data)
     {
-        bool originalSites = true;
+        var located = new List<LocatedSite>(Sites.Length);
         foreach (Site site in Sites)
         {
-            if (data.Length < site.Offset + site.Original.Length)
-                return new(false, false, 0, "Файл слишком мал для поддерживаемой версии WinxClub.exe.");
-            if (!data.Slice(site.Offset, site.Original.Length).SequenceEqual(site.Original))
-                originalSites = false;
+            IReadOnlyList<LocatedSite> matches = FindMatches(data, site);
+            if (matches.Count != 1)
+                return new(false, false, 0, matches.Count == 0
+                    ? $"Не найден однозначный блок {site.Name}."
+                    : $"Блок {site.Name} найден несколько раз; автоматический патч небезопасен.");
+            located.Add(matches[0]);
         }
-        string md5 = Convert.ToHexString(MD5.HashData(data));
-        if (originalSites && md5 == SupportedOriginalMd5)
-            return new(true, true, OriginalDisabledMask, "Поддерживаемый оригинальный WinxClub.exe.");
+
+        if (located.All(match => match.IsOriginal))
+            return new(true, true, OriginalDisabledMask,
+                "Найдены все три оригинальные hair-сигнатуры WinxClub.exe.");
+        if (located.Any(match => match.IsOriginal))
+            return new(false, false, 0, "Найден частично применённый или несовместимый hair-патч.");
 
         ushort? setupMask = null;
         ushort? controlMask = null;
-        foreach (Site site in Sites)
+        foreach (LocatedSite match in located)
         {
-            byte[] candidate = site.Patched(0);
-            ReadOnlySpan<byte> actual = data.Slice(site.Offset, candidate.Length);
-            ushort siteMask = BinaryPrimitives.ReadUInt16LittleEndian(actual.Slice(site.MaskOffset, 2));
-            byte[] expected = site.Patched(siteMask);
-            ushort? previous = site.IsSetupGate ? setupMask : controlMask;
-            if (!actual.SequenceEqual(expected) || (previous.HasValue && previous.Value != siteMask))
+            ushort? previous = match.Site.IsSetupGate ? setupMask : controlMask;
+            if (previous.HasValue && previous.Value != match.Mask)
                 return new(false, false, 0, "Сигнатуры не совпадают: другая версия EXE или посторонний патч.");
-            if (site.IsSetupGate) setupMask = siteMask; else controlMask = siteMask;
+            if (match.Site.IsSetupGate) setupMask = match.Mask; else controlMask = match.Mask;
         }
         if (!setupMask.HasValue || !controlMask.HasValue ||
             controlMask.Value != (ushort)(setupMask.Value | OriginalControlSkipMask))
@@ -92,7 +93,10 @@ public static class WinxExeHairPatcher
         ushort controlSkipMask = (ushort)(disabledMask | OriginalControlSkipMask);
         byte[] result = source.ToArray();
         foreach (Site site in Sites)
-            site.Patched(site.IsSetupGate ? disabledMask : controlSkipMask).CopyTo(result, site.Offset);
+        {
+            LocatedSite match = FindMatches(source, site).Single();
+            site.Patched(site.IsSetupGate ? disabledMask : controlSkipMask).CopyTo(result, match.Offset);
+        }
         WinxExePatchState verified = Inspect(result);
         if (!verified.IsSupported || verified.DisabledMask != disabledMask)
             throw new InvalidDataException("Проверка записанного патча завершилась неудачно.");
@@ -121,4 +125,39 @@ public static class WinxExeHairPatcher
     }
 
     private static byte[] Hex(string value) => Convert.FromHexString(value);
+
+    private static IReadOnlyList<LocatedSite> FindMatches(ReadOnlySpan<byte> data, Site site)
+    {
+        var matches = new List<LocatedSite>();
+        int searchStart = 0;
+        while (searchStart <= data.Length - site.Original.Length)
+        {
+            int relative = data[searchStart..].IndexOf(site.Original);
+            if (relative < 0) break;
+            int offset = searchStart + relative;
+            matches.Add(new(site, offset, true, 0));
+            searchStart = offset + 1;
+        }
+
+        byte[] patchedZero = site.Patched(0);
+        ReadOnlySpan<byte> patchedPrefix = patchedZero.AsSpan(0, site.MaskOffset);
+        searchStart = 0;
+        while (searchStart <= data.Length - patchedZero.Length)
+        {
+            int relative = data[searchStart..].IndexOf(patchedPrefix);
+            if (relative < 0) break;
+            int offset = searchStart + relative;
+            if (offset <= data.Length - patchedZero.Length)
+            {
+                ReadOnlySpan<byte> candidate = data.Slice(offset, patchedZero.Length);
+                if (candidate[(site.MaskOffset + 2)..].SequenceEqual(patchedZero.AsSpan(site.MaskOffset + 2)))
+                {
+                    ushort mask = BinaryPrimitives.ReadUInt16LittleEndian(candidate.Slice(site.MaskOffset, 2));
+                    matches.Add(new(site, offset, false, mask));
+                }
+            }
+            searchStart = offset + 1;
+        }
+        return matches;
+    }
 }
