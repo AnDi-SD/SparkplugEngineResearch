@@ -1,5 +1,10 @@
 <Solution>
   <Folder Name="/Tools/" />
+  <Folder Name="/Tools/WinxHairPatcher/">
+    <Project Path="tools/WinxHairPatcher/WinxHairPatcher.Core/WinxHairPatcher.Core.csproj" />
+    <Project Path="tools/WinxHairPatcher/WinxHairPatcher.Gui/WinxHairPatcher.Gui.csproj" />
+    <Project Path="tools/WinxHairPatcher/WinxHairPatcher.Tests/WinxHairPatcher.Tests.csproj" />
+  </Folder>
   <Folder Name="/Tools/SmoExporter/">
     <Project Path="tools/SmoExporter/SmoExporter.Core/SmoExporter.Core.csproj" />
     <Project Path="tools/SmoExporter/SmoExporter.Cli/SmoExporter.Cli.csproj" />

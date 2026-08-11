@@ -18,6 +18,7 @@ SMO — не просто упаковка одной геометрии. Это
 | [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; writer/repack отключены как несовместимые с игрой |
 | [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в самодостаточный GLB для Blender и OBJ/MTL/PNG для совместимости |
 | [`tools/SmoImporter`](tools/SmoImporter) | Подмена совместимого mesh и экспериментальный whole-model repack OBJ/GLB по существующим SMO slots |
+| [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Экспериментальный патчер `WinxClub.exe` для управления внешними волосами fashion-моделей Bloom |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
