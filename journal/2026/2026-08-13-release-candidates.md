@@ -35,11 +35,11 @@
 
 | Архив | Размер, байт | SHA-256 |
 | --- | ---: | --- |
-| `SmoViewer-0.3.1-suite-win-x64.zip` | 1 629 931 | `6F150F7A571BEDC744B75B4E921AD13859A0CB2322630C5A6B72799CE773BC30` |
-| `SmoExporter-0.2.1-win-x64.zip` | 239 517 | `5BAF212563B495E808E4924A3412E6E04A0E6CE2F8E1D0D4EA01F7E7B73AA071` |
-| `SmoImporter-0.2.0-win-x64.zip` | 1 125 953 | `B1EF93DC97BACF94FF4F83A4CE0E644C444E8E806018904D290BE2D3CAA1AB26` |
-| `WinxHairPatcher-0.1.2-win-x64.zip` | 116 987 | `975F6F968B07B78F888CBE796A06BFDD04A5641327E7591BDE4435CD2DB114E6` |
-| `SMOTextureTool-2.0.1-win-x64.zip` | 12 779 207 | `E597D1C5291661FD03E0A1F9332F9ADEA023B75C0910848184B1333287167674` |
+| `SmoViewer-0.3.1-suite-win-x64.zip` | 1 629 870 | `2ACB092A00D69AB3468B6863AC81DEB0D0A41AC888698DE2753667A94D15822C` |
+| `SmoExporter-0.2.1-win-x64.zip` | 239 468 | `CE806814051AC4111F29A4DCAF90712F3104398331FB05C39FE5A09E81187E1C` |
+| `SmoImporter-0.2.0-win-x64.zip` | 1 126 017 | `BF116B06A7C4364B3C687487B8B58C15109C46DA16B7F53B2E6A092AAFDCE712` |
+| `WinxHairPatcher-0.1.2-win-x64.zip` | 116 930 | `15007C06884B97D8E01749497E20A4984E94DDF51578E9FDB0A0F401D4B4E242` |
+| `SMOTextureTool-2.0.1-win-x64.zip` | 12 779 123 | `590E911848D5CA339A8635C2E862F23347CCF1B3154F66EDC5885EFCEF3E7399` |
 
 Контрольные суммы также записаны в
 `artifacts/release/current/SHA256SUMS.txt`.
@@ -71,4 +71,6 @@
 - запуск Exporter и Importer из Viewer suite;
 - игровой тест результата FBX-импорта и остальных рискованных вариантов замены.
 
-Архивы имеют статус release candidate. Они не загружались и не публиковались.
+После ручной проверки пользователь подтвердил работоспособность набора и одобрил
+его публикацию. Перед загрузкой внутренние release notes переведены из статуса
+release candidate в финальный.
