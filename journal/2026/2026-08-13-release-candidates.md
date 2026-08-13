@@ -74,3 +74,22 @@
 После ручной проверки пользователь подтвердил работоспособность набора и одобрил
 его публикацию. Перед загрузкой внутренние release notes переведены из статуса
 release candidate в финальный.
+
+## Публикация
+
+13 августа 2026 года финальные архивы опубликованы в GitHub Releases:
+
+- [SmoViewer 0.3.1](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.3.1),
+  source commit `a0fc395ef46022fc46e2c358d8196b8a1f3973c1`;
+- [SmoExporter 0.2.1](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.2.1),
+  source commit `1d23db4b08ed1b178a89b2697b582ed099ef8beb`;
+- [SmoImporter 0.2.0](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.2.0),
+  source commit `1d23db4b08ed1b178a89b2697b582ed099ef8beb`;
+- [Winx Hair Patcher 0.1.2](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/v0.1.2),
+  source commit `1d23db4b08ed1b178a89b2697b582ed099ef8beb`;
+- [SMO Texture Tool 2.0.1](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.0.1),
+  source commit `af74a4caf48d8f5cfb68aac4328fa66a0dd33931`.
+
+К каждому релизу прикреплены соответствующий ZIP и `SHA256SUMS.txt`. После
+загрузки GitHub подтвердил состояние `uploaded`; опубликованные SHA-256 совпали
+с локальным контрольным манифестом.
