@@ -24,6 +24,8 @@ public static class GlbExporter
         var gltfSkins = new List<object>();
         var gltfAnimations = new List<object>();
         var textureIndices = new Dictionary<int, int>();
+        var nodeObjects = new Dictionary<int, Dictionary<string, object>>();
+        var nodeChildren = new Dictionary<int, List<int>>();
         Dictionary<int, int> nodeIndices = scene.Nodes
             .Select((node, index) => (node.ObjectIndex, index))
             .ToDictionary(item => item.ObjectIndex, item => item.index);
@@ -46,9 +48,15 @@ public static class GlbExporter
                 ["scale"] = new[] { scale.X, scale.Y, scale.Z },
                 ["extras"] = new { sparkplugObjectIndex = node.ObjectIndex }
             };
-            if (children.TryGetValue(node.ObjectIndex, out int[]? nodeChildren))
-                value["children"] = nodeChildren.Where(nodeIndices.ContainsKey)
-                    .Select(index => nodeIndices[index]).ToArray();
+            List<int> gltfChildren = children.TryGetValue(
+                    node.ObjectIndex, out int[]? sourceChildren)
+                ? sourceChildren.Where(nodeIndices.ContainsKey)
+                    .Select(index => nodeIndices[index]).ToList()
+                : [];
+            if (gltfChildren.Count > 0)
+                value["children"] = gltfChildren;
+            nodeObjects[node.ObjectIndex] = value;
+            nodeChildren[node.ObjectIndex] = gltfChildren;
             nodes.Add(value);
         }
         Dictionary<int, int> skinIndices = new();
@@ -66,6 +74,27 @@ public static class GlbExporter
                 inverseBindMatrices = inverseBindAccessor,
                 skeleton = joints.FirstOrDefault()
             });
+        }
+
+        int? AddTexture(SmoExportTexture? texture)
+        {
+            if (texture is null)
+                return null;
+            if (textureIndices.TryGetValue(texture.ObjectIndex, out int existing))
+                return existing;
+
+            int imageView = AddBytes(binary, views, texture.PngBytes, null);
+            int imageIndex = images.Count;
+            images.Add(new
+            {
+                name = CleanName(texture.Name, $"texture_{texture.ObjectIndex}"),
+                mimeType = "image/png",
+                bufferView = imageView
+            });
+            existing = textures.Count;
+            textures.Add(new { source = imageIndex });
+            textureIndices[texture.ObjectIndex] = existing;
+            return existing;
         }
 
         foreach (SmoExportMesh mesh in scene.Meshes)
@@ -96,25 +125,8 @@ public static class GlbExporter
 
             int indexAccessor = AddIndicesAccessor(
                 binary, views, accessors, mesh.TriangleIndices);
-            int? textureIndex = null;
-            if (mesh.Texture is not null)
-            {
-                if (!textureIndices.TryGetValue(mesh.Texture.ObjectIndex, out int existing))
-                {
-                    int imageView = AddBytes(binary, views, mesh.Texture.PngBytes, null);
-                    int imageIndex = images.Count;
-                    images.Add(new
-                    {
-                        name = CleanName(mesh.Texture.Name, $"texture_{mesh.Texture.ObjectIndex}"),
-                        mimeType = "image/png",
-                        bufferView = imageView
-                    });
-                    existing = textures.Count;
-                    textures.Add(new { source = imageIndex });
-                    textureIndices[mesh.Texture.ObjectIndex] = existing;
-                }
-                textureIndex = existing;
-            }
+            int? textureIndex = AddTexture(mesh.Texture);
+            int? effectTextureIndex = AddTexture(mesh.EffectTexture);
 
             int materialIndex = materials.Count;
             var pbr = new Dictionary<string, object>
@@ -125,12 +137,24 @@ public static class GlbExporter
             };
             if (textureIndex.HasValue)
                 pbr["baseColorTexture"] = new { index = textureIndex.Value };
-            materials.Add(new
+            var gltfMaterial = new Dictionary<string, object>
             {
-                name = CleanName(mesh.Name, $"material_{mesh.ObjectIndex}"),
-                pbrMetallicRoughness = pbr,
-                doubleSided = true
-            });
+                ["name"] = CleanName(mesh.Name, $"material_{mesh.ObjectIndex}"),
+                ["pbrMetallicRoughness"] = pbr,
+                ["doubleSided"] = true
+            };
+            if (mesh.UsesAlphaBlend)
+                gltfMaterial["alphaMode"] = "BLEND";
+            if (effectTextureIndex.HasValue)
+            {
+                gltfMaterial["emissiveTexture"] = new
+                {
+                    index = effectTextureIndex.Value,
+                    texCoord = 1
+                };
+                gltfMaterial["emissiveFactor"] = new[] { 1f, 1f, 1f };
+            }
+            materials.Add(gltfMaterial);
 
             var primitive = new Dictionary<string, object>
             {
@@ -159,10 +183,32 @@ public static class GlbExporter
                 ["name"] = CleanName(mesh.Name, $"node_{mesh.ObjectIndex}"),
                 ["mesh"] = gltfMeshes.Count - 1
             };
+            if (!Matrix4x4.Decompose(mesh.BindLocalMatrix,
+                    out Vector3 meshScale,
+                    out Quaternion meshRotation,
+                    out Vector3 meshTranslation))
+            {
+                throw new InvalidDataException(
+                    $"Mesh node {mesh.ObjectIndex} ({mesh.Name}) has a " +
+                    "non-decomposable bind transform.");
+            }
+            meshNode["translation"] = new[]
+                { meshTranslation.X, meshTranslation.Y, meshTranslation.Z };
+            meshNode["rotation"] = new[]
+                { meshRotation.X, meshRotation.Y, meshRotation.Z, meshRotation.W };
+            meshNode["scale"] = new[] { meshScale.X, meshScale.Y, meshScale.Z };
             if (mesh.SkinObjectIndex is int skinObjectIndex &&
                 skinIndices.TryGetValue(skinObjectIndex, out int gltfSkinIndex))
                 meshNode["skin"] = gltfSkinIndex;
+            int meshNodeIndex = nodes.Count;
             nodes.Add(meshNode);
+            if (mesh.ParentNodeObjectIndex is int parentObjectIndex &&
+                nodeObjects.TryGetValue(parentObjectIndex, out Dictionary<string, object>? parentNode))
+            {
+                List<int> parentChildren = nodeChildren[parentObjectIndex];
+                parentChildren.Add(meshNodeIndex);
+                parentNode["children"] = parentChildren;
+            }
         }
 
         foreach (SmoExportAnimation animation in scene.Animations)
@@ -174,7 +220,7 @@ public static class GlbExporter
         {
             asset = new { version = "2.0", generator = "Sparkplug SmoExporter" },
             scene = 0,
-            scenes = new[] { new { name = Path.GetFileNameWithoutExtension(scene.SourcePath), nodes = GetSceneRoots(scene, nodeIndices, nodes.Count).ToArray() } },
+            scenes = new[] { new { name = Path.GetFileNameWithoutExtension(scene.SourcePath), nodes = GetSceneRoots(scene, nodeIndices).ToArray() } },
             nodes,
             meshes = gltfMeshes,
             skins = gltfSkins,
@@ -213,13 +259,17 @@ public static class GlbExporter
     }
 
     private static IEnumerable<int> GetSceneRoots(
-        SmoExportScene scene, IReadOnlyDictionary<int, int> nodeIndices, int totalNodeCount)
+        SmoExportScene scene, IReadOnlyDictionary<int, int> nodeIndices)
     {
         foreach (SmoExportNode node in scene.Nodes)
             if (node.ParentObjectIndex is not int parent || !nodeIndices.ContainsKey(parent))
                 yield return nodeIndices[node.ObjectIndex];
-        for (int index = scene.Nodes.Count; index < totalNodeCount; index++)
-            yield return index;
+        for (int meshIndex = 0; meshIndex < scene.Meshes.Count; meshIndex++)
+        {
+            int? parent = scene.Meshes[meshIndex].ParentNodeObjectIndex;
+            if (parent is null || !nodeIndices.ContainsKey(parent.Value))
+                yield return scene.Nodes.Count + meshIndex;
+        }
     }
 
     private static object BuildAnimation(

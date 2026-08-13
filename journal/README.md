@@ -6,6 +6,9 @@
 
 ### 2026
 
+- [2026-08-13 — подготовка release candidate набора](2026/2026-08-13-release-candidates.md)
+- [2026-08-13 — SmoImporter: visual transplant SMO → SMO](2026/2026-08-13-smo-importer-smo-replacement.md)
+- [2026-08-13 — материалы персонажей и синхронизация Exporter](2026/2026-08-13-smoviewer-materials-and-export-sync.md)
 - [2026-08-12 — релизы SmoViewer 0.3, SmoExporter 0.2 и SmoImporter 0.1.1](2026/2026-08-12-tool-releases.md)
 - [2026-08-11 — rigged GLB/FBX и SAN в SmoExporter](2026/2026-08-11-smo-exporter-rigged-fbx.md)
 - [2026-08-11 — SAN/ANM и проигрывание анимаций в SmoViewer](2026/2026-08-11-smoviewer-animation-ui.md)

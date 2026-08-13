@@ -104,3 +104,13 @@
 - [x] Подтвердить в игре полную замену RGB атласа `256×256` при побайтовом сохранении Alpha, headers, offsets и размера файла.
 - [x] Восстановить texture writer в GUI только в подтверждённом fixed-size RGB режиме; resize/repack `SMOTextureTool` не использовать.
 - [x] Добавить замену встроенной текстуры из GLB/PNG с проверкой ABGR layout и fixed-size записью только RGB.
+- [x] Добавить SMO → SMO visual transplant: сохранить служебный object graph/materials/collision target, заменить meshes и textures данными донора и пересчитать FFPS offsets/sizes.
+- [x] Разрешить различающееся число SMO meshes/palettes: перераспределять donor triangles по доступным 16-bone target slots и безопасно гасить лишние slots.
+- [x] Добавить отчёт bone mapping и безопасный fallback дополнительных donor bones на shared ancestor/bind-nearest bone; отдельно предупреждать о target bones без donor weights.
+- [x] Сравнивать deform hierarchy по ближайшим weighted parents, отдельно показывая обойдённые helper/control paths.
+- [x] Конвертировать подтверждённые skinned vertex layouts при SMO-трансплантации, включая генерацию normals для `0x093E → 0x097E`.
+- [x] Проверять для SMO-донора platform/serializer, точные bone names и hierarchy; различие bind pose показывать как предупреждение.
+- [x] Отключать в GUI подгонку, rigid bone, atlas replacement и повторную нарезку при выборе SMO-донора.
+- [x] Импортировать подготовленный GLB/FBX skin по точным bone names и bind pose с пересборкой 16-bone palettes; FBX конвертировать через Blender в общий GLB pipeline.
+- [x] Изолированным игровым тестом подтвердить, что внешний Alpha в fixed-size ABGR вызывает crash; production writer сохраняет Alpha target и меняет только RGB.
+- [ ] Добавить редактор соответствий и контролируемую генерацию weights для модели без костей или с неверным skeleton.

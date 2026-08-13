@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace SmoExporter.Core;
 
@@ -81,17 +82,161 @@ public static class FbxExporter
         }
     }
 
-    public static string? FindBlenderExecutable()
+    /// <summary>
+    /// Resolves either a direct blender.exe path or a Blender installation
+    /// directory. Environment variables and surrounding quotes are accepted.
+    /// </summary>
+    public static string? ResolveBlenderExecutable(string? path)
     {
-        string? path = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator)
-            .Select(directory => Path.Combine(directory, "blender.exe"))
-            .FirstOrDefault(File.Exists);
-        if (path is not null) return path;
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+
+        string candidate = Environment.ExpandEnvironmentVariables(path.Trim().Trim('"'));
+        int executableEnd = candidate.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+        if (executableEnd >= 0)
+            candidate = candidate[..(executableEnd + 4)];
+
+        try
+        {
+            if (Directory.Exists(candidate))
+                candidate = Path.Combine(candidate, "blender.exe");
+            if (!File.Exists(candidate) ||
+                !Path.GetFileName(candidate).Equals("blender.exe", StringComparison.OrdinalIgnoreCase))
+                return null;
+            return Path.GetFullPath(candidate);
+        }
+        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return null;
+        }
+    }
+
+    public static string? FindBlenderExecutable(string? preferredPath = null)
+    {
+        string? resolved = ResolveBlenderExecutable(preferredPath);
+        if (resolved is not null)
+            return resolved;
+
+        resolved = ResolveBlenderExecutable(Environment.GetEnvironmentVariable("BLENDER_PATH"));
+        if (resolved is not null)
+            return resolved;
+
+        foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+                     .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            resolved = ResolveBlenderExecutable(directory);
+            if (resolved is not null)
+                return resolved;
+        }
+
+        foreach (string candidate in EnumerateRegistryCandidates())
+        {
+            resolved = ResolveBlenderExecutable(candidate);
+            if (resolved is not null)
+                return resolved;
+        }
+
+        var discovered = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string root in GetCommonInstallationRoots())
+        {
+            if (!Directory.Exists(root))
+                continue;
+            try
+            {
+                foreach (string candidate in Directory.EnumerateFiles(
+                             root, "blender.exe", SearchOption.AllDirectories))
+                    discovered.Add(Path.GetFullPath(candidate));
+            }
+            catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+            {
+                // One inaccessible installation root must not disable FBX when
+                // another valid Blender installation is available.
+            }
+        }
+
+        return discovered
+            .OrderByDescending(GetBlenderVersion)
+            .ThenByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+    }
+
+    private static IEnumerable<string> GetCommonInstallationRoots()
+    {
         string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        string root = Path.Combine(programFiles, "Blender Foundation");
-        if (!Directory.Exists(root)) return null;
-        return Directory.EnumerateFiles(root, "blender.exe", SearchOption.AllDirectories)
-            .OrderByDescending(value => value, StringComparer.OrdinalIgnoreCase).FirstOrDefault();
+        string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        string localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (!string.IsNullOrWhiteSpace(programFiles))
+            yield return Path.Combine(programFiles, "Blender Foundation");
+        if (!string.IsNullOrWhiteSpace(programFilesX86))
+            yield return Path.Combine(programFilesX86, "Blender Foundation");
+        if (!string.IsNullOrWhiteSpace(localApplicationData))
+        {
+            yield return Path.Combine(localApplicationData, "Programs", "Blender Foundation");
+            yield return Path.Combine(localApplicationData, "Programs", "Blender");
+        }
+    }
+
+    private static IReadOnlyList<string> EnumerateRegistryCandidates()
+    {
+        if (!OperatingSystem.IsWindows())
+            return [];
+
+        var candidates = new List<string>();
+        foreach (RegistryHive hive in new[] { RegistryHive.CurrentUser, RegistryHive.LocalMachine })
+        foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        {
+            try
+            {
+                using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, view);
+                using (RegistryKey? appPath = baseKey.OpenSubKey(
+                           @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe"))
+                {
+                    AddRegistryValue(candidates, appPath?.GetValue(null));
+                    AddRegistryValue(candidates, appPath?.GetValue("Path"));
+                }
+
+                using RegistryKey? uninstall = baseKey.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                if (uninstall is null)
+                    continue;
+                foreach (string subKeyName in uninstall.GetSubKeyNames())
+                {
+                    using RegistryKey? application = uninstall.OpenSubKey(subKeyName);
+                    string? displayName = application?.GetValue("DisplayName") as string;
+                    if (displayName?.StartsWith("Blender", StringComparison.OrdinalIgnoreCase) != true)
+                        continue;
+                    AddRegistryValue(candidates, application?.GetValue("InstallLocation"));
+                    AddRegistryValue(candidates, application?.GetValue("DisplayIcon"));
+                }
+            }
+            catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+            {
+                // Registry discovery is best-effort; PATH and manual selection
+                // remain available on restricted systems.
+            }
+        }
+        return candidates;
+    }
+
+    private static void AddRegistryValue(ICollection<string> candidates, object? value)
+    {
+        if (value is string text && !string.IsNullOrWhiteSpace(text))
+            candidates.Add(text);
+    }
+
+    private static Version GetBlenderVersion(string path)
+    {
+        try
+        {
+            FileVersionInfo info = FileVersionInfo.GetVersionInfo(path);
+            return new Version(
+                Math.Max(0, info.FileMajorPart), Math.Max(0, info.FileMinorPart),
+                Math.Max(0, info.FileBuildPart), Math.Max(0, info.FilePrivatePart));
+        }
+        catch
+        {
+            return new Version(0, 0);
+        }
     }
 
     private static string PythonString(string value) =>

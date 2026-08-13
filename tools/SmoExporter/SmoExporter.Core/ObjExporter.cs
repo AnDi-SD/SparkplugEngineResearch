@@ -32,12 +32,24 @@ public static class ObjExporter
             obj.AppendLine($"o {name}");
             obj.AppendLine($"g {name}");
             obj.AppendLine($"usemtl {material}");
-            foreach (Vector3 value in mesh.Positions)
+            foreach (Vector3 source in mesh.Positions)
+            {
+                Vector3 value = Vector3.Transform(source, mesh.BindWorldMatrix);
                 obj.AppendLine(FormattableString.Invariant($"v {value.X:R} {value.Y:R} {value.Z:R}"));
+            }
             foreach (Vector2 value in mesh.TextureCoordinates0)
                 obj.AppendLine(FormattableString.Invariant($"vt {value.X:R} {1f - value.Y:R}"));
-            foreach (Vector3 value in mesh.Normals)
-                obj.AppendLine(FormattableString.Invariant($"vn {value.X:R} {value.Y:R} {value.Z:R}"));
+            Matrix4x4 normalMatrix = mesh.BindWorldMatrix;
+            if (Matrix4x4.Invert(mesh.BindWorldMatrix, out Matrix4x4 inverseWorld))
+                normalMatrix = Matrix4x4.Transpose(inverseWorld);
+            foreach (Vector3 source in mesh.Normals)
+            {
+                Vector3 value = Vector3.TransformNormal(source, normalMatrix);
+                if (value.LengthSquared() > 0.000001f)
+                    value = Vector3.Normalize(value);
+                obj.AppendLine(FormattableString.Invariant(
+                    $"vn {value.X:R} {value.Y:R} {value.Z:R}"));
+            }
 
             bool hasUv = mesh.TextureCoordinates0.Length == mesh.Positions.Length;
             bool hasNormals = mesh.Normals.Length == mesh.Positions.Length;
@@ -71,6 +83,8 @@ public static class ObjExporter
                     writtenTextures[mesh.Texture.ObjectIndex] = fileName;
                 }
                 mtl.AppendLine($"map_Kd {fileName}");
+                if (mesh.UsesAlphaBlend)
+                    mtl.AppendLine($"map_d {fileName}");
             }
             mtl.AppendLine();
             vertexBase += mesh.Positions.Length;

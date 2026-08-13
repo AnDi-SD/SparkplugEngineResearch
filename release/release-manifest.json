@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "runtimeIdentifier": "win-x64",
+  "products": [
+    {
+      "id": "SmoViewer",
+      "project": "tools/SmoViewer/SmoViewer/SmoViewer.csproj",
+      "executable": "SmoViewer.exe",
+      "suite": true,
+      "documents": [
+        "tools/SmoViewer/README.md",
+        "tools/SmoViewer/CHANGELOG.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.3.1.md",
+        "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
+        "tools/SmoViewer/LICENSE.txt",
+        "tools/SmoViewer/SUITE_README.md"
+      ],
+      "tools": [
+        {
+          "id": "SmoExporter",
+          "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
+          "executable": "SmoExporter.Gui.exe",
+          "documents": [
+            "tools/SmoExporter/README.md",
+            "tools/SmoExporter/CHANGELOG.md",
+            "tools/SmoExporter/RELEASE_NOTES_0.2.1.md"
+          ]
+        },
+        {
+          "id": "SmoImporter",
+          "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
+          "executable": "SmoImporter.Gui.exe",
+          "documents": [
+            "tools/SmoImporter/README.md",
+            "tools/SmoImporter/CHANGELOG.md",
+            "tools/SmoImporter/RELEASE_NOTES_0.2.0.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SmoExporter",
+      "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
+      "executable": "SmoExporter.Gui.exe",
+      "documents": [
+        "tools/SmoExporter/README.md",
+        "tools/SmoExporter/CHANGELOG.md",
+        "tools/SmoExporter/RELEASE_NOTES_0.2.1.md"
+      ]
+    },
+    {
+      "id": "SmoImporter",
+      "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
+      "executable": "SmoImporter.Gui.exe",
+      "documents": [
+        "tools/SmoImporter/README.md",
+        "tools/SmoImporter/CHANGELOG.md",
+        "tools/SmoImporter/RELEASE_NOTES_0.2.0.md"
+      ]
+    },
+    {
+      "id": "WinxHairPatcher",
+      "project": "tools/WinxHairPatcher/WinxHairPatcher.Gui/WinxHairPatcher.Gui.csproj",
+      "executable": "WinxHairPatcher.Gui.exe",
+      "documents": [
+        "tools/WinxHairPatcher/README.md",
+        "tools/WinxHairPatcher/CHANGELOG.md",
+        "tools/WinxHairPatcher/RELEASE_NOTES_0.1.2.md"
+      ]
+    },
+    {
+      "id": "SMOTextureTool",
+      "project": "tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj",
+      "executable": "SMOTextureTool.exe",
+      "documents": [
+        "tools/SMOTextureTool/README.md",
+        "tools/SMOTextureTool/CHANGELOG.md",
+        "tools/SMOTextureTool/RELEASE_NOTES_2.0.1.md",
+        "tools/SMOTextureTool/LICENSE.txt",
+        "tools/SMOTextureTool/COPYRIGHT.txt"
+      ]
+    }
+  ]
+}

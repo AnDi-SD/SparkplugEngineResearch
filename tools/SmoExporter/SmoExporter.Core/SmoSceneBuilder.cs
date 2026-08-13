@@ -18,6 +18,8 @@ public static class SmoSceneBuilder
             SmoTextureBindingResolver.ResolveAll(document);
         IReadOnlyDictionary<int, uint> materialColors =
             SmoMaterialColorResolver.ResolveAll(document);
+        IReadOnlyDictionary<int, uint> materialFlags =
+            SmoMaterialRenderState.ResolveAll(document);
         SmoNodeHierarchy hierarchy = SmoNodeHierarchy.Decode(document);
         IReadOnlyDictionary<int, Matrix4x4> bindWorld =
             SmoSkinBindingResolver.ResolveBindWorldMatrices(document);
@@ -51,23 +53,33 @@ public static class SmoSceneBuilder
             bool exportSkin = mesh.HasSkinningData && skinObjectIndex is int skinIndex &&
                               decodedSkins.ContainsKey(skinIndex);
 
-            Matrix4x4 world = options.ApplyWorldTransforms && !exportSkin
-                ? SmoNodeTransformDecoder.ResolveModelWorldMatrix(document, entry)
-                : Matrix4x4.Identity;
-            Matrix4x4 normalMatrix = world;
-            if (Matrix4x4.Invert(world, out Matrix4x4 inverse))
-                normalMatrix = Matrix4x4.Transpose(inverse);
+            int? parentNodeObjectIndex = null;
+            Matrix4x4 world = Matrix4x4.Identity;
+            Matrix4x4 local = Matrix4x4.Identity;
+            if (options.ApplyWorldTransforms && !exportSkin)
+            {
+                world = SmoNodeTransformDecoder.ResolveModelWorldMatrix(document, entry);
+                int? rigidNodeObjectIndex =
+                    SmoRigidBindingResolver.ResolveAnimationNodeObjectIndex(document, entry);
+                if (rigidNodeObjectIndex is int rigidIndex &&
+                    nodeWorld.TryGetValue(rigidIndex, out Matrix4x4 parentWorld) &&
+                    Matrix4x4.Invert(parentWorld, out Matrix4x4 inverseParent))
+                {
+                    parentNodeObjectIndex = rigidIndex;
+                    local = world * inverseParent;
+                }
+                else
+                {
+                    local = world;
+                }
+            }
 
             Vector3[] positions = mesh.Positions.Select(value =>
-            {
-                Vector3 transformed = Vector3.Transform(value, world);
-                return new Vector3(transformed.X, transformed.Y, -transformed.Z);
-            }).ToArray();
+                new Vector3(value.X, value.Y, -value.Z)).ToArray();
             Vector3[] normals = mesh.HasNormals
                 ? mesh.Normals.Select(value =>
                 {
-                    Vector3 transformed = Vector3.TransformNormal(value, normalMatrix);
-                    transformed.Z = -transformed.Z;
+                    Vector3 transformed = new(value.X, value.Y, -value.Z);
                     return transformed.LengthSquared() > 0.000001f
                         ? Vector3.Normalize(transformed)
                         : Vector3.UnitY;
@@ -79,8 +91,12 @@ public static class SmoSceneBuilder
                     (triangles[index + 2], triangles[index + 1]);
 
             SmoExportTexture? texture = null;
+            SmoExportTexture? effectTexture = null;
+            bool usesAlphaBlend = materialFlags.TryGetValue(entry.Index, out uint flags) &&
+                SmoMaterialRenderState.UsesAlphaBlend(flags);
             if (textures.TryGetValue(entry.Index, out SmoTextureBinding? binding))
             {
+                usesAlphaBlend |= binding.UsesAlphaBlend;
                 if (binding.Issue is not null)
                     warnings.Add(binding.Issue);
                 else if (binding.Texture is not null)
@@ -93,17 +109,40 @@ public static class SmoSceneBuilder
                         source.Height,
                         PngEncoder.EncodeBgra32(
                             source.Width, source.Height, source.Bgra32Pixels.Span));
+                    if (binding.BaseTexture is not null)
+                    {
+                        SmoTexture effect = binding.Texture;
+                        effectTexture = new SmoExportTexture(
+                            effect.ObjectIndex,
+                            effect.Name,
+                            effect.Width,
+                            effect.Height,
+                            PngEncoder.EncodeBgra32(
+                                effect.Width, effect.Height, effect.Bgra32Pixels.Span));
+                        if (binding.AnimationFrames is { Count: > 1 })
+                        {
+                            warnings.Add(
+                                $"ANIMATED_TEXTURE_FIRST_FRAME_ONLY: Mesh [{entry.Index}] " +
+                                $"\"{entry.Name}\" exports the first of " +
+                                $"{binding.AnimationFrames.Count} material frames.");
+                        }
+                    }
                 }
             }
 
             Vector4 materialColor = materialColors.TryGetValue(entry.Index, out uint argb)
                 ? DecodeArgb(argb)
                 : Vector4.One;
+            bool hasUniformDiffuse = mesh.HasDiffuseColors &&
+                mesh.DiffuseColorsArgb.Skip(1)
+                    .All(color => color == mesh.DiffuseColorsArgb[0]);
+            if (texture is null && hasUniformDiffuse)
+                materialColor = DecodeArgb(mesh.DiffuseColorsArgb[0]);
             // Some skinned assets serialize an all-zero diffuse channel as a
             // placeholder. glTF COLOR_0 multiplies baseColorTexture, so exporting
             // that placeholder would turn a valid textured model completely black.
             // Keep COLOR_0 only when it carries actual RGB information.
-            bool hasRenderableDiffuse = mesh.HasDiffuseColors &&
+            bool hasRenderableDiffuse = mesh.HasDiffuseColors && !hasUniformDiffuse &&
                 mesh.DiffuseColorsArgb.Any(color => (color & 0x00FFFFFF) != 0);
             Vector4[] colors = hasRenderableDiffuse
                 ? mesh.DiffuseColorsArgb.Select(DecodeArgb).ToArray()
@@ -127,8 +166,13 @@ public static class SmoSceneBuilder
                     value.X, value.Y, value.Z, value.W)).ToArray() : [],
                 triangles,
                 texture,
+                effectTexture,
                 materialColor,
-                exportSkin ? skinObjectIndex : null));
+                usesAlphaBlend,
+                exportSkin ? skinObjectIndex : null,
+                parentNodeObjectIndex,
+                ReflectMatrix(world),
+                ReflectMatrix(local)));
         }
 
         List<SmoExportAnimation> animations = BuildAnimations(options.AnimationPaths, nodes, warnings);
@@ -175,7 +219,8 @@ public static class SmoSceneBuilder
         IReadOnlyDictionary<int, Matrix4x4> worlds)
     {
         List<SmoExportNode> result = [];
-        foreach (SmoObjectEntry entry in document.Objects.Where(item => item.TypeHash == SmoClassIds.Node))
+        foreach (SmoObjectEntry entry in document.Objects.Where(item =>
+                     item.TypeHash is SmoClassIds.Node or SmoClassIds.RenderNode))
         {
             int? parent = GetLogicalParent(entry.Index, document.Objects, hierarchy);
             Matrix4x4 world = worlds.GetValueOrDefault(entry.Index, Matrix4x4.Identity);
@@ -210,7 +255,8 @@ public static class SmoSceneBuilder
             resolving.Remove(index);
             return result[index] = world;
         }
-        foreach (SmoObjectEntry entry in document.Objects.Where(item => item.TypeHash == SmoClassIds.Node))
+        foreach (SmoObjectEntry entry in document.Objects.Where(item =>
+                     item.TypeHash is SmoClassIds.Node or SmoClassIds.RenderNode))
             Resolve(entry.Index);
         return result;
     }

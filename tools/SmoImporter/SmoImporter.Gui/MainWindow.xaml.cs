@@ -24,8 +24,14 @@ public partial class MainWindow : Window
     private string? _sourcePath;
     private SmoDocument? _document;
     private SmoExportScene? _sourceScene;
+    private string? _replacementPath;
     private ImportedScene? _replacementScene;
     private MeshSplitPlan? _plan;
+    private SmoDocument? _replacementSmoDocument;
+    private SmoExportScene? _replacementSmoScene;
+    private SmoToSmoReplacementPlan? _smoReplacementPlan;
+    private GlbSkinTransferPlan? _glbSkinTransferPlan;
+    private string? _blenderPath;
     private string? _texturePath;
     private readonly List<Point3D> _previewBounds = new();
     private Point3D? _selectedBonePosition;
@@ -69,7 +75,12 @@ public partial class MainWindow : Window
                     bone.Slot, bone.ObjectId, $"[{bone.Slot}] {bone.Name}"))
                 .ToArray();
             BoneCombo.SelectedIndex = BoneCombo.Items.Count > 0 ? 0 : -1;
-            StatusText.Text = "Шаблон SMO загружен.";
+            if (_replacementSmoDocument is not null)
+                UpdateSmoReplacementPlan();
+            else if (_replacementScene?.HasSkinning == true)
+                UpdateGlbSkinTransferPlan();
+            else
+                StatusText.Text = "Шаблон SMO загружен.";
             _framePreviewOnRefresh = true;
             RefreshState();
         }
@@ -80,33 +91,343 @@ public partial class MainWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Модель замены (*.glb;*.obj)|*.glb;*.obj|GLB (*.glb)|*.glb|OBJ (*.obj)|*.obj",
+            Filter = "Модель замены (*.smo;*.fbx;*.glb;*.obj)|*.smo;*.fbx;*.glb;*.obj|SMO (*.smo)|*.smo|FBX (*.fbx)|*.fbx|GLB (*.glb)|*.glb|OBJ (*.obj)|*.obj",
             CheckFileExists = true
         };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            _replacementScene = ImportedModelReader.Read(dialog.FileName);
-            _plan = null;
-            ReplacementPathText.Text = dialog.FileName;
-            ReplacementSummaryText.Text = $"{_replacementScene.Meshes.Count} source meshes; {_replacementScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; {_replacementScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles.";
-            EmbeddedTextureCombo.ItemsSource = new[]
-                {
-                    new TextureItem(-1, "Не менять текстуру исходного SMO")
-                }
-                .Concat(_replacementScene.Textures.Select((texture, index) => new TextureItem(index,
-                    $"{texture.Name} — {texture.Width}×{texture.Height}, {texture.MimeType}")))
-                .ToArray();
-            EmbeddedTextureCombo.SelectedIndex = 0;
-            _texturePath = null;
-            TexturePathText.Text = _replacementScene.Textures.Count > 0
-                ? $"Встроенных base-color текстур: {_replacementScene.Textures.Count}; выберите нужную или оставьте исходную."
-                : "Встроенная base-color текстура не найдена.";
-            StatusText.Text = "Модель замены загружена. Постройте план нарезки.";
+            if (Path.GetExtension(dialog.FileName).Equals(
+                    ".smo", StringComparison.OrdinalIgnoreCase))
+                LoadSmoReplacement(dialog.FileName);
+            else
+            {
+                if (Path.GetExtension(dialog.FileName).Equals(
+                        ".fbx", StringComparison.OrdinalIgnoreCase) &&
+                    !EnsureBlenderForFbx())
+                    return;
+                LoadExternalReplacement(dialog.FileName);
+            }
             _framePreviewOnRefresh = true;
             RefreshState();
         }
         catch (Exception exception) { ShowError(exception); }
+    }
+
+    private void LoadSmoReplacement(string path)
+    {
+        string fullPath = Path.GetFullPath(path);
+        SmoDocument donor = SmoDocument.Load(fullPath);
+        SmoExportScene donorScene = SmoSceneBuilder.Build(donor);
+
+        _replacementPath = fullPath;
+        _replacementSmoDocument = donor;
+        _replacementSmoScene = donorScene;
+        _replacementScene = null;
+        _plan = null;
+        _texturePath = null;
+        EmbeddedTextureCombo.ItemsSource = null;
+        ReplacementPathText.Text = fullPath;
+        int textures = donor.Objects.Count(entry =>
+            entry.TypeHash == SmoClassIds.TextureData);
+        ReplacementSummaryText.Text =
+            $"{donorScene.Meshes.Count} готовых mesh slots; " +
+            $"{donorScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
+            $"{donorScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
+            $"{textures} textures.";
+        PlanSummaryText.Text =
+            "Полный render/service graph target сохраняется; geometry, textures и " +
+            "reference-only skin palettes заполняются данными донора.";
+        ReplacementModeText.Text = "Режим SMO → SMO";
+        UpdateSmoReplacementPlan();
+    }
+
+    private void LoadExternalReplacement(string path)
+    {
+        string fullPath = Path.GetFullPath(path);
+        ImportedScene scene = ImportedModelReader.Read(fullPath, _blenderPath);
+        bool convertedFbx = Path.GetExtension(fullPath).Equals(
+            ".fbx", StringComparison.OrdinalIgnoreCase);
+
+        _replacementPath = fullPath;
+        _replacementScene = scene;
+        _replacementSmoDocument = null;
+        _replacementSmoScene = null;
+        _smoReplacementPlan = null;
+        _glbSkinTransferPlan = null;
+        _plan = null;
+        ReplacementPathText.Text = fullPath;
+        int jointCount = scene.Meshes.Select(mesh => mesh.Skinning?.Skeleton)
+            .FirstOrDefault(skeleton => skeleton is not null)?.JointNames.Count ?? 0;
+        ReplacementSummaryText.Text =
+            $"{scene.Meshes.Count} source meshes; " +
+            $"{scene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
+            $"{scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles" +
+            (scene.HasSkinning ? $"; {jointCount} skin joints." : ".");
+        EmbeddedTextureCombo.ItemsSource = new[]
+            {
+                new TextureItem(-1, "Не менять текстуру исходного SMO")
+            }
+            .Concat(scene.Textures.Select((texture, index) => new TextureItem(index,
+                $"{texture.Name} — {texture.Width}×{texture.Height}, {texture.MimeType}")))
+            .ToArray();
+        EmbeddedTextureCombo.SelectedIndex = 0;
+        _texturePath = null;
+        TexturePathText.Text = scene.Textures.Count > 0
+            ? $"Встроенных base-color текстур: {scene.Textures.Count}; выберите нужную или оставьте исходную."
+            : "Встроенная base-color текстура не найдена.";
+        if (scene.HasSkinning)
+        {
+            if (scene.Textures.Count > 0)
+                EmbeddedTextureCombo.SelectedIndex = 1;
+            ReplacementModeText.Text = convertedFbx
+                ? "Экспериментальный режим Skinned FBX → GLB → SMO"
+                : "Экспериментальный режим Skinned GLB → SMO";
+            SplitModeText.Text =
+                "Triangles автоматически распределяются по существующим 16-bone palettes target; " +
+                "object graph и IDs исходного SMO сохраняются.";
+            PlanButton.Content = "Проверить кости и построить palettes";
+            UpdateGlbSkinTransferPlan();
+        }
+        else
+        {
+            ReplacementModeText.Text = "Экспериментальный режим OBJ/GLB → SMO";
+            CompatibilityText.Text =
+                "Требуются подгонка, выбор rigid bone и проверка плана нарезки.";
+            ReplacementModePanel.Background = new SolidColorBrush(
+                Color.FromRgb(255, 243, 205));
+            BoneMappingTree.Items.Clear();
+            BoneMappingPanel.Visibility = Visibility.Collapsed;
+            SplitModeText.Text =
+                "Вся модель помещается в один основной body-slot; остальные slots получают " +
+                "невидимый вырожденный triangle.";
+            PlanButton.Content = "Построить план и проверить";
+            StatusText.Text = "Модель замены загружена. Постройте план нарезки.";
+        }
+    }
+
+    private bool EnsureBlenderForFbx()
+    {
+        _blenderPath = FbxExporter.FindBlenderExecutable(_blenderPath);
+        if (_blenderPath is not null)
+            return true;
+        var dialog = new OpenFileDialog
+        {
+            Title = "Для импорта FBX укажите blender.exe",
+            Filter = "Blender (blender.exe)|blender.exe|Исполняемые файлы (*.exe)|*.exe",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true)
+            return false;
+        _blenderPath = FbxExporter.ResolveBlenderExecutable(dialog.FileName);
+        if (_blenderPath is not null)
+            return true;
+        MessageBox.Show(this,
+            "Выбранный файл не является blender.exe.",
+            "Blender не найден", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+    }
+
+    private void UpdateGlbSkinTransferPlan()
+    {
+        _plan = null;
+        if (_document is null || _replacementScene?.HasSkinning != true)
+        {
+            _glbSkinTransferPlan = null;
+            CompatibilityText.Text = "Сначала выберите целевой SMO.";
+            StatusText.Text = "Skinned GLB загружен; требуется целевой SMO.";
+            return;
+        }
+        _glbSkinTransferPlan = SmoSkinnedGlbReplacer.Analyze(
+            _document, _replacementScene);
+        PopulateGlbBoneMappingTree(_glbSkinTransferPlan);
+        string details = _glbSkinTransferPlan.Messages.Count == 0
+            ? string.Empty
+            : "\n" + string.Join("\n", _glbSkinTransferPlan.Messages.Select(
+                message => "• " + message));
+        CompatibilityText.Text =
+            $"Joints: {_glbSkinTransferPlan.JointCount}; active weights: " +
+            $"{_glbSkinTransferPlan.ActiveJointCount}; exact: " +
+            $"{_glbSkinTransferPlan.MatchedBoneNames.Count}; remap: " +
+            $"{_glbSkinTransferPlan.RemappedBones.Count}; material groups: " +
+            $"{_glbSkinTransferPlan.MaterialGroupCount}." + details;
+        if (_glbSkinTransferPlan.CanReplace)
+        {
+            ReplacementModePanel.Background = new SolidColorBrush(
+                Color.FromRgb(255, 243, 205));
+            StatusText.Text =
+                "Skinned GLB совместим. Проверьте дерево костей и подтвердите построение palettes.";
+        }
+        else
+        {
+            ReplacementModePanel.Background = new SolidColorBrush(
+                Color.FromRgb(254, 226, 226));
+            StatusText.Text = "Skinned GLB заблокирован: исправьте bone mapping.";
+        }
+    }
+
+    private void PopulateGlbBoneMappingTree(GlbSkinTransferPlan plan)
+    {
+        BoneMappingTree.Items.Clear();
+        BoneMappingPanel.Visibility = Visibility.Visible;
+        var matched = new TreeViewItem
+        {
+            Header = $"Точное совпадение: {plan.MatchedBoneNames.Count}"
+        };
+        foreach (string name in plan.MatchedBoneNames)
+            matched.Items.Add(new TreeViewItem { Header = name });
+        BoneMappingTree.Items.Add(matched);
+
+        var remapped = new TreeViewItem
+        {
+            Header = $"Перенаправлены: {plan.RemappedBones.Count}",
+            Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9)),
+            IsExpanded = plan.RemappedBones.Count > 0
+        };
+        foreach (GlbBoneRemap mapping in plan.RemappedBones)
+            remapped.Items.Add(new TreeViewItem
+            {
+                Header = $"{mapping.DonorBoneName} → {mapping.TargetBoneName} — {mapping.Reason}"
+            });
+        if (plan.RemappedBones.Count == 0)
+            remapped.Items.Add(new TreeViewItem { Header = "Нет" });
+        BoneMappingTree.Items.Add(remapped);
+
+        var unused = new TreeViewItem
+        {
+            Header = $"GLB joints без weights: {plan.UnusedGlbJoints.Count}"
+        };
+        foreach (string name in plan.UnusedGlbJoints)
+            unused.Items.Add(new TreeViewItem { Header = name });
+        BoneMappingTree.Items.Add(unused);
+
+        var targetUnused = new TreeViewItem
+        {
+            Header = $"Target bones без новых weights: {plan.TargetBonesWithoutWeights.Count}"
+        };
+        foreach (string name in plan.TargetBonesWithoutWeights)
+            targetUnused.Items.Add(new TreeViewItem { Header = name });
+        BoneMappingTree.Items.Add(targetUnused);
+    }
+
+    private void UpdateSmoReplacementPlan()
+    {
+        if (_document is null || _replacementSmoDocument is null)
+        {
+            _smoReplacementPlan = null;
+            CompatibilityText.Text = "Сначала выберите целевой SMO.";
+            StatusText.Text = "SMO-донор загружен; требуется целевой SMO.";
+            return;
+        }
+
+        _smoReplacementPlan = SmoToSmoReplacer.Analyze(
+            _document, _replacementSmoDocument);
+        PopulateBoneMappingTree(_smoReplacementPlan);
+        string summary =
+            $"Скелет: {_smoReplacementPlan.TargetBoneCount} → " +
+            $"{_smoReplacementPlan.DonorBoneCount} костей; meshes: " +
+            $"{_smoReplacementPlan.TargetMeshCount} → {_smoReplacementPlan.DonorMeshCount}; " +
+            $"textures: {_smoReplacementPlan.TargetTextureCount} → " +
+            $"{_smoReplacementPlan.DonorTextureCount}.";
+        string details = _smoReplacementPlan.Messages.Count == 0
+            ? string.Empty
+            : "\n" + string.Join("\n", _smoReplacementPlan.Messages.Select(
+                message => "• " + message));
+        CompatibilityText.Text = summary + details;
+
+        switch (_smoReplacementPlan.Compatibility)
+        {
+            case SmoSkeletonCompatibility.Exact:
+                ReplacementModePanel.Background = new SolidColorBrush(
+                    Color.FromRgb(220, 252, 231));
+                StatusText.Text =
+                    "Скелет SMO-донора совпадает. Можно перенести меши и текстуры в target-контейнер.";
+                break;
+            case SmoSkeletonCompatibility.CompatibleWithWarnings:
+                ReplacementModePanel.Background = new SolidColorBrush(
+                    Color.FromRgb(255, 243, 205));
+                StatusText.Text =
+                    "SMO-донор совместим с предупреждениями; проверьте список изменений.";
+                break;
+            default:
+                ReplacementModePanel.Background = new SolidColorBrush(
+                    Color.FromRgb(254, 226, 226));
+                StatusText.Text =
+                    "Подмена заблокирована: скелеты SMO несовместимы.";
+                break;
+        }
+    }
+
+    private void PopulateBoneMappingTree(SmoToSmoReplacementPlan plan)
+    {
+        BoneMappingTree.Items.Clear();
+        BoneMappingPanel.Visibility = Visibility.Visible;
+
+        var matched = new TreeViewItem
+        {
+            Header = $"Совпали по имени: {plan.MatchedBoneNames.Count}",
+            IsExpanded = false
+        };
+        foreach (string name in plan.MatchedBoneNames)
+            matched.Items.Add(new TreeViewItem { Header = name });
+        BoneMappingTree.Items.Add(matched);
+
+        var ignored = new TreeViewItem
+        {
+            Header = $"Дополнительные кости донора: {plan.IgnoredDonorBones.Count}",
+            Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9)),
+            IsExpanded = plan.IgnoredDonorBones.Count > 0
+        };
+        foreach (SmoIgnoredDonorBone mapping in plan.IgnoredDonorBones)
+        {
+            ignored.Items.Add(new TreeViewItem
+            {
+                Header = $"{mapping.DonorBoneName} → {mapping.TargetBoneName} — отдельная локальная анимация теряется"
+            });
+        }
+        if (plan.IgnoredDonorBones.Count == 0)
+            ignored.Items.Add(new TreeViewItem { Header = "Нет" });
+        BoneMappingTree.Items.Add(ignored);
+
+        var unbound = new TreeViewItem
+        {
+            Header = $"Нет весов у донора: {plan.UnboundTargetBones.Count}",
+            Foreground = new SolidColorBrush(Color.FromRgb(185, 28, 28)),
+            IsExpanded = plan.UnboundTargetBones.Count > 0
+        };
+        foreach (string name in plan.UnboundTargetBones)
+        {
+            unbound.Items.Add(new TreeViewItem
+            {
+                Header = $"{name} — останется без новой привязки"
+            });
+        }
+        if (plan.UnboundTargetBones.Count == 0)
+            unbound.Items.Add(new TreeViewItem { Header = "Нет" });
+        BoneMappingTree.Items.Add(unbound);
+
+        var hierarchy = new TreeViewItem
+        {
+            Header = $"Обойдены helper/control nodes: {plan.HierarchyAdaptations.Count}",
+            Foreground = new SolidColorBrush(Color.FromRgb(3, 105, 161)),
+            IsExpanded = plan.HierarchyAdaptations.Count > 0
+        };
+        foreach (SmoHierarchyAdaptation adaptation in plan.HierarchyAdaptations)
+        {
+            var bone = new TreeViewItem { Header = adaptation.BoneName };
+            bone.Items.Add(new TreeViewItem
+            {
+                Header = $"Target: {adaptation.TargetPath}"
+            });
+            bone.Items.Add(new TreeViewItem
+            {
+                Header = $"Donor: {adaptation.DonorPath}"
+            });
+            hierarchy.Items.Add(bone);
+        }
+        if (plan.HierarchyAdaptations.Count == 0)
+            hierarchy.Items.Add(new TreeViewItem { Header = "Нет" });
+        BoneMappingTree.Items.Add(hierarchy);
     }
 
     private void Plan_Click(object sender, RoutedEventArgs e)
@@ -114,6 +435,27 @@ public partial class MainWindow : Window
         if (_document is null || _replacementScene is null) return;
         try
         {
+            if (_replacementScene.HasSkinning)
+            {
+                _glbSkinTransferPlan = SmoSkinnedGlbReplacer.Analyze(
+                    _document, _replacementScene);
+                PopulateGlbBoneMappingTree(_glbSkinTransferPlan);
+                if (!_glbSkinTransferPlan.CanReplace)
+                    throw new InvalidOperationException(
+                        "Skinned GLB несовместим:\n" +
+                        string.Join("\n", _glbSkinTransferPlan.Messages.Select(
+                            message => "• " + message)));
+                _plan = MeshSplitter.Split(_replacementScene);
+                PlanSummaryText.Text =
+                    $"{_replacementScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices, " +
+                    $"{_replacementScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
+                    $"{_glbSkinTransferPlan.ActiveJointCount} active joints → " +
+                    $"{_glbSkinTransferPlan.MaterialGroupCount} material groups. " +
+                    "16-bone palettes построены без изменения target graph.";
+                StatusText.Text = "Skinned-план проверен. Можно создать экспериментальный SMO.";
+                RefreshState();
+                return;
+            }
             int slots = _document.Objects.Count(entry => entry.TypeHash == SmoClassIds.MeshData);
             ImportedMesh combined = ImportedMeshCombiner.Combine(_replacementScene);
             _plan = MeshSplitter.Split(_replacementScene);
@@ -129,22 +471,83 @@ public partial class MainWindow : Window
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        if (_document is null || _sourcePath is null || _replacementScene is null || _plan is null) return;
+        if (_document is null || _sourcePath is null) return;
+        bool smoMode = _replacementSmoDocument is not null;
+        bool skinnedGlbMode = !smoMode && _replacementScene?.HasSkinning == true;
+        if (smoMode && _smoReplacementPlan?.CanReplace != true) return;
+        if (!smoMode && (_replacementScene is null || _plan is null)) return;
+        string donorStem = _replacementPath is null
+            ? "replacement"
+            : Path.GetFileNameWithoutExtension(_replacementPath);
         var dialog = new SaveFileDialog
         {
             Filter = "Sparkplug model (*.smo)|*.smo",
-            FileName = Path.GetFileNameWithoutExtension(_sourcePath) + "_whole_replaced.smo",
+            FileName = smoMode
+                ? Path.GetFileNameWithoutExtension(_sourcePath) + "_from_" + donorStem + ".smo"
+                : skinnedGlbMode
+                    ? Path.GetFileNameWithoutExtension(_sourcePath) + "_skinned_" + donorStem + ".smo"
+                    : Path.GetFileNameWithoutExtension(_sourcePath) + "_whole_replaced.smo",
             InitialDirectory = Path.GetDirectoryName(_sourcePath)
         };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
+            if (smoMode)
+            {
+                SmoToSmoReplacementResult smoResult = SmoToSmoReplacer.Replace(
+                    _document, _replacementSmoDocument!, dialog.FileName);
+                StatusText.Text =
+                    $"Готово: target graph сохранён — {smoResult.MeshCount} mesh slots, " +
+                    $"{smoResult.TextureCount} textures, {smoResult.TriangleCount:N0} triangles; " +
+                    $"SHA-256 {smoResult.Sha256[..12]}….";
+                MessageBox.Show(this,
+                    $"SMO-подмена сохранена и проверена strict parser:\n{smoResult.OutputPath}\n\n" +
+                    "Полный object graph, IDs, skeleton, служебные объекты и неизвестные связи " +
+                    "целевого SMO сохранены. В его существующие mesh/texture slots записаны " +
+                    "геометрия, UV, цвета и текстуры донора; skin weights перепривязаны к " +
+                    "целевым palettes по сопоставлению костей. " +
+                    "Исходные файлы не изменены.\n\n" +
+                    $"SHA-256 результата:\n{smoResult.Sha256}",
+                    "SMO-подмена готова", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            if (skinnedGlbMode)
+            {
+                ImportedTexture? embedded = EmbeddedTextureCombo.SelectedItem is TextureItem skinTexture &&
+                                            skinTexture.Index >= 0
+                    ? _replacementScene!.Textures[skinTexture.Index]
+                    : null;
+                GlbSkinTransferResult skinResult = SmoSkinnedGlbReplacer.Replace(
+                    _document,
+                    _replacementScene!,
+                    ReadTransform(),
+                    dialog.FileName,
+                    RebaseBindPoseCheckBox.IsChecked == true,
+                    embedded);
+                StatusText.Text =
+                    $"Готово: {skinResult.TriangleCount:N0} triangles, " +
+                    $"{skinResult.PaletteCount} palettes; SHA-256 {skinResult.Sha256[..12]}….";
+                MessageBox.Show(this,
+                    $"Skinned GLB перенесён в копию target SMO:\n{skinResult.OutputPath}\n\n" +
+                    "Target object graph и IDs сохранены. JOINTS_0/WEIGHTS_0 распределены по " +
+                    "существующим 16-bone palettes. У текстуры заменён только RGB; " +
+                    "проверенный target Alpha сохранён. Проверьте результат во Viewer и игре — " +
+                    "режим экспериментальный.\n\n" +
+                    $"SHA-256:\n{skinResult.Sha256}",
+                    "Экспериментальный skinned SMO готов",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
             WholeModelReplacementResult result = SmoWholeModelReplacer.Replace(
-                _document, _replacementScene, ReadTransform(), dialog.FileName,
+                _document, _replacementScene!, ReadTransform(), dialog.FileName,
                 BoneCombo.SelectedItem is BoneItem bone ? bone.Slot : 0,
                 texturePath: _texturePath,
                 embeddedTexture: EmbeddedTextureCombo.SelectedItem is TextureItem texture && texture.Index >= 0
-                    ? _replacementScene.Textures[texture.Index]
+                    ? _replacementScene!.Textures[texture.Index]
                     : null);
             StatusText.Text = $"Готово: {result.MeshCount} meshes, {result.VertexCount:N0} vertices, {result.TriangleCount:N0} triangles.";
             MessageBox.Show(this,
@@ -216,16 +619,33 @@ public partial class MainWindow : Window
         catch (Exception exception) { ShowError(exception); }
     }
 
-    private void Transform_Changed(object sender, TextChangedEventArgs e) => RefreshPreview();
+    private void Transform_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_replacementSmoDocument is null)
+            RefreshPreview();
+    }
 
     private void Reset_Click(object sender, RoutedEventArgs e)
     {
-        _sourcePath = null; _document = null; _sourceScene = null; _replacementScene = null; _plan = null; _texturePath = null;
+        _sourcePath = null; _document = null; _sourceScene = null;
+        _replacementPath = null; _replacementScene = null; _plan = null;
+        _replacementSmoDocument = null; _replacementSmoScene = null;
+        _smoReplacementPlan = null; _glbSkinTransferPlan = null; _texturePath = null;
         SourcePathText.Text = "Не выбран"; SourceSummaryText.Text = "—";
         ReplacementPathText.Text = "Не выбрана"; ReplacementSummaryText.Text = "—";
         TexturePathText.Text = "Остаётся текстура исходного SMO"; BoneCombo.ItemsSource = null;
         EmbeddedTextureCombo.ItemsSource = null;
         PlanSummaryText.Text = "План ещё не построен.";
+        SplitModeText.Text =
+            "Вся модель помещается в один основной body-slot; остальные slots получают " +
+            "невидимый вырожденный triangle.";
+        PlanButton.Content = "Построить план и проверить";
+        ReplacementModeText.Text = "Режим ещё не определён";
+        CompatibilityText.Text = "Выберите модель-донор.";
+        BoneMappingTree.Items.Clear();
+        BoneMappingPanel.Visibility = Visibility.Collapsed;
+        ReplacementModePanel.Background = new SolidColorBrush(
+            Color.FromRgb(232, 238, 245));
         ScaleBox.Text = "1"; RotXBox.Text = RotYBox.Text = RotZBox.Text = "0";
         MoveXBox.Text = MoveYBox.Text = MoveZBox.Text = "0";
         StatusText.Text = "Выберите исходный SMO.";
@@ -235,9 +655,30 @@ public partial class MainWindow : Window
 
     private void RefreshState()
     {
-        PlanButton.IsEnabled = _document is not null && _replacementScene is not null;
-        AutoFitButton.IsEnabled = _sourceScene is not null && _replacementScene is not null;
-        SaveButton.IsEnabled = _plan is not null;
+        bool smoMode = _replacementSmoDocument is not null;
+        bool skinnedGlbMode = !smoMode && _replacementScene?.HasSkinning == true;
+        ExternalModelOptionsPanel.IsEnabled = !smoMode;
+        ExternalModelOptionsPanel.Opacity = smoMode ? 0.5 : 1;
+        PlanButton.IsEnabled = !smoMode && _document is not null &&
+            _replacementScene is not null;
+        AutoFitButton.IsEnabled = !smoMode && _sourceScene is not null &&
+            _replacementScene is not null;
+        SaveButton.IsEnabled = smoMode
+            ? _smoReplacementPlan?.CanReplace == true
+            : _plan is not null && (!skinnedGlbMode ||
+                _glbSkinTransferPlan?.CanReplace == true);
+        SaveButton.Content = smoMode
+            ? "Создать SMO-подмену"
+            : skinnedGlbMode
+                ? "4. Создать skinned SMO"
+                : "4. Создать новый SMO";
+        RigidBonePanel.Visibility = skinnedGlbMode
+            ? Visibility.Collapsed : Visibility.Visible;
+        SkinnedGlbOptionsPanel.Visibility = skinnedGlbMode
+            ? Visibility.Visible : Visibility.Collapsed;
+        BoneHighlightText.Visibility = smoMode || skinnedGlbMode
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         RefreshPreview();
     }
 
@@ -255,6 +696,12 @@ public partial class MainWindow : Window
             foreach (ImportedMesh mesh in _replacementScene.Meshes)
                 AddModel(group, mesh.Positions.Select(value => Vector3.Transform(value, transform)).ToArray(),
                     mesh.TriangleIndices, Color.FromArgb(190, 255, 125, 35), all);
+        }
+        else if (_replacementSmoScene is not null)
+        {
+            foreach (SmoExportMesh mesh in _replacementSmoScene.Meshes)
+                AddModel(group, mesh.Positions, mesh.TriangleIndices,
+                    Color.FromArgb(190, 255, 125, 35), all);
         }
         ResolveSelectedBonePosition();
         SceneVisual.Content = group;
@@ -282,6 +729,8 @@ public partial class MainWindow : Window
     private void ResolveSelectedBonePosition()
     {
         _selectedBonePosition = null;
+        if (_replacementSmoDocument is not null || _replacementScene?.HasSkinning == true)
+            return;
         if (_document is null || BoneCombo.SelectedItem is not BoneItem selected)
         {
             if (BoneHighlightText is not null)

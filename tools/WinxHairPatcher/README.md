@@ -1,4 +1,4 @@
-# Winx Hair Patcher 0.1.1
+# Winx Hair Patcher 0.1.2 (в разработке)
 
 GUI-патчер PC-версий `WinxClub.exe`, содержащих подтверждённые hair-блоки.
 
@@ -18,7 +18,7 @@ GUI-патчер PC-версий `WinxClub.exe`, содержащих подтв
 dotnet run --project tools/WinxHairPatcher/WinxHairPatcher.Gui
 ```
 
-## Ограничения 0.1.1
+## Ограничения 0.1.2
 
 - MD5 и фиксированные file offsets не используются. Каждый блок должен иметь
   ровно одно совпадение исходной или совместимой пропатченной сигнатуры.

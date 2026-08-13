@@ -1,7 +1,9 @@
 using System.IO;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using SmoExporter.Core;
@@ -14,13 +16,27 @@ public partial class MainWindow : Window
     private string? _sourcePath;
     private string? _outputDirectory;
     private string? _blenderPath;
+    private string? _configuredBlenderPath;
     private bool _busy;
     private readonly ObservableCollection<AnimationChoice> _animations = [];
+    private static readonly string SettingsPath = Path.Combine(
+        GetLocalApplicationDataPath(),
+        "SparkplugEngineResearch", "SmoExporter", "settings.json");
+
+    private static string GetLocalApplicationDataPath()
+    {
+        string? configured = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+        return string.IsNullOrWhiteSpace(configured)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+            : Path.GetFullPath(configured);
+    }
 
     public MainWindow()
     {
         InitializeComponent();
         AnimationList.ItemsSource = _animations;
+        _configuredBlenderPath = LoadConfiguredBlenderPath();
+        BlenderPathTextBox.Text = _configuredBlenderPath ?? string.Empty;
         CheckBlenderAvailability(writeLog: true);
         AddLog("SmoExporter запущен.");
         string[] arguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
@@ -174,6 +190,11 @@ public partial class MainWindow : Window
             return;
 
         string selectedFormat = GetSelectedFormat();
+        if (selectedFormat is "fbx" or "all" &&
+            FbxExporter.ResolveBlenderExecutable(_blenderPath) is null)
+        {
+            CheckBlenderAvailability(writeLog: false);
+        }
         if (selectedFormat is "fbx" or "all" && _blenderPath is null)
         {
             AddLog("ОШИБКА: FBX недоступен — Blender не найден.");
@@ -280,6 +301,10 @@ public partial class MainWindow : Window
         ResetButton.IsEnabled = !busy && _sourcePath is not null;
         FormatComboBox.IsEnabled = !busy;
         BrowseOutputButton.IsEnabled = !busy;
+        BlenderPathTextBox.IsEnabled = !busy;
+        BrowseBlenderButton.IsEnabled = !busy;
+        ApplyBlenderPathButton.IsEnabled = !busy;
+        AutoFindBlenderButton.IsEnabled = !busy;
         AnimationList.IsEnabled = !busy;
         UpdateExportAvailability();
     }
@@ -287,18 +312,82 @@ public partial class MainWindow : Window
     private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         UpdateExportAvailability();
 
-    private void CheckBlender_Click(object sender, RoutedEventArgs e) =>
+    private void CheckBlender_Click(object sender, RoutedEventArgs e)
+    {
+        _configuredBlenderPath = null;
+        SaveConfiguredBlenderPath(null);
+        BlenderPathTextBox.Text = string.Empty;
         CheckBlenderAvailability(writeLog: true);
+    }
+
+    private void BrowseBlender_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Укажите исполняемый файл Blender",
+            Filter = "Blender (blender.exe)|blender.exe|Исполняемые файлы (*.exe)|*.exe",
+            CheckFileExists = true,
+            Multiselect = false,
+            FileName = "blender.exe",
+            InitialDirectory = _blenderPath is null ? null : Path.GetDirectoryName(_blenderPath)
+        };
+        if (dialog.ShowDialog(this) != true)
+            return;
+        BlenderPathTextBox.Text = dialog.FileName;
+        ApplyBlenderPath();
+    }
+
+    private void ApplyBlenderPath_Click(object sender, RoutedEventArgs e) => ApplyBlenderPath();
+
+    private void BlenderPathTextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+        ApplyBlenderPath();
+        e.Handled = true;
+    }
+
+    private void ApplyBlenderPath()
+    {
+        string enteredPath = BlenderPathTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(enteredPath))
+        {
+            _configuredBlenderPath = null;
+            SaveConfiguredBlenderPath(null);
+            CheckBlenderAvailability(writeLog: true);
+            return;
+        }
+
+        string? resolved = FbxExporter.ResolveBlenderExecutable(enteredPath);
+        if (resolved is null)
+        {
+            MessageBox.Show(this,
+                "В указанном месте не найден blender.exe. Укажите папку установки Blender или сам файл blender.exe.",
+                "Blender не найден", MessageBoxButton.OK, MessageBoxImage.Warning);
+            AddLog($"Указанный путь Blender недействителен: {enteredPath}");
+            return;
+        }
+
+        _configuredBlenderPath = resolved;
+        BlenderPathTextBox.Text = resolved;
+        SaveConfiguredBlenderPath(resolved);
+        CheckBlenderAvailability(writeLog: true);
+    }
 
     private void CheckBlenderAvailability(bool writeLog)
     {
-        _blenderPath = FbxExporter.FindBlenderExecutable();
+        _blenderPath = FbxExporter.FindBlenderExecutable(_configuredBlenderPath);
         bool found = _blenderPath is not null;
+        bool manuallyConfigured = found &&
+            FbxExporter.ResolveBlenderExecutable(_configuredBlenderPath)?.Equals(
+                _blenderPath, StringComparison.OrdinalIgnoreCase) == true;
+        if (found)
+            BlenderPathTextBox.Text = _blenderPath!;
         BlenderStatusDot.Fill = found ? Brushes.SeaGreen : Brushes.Firebrick;
         BlenderStatusText.Foreground = found ? Brushes.SeaGreen : Brushes.Firebrick;
         BlenderStatusText.Text = found
-            ? $"Blender найден: {_blenderPath}. FBX доступен."
-            : "Blender не найден. Экспорт FBX и режим «Все форматы» заблокированы; GLB и OBJ доступны без Blender.";
+            ? $"Blender {(manuallyConfigured ? "указан вручную" : "найден автоматически")}: {_blenderPath}. FBX доступен."
+            : "Blender не найден. Введите папку установки или путь к blender.exe; GLB и OBJ доступны без Blender.";
         FbxFormatItem.IsEnabled = found;
         AllFormatsItem.IsEnabled = found;
         if (!found && GetSelectedFormat() is "fbx" or "all")
@@ -306,6 +395,39 @@ public partial class MainWindow : Window
         if (writeLog)
             AddLog(found ? $"Blender найден: {_blenderPath}" : "Blender не найден; FBX отключён.");
         UpdateExportAvailability();
+    }
+
+    private static string? LoadConfiguredBlenderPath()
+    {
+        try
+        {
+            if (!File.Exists(SettingsPath))
+                return null;
+            ExporterSettings? settings = JsonSerializer.Deserialize<ExporterSettings>(
+                File.ReadAllText(SettingsPath));
+            return settings?.BlenderPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void SaveConfiguredBlenderPath(string? path)
+    {
+        try
+        {
+            string directory = Path.GetDirectoryName(SettingsPath)!;
+            Directory.CreateDirectory(directory);
+            string temporaryPath = SettingsPath + ".tmp";
+            File.WriteAllText(temporaryPath,
+                JsonSerializer.Serialize(new ExporterSettings(path), new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(temporaryPath, SettingsPath, overwrite: true);
+        }
+        catch (Exception exception)
+        {
+            AddLog($"Не удалось сохранить путь Blender: {exception.Message}");
+        }
     }
 
     private string GetSelectedFormat() =>
@@ -347,6 +469,8 @@ public partial class MainWindow : Window
         int MeshCount,
         IReadOnlyList<string> Warnings,
         IReadOnlyList<string> Files);
+
+    private sealed record ExporterSettings(string? BlenderPath);
 
     private sealed class AnimationChoice(string path, string display, bool selected)
     {
