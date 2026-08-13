@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SmoViewer\SmoViewer.Core\SmoViewer.Core.csproj" />
+    <ProjectReference Include="..\..\SmoExporter\SmoExporter.Core\SmoExporter.Core.csproj" />
     <ProjectReference Include="..\..\SMOTextureTool\SMOTextureTool.Core\SMOTextureTool.Core.csproj" />
   </ItemGroup>
 </Project>

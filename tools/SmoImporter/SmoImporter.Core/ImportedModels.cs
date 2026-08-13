@@ -7,7 +7,29 @@ public sealed record ImportedMesh(
     Vector3[] Positions,
     Vector3[] Normals,
     Vector2[] TextureCoordinates,
-    uint[] TriangleIndices);
+    uint[] TriangleIndices,
+    uint[]? DiffuseColorsArgb = null,
+    int MaterialIndex = -1,
+    ImportedSkinning? Skinning = null)
+{
+    public uint[] DiffuseColors => DiffuseColorsArgb ?? [];
+}
+
+public readonly record struct ImportedJointIndices(
+    ushort X,
+    ushort Y,
+    ushort Z,
+    ushort W);
+
+public sealed record ImportedSkeleton(
+    string Name,
+    IReadOnlyList<string> JointNames,
+    IReadOnlyList<Matrix4x4> InverseBindMatrices);
+
+public sealed record ImportedSkinning(
+    ImportedSkeleton Skeleton,
+    ImportedJointIndices[] JointIndices,
+    Vector4[] Weights);
 
 public sealed record ImportedTexture(
     string Name, string MimeType, int Width, int Height, byte[] Data);
@@ -17,6 +39,7 @@ public sealed record ImportedScene(
     IReadOnlyList<ImportedTexture>? EmbeddedTextures = null)
 {
     public IReadOnlyList<ImportedTexture> Textures => EmbeddedTextures ?? [];
+    public bool HasSkinning => Meshes.Any(mesh => mesh.Skinning is not null);
 }
 
 public sealed record ReplacementTransform(

@@ -32,8 +32,13 @@ public sealed record SmoExportMesh(
     Vector4[] JointIndices,
     uint[] TriangleIndices,
     SmoExportTexture? Texture,
+    SmoExportTexture? EffectTexture,
     Vector4 MaterialColor,
-    int? SkinObjectIndex);
+    bool UsesAlphaBlend,
+    int? SkinObjectIndex,
+    int? ParentNodeObjectIndex,
+    Matrix4x4 BindWorldMatrix,
+    Matrix4x4 BindLocalMatrix);
 
 public sealed record SmoExportNode(
     int ObjectIndex,

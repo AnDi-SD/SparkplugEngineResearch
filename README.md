@@ -17,11 +17,17 @@ SMO — не просто упаковка одной геометрии. Это
 | [`tools/SmoViewer`](tools/SmoViewer) | Строгий парсер, CLI-инспектор, проверки формата и WPF-просмотрщик геометрии |
 | [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; writer/repack отключены как несовместимые с игрой |
 | [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в самодостаточный GLB для Blender и OBJ/MTL/PNG для совместимости |
-| [`tools/SmoImporter`](tools/SmoImporter) | Подмена совместимого mesh и экспериментальный whole-model repack OBJ/GLB по существующим SMO slots |
+| [`tools/SmoImporter`](tools/SmoImporter) | SMO → SMO visual transplant, skinned GLB/FBX через bone mapping и экспериментальный rigid import OBJ/GLB |
 | [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Экспериментальный патчер `WinxClub.exe` для управления внешними волосами fashion-моделей Bloom |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
+
+Следующий общий цикл версий: SmoViewer `0.3.1`, SmoExporter `0.2.1`,
+SmoImporter `0.2.0`, WinxHairPatcher `0.1.2` и SMOTextureTool `2.0.1`.
+Для этих версий подготовлен единый набор release candidate архивов в
+`artifacts/release/current`; публикация выполняется только после ручной проверки
+пакетов.
 
 Оба инструмента подключены как Git submodule и сохраняют собственную историю. Этот репозиторий фиксирует проверенную комбинацию их ревизий.
 
@@ -34,6 +40,18 @@ git clone --recurse-submodules https://github.com/AnDi-SD/SparkplugEngineResearc
 cd SparkplugEngineResearch
 dotnet build SparkplugEngineResearch.slnx
 ```
+
+Пользовательские релизы собираются только через единый упаковщик:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./release/Build-Releases.ps1
+```
+
+Он создаёт framework-dependent single-file пакеты с чистым корнем, складывает
+приложение, документацию и suite-инструменты в подпапки и отклоняет дублирующиеся файлы.
+Корневой загрузчик при необходимости предлагает скачать официальный Microsoft .NET 8
+Desktop Runtime, проверяет цифровую подпись Microsoft и устанавливает его в тихом режиме.
+Подробный контракт структуры описан в [`release/README.md`](release/README.md).
 
 Если репозиторий уже клонирован без submodule:
 
