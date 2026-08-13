@@ -1,6 +1,6 @@
-# SmoExporter 0.2.1 — release candidate
+# SmoExporter 0.2.1
 
-Исправляющее обновление Exporter, подготовленное для ручной проверки перед публикацией.
+Исправляющее обновление Exporter.
 
 - расширен автоматический поиск Blender и добавлен сохраняемый ручной путь;
 - синхронизированы compact skinning, texture bindings и material data с Viewer Core;
