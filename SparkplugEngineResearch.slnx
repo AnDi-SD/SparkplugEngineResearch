@@ -22,6 +22,9 @@
     <Project Path="tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj" />
   </Folder>
   <Folder Name="/Tools/SmoViewer/">
+    <Project Path="tools/SmoViewer/SmoNativeValidator.Cli/SmoNativeValidator.Cli.csproj" />
+    <Project Path="tools/SmoViewer/SmoNativeValidator.Core/SmoNativeValidator.Core.csproj" />
+    <Project Path="tools/SmoViewer/SmoNativeValidator.Tests/SmoNativeValidator.Tests.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Core/SmoViewer.Core.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.FormatTests/SmoViewer.FormatTests.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Inspect/SmoViewer.Inspect.csproj" />

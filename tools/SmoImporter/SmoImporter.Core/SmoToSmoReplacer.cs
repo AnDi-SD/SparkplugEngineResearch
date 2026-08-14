@@ -38,19 +38,25 @@ public sealed record SmoToSmoReplacementPlan(
 
 public sealed record SmoToSmoReplacementResult(
     string OutputPath,
-    int MeshCount,
-    int TextureCount,
+    int PackedMeshCount,
+    int PackedTextureCount,
     int DonorMeshCount,
     int DonorTextureCount,
-    int TriangleCount,
+    int NonDegenerateTriangleCount,
     int BoneCount,
     long FileSize,
     string Sha256,
-    SmoSkeletonCompatibility Compatibility);
+    SmoSkeletonCompatibility Compatibility)
+{
+    public int MeshCount => PackedMeshCount;
+    public int TextureCount => PackedTextureCount;
+    public int TriangleCount => NonDegenerateTriangleCount;
+}
 
 /// <summary>
-/// Creates a game-resource replacement that keeps the complete target object
-/// graph and transplants the donor's mesh/texture visual payload into it.
+/// Creates a game-resource replacement that keeps the target service/skeleton
+/// graph and appends complete donor skin/material/texture/mesh branches. The
+/// retained target mesh slots become degenerate structural anchors.
 /// </summary>
 public static class SmoToSmoReplacer
 {
@@ -58,7 +64,12 @@ public static class SmoToSmoReplacer
 
     public static SmoToSmoReplacementPlan Analyze(
         SmoDocument target,
-        SmoDocument donor)
+        SmoDocument donor) => AnalyzeCore(target, donor, validatePacking: true);
+
+    private static SmoToSmoReplacementPlan AnalyzeCore(
+        SmoDocument target,
+        SmoDocument donor,
+        bool validatePacking)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
@@ -159,34 +170,30 @@ public static class SmoToSmoReplacer
 
         if (targetTextures == 0 || donorTextures == 0)
             blocking.Add("Обе модели должны содержать texture-объекты с подтверждёнными mesh bindings.");
-        if (donorTextures > targetTextures)
-            blocking.Add(
-                $"Число texture slots различается: target={targetTextures}, donor={donorTextures}. " +
-                "Безопасный режим сохраняет весь object graph целевого SMO и пока не умеет " +
-                "добавлять новые material/texture branches. Подмена остановлена без записи файла.");
-        else if (targetTextures != donorTextures)
+        if (targetTextures != donorTextures)
             warnings.Add(
                 $"Число texture slots различается: target={targetTextures}, donor={donorTextures}. " +
-                "Лишние target texture slots сохранят IDs/ссылки и получат копию ближайшей " +
-                "donor texture; object graph target не меняется.");
+                "Donor material/texture branches будут добавлены отдельно со своими размерами, " +
+                "пикселями и bindings; target texture objects не перезаписываются.");
         if (targetMeshes != donorMeshes)
             warnings.Add(
                 $"Число mesh slots различается: target={targetMeshes}, donor={donorMeshes}. " +
-                "Геометрия донора будет перераспределена, лишние target slots станут невидимыми.");
+                "Все donor skin/mesh branches будут добавлены отдельно, а старые target meshes " +
+                "станут строго вырожденными anchors для сохранённого target graph.");
 
         // Run the complete in-memory planner here so the GUI blocks unsupported
         // texture layouts or palette capacity before the user chooses an output.
-        if (blocking.Count == 0)
+        if (validatePacking && blocking.Count == 0)
         {
             try
             {
-                _ = SmoVisualTransplanter.Transplant(target, donor);
+                _ = SmoVisualGraphPacker.Pack(target, donor);
             }
             catch (Exception exception) when (exception is InvalidDataException or
                                               InvalidOperationException or
                                               OverflowException)
             {
-                blocking.Add("Visual transplant не может быть построен: " + exception.Message);
+                blocking.Add("Visual graph packing не может быть построен: " + exception.Message);
             }
         }
 
@@ -220,7 +227,10 @@ public static class SmoToSmoReplacer
         string outputPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
-        SmoToSmoReplacementPlan plan = Analyze(target, donor);
+        // Repeat the inexpensive compatibility checks for API safety; the
+        // single Pack below remains the authoritative structural verifier.
+        SmoToSmoReplacementPlan plan = AnalyzeCore(
+            target, donor, validatePacking: false);
         if (!plan.CanReplace)
             throw new InvalidOperationException(
                 "SMO-донор несовместим с целевым скелетом:\n" +
@@ -237,9 +247,8 @@ public static class SmoToSmoReplacer
 
         try
         {
-            SmoVisualTransplantResult transplant =
-                SmoVisualTransplanter.Transplant(target, donor);
-            File.WriteAllBytes(temporaryPath, transplant.Data);
+            SmoPackedVisualGraph packed = SmoVisualGraphPacker.Pack(target, donor);
+            File.WriteAllBytes(temporaryPath, packed.Data);
             SmoDocument verified = SmoDocument.Load(temporaryPath);
             string verifiedHash = ComputeSha256(verified.Data.Span);
             int verifiedTriangles = verified.Objects
@@ -252,27 +261,23 @@ public static class SmoToSmoReplacer
             if (verified.Header.Unknown04 != target.Header.Unknown04 ||
                 verified.Header.Version != target.Header.Version)
                 verificationErrors.Add("target header profile changed");
-            if (verified.Objects.Count != target.Objects.Count)
+            if (verified.Objects.Count != target.Objects.Count + packed.PackedObjectIds.Count)
                 verificationErrors.Add(
-                    $"object count {verified.Objects.Count} != target {target.Objects.Count}");
-            if (!verified.Objects.Zip(target.Objects).All(pair =>
-                    pair.First.Id == pair.Second.Id &&
-                    pair.First.Name == pair.Second.Name &&
-                    pair.First.TypeHash == pair.Second.TypeHash))
+                    $"object count {verified.Objects.Count} != expected " +
+                    $"{target.Objects.Count + packed.PackedObjectIds.Count}");
+            Dictionary<uint, SmoObjectEntry> verifiedById = verified.Objects
+                .ToDictionary(entry => entry.Id);
+            if (target.Objects.Any(before =>
+                    !verifiedById.TryGetValue(before.Id, out SmoObjectEntry? after) ||
+                    after.Name != before.Name || after.TypeHash != before.TypeHash))
                 verificationErrors.Add("target object identities changed");
-            int verifiedMeshes = verified.Objects.Count(entry =>
-                entry.TypeHash == SmoClassIds.MeshData);
-            if (verifiedMeshes != transplant.MeshCount)
+            int donorTriangles = donor.Objects
+                .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
+                .Select(entry => SmoMeshDecoder.Decode(donor, entry))
+                .Sum(CountNonDegenerateTriangles);
+            if (verifiedTriangles != donorTriangles)
                 verificationErrors.Add(
-                    $"mesh slots {verifiedMeshes} != expected {transplant.MeshCount}");
-            int verifiedTextures = verified.Objects.Count(entry =>
-                entry.TypeHash == SmoClassIds.TextureData);
-            if (verifiedTextures != transplant.TextureCount)
-                verificationErrors.Add(
-                    $"texture slots {verifiedTextures} != expected {transplant.TextureCount}");
-            if (verifiedTriangles != transplant.TriangleCount)
-                verificationErrors.Add(
-                    $"triangles {verifiedTriangles} != donor {transplant.TriangleCount}");
+                    $"visible triangles {verifiedTriangles} != donor {donorTriangles}");
             foreach (SmoObjectEntry skinEntry in verified.Objects.Where(entry =>
                          entry.TypeHash == SmoClassIds.Skin))
             {
@@ -287,19 +292,19 @@ public static class SmoToSmoReplacer
             if (verificationErrors.Count > 0)
             {
                 throw new InvalidDataException(
-                    "Результат SMO→SMO не сохранил target object graph или не прошёл " +
-                    "структурную проверку visual payload: " +
+                    "Результат SMO→SMO не сохранил target service graph или не прошёл " +
+                    "структурную проверку packed visual branches: " +
                     string.Join("; ", verificationErrors) + ".");
             }
 
             File.Move(temporaryPath, fullOutput, true);
             return new SmoToSmoReplacementResult(
                 fullOutput,
-                transplant.MeshCount,
-                transplant.TextureCount,
-                plan.DonorMeshCount,
-                transplant.DonorTextureCount,
-                transplant.TriangleCount,
+                packed.PackedMeshCount,
+                packed.PackedTextureCount,
+                packed.PackedMeshCount,
+                packed.PackedTextureCount,
+                donorTriangles,
                 plan.TargetBoneCount,
                 verified.Data.Length,
                 verifiedHash,

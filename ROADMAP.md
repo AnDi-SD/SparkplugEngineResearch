@@ -50,7 +50,7 @@
 - [ ] Назвать и проверить render/texture states вместо хранения «магических» индексов.
 - [ ] Воспроизвести vertex diffuse modulation, alpha и blend operations.
 - [ ] Реализовать catalog-safe repack с пересчётом всех затронутых offsets/sizes.
-- [x] Добавить в просмотрщик подтверждённые ABGR/BGRA textures и UV0 layout `0x940`.
+- [x] Добавить в просмотрщик подтверждённые BGRA textures и UV0 layout `0x940`.
 - [ ] Расширить texture render на остальные подтверждённые vertex layouts и material passes.
 
 ## 4. Сцена, skin и анимация
@@ -103,7 +103,7 @@
 - [x] Подтвердить texture mutability однобайтовыми raw RGB pixel probes без repack и изменений headers (проверено в игре 10.08.2026).
 - [x] Подтвердить в игре полную замену RGB атласа `256×256` при побайтовом сохранении Alpha, headers, offsets и размера файла.
 - [x] Восстановить texture writer в GUI только в подтверждённом fixed-size RGB режиме; resize/repack `SMOTextureTool` не использовать.
-- [x] Добавить замену встроенной текстуры из GLB/PNG с проверкой ABGR layout и fixed-size записью только RGB.
+- [x] Добавить замену встроенной текстуры из GLB/PNG с проверкой BGRA layout, marker `00` на `+0x3C` и fixed-size записью только RGB.
 - [x] Добавить SMO → SMO visual transplant: сохранить служебный object graph/materials/collision target, заменить meshes и textures данными донора и пересчитать FFPS offsets/sizes.
 - [x] Разрешить различающееся число SMO meshes/palettes: перераспределять donor triangles по доступным 16-bone target slots и безопасно гасить лишние slots.
 - [x] Добавить отчёт bone mapping и безопасный fallback дополнительных donor bones на shared ancestor/bind-nearest bone; отдельно предупреждать о target bones без donor weights.
@@ -112,5 +112,5 @@
 - [x] Проверять для SMO-донора platform/serializer, точные bone names и hierarchy; различие bind pose показывать как предупреждение.
 - [x] Отключать в GUI подгонку, rigid bone, atlas replacement и повторную нарезку при выборе SMO-донора.
 - [x] Импортировать подготовленный GLB/FBX skin по точным bone names и bind pose с пересборкой 16-bone palettes; FBX конвертировать через Blender в общий GLB pipeline.
-- [x] Изолированным игровым тестом подтвердить, что внешний Alpha в fixed-size ABGR вызывает crash; production writer сохраняет Alpha target и меняет только RGB.
+- [x] Нативным trace локализовать RGBA-crash и исправить off-by-one marker/payload (`+0x3C`/`+0x3D`); corrected donor Alpha проходит native load, production ждёт широкой визуальной проверки.
 - [ ] Добавить редактор соответствий и контролируемую генерацию weights для модели без костей или с неверным skeleton.

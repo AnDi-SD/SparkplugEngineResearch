@@ -10,7 +10,7 @@
       "documents": [
         "tools/SmoViewer/README.md",
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.3.1.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.4.0.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
@@ -33,7 +33,7 @@
           "documents": [
             "tools/SmoImporter/README.md",
             "tools/SmoImporter/CHANGELOG.md",
-            "tools/SmoImporter/RELEASE_NOTES_0.2.0.md"
+            "tools/SmoImporter/RELEASE_NOTES_0.3.0.md"
           ]
         }
       ]
@@ -55,7 +55,7 @@
       "documents": [
         "tools/SmoImporter/README.md",
         "tools/SmoImporter/CHANGELOG.md",
-        "tools/SmoImporter/RELEASE_NOTES_0.2.0.md"
+        "tools/SmoImporter/RELEASE_NOTES_0.3.0.md"
       ]
     },
     {
@@ -75,7 +75,7 @@
       "documents": [
         "tools/SMOTextureTool/README.md",
         "tools/SMOTextureTool/CHANGELOG.md",
-        "tools/SMOTextureTool/RELEASE_NOTES_2.0.1.md",
+        "tools/SMOTextureTool/RELEASE_NOTES_2.1.0.md",
         "tools/SMOTextureTool/LICENSE.txt",
         "tools/SMOTextureTool/COPYRIGHT.txt"
       ]

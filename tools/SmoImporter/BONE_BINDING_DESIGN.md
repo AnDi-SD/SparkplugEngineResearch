@@ -1,15 +1,14 @@
 # Привязка импортируемой модели к скелету
 
-Статус: разработка `SmoImporter 0.2.0`. Реализованы консервативный путь
+Статус: `SmoImporter 0.3.0`. Реализованы append-only путь
 **SMO → SMO** и экспериментальный импорт готового skinning из GLB. Автоматическое
 построение весов для модели без корректного скелета ещё не реализовано.
 
-> Важное уточнение после игрового теста Faragonda: target visual slots не являются
-> достаточным описанием всего runtime-графа. Попытка упаковать 3 donor textures в
-> 2 Bloom slots и последующая попытка заменить render graph целиком создали
-> структурно читаемые SMO, но игра завершилась с ошибкой. Поэтому активный путь
-> сохраняет target graph и блокирует неподдерживаемое расширение до расшифровки
-> всех ссылок.
+> После нативного исследования Faragonda активный путь больше не упаковывает donor
+> textures в существующие target slots и не заменяет render graph целиком. Он
+> сохраняет service/skeleton graph target и добавляет только полные visual branches
+> донора с новыми IDs. Контрольный Faragonda → Bloom прошёл нативную контекстную
+> загрузку в настоящем `bloom_jeans.smo` slot.
 
 ## Быстрый путь: готовый SMO-донор
 
@@ -21,20 +20,21 @@
 3. сравнивает имена костей из `spSkin` со всем node graph второй модели,
    логическую иерархию и bind matrices;
 4. сохраняет все target objects, их IDs, порядок, parent topology и неизвестные
-   связи без удаления ветвей;
-5. сопоставляет donor geometry с существующими target texture/mesh slots и
-   перестраивает reference-only 16-bone palettes по карте костей;
-6. явно сериализует vertex fields и переносит donor textures только в существующие
-   texture objects;
-7. пересчитывает logical offsets, serialized sizes, вложенные размеры, `FileSize`
+   связи без удаления ветвей; старые target meshes делает невидимыми degenerate
+   anchors;
+5. добавляет donor `spSkin`/material/texture/UV/mesh branches с новыми уникальными
+   IDs, не копируя donor nodes и service graph;
+6. перестраивает donor palettes как reference-only: node IDs берутся у target по
+   именам, inverse-bind matrices остаются от донора;
+7. переносит donor mesh и texture payload без atlas fallback или потери Alpha;
+8. пересчитывает logical offsets, serialized sizes, вложенные размеры, `FileSize`
    и `DataSize`;
-8. повторно открывает результат strict parser и проверяет сохранение identity всех
-   target objects, geometry, UV, skin indices и texture payload.
+9. повторно открывает результат strict parser и проверяет identity target objects,
+   degenerate legacy meshes, donor geometry/UV/palettes/textures и все ссылки.
 
-Если donor требует больше texture groups, операция останавливается до записи.
-Следующий writer должен уметь добавлять visual branches внутрь сохранённого target
-graph, а не заменять его donor graph; до этого надо описать ссылки из `SubMaster`,
-`UpperBody`, `C-lowerRoot`, `C-upperRoot` и других служебных объектов.
+Число donor texture groups больше не ограничено числом target slots: каждая группа
+переносится собственной visual branch. Неизвестные target service references при
+этом не переписываются.
 
 Дополнительные donor bones не могут быть добавлены без изменения target graph.
 Их weights сворачиваются в ближайшие совместимые target bones; дерево заранее
@@ -78,7 +78,11 @@ leaf objects, поэтому writer обязан пересчитать все �
 Различие bind pose само по себе не блокирует SMO-донор: target node graph остаётся,
 а donor inverse bind matrices записываются в перестроенные reference-only target
 palettes для сопоставленных костей. Такой результат всё равно требует игровой
-проверки.
+проверки. Это не тот же контракт, что у внешнего GLB: сочетание donor inverse-bind
+с target animation graph переносит donor bind-логику в runtime-деформацию и при
+сильном несовпадении rest pose может визуально «разорвать» модель. До реализации
+mesh rebase для SMO → SMO зелёный native loader test подтверждает структуру, но не
+корректность анимации.
 
 ## Вариант 1: внешняя модель с правильным скелетом
 
@@ -90,14 +94,19 @@ palettes для сопоставленных костей. Такой резул
    в том же дереве GUI, которым пользуется writer;
 3. нормализует до четырёх влияний и переводит каждую вершину из donor bind pose в
    target bind pose формулой `donorInverseBind × targetBindWorld`;
-4. группирует primitives по material и помещает их в существующие texture groups;
-5. делит triangles по существующим `spSkin`, не превышая 16 костей в palette,
+4. записывает palettes только с target node IDs и canonical target inverse-bind
+   matrices; donor nodes, rest-pose и animation logic не сериализуются;
+5. группирует primitives с одним source image в общую body-atlas группу и помещает
+   её только в совместимый существующий texture group;
+6. делит triangles по существующим `spSkin`, не превышая 16 костей в palette,
    локально перенумеровывает indices и дублирует vertices на границах chunks;
-6. заменяет только RGB внутри существующих fixed-size ABGR texture leaves;
-   Alpha сохраняется от target, поскольку его замена подтверждённо вызывает
-   crash оригинальной игры;
-7. сохраняет весь target object graph и проверяет результат strict parser,
-   object identity, geometry, skin indices и обратным GLB-export.
+7. заменяет только RGB сопоставленного fixed-size BGRA texture leaf; непарные
+   eyes/effects обязаны остаться побайтно исходными;
+   Alpha консервативно сохраняется от target; прежний RGBA-crash локализован в
+   повреждении marker на `+0x3C`, исправленная полная BGRA-запись проходит native
+   load, но требует более широкой визуальной/gameplay-проверки до production;
+8. сохраняет весь target object graph и проверяет hierarchy/TRS, canonical palette
+   matrices, bind-frame identity, geometry, skin indices и unpaired textures.
 
 Вложенная target-ветка с palette, целиком указывающей на одну кость, считается
 жёстким runtime-контрактом. Например, `bloom_eyes` находится под `Head`, поэтому
@@ -111,9 +120,12 @@ palettes для сопоставленных костей. Такой резул
 Любое другое несовпавшее активное имя блокирует запись; будущий ручной редактор
 соответствий должен явно хранить выбор пользователя.
 
-Автоматический rebase можно отключить в GUI для диагностики, но по умолчанию он
-включён. Предпросмотр показывает исходную GLB-позу, поэтому окончательная оценка
-деформации всё ещё требует запуска результата в игре.
+`RetargetToGameBindPose` включён в GUI по умолчанию и выполняет ровно один rebase.
+`PreservePreparedGeometry` оставляет positions/UV/weights неизменными и разрешён
+только с identity transform для модели, уже подготовленной точно в игровой bind
+pose. AutoFit и произвольный transform в skinned-режиме GUI отключены. Предпросмотр
+показывает исходную GLB-позу, поэтому окончательная оценка деформации всё ещё
+требует запуска результата в игре.
 
 FBX проходит этот же путь через headless Blender-конвертацию в временный GLB.
 Импортируются только skinned meshes с Armature modifier и связанные armatures;

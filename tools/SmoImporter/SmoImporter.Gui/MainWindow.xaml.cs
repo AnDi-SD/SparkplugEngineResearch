@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Numerics;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,11 +22,19 @@ public partial class MainWindow : Window
     private const double MaximumCameraDistance = 1_000_000;
     private const double PitchLimit = Math.PI / 2 - 0.001;
 
+    private readonly ImporterNativeValidator _nativeValidator = new();
+    private CancellationTokenSource? _nativeValidationCancellation;
+    private bool _nativeValidationRunning;
+    private bool _settingNativeExecutablePath;
+    private bool _isClosing;
+
     private string? _sourcePath;
     private SmoDocument? _document;
     private SmoExportScene? _sourceScene;
     private string? _replacementPath;
     private ImportedScene? _replacementScene;
+    private RigidGlbTextureBundle? _replacementRigidTextureBundle;
+    private SmoRigidMultiMaterialPackAnalysis? _rigidMultiMaterialAnalysis;
     private MeshSplitPlan? _plan;
     private SmoDocument? _replacementSmoDocument;
     private SmoExportScene? _replacementSmoScene;
@@ -33,6 +42,7 @@ public partial class MainWindow : Window
     private GlbSkinTransferPlan? _glbSkinTransferPlan;
     private string? _blenderPath;
     private string? _texturePath;
+    private string? _multiTextureDirectory;
     private readonly List<Point3D> _previewBounds = new();
     private Point3D? _selectedBonePosition;
     private Point _lastMousePosition;
@@ -46,6 +56,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        if (!string.IsNullOrWhiteSpace(_nativeValidator.SavedExecutablePath))
+            SetGameExecutablePath(_nativeValidator.SavedExecutablePath);
+        Loaded += MainWindow_Loaded;
+        Closing += MainWindow_Closing;
         string? commandLineSource = Environment.GetCommandLineArgs().Skip(1)
             .FirstOrDefault(argument =>
                 argument.EndsWith(".smo", StringComparison.OrdinalIgnoreCase) && File.Exists(argument));
@@ -64,25 +78,47 @@ public partial class MainWindow : Window
     {
         try
         {
-            _sourcePath = Path.GetFullPath(path);
-            _document = SmoDocument.Load(_sourcePath);
-            _sourceScene = SmoSceneBuilder.Build(_document);
-            _plan = null;
-            SourcePathText.Text = _sourcePath;
-            SourceSummaryText.Text = $"{_sourceScene.Meshes.Count} mesh slots; {_sourceScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; {_sourceScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles.";
-            BoneCombo.ItemsSource = SmoWholeModelReplacer.GetRigidBoneChoices(_document)
+            string sourcePath = Path.GetFullPath(path);
+            SmoDocument document = SmoDocument.Load(sourcePath);
+            SmoExportScene sourceScene = SmoSceneBuilder.Build(document);
+            BoneItem[] boneItems = SmoWholeModelReplacer.GetRigidBoneChoices(document)
                 .Select(bone => new BoneItem(
                     bone.Slot, bone.ObjectId, $"[{bone.Slot}] {bone.Name}"))
                 .ToArray();
+            BoneItem? preferredHead = _replacementRigidTextureBundle is null
+                ? null
+                : FindPreferredHeadBone(boneItems);
+
+            _sourcePath = sourcePath;
+            _document = document;
+            _sourceScene = sourceScene;
+            _plan = null;
+            _rigidMultiMaterialAnalysis = null;
+            SourcePathText.Text = _sourcePath;
+            SourceSummaryText.Text = $"{_sourceScene.Meshes.Count} mesh slots; {_sourceScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; {_sourceScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles.";
+            BoneCombo.ItemsSource = boneItems;
             BoneCombo.SelectedIndex = BoneCombo.Items.Count > 0 ? 0 : -1;
+            if (preferredHead is not null)
+                BoneCombo.SelectedItem = preferredHead;
             if (_replacementSmoDocument is not null)
                 UpdateSmoReplacementPlan();
             else if (_replacementScene?.HasSkinning == true)
                 UpdateGlbSkinTransferPlan();
+            else if (_replacementRigidTextureBundle is not null)
+            {
+                ApplyAutoFit();
+                PlanSummaryText.Text = "Проверка multi-texture структуры ещё не выполнена.";
+                StatusText.Text = "Целевой SMO изменён. Повторите проверку multi-texture структуры.";
+            }
             else
                 StatusText.Text = "Шаблон SMO загружен.";
             _framePreviewOnRefresh = true;
             RefreshState();
+            if (IsLoaded &&
+                (ResolveGameExecutablePath() is null ||
+                 string.IsNullOrWhiteSpace(
+                     _nativeValidator.SavedExecutablePath)))
+                _ = LocateGameExecutableAsync();
         }
         catch (Exception exception) { ShowError(exception); }
     }
@@ -124,6 +160,9 @@ public partial class MainWindow : Window
         _replacementSmoDocument = donor;
         _replacementSmoScene = donorScene;
         _replacementScene = null;
+        _replacementRigidTextureBundle = null;
+        _multiTextureDirectory = null;
+        _rigidMultiMaterialAnalysis = null;
         _plan = null;
         _texturePath = null;
         EmbeddedTextureCombo.ItemsSource = null;
@@ -136,34 +175,80 @@ public partial class MainWindow : Window
             $"{donorScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
             $"{textures} textures.";
         PlanSummaryText.Text =
-            "Полный render/service graph target сохраняется; geometry, textures и " +
-            "reference-only skin palettes заполняются данными донора.";
+            "Service/skeleton graph target сохраняется. Donor meshes, materials и " +
+            "textures добавляются отдельными visual branches со своими palettes; " +
+            "старые target meshes становятся невидимыми anchors.";
         ReplacementModeText.Text = "Режим SMO → SMO";
         UpdateSmoReplacementPlan();
     }
 
-    private void LoadExternalReplacement(string path)
+    private void LoadExternalReplacement(
+        string path,
+        string? textureDirectory = null)
     {
         string fullPath = Path.GetFullPath(path);
-        ImportedScene scene = ImportedModelReader.Read(fullPath, _blenderPath);
+        RigidGlbTextureBundle? rigidTextureBundle = null;
+        ImportedScene scene;
+        if (!string.IsNullOrWhiteSpace(textureDirectory))
+        {
+            rigidTextureBundle = RigidGlbTextureBundleReader.ReadModel(
+                fullPath,
+                textureDirectory,
+                _blenderPath);
+            scene = rigidTextureBundle.Scene;
+        }
+        else if (RigidGlbTextureBundleReader.TryReadModel(
+                     fullPath,
+                     out rigidTextureBundle,
+                     blenderPath: _blenderPath))
+        {
+            scene = rigidTextureBundle!.Scene;
+        }
+        else
+        {
+            scene = ImportedModelReader.Read(fullPath, _blenderPath);
+        }
+        BoneItem? preferredHead = rigidTextureBundle is not null && _document is not null
+            ? FindPreferredHeadBone(BoneCombo.Items.OfType<BoneItem>())
+            : null;
+        IEnumerable<Vector3> replacementFitPositions = rigidTextureBundle is null
+            ? scene.Meshes.SelectMany(mesh => mesh.Positions)
+            : rigidTextureBundle.MaterialGroups
+                .SelectMany(group => group.Meshes)
+                .SelectMany(mesh => mesh.Positions);
+        ReplacementTransform? automaticFit = rigidTextureBundle is not null &&
+            _sourceScene is not null
+                ? ReplacementTransformFitter.FitByHeightAndCenter(
+                    _sourceScene.Meshes.SelectMany(mesh => mesh.Positions),
+                    replacementFitPositions)
+                : null;
         bool convertedFbx = Path.GetExtension(fullPath).Equals(
             ".fbx", StringComparison.OrdinalIgnoreCase);
 
         _replacementPath = fullPath;
         _replacementScene = scene;
+        _replacementRigidTextureBundle = rigidTextureBundle;
+        _multiTextureDirectory = rigidTextureBundle?.TextureDirectory;
+        _rigidMultiMaterialAnalysis = null;
         _replacementSmoDocument = null;
         _replacementSmoScene = null;
         _smoReplacementPlan = null;
         _glbSkinTransferPlan = null;
         _plan = null;
+        PlanSummaryText.Text = "План ещё не построен.";
         ReplacementPathText.Text = fullPath;
         int jointCount = scene.Meshes.Select(mesh => mesh.Skinning?.Skeleton)
             .FirstOrDefault(skeleton => skeleton is not null)?.JointNames.Count ?? 0;
-        ReplacementSummaryText.Text =
-            $"{scene.Meshes.Count} source meshes; " +
-            $"{scene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
-            $"{scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles" +
-            (scene.HasSkinning ? $"; {jointCount} skin joints." : ".");
+        ReplacementSummaryText.Text = rigidTextureBundle is null
+            ? $"{scene.Meshes.Count} source meshes; " +
+              $"{scene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
+              $"{scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles" +
+              (scene.HasSkinning ? $"; {jointCount} skin joints." : ".")
+            : $"{scene.Meshes.Count} meshes; " +
+              $"{scene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
+              $"{scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
+              $"{rigidTextureBundle.MaterialGroups.Count} materials; " +
+              $"{rigidTextureBundle.MaterialGroups.Sum(group => group.Frames.Count)} PNG frames.";
         EmbeddedTextureCombo.ItemsSource = new[]
             {
                 new TextureItem(-1, "Не менять текстуру исходного SMO")
@@ -173,11 +258,58 @@ public partial class MainWindow : Window
             .ToArray();
         EmbeddedTextureCombo.SelectedIndex = 0;
         _texturePath = null;
+        TextureFolderPathText.Text = rigidTextureBundle is null
+            ? $"Автопоиск рядом с моделью: {Path.GetDirectoryName(fullPath)}"
+            : rigidTextureBundle.TextureDirectory;
         TexturePathText.Text = scene.Textures.Count > 0
-            ? $"Встроенных base-color текстур: {scene.Textures.Count}; выберите нужную или оставьте исходную."
-            : "Встроенная base-color текстура не найдена.";
-        if (scene.HasSkinning)
+            ? $"Встроенных цветовых текстур: {scene.Textures.Count}; выберите нужную или оставьте исходную."
+            : "Встроенная цветовая текстура не найдена.";
+        if (rigidTextureBundle is null && !scene.HasSkinning && BoneCombo.Items.Count > 0)
+            BoneCombo.SelectedIndex = 0;
+        if (rigidTextureBundle is not null)
         {
+            string ignoredMeshWarning = rigidTextureBundle.IgnoredMeshes.Count == 0
+                ? string.Empty
+                : "\nИгнорируются служебные meshes: " +
+                  string.Join(", ", rigidTextureBundle.IgnoredMeshes) + ".";
+            string ignoredTextureWarning = rigidTextureBundle.IgnoredTextureFiles.Count == 0
+                ? string.Empty
+                : "\nНе относятся к активным matN и пропущены PNG: " +
+                  string.Join(", ", rigidTextureBundle.IgnoredTextureFiles) + ".";
+            EmbeddedTextureCombo.ItemsSource = null;
+            TexturePathText.Text =
+                $"PNG найдены в папке: " +
+                $"{rigidTextureBundle.MaterialGroups.Count} материалов, " +
+                $"{rigidTextureBundle.MaterialGroups.Sum(group => group.Frames.Count)} кадров. " +
+                "POT сохраняются без изменения; остальные увеличиваются до следующей степени двойки.";
+            MultiTextureSummaryText.Text = string.Join("; ",
+                rigidTextureBundle.MaterialGroups.Select(group =>
+                    $"{group.Name}: {group.Frames.Count} " +
+                    (group.Frames.Count == 1 ? "texture" : "frames"))) +
+                ignoredMeshWarning + ignoredTextureWarning;
+            string modelKind = Path.GetExtension(fullPath).TrimStart('.').ToUpperInvariant();
+            ReplacementModeText.Text = $"Multi-texture rigid {modelKind} → SMO";
+            CompatibilityText.Text =
+                "Каждый matN сохраняется отдельной material/mesh-веткой; вся модель rigid-привязана к Head." +
+                ignoredMeshWarning + ignoredTextureWarning;
+            ReplacementModePanel.Background = new SolidColorBrush(
+                Color.FromRgb(220, 252, 231));
+            BoneMappingTree.Items.Clear();
+            BoneMappingPanel.Visibility = Visibility.Collapsed;
+            SplitModeText.Text =
+                "Геометрия не объединяется: material-группы и все PNG остаются раздельными. " +
+                "Дополнительные mat3/mat4 используются как последовательности кадров.";
+            PlanButton.Content = "Проверить multi-texture структуру";
+            StatusText.Text = "Multi-texture набор загружен. Проверьте структуру и подгонку.";
+            if (preferredHead is not null)
+                BoneCombo.SelectedItem = preferredHead;
+            if (automaticFit is not null)
+                ApplyTransform(automaticFit);
+        }
+        else if (scene.HasSkinning)
+        {
+            RebaseBindPoseCheckBox.IsChecked = true;
+            ApplyTransform(ReplacementTransform.Identity);
             if (scene.Textures.Count > 0)
                 EmbeddedTextureCombo.SelectedIndex = 1;
             ReplacementModeText.Text = convertedFbx
@@ -191,7 +323,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ReplacementModeText.Text = "Экспериментальный режим OBJ/GLB → SMO";
+            ReplacementModeText.Text = "Экспериментальный режим OBJ/FBX/GLB → SMO";
             CompatibilityText.Text =
                 "Требуются подгонка, выбор rigid bone и проверка плана нарезки.";
             ReplacementModePanel.Background = new SolidColorBrush(
@@ -250,13 +382,16 @@ public partial class MainWindow : Window
             $"{_glbSkinTransferPlan.ActiveJointCount}; exact: " +
             $"{_glbSkinTransferPlan.MatchedBoneNames.Count}; remap: " +
             $"{_glbSkinTransferPlan.RemappedBones.Count}; material groups: " +
-            $"{_glbSkinTransferPlan.MaterialGroupCount}." + details;
+            $"{_glbSkinTransferPlan.MaterialGroupCount}; bind-pose differences: " +
+            $"{_glbSkinTransferPlan.DifferentBindPoseJointCount}." + details;
         if (_glbSkinTransferPlan.CanReplace)
         {
             ReplacementModePanel.Background = new SolidColorBrush(
                 Color.FromRgb(255, 243, 205));
             StatusText.Text =
-                "Skinned GLB совместим. Проверьте дерево костей и подтвердите построение palettes.";
+                _glbSkinTransferPlan.DifferentBindPoseJointCount > 0
+                    ? "Skinned GLB совместим. Оставьте одноразовое согласование bind pose включённым; donor-узлы и donor inverse-bind в SMO не переносятся."
+                    : "Skinned GLB совместим. Bind pose уже совпадает; проверьте дерево костей и palettes.";
         }
         else
         {
@@ -341,7 +476,7 @@ public partial class MainWindow : Window
                 ReplacementModePanel.Background = new SolidColorBrush(
                     Color.FromRgb(220, 252, 231));
                 StatusText.Text =
-                    "Скелет SMO-донора совпадает. Можно перенести меши и текстуры в target-контейнер.";
+                    "Скелет SMO-донора совпадает. Можно упаковать его visual branches в target-контейнер.";
                 break;
             case SmoSkeletonCompatibility.CompatibleWithWarnings:
                 ReplacementModePanel.Background = new SolidColorBrush(
@@ -435,6 +570,41 @@ public partial class MainWindow : Window
         if (_document is null || _replacementScene is null) return;
         try
         {
+            if (_replacementRigidTextureBundle is not null)
+            {
+                _plan = null;
+                _rigidMultiMaterialAnalysis = SmoRigidMultiMaterialPacker.Analyze(
+                    _document, _replacementRigidTextureBundle);
+                string details = string.Join(
+                    "\n",
+                    _rigidMultiMaterialAnalysis.Messages.Select(message => "• " + message));
+                if (!_rigidMultiMaterialAnalysis.CanPack)
+                {
+                    PlanSummaryText.Text = "Проверка multi-texture структуры не пройдена." +
+                        (details.Length == 0 ? string.Empty : "\n" + details);
+                    StatusText.Text =
+                        "Multi-texture SMO создать нельзя: исправьте указанную несовместимость.";
+                    RefreshState();
+                    return;
+                }
+
+                BoneItem? head = BoneCombo.Items.OfType<BoneItem>()
+                    .FirstOrDefault(item => item.Slot == _rigidMultiMaterialAnalysis.RigidBoneSlot);
+                if (head is not null)
+                    BoneCombo.SelectedItem = head;
+                PlanSummaryText.Text =
+                    $"{_rigidMultiMaterialAnalysis.MaterialGroupCount} material branches; " +
+                    $"{_rigidMultiMaterialAnalysis.MeshCount} meshes; " +
+                    $"{_rigidMultiMaterialAnalysis.TextureCount} texture frames; " +
+                    $"{_rigidMultiMaterialAnalysis.SequenceCount} sequences; " +
+                    $"rigid palette slot {_rigidMultiMaterialAnalysis.RigidBoneSlot} → " +
+                    $"{_rigidMultiMaterialAnalysis.RigidBoneName}." +
+                    (details.Length == 0 ? string.Empty : "\n" + details);
+                StatusText.Text =
+                    "Multi-texture структура проверена writer-ом. Можно создать новый SMO.";
+                RefreshState();
+                return;
+            }
             if (_replacementScene.HasSkinning)
             {
                 _glbSkinTransferPlan = SmoSkinnedGlbReplacer.Analyze(
@@ -466,16 +636,26 @@ public partial class MainWindow : Window
             StatusText.Text = "План проверен. Можно создать экспериментальный SMO.";
             RefreshState();
         }
-        catch (Exception exception) { _plan = null; RefreshState(); ShowError(exception); }
+        catch (Exception exception)
+        {
+            _plan = null;
+            _rigidMultiMaterialAnalysis = null;
+            RefreshState();
+            ShowError(exception);
+        }
     }
 
-    private void Save_Click(object sender, RoutedEventArgs e)
+    private async void Save_Click(object sender, RoutedEventArgs e)
     {
-        if (_document is null || _sourcePath is null) return;
+        if (_nativeValidationRunning || _document is null || _sourcePath is null)
+            return;
         bool smoMode = _replacementSmoDocument is not null;
+        bool multiTextureMode = !smoMode && _replacementRigidTextureBundle is not null;
         bool skinnedGlbMode = !smoMode && _replacementScene?.HasSkinning == true;
         if (smoMode && _smoReplacementPlan?.CanReplace != true) return;
-        if (!smoMode && (_replacementScene is null || _plan is null)) return;
+        if (multiTextureMode && _rigidMultiMaterialAnalysis?.CanPack != true) return;
+        if (!smoMode && !multiTextureMode &&
+            (_replacementScene is null || _plan is null)) return;
         string donorStem = _replacementPath is null
             ? "replacement"
             : Path.GetFileNameWithoutExtension(_replacementPath);
@@ -484,77 +664,388 @@ public partial class MainWindow : Window
             Filter = "Sparkplug model (*.smo)|*.smo",
             FileName = smoMode
                 ? Path.GetFileNameWithoutExtension(_sourcePath) + "_from_" + donorStem + ".smo"
+                : multiTextureMode
+                    ? Path.GetFileNameWithoutExtension(_sourcePath) + "_multitexture_" + donorStem + ".smo"
                 : skinnedGlbMode
                     ? Path.GetFileNameWithoutExtension(_sourcePath) + "_skinned_" + donorStem + ".smo"
                     : Path.GetFileNameWithoutExtension(_sourcePath) + "_whole_replaced.smo",
             InitialDirectory = Path.GetDirectoryName(_sourcePath)
         };
         if (dialog.ShowDialog(this) != true) return;
+        NativeValidationResultBorder.Visibility = Visibility.Collapsed;
         try
         {
+            string fullOutputPath = Path.GetFullPath(dialog.FileName);
+            EnsureSeparateOutput(fullOutputPath, _sourcePath, "исходный SMO");
+            EnsureSeparateOutput(fullOutputPath, _replacementPath, "файл-донор");
+            string outputPath;
             if (smoMode)
             {
                 SmoToSmoReplacementResult smoResult = SmoToSmoReplacer.Replace(
-                    _document, _replacementSmoDocument!, dialog.FileName);
-                StatusText.Text =
-                    $"Готово: target graph сохранён — {smoResult.MeshCount} mesh slots, " +
-                    $"{smoResult.TextureCount} textures, {smoResult.TriangleCount:N0} triangles; " +
-                    $"SHA-256 {smoResult.Sha256[..12]}….";
-                MessageBox.Show(this,
-                    $"SMO-подмена сохранена и проверена strict parser:\n{smoResult.OutputPath}\n\n" +
-                    "Полный object graph, IDs, skeleton, служебные объекты и неизвестные связи " +
-                    "целевого SMO сохранены. В его существующие mesh/texture slots записаны " +
-                    "геометрия, UV, цвета и текстуры донора; skin weights перепривязаны к " +
-                    "целевым palettes по сопоставлению костей. " +
-                    "Исходные файлы не изменены.\n\n" +
-                    $"SHA-256 результата:\n{smoResult.Sha256}",
-                    "SMO-подмена готова", MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
+                    _document, _replacementSmoDocument!, fullOutputPath);
+                outputPath = smoResult.OutputPath;
             }
-
-            if (skinnedGlbMode)
+            else if (multiTextureMode)
             {
-                ImportedTexture? embedded = EmbeddedTextureCombo.SelectedItem is TextureItem skinTexture &&
-                                            skinTexture.Index >= 0
-                    ? _replacementScene!.Textures[skinTexture.Index]
-                    : null;
+                SmoRigidMultiMaterialPackResult packed =
+                    SmoRigidMultiMaterialPacker.Pack(
+                        _document,
+                        _replacementRigidTextureBundle!,
+                        ReadTransform(),
+                        fullOutputPath);
+                outputPath = packed.OutputPath;
+            }
+            else if (skinnedGlbMode)
+            {
+                ImportedTexture? selectedTexture = !string.IsNullOrWhiteSpace(_texturePath)
+                    ? ImportedTextureFileReader.Read(_texturePath)
+                    : EmbeddedTextureCombo.SelectedItem is TextureItem skinTexture &&
+                      skinTexture.Index >= 0
+                        ? _replacementScene!.Textures[skinTexture.Index]
+                        : null;
                 GlbSkinTransferResult skinResult = SmoSkinnedGlbReplacer.Replace(
                     _document,
                     _replacementScene!,
-                    ReadTransform(),
-                    dialog.FileName,
-                    RebaseBindPoseCheckBox.IsChecked == true,
-                    embedded);
-                StatusText.Text =
-                    $"Готово: {skinResult.TriangleCount:N0} triangles, " +
-                    $"{skinResult.PaletteCount} palettes; SHA-256 {skinResult.Sha256[..12]}….";
-                MessageBox.Show(this,
-                    $"Skinned GLB перенесён в копию target SMO:\n{skinResult.OutputPath}\n\n" +
-                    "Target object graph и IDs сохранены. JOINTS_0/WEIGHTS_0 распределены по " +
-                    "существующим 16-bone palettes. У текстуры заменён только RGB; " +
-                    "проверенный target Alpha сохранён. Проверьте результат во Viewer и игре — " +
-                    "режим экспериментальный.\n\n" +
-                    $"SHA-256:\n{skinResult.Sha256}",
-                    "Экспериментальный skinned SMO готов",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                return;
+                    ReplacementTransform.Identity,
+                    fullOutputPath,
+                    RebaseBindPoseCheckBox.IsChecked == true
+                        ? SkinnedGeometryTransferMode.RetargetToGameBindPose
+                        : SkinnedGeometryTransferMode.PreservePreparedGeometry,
+                    selectedTexture);
+                outputPath = skinResult.OutputPath;
+            }
+            else
+            {
+                WholeModelReplacementResult result = SmoWholeModelReplacer.Replace(
+                    _document, _replacementScene!, ReadTransform(), fullOutputPath,
+                    BoneCombo.SelectedItem is BoneItem bone ? bone.Slot : 0,
+                    texturePath: _texturePath,
+                    embeddedTexture: EmbeddedTextureCombo.SelectedItem is TextureItem texture && texture.Index >= 0
+                        ? _replacementScene!.Textures[texture.Index]
+                        : null);
+                outputPath = result.OutputPath;
             }
 
-            WholeModelReplacementResult result = SmoWholeModelReplacer.Replace(
-                _document, _replacementScene!, ReadTransform(), dialog.FileName,
-                BoneCombo.SelectedItem is BoneItem bone ? bone.Slot : 0,
-                texturePath: _texturePath,
-                embeddedTexture: EmbeddedTextureCombo.SelectedItem is TextureItem texture && texture.Index >= 0
-                    ? _replacementScene!.Textures[texture.Index]
-                    : null);
-            StatusText.Text = $"Готово: {result.MeshCount} meshes, {result.VertexCount:N0} vertices, {result.TriangleCount:N0} triangles.";
-            MessageBox.Show(this,
-                $"Новая копия сохранена и проверена strict parser:\n{result.OutputPath}\n\nТекстура записана безопасно: RGB заменён, исходный Alpha и структура SMO сохранены.",
-                "Экспериментальный SMO готов", MessageBoxButton.OK, MessageBoxImage.Information);
+            await ValidateSavedModelAsync(outputPath, _sourcePath);
         }
         catch (Exception exception) { ShowError(exception); }
+    }
+
+    private static void EnsureSeparateOutput(
+        string outputPath,
+        string? inputPath,
+        string inputDescription)
+    {
+        if (inputPath is not null && string.Equals(
+                Path.GetFullPath(inputPath),
+                outputPath,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Результат нельзя записать поверх {inputDescription}; выберите новый файл.");
+        }
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e) =>
+        await LocateGameExecutableAsync();
+
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        _isClosing = true;
+        try
+        {
+            _nativeValidationCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    private void ChooseGameExecutable_Click(object sender, RoutedEventArgs e)
+    {
+        if (_nativeValidationRunning)
+            return;
+
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Winx Club (*.exe)|*.exe",
+            CheckFileExists = true,
+            FileName = ResolveGameExecutablePath() ?? "WinxClub.exe"
+        };
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        SetGameExecutablePath(dialog.FileName);
+        _nativeValidator.SaveManualExecutablePath(dialog.FileName);
+    }
+
+    private void GameExecutablePathBox_TextChanged(
+        object sender,
+        TextChangedEventArgs e)
+    {
+        if (_settingNativeExecutablePath || _nativeValidationRunning ||
+            NativeValidationResultBorder is null)
+        {
+            return;
+        }
+
+        NativeValidationResultBorder.Visibility = Visibility.Collapsed;
+    }
+
+    private void GameExecutablePathBox_LostKeyboardFocus(
+        object sender,
+        KeyboardFocusChangedEventArgs e)
+    {
+        string? executablePath = ResolveGameExecutablePath();
+        if (executablePath is null)
+            return;
+
+        SetGameExecutablePath(executablePath);
+        _nativeValidator.SaveManualExecutablePath(executablePath);
+    }
+
+    private async Task LocateGameExecutableAsync()
+    {
+        if (_nativeValidationRunning || _isClosing)
+            return;
+
+        string? executableBeforeSearch = ResolveGameExecutablePath();
+        try
+        {
+            string? located = await _nativeValidator.LocateExecutableAsync(
+                _sourcePath);
+            string? executableAfterSearch = ResolveGameExecutablePath();
+            bool pathWasChangedWhileSearching =
+                executableAfterSearch is not null &&
+                !string.Equals(
+                    executableAfterSearch,
+                    executableBeforeSearch,
+                    StringComparison.OrdinalIgnoreCase);
+            if (!_isClosing && located is not null && !pathWasChangedWhileSearching)
+                SetGameExecutablePath(located);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or
+                System.Security.SecurityException)
+        {
+            // Autodiscovery is optional; a path can still be entered manually.
+        }
+    }
+
+    private async Task ValidateSavedModelAsync(
+        string outputPath,
+        string sourcePath)
+    {
+        string? executablePath = ResolveGameExecutablePath();
+        if (executablePath is null)
+        {
+            await LocateGameExecutableAsync();
+            executablePath = ResolveGameExecutablePath();
+        }
+
+        if (executablePath is null)
+        {
+            SetNativeValidationResult(
+                ImporterNativeVerdict.Indeterminate,
+                "Проверка не выполнена — выберите WinxClub.exe.");
+            StatusText.Text = $"SMO сохранён: {outputPath}";
+            return;
+        }
+
+        SetGameExecutablePath(executablePath);
+        _nativeValidator.SaveManualExecutablePath(executablePath);
+        _nativeValidationRunning = true;
+        ControlsScrollViewer.IsEnabled = false;
+        SaveButton.IsEnabled = false;
+        SetNativeValidationProgress("Проверяем модель в игре…");
+        StatusText.Text = "SMO сохранён. Идёт автоматическая проверка…";
+
+        CancellationTokenSource runCancellation = new();
+        _nativeValidationCancellation = runCancellation;
+        try
+        {
+            ImporterNativeValidationResult result =
+                await _nativeValidator.ValidateAsync(
+                    executablePath,
+                    outputPath,
+                    InferLogicalGameAssetPath(sourcePath),
+                    runCancellation.Token);
+            if (!_isClosing)
+            {
+                SetNativeValidationResult(result.Verdict, result.Message);
+                StatusText.Text = $"SMO сохранён: {outputPath}";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            if (!_isClosing)
+            {
+                SetNativeValidationResult(
+                    ImporterNativeVerdict.Indeterminate,
+                    "Проверка отменена.");
+                StatusText.Text = $"SMO сохранён: {outputPath}";
+            }
+        }
+        catch (Exception)
+        {
+            if (!_isClosing)
+            {
+                SetNativeValidationResult(
+                    ImporterNativeVerdict.Indeterminate,
+                    "Проверка не выполнена — WinxClub.exe не удалось запустить.");
+                StatusText.Text = $"SMO сохранён: {outputPath}";
+            }
+        }
+        finally
+        {
+            runCancellation.Dispose();
+            if (ReferenceEquals(_nativeValidationCancellation, runCancellation))
+                _nativeValidationCancellation = null;
+            _nativeValidationRunning = false;
+            if (!_isClosing)
+            {
+                ControlsScrollViewer.IsEnabled = true;
+                RefreshState();
+            }
+        }
+    }
+
+    private void SetGameExecutablePath(string path)
+    {
+        string normalized;
+        try
+        {
+            normalized = Path.GetFullPath(path.Trim().Trim('"'));
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or NotSupportedException or
+                PathTooLongException)
+        {
+            return;
+        }
+
+        _settingNativeExecutablePath = true;
+        try
+        {
+            GameExecutablePathBox.Text = normalized;
+            GameExecutablePathBox.CaretIndex = GameExecutablePathBox.Text.Length;
+        }
+        finally
+        {
+            _settingNativeExecutablePath = false;
+        }
+    }
+
+    private string? ResolveGameExecutablePath()
+    {
+        string value = GameExecutablePathBox.Text.Trim().Trim('"');
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        try
+        {
+            string fullPath = Path.GetFullPath(value);
+            return File.Exists(fullPath) &&
+                Path.GetExtension(fullPath).Equals(
+                    ".exe", StringComparison.OrdinalIgnoreCase)
+                ? fullPath
+                : null;
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or NotSupportedException or
+                PathTooLongException)
+        {
+            return null;
+        }
+    }
+
+    private void SetNativeValidationProgress(string message)
+    {
+        NativeValidationResultBorder.Background = new SolidColorBrush(
+            Color.FromRgb(224, 242, 254));
+        NativeValidationResultBorder.BorderBrush = new SolidColorBrush(
+            Color.FromRgb(14, 165, 233));
+        NativeValidationResultBorder.BorderThickness = new Thickness(1);
+        NativeValidationResultText.Foreground = new SolidColorBrush(
+            Color.FromRgb(3, 105, 161));
+        NativeValidationResultText.Text = message;
+        NativeValidationResultBorder.Visibility = Visibility.Visible;
+    }
+
+    private void SetNativeValidationResult(
+        ImporterNativeVerdict verdict,
+        string message)
+    {
+        (Color background, Color border, Color text) = verdict switch
+        {
+            ImporterNativeVerdict.Suitable => (
+                Color.FromRgb(220, 252, 231),
+                Color.FromRgb(34, 197, 94),
+                Color.FromRgb(21, 128, 61)),
+            ImporterNativeVerdict.Unsuitable => (
+                Color.FromRgb(254, 226, 226),
+                Color.FromRgb(239, 68, 68),
+                Color.FromRgb(185, 28, 28)),
+            _ => (
+                Color.FromRgb(254, 243, 199),
+                Color.FromRgb(245, 158, 11),
+                Color.FromRgb(146, 64, 14))
+        };
+        NativeValidationResultBorder.Background = new SolidColorBrush(background);
+        NativeValidationResultBorder.BorderBrush = new SolidColorBrush(border);
+        NativeValidationResultBorder.BorderThickness = new Thickness(1);
+        NativeValidationResultText.Foreground = new SolidColorBrush(text);
+        NativeValidationResultText.Text = message;
+        NativeValidationResultBorder.Visibility = Visibility.Visible;
+        NativeValidationResultBorder.BringIntoView();
+    }
+
+    private static string InferLogicalGameAssetPath(string sourcePath)
+    {
+        string fullPath = Path.GetFullPath(sourcePath);
+        string separator = Path.DirectorySeparatorChar.ToString();
+        string mediaMarker = $"{separator}Media{separator}";
+        int mediaIndex = fullPath.LastIndexOf(
+            mediaMarker, StringComparison.OrdinalIgnoreCase);
+        return mediaIndex >= 0
+            ? fullPath[(mediaIndex + mediaMarker.Length)..].Replace('/', '\\')
+            : Path.GetFileName(fullPath);
+    }
+
+    private void SelectTextureFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (_replacementPath is null || _replacementSmoDocument is not null)
+            return;
+
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Выберите папку с matN PNG-текстурами",
+            Multiselect = false
+        };
+        string? initialDirectory = _multiTextureDirectory ??
+            Path.GetDirectoryName(_replacementPath);
+        if (initialDirectory is not null && Directory.Exists(initialDirectory))
+            dialog.InitialDirectory = initialDirectory;
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        try
+        {
+            // ReadModel completes all parsing and binding before LoadExternalReplacement
+            // commits the new bundle, so a bad folder leaves the current donor intact.
+            LoadExternalReplacement(_replacementPath, dialog.FolderName);
+            _framePreviewOnRefresh = true;
+            RefreshState();
+            StatusText.Text =
+                "Папка текстур подключена. Проверьте multi-texture структуру заново.";
+        }
+        catch (Exception exception)
+        {
+            ShowError(exception);
+        }
     }
 
     private void SelectTexture_Click(object sender, RoutedEventArgs e)
@@ -578,45 +1069,53 @@ public partial class MainWindow : Window
         _texturePath = null;
         TexturePathText.Text = texture.Index < 0
             ? "Текстура исходного SMO останется без изменений."
-            : $"Встроена в GLB: {_replacementScene.Textures[texture.Index].Name}";
+            : $"Встроена в модель: {_replacementScene.Textures[texture.Index].Name}";
     }
 
     private void BoneCombo_Changed(object sender, SelectionChangedEventArgs e) =>
         RefreshPreview();
+
+    private static BoneItem? FindPreferredHeadBone(IEnumerable<BoneItem> items) =>
+        items.FirstOrDefault(item =>
+            item.Slot == 8 && item.Display.EndsWith(
+                " Head", StringComparison.OrdinalIgnoreCase));
 
     private void AutoFit_Click(object sender, RoutedEventArgs e)
     {
         if (_sourceScene is null || _replacementScene is null) return;
         try
         {
-            Vector3[] source = _sourceScene.Meshes.SelectMany(mesh => mesh.Positions).ToArray();
-            Vector3[] replacement = _replacementScene.Meshes.SelectMany(mesh => mesh.Positions).ToArray();
-            if (source.Length == 0 || replacement.Length == 0)
-                throw new InvalidOperationException("Одна из моделей не содержит вершин.");
-
-            (Vector3 sourceMin, Vector3 sourceMax) = Bounds(source);
-            (Vector3 replacementMin, Vector3 replacementMax) = Bounds(replacement);
-            Vector3 sourceSize = sourceMax - sourceMin;
-            Vector3 replacementSize = replacementMax - replacementMin;
-            float sourceHeight = sourceSize.Y > 0.000001f ? sourceSize.Y : sourceSize.Length();
-            float replacementHeight = replacementSize.Y > 0.000001f ? replacementSize.Y : replacementSize.Length();
-            if (replacementHeight <= 0.000001f)
-                throw new InvalidOperationException("Невозможно определить размер модели замены.");
-
-            float scale = sourceHeight / replacementHeight;
-            Vector3 sourceCenter = (sourceMin + sourceMax) * 0.5f;
-            Vector3 replacementCenter = (replacementMin + replacementMax) * 0.5f;
-            Vector3 translation = sourceCenter - replacementCenter * scale;
-            ScaleBox.Text = scale.ToString("G9", CultureInfo.InvariantCulture);
-            RotXBox.Text = RotYBox.Text = RotZBox.Text = "0";
-            MoveXBox.Text = translation.X.ToString("G9", CultureInfo.InvariantCulture);
-            MoveYBox.Text = translation.Y.ToString("G9", CultureInfo.InvariantCulture);
-            MoveZBox.Text = translation.Z.ToString("G9", CultureInfo.InvariantCulture);
-            StatusText.Text = $"Автоподгонка: scale {scale:G5}; центры моделей совмещены.";
-            _framePreviewOnRefresh = true;
-            RefreshPreview();
+            ApplyAutoFit();
         }
         catch (Exception exception) { ShowError(exception); }
+    }
+
+    private void ApplyAutoFit()
+    {
+        if (_sourceScene is null || _replacementScene is null)
+            throw new InvalidOperationException(
+                "Для автоподгонки нужны исходная модель и модель замены.");
+        IEnumerable<Vector3> replacementPositions = _replacementRigidTextureBundle is null
+            ? _replacementScene.Meshes.SelectMany(mesh => mesh.Positions)
+            : _replacementRigidTextureBundle.MaterialGroups
+                .SelectMany(group => group.Meshes)
+                .SelectMany(mesh => mesh.Positions);
+        ReplacementTransform fit = ReplacementTransformFitter.FitByHeightAndCenter(
+            _sourceScene.Meshes.SelectMany(mesh => mesh.Positions),
+            replacementPositions);
+        ApplyTransform(fit);
+    }
+
+    private void ApplyTransform(ReplacementTransform fit)
+    {
+        ScaleBox.Text = fit.Scale.ToString("G9", CultureInfo.InvariantCulture);
+        RotXBox.Text = RotYBox.Text = RotZBox.Text = "0";
+        MoveXBox.Text = fit.Translation.X.ToString("G9", CultureInfo.InvariantCulture);
+        MoveYBox.Text = fit.Translation.Y.ToString("G9", CultureInfo.InvariantCulture);
+        MoveZBox.Text = fit.Translation.Z.ToString("G9", CultureInfo.InvariantCulture);
+        StatusText.Text = $"Автоподгонка: scale {fit.Scale:G5}; центры моделей совмещены.";
+        _framePreviewOnRefresh = true;
+        RefreshPreview();
     }
 
     private void Transform_Changed(object sender, TextChangedEventArgs e)
@@ -627,12 +1126,19 @@ public partial class MainWindow : Window
 
     private void Reset_Click(object sender, RoutedEventArgs e)
     {
+        if (_nativeValidationRunning)
+            return;
+
         _sourcePath = null; _document = null; _sourceScene = null;
         _replacementPath = null; _replacementScene = null; _plan = null;
+        _replacementRigidTextureBundle = null;
+        _multiTextureDirectory = null;
+        _rigidMultiMaterialAnalysis = null;
         _replacementSmoDocument = null; _replacementSmoScene = null;
         _smoReplacementPlan = null; _glbSkinTransferPlan = null; _texturePath = null;
         SourcePathText.Text = "Не выбран"; SourceSummaryText.Text = "—";
         ReplacementPathText.Text = "Не выбрана"; ReplacementSummaryText.Text = "—";
+        TextureFolderPathText.Text = "Автопоиск рядом с моделью";
         TexturePathText.Text = "Остаётся текстура исходного SMO"; BoneCombo.ItemsSource = null;
         EmbeddedTextureCombo.ItemsSource = null;
         PlanSummaryText.Text = "План ещё не построен.";
@@ -649,6 +1155,7 @@ public partial class MainWindow : Window
         ScaleBox.Text = "1"; RotXBox.Text = RotYBox.Text = RotZBox.Text = "0";
         MoveXBox.Text = MoveYBox.Text = MoveZBox.Text = "0";
         StatusText.Text = "Выберите исходный SMO.";
+        NativeValidationResultBorder.Visibility = Visibility.Collapsed;
         _framePreviewOnRefresh = true;
         RefreshState();
     }
@@ -656,19 +1163,26 @@ public partial class MainWindow : Window
     private void RefreshState()
     {
         bool smoMode = _replacementSmoDocument is not null;
+        bool multiTextureMode = !smoMode && _replacementRigidTextureBundle is not null;
         bool skinnedGlbMode = !smoMode && _replacementScene?.HasSkinning == true;
         ExternalModelOptionsPanel.IsEnabled = !smoMode;
         ExternalModelOptionsPanel.Opacity = smoMode ? 0.5 : 1;
         PlanButton.IsEnabled = !smoMode && _document is not null &&
             _replacementScene is not null;
-        AutoFitButton.IsEnabled = !smoMode && _sourceScene is not null &&
+        AutoFitButton.IsEnabled = !smoMode && !skinnedGlbMode && _sourceScene is not null &&
             _replacementScene is not null;
-        SaveButton.IsEnabled = smoMode
+        TransformEditorGrid.IsEnabled = !skinnedGlbMode;
+        TransformEditorGrid.Opacity = skinnedGlbMode ? 0.55 : 1;
+        SaveButton.IsEnabled = !_nativeValidationRunning && (smoMode
             ? _smoReplacementPlan?.CanReplace == true
-            : _plan is not null && (!skinnedGlbMode ||
-                _glbSkinTransferPlan?.CanReplace == true);
+            : multiTextureMode
+                ? _rigidMultiMaterialAnalysis?.CanPack == true
+                : _plan is not null && (!skinnedGlbMode ||
+                    _glbSkinTransferPlan?.CanReplace == true));
         SaveButton.Content = smoMode
             ? "Создать SMO-подмену"
+            : multiTextureMode
+                ? "4. Создать multi-texture SMO"
             : skinnedGlbMode
                 ? "4. Создать skinned SMO"
                 : "4. Создать новый SMO";
@@ -679,6 +1193,14 @@ public partial class MainWindow : Window
         BoneHighlightText.Visibility = smoMode || skinnedGlbMode
             ? Visibility.Collapsed
             : Visibility.Visible;
+        BoneCombo.IsEnabled = !multiTextureMode;
+        TextureFolderPanel.Visibility = !smoMode && !skinnedGlbMode &&
+            _replacementScene is not null
+            ? Visibility.Visible : Visibility.Collapsed;
+        SingleTexturePanel.Visibility = multiTextureMode
+            ? Visibility.Collapsed : Visibility.Visible;
+        MultiTextureSummaryPanel.Visibility = multiTextureMode
+            ? Visibility.Visible : Visibility.Collapsed;
         RefreshPreview();
     }
 

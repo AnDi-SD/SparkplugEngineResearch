@@ -5,11 +5,22 @@ namespace SmoImporter.Core;
 
 /// <summary>
 /// Converts FBX to an internal temporary GLB through Blender, then delegates to
-/// the single GLB skin reader. Helper meshes without an armature are excluded.
+/// the GLB reader. The normal path prefers meshes driven by an armature when one
+/// exists. The rigid-bundle path exports all mesh objects, then its material
+/// resolver keeps only unskinned matN primitives and reports unrelated helpers.
 /// </summary>
 public static class FbxModelReader
 {
     public static ImportedScene Read(string path, string? blenderPath = null)
+        => ReadCore(path, blenderPath, includeAllRigidMeshes: false);
+
+    public static ImportedScene ReadRigid(string path, string? blenderPath = null)
+        => ReadCore(path, blenderPath, includeAllRigidMeshes: true);
+
+    private static ImportedScene ReadCore(
+        string path,
+        string? blenderPath,
+        bool includeAllRigidMeshes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         string fullInput = Path.GetFullPath(path);
@@ -27,7 +38,7 @@ public static class FbxModelReader
         try
         {
             string glbPath = Path.Combine(temporaryDirectory, "converted.glb");
-            Convert(fullInput, glbPath, blender);
+            Convert(fullInput, glbPath, blender, includeAllRigidMeshes);
             return GlbModelReader.Read(glbPath);
         }
         finally
@@ -40,16 +51,18 @@ public static class FbxModelReader
     private static void Convert(
         string inputPath,
         string outputPath,
-        string blenderPath)
+        string blenderPath,
+        bool includeAllRigidMeshes)
     {
         string expression =
             "import bpy;" +
             "bpy.ops.wm.read_factory_settings(use_empty=True);" +
             $"bpy.ops.import_scene.fbx(filepath={PythonString(inputPath)}," +
             "use_anim=False,use_image_search=True,ignore_leaf_bones=True);" +
-            "meshes=[o for o in bpy.context.scene.objects if o.type=='MESH' and " +
-            "any(m.type=='ARMATURE' and m.object for m in o.modifiers)];" +
-            "assert meshes,'FBX contains no mesh with an Armature modifier';" +
+            "all_meshes=[o for o in bpy.context.scene.objects if o.type=='MESH'];" +
+            "skinned=[o for o in all_meshes if any(m.type=='ARMATURE' and m.object for m in o.modifiers)];" +
+            $"meshes=all_meshes if {(includeAllRigidMeshes ? "True" : "False")} else (skinned if skinned else all_meshes);" +
+            "assert meshes,'FBX contains no mesh objects';" +
             "arms={m.object for o in meshes for m in o.modifiers " +
             "if m.type=='ARMATURE' and m.object};" +
             "bpy.ops.object.select_all(action='DESELECT');" +

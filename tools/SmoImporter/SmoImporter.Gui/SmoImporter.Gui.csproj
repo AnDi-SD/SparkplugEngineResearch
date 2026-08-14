@@ -5,12 +5,13 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.2.0</Version>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
-    <FileVersion>0.2.0.0</FileVersion>
+    <Version>0.3.0</Version>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <FileVersion>0.3.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SmoImporter.Core\SmoImporter.Core.csproj" />
     <ProjectReference Include="..\..\SmoExporter\SmoExporter.Core\SmoExporter.Core.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoNativeValidator.Core\SmoNativeValidator.Core.csproj" />
   </ItemGroup>
 </Project>

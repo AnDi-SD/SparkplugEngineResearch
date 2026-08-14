@@ -8,11 +8,14 @@
 - [Свидетельства из PC/PS2 executable и модов](engine/executable-evidence.md)
 - [Поиск и загрузка ресурсов Winx Club PC](engine/resource-loading.md)
 - [Контейнер и объектный граф SMO](formats/smo.md)
+- [Standalone-текстуры STX и их PC-диалекты](formats/stx.md)
 - [Наблюдения по PC и PS2](platforms/pc-vs-ps2.md)
 - [Подтверждённые class ID](reference/class-ids.md)
 - [Политика локального корпуса](research/corpus-policy.md)
 - [Дорожная карта](../ROADMAP.md)
 - [Дневник](../journal/README.md)
+- [Нативная проверка SMO кодом Winx Club](../journal/2026/2026-08-14-native-smo-validator.md)
+- [Release candidates SmoViewer 0.4, SmoImporter 0.3 и SMOTextureTool 2.1](../journal/2026/2026-08-14-release-candidates.md)
 - [Открытые вопросы](../research/open-questions.md)
 
 ## Статусы утверждений

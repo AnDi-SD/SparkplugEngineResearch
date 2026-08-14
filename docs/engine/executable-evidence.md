@@ -1,6 +1,8 @@
 # Свидетельства из executable и модов
 
-Статус: первичный статический triage без изменения бинарников. Адреса нужны как точки входа для последующей разметки в Ghidra и не являются завершённой декомпиляцией.
+Статус: статический triage и выборочная runtime-проверка без изменения исходных
+бинарников. Адреса нужны как точки входа для последующей разметки и не являются
+завершённой декомпиляцией.
 
 ## Зафиксированные бинарники
 
@@ -61,11 +63,46 @@ CodeView сохраняет ссылку на `Z:\Winx PS2\CODE\Build\PC\Release
 
 Patch сохраняет размер и entry point baseline PE и меняет небольшое число диапазонов. В свободной области `.data` около RVA `0x00BC0000` находится x86-hook; переход на него установлен около RVA `0x001CBB90`.
 
-Hook динамически получает `USER32.dll!GetAsyncKeyState`, проверяет virtual key `0x70` (**F1**) и вызывает функции около RVA `0x001CCEC0`/`0x001CDB90` — кандидаты на открытие/закрытие debug menu. Это хорошие точки для именования через diff и xrefs.
+Hook динамически получает `USER32.dll!GetAsyncKeyState`, проверяет virtual key
+`0x70` (**F1**) и вызывает функции RVA `0x001CCEC0`/`0x001CDB90`, открывающие и
+закрывающие debug menu. Навигация меню использует стрелки и Enter. Handler
+`LOAD LEVEL` передаёт выбранный 1-based ID штатному level manager; текстовый путь
+ресурса он не принимает.
+
+Шесть NOP-патчей оставляют включёнными пункты `PROFILER`, `DUMP LEVEL BLOCKS`,
+`DUMP ALL BLOCKS`, `DUMP MEMORY STATS`, `SHOW STATISTICS` и `SHOW FPS`. Изменения
+двух ранних значений `0 -> 1` относятся к ненулевым defaults ширины/высоты до
+инициализации renderer, а не к debug-флагам или стартовому уровню.
+
+## Скрытые параметры запуска
+
+Gameplay/debug-ключей командной строки в нативной игре не найдено. Собственный
+парсер читает `winx.ini`; подтверждены `fullScreen`, `startLevel`,
+`testCinematic`, `cinematicToTest`, `firstPCKLevel`, `loadFromCD`, `buildPCK`,
+`loadFromPCK`, `enableDialog`, `displayType` и `territory`.
+
+`fullScreen=false` включает штатный оконный режим без патча EXE. Ненулевой
+`startLevel` передаётся менеджеру смены уровня и позволяет пропустить меню.
+Runtime-проба `startLevel=2` дала переход `0 -> 54 -> 2 -> 71` и естественный
+запрос модели Bloom. Уровни имеют ID 1–50; 38–40 содержат пустые descriptors,
+а `Gardenia04` (50) не имеет соответствующего level SMO.
+
+Игра берёт ресурсы из `HKLM\Software\Konami\Winx Club\MediaPath` (в 32-битном
+registry view). Поэтому validator может использовать отдельный рабочий каталог с
+частными `winx.ini`/`config.ini` и копией `Shaders`, не меняя установку или
+пользовательские настройки.
 
 ## Tweak tools
 
-Три tweak/resolution utility являются managed .NET PE и пригодны для прямой декомпиляции через ILSpy. Строки версии 2 ссылаются на `winx.ini` и несколько `SPT`, связанных с камерой и challenge levels; подтвердить точные операции ещё предстоит декомпиляцией. Их следует использовать как карту кандидатов на patch points, а не как источник истины формата.
+Три tweak/resolution utility являются managed .NET PE и пригодны для прямой
+декомпиляции через ILSpy. Resolution Changer переписывает фиксированные пары
+ширины/высоты и строку разрешения в EXE. Tweak Center меняет camera/flight
+инструкции, `Player.spt`, challenge SPT и INI; его аргументы командной строки
+принадлежат самому patcher, а не игре. Для оконного режима EXE-патч не нужен:
+utility также использует штатный `fullScreen=false`.
+
+Эти программы остаются картой patch points, а не источником истины формата;
+native validator намеренно не запускает их и ничего не записывает в EXE/SPT.
 
 ## Дополнительные подтверждения 2026-08-10
 
@@ -79,5 +116,7 @@ Hook динамически получает `USER32.dll!GetAsyncKeyState`, пр
 1. Импортировать `SLES_532.19` в Ghidra как MIPS little-endian с base `0x00100000` и разметить `0x00181D80` как кандидата на проверку FFPS-заголовка.
 2. Автоматически выгрузить имена классов, токены полей и size codes в версионируемый словарь без игровых бинарников.
 3. По xrefs восстановить `spDataBlockSerializer`, `spSerializerManager` и platform-specific mesh/texture serializers.
-4. Выполнить структурный diff baseline PE и debug-menu patch, назвать функции F1 hook.
-5. Декомпилировать managed tweak tools и задокументировать точные изменения EXE/INI/SPT.
+4. Восстановить generic per-object serializer checkpoint, чтобы нативный журнал
+   показывал конкретный object index/class, а не только FFPS/resource-level этапы.
+5. Исследовать безопасный late attach для SecuROM-сборок, отвергающих
+   launch-under-debug.

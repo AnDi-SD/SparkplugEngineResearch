@@ -5,7 +5,8 @@
  MinWidth="960" MinHeight="640" WindowStartupLocation="CenterScreen">
  <Grid>
   <Grid.ColumnDefinitions><ColumnDefinition Width="390"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-  <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Background="#F4F6F8">
+  <ScrollViewer x:Name="ControlsScrollViewer" Grid.Column="0"
+                VerticalScrollBarVisibility="Auto" Background="#F4F6F8">
    <StackPanel Margin="20">
     <TextBlock Text="SMO Model Importer" FontSize="23" FontWeight="SemiBold"/>
     <TextBlock Margin="0,5,0,16" Foreground="#52606D" TextWrapping="Wrap"
@@ -57,21 +58,45 @@
       <StackPanel>
        <TextBlock Text="Skinned GLB / FBX" FontWeight="SemiBold"/>
        <CheckBox x:Name="RebaseBindPoseCheckBox" Margin="0,7,0,0" IsChecked="True"
-                 Content="Перевести модель из bind pose GLB в bind pose target"/>
+                 Content="Один раз согласовать bind pose модели с игровым скелетом (рекомендуется)"/>
        <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
-                  Text="JOINTS_0/WEIGHTS_0 сохраняются. Служебные joints без hardware palette показываются в дереве и перенаправляются на deform bones."/>
+                  Text="Включено: вершины один раз переводятся из корректной bind pose файла в bind pose игры. В SMO записываются только игровые кости и игровые inverse-bind matrices; узлы, поза и анимационная логика файла не переносятся. Выключайте лишь для модели, уже подготовленной точно в игровой bind pose."/>
+     </StackPanel>
+     </Border>
+
+     <Border x:Name="TextureFolderPanel" Margin="0,14,0,0" Padding="10"
+             BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
+             Visibility="Collapsed">
+      <StackPanel>
+       <TextBlock Text="Папка текстур" FontSize="15" FontWeight="SemiBold"/>
+       <Button Height="35" Margin="0,7,0,0" Content="Выбрать папку с matN PNG"
+               Click="SelectTextureFolder_Click"/>
+       <TextBlock x:Name="TextureFolderPathText" Margin="0,5,0,0"
+                  Text="Автопоиск рядом с моделью" TextWrapping="Wrap"/>
+       <TextBlock Margin="0,4,0,0" Foreground="#52606D" TextWrapping="Wrap"
+                  Text="Для rigid OBJ, FBX и GLB: mat1.png, mat2.png и кадры matN.1.png. Рядом с моделью папка определяется автоматически."/>
       </StackPanel>
      </Border>
 
-     <TextBlock Margin="0,16,0,0" Text="Текстура модели" FontSize="15" FontWeight="SemiBold"/>
-     <ComboBox x:Name="EmbeddedTextureCombo" Margin="0,6,0,0" DisplayMemberPath="Display" SelectionChanged="EmbeddedTexture_Changed"/>
-     <Button Height="35" Margin="0,6,0,0" Content="Выбрать PNG или JPEG" Click="SelectTexture_Click"/>
-     <TextBlock x:Name="TexturePathText" Margin="0,5,0,0" Text="Текстура исходного SMO останется без изменений" TextWrapping="Wrap"/>
-     <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Безопасный режим: RGB масштабируется под исходный атлас; Alpha, заголовки и размер файла сохраняются." TextWrapping="Wrap"/>
+     <StackPanel x:Name="SingleTexturePanel">
+      <TextBlock Margin="0,16,0,0" Text="Текстура модели" FontSize="15" FontWeight="SemiBold"/>
+      <ComboBox x:Name="EmbeddedTextureCombo" Margin="0,6,0,0" DisplayMemberPath="Display" SelectionChanged="EmbeddedTexture_Changed"/>
+      <Button Height="35" Margin="0,6,0,0" Content="Выбрать PNG или JPEG" Click="SelectTexture_Click"/>
+      <TextBlock x:Name="TexturePathText" Margin="0,5,0,0" Text="Текстура исходного SMO останется без изменений" TextWrapping="Wrap"/>
+      <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Безопасный режим: RGB масштабируется под исходный атлас; Alpha, заголовки и размер файла сохраняются." TextWrapping="Wrap"/>
+     </StackPanel>
+
+     <Border x:Name="MultiTextureSummaryPanel" Margin="0,16,0,0" Padding="10"
+             Background="#DCFCE7" CornerRadius="4" Visibility="Collapsed">
+      <StackPanel>
+       <TextBlock Text="Текстуры из папки" FontSize="15" FontWeight="SemiBold"/>
+       <TextBlock x:Name="MultiTextureSummaryText" Margin="0,5,0,0" TextWrapping="Wrap"/>
+      </StackPanel>
+     </Border>
 
      <TextBlock Margin="0,18,0,0" Text="3. Подгонка модели" FontSize="15" FontWeight="SemiBold"/>
      <Button x:Name="AutoFitButton" Margin="0,7,0,7" Height="35" Content="Подогнать размер и центр по исходной модели" IsEnabled="False" Click="AutoFit_Click"/>
-     <Grid Margin="0,7,0,0">
+     <Grid x:Name="TransformEditorGrid" Margin="0,7,0,0">
       <Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
       <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
       <TextBlock Grid.Row="0" Text="Scale" VerticalAlignment="Center"/><TextBox x:Name="ScaleBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="1" TextChanged="Transform_Changed"/>
@@ -80,10 +105,24 @@
      </Grid>
     </StackPanel>
 
-    <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+    <TextBlock Margin="0,18,0,0" Text="WinxClub.exe" FontSize="15" FontWeight="SemiBold"/>
+    <Grid Margin="0,6,0,0">
+     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+     <TextBox x:Name="GameExecutablePathBox" Height="34" Padding="7,5"
+              VerticalContentAlignment="Center" TextChanged="GameExecutablePathBox_TextChanged"
+              LostKeyboardFocus="GameExecutablePathBox_LostKeyboardFocus"/>
+     <Button x:Name="ChooseGameExecutableButton" Grid.Column="1" Height="34" Margin="6,0,0,0"
+             Content="…" ToolTip="Выбрать WinxClub.exe" Click="ChooseGameExecutable_Click"/>
+    </Grid>
+
+    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
      <Button x:Name="SaveButton" Width="225" Height="42" Content="4. Создать новый SMO" IsEnabled="False" Click="Save_Click"/>
-     <Button Width="105" Height="42" Margin="8,0,0,0" Content="Сброс" Click="Reset_Click"/>
+     <Button x:Name="ResetButton" Width="105" Height="42" Margin="8,0,0,0" Content="Сброс" Click="Reset_Click"/>
     </StackPanel>
+    <Border x:Name="NativeValidationResultBorder" Margin="0,10,0,0" Padding="10"
+            CornerRadius="4" Visibility="Collapsed">
+     <TextBlock x:Name="NativeValidationResultText" FontWeight="SemiBold" TextWrapping="Wrap"/>
+    </Border>
     <TextBlock x:Name="StatusText" Margin="0,14,0,0" Text="Выберите исходный SMO." TextWrapping="Wrap" Foreground="#52606D"/>
    </StackPanel>
   </ScrollViewer>

@@ -23,16 +23,19 @@ public static class GlbModelReader
         ReadOnlyMemory<byte> binary = file.AsMemory(binaryHeader + 8, binaryLength);
         JsonElement root = document.RootElement;
         JsonElement meshes = root.GetProperty("meshes");
+        string?[] meshNodeNames = ResolveMeshNodeNames(root, meshes.GetArrayLength());
         Matrix4x4[] meshTransforms = ResolveMeshTransforms(root, meshes.GetArrayLength());
         int?[] meshSkins = ResolveMeshSkins(root, meshes.GetArrayLength());
-        ImportedSkeleton[] skins = ReadSkins(root, binary);
+        GlbSkinLayout[] skins = ReadSkins(root, binary);
         var result = new List<ImportedMesh>();
 
         for (int meshIndex = 0; meshIndex < meshes.GetArrayLength(); meshIndex++)
         {
             JsonElement mesh = meshes[meshIndex];
-            string baseName = mesh.TryGetProperty("name", out JsonElement name)
-                ? name.GetString() ?? $"mesh_{meshIndex}" : $"mesh_{meshIndex}";
+            string baseName = meshNodeNames[meshIndex] ??
+                (mesh.TryGetProperty("name", out JsonElement name)
+                    ? name.GetString() ?? $"mesh_{meshIndex}"
+                    : $"mesh_{meshIndex}");
             int primitiveIndex = 0;
             foreach (JsonElement primitive in mesh.GetProperty("primitives").EnumerateArray())
             {
@@ -63,13 +66,16 @@ public static class GlbModelReader
                         $"Mesh {meshIndex} contains skin attributes but its node has no skin.");
                     if ((uint)skinIndex >= (uint)skins.Length)
                         throw new InvalidDataException($"Mesh {meshIndex} references invalid skin {skinIndex}.");
-                    ImportedJointIndices[] jointValues = ReadJointIndices(
-                        root, binary, joints.GetInt32());
+                    GlbSkinLayout skin = skins[skinIndex];
+                    ImportedJointIndices[] jointValues = RemapJointIndices(
+                        ReadJointIndices(root, binary, joints.GetInt32()),
+                        skin.SourceToCanonicalJoint,
+                        skinIndex);
                     Vector4[] weightValues = ReadVector4(
                         root, binary, weights.GetInt32());
                     if (jointValues.Length != positions.Length || weightValues.Length != positions.Length)
                         throw new InvalidDataException("Skin attribute count differs from POSITION count.");
-                    skinning = new ImportedSkinning(skins[skinIndex], jointValues, weightValues);
+                    skinning = new ImportedSkinning(skin.Skeleton, jointValues, weightValues);
                 }
                 if (skinning is null)
                 {
@@ -92,10 +98,53 @@ public static class GlbModelReader
                 primitiveIndex++;
             }
         }
-        return new ImportedScene(result, ReadEmbeddedBaseColorTextures(root, binary));
+        return new ImportedScene(
+            result,
+            ReadEmbeddedBaseColorTextures(root, binary),
+            ReadMaterials(root));
     }
 
-    private static ImportedSkeleton[] ReadSkins(
+    private static IReadOnlyList<ImportedMaterial> ReadMaterials(JsonElement root)
+    {
+        if (!root.TryGetProperty("materials", out JsonElement materials))
+            return [];
+        bool hasTextures = root.TryGetProperty("textures", out JsonElement textures);
+        bool hasImages = root.TryGetProperty("images", out JsonElement images);
+        var result = new ImportedMaterial[materials.GetArrayLength()];
+        for (int materialIndex = 0; materialIndex < result.Length; materialIndex++)
+        {
+            JsonElement material = materials[materialIndex];
+            string name = material.TryGetProperty("name", out JsonElement materialName) &&
+                          !string.IsNullOrWhiteSpace(materialName.GetString())
+                ? materialName.GetString()!
+                : $"material_{materialIndex}";
+            string? textureName = null;
+            if (hasTextures && hasImages &&
+                TryGetColorTextureIndex(material, out int texture))
+            {
+                if ((uint)texture < (uint)textures.GetArrayLength() &&
+                    textures[texture].TryGetProperty("source", out JsonElement source))
+                {
+                    int image = source.GetInt32();
+                    if ((uint)image < (uint)images.GetArrayLength())
+                    {
+                        JsonElement imageElement = images[image];
+                        textureName = imageElement.TryGetProperty("uri", out JsonElement uri) &&
+                                      !string.IsNullOrWhiteSpace(uri.GetString())
+                            ? Path.GetFileName(uri.GetString())
+                            : imageElement.TryGetProperty("name", out JsonElement imageName) &&
+                              !string.IsNullOrWhiteSpace(imageName.GetString())
+                                ? imageName.GetString()
+                                : null;
+                    }
+                }
+            }
+            result[materialIndex] = new ImportedMaterial(name, textureName);
+        }
+        return result;
+    }
+
+    private static GlbSkinLayout[] ReadSkins(
         JsonElement root,
         ReadOnlyMemory<byte> binary)
     {
@@ -103,7 +152,7 @@ public static class GlbModelReader
             return [];
         if (!root.TryGetProperty("nodes", out JsonElement nodes))
             throw new InvalidDataException("GLB skins require nodes.");
-        var result = new ImportedSkeleton[skins.GetArrayLength()];
+        var result = new GlbSkinLayout[skins.GetArrayLength()];
         for (int skinIndex = 0; skinIndex < result.Length; skinIndex++)
         {
             JsonElement skin = skins[skinIndex];
@@ -111,11 +160,15 @@ public static class GlbModelReader
                 !skin.TryGetProperty("inverseBindMatrices", out JsonElement inverseBind))
                 throw new InvalidDataException(
                     $"Skin {skinIndex} must contain joints and inverseBindMatrices.");
-            string[] names = joints.EnumerateArray().Select(value =>
+            int[] nodeIndices = joints.EnumerateArray().Select(value =>
             {
                 int nodeIndex = value.GetInt32();
                 if ((uint)nodeIndex >= (uint)nodes.GetArrayLength())
                     throw new InvalidDataException($"Skin {skinIndex} references invalid node {nodeIndex}.");
+                return nodeIndex;
+            }).ToArray();
+            string[] names = nodeIndices.Select(nodeIndex =>
+            {
                 string? name = nodes[nodeIndex].TryGetProperty("name", out JsonElement nodeName)
                     ? nodeName.GetString() : null;
                 return string.IsNullOrWhiteSpace(name)
@@ -123,20 +176,86 @@ public static class GlbModelReader
                         $"Skin {skinIndex} joint node {nodeIndex} has no name.")
                     : name;
             }).ToArray();
-            if (names.Distinct(StringComparer.Ordinal).Count() != names.Length)
-                throw new InvalidDataException($"Skin {skinIndex} contains duplicate joint names.");
             Matrix4x4[] matrices = ReadMatrix4(root, binary, inverseBind.GetInt32());
             if (matrices.Length != names.Length)
                 throw new InvalidDataException(
                     $"Skin {skinIndex} has {names.Length} joints but {matrices.Length} inverse bind matrices.");
-            result[skinIndex] = new ImportedSkeleton(
-                skin.TryGetProperty("name", out JsonElement skinName)
-                    ? skinName.GetString() ?? $"skin_{skinIndex}" : $"skin_{skinIndex}",
-                names,
-                matrices);
+            string name = skin.TryGetProperty("name", out JsonElement skinName)
+                ? skinName.GetString() ?? $"skin_{skinIndex}"
+                : $"skin_{skinIndex}";
+            result[skinIndex] = CanonicalizeSkin(
+                skinIndex, name, nodeIndices, names, matrices);
         }
         return result;
     }
+
+    private static GlbSkinLayout CanonicalizeSkin(
+        int skinIndex,
+        string name,
+        IReadOnlyList<int> sourceNodes,
+        IReadOnlyList<string> sourceNames,
+        IReadOnlyList<Matrix4x4> sourceMatrices)
+    {
+        var canonicalSlotByNode = new Dictionary<int, int>();
+        var canonicalNames = new List<string>();
+        var canonicalMatrices = new List<Matrix4x4>();
+        var sourceToCanonical = new int[sourceNodes.Count];
+        for (int sourceSlot = 0; sourceSlot < sourceNodes.Count; sourceSlot++)
+        {
+            int node = sourceNodes[sourceSlot];
+            Matrix4x4 matrix = sourceMatrices[sourceSlot];
+            if (canonicalSlotByNode.TryGetValue(node, out int canonicalSlot))
+            {
+                if (!canonicalMatrices[canonicalSlot].Equals(matrix))
+                {
+                    throw new InvalidDataException(
+                        $"Skin {skinIndex} repeats joint node {node} with different " +
+                        "inverse bind matrices.");
+                }
+                sourceToCanonical[sourceSlot] = canonicalSlot;
+                continue;
+            }
+
+            canonicalSlot = canonicalNames.Count;
+            canonicalSlotByNode.Add(node, canonicalSlot);
+            sourceToCanonical[sourceSlot] = canonicalSlot;
+            canonicalNames.Add(sourceNames[sourceSlot]);
+            canonicalMatrices.Add(matrix);
+        }
+
+        if (canonicalNames.Distinct(StringComparer.Ordinal).Count() != canonicalNames.Count)
+        {
+            throw new InvalidDataException(
+                $"Skin {skinIndex} contains duplicate joint names on distinct nodes.");
+        }
+        return new GlbSkinLayout(
+            new ImportedSkeleton(name, canonicalNames, canonicalMatrices),
+            sourceToCanonical);
+    }
+
+    private static ImportedJointIndices[] RemapJointIndices(
+        IReadOnlyList<ImportedJointIndices> source,
+        IReadOnlyList<int> sourceToCanonical,
+        int skinIndex)
+    {
+        ushort Remap(ushort sourceSlot)
+        {
+            if (sourceSlot >= sourceToCanonical.Count)
+            {
+                throw new InvalidDataException(
+                    $"Skin {skinIndex} vertex references joint slot {sourceSlot}, " +
+                    $"but the skin contains only {sourceToCanonical.Count} joints.");
+            }
+            return checked((ushort)sourceToCanonical[sourceSlot]);
+        }
+
+        return source.Select(value => new ImportedJointIndices(
+            Remap(value.X), Remap(value.Y), Remap(value.Z), Remap(value.W))).ToArray();
+    }
+
+    private sealed record GlbSkinLayout(
+        ImportedSkeleton Skeleton,
+        IReadOnlyList<int> SourceToCanonicalJoint);
 
     private static int?[] ResolveMeshSkins(JsonElement root, int meshCount)
     {
@@ -160,6 +279,41 @@ public static class GlbModelReader
         return result;
     }
 
+    private static string?[] ResolveMeshNodeNames(JsonElement root, int meshCount)
+    {
+        var result = new string?[meshCount];
+        var owners = new int?[meshCount];
+        if (!root.TryGetProperty("nodes", out JsonElement nodes))
+            return result;
+
+        int nodeIndex = 0;
+        foreach (JsonElement node in nodes.EnumerateArray())
+        {
+            if (!node.TryGetProperty("mesh", out JsonElement mesh))
+            {
+                nodeIndex++;
+                continue;
+            }
+
+            int meshIndex = mesh.GetInt32();
+            if ((uint)meshIndex >= (uint)meshCount)
+                throw new InvalidDataException(
+                    $"Node {nodeIndex} references invalid mesh {meshIndex}.");
+            if (owners[meshIndex] is int existingOwner)
+                throw new InvalidDataException(
+                    $"Mesh {meshIndex} is instanced by nodes {existingOwner} and {nodeIndex}; " +
+                    "a single ImportedMesh cannot preserve both node names and transforms.");
+
+            owners[meshIndex] = nodeIndex;
+            if (node.TryGetProperty("name", out JsonElement name) &&
+                !string.IsNullOrWhiteSpace(name.GetString()))
+                result[meshIndex] = name.GetString();
+            nodeIndex++;
+        }
+
+        return result;
+    }
+
     private static IReadOnlyList<ImportedTexture> ReadEmbeddedBaseColorTextures(
         JsonElement root, ReadOnlyMemory<byte> binary)
     {
@@ -172,11 +326,8 @@ public static class GlbModelReader
         var imageIndices = new List<int>();
         foreach (JsonElement material in materials.EnumerateArray())
         {
-            if (!material.TryGetProperty("pbrMetallicRoughness", out JsonElement pbr) ||
-                !pbr.TryGetProperty("baseColorTexture", out JsonElement baseColor) ||
-                !baseColor.TryGetProperty("index", out JsonElement textureIndex))
+            if (!TryGetColorTextureIndex(material, out int texture))
                 continue;
-            int texture = textureIndex.GetInt32();
             if ((uint)texture >= (uint)textures.GetArrayLength() ||
                 !textures[texture].TryGetProperty("source", out JsonElement source))
                 continue;
@@ -211,6 +362,30 @@ public static class GlbModelReader
                 name, mime, info.Width, info.Height, imageBytes));
         }
         return result;
+    }
+
+    private static bool TryGetColorTextureIndex(
+        JsonElement material,
+        out int textureIndex)
+    {
+        // Character rips frequently store the visible atlas in emissiveTexture
+        // instead of the glTF PBR base-color slot.  Prefer the proper PBR slot,
+        // then accept emissive as the deterministic fallback.
+        if (material.TryGetProperty("pbrMetallicRoughness", out JsonElement pbr) &&
+            pbr.TryGetProperty("baseColorTexture", out JsonElement baseColor) &&
+            baseColor.TryGetProperty("index", out JsonElement baseColorIndex))
+        {
+            textureIndex = baseColorIndex.GetInt32();
+            return true;
+        }
+        if (material.TryGetProperty("emissiveTexture", out JsonElement emissive) &&
+            emissive.TryGetProperty("index", out JsonElement emissiveIndex))
+        {
+            textureIndex = emissiveIndex.GetInt32();
+            return true;
+        }
+        textureIndex = -1;
+        return false;
     }
 
     private static Matrix4x4[] ResolveMeshTransforms(JsonElement root, int meshCount)

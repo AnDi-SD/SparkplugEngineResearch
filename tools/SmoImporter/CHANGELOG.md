@@ -1,63 +1,68 @@
 # Changelog
 
-## 0.2.0 — в разработке
+## 0.3.0 — 2026-08-14
+
+- режим SMO → SMO переведён на append-only visual packing: service/skeleton graph,
+  IDs и неизвестные связи target сохраняются, старые meshes остаются невидимыми
+  structural anchors, а donor `spSkin`/material/texture/UV/mesh branches получают
+  новые уникальные IDs;
+- упаковщик переносит visual forest из нескольких render roots, отдельные rigid-
+  детали, несколько texture groups и нативные texture sequences без atlas fallback;
+  контрольные Faragonda → Bloom и StellaX ↔ Bloom прошли strict и native проверки;
+- добавлен rigid multi-material импорт GLB, OBJ и FBX. Материалы связываются с
+  PNG через metadata либо OBJ `mtllib`/`usemtl`/`map_Kd`; GUI принимает отдельную
+  папку с `matN.png` и последовательностями `matN.1.png`, `matN.2.png`;
+- non-POT текстуры увеличиваются до следующей степени двойки по каждой оси,
+  никогда не уменьшаются и ограничены 2048 пикселями. Исходные POT-пиксели и
+  полный BGRA/Alpha сохраняются;
+- исправлено зеркальное поле texture header `+0x38`: оно хранит `height << 8`.
+  Формула подтверждена на 2 348 pristine textures и устранила нативный crash
+  прямоугольных атласов 128×64;
+- skinned GLB/FBX transfer разделён на режимы `RetargetToGameBindPose` и
+  `PreservePreparedGeometry`. Production-режим выполняет ровно один bind-pose
+  rebase, но записывает только target bone IDs, target graph и canonical target
+  inverse-bind matrices — donor nodes и animation logic не переносятся;
+- skinned texture replacement ограничен сопоставленным body-atlas. Материалы с
+  одним source image объединяются, а глаза, эффекты и непарные texture objects
+  остаются побайтно исходными;
+- подготовленная Текна перенесена в чистый `Characters/Tecna/Tecna.smo`: 17 active
+  joints совпали точно, 382 triangles распределены по семи игровым palettes,
+  `tecna_e` сохранена. Результат прошёл strict parser, быстрый native smoke test и
+  две контекстные загрузки на Cloud01_02 в оконном режиме;
+- исправлен off-by-one texture parser/writer: для `0x32E3`/`0x43E3` marker `00`
+  находится на `+0x3C`, а BGRA payload начинается с `+0x3D`;
+- после сохранения GUI автоматически проверяет новый SMO нативным загрузчиком
+  игры в быстром изолированном оконном режиме. Пользователю доступны только путь
+  к `WinxClub.exe` и краткий результат «подходит / не подходит / не определено»;
+- GUI не разрешает перезаписать target или donor. Skinned-режим также блокирует
+  AutoFit и произвольный transform, которые могли бы повторно применить позу;
+- FBX использует общий GLB pipeline через Blender, с расширенным автопоиском
+  `blender.exe` и исключением helper meshes без Armature.
+- GLB reader распознаёт безопасное palette padding старого SmoExporter: повтор
+  одного glTF joint node с побайтно одинаковой inverse-bind matrix схлопывается с
+  remap `JOINTS_0`; одинаковые имена разных nodes и разные matrices по-прежнему
+  блокируются как неоднозначные.
+
+## 0.2.0 — 2026-08-13
 
 - добавлен экспериментальный skinned GLB → SMO writer: импорт `JOINTS_0`,
   `WEIGHTS_0`, inverse bind matrices, vertex colors и material primitives;
 - добавлен bind-pose rebase внешней модели на сохранённый skeleton target,
   нормализация weights и автоматическая нарезка по 16-костным palettes;
-- GUI распознаёт skinned GLB, сохраняет меню сопоставления костей и позволяет
-  отключить rebase для диагностики; неизвестные active joints блокируют запись;
-- после изолированного игрового теста skinned GLB writer переведён с RGBA на
-  безопасную fixed-size замену только RGB: target Alpha сохраняется, поскольку
-  его изменение отдельно подтверждено причиной crash;
-- после игрового crash `uzhs` запрещено переписывать вложенные однокостные
-  palettes: `bloom_eyes` сохраняет исходную привязку только к `Head`, а
-  несовместимый прозрачный primitive переносится в основной body group;
-- поскольку сохранение eye-палитры не устранило crash, добавлен диагностический
-  набор, независимо проверяющий RGB, Alpha, новую topology и skinned palettes;
-- добавлен skinned FBX → GLB → SMO через Blender с общим расширенным автопоиском,
-  ручным выбором `blender.exe`, исключением helper meshes без Armature и тем же
-  bone/palette/RGB pipeline, что у прямого GLB;
-- после игрового crash graph-transplant полностью удалён: он терял неизвестные
-  target bindings и делал нерабочими даже ранее совместимые модели;
-- восстановлен консервативный SMO → SMO writer: полный target object graph, IDs,
-  skeleton, service objects и неизвестные ссылки сохраняются, меняются только
-  mesh/texture leaf payload и reference-only skin palettes;
-- отменён неподтверждённый atlas fallback Faragonda `3 → 2`: структурно валидный
-  файл с увеличенным texture leaf вызывал crash игры; сочетание с большим числом
-  donor texture groups теперь блокируется до записи;
-- версия выделена для следующего цикла разработки Importer;
-- добавлен безопасный режим SMO → SMO: строгая проверка serializer/platform,
-  имён костей и иерархии, а также предупреждение о различии bind pose;
-- object graph, skeleton nodes, materials, collision, attachments и неизвестные
-  объекты сохраняются от target; vertex payload и texture blocks с Alpha берутся
-  от SMO-донора;
-- triangles донора автоматически переразбиваются по существующим target skin
-  slots с лимитом 16 костей, packed bone indices перенумеровываются по именам;
-- поддержано разное число donor/target meshes и palettes: лишние target mesh
-  slots сохраняются с невидимым degenerate triangle, дополнительные texture slots
-  сохраняют target IDs/ссылки, но получают donor pixel payload;
-- добавлен bone mapping planner и раскрываемое дерево GUI: совпавшие bones,
-  игнорируемые дополнительные donor bones с фактическим weight fallback и target
-  bones без donor influences;
-- дополнительные donor bones безопасно сворачиваются в ближайшего общего
-  weighted предка или shared bone по bind-позиции; неоднозначная пара блокируется;
-- weighted hierarchy сравнивается с пропуском невзвешенных helper/control nodes;
-  различающиеся пути показываются в четвёртой ветке bone mapping tree;
-- реализована field-wise конвертация подтверждённых skinned vertex layouts,
-  включая `0x093E → 0x097E`, генерацию отсутствующих normals и объединение weights;
-- writer пересчитывает FFPS catalog offsets/sizes, enclosing object sizes и
-  inline reference sizes после изменения visual leaf objects;
-- результат повторно проверяется strict parser и SHA-256, а целевой SMO и донор
-  запрещено перезаписывать;
-- GUI автоматически распознаёт SMO-донор и отключает ненужные подгонку, rigid
-  bone, ручную замену atlas и повторную нарезку;
-- задокументированы два следующих skinning-пути: name/bind-pose mapping для
-  подготовленной модели и контролируемая генерация/редактирование весов для
-  модели без корректных костей;
-- Importer переведён на общее обновлённое `SmoViewer.Core`, включая compact skinning `0x093E`, уточнённые texture/material bindings и material render flags; формат записи пока намеренно не расширен без отдельных round-trip проверок;
-- пользовательская сборка будет формироваться единым упаковщиком как framework-dependent single-file с чистым корнем и проверкой .NET 8 Desktop Runtime.
+- GUI распознаёт skinned GLB, показывает дерево сопоставления костей и блокирует
+  запись при неизвестных active joints;
+- добавлен skinned FBX → GLB → SMO через Blender с общим bone/palette/RGB pipeline;
+- добавлен консервативный режим SMO → SMO: target object graph, IDs, skeleton,
+  service objects и неизвестные ссылки сохраняются, меняются visual leaf payload
+  и reference-only palettes;
+- различающиеся donor bones сворачиваются в ближайшие совместимые target bones,
+  а weighted hierarchy сравнивается с пропуском helper/control nodes;
+- подтверждённые vertex layouts конвертируются field-wise, включая
+  `0x093E → 0x097E`, генерацию normals и объединение weights;
+- writer пересчитывает каталог, object sizes и offsets, повторно проверяет
+  результат strict parser и не разрешает перезаписать target или donor;
+- пользовательский пакет переведён на единый framework-dependent single-file
+  формат с загрузчиком .NET 8 Desktop Runtime.
 
 ## 0.1.1 — 2026-08-12
 
@@ -77,4 +82,5 @@
 - исходные Alpha, headers, offsets, object graph и размер texture block сохраняются;
 - запись всегда выполняется в новый SMO с повторной проверкой strict parser.
 
-Изменение разрешения atlas, texture repack, скелетная деформация и импорт анимаций не поддерживаются.
+Изменение разрешения atlas, texture repack, скелетная деформация и импорт анимаций
+в этой версии не поддерживались.

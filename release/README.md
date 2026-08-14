@@ -58,3 +58,8 @@ switching between self-contained and framework-dependent publishing can leave
 stale intermediate runtime assets in `obj/`. Packaging fails unless publish
 produces exactly one executable. It also validates the root allowlist and
 rejects exact duplicate files inside a package.
+
+Only products listed in `release-manifest.json` receive user-facing packages.
+`SmoNativeValidator.Core`, its CLI harness, and its tests remain available in
+source and may be embedded by Viewer or Importer, but they are intentionally not
+packaged or published as a standalone product.

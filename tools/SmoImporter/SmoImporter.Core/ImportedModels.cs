@@ -34,11 +34,17 @@ public sealed record ImportedSkinning(
 public sealed record ImportedTexture(
     string Name, string MimeType, int Width, int Height, byte[] Data);
 
+public sealed record ImportedMaterial(
+    string Name,
+    string? BaseColorTextureName = null);
+
 public sealed record ImportedScene(
     IReadOnlyList<ImportedMesh> Meshes,
-    IReadOnlyList<ImportedTexture>? EmbeddedTextures = null)
+    IReadOnlyList<ImportedTexture>? EmbeddedTextures = null,
+    IReadOnlyList<ImportedMaterial>? SourceMaterials = null)
 {
     public IReadOnlyList<ImportedTexture> Textures => EmbeddedTextures ?? [];
+    public IReadOnlyList<ImportedMaterial> Materials => SourceMaterials ?? [];
     public bool HasSkinning => Meshes.Any(mesh => mesh.Skinning is not null);
 }
 

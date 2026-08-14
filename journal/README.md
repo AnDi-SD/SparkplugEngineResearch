@@ -6,6 +6,8 @@
 
 ### 2026
 
+- [2026-08-14 — release candidates SmoViewer 0.4, SmoImporter 0.3 и SMOTextureTool 2.1](2026/2026-08-14-release-candidates.md)
+- [2026-08-14 — нативная проверка SMO кодом Winx Club](2026/2026-08-14-native-smo-validator.md)
 - [2026-08-13 — подготовка release candidate набора](2026/2026-08-13-release-candidates.md)
 - [2026-08-13 — SmoImporter: visual transplant SMO → SMO](2026/2026-08-13-smo-importer-smo-replacement.md)
 - [2026-08-13 — материалы персонажей и синхронизация Exporter](2026/2026-08-13-smoviewer-materials-and-export-sync.md)

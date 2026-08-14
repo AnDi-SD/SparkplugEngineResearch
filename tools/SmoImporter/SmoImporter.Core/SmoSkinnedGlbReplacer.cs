@@ -36,6 +36,20 @@ public sealed record GlbSkinTransferResult(
     string Sha256);
 
 /// <summary>
+/// Controls how prepared skinned geometry is moved onto the target skeleton.
+/// <see cref="PreservePreparedGeometry"/> is the non-mutating API default for
+/// models already authored in the exact target bind pose. When bind poses differ,
+/// production callers should explicitly use <see cref="RetargetToGameBindPose"/>:
+/// it performs exactly one donor-bind-to-target-bind conversion and still writes
+/// only target bone references and target inverse-bind matrices to the SMO.
+/// </summary>
+public enum SkinnedGeometryTransferMode
+{
+    PreservePreparedGeometry = 0,
+    RetargetToGameBindPose = 1
+}
+
+/// <summary>
 /// Experimental GLB skin transfer. The complete target SMO graph stays intact;
 /// only existing mesh leaves and reference-only skin palettes are rewritten.
 /// </summary>
@@ -51,10 +65,32 @@ public static class SmoSkinnedGlbReplacer
         ImportedScene donor,
         ReplacementTransform transform,
         string outputPath,
-        bool rebaseToTargetBindPose = true,
+        SkinnedGeometryTransferMode transferMode =
+            SkinnedGeometryTransferMode.PreservePreparedGeometry,
         ImportedTexture? texture = null) =>
         SmoVisualTransplanter.TransplantSkinnedGlb(
-            target, donor, transform, outputPath, rebaseToTargetBindPose, texture);
+            target, donor, transform, outputPath, transferMode, texture);
+
+    /// <summary>
+    /// Compatibility overload for existing callers. New code should pass a
+    /// named <see cref="SkinnedGeometryTransferMode"/> value.
+    /// </summary>
+    public static GlbSkinTransferResult Replace(
+        SmoDocument target,
+        ImportedScene donor,
+        ReplacementTransform transform,
+        string outputPath,
+        bool rebaseToTargetBindPose,
+        ImportedTexture? texture = null) =>
+        Replace(
+            target,
+            donor,
+            transform,
+            outputPath,
+            rebaseToTargetBindPose
+                ? SkinnedGeometryTransferMode.RetargetToGameBindPose
+                : SkinnedGeometryTransferMode.PreservePreparedGeometry,
+            texture);
 }
 
 internal static partial class SmoVisualTransplanter
@@ -234,7 +270,7 @@ internal static partial class SmoVisualTransplanter
         ImportedScene donor,
         ReplacementTransform transform,
         string outputPath,
-        bool rebaseToTargetBindPose,
+        SkinnedGeometryTransferMode transferMode,
         ImportedTexture? texture)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
@@ -244,8 +280,19 @@ internal static partial class SmoVisualTransplanter
                 "Skinned GLB несовместим с target SMO:\n" +
                 string.Join("\n", context.PublicPlan.Messages.Select(message => "• " + message)));
 
+        if (!Enum.IsDefined(transferMode))
+            throw new ArgumentOutOfRangeException(nameof(transferMode), transferMode, null);
+        if (transferMode == SkinnedGeometryTransferMode.PreservePreparedGeometry &&
+            !ApproximatelyEqual(transform.Matrix, Matrix4x4.Identity, 0.000001f))
+        {
+            throw new InvalidOperationException(
+                "PreservePreparedGeometry requires an identity transform. " +
+                "Scale, rotation and translation would move geometry without moving " +
+                "the preserved target skeleton and animation pivots.");
+        }
+
         ImportedTransferMesh[] transferMeshes = BuildImportedTransferMeshes(
-            donor, context, transform, rebaseToTargetBindPose);
+            donor, context, transform, transferMode);
         byte[] patchedBytes = target.Data.ToArray();
         VisualGroup[] initialTargetGroups = BuildGroups(
             target, SmoTextureBindingResolver.ResolveAll(target));
@@ -322,13 +369,16 @@ internal static partial class SmoVisualTransplanter
         }
 
         byte[] output = Repack(patchedTarget, replacements);
+        HashSet<int> pairedTextureObjectIndices = context.Groups
+            .Select(pair => pair.TargetTextureObjectIndex)
+            .ToHashSet();
         if (texture is not null)
         {
-            int[] textureIndices = SMOTextureTool.Core.SmoDocument.Parse(output).Textures
-                .Select(item => item.Index).ToArray();
-            foreach (int textureIndex in textureIndices)
-                output = FixedSizeTextureWriter.ReplaceRgb(
-                    output, textureIndex, texture.Data);
+            output = ReplacePairedTextureRgb(
+                output,
+                target.SourcePath,
+                pairedTextureObjectIndices,
+                texture.Data);
         }
 
         string fullOutput = Path.GetFullPath(outputPath);
@@ -381,6 +431,16 @@ internal static partial class SmoVisualTransplanter
                         (weights.W > WeightEpsilon && indices.W >= skin.Bones.Count))
                         errors.Add($"mesh [{meshEntry.Index}] has a bone index outside its palette");
                 }
+            }
+            VerifyTargetNodeInvariants(target, verified, errors);
+            VerifyTargetPaletteBindMatrices(target, verified, errors);
+            VerifyTargetBindFrameIdentity(target, verified, errors);
+            VerifyUnpairedTargetTexturesUnchanged(
+                target, verified, pairedTextureObjectIndices, errors);
+            if (transferMode == SkinnedGeometryTransferMode.PreservePreparedGeometry)
+            {
+                VerifyPreparedGeometryFingerprint(
+                    donor, verified, context.BoneRemap, errors);
             }
             if (errors.Count > 0)
                 throw new InvalidDataException(
@@ -505,7 +565,8 @@ internal static partial class SmoVisualTransplanter
         if (differentBindPose > 0)
             warnings.Add(
                 $"У {differentBindPose} активных joints отличается bind pose. " +
-                "По умолчанию geometry будет переведена из позы GLB в bind pose target.");
+                "PreservePreparedGeometry оставит подготовленную позу без изменений; " +
+                "RetargetToGameBindPose явно переведёт geometry в bind pose игры.");
         if (remapped.Count > 0)
             warnings.Add(
                 $"{remapped.Count} служебных joints будут перенаправлены: " +
@@ -522,10 +583,30 @@ internal static partial class SmoVisualTransplanter
             errors.Add("Target visual graph не поддерживается: " + exception.Message);
             targetGroups = [];
         }
-        ImportedGroup[] donorGroups = donor.Meshes
-            .GroupBy(mesh => mesh.MaterialIndex)
+        IGrouping<string, ImportedMesh>[] groupedDonorMeshes = donor.Meshes
+            .GroupBy(
+                mesh => GetImportedVisualGroupKey(donor, mesh),
+                StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        foreach (IGrouping<string, ImportedMesh> group in groupedDonorMeshes)
+        {
+            int[] materialIndices = group.Select(mesh => mesh.MaterialIndex)
+                .Distinct()
+                .Order()
+                .ToArray();
+            string? sharedTextureName = GetImportedVisualGroupTextureName(
+                donor, group.First());
+            if (sharedTextureName is not null && materialIndices.Length > 1)
+            {
+                warnings.Add(
+                    $"Material states {string.Join(", ", materialIndices)} use the shared atlas " +
+                    $"\"{sharedTextureName}\" and are merged into one primary visual group; " +
+                    "the target primary material state is preserved.");
+            }
+        }
+        ImportedGroup[] donorGroups = groupedDonorMeshes
             .Select(group => new ImportedGroup(
-                group.Key,
+                group.Min(mesh => mesh.MaterialIndex),
                 group.ToArray(),
                 group.Sum(mesh => mesh.TriangleIndices.Length / 3)))
             .OrderByDescending(group => group.TriangleCount)
@@ -594,7 +675,7 @@ internal static partial class SmoVisualTransplanter
                             differentBindPose, matched, remapped, [], [], []),
                         skeleton, remap, targetBind, targetInverse, groupPairs),
                     ReplacementTransform.Identity,
-                    rebaseToTargetBindPose: true);
+                    SkinnedGeometryTransferMode.PreservePreparedGeometry);
                 byte[] scratch = target.Data.ToArray();
                 foreach (ImportedGroupPair pair in groupPairs)
                 {
@@ -660,6 +741,30 @@ internal static partial class SmoVisualTransplanter
             []);
     }
 
+    private static string GetImportedVisualGroupKey(
+        ImportedScene donor,
+        ImportedMesh mesh)
+    {
+        string? textureName = GetImportedVisualGroupTextureName(donor, mesh);
+        return textureName is null
+            ? "material:" + mesh.MaterialIndex.ToString(
+                System.Globalization.CultureInfo.InvariantCulture)
+            : "texture:" + textureName;
+    }
+
+    private static string? GetImportedVisualGroupTextureName(
+        ImportedScene donor,
+        ImportedMesh mesh)
+    {
+        if ((uint)mesh.MaterialIndex >= (uint)donor.Materials.Count)
+            return null;
+        string? sourceName = donor.Materials[mesh.MaterialIndex].BaseColorTextureName;
+        if (string.IsNullOrWhiteSpace(sourceName))
+            return null;
+        string fileName = Path.GetFileName(sourceName.Trim());
+        return string.IsNullOrWhiteSpace(fileName) ? sourceName.Trim() : fileName;
+    }
+
     private static HashSet<string> GetUsedImportedJoints(
         ImportedScene donor,
         List<string> errors)
@@ -712,7 +817,7 @@ internal static partial class SmoVisualTransplanter
         ImportedScene donor,
         GlbPlanContext context,
         ReplacementTransform transform,
-        bool rebaseToTargetBindPose)
+        SkinnedGeometryTransferMode transferMode)
     {
         Matrix4x4 global = transform.Matrix;
         Matrix4x4 normalGlobal = Matrix4x4.Invert(global, out Matrix4x4 inverseGlobal)
@@ -731,7 +836,7 @@ internal static partial class SmoVisualTransplanter
             {
                 Vector3 position = mesh.Positions[vertex];
                 Vector3 normal = normals[vertex];
-                if (rebaseToTargetBindPose)
+                if (transferMode == SkinnedGeometryTransferMode.RetargetToGameBindPose)
                 {
                     position = Vector3.Zero;
                     normal = Vector3.Zero;
@@ -767,11 +872,23 @@ internal static partial class SmoVisualTransplanter
                     static float Positive(float value) =>
                         float.IsFinite(value) && value > WeightEpsilon ? value : 0f;
                 }
-                positions[vertex] = Vector3.Transform(position, global);
-                Vector3 transformedNormal = Vector3.TransformNormal(normal, normalGlobal);
-                transferredNormals[vertex] = transformedNormal.LengthSquared() > 1e-20f
-                    ? Vector3.Normalize(transformedNormal)
-                    : Vector3.UnitY;
+                if (transferMode == SkinnedGeometryTransferMode.PreservePreparedGeometry)
+                {
+                    // Preserve means preserve: donor inverse-bind matrices and
+                    // node rest transforms must have no effect on authored mesh
+                    // attributes. The identity-transform precondition above makes
+                    // these assignments bit-preserving for supplied normals.
+                    positions[vertex] = position;
+                    transferredNormals[vertex] = normal;
+                }
+                else
+                {
+                    positions[vertex] = Vector3.Transform(position, global);
+                    Vector3 transformedNormal = Vector3.TransformNormal(normal, normalGlobal);
+                    transferredNormals[vertex] = transformedNormal.LengthSquared() > 1e-20f
+                        ? Vector3.Normalize(transformedNormal)
+                        : Vector3.UnitY;
+                }
             }
             return new ImportedTransferMesh(
                 meshIndex,
@@ -784,6 +901,491 @@ internal static partial class SmoVisualTransplanter
                 skinning);
         }).ToArray();
     }
+
+    private static void VerifyTargetNodeInvariants(
+        SmoDocument target,
+        SmoDocument output,
+        ICollection<string> errors)
+    {
+        string[] targetLinks = SmoNodeHierarchy.Decode(target).Links
+            .Select(link =>
+                $"{link.ParentObjectIndex}:{link.ChildObjectIndex}:{link.ChildObjectId}")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        string[] outputLinks = SmoNodeHierarchy.Decode(output).Links
+            .Select(link =>
+                $"{link.ParentObjectIndex}:{link.ChildObjectIndex}:{link.ChildObjectId}")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (!targetLinks.SequenceEqual(outputLinks, StringComparer.Ordinal))
+            errors.Add("target node hierarchy links changed");
+
+        foreach (SmoObjectEntry targetEntry in target.Objects.Where(entry =>
+                     entry.TypeHash is SmoClassIds.Node or
+                         SmoClassIds.RenderNode or SmoClassIds.Model))
+        {
+            SmoObjectEntry outputEntry = output.Objects[targetEntry.Index];
+            bool hasTargetTransform = SmoNodeTransformDecoder.TryDecode(
+                target, targetEntry, out SmoNodeTransform? targetTransform);
+            bool hasOutputTransform = SmoNodeTransformDecoder.TryDecode(
+                output, outputEntry, out SmoNodeTransform? outputTransform);
+            if (hasTargetTransform != hasOutputTransform ||
+                hasTargetTransform &&
+                (targetTransform is null || outputTransform is null ||
+                 !ApproximatelyEqual(
+                     targetTransform.LocalMatrix,
+                     outputTransform.LocalMatrix,
+                     0.000001f)))
+            {
+                errors.Add(
+                    $"target node [{targetEntry.Index}] {targetEntry.Name} TRS changed");
+            }
+        }
+
+        foreach (SmoObjectEntry targetEntry in target.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.StaticRenderObject))
+        {
+            SmoObjectEntry outputEntry = output.Objects[targetEntry.Index];
+            bool hasTargetTransform = SmoStaticRenderObjectTransformDecoder.TryDecode(
+                target, targetEntry, out Matrix4x4 targetTransform);
+            bool hasOutputTransform = SmoStaticRenderObjectTransformDecoder.TryDecode(
+                output, outputEntry, out Matrix4x4 outputTransform);
+            if (hasTargetTransform != hasOutputTransform ||
+                hasTargetTransform && !ApproximatelyEqual(
+                    targetTransform, outputTransform, 0.000001f))
+            {
+                errors.Add(
+                    $"target static render object [{targetEntry.Index}] transform changed");
+            }
+        }
+    }
+
+    private static byte[] ReplacePairedTextureRgb(
+        byte[] output,
+        string? sourcePath,
+        IReadOnlySet<int> pairedTextureObjectIndices,
+        ReadOnlySpan<byte> imageData)
+    {
+        if (pairedTextureObjectIndices.Count == 0)
+            throw new InvalidOperationException(
+                "Skinned import has no paired target texture object to replace.");
+
+        SmoDocument viewerDocument = SmoDocument.Parse(output, sourcePath);
+        SMOTextureTool.Core.SmoDocument textureDocument =
+            SMOTextureTool.Core.SmoDocument.Parse(output);
+        Dictionary<int, SMOTextureTool.Core.TextureInfo> textureByBlockOffset =
+            textureDocument.Textures
+                .GroupBy(item => item.BlockOffset)
+                .Where(group => group.Count() == 1)
+                .ToDictionary(group => group.Key, group => group.Single());
+
+        foreach (int objectIndex in pairedTextureObjectIndices.Order())
+        {
+            if ((uint)objectIndex >= (uint)viewerDocument.Objects.Count)
+                throw new InvalidDataException(
+                    $"Paired texture object index {objectIndex} is outside the output catalog.");
+            SmoObjectEntry textureEntry = viewerDocument.Objects[objectIndex];
+            if (textureEntry.TypeHash != SmoClassIds.TextureData ||
+                textureEntry.PhysicalOffset is < 0 or > int.MaxValue ||
+                !textureByBlockOffset.TryGetValue(
+                    checked((int)textureEntry.PhysicalOffset),
+                    out SMOTextureTool.Core.TextureInfo? textureInfo))
+            {
+                throw new InvalidDataException(
+                    $"Target texture object [{objectIndex}] {textureEntry.Name} " +
+                    "cannot be mapped to the fixed-size texture table by physical offset.");
+            }
+            output = FixedSizeTextureWriter.ReplaceRgb(
+                output, textureInfo.Index, imageData);
+        }
+        return output;
+    }
+
+    private static void VerifyUnpairedTargetTexturesUnchanged(
+        SmoDocument target,
+        SmoDocument output,
+        IReadOnlySet<int> pairedTextureObjectIndices,
+        ICollection<string> errors)
+    {
+        foreach (SmoObjectEntry targetEntry in target.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.TextureData &&
+                     !pairedTextureObjectIndices.Contains(entry.Index)))
+        {
+            SmoObjectEntry outputEntry = output.Objects[targetEntry.Index];
+            if (targetEntry.SerializedSize != outputEntry.SerializedSize ||
+                targetEntry.SerializedSize > int.MaxValue ||
+                !target.Data.Span.Slice(
+                        checked((int)targetEntry.PhysicalOffset),
+                        checked((int)targetEntry.SerializedSize))
+                    .SequenceEqual(output.Data.Span.Slice(
+                        checked((int)outputEntry.PhysicalOffset),
+                        checked((int)outputEntry.SerializedSize))))
+            {
+                errors.Add(
+                    $"unpaired target texture [{targetEntry.Index}] {targetEntry.Name} changed");
+            }
+        }
+    }
+
+    private static void VerifyTargetPaletteBindMatrices(
+        SmoDocument target,
+        SmoDocument output,
+        ICollection<string> errors)
+    {
+        IReadOnlyDictionary<int, Matrix4x4> targetBindWorld =
+            SmoSkinBindingResolver.ResolveBindWorldMatrices(target);
+        var canonicalInverse = new Dictionary<int, Matrix4x4>();
+        foreach ((int nodeIndex, Matrix4x4 bindWorld) in targetBindWorld)
+        {
+            if (Matrix4x4.Invert(bindWorld, out Matrix4x4 inverseBind) &&
+                IsFinite(inverseBind))
+            {
+                canonicalInverse[nodeIndex] = inverseBind;
+            }
+        }
+
+        Dictionary<int, Matrix4x4[]> originalMatrices = target.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.Skin)
+            .Select(entry => SmoSkinDecoder.TryDecode(
+                target, entry, out SmoSkin? skin, out _) ? skin : null)
+            .Where(skin => skin is not null)
+            .SelectMany(skin => skin!.Bones)
+            .GroupBy(bone => bone.NodeObjectIndex)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(bone => bone.InverseBindMatrix).ToArray());
+
+        var reported = new HashSet<string>(StringComparer.Ordinal);
+        foreach (SmoObjectEntry skinEntry in output.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.Skin))
+        {
+            if (!SmoSkinDecoder.TryDecode(
+                    output, skinEntry, out SmoSkin? skin, out string error) ||
+                skin is null)
+            {
+                errors.Add($"output skin [{skinEntry.Index}] invalid: {error}");
+                continue;
+            }
+
+            foreach (SmoSkinBone bone in skin.Bones)
+            {
+                bool canonical = canonicalInverse.TryGetValue(
+                        bone.NodeObjectIndex, out Matrix4x4 expected) &&
+                    ApproximatelyEqual(bone.InverseBindMatrix, expected, 0.0001f);
+                bool preservedOriginal = originalMatrices.TryGetValue(
+                        bone.NodeObjectIndex, out Matrix4x4[]? candidates) &&
+                    candidates.Any(candidate => ApproximatelyEqual(
+                        bone.InverseBindMatrix, candidate, 0.0001f));
+                if (canonical || preservedOriginal)
+                    continue;
+
+                string name = output.Objects[bone.NodeObjectIndex].Name;
+                string key = $"{skinEntry.Index}:{name}";
+                if (reported.Add(key))
+                {
+                    errors.Add(
+                        $"skin [{skinEntry.Index}] bone {name} contains a non-target inverse bind matrix");
+                }
+            }
+        }
+    }
+
+    private static void VerifyTargetBindFrameIdentity(
+        SmoDocument target,
+        SmoDocument output,
+        ICollection<string> errors)
+    {
+        IReadOnlyDictionary<int, Matrix4x4> targetBindWorld =
+            SmoSkinBindingResolver.ResolveBindWorldMatrices(target);
+        foreach (SmoObjectEntry meshEntry in output.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.MeshData))
+        {
+            SmoMesh mesh = SmoMeshDecoder.Decode(output, meshEntry);
+            if (!mesh.HasSkinningData)
+                continue;
+            SmoObjectEntry skinEntry = FindParentSkin(output, meshEntry);
+            if (!SmoSkinDecoder.TryDecode(
+                    output, skinEntry, out SmoSkin? skin, out string skinError) ||
+                skin is null)
+            {
+                errors.Add($"skin [{skinEntry.Index}] invalid for bind-frame check: {skinError}");
+                continue;
+            }
+
+            for (int vertex = 0; vertex < mesh.VertexCount; vertex++)
+            {
+                Vector4 weights = mesh.BlendWeights[vertex];
+                SmoBlendIndices indices = mesh.BlendIndices[vertex];
+                Vector3 position = mesh.Positions[vertex];
+                if (!IsFinite(position) ||
+                    !float.IsFinite(weights.X) || !float.IsFinite(weights.Y) ||
+                    !float.IsFinite(weights.Z) || !float.IsFinite(weights.W))
+                {
+                    errors.Add(
+                        $"mesh [{meshEntry.Index}] vertex {vertex} has non-finite bind data");
+                    break;
+                }
+
+                Vector3 restored = Vector3.Zero;
+                float total = 0;
+                bool failed = false;
+                Add(weights.X, indices.X);
+                Add(weights.Y, indices.Y);
+                Add(weights.Z, indices.Z);
+                Add(weights.W, indices.W);
+                if (failed)
+                    break;
+                if (total <= WeightEpsilon)
+                {
+                    errors.Add(
+                        $"mesh [{meshEntry.Index}] vertex {vertex} has no bind-frame influences");
+                    break;
+                }
+
+                restored /= total;
+                float tolerance = 0.0001f * MathF.Max(1f, position.Length());
+                if (!IsFinite(restored) ||
+                    Vector3.Distance(restored, position) > tolerance)
+                {
+                    errors.Add(
+                        $"mesh [{meshEntry.Index}] vertex {vertex} is not identity in target bind frame");
+                    break;
+                }
+
+                void Add(float weight, byte paletteIndex)
+                {
+                    if (weight < 0)
+                    {
+                        failed = true;
+                        errors.Add(
+                            $"mesh [{meshEntry.Index}] vertex {vertex} has a negative bind weight");
+                        return;
+                    }
+                    if (weight <= WeightEpsilon)
+                        return;
+                    if (paletteIndex >= skin.Bones.Count)
+                    {
+                        failed = true;
+                        errors.Add(
+                            $"mesh [{meshEntry.Index}] vertex {vertex} has an invalid bind influence");
+                        return;
+                    }
+                    SmoSkinBone bone = skin.Bones[paletteIndex];
+                    if (!targetBindWorld.TryGetValue(
+                            bone.NodeObjectIndex, out Matrix4x4 bindWorld))
+                    {
+                        failed = true;
+                        errors.Add(
+                            $"mesh [{meshEntry.Index}] uses a bone without a canonical target bind matrix");
+                        return;
+                    }
+                    restored += Vector3.Transform(
+                        position, bone.InverseBindMatrix * bindWorld) * weight;
+                    total += weight;
+                }
+            }
+        }
+    }
+
+    private readonly record struct PreparedGeometryFingerprint(
+        int TriangleCount,
+        string Sha256);
+
+    private static void VerifyPreparedGeometryFingerprint(
+        ImportedScene donor,
+        SmoDocument output,
+        IReadOnlyDictionary<string, string> boneRemap,
+        ICollection<string> errors)
+    {
+        PreparedGeometryFingerprint expected = FingerprintImportedGeometry(
+            donor, boneRemap);
+        PreparedGeometryFingerprint actual = FingerprintOutputGeometry(output);
+        if (expected != actual)
+        {
+            errors.Add(
+                "prepared geometry fingerprint changed " +
+                $"(donor {expected.TriangleCount}/{expected.Sha256}, " +
+                $"output {actual.TriangleCount}/{actual.Sha256})");
+        }
+    }
+
+    private static PreparedGeometryFingerprint FingerprintImportedGeometry(
+        ImportedScene donor,
+        IReadOnlyDictionary<string, string> boneRemap)
+    {
+        var triangles = new List<string>();
+        foreach (ImportedMesh mesh in donor.Meshes)
+        {
+            ImportedSkinning skinning = mesh.Skinning ??
+                throw new InvalidDataException(
+                    $"Mesh {mesh.Name} has no skinning for geometry fingerprint.");
+            for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
+            {
+                string first = ImportedCorner(
+                    mesh, skinning, checked((int)mesh.TriangleIndices[index]), boneRemap);
+                string second = ImportedCorner(
+                    mesh, skinning, checked((int)mesh.TriangleIndices[index + 1]), boneRemap);
+                string third = ImportedCorner(
+                    mesh, skinning, checked((int)mesh.TriangleIndices[index + 2]), boneRemap);
+                triangles.Add(CanonicalTriangle(first, second, third));
+            }
+        }
+        return HashGeometryTriangles(triangles);
+    }
+
+    private static PreparedGeometryFingerprint FingerprintOutputGeometry(
+        SmoDocument output)
+    {
+        var triangles = new List<string>();
+        foreach (SmoObjectEntry meshEntry in output.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.MeshData))
+        {
+            SmoMesh mesh = SmoMeshDecoder.Decode(output, meshEntry);
+            SmoObjectEntry skinEntry = FindParentSkin(output, meshEntry);
+            if (!SmoSkinDecoder.TryDecode(
+                    output, skinEntry, out SmoSkin? skin, out string skinError) ||
+                skin is null)
+            {
+                throw new InvalidDataException(
+                    $"Geometry fingerprint cannot decode skin [{skinEntry.Index}]: {skinError}");
+            }
+            for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
+            {
+                int firstIndex = checked((int)mesh.TriangleIndices[index]);
+                int secondIndex = checked((int)mesh.TriangleIndices[index + 1]);
+                int thirdIndex = checked((int)mesh.TriangleIndices[index + 2]);
+                if (firstIndex == secondIndex || secondIndex == thirdIndex ||
+                    firstIndex == thirdIndex)
+                {
+                    continue;
+                }
+
+                string first = OutputCorner(output, mesh, skin, firstIndex);
+                string second = OutputCorner(output, mesh, skin, secondIndex);
+                string third = OutputCorner(output, mesh, skin, thirdIndex);
+                triangles.Add(CanonicalTriangle(first, second, third));
+            }
+        }
+        return HashGeometryTriangles(triangles);
+    }
+
+    private static string ImportedCorner(
+        ImportedMesh mesh,
+        ImportedSkinning skinning,
+        int vertex,
+        IReadOnlyDictionary<string, string> boneRemap)
+    {
+        Vector2 uv = mesh.TextureCoordinates.Length == mesh.Positions.Length
+            ? mesh.TextureCoordinates[vertex]
+            : Vector2.Zero;
+        var influences = new Dictionary<string, float>(StringComparer.Ordinal);
+        Vector4 weights = skinning.Weights[vertex];
+        ImportedJointIndices joints = skinning.JointIndices[vertex];
+        Add(weights.X, joints.X);
+        Add(weights.Y, joints.Y);
+        Add(weights.Z, joints.Z);
+        Add(weights.W, joints.W);
+        return GeometryCorner(mesh.Positions[vertex], uv, influences);
+
+        void Add(float weight, ushort joint)
+        {
+            if (weight <= WeightEpsilon)
+                return;
+            string donorName = skinning.Skeleton.JointNames[joint];
+            string targetName = boneRemap[donorName];
+            influences[targetName] = influences.GetValueOrDefault(targetName) + weight;
+        }
+    }
+
+    private static string OutputCorner(
+        SmoDocument output,
+        SmoMesh mesh,
+        SmoSkin skin,
+        int vertex)
+    {
+        Vector2 uv = mesh.HasTextureCoordinates
+            ? mesh.TextureCoordinates[vertex]
+            : Vector2.Zero;
+        var influences = new Dictionary<string, float>(StringComparer.Ordinal);
+        Vector4 weights = mesh.BlendWeights[vertex];
+        SmoBlendIndices joints = mesh.BlendIndices[vertex];
+        Add(weights.X, joints.X);
+        Add(weights.Y, joints.Y);
+        Add(weights.Z, joints.Z);
+        Add(weights.W, joints.W);
+        return GeometryCorner(mesh.Positions[vertex], uv, influences);
+
+        void Add(float weight, byte paletteIndex)
+        {
+            if (weight <= WeightEpsilon)
+                return;
+            if (paletteIndex >= skin.Bones.Count)
+                throw new InvalidDataException(
+                    $"Geometry fingerprint found palette index {paletteIndex} outside its skin.");
+            string name = output.Objects[skin.Bones[paletteIndex].NodeObjectIndex].Name;
+            influences[name] = influences.GetValueOrDefault(name) + weight;
+        }
+    }
+
+    private static string GeometryCorner(
+        Vector3 position,
+        Vector2 uv,
+        IReadOnlyDictionary<string, float> influences)
+    {
+        if (!IsFinite(position) || !float.IsFinite(uv.X) || !float.IsFinite(uv.Y))
+            throw new InvalidDataException(
+                "Prepared geometry fingerprint encountered a non-finite position or UV.");
+        float total = influences.Values.Sum();
+        if (!float.IsFinite(total) || total <= WeightEpsilon)
+            throw new InvalidDataException(
+                "Prepared geometry fingerprint encountered invalid skin weights.");
+
+        string weights = string.Join(",", influences
+            .OrderBy(item => item.Key, StringComparer.Ordinal)
+            .Select(item =>
+            {
+                float normalized = item.Value / total;
+                int quantized = checked((int)MathF.Round(normalized * 1_000_000f));
+                return item.Key + ":" + quantized.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture);
+            }));
+        return string.Join(",",
+            FloatBits(position.X), FloatBits(position.Y), FloatBits(position.Z),
+            FloatBits(uv.X), FloatBits(uv.Y), weights);
+    }
+
+    private static string CanonicalTriangle(
+        string first,
+        string second,
+        string third)
+    {
+        string one = first + "\u001F" + second + "\u001F" + third;
+        string two = second + "\u001F" + third + "\u001F" + first;
+        string three = third + "\u001F" + first + "\u001F" + second;
+        string result = StringComparer.Ordinal.Compare(one, two) <= 0 ? one : two;
+        return StringComparer.Ordinal.Compare(result, three) <= 0 ? result : three;
+    }
+
+    private static PreparedGeometryFingerprint HashGeometryTriangles(
+        IEnumerable<string> triangles)
+    {
+        string[] ordered = triangles.Order(StringComparer.Ordinal).ToArray();
+        using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        Span<byte> length = stackalloc byte[sizeof(int)];
+        foreach (string triangle in ordered)
+        {
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(triangle);
+            BinaryPrimitives.WriteInt32LittleEndian(length, bytes.Length);
+            hash.AppendData(length);
+            hash.AppendData(bytes);
+        }
+        return new PreparedGeometryFingerprint(
+            ordered.Length, Convert.ToHexString(hash.GetHashAndReset()));
+    }
+
+    private static string FloatBits(float value) =>
+        BitConverter.SingleToInt32Bits(value).ToString(
+            "X8", System.Globalization.CultureInfo.InvariantCulture);
 
     private static bool IsRigidTargetGroup(
         SmoDocument target,
@@ -1116,6 +1718,10 @@ internal static partial class SmoVisualTransplanter
         float.IsFinite(value.M33) && float.IsFinite(value.M34) &&
         float.IsFinite(value.M41) && float.IsFinite(value.M42) &&
         float.IsFinite(value.M43) && float.IsFinite(value.M44);
+
+    private static bool IsFinite(Vector3 value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) &&
+        float.IsFinite(value.Z);
 
     private static void WriteVector2(Span<byte> data, int offset, Vector2 value)
     {
