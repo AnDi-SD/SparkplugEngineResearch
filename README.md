@@ -27,11 +27,13 @@ read-only границу для ещё не подтверждённых writer-
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Текущий release-candidate цикл: SmoViewer `0.4.0`, SmoImporter `0.3.0` и
-SMOTextureTool `2.1.0`. Архивы собираются общей схемой в
-`artifacts/release/current` и до ручной проверки остаются черновиками GitHub
-Releases. `SmoNativeValidator` сохраняется в исходниках и встраивается в Viewer и
-Importer, но отдельной пользовательской программой и отдельным релизом не является.
+Текущий опубликованный цикл: [SmoViewer `0.4.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.4.0),
+[SmoImporter `0.3.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.3.0) и
+[SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0).
+Архивы собраны общей схемой в `artifacts/release/current`, прошли ручную проверку
+и опубликованы в GitHub Releases. `SmoNativeValidator` сохраняется в исходниках и
+встраивается в Viewer и Importer, но отдельной пользовательской программой и
+отдельным релизом не является.
 
 Оба инструмента подключены как Git submodule и сохраняют собственную историю. Этот репозиторий фиксирует проверенную комбинацию их ревизий.
 

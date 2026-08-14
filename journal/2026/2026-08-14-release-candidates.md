@@ -1,9 +1,10 @@
-# 2026-08-14 — release candidates SmoViewer 0.4, SmoImporter 0.3 и SMOTextureTool 2.1
+# 2026-08-14 — релизы SmoViewer 0.4, SmoImporter 0.3 и SMOTextureTool 2.1
 
 ## Задача
 
 Зафиксировать накопленный цикл исследования SMO/STX, подготовить три Windows x64
-пакета по единой схеме и передать их на ручную проверку без публичной публикации.
+пакета по единой схеме, передать их на ручную проверку и после подтверждения
+опубликовать.
 
 ## Версии и границы
 
@@ -57,16 +58,18 @@
 при необходимости предлагают установить подписанный Microsoft .NET 8 Desktop
 Runtime; сам установщик в архивы не входит.
 
-## Подготовленные архивы
+## Финальные архивы
 
 | Архив | Размер, байт | SHA-256 |
 | --- | ---: | --- |
-| `SmoViewer-0.4.0-suite-win-x64.zip` | 1 959 301 | `945516FC419491F8D1D15973D2331AADC55573F786D38F004FA2F98ACCF77784` |
+| `SmoViewer-0.4.0-suite-win-x64.zip` | 1 959 219 | `EDE5BC6A4630704A06B397986701BE6C5EEEC7696573AB6581DC457B21CD59F9` |
 | `SmoImporter-0.3.0-win-x64.zip` | 1 326 305 | `61BB41F3C1EDCC5989872873674E3C72A61C4DF595DAD4209436F8EE63A67FC7` |
 | `SMOTextureTool-2.1.0-win-x64.zip` | 12 780 898 | `23C7A274872FAE8EBCBA840A370C611FF773E3D9C25424D7B563DBA80A923877` |
 
 Общий файл `artifacts/release/current/SHA256SUMS.txt` содержит только эти три
-кандидата. Старые архивы предыдущего цикла перед сборкой удалены из `current`,
+архива и имеет SHA-256
+`DAC62437040750F20C007D3B3ECBDBA20A98DA588653AF91BA5A226AA61A4378`.
+Старые архивы предыдущего цикла перед сборкой удалены из `current`,
 но остаются доступны в опубликованных GitHub Releases и других локальных
 release-каталогах.
 
@@ -105,19 +108,22 @@ release-каталогах.
 
 ## Статус публикации
 
-Исходники отправлены в штатные ветки:
+Релизные assets привязаны к следующим ревизиям:
 
-- SmoViewer `master`: `087ca96f3d556de3e0548c55d4648d27a7fc52b7`;
+- SmoViewer `master`: `21d91488d6762e0def0ced1a36940a23d5582e7f`;
 - SMOTextureTool `master`: `df9c60cb247ab1cab2e08fd617c30bbbd6c973a0`;
 - root/SmoImporter `main`: `b209724ebcc8bd0aa66b480d64b11f09bde6fab7`.
 
-Созданы три непубличных GitHub Release draft:
+После ручного подтверждения опубликованы три GitHub Release
+(`isDraft=false`, `isPrerelease=false`):
 
-- [SmoViewer 0.4.0](https://github.com/AnDi-SD/SmoViewer/releases/tag/untagged-49d0363d599ab481f9fe);
-- [SmoImporter 0.3.0](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/untagged-62ed61b0e9b1b8c4a036);
-- [SMO Texture Tool 2.1.0](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/untagged-274fae053db9150d05c6).
+- [SmoViewer 0.4.0](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.4.0),
+  `publishedAt=2026-08-14T18:28:25Z`;
+- [SmoImporter 0.3.0](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.3.0),
+  `publishedAt=2026-08-14T18:28:27Z`;
+- [SMO Texture Tool 2.1.0](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0),
+  `publishedAt=2026-08-14T18:28:28Z`.
 
-У каждого черновика `isDraft=true`, `publishedAt=null`; ZIP и общий
-`SHA256SUMS.txt` находятся в состоянии `uploaded`, а GitHub asset digests
-совпадают с локальными SHA-256. До ручного подтверждения пользователя черновики
-не публикуются. Отдельного draft/tag/asset для SmoNativeValidator нет.
+ZIP и общий `SHA256SUMS.txt` находятся в состоянии `uploaded`, а GitHub asset
+digests совпадают с локальными SHA-256. Отдельного tag, asset или GitHub Release
+для SmoNativeValidator нет.
