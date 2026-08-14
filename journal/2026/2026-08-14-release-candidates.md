@@ -105,6 +105,19 @@ release-каталогах.
 
 ## Статус публикации
 
-Исходники предназначены для штатных веток `main`/`master`. GitHub Releases будут
-созданы как **draft** с ZIP и общим `SHA256SUMS.txt`. До ручного подтверждения
-пользователя черновики не публикуются и release tags не считаются выпущенными.
+Исходники отправлены в штатные ветки:
+
+- SmoViewer `master`: `087ca96f3d556de3e0548c55d4648d27a7fc52b7`;
+- SMOTextureTool `master`: `df9c60cb247ab1cab2e08fd617c30bbbd6c973a0`;
+- root/SmoImporter `main`: `b209724ebcc8bd0aa66b480d64b11f09bde6fab7`.
+
+Созданы три непубличных GitHub Release draft:
+
+- [SmoViewer 0.4.0](https://github.com/AnDi-SD/SmoViewer/releases/tag/untagged-49d0363d599ab481f9fe);
+- [SmoImporter 0.3.0](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/untagged-62ed61b0e9b1b8c4a036);
+- [SMO Texture Tool 2.1.0](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/untagged-274fae053db9150d05c6).
+
+У каждого черновика `isDraft=true`, `publishedAt=null`; ZIP и общий
+`SHA256SUMS.txt` находятся в состоянии `uploaded`, а GitHub asset digests
+совпадают с локальными SHA-256. До ручного подтверждения пользователя черновики
+не публикуются. Отдельного draft/tag/asset для SmoNativeValidator нет.
