@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
@@ -12,11 +13,15 @@ public partial class MainWindow : Window
     private string? _exePath;
     private readonly ObservableCollection<FashionItem> _items = [];
 
-    public MainWindow()
+    public MainWindow() : this(null) { }
+
+    public MainWindow(string? initialExePath)
     {
         InitializeComponent();
         FashionList.ItemsSource = _items;
         LoadItems(WinxExeHairPatcher.OriginalDisabledMask);
+        if (!string.IsNullOrWhiteSpace(initialExePath))
+            LoadExe(initialExePath, showErrorDialog: false);
     }
 
     private void SelectExe_Click(object sender, RoutedEventArgs e)
@@ -27,18 +32,34 @@ public partial class MainWindow : Window
             CheckFileExists = true
         };
         if (dialog.ShowDialog(this) != true) return;
+        LoadExe(dialog.FileName, showErrorDialog: true);
+    }
+
+    private void LoadExe(string path, bool showErrorDialog)
+    {
         try
         {
-            WinxExePatchState state = WinxExeHairPatcher.Inspect(dialog.FileName);
-            _exePath = state.IsSupported ? dialog.FileName : null;
-            ExePathText.Text = dialog.FileName;
+            string fullPath = Path.GetFullPath(path);
+            WinxExePatchState state = WinxExeHairPatcher.Inspect(fullPath);
+            _exePath = state.IsSupported ? fullPath : null;
+            ExePathText.Text = fullPath;
             ExeStateText.Text = state.Description;
             ExeStateText.Foreground = state.IsSupported
                 ? System.Windows.Media.Brushes.DarkGreen : System.Windows.Media.Brushes.DarkRed;
             PatchButton.IsEnabled = state.IsSupported;
             if (state.IsSupported) LoadItems(state.DisabledMask);
         }
-        catch (Exception exception) { ShowError(exception); }
+        catch (Exception exception)
+        {
+            _exePath = null;
+            ExePathText.Text = path;
+            ExeStateText.Text = "Не удалось проверить EXE: " + exception.Message;
+            ExeStateText.Foreground = System.Windows.Media.Brushes.DarkRed;
+            PatchButton.IsEnabled = false;
+            StatusText.Text = "Ошибка: " + exception.Message;
+            if (showErrorDialog)
+                MessageBox.Show(this, exception.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void Patch_Click(object sender, RoutedEventArgs e)
@@ -56,10 +77,10 @@ public partial class MainWindow : Window
         try
         {
             WinxExePatchResult result = WinxExeHairPatcher.PatchFile(_exePath, disabledMask);
-            StatusText.Text = $"Патч применён. Резервная копия: {result.BackupPath}";
-            ExeStateText.Text = "EXE содержит совместимый hair-патч.";
+            StatusText.Text = $"Патч для игры и меню костюмов применён. Резервная копия: {result.BackupPath}";
+            ExeStateText.Text = "EXE содержит совместимый hair-патч для игрового режима и меню костюмов.";
             MessageBox.Show(this,
-                $"Готово.\n\nРезервная копия:\n{result.BackupPath}",
+                $"Готово. Волосы настроены и в игре, и в меню костюмов.\n\nРезервная копия:\n{result.BackupPath}",
                 "WinxClub.exe обновлён", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception exception) { ShowError(exception); }

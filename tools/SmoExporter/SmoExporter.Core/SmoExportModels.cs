@@ -3,16 +3,32 @@ using SmoViewer.Core;
 
 namespace SmoExporter.Core;
 
+[Flags]
+public enum SmoExportResourceTypes
+{
+    None = 0,
+    Meshes = 1,
+    Skeleton = 2,
+    Materials = 4,
+    Textures = 8,
+    Animations = 16,
+    ServiceNodes = 32,
+    All = 63
+}
+
 public sealed record SmoExportOptions(
     bool ApplyWorldTransforms = true,
-    IReadOnlyList<string>? AnimationPaths = null);
+    IReadOnlyList<string>? AnimationPaths = null,
+    SmoExportResourceTypes Resources = SmoExportResourceTypes.All);
 
 public sealed record SmoExportTexture(
     int ObjectIndex,
     string Name,
     int Width,
     int Height,
-    byte[] PngBytes);
+    byte[] PngBytes,
+    byte[]? OpacityMaskPngBytes = null,
+    byte[]? OpaqueRgbPngBytes = null);
 
 public sealed record SmoExportMesh(
     int ObjectIndex,
@@ -69,6 +85,7 @@ public sealed record SmoExportScene(
     string SourcePath,
     string SourceSha256,
     uint PlatformFlags,
+    SmoExportResourceTypes Resources,
     IReadOnlyList<SmoExportMesh> Meshes,
     IReadOnlyList<SmoExportNode> Nodes,
     IReadOnlyList<SmoExportSkin> Skins,

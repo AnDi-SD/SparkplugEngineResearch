@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Numerics;
 using Microsoft.Win32;
 
 namespace SmoExporter.Core;
@@ -14,6 +15,10 @@ public static class FbxExporter
     {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+        ValidateAlphaCompatibility(scene);
+        bool bakeAnimations =
+            (scene.Resources & SmoExportResourceTypes.Animations) != 0 &&
+            scene.Animations.Count > 0;
         blenderPath ??= FindBlenderExecutable();
         if (blenderPath is null)
             throw new InvalidOperationException(
@@ -34,13 +39,16 @@ public static class FbxExporter
             string expression =
                 "import bpy;" +
                 "bpy.ops.wm.read_factory_settings(use_empty=True);" +
-                $"bpy.ops.import_scene.gltf(filepath={PythonString(glb)});" +
+                $"bpy.ops.import_scene.gltf(filepath={PythonString(glb)}," +
+                "bone_heuristic='TEMPERANCE');" +
+                $"exec({PythonMultilineString(BuildMaterialNormalizationScript(scene))});" +
                 $"bpy.ops.export_scene.fbx(filepath={PythonString(stagedOutput)}," +
                 "use_selection=False,object_types={'EMPTY','ARMATURE','MESH'}," +
                 "apply_unit_scale=True,apply_scale_options='FBX_SCALE_ALL'," +
                 "use_mesh_modifiers=True,mesh_smooth_type='FACE',colors_type='SRGB'," +
                 "use_armature_deform_only=False,add_leaf_bones=False," +
-                "bake_anim=True,bake_anim_use_all_bones=True,bake_anim_use_nla_strips=True," +
+                $"bake_anim={(bakeAnimations ? "True" : "False")}," +
+                "bake_anim_use_all_bones=True,bake_anim_use_nla_strips=True," +
                 "bake_anim_use_all_actions=True,bake_anim_force_startend_keying=True," +
                 "bake_anim_step=1.0,bake_anim_simplify_factor=0.0," +
                 "path_mode='COPY',embed_textures=True,use_custom_props=True);";
@@ -241,4 +249,114 @@ public static class FbxExporter
 
     private static string PythonString(string value) =>
         "r\"" + value.Replace("\"", "\\\"") + "\"";
+
+    private static string PythonMultilineString(string value) =>
+        "r\"\"\"" + value.Replace("\"\"\"", "\\\"\\\"\\\"") + "\"\"\"";
+
+    /// <summary>
+    /// Blender's glTF importer inserts a Multiply node between a base-color
+    /// image and Principled BSDF whenever baseColorFactor is not white. Its FBX
+    /// exporter only discovers an image connected directly to Base Color, so
+    /// those perfectly valid textured materials otherwise become untextured in
+    /// the FBX. Rebuild just that connection and restore the authoritative SMO
+    /// factor by the object-index metadata emitted by GlbExporter. Emissive and
+    /// alpha texture graphs remain untouched.
+    /// </summary>
+    private static string BuildMaterialNormalizationScript(SmoExportScene scene)
+    {
+        string factors = "{" + string.Join(",", scene.Meshes.Select(mesh =>
+            FormattableString.Invariant(
+                $"{mesh.ObjectIndex}:({mesh.MaterialColor.X:R},{mesh.MaterialColor.Y:R},{mesh.MaterialColor.Z:R},{mesh.MaterialColor.W:R})"))) + "}";
+        return $$"""
+from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
+_sparkplug_factors = {{factors}}
+def _sparkplug_base_image(socket, visited):
+    if socket is None:
+        return None
+    for link in socket.links:
+        node = link.from_node
+        key = node.as_pointer()
+        if key in visited:
+            continue
+        visited.add(key)
+        if node.type == 'TEX_IMAGE' and node.image is not None:
+            return node.image
+        for source in node.inputs:
+            image = _sparkplug_base_image(source, visited)
+            if image is not None:
+                return image
+    return None
+for obj in bpy.context.scene.objects:
+    if obj.type != 'MESH':
+        continue
+    source_index = obj.data.get('sparkplugObjectIndex')
+    if source_index is None or int(source_index) not in _sparkplug_factors:
+        continue
+    factor = _sparkplug_factors[int(source_index)]
+    for material in obj.data.materials:
+        if material is None or not material.use_nodes:
+            continue
+        principled = next((node for node in material.node_tree.nodes
+            if node.type == 'BSDF_PRINCIPLED'), None)
+        if principled is None:
+            continue
+        image = _sparkplug_base_image(principled.inputs.get('Base Color'), set())
+        wrapper = PrincipledBSDFWrapper(material, is_readonly=False, use_nodes=True)
+        wrapper.base_color = factor[:3]
+        wrapper.alpha = factor[3]
+        if image is not None:
+            wrapper.base_color_texture.image = image
+""";
+    }
+
+    private static void ValidateAlphaCompatibility(SmoExportScene scene)
+    {
+        bool includeMaterials =
+            (scene.Resources & SmoExportResourceTypes.Materials) != 0;
+        bool includeTextures =
+            includeMaterials &&
+            (scene.Resources & SmoExportResourceTypes.Textures) != 0;
+        foreach (SmoExportMesh mesh in scene.Meshes)
+        {
+            if (mesh.Colors.Length == mesh.Positions.Length)
+            {
+                foreach (Vector4 color in mesh.Colors)
+                {
+                    ValidateAlpha(color.W, "COLOR_0", mesh);
+                    if (color.W < 1f)
+                    {
+                        throw new InvalidDataException(
+                            $"FBX cannot preserve COLOR_0 alpha on mesh " +
+                            $"[{mesh.ObjectIndex}] {mesh.Name}; " +
+                            "export this model as GLB instead.");
+                    }
+                }
+            }
+
+            if (!includeMaterials)
+                continue;
+            ValidateAlpha(mesh.MaterialColor.W, "material factor", mesh);
+
+            if (includeTextures &&
+                mesh.Texture?.OpacityMaskPngBytes is not null &&
+                mesh.MaterialColor.W < 1f)
+            {
+                throw new InvalidDataException(
+                    $"FBX cannot preserve both texture alpha and a translucent material " +
+                    $"factor on mesh [{mesh.ObjectIndex}] {mesh.Name}; " +
+                    "export this model as GLB instead.");
+            }
+        }
+    }
+
+    private static void ValidateAlpha(
+        float alpha, string source, SmoExportMesh mesh)
+    {
+        if (!float.IsFinite(alpha) || alpha is < 0f or > 1f)
+        {
+            throw new InvalidDataException(
+                $"FBX mesh [{mesh.ObjectIndex}] {mesh.Name} has an invalid " +
+                $"{source} alpha value ({alpha}).");
+        }
+    }
 }

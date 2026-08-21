@@ -23,6 +23,7 @@ public static class ImportedTextureFileReader
             mimeType,
             info.Width,
             info.Height,
-            data);
+            data,
+            fullPath);
     }
 }

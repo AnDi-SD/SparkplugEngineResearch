@@ -72,7 +72,9 @@ internal static class SmoVisualGraphPacker
                 .ToArray());
         Dictionary<int, SmoObjectEntry[]> rigidBranchEntries = donorRigidRoots.ToDictionary(
             render => render.Index,
-            render => GetRigidVisualBranchEntries(donor, render));
+            render => GetRigidVisualBranchEntries(donor, render)
+                .Where(entry => !reusedDonorObjects.ContainsKey(entry.Index))
+                .ToArray());
         SmoObjectEntry[] selected = branchEntries.Values
             .Concat(rigidBranchEntries.Values)
             .SelectMany(entries => entries)
@@ -164,7 +166,8 @@ internal static class SmoVisualGraphPacker
                 rigidBranchEntries[rigidRoot.Index],
                 donorById,
                 referenceIds,
-                newIdsByDonorIndex));
+                newIdsByDonorIndex,
+                reusedDonorObjects));
         }
 
         foreach (InlineObjectRelocation relocation in inlineRelocations)
@@ -271,7 +274,7 @@ internal static class SmoVisualGraphPacker
                 newIdsByDonorIndex));
         }
 
-        var primarySkinAttachments = new List<SmoVisualForestAttachment>(donorSkins.Length);
+        var primarySkinAttachments = new List<PrimarySkinAttachment>(donorSkins.Length);
         for (int index = 0; index < donorSkins.Length; index++)
         {
             SmoObjectEntry skin = donorSkins[index];
@@ -289,12 +292,14 @@ internal static class SmoVisualGraphPacker
                         $"Donor skin [{skin.Index}] belongs to an unsupported render branch.");
                 continue;
             }
-            primarySkinAttachments.Add(BuildAttachment(
-                donor,
-                donorParent,
-                builtSkinBranches[index],
-                targetRender.Id,
-                newIdsByDonorIndex));
+            primarySkinAttachments.Add(new PrimarySkinAttachment(
+                skin,
+                BuildAttachment(
+                    donor,
+                    donorParent,
+                    builtSkinBranches[index],
+                    targetRender.Id,
+                    newIdsByDonorIndex)));
         }
 
         byte[] disabledBytes = SmoVisualTransplanter.DisableAllTargetMeshes(target);
@@ -310,7 +315,9 @@ internal static class SmoVisualGraphPacker
         {
             current = SmoDocument.Parse(
                 SmoVisualForestInjector.Inject(
-                    current, targetRender.Id, primarySkinAttachments),
+                    current,
+                    targetRender.Id,
+                    OrderPrimarySkinAttachments(donor, primarySkinAttachments)),
                 target.SourcePath);
         }
         byte[] output = current.Data.ToArray();
@@ -362,6 +369,80 @@ internal static class SmoVisualGraphPacker
                 "A render node containing mesh data was not found.");
         }
         return renderNodes[0];
+    }
+
+    private static SmoVisualForestAttachment[] OrderPrimarySkinAttachments(
+        SmoDocument donor,
+        IReadOnlyList<PrimarySkinAttachment> attachments)
+    {
+        if (attachments.Count < 2)
+            return attachments.Select(item => item.Attachment).ToArray();
+
+        HashSet<int> primarySkinIndices = attachments
+            .Select(item => item.Skin.Index)
+            .ToHashSet();
+        var definingSkinByTexture = new Dictionary<int, int>();
+        foreach (SmoObjectEntry texture in donor.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.TextureData))
+        {
+            SmoObjectEntry[] owners = attachments
+                .Select(item => item.Skin)
+                .Where(skin => Contains(skin, texture))
+                .ToArray();
+            if (owners.Length == 1)
+                definingSkinByTexture[texture.Index] = owners[0].Index;
+        }
+
+        IReadOnlyDictionary<int, SmoTextureBinding> bindings =
+            SmoTextureBindingResolver.ResolveAll(donor);
+        var dependencies = attachments.ToDictionary(
+            item => item.Skin.Index,
+            _ => new HashSet<int>());
+        foreach (PrimarySkinAttachment attachment in attachments)
+        {
+            foreach (SmoObjectEntry mesh in donor.Objects.Where(entry =>
+                         entry.TypeHash == SmoClassIds.MeshData &&
+                         Contains(attachment.Skin, entry)))
+            {
+                if (!bindings.TryGetValue(mesh.Index, out SmoTextureBinding? binding) ||
+                    binding.Issue is not null || binding.Texture is null ||
+                    !definingSkinByTexture.TryGetValue(
+                        binding.Texture.ObjectIndex, out int definingSkinIndex) ||
+                    definingSkinIndex == attachment.Skin.Index ||
+                    !primarySkinIndices.Contains(definingSkinIndex))
+                {
+                    continue;
+                }
+                dependencies[attachment.Skin.Index].Add(definingSkinIndex);
+            }
+        }
+
+        // Once donor skins are appended to a target render node, a target atlas
+        // already exists before them. A donor such as Icy defines its atlas in a
+        // later skin and relies on the character-atlas fallback for earlier
+        // chunks. Emit each unique texture-defining skin before its consumers so
+        // those chunks keep the donor binding instead of inheriting the target
+        // atlas. Unrelated branches retain their original logical order.
+        var remaining = attachments.ToDictionary(item => item.Skin.Index);
+        var ordered = new List<SmoVisualForestAttachment>(attachments.Count);
+        while (remaining.Count > 0)
+        {
+            PrimarySkinAttachment? next = attachments
+                .Where(item => remaining.ContainsKey(item.Skin.Index))
+                .Where(item => dependencies[item.Skin.Index].All(
+                    dependency => !remaining.ContainsKey(dependency)))
+                .OrderBy(item => item.Skin.LogicalOffset)
+                .FirstOrDefault();
+            if (next is null)
+            {
+                string cycle = string.Join(", ", remaining.Keys.Order());
+                throw new InvalidOperationException(
+                    $"Primary donor skin texture dependencies contain a cycle: {cycle}.");
+            }
+            ordered.Add(next.Attachment);
+            remaining.Remove(next.Skin.Index);
+        }
+        return ordered.ToArray();
     }
 
     private static SmoObjectEntry[] FindRigidVisualRoots(SmoDocument document) =>
@@ -596,10 +677,20 @@ internal static class SmoVisualGraphPacker
             ownerPlacement.RelativeOffset,
             checked((int)ownerPlacement.SerializedSize));
         uint expectedOldInlineSize = makeInline ? 0 : movedObject.SerializedSize;
+        int expectedFieldType = owner.TypeHash == SmoClassIds.MaterialData &&
+                                movedObject.TypeHash == SmoClassIds.TextureData
+            ? 10
+            : owner.TypeHash == SmoClassIds.Model &&
+              movedObject.TypeHash == SharedVisualHelperClassId
+                ? 1
+                : throw new InvalidOperationException(
+                    $"Inline rewrite [{owner.Index}] -> [{movedObject.Index}] uses an " +
+                    "unsupported owner/object class pair.");
         var matches = new List<SmoDataBlockHeader>();
         foreach (SmoDataBlockHeader candidate in ReadFields(ownerData))
         {
-            if (candidate.FieldType != 10 || candidate.PayloadSize < ObjectReferenceSize)
+            if (candidate.FieldType != expectedFieldType ||
+                candidate.PayloadSize < ObjectReferenceSize)
                 continue;
             ReadOnlySpan<byte> payload = ownerData.Slice(
                 candidate.PayloadOffset, ObjectReferenceSize);
@@ -614,7 +705,8 @@ internal static class SmoVisualGraphPacker
         if (matches.Count != 1)
         {
             throw new InvalidOperationException(
-                $"Relocation owner [{owner.Index}] does not contain one exact field-10 " +
+                $"Inline rewrite owner [{owner.Index}] does not contain one exact " +
+                $"field-{expectedFieldType} " +
                 $"reference to visual object [{movedObject.Index}].");
         }
 
@@ -868,7 +960,8 @@ internal static class SmoVisualGraphPacker
         IReadOnlyList<SmoObjectEntry> branchEntries,
         IReadOnlyDictionary<uint, SmoObjectEntry> donorById,
         IReadOnlyDictionary<uint, uint> referenceIds,
-        IReadOnlyDictionary<int, uint> newIdsByDonorIndex)
+        IReadOnlyDictionary<int, uint> newIdsByDonorIndex,
+        IReadOnlyDictionary<int, uint> reusedDonorObjects)
     {
         HashSet<int> selectedIndices = branchEntries
             .Select(entry => entry.Index)
@@ -910,10 +1003,46 @@ internal static class SmoVisualGraphPacker
             donorById,
             referenceIds,
             skippedFieldOffset: null);
-        return new BuiltBranch(
+        BuiltBranch result = new(
             rootEntry,
             rebuilt,
             BuildPreservedBranchEntries(rootEntry, rebuilt.Length, branchEntries));
+
+        // A rigid spModel can inline the same byte-identical visual helper that
+        // is already present in the target. Keeping the inline bytes while
+        // remapping only their ID would define the target object twice. Collapse
+        // every such confirmed inline definition to the serializer's observed
+        // reference-only Model.field1 form, updating all enclosing sizes and
+        // catalog placements transactionally.
+        foreach ((int donorIndex, uint targetId) in reusedDonorObjects
+                     .Where(item => Contains(rootEntry, donor.Objects[item.Key]))
+                     .OrderByDescending(item => donor.Objects[item.Key].LogicalOffset))
+        {
+            SmoObjectEntry reused = donor.Objects[donorIndex];
+            if (reused.ParentIndex is not int ownerIndex ||
+                !branchEntries.Any(entry => entry.Index == ownerIndex))
+            {
+                throw new InvalidOperationException(
+                    $"Reusable rigid helper [{reused.Index}] has no packed direct owner.");
+            }
+            SmoObjectEntry owner = donor.Objects[ownerIndex];
+            if (owner.TypeHash != SmoClassIds.Model ||
+                reused.TypeHash != SharedVisualHelperClassId)
+            {
+                throw new InvalidOperationException(
+                    $"Reusable rigid object [{reused.Index}] is not a confirmed " +
+                    "spModel visual-helper child.");
+            }
+            result = RewriteInlineObjectField(
+                donor,
+                result,
+                owner,
+                reused,
+                targetId,
+                makeInline: false,
+                newIdsByDonorIndex);
+        }
+        return result;
     }
 
     private static BuiltBranch BuildSecondaryRenderBranch(
@@ -1384,8 +1513,18 @@ internal static class SmoVisualGraphPacker
                     ? output.Objects[binding.Texture.ObjectIndex].Id
                     : null;
                 if (binding?.Issue is not null || actualTextureId != expectedTextureId)
+                {
+                    string expectedTexture =
+                        $"{expectedTextureId} ({donorTexture.Name})";
+                    string actualTexture = binding?.Texture is not null
+                        ? $"{actualTextureId} ({binding.Texture.Name})"
+                        : "none";
                     errors.Add(
-                        $"packed donor mesh ID {meshId} texture binding differs from donor");
+                        $"packed donor mesh ID {meshId} ({mesh.Name}) texture binding " +
+                        $"differs from donor [{donorMesh.Index}]: expected " +
+                        $"{expectedTexture}, actual {actualTexture}, " +
+                        $"issue={binding?.Issue ?? "none"}");
+                }
             }
             else if (binding?.Texture is not null &&
                      !packed.PackedTextureIds.Contains(
@@ -1867,6 +2006,10 @@ internal static class SmoVisualGraphPacker
         SmoObjectEntry Source,
         int RelativeOffset,
         uint SerializedSize);
+
+    private sealed record PrimarySkinAttachment(
+        SmoObjectEntry Skin,
+        SmoVisualForestAttachment Attachment);
 
     private readonly record struct TextureSequenceReference(
         int Offset,

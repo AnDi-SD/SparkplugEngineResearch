@@ -22,16 +22,19 @@ read-only границу для ещё не подтверждённых writer-
 | [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; resize/repack отключён до отдельной нативной проверки |
 | [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в самодостаточный GLB для Blender и OBJ/MTL/PNG для совместимости |
 | [`tools/SmoImporter`](tools/SmoImporter) | Visual transplant SMO → SMO, multi-material rigid OBJ/GLB/FBX и skinned GLB/FBX через bone mapping |
-| [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Экспериментальный патчер `WinxClub.exe` для управления внешними волосами fashion-моделей Bloom |
+| [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Патчер `WinxClub.exe` для управления внешними волосами Bloom в игре и меню костюмов |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Текущий опубликованный цикл: [SmoViewer `0.4.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.4.0),
-[SmoImporter `0.3.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.3.0) и
+Текущий опубликованный цикл от 2026-08-22: [SmoViewer `0.4.1`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.4.1),
+[SmoExporter `0.3.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.3.0),
+[SmoImporter `0.4.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.4.0),
+[Winx Hair Patcher `0.2.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/v0.2.0) и
 [SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0).
-Архивы собраны общей схемой в `artifacts/release/current`, прошли ручную проверку
-и опубликованы в GitHub Releases. `SmoNativeValidator` сохраняется в исходниках и
+Архивы собраны общей схемой в `artifacts/release/current` и опубликованы в GitHub Releases.
+Сборка и native loader smoke-tests не заменяют описанные в release notes визуальные
+проверки в игре. `SmoNativeValidator` сохраняется в исходниках и
 встраивается в Viewer и Importer, но отдельной пользовательской программой и
 отдельным релизом не является.
 

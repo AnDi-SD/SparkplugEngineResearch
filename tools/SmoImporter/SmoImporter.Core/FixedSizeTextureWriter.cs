@@ -43,13 +43,12 @@ public static class FixedSizeTextureWriter
     }
 
     /// <summary>
-    /// Diagnostic full-BGRA probe. The earlier RGBA crash was caused by treating
-    /// the serializer marker at +0x3C as pixel data, not by a proven Alpha ban.
-    /// The corrected full-BGRA path passed a controlled native load test. Production
-    /// still preserves host Alpha via <see cref="ReplaceRgb"/> until broader visual
-    /// and gameplay validation covers different material semantics.
+    /// Replaces the complete BGRA payload of an existing fixed-size texture.
+    /// The serializer marker at block +0x3C is kept outside the pixel span and
+    /// is verified after the write. Callers are responsible for enabling alpha
+    /// blending on every material that consumes a texture containing alpha.
     /// </summary>
-    public static byte[] ReplaceRgbaDiagnosticUnsafe(
+    public static byte[] ReplaceRgba(
         byte[] smoData,
         int textureIndex,
         ReadOnlySpan<byte> imageData)
@@ -82,6 +81,18 @@ public static class FixedSizeTextureWriter
         EnsureSerializerMarker(output, texture);
         return output;
     }
+
+    /// <summary>
+    /// Compatibility alias for the original diagnostic API. The corrected BGRA
+    /// path is now used by the verified atlas writer through <see cref="ReplaceRgba"/>;
+    /// ordinary single-texture replacement still uses <see cref="ReplaceRgb"/>
+    /// unless its caller explicitly opts into complete alpha transfer.
+    /// </summary>
+    public static byte[] ReplaceRgbaDiagnosticUnsafe(
+        byte[] smoData,
+        int textureIndex,
+        ReadOnlySpan<byte> imageData)
+        => ReplaceRgba(smoData, textureIndex, imageData);
 
     private static void EnsureSupportedTexture(SMOTextureTool.Core.TextureInfo texture)
     {

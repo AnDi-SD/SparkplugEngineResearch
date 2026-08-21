@@ -10,7 +10,7 @@
       "documents": [
         "tools/SmoViewer/README.md",
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.4.0.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.4.1.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
@@ -23,7 +23,7 @@
           "documents": [
             "tools/SmoExporter/README.md",
             "tools/SmoExporter/CHANGELOG.md",
-            "tools/SmoExporter/RELEASE_NOTES_0.2.1.md"
+            "tools/SmoExporter/RELEASE_NOTES_0.3.0.md"
           ]
         },
         {
@@ -33,7 +33,17 @@
           "documents": [
             "tools/SmoImporter/README.md",
             "tools/SmoImporter/CHANGELOG.md",
-            "tools/SmoImporter/RELEASE_NOTES_0.3.0.md"
+            "tools/SmoImporter/RELEASE_NOTES_0.4.0.md"
+          ]
+        },
+        {
+          "id": "WinxHairPatcher",
+          "project": "tools/WinxHairPatcher/WinxHairPatcher.Gui/WinxHairPatcher.Gui.csproj",
+          "executable": "WinxHairPatcher.Gui.exe",
+          "documents": [
+            "tools/WinxHairPatcher/README.md",
+            "tools/WinxHairPatcher/CHANGELOG.md",
+            "tools/WinxHairPatcher/RELEASE_NOTES_0.2.0.md"
           ]
         }
       ]
@@ -45,7 +55,7 @@
       "documents": [
         "tools/SmoExporter/README.md",
         "tools/SmoExporter/CHANGELOG.md",
-        "tools/SmoExporter/RELEASE_NOTES_0.2.1.md"
+        "tools/SmoExporter/RELEASE_NOTES_0.3.0.md"
       ]
     },
     {
@@ -55,7 +65,7 @@
       "documents": [
         "tools/SmoImporter/README.md",
         "tools/SmoImporter/CHANGELOG.md",
-        "tools/SmoImporter/RELEASE_NOTES_0.3.0.md"
+        "tools/SmoImporter/RELEASE_NOTES_0.4.0.md"
       ]
     },
     {
@@ -65,7 +75,7 @@
       "documents": [
         "tools/WinxHairPatcher/README.md",
         "tools/WinxHairPatcher/CHANGELOG.md",
-        "tools/WinxHairPatcher/RELEASE_NOTES_0.1.2.md"
+        "tools/WinxHairPatcher/RELEASE_NOTES_0.2.0.md"
       ]
     },
     {

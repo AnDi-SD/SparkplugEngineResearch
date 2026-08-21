@@ -22,10 +22,154 @@
     <TextBlock x:Name="ReplacementPathText" Margin="0,6,0,4" Text="Не выбрана" TextWrapping="Wrap"/>
     <TextBlock x:Name="ReplacementSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
 
+    <Border x:Name="TextureResourcesPanel" Margin="0,14,0,0" Padding="10"
+            IsEnabled="False" Opacity="0.65"
+            BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4">
+     <StackPanel>
+      <TextBlock Text="Текстуры для импорта" FontSize="15" FontWeight="SemiBold"/>
+      <CheckBox x:Name="PreserveOriginalTexturesCheckBox" Margin="0,8,0,0"
+                Content="Оставить текстуры исходного SMO"
+                Checked="PreserveOriginalTextures_Changed"
+                Unchecked="PreserveOriginalTextures_Changed"/>
+      <TextBlock Margin="22,4,0,0" Foreground="#52606D" TextWrapping="Wrap"
+                 Text="Диагностический режим: геометрия импортируется, но TextureData исходного SMO не изменяются. Для многоматериальной rigid-модели геометрия будет объединена в один исходный material-slot."/>
+      <StackPanel x:Name="TextureImportSourcesPanel">
+       <ListBox x:Name="TextureList" Height="200" Margin="0,7,0,0"
+                SelectionMode="Extended" HorizontalContentAlignment="Stretch"
+                SelectionChanged="TextureList_SelectionChanged"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
+         <DataTemplate>
+          <StackPanel Margin="5,3">
+           <TextBlock Text="{Binding Display}" FontWeight="SemiBold"
+                      TextTrimming="CharacterEllipsis"/>
+           <TextBlock Margin="0,2,0,0" Text="{Binding Details}"
+                      FontSize="12" Foreground="#52606D" TextWrapping="Wrap"/>
+           <TextBlock Margin="0,2,0,0" Text="{Binding MaterialModeStatus}"
+                      FontSize="12" FontWeight="SemiBold" Foreground="#B45309"
+                      TextWrapping="Wrap"/>
+          </StackPanel>
+         </DataTemplate>
+        </ListBox.ItemTemplate>
+       </ListBox>
+       <Border x:Name="MaterialOverridePanel" Margin="0,7,0,0" Padding="8"
+               BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="3"
+               Background="#FFF7ED" IsEnabled="False" Opacity="0.55">
+        <StackPanel>
+         <TextBlock Text="Режим материала выбранных групп" FontWeight="SemiBold"/>
+         <WrapPanel Margin="0,6,0,0">
+          <Button x:Name="SetOpaqueOverlayButton" Height="31" Padding="9,0"
+                  Margin="0,0,6,6" Content="Непрозрачная накладка"
+                  IsEnabled="False" Click="SetOpaqueOverlay_Click"/>
+          <Button x:Name="ResetMaterialModeButton" Height="31" Padding="9,0"
+                  Margin="0,0,0,6" Content="Авто"
+                  IsEnabled="False" Click="ResetMaterialMode_Click"/>
+         </WrapPanel>
+         <TextBlock x:Name="MaterialOverrideStatusText" Foreground="#52606D"
+                    FontSize="12" TextWrapping="Wrap"
+                    Text="Выберите режим 3 с импортом текстур донора и текстурную группу."/>
+         <TextBlock Margin="0,5,0,0" Foreground="#9A3412" FontSize="12"
+                    TextWrapping="Wrap"
+                    Text="Используйте для плоских накладок кожи вокруг глаз или рта, у которых прозрачные пиксели должны закрывать базовое лицо. Настоящие прозрачные детали — крылья, стекло и украшения — оставляйте в режиме «Авто»."/>
+        </StackPanel>
+       </Border>
+       <WrapPanel Margin="0,7,0,0">
+        <Button Height="33" Padding="10,0" Margin="0,0,6,6"
+                Content="Добавить файлы…" Click="AddTextureFiles_Click"/>
+        <Button x:Name="SelectTextureFolderButton"
+                Height="33" Padding="10,0" Margin="0,0,6,6"
+                Content="Папка…" Click="SelectTextureFolder_Click"/>
+        <Button x:Name="RemoveTexturesButton" Height="33" Padding="10,0"
+                IsEnabled="False"
+                Margin="0,0,0,6" Content="Удалить" Click="RemoveTextures_Click"/>
+       </WrapPanel>
+       <TextBlock x:Name="TextureSummaryText" Margin="0,1,0,0"
+                  Text="Доступные текстуры появятся после выбора модели."
+                  TextWrapping="Wrap"/>
+       <TextBlock x:Name="Mode3TextureFolderWarningText"
+                  Margin="0,5,0,0" Foreground="#9A3412"
+                  Visibility="Collapsed" TextWrapping="Wrap"
+                  Text="В режиме 3 папки matN не поддерживаются: создаваемые веса всегда используют полную геометрию исходного файла. Добавляйте однозначно сопоставимые изображения кнопкой «Добавить файлы…»."/>
+       <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
+                  Text="В импорт идут все текстуры, привязанные к материалам. Встроенные добавляются автоматически, внешние можно выбрать группой или папкой. Выделение в списке используется для удаления добавленного источника и, в режиме 3, для явного режима материала."/>
+      </StackPanel>
+     </StackPanel>
+    </Border>
+
+    <Border x:Name="PortingModePanel" Margin="0,12,0,0" Padding="10"
+            BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
+            Background="#F8FAFC" Visibility="Collapsed">
+     <StackPanel>
+      <TextBlock Text="Режим портирования" FontWeight="SemiBold"/>
+      <ComboBox x:Name="PortingModeCombo" Margin="0,7,0,0" SelectedIndex="0"
+                SelectionChanged="PortingMode_Changed">
+       <ComboBoxItem Content="Авто"/>
+       <ComboBoxItem Content="1. Подготовленная модель"/>
+       <ComboBoxItem Content="2. Адаптировать существующий скелет"/>
+       <ComboBoxItem Content="3. Создать веса с нуля"/>
+       <ComboBoxItem Content="Дополнительно: rigid-объект на одной кости"/>
+      </ComboBox>
+      <TextBlock x:Name="PortingModeRecommendationText" Margin="0,6,0,0"
+                 FontWeight="SemiBold" TextWrapping="Wrap"/>
+      <TextBlock x:Name="PortingModeDescriptionText" Margin="0,4,0,0"
+                 Foreground="#52606D" TextWrapping="Wrap"/>
+      <TextBlock x:Name="PortingPreviewStatusText" Margin="0,5,0,0"
+                 Foreground="#B45309" TextWrapping="Wrap" Visibility="Collapsed"/>
+     </StackPanel>
+    </Border>
+
     <Border x:Name="ReplacementModePanel" Margin="0,12,0,0" Padding="10" Background="#E8EEF5" CornerRadius="4">
      <StackPanel>
       <TextBlock x:Name="ReplacementModeText" FontWeight="SemiBold" Text="Режим ещё не определён"/>
       <TextBlock x:Name="CompatibilityText" Margin="0,4,0,0" Text="Выберите модель-донор." TextWrapping="Wrap" Foreground="#52606D"/>
+     </StackPanel>
+    </Border>
+
+    <Border x:Name="ModelTransformPanel" Margin="0,12,0,0" Padding="10"
+            BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
+            Background="#F8FAFC">
+     <StackPanel>
+      <TextBlock x:Name="ModelTransformHeadingText"
+                 Text="3. Положение и масштаб" FontSize="15" FontWeight="SemiBold"/>
+      <TextBlock x:Name="ModelTransformHintText" Margin="0,5,0,0"
+                 Foreground="#52606D" TextWrapping="Wrap"
+                 Text="Выберите модель-донор и режим портирования."/>
+      <Button x:Name="AutoFitButton" Margin="0,8,0,7" Height="35"
+              Content="Автоматически подогнать рост и центр"
+              IsEnabled="False" Click="AutoFit_Click"/>
+      <Grid x:Name="TransformEditorGrid" Margin="0,4,0,0">
+       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="72"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+       </Grid.ColumnDefinitions>
+       <Grid.RowDefinitions>
+        <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+       </Grid.RowDefinitions>
+       <TextBlock Grid.Row="0" Text="Масштаб" VerticalAlignment="Center"/>
+       <TextBox x:Name="ScaleBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+                Text="1" TextChanged="Transform_Changed"/>
+       <TextBlock x:Name="RotationLabelText" Grid.Row="1" Text="Поворот"
+                  VerticalAlignment="Center"/>
+       <TextBox x:Name="RotXBox" Grid.Row="1" Grid.Column="1" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBox x:Name="RotYBox" Grid.Row="1" Grid.Column="2" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBox x:Name="RotZBox" Grid.Row="1" Grid.Column="3" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBlock Grid.Row="2" Text="Положение" VerticalAlignment="Center"/>
+       <TextBox x:Name="MoveXBox" Grid.Row="2" Grid.Column="1" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBox x:Name="MoveYBox" Grid.Row="2" Grid.Column="2" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBox x:Name="MoveZBox" Grid.Row="2" Grid.Column="3" Text="0"
+                TextChanged="Transform_Changed"/>
+       <TextBlock x:Name="RotationUnavailableHintText" Grid.Row="3" Grid.Column="1"
+                  Grid.ColumnSpan="3" Margin="0,4,0,0" FontSize="12"
+                  Foreground="#B45309" TextWrapping="Wrap" Visibility="Collapsed"
+                  Text="Вращение в режиме 3 пока недоступно: модель должна быть вертикальной, Y-up и смотреть в ту же сторону, что игровая."/>
+      </Grid>
+      <Button x:Name="ApplyModelAlignmentButton" Margin="0,8,0,0" Height="35"
+              Content="Применить размер и положение" IsEnabled="False"
+              Visibility="Collapsed" Click="ApplyModelAlignment_Click"/>
      </StackPanel>
     </Border>
 
@@ -37,10 +181,353 @@
      </Border>
     </Expander>
 
+    <Border x:Name="RigFittingPanel" Margin="0,8,0,0" Padding="10"
+            BorderBrush="#7DD3FC" BorderThickness="1" CornerRadius="4"
+            Background="#F0F9FF" Visibility="Collapsed">
+     <StackPanel>
+      <TextBlock Text="Подгонка игрового скелета" FontWeight="SemiBold"/>
+      <CheckBox x:Name="ManualAdaptWeightsCheckBox" Margin="0,7,0,0"
+                Checked="ManualAdaptWeights_Changed"
+                Unchecked="ManualAdaptWeights_Changed">
+       <TextBlock Text="Ручная подгонка игрового скелета (использовать только donor weights)"
+                  TextWrapping="Wrap"/>
+      </CheckBox>
+      <TextBlock x:Name="RigFittingModeHintText" Margin="0,4,0,0"
+                 Foreground="#52606D" TextWrapping="Wrap"/>
+       <TextBlock Margin="0,8,0,0" Text="Режим редактирования" FontSize="12"
+                  FontWeight="SemiBold"/>
+       <ComboBox x:Name="RigPoseEditorModeCombo" Margin="0,4,0,0" SelectedIndex="0"
+                 SelectionChanged="RigPoseEditorMode_Changed">
+        <ComboBoxItem Content="Суставы"/>
+        <ComboBoxItem Content="Человек"/>
+       </ComboBox>
+       <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="11"
+                  Text="Режимы работают с одной общей позой: переключение не сбрасывает уже сделанные изменения."
+                  TextWrapping="Wrap"/>
+
+       <Border Margin="0,8,0,0" Padding="9" Background="White"
+               BorderBrush="#BAE6FD" BorderThickness="1" CornerRadius="4">
+        <Grid>
+         <StackPanel x:Name="HumanPoseEditorPanel" Visibility="Collapsed">
+          <TextBlock Text="Человек" FontWeight="SemiBold"/>
+          <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                     Text="Симметричная подгонка основных частей тела. Для точной настройки переключитесь на режим «Суставы»."
+                     TextWrapping="Wrap"/>
+          <Button x:Name="AutoFitBodyPoseButton" Margin="0,8,0,0" Height="34"
+                  Content="Автоматически подогнать позу тела"
+                  Click="AutoFitBodyPose_Click"/>
+          <Grid Margin="0,7,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="132"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="46"/>
+           </Grid.ColumnDefinitions>
+           <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+           </Grid.RowDefinitions>
+
+           <TextBlock Grid.Row="0" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Руки вверх / вниз"/>
+           <Slider x:Name="BodyArmRaiseSlider" Grid.Row="0" Grid.Column="1"
+                   Margin="0,4" Minimum="-85" Maximum="85" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="0" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyArmRaiseSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="1" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Руки вперёд / назад"/>
+           <Slider x:Name="BodyArmForwardSlider" Grid.Row="1" Grid.Column="1"
+                   Margin="0,4" Minimum="-75" Maximum="75" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="1" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyArmForwardSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="2" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Сгиб локтей"/>
+           <Slider x:Name="BodyElbowBendSlider" Grid.Row="2" Grid.Column="1"
+                   Margin="0,4" Minimum="0" Maximum="145" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="2" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyElbowBendSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="3" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Ширина ног"/>
+           <Slider x:Name="BodyLegSpreadSlider" Grid.Row="3" Grid.Column="1"
+                   Margin="0,4" Minimum="-20" Maximum="45" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="3" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyLegSpreadSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="4" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Сгиб коленей"/>
+           <Slider x:Name="BodyKneeBendSlider" Grid.Row="4" Grid.Column="1"
+                   Margin="0,4" Minimum="0" Maximum="135" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="4" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyKneeBendSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="5" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Наклон корпуса"/>
+           <Slider x:Name="BodyTorsoPitchSlider" Grid.Row="5" Grid.Column="1"
+                   Margin="0,4" Minimum="-45" Maximum="45" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="5" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyTorsoPitchSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="6" Margin="0,4,6,4" VerticalAlignment="Center"
+                      FontSize="12" Text="Шея вперёд / назад"/>
+           <Slider x:Name="BodyNeckForwardSlider" Grid.Row="6" Grid.Column="1"
+                   Margin="0,4" Minimum="-45" Maximum="45" Value="0"
+                   VerticalAlignment="Center" ValueChanged="BodyPoseSlider_ValueChanged"/>
+           <TextBlock Grid.Row="6" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=BodyNeckForwardSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+          </Grid>
+          <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="11"
+                     Text="Нулевые значения — симметричная нейтральная поза: руки горизонтально, ноги прямо вниз."
+                     TextWrapping="Wrap"/>
+          <Grid Margin="0,8,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+           </Grid.ColumnDefinitions>
+           <Button x:Name="ApplyBodyPoseButton" Grid.Column="0" Margin="0,0,3,0"
+                   Height="32" Content="Применить позу" Click="ApplyBodyPose_Click"/>
+           <Button x:Name="ResetBodyPoseButton" Grid.Column="1" Margin="3,0,0,0"
+                   Height="32" Content="Нейтральная поза" Click="ResetBodyPose_Click"/>
+          </Grid>
+          <TextBlock x:Name="BodyPoseStatusText" Margin="0,5,0,0"
+                     Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+
+          <Border x:Name="GeneratedAttachmentEditorPanel" Margin="0,12,0,0"
+                  Padding="9" Background="#F8FAFC" BorderBrush="#CBD5E1"
+                  BorderThickness="1" CornerRadius="4">
+           <StackPanel>
+            <TextBlock Text="Жёсткие детали" FontWeight="SemiBold"/>
+            <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                       Text="Выберите одну или несколько отделённых деталей модели и закрепите их за верхней частью спины или головой. Такое назначение не зависит от остальных настроек позы."
+                       TextWrapping="Wrap"/>
+            <TextBlock Margin="0,5,0,0" Foreground="#52606D" FontSize="11"
+                       Text="Щёлкните по детали в окне просмотра или выберите её в списке. Ctrl добавляет и убирает отдельные детали, Shift выбирает диапазон."
+                       TextWrapping="Wrap"/>
+            <CheckBox x:Name="HideGeneratedMainBodyCheckBox" Margin="0,7,0,0"
+                      Content="Скрыть основное тело модели-донора"
+                      Checked="HideGeneratedMainBody_Changed"
+                      Unchecked="HideGeneratedMainBody_Changed"/>
+            <TextBlock x:Name="GeneratedAttachmentSummaryText" Margin="0,7,0,0"
+                       Foreground="#52606D" FontSize="12"
+                       Text="Отдельные детали ещё не рассчитаны."
+                       TextWrapping="Wrap"/>
+            <ListBox x:Name="GeneratedAttachmentList" Margin="0,6,0,0"
+                     MinHeight="96" MaxHeight="220"
+                     SelectionMode="Extended"
+                     SelectionChanged="GeneratedAttachmentList_SelectionChanged"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <Button x:Name="SelectSameMesh" Margin="0,7,0,0" Height="30"
+                    Content="Выбрать все детали того же mesh"
+                    IsEnabled="False" Click="SelectSameMesh_Click"/>
+            <Grid Margin="0,6,0,0">
+             <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="*"/>
+             </Grid.ColumnDefinitions>
+             <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+             </Grid.RowDefinitions>
+             <Button x:Name="PinUpperBack" Grid.Row="0" Grid.Column="0"
+                     Margin="0,0,3,0" Height="30"
+                     Content="К спине" IsEnabled="False"
+                     Click="PinUpperBack_Click"/>
+             <Button x:Name="PinHead" Grid.Row="0" Grid.Column="1"
+                     Margin="3,0,0,0" Height="30"
+                     Content="К голове" IsEnabled="False"
+                     Click="PinHead_Click"/>
+             <Button x:Name="ResetAutomatic" Grid.Row="1" Grid.ColumnSpan="2"
+                     Margin="0,6,0,0" Height="30"
+                     Content="Вернуть автоматическое назначение"
+                     IsEnabled="False" Click="ResetAutomatic_Click"/>
+            </Grid>
+            <TextBlock x:Name="GeneratedAttachmentStatusText" Margin="0,6,0,0"
+                       Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+           </StackPanel>
+          </Border>
+         </StackPanel>
+
+         <StackPanel x:Name="RigFittingEditorPanel">
+          <TextBlock Text="Суставы" FontWeight="SemiBold"/>
+          <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                     Text="Выберите сустав в списке или щёлкните по нему в окне просмотра. Выбранный сустав подсвечивается; ползунки сразу меняют общую позу."
+                     TextWrapping="Wrap"/>
+          <TextBlock Margin="0,8,0,0" Text="Сустав" FontSize="12" FontWeight="SemiBold"/>
+          <ComboBox x:Name="RigFittingJointCombo" Margin="0,4,0,0"
+                    DisplayMemberPath="Display"
+                    SelectionChanged="RigFittingJoint_Changed"/>
+          <Grid Margin="0,8,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="18"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="50"/>
+           </Grid.ColumnDefinitions>
+           <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+           </Grid.RowDefinitions>
+
+           <TextBlock Grid.Row="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="X"/>
+           <Slider x:Name="RigLocalRotXSlider" Grid.Row="0" Grid.Column="1" Margin="5,4"
+                   Minimum="-180" Maximum="180" Value="0" TickFrequency="1"
+                   VerticalAlignment="Center" ValueChanged="RigJointRotationSlider_ValueChanged"/>
+           <TextBlock Grid.Row="0" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=RigLocalRotXSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" Text="Y"/>
+           <Slider x:Name="RigLocalRotYSlider" Grid.Row="1" Grid.Column="1" Margin="5,4"
+                   Minimum="-180" Maximum="180" Value="0" TickFrequency="1"
+                   VerticalAlignment="Center" ValueChanged="RigJointRotationSlider_ValueChanged"/>
+           <TextBlock Grid.Row="1" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=RigLocalRotYSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+
+           <TextBlock Grid.Row="2" VerticalAlignment="Center" FontWeight="SemiBold" Text="Z"/>
+           <Slider x:Name="RigLocalRotZSlider" Grid.Row="2" Grid.Column="1" Margin="5,4"
+                   Minimum="-180" Maximum="180" Value="0" TickFrequency="1"
+                   VerticalAlignment="Center" ValueChanged="RigJointRotationSlider_ValueChanged"/>
+           <TextBlock Grid.Row="2" Grid.Column="2" Margin="6,4,0,4"
+                      HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"
+                      Text="{Binding ElementName=RigLocalRotZSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+          </Grid>
+          <Grid Margin="0,8,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+           </Grid.ColumnDefinitions>
+           <Button Grid.Column="0" Margin="0,0,3,0" Height="32"
+                   Content="Применить" Click="ApplyRigFitting_Click"/>
+           <Button Grid.Column="1" Margin="3,0" Height="32"
+                   Content="Сбросить сустав" Click="ResetRigJoint_Click"/>
+           <Button Grid.Column="2" Margin="3,0,0,0" Height="32"
+                   Content="Сбросить всю позу" Click="ResetRigPose_Click"/>
+          </Grid>
+          <Expander x:Name="RigRootTransformExpander" Margin="0,8,0,0"
+                    Header="Дополнительно: корневой сустав (режим 2)"
+                    IsExpanded="False" Visibility="Collapsed">
+           <StackPanel x:Name="RigRootTransformPanel" Margin="0,5,0,0">
+            <TextBlock Text="Global rotation вокруг origin, градусы X / Y / Z"
+                       FontSize="12"/>
+            <Grid Margin="0,4,0,0">
+             <Grid.ColumnDefinitions>
+              <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+             </Grid.ColumnDefinitions>
+             <TextBox x:Name="RigRootRotXBox" Grid.Column="0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+             <TextBox x:Name="RigRootRotYBox" Grid.Column="1" Margin="4,0,0,0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+             <TextBox x:Name="RigRootRotZBox" Grid.Column="2" Margin="4,0,0,0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+            </Grid>
+            <TextBlock Margin="0,8,0,0" Text="Global translation X / Y / Z"
+                       FontSize="12"/>
+            <Grid Margin="0,4,0,0">
+             <Grid.ColumnDefinitions>
+              <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+             </Grid.ColumnDefinitions>
+             <TextBox x:Name="RigRootMoveXBox" Grid.Column="0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+             <TextBox x:Name="RigRootMoveYBox" Grid.Column="1" Margin="4,0,0,0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+             <TextBox x:Name="RigRootMoveZBox" Grid.Column="2" Margin="4,0,0,0" Text="0"
+                      TextChanged="RigFittingEditor_TextChanged"/>
+            </Grid>
+           </StackPanel>
+          </Expander>
+         </StackPanel>
+        </Grid>
+       </Border>
+       <CheckBox x:Name="ShowFittingPoseCheckBox" Margin="0,7,0,0" IsChecked="True"
+                 Content="Показывать результат подгонки в окне просмотра"
+                 Checked="ShowFittingPose_Changed"
+                 Unchecked="ShowFittingPose_Changed"/>
+       <TextBlock Margin="0,5,0,0" Foreground="#52606D" FontSize="12"
+                  Text="Оба режима редактируют одну временную позу. Длины костей и связи между ними остаются прежними; поза не записывается в итоговый SMO."
+                  TextWrapping="Wrap"/>
+      <TextBlock x:Name="RigFittingStatusText" Margin="0,5,0,0"
+                 Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+     </StackPanel>
+    </Border>
+
     <StackPanel x:Name="ExternalModelOptionsPanel">
+      <Border x:Name="GeneratedSkinningPanel" Margin="0,14,0,0" Padding="10"
+              BorderBrush="#FDBA74" BorderThickness="1"
+              Background="#FFF7ED" CornerRadius="4" Visibility="Collapsed">
+       <StackPanel>
+        <TextBlock Text="Режим 3: автоматически созданные веса"
+                   FontWeight="SemiBold"/>
+        <TextBlock x:Name="GeneratedSkinningPrimaryStatusText" Margin="0,7,0,0"
+                   FontWeight="SemiBold" Foreground="#9A3412"
+                   Text="Подготовка ещё не выполнена." TextWrapping="Wrap"/>
+        <TextBlock x:Name="GeneratedSkinningAlignmentText" Margin="0,6,0,0"
+                   Text="Alignment: —" TextWrapping="Wrap"/>
+        <TextBlock x:Name="GeneratedSkinningSummaryText" Margin="0,3,0,0"
+                   Foreground="#52606D" Text="Диагностика ещё не построена."
+                   TextWrapping="Wrap"/>
+        <Button x:Name="ShowGeneratedPreparedSceneButton" Margin="0,9,0,0"
+                Height="35" Content="Показать итог и разрешить подтверждение"
+                IsEnabled="False" Click="ShowGeneratedPreparedScene_Click"/>
+        <CheckBox x:Name="GeneratedSkinningConfirmationCheckBox"
+                  Margin="0,9,0,0" IsEnabled="False"
+                  Content="Я проверил итоговую модель, веса и rigid attachments"
+                  Checked="GeneratedSkinningConfirmation_Changed"
+                  Unchecked="GeneratedSkinningConfirmation_Changed"/>
+        <TextBlock x:Name="GeneratedSkinningConfirmationHintText"
+                   Margin="22,4,0,0" FontSize="12" Foreground="#52606D"
+                   Text="Сначала покажите точный итоговый PreparedScene кнопкой выше."
+                   TextWrapping="Wrap"/>
+        <Expander x:Name="GeneratedSkinningDetailsExpander" Margin="0,9,0,0"
+                  Header="Технические детали" IsExpanded="False">
+         <Border Margin="0,5,0,0" Padding="8" Background="#FFFFFB"
+                 BorderBrush="#FED7AA" BorderThickness="1" CornerRadius="3">
+          <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+           <StackPanel>
+            <TextBlock Text="Предупреждения" FontSize="12" FontWeight="SemiBold"/>
+            <TextBlock x:Name="GeneratedSkinningWarningsText" Margin="0,2,0,0"
+                       FontSize="12" Foreground="#9A3412" Text="—"
+                       TextWrapping="Wrap"/>
+            <TextBlock Margin="0,9,0,0" Text="Rigid attachments"
+                       FontSize="12" FontWeight="SemiBold"/>
+            <TextBlock x:Name="GeneratedSkinningAttachmentsText" Margin="0,2,0,0"
+                       FontSize="12" Foreground="#52606D" Text="—"
+                       TextWrapping="Wrap"/>
+           </StackPanel>
+          </ScrollViewer>
+         </Border>
+        </Expander>
+       </StackPanel>
+      </Border>
+
      <GroupBox Header="Автоматическая нарезка" Margin="0,18,0,0" Padding="10">
       <StackPanel>
        <TextBlock x:Name="SplitModeText" Text="Вся модель помещается в один основной body-slot; остальные slots получают невидимый вырожденный triangle. UInt16 ограничивает вершины, но не длину index buffer." TextWrapping="Wrap"/>
+       <Button x:Name="ShowFinalTexturedPreviewButton" Margin="0,9,0,0" Height="35"
+               Content="Показать окончательный результат с текстурами"
+               IsEnabled="False" Click="ShowFinalTexturedPreview_Click"/>
        <Button x:Name="PlanButton" Margin="0,9,0,0" Height="35" Content="Построить план и проверить" IsEnabled="False" Click="Plan_Click"/>
        <TextBlock x:Name="PlanSummaryText" Margin="0,7,0,0" Text="План ещё не построен." TextWrapping="Wrap"/>
       </StackPanel>
@@ -58,51 +545,13 @@
       <StackPanel>
        <TextBlock Text="Skinned GLB / FBX" FontWeight="SemiBold"/>
        <CheckBox x:Name="RebaseBindPoseCheckBox" Margin="0,7,0,0" IsChecked="True"
-                 Content="Один раз согласовать bind pose модели с игровым скелетом (рекомендуется)"/>
+                 Content="Один раз согласовать bind pose модели с игровым скелетом (рекомендуется)"
+                 Checked="RebaseBindPose_Changed" Unchecked="RebaseBindPose_Changed"/>
        <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
                   Text="Включено: вершины один раз переводятся из корректной bind pose файла в bind pose игры. В SMO записываются только игровые кости и игровые inverse-bind matrices; узлы, поза и анимационная логика файла не переносятся. Выключайте лишь для модели, уже подготовленной точно в игровой bind pose."/>
      </StackPanel>
      </Border>
 
-     <Border x:Name="TextureFolderPanel" Margin="0,14,0,0" Padding="10"
-             BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
-             Visibility="Collapsed">
-      <StackPanel>
-       <TextBlock Text="Папка текстур" FontSize="15" FontWeight="SemiBold"/>
-       <Button Height="35" Margin="0,7,0,0" Content="Выбрать папку с matN PNG"
-               Click="SelectTextureFolder_Click"/>
-       <TextBlock x:Name="TextureFolderPathText" Margin="0,5,0,0"
-                  Text="Автопоиск рядом с моделью" TextWrapping="Wrap"/>
-       <TextBlock Margin="0,4,0,0" Foreground="#52606D" TextWrapping="Wrap"
-                  Text="Для rigid OBJ, FBX и GLB: mat1.png, mat2.png и кадры matN.1.png. Рядом с моделью папка определяется автоматически."/>
-      </StackPanel>
-     </Border>
-
-     <StackPanel x:Name="SingleTexturePanel">
-      <TextBlock Margin="0,16,0,0" Text="Текстура модели" FontSize="15" FontWeight="SemiBold"/>
-      <ComboBox x:Name="EmbeddedTextureCombo" Margin="0,6,0,0" DisplayMemberPath="Display" SelectionChanged="EmbeddedTexture_Changed"/>
-      <Button Height="35" Margin="0,6,0,0" Content="Выбрать PNG или JPEG" Click="SelectTexture_Click"/>
-      <TextBlock x:Name="TexturePathText" Margin="0,5,0,0" Text="Текстура исходного SMO останется без изменений" TextWrapping="Wrap"/>
-      <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Безопасный режим: RGB масштабируется под исходный атлас; Alpha, заголовки и размер файла сохраняются." TextWrapping="Wrap"/>
-     </StackPanel>
-
-     <Border x:Name="MultiTextureSummaryPanel" Margin="0,16,0,0" Padding="10"
-             Background="#DCFCE7" CornerRadius="4" Visibility="Collapsed">
-      <StackPanel>
-       <TextBlock Text="Текстуры из папки" FontSize="15" FontWeight="SemiBold"/>
-       <TextBlock x:Name="MultiTextureSummaryText" Margin="0,5,0,0" TextWrapping="Wrap"/>
-      </StackPanel>
-     </Border>
-
-     <TextBlock Margin="0,18,0,0" Text="3. Подгонка модели" FontSize="15" FontWeight="SemiBold"/>
-     <Button x:Name="AutoFitButton" Margin="0,7,0,7" Height="35" Content="Подогнать размер и центр по исходной модели" IsEnabled="False" Click="AutoFit_Click"/>
-     <Grid x:Name="TransformEditorGrid" Margin="0,7,0,0">
-      <Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-      <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-      <TextBlock Grid.Row="0" Text="Scale" VerticalAlignment="Center"/><TextBox x:Name="ScaleBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="1" TextChanged="Transform_Changed"/>
-      <TextBlock Grid.Row="1" Text="Rotate" VerticalAlignment="Center"/><TextBox x:Name="RotXBox" Grid.Row="1" Grid.Column="1" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="RotYBox" Grid.Row="1" Grid.Column="2" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="RotZBox" Grid.Row="1" Grid.Column="3" Text="0" TextChanged="Transform_Changed"/>
-      <TextBlock Grid.Row="2" Text="Move" VerticalAlignment="Center"/><TextBox x:Name="MoveXBox" Grid.Row="2" Grid.Column="1" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="MoveYBox" Grid.Row="2" Grid.Column="2" Text="0" TextChanged="Transform_Changed"/><TextBox x:Name="MoveZBox" Grid.Row="2" Grid.Column="3" Text="0" TextChanged="Transform_Changed"/>
-     </Grid>
     </StackPanel>
 
     <TextBlock Margin="0,18,0,0" Text="WinxClub.exe" FontSize="15" FontWeight="SemiBold"/>
@@ -138,7 +587,7 @@
     <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
     <ModelVisual3D x:Name="SceneVisual"/>
    </Viewport3D>
-   <Canvas IsHitTestVisible="False" ClipToBounds="True">
+   <Canvas x:Name="RigOverlayCanvas" IsHitTestVisible="False" ClipToBounds="True">
     <Grid x:Name="BoneMarker" Width="22" Height="22" Visibility="Collapsed">
      <Ellipse Fill="#E6FF2D2D" Stroke="White" StrokeThickness="2"/>
      <Ellipse Width="6" Height="6" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>

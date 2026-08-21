@@ -123,14 +123,22 @@ internal static class SmoVisualForestInjector
                 ReadOnlySpan<byte> serialized = fieldData.Slice(
                     entry.RelativeOffset, checked((int)entry.SerializedSize));
                 int prefix = entry.RelativeOffset - ObjectReferenceSize;
-                if (BinaryPrimitives.ReadUInt32LittleEndian(fieldData[prefix..]) != entry.Id ||
-                    BinaryPrimitives.ReadUInt32LittleEndian(fieldData[(prefix + sizeof(uint))..]) !=
-                        entry.SerializedSize ||
-                    BinaryPrimitives.ReadUInt32LittleEndian(serialized) != entry.TypeHash ||
-                    !serialized.Slice(sizeof(uint), sizeof(uint)).SequenceEqual("SBOO"u8))
+                uint actualId = BinaryPrimitives.ReadUInt32LittleEndian(fieldData[prefix..]);
+                uint actualSize = BinaryPrimitives.ReadUInt32LittleEndian(
+                    fieldData[(prefix + sizeof(uint))..]);
+                uint actualTypeHash = BinaryPrimitives.ReadUInt32LittleEndian(serialized);
+                bool signatureMatches = serialized.Slice(sizeof(uint), sizeof(uint))
+                    .SequenceEqual("SBOO"u8);
+                if (actualId != entry.Id || actualSize != entry.SerializedSize ||
+                    actualTypeHash != entry.TypeHash || !signatureMatches)
                 {
                     throw new InvalidOperationException(
-                        $"Generated visual object ID {entry.Id} has a stale inline prefix or signature.");
+                        $"Generated visual object ID {entry.Id} has a stale inline prefix or " +
+                        $"signature at attachment offset 0x{entry.RelativeOffset:X}: " +
+                        $"prefix=({actualId},0x{actualSize:X}), " +
+                        $"expected=({entry.Id},0x{entry.SerializedSize:X}), " +
+                        $"type=0x{actualTypeHash:X8}/0x{entry.TypeHash:X8}, " +
+                        $"SBOO={signatureMatches}.");
                 }
             }
         }

@@ -112,19 +112,45 @@ char[4] "SBOO"
 
 ## Материалы и текстуры
 
-### Render flags `spMaterialData`
+### Render state `spMaterialData`
 
 Первый подтверждённый data-block после сигнатуры материала имеет field type `3`
-и payload `UInt32`. На проверенных материалах значение `0x2` означает обычный
-непрозрачный проход, а установленный бит `0x4` (`0x6`) включает alpha blending.
-Само наличие неоднородного alpha в текстуре не доказывает прозрачность: например,
-обычный atlas `knut` содержит служебные alpha-значения при render flags `0x2`.
+и payload `UInt32`. Это `FinalBlendOp`, то есть отдельная операция, а не битовая
+маска. Значения `0x4`, `0x5` и `0x6` нельзя объединять проверкой бита `0x4`:
+`0x4` подтверждено у glow/effect-проходов, а остальные значения требуют проверки
+полного material/consumer state.
 
-У `knutBoss.smo` материал `[10]` mesh `[13]` имеет flags `0x6`, а `gr_01`
+Production fixture обычной skinned texture-alpha поверхности — нативный comparator
+`Minautor.smo`. Его прозрачные triangles находятся в самостоятельных
+material-bearing ветвях `spSkin/material/mesh`, которые ссылаются на character
+texture, и используют:
+
+- `FinalBlendOp = 2`;
+- `MaterialRenderStates = [0,0,1,0,1,1,3,0,4,0,6]`;
+- `LayerTextureStates = [0,3,3,0,0,4278190080,2,0,0]`;
+- `AlphaSortEnable = 1`, `Priority = 1`;
+- vertex diffuse `0xFF000000`.
+
+Каждый самостоятельный source renderable требует собственной material-bearing
+ветви. Material-less mesh допустим только как palette/ushort continuation того же
+renderable. Тиара `bloom_princess.smo` по-прежнему полезна как структурный пример
+малой локальной alpha-ветви, однако её `MaterialRenderStates[5] = 0` и
+`AlphaSortEnable = 0` не подходят как production-шаблон для крупных skinned-крыльев:
+в игре более далёкие alpha-поверхности листвы и уровня могут ошибочно перекрывать их.
+
+Произвольный `FinalBlendOp = 2` не означает прозрачность. Для такой классификации
+нужны точный связанный consumer state и прозрачные texels, фактически покрытые UV
+его triangles. Ветви `IceWorm`/`Yeti` с `FinalBlendOp = 6` подтверждают другое
+семейство и не дают универсального шаблона. Само наличие неоднородного alpha в
+текстуре также ничего не доказывает: например, обычный atlas `knut` содержит
+служебные alpha-значения при непрозрачном материале.
+
+У `knutBoss.smo` материал `[10]` mesh `[13]` имеет `FinalBlendOp = 0x6`, а `gr_01`
 содержит 211 полностью прозрачных, 746 полупрозрачных и 67 непрозрачных пикселей.
-Материал тела `[26]` имеет flags `0x2`. Поэтому Viewer и Exporter определяют
-blend mode по материалу, а не эвристикой по пикселям. В WPF прозрачная геометрия
-добавляется после непрозрачной, иначе ранняя запись depth скрывает тело за щитом.
+Материал тела `[26]` имеет `FinalBlendOp = 0x2`. Поэтому Viewer и Exporter
+определяют режим по полной связке material/consumer state, а не по одному биту
+или эвристике по пикселям. WPF-просмотр является приближением и не доказывает
+совпадение с native render path.
 
 Rigid `spModel` без skinning может принадлежать анимируемому `spRenderNode`.
 Такой mesh сохраняет собственный model world transform в bind pose, но при
@@ -144,10 +170,12 @@ render node и следует его SAN-треку. Подтверждённы�
 
 Однако ранние эксперименты при изменении длины pixel buffer обновляли общие `FileSize`/`DataSize`, но не все последующие записи каталога. Поэтому signature scan полезен как восстановительный инструмент, но не заменяет корректный object parser и catalog-safe repack.
 
-Практический безопасный writer находится в `SmoImporter`: входной PNG/JPEG или
-embedded GLB base-color масштабируется до исходных размеров atlas, после чего
-перезаписываются только R/G/B существующего BGRA-буфера. Alpha каждого пикселя,
-все служебные поля, object graph и размер файла сохраняются побайтно.
+Практический writer находится в `SmoImporter`. Legacy single-texture путь масштабирует
+PNG/JPEG или embedded GLB base-color до исходных размеров atlas и перезаписывает
+только R/G/B существующего BGRA-буфера, сохраняя target Alpha. Generated-skinning
+multi-material путь собирает один RGBA-atlas и сохраняет donor Alpha полностью.
+Opaque triangles остаются в существующих opaque consumers target, а alpha triangles
+получают добавленные `spSkin/material/mesh` branches с общей texture reference.
 
 Нативный trace 2026-08-14 исправил трактовку прежнего RGBA-crash. В форматах
 `0x32E3`/`0x43E3` байт `texture + 0x3C` — marker `00`, а BGRA payload начинается
@@ -155,8 +183,8 @@ embedded GLB base-color масштабируется до исходных ра�
 читала число строк как `0xFF000100` вместо `0x00000100`. Это был off-by-one, а
 не доказанный запрет Alpha. Исправленная полная BGRA-запись того же donor Alpha
 затем прошла target-scoped FFPS, вернула native resource и пережила окно
-наблюдения без исключения. Production-путь пока всё равно сохраняет target Alpha
-до более широкой визуальной/gameplay-проверки разных материалов.
+наблюдения без исключения. Это подтверждает layout и загрузку BGRA payload, но не
+визуальную семантику конкретного blend state.
 
 Игровой тест опроверг достаточность catalog-safe texture repack: вариант
 `Faragonda.smo → bloom_jeans.smo`, где две группы `64×64` были объединены в
@@ -170,11 +198,44 @@ sizes, проходил strict parser и оба format test, но вызывал
 Это доказывает, что выделенного набора collision/control objects недостаточно:
 неизвестные target bindings должны сохраняться вместе с исходными object IDs.
 
-Поэтому активный SMO → SMO writer сохраняет весь target graph и заменяет только
-существующие mesh/texture leaves и reference-only palettes. Если donor требует
-больше texture groups, операция блокируется. Будущий writer должен добавлять новые
-visual branches внутрь сохранённого target graph после полного описания ссылок, а
-не заменять target graph целиком.
+Поэтому активный SMO → SMO writer сохраняет весь target graph и добавляет полные
+visual branches внутри него, не заменяя service/skeleton graph целиком. Отдельный
+generated-skinning multi-material path также сохраняет target graph, но использует
+один общий RGBA-atlas. PNG Alpha не задаёт native material однозначно: у контрольной
+Layla `mat3`/глаза и `mat4`/рот содержат полезный RGB под исходным `A = 0`, но должны
+рисоваться как opaque face decals. Им назначается явный source-bound профиль
+`OpaqueOverlay`: до premultiplied resize всей выбранной texture group ставится
+`A = 255`, а 124 triangles записываются двумя независимыми post-body branches с
+каноническим eye state `FinalBlendOp = 0`,
+`MaterialRenderStates = [0,0,1,0,1,1,3,0,4,0,6]`,
+`LayerTextureStates = [0,3,3,0,0,4278190080,2,0,0]`,
+`AlphaSortEnable = 0`, `Priority = 1` и vertex diffuse `0xFFFFFFFF`. Белый diffuse
+совпадает с generated retained body для OBJ без vertex colors. Нормали лицевых
+накладок не меняются и проходят существующий importer path. Оставшиеся `mat5:34`,
+`mat7:34`, `mat6:2` содержат 70 действительно прозрачных triangles и получают три
+независимые ветви с
+production-state `Minautor.smo`: `FinalBlendOp = 2`,
+`MaterialRenderStates = [0,0,1,0,1,1,3,0,4,0,6]`, те же `LayerTextureStates`,
+`AlphaSortEnable = 1`, `Priority = 1`, vertex diffuse `0xFF000000`; 2 714 opaque body
+triangles остаются на существующих opaque branches. Общая texture reference не
+разрешает объединять разные renderables в один `spSkin`; material-less skin допустим
+только как palette/ushort continuation того же renderable. Ветви используют текущие
+target weights/palettes.
+
+Без явного профиля безопасно вывести эту семантику нельзя: одинаковые PNG Alpha и
+геометрическая близость встречаются и у настоящих прозрачных поверхностей, и у
+непрозрачных накладок. Текущая `ImportedMaterial` хранит только имя и ссылку на
+base-color texture; OBJ-директивы `d`, `Tr`, `map_d` и эквивалентная opacity metadata
+в этот контракт не входят. Поэтому default `Auto` не изменён, а для контрольной Layla
+в GUI у `mat3`/`mat4` выбирается **Непрозрачная накладка**, тогда как
+`mat5`/`mat6`/`mat7` остаются в **Авто**.
+Прозрачная подвеска `mat6` остаётся alpha overlay
+из двух triangles поверх opaque body branch, а не превращает всё тело в прозрачный
+consumer. Strict/Viewer/native проверки подтверждают структуру и загрузку такого
+графа, но не native blend, lighting или depth/sort; WPF Viewer может скрыть ошибку
+объединённого alpha-run, а orbit камеры при фиксированном world-light — углозависимый
+дефект материала. Визуальный паритет нового контракта не подтверждён до
+пользовательского теста вновь созданного SMO непосредственно в игре.
 
 ## Результат текущего scan
 

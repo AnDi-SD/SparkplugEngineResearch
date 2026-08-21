@@ -12,15 +12,24 @@ namespace SmoImporter.Core;
 public static class FbxModelReader
 {
     public static ImportedScene Read(string path, string? blenderPath = null)
-        => ReadCore(path, blenderPath, includeAllRigidMeshes: false);
+        => ReadCore(
+            path, blenderPath, includeAllRigidMeshes: false, ignoreSkinning: false);
 
     public static ImportedScene ReadRigid(string path, string? blenderPath = null)
-        => ReadCore(path, blenderPath, includeAllRigidMeshes: true);
+        => ReadCore(
+            path, blenderPath, includeAllRigidMeshes: true, ignoreSkinning: false);
+
+    public static ImportedScene ReadGeometryOnly(
+        string path,
+        string? blenderPath = null) =>
+        ReadCore(
+            path, blenderPath, includeAllRigidMeshes: true, ignoreSkinning: true);
 
     private static ImportedScene ReadCore(
         string path,
         string? blenderPath,
-        bool includeAllRigidMeshes)
+        bool includeAllRigidMeshes,
+        bool ignoreSkinning)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         string fullInput = Path.GetFullPath(path);
@@ -39,7 +48,9 @@ public static class FbxModelReader
         {
             string glbPath = Path.Combine(temporaryDirectory, "converted.glb");
             Convert(fullInput, glbPath, blender, includeAllRigidMeshes);
-            return GlbModelReader.Read(glbPath);
+            return ignoreSkinning
+                ? GlbModelReader.ReadGeometryOnly(glbPath)
+                : GlbModelReader.Read(glbPath);
         }
         finally
         {

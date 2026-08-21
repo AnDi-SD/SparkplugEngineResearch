@@ -77,32 +77,27 @@ public static class SmoWholeModelReplacer
         }
 
         byte[] output = Repack(document, replacements);
-        string? temporaryTexture = null;
-        try
+        if (!string.IsNullOrWhiteSpace(texturePath))
         {
-            string? effectiveTexture = texturePath;
-            if (string.IsNullOrWhiteSpace(effectiveTexture) && embeddedTexture is not null)
-            {
-                string extension = embeddedTexture.MimeType switch
-                {
-                    "image/png" => ".png",
-                    "image/jpeg" => ".jpg",
-                    _ => throw new NotSupportedException(
-                        $"Embedded texture MIME type {embeddedTexture.MimeType} is not supported.")
-                };
-                temporaryTexture = Path.Combine(
-                    Path.GetTempPath(), $"smo-import-texture-{Guid.NewGuid():N}{extension}");
-                File.WriteAllBytes(temporaryTexture, embeddedTexture.Data);
-                effectiveTexture = temporaryTexture;
-            }
-            if (!string.IsNullOrWhiteSpace(effectiveTexture))
-                output = ReplaceBodyTexture(
-                    document, host, output, effectiveTexture, maximumTextureDimension);
+            output = ReplaceBodyTexture(
+                document,
+                host,
+                output,
+                File.ReadAllBytes(Path.GetFullPath(texturePath)),
+                maximumTextureDimension);
         }
-        finally
+        else if (embeddedTexture is not null)
         {
-            if (temporaryTexture is not null && File.Exists(temporaryTexture))
-                File.Delete(temporaryTexture);
+            output = ReplaceBodyTexture(
+                document,
+                host,
+                output,
+                embeddedTexture.Data,
+                maximumTextureDimension);
+        }
+        else
+        {
+            VerifyTargetTexturesUnchanged(document, output);
         }
         string fullOutput = Path.GetFullPath(outputPath);
         Directory.CreateDirectory(Path.GetDirectoryName(fullOutput)!);
@@ -171,7 +166,7 @@ public static class SmoWholeModelReplacer
         SmoDocument document,
         SmoObjectEntry host,
         byte[] output,
-        string texturePath,
+        ReadOnlySpan<byte> imageData,
         int maximumDimension)
     {
         IReadOnlyDictionary<int, SmoTextureBinding> bindings =
@@ -193,7 +188,7 @@ public static class SmoWholeModelReplacer
             throw new InvalidOperationException("Texture order changed during mesh repack.");
         SMOTextureTool.Core.TextureInfo target = textureDocument.Textures[textureOrdinal];
         byte[] replaced = FixedSizeTextureWriter.ReplaceRgb(
-            output, target.Index, File.ReadAllBytes(texturePath));
+            output, target.Index, imageData);
         SMOTextureTool.Core.TextureInfo verifiedTarget =
             SMOTextureTool.Core.SmoDocument.Parse(replaced).Textures
                 .Single(texture => texture.Index == target.Index);
@@ -202,6 +197,46 @@ public static class SmoWholeModelReplacer
             throw new InvalidDataException(
                 "Fixed-size texture replacement changed the SMO structure or material owner.");
         return replaced;
+    }
+
+    private static void VerifyTargetTexturesUnchanged(
+        SmoDocument target,
+        byte[] output)
+    {
+        SmoDocument verified = SmoDocument.Parse(output, target.SourcePath);
+        SmoObjectEntry[] targetTextures = target.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
+            .ToArray();
+        if (verified.Objects.Count(entry => entry.TypeHash == SmoClassIds.TextureData) !=
+            targetTextures.Length)
+        {
+            throw new InvalidDataException(
+                "Preserving target textures changed the TextureData object count.");
+        }
+
+        foreach (SmoObjectEntry targetTexture in targetTextures)
+        {
+            if ((uint)targetTexture.Index >= (uint)verified.Objects.Count)
+            {
+                throw new InvalidDataException(
+                    $"Preserving target texture [{targetTexture.Index}] changed the object catalog.");
+            }
+            SmoObjectEntry verifiedTexture = verified.Objects[targetTexture.Index];
+            if (verifiedTexture.TypeHash != SmoClassIds.TextureData ||
+                verifiedTexture.Id != targetTexture.Id ||
+                verifiedTexture.SerializedSize != targetTexture.SerializedSize ||
+                !target.Data.Span.Slice(
+                        checked((int)targetTexture.PhysicalOffset),
+                        checked((int)targetTexture.SerializedSize))
+                    .SequenceEqual(verified.Data.Span.Slice(
+                        checked((int)verifiedTexture.PhysicalOffset),
+                        checked((int)verifiedTexture.SerializedSize))))
+            {
+                throw new InvalidDataException(
+                    $"Target texture [{targetTexture.Index}] {targetTexture.Name} changed " +
+                    "while texture preservation was enabled.");
+            }
+        }
     }
 
     private static bool SameMaterialOwner(

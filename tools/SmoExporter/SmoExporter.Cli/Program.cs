@@ -16,14 +16,23 @@ bool glb = args.Contains("--glb");
 bool obj = args.Contains("--obj");
 bool fbx = args.Contains("--fbx");
 if (!glb && !obj && !fbx) glb = obj = true;
-string[] animations = GetOptions(args, "--animation")
+bool objOnly = obj && !glb && !fbx;
+string[] requestedAnimations = GetOptions(args, "--animation")
     .Select(Path.GetFullPath).ToArray();
+string[] animations = objOnly ? [] : requestedAnimations;
+SmoExportResourceTypes resources = objOnly
+    ? SmoExportResourceTypes.Meshes |
+      SmoExportResourceTypes.Materials |
+      SmoExportResourceTypes.Textures
+    : SmoExportResourceTypes.All;
 
 try
 {
     SmoDocument document = SmoDocument.Load(input);
     SmoExportScene scene = SmoSceneBuilder.Build(
-        document, new SmoExportOptions(AnimationPaths: animations));
+        document, new SmoExportOptions(
+            AnimationPaths: animations,
+            Resources: resources));
     Directory.CreateDirectory(outputDirectory);
     string stem = Path.GetFileNameWithoutExtension(input);
     if (glb)

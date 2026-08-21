@@ -35,6 +35,15 @@ public sealed record RigidGlbTextureBundle(
     public IReadOnlyList<string> IgnoredTextureFiles => IgnoredTextureFileNames ?? [];
 }
 
+public sealed class RigidTextureBundleContainsSkinnedMeshesException
+    : IOException
+{
+    public RigidTextureBundleContainsSkinnedMeshesException(string message)
+        : base(message)
+    {
+    }
+}
+
 /// <summary>
 /// Reads a rigid GLB/OBJ/FBX whose external PNG files use the ripped-model matN
 /// naming convention. Active matN meshes and their frames are resolved strictly;
@@ -148,15 +157,121 @@ public static class RigidGlbTextureBundleReader
             maximumTextureDimension);
     }
 
+    /// <summary>
+    /// Builds a one-frame material bundle from the textures already resolved in an
+    /// imported scene. The legacy rigid replacer remains preferable for zero or one
+    /// texture; two or more distinct texture groups require the multi-material writer.
+    /// </summary>
+    public static bool TryBindSceneTextures(
+        string modelPath,
+        ImportedScene scene,
+        out RigidGlbTextureBundle? bundle,
+        int maximumTextureDimension = DefaultMaximumTextureDimension)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modelPath);
+        ArgumentNullException.ThrowIfNull(scene);
+        bundle = null;
+        if (scene.HasSkinning)
+            return false;
+        ValidateMaximumTextureDimension(maximumTextureDimension);
+
+        var meshesByTexture = new Dictionary<int, List<ImportedMesh>>();
+        var unresolvedMeshes = new List<string>();
+        var unresolvedReferencedMeshes = new List<string>();
+        foreach (ImportedMesh mesh in scene.Meshes)
+        {
+            if (mesh.MaterialIndex < 0 || mesh.MaterialIndex >= scene.Materials.Count)
+            {
+                unresolvedMeshes.Add(mesh.Name);
+                continue;
+            }
+
+            ImportedMaterial material = scene.Materials[mesh.MaterialIndex];
+            int textureIndex = material.BaseColorTextureIndex;
+            if (textureIndex < 0)
+            {
+                unresolvedMeshes.Add(mesh.Name);
+                if (!string.IsNullOrWhiteSpace(material.BaseColorTextureName))
+                    unresolvedReferencedMeshes.Add(mesh.Name);
+                continue;
+            }
+            if (textureIndex >= scene.Textures.Count)
+            {
+                throw new InvalidDataException(
+                    $"Material '{material.Name}' references missing texture index {textureIndex}.");
+            }
+            if (!meshesByTexture.TryGetValue(textureIndex, out List<ImportedMesh>? meshes))
+                meshesByTexture.Add(textureIndex, meshes = []);
+            meshes.Add(mesh);
+        }
+
+        if (meshesByTexture.Count < 2)
+        {
+            if (meshesByTexture.Count == 1 && unresolvedReferencedMeshes.Count > 0)
+            {
+                throw new InvalidDataException(
+                    "The model has a resolved texture group, but these meshes still " +
+                    "reference missing image payloads: " +
+                    string.Join(", ", unresolvedReferencedMeshes) + ".");
+            }
+            return false;
+        }
+        if (unresolvedMeshes.Count > 0)
+        {
+            throw new InvalidDataException(
+                "A model with several textures also contains meshes without a resolved " +
+                "base-color texture: " + string.Join(", ", unresolvedMeshes) + ". " +
+                "Add the missing texture files or fix the material references before import.");
+        }
+
+        string fullModelPath = Path.GetFullPath(modelPath);
+        string modelDirectory = Path.GetDirectoryName(fullModelPath) ??
+            Directory.GetCurrentDirectory();
+        var groups = new List<RigidMaterialGroup>(meshesByTexture.Count);
+        int materialNumber = 1;
+        foreach ((int textureIndex, List<ImportedMesh> meshes) in
+                 meshesByTexture.OrderBy(pair => pair.Key))
+        {
+            ImportedTexture source = scene.Textures[textureIndex];
+            RigidTextureFrame frame = ReadTextureFrame(
+                source,
+                source.SourcePath ?? $"embedded:{source.Name}",
+                materialNumber,
+                frameNumber: 0,
+                maximumTextureDimension);
+            groups.Add(new RigidMaterialGroup(
+                materialNumber,
+                MaterialName(materialNumber),
+                meshes.AsReadOnly(),
+                new[] { frame }));
+            materialNumber++;
+        }
+
+        HashSet<int> usedTextureIndices = meshesByTexture.Keys.ToHashSet();
+        string[] unusedTextures = scene.Textures
+            .Select((texture, index) => (texture, index))
+            .Where(item => !usedTextureIndices.Contains(item.index))
+            .Select(item => item.texture.SourcePath is null
+                ? item.texture.Name
+                : Path.GetFileName(item.texture.SourcePath))
+            .ToArray();
+        bundle = new RigidGlbTextureBundle(
+            fullModelPath,
+            modelDirectory,
+            scene,
+            groups.AsReadOnly(),
+            [],
+            unusedTextures);
+        return true;
+    }
+
     private static RigidGlbTextureBundle ReadScene(
         string fullModelPath,
         ImportedScene scene,
         string? textureDirectory,
         int maximumTextureDimension)
     {
-        if (maximumTextureDimension is < 1 or > AbsoluteMaximumTextureDimension)
-            throw new ArgumentOutOfRangeException(nameof(maximumTextureDimension),
-                $"Maximum texture dimension must be between 1 and {AbsoluteMaximumTextureDimension}.");
+        ValidateMaximumTextureDimension(maximumTextureDimension);
 
         if (!File.Exists(fullModelPath))
             throw new FileNotFoundException("Rigid model file was not found.", fullModelPath);
@@ -173,7 +288,7 @@ public static class RigidGlbTextureBundleReader
         if (meshesByMaterial.Values.SelectMany(meshes => meshes)
             .Any(mesh => mesh.Skinning is not null))
         {
-            throw new InvalidDataException(
+            throw new RigidTextureBundleContainsSkinnedMeshesException(
                 "A matN mesh in the rigid texture bundle contains JOINTS_0/WEIGHTS_0 skinning.");
         }
         SortedDictionary<int, SortedDictionary<int, string>> filesByMaterial =
@@ -335,40 +450,115 @@ public static class RigidGlbTextureBundleReader
         try
         {
             using Image<Rgba32> source = Image.Load<Rgba32>(sourceData);
-            int sourceWidth = source.Width;
-            int sourceHeight = source.Height;
-            if (sourceWidth > maximumTextureDimension || sourceHeight > maximumTextureDimension)
-                throw new InvalidDataException(
-                    $"Texture '{Path.GetFileName(path)}' is {sourceWidth}x{sourceHeight}; " +
-                    $"maximum is {maximumTextureDimension}x{maximumTextureDimension}. Downscaling is forbidden.");
-
-            int width = CeilingPowerOfTwo(sourceWidth);
-            int height = CeilingPowerOfTwo(sourceHeight);
-            if (width > maximumTextureDimension || height > maximumTextureDimension)
-                throw new InvalidDataException(
-                    $"Texture '{Path.GetFileName(path)}' requires a {width}x{height} POT upscale, " +
-                    $"which exceeds the {maximumTextureDimension}x{maximumTextureDimension} maximum.");
-
-            bool wasUpscaled = width != sourceWidth || height != sourceHeight;
-            byte[] normalizedData = wasUpscaled
-                ? EncodeAlphaAwareUpscale(source, width, height)
-                : sourceData;
-            string logicalName = frameNumber == 0
-                ? MaterialName(materialNumber)
-                : $"{MaterialName(materialNumber)}.{frameNumber}";
-            var texture = new ImportedTexture(
-                logicalName, "image/png", width, height, normalizedData);
-            return new RigidTextureFrame(
-                frameNumber,
+            var imported = new ImportedTexture(
+                Path.GetFileNameWithoutExtension(path),
+                "image/png",
+                source.Width,
+                source.Height,
+                sourceData,
+                Path.GetFullPath(path));
+            return NormalizeTextureFrame(
+                imported,
                 Path.GetFullPath(path),
-                sourceWidth,
-                sourceHeight,
-                wasUpscaled,
-                texture);
+                materialNumber,
+                frameNumber,
+                maximumTextureDimension,
+                source);
         }
         catch (UnknownImageFormatException exception)
         {
             throw new InvalidDataException($"Texture is not a valid PNG file: {path}", exception);
+        }
+    }
+
+    private static RigidTextureFrame ReadTextureFrame(
+        ImportedTexture imported,
+        string sourceDescription,
+        int materialNumber,
+        int frameNumber,
+        int maximumTextureDimension)
+    {
+        try
+        {
+            using Image<Rgba32> source = Image.Load<Rgba32>(imported.Data);
+            if (source.Width != imported.Width || source.Height != imported.Height)
+            {
+                throw new InvalidDataException(
+                    $"Texture '{sourceDescription}' declares {imported.Width}x{imported.Height}, " +
+                    $"but its image is {source.Width}x{source.Height}.");
+            }
+            return NormalizeTextureFrame(
+                imported,
+                sourceDescription,
+                materialNumber,
+                frameNumber,
+                maximumTextureDimension,
+                source);
+        }
+        catch (UnknownImageFormatException exception)
+        {
+            throw new InvalidDataException(
+                $"Texture is not a supported image: {sourceDescription}", exception);
+        }
+    }
+
+    private static RigidTextureFrame NormalizeTextureFrame(
+        ImportedTexture imported,
+        string sourceDescription,
+        int materialNumber,
+        int frameNumber,
+        int maximumTextureDimension,
+        Image<Rgba32> source)
+    {
+        int sourceWidth = source.Width;
+        int sourceHeight = source.Height;
+        if (sourceWidth > maximumTextureDimension || sourceHeight > maximumTextureDimension)
+        {
+            throw new InvalidDataException(
+                $"Texture '{sourceDescription}' is {sourceWidth}x{sourceHeight}; " +
+                $"maximum is {maximumTextureDimension}x{maximumTextureDimension}. " +
+                "Downscaling is forbidden.");
+        }
+
+        int width = CeilingPowerOfTwo(sourceWidth);
+        int height = CeilingPowerOfTwo(sourceHeight);
+        if (width > maximumTextureDimension || height > maximumTextureDimension)
+        {
+            throw new InvalidDataException(
+                $"Texture '{sourceDescription}' requires a {width}x{height} POT upscale, " +
+                $"which exceeds the {maximumTextureDimension}x{maximumTextureDimension} maximum.");
+        }
+
+        bool wasUpscaled = width != sourceWidth || height != sourceHeight;
+        byte[] normalizedData = wasUpscaled
+            ? EncodeAlphaAwareUpscale(source, width, height)
+            : imported.Data;
+        string logicalName = frameNumber == 0
+            ? MaterialName(materialNumber)
+            : $"{MaterialName(materialNumber)}.{frameNumber}";
+        var texture = new ImportedTexture(
+            logicalName,
+            wasUpscaled ? "image/png" : imported.MimeType,
+            width,
+            height,
+            normalizedData,
+            imported.SourcePath);
+        return new RigidTextureFrame(
+            frameNumber,
+            sourceDescription,
+            sourceWidth,
+            sourceHeight,
+            wasUpscaled,
+            texture);
+    }
+
+    private static void ValidateMaximumTextureDimension(int maximumTextureDimension)
+    {
+        if (maximumTextureDimension is < 1 or > AbsoluteMaximumTextureDimension)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumTextureDimension),
+                $"Maximum texture dimension must be between 1 and " +
+                $"{AbsoluteMaximumTextureDimension}.");
         }
     }
 

@@ -17,8 +17,11 @@ Product-version-win-x64/
     |-- SmoExporter/
     |   |-- SmoExporter.Gui.exe
     |   `-- docs/
-    `-- SmoImporter/
-        |-- SmoImporter.Gui.exe
+    |-- SmoImporter/
+    |   |-- SmoImporter.Gui.exe
+    |   `-- docs/
+    `-- WinxHairPatcher/
+        |-- WinxHairPatcher.Gui.exe
         `-- docs/
 ```
 

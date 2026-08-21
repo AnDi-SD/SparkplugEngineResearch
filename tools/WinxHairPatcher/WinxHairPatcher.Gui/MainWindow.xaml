@@ -10,14 +10,14 @@
   <StackPanel>
    <TextBlock Text="Bloom Hair Patcher" FontSize="25" FontWeight="SemiBold"/>
    <TextBlock Margin="0,6,0,14" Foreground="#52606D" TextWrapping="Wrap"
-    Text="Выберите WinxClub.exe и отметьте костюмы, для которых игра должна загружать стандартную модель bloom_hair.smo."/>
+    Text="Выберите WinxClub.exe и отметьте костюмы, для которых стандартная модель bloom_hair.smo должна отображаться и в игре, и в меню выбора костюма."/>
    <Button Width="240" Height="38" HorizontalAlignment="Left" Content="Выбрать WinxClub.exe" Click="SelectExe_Click"/>
    <TextBlock x:Name="ExePathText" Margin="0,7,0,0" Text="Файл не выбран" TextWrapping="Wrap"/>
    <TextBlock x:Name="ExeStateText" Margin="0,5,0,0" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
   </StackPanel>
 
   <Border Grid.Row="1" Margin="0,16,0,10" Padding="10" Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1">
-   <TextBlock TextWrapping="Wrap" Text="Галочка означает: загружать и крепить внешние длинные волосы. Bloom X получает волосы обычным загрузчиком, но использует упрощённую логику без стандартной hair-физики. Только Winter является штатным исключением."/>
+   <TextBlock TextWrapping="Wrap" Text="Галочка означает: показывать внешние длинные волосы у игрового персонажа и у отдельной preview-модели в меню костюмов. Bloom X получает волосы обычным загрузчиком, но использует упрощённую логику без стандартной hair-физики. Только Winter является штатным исключением."/>
   </Border>
 
   <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">

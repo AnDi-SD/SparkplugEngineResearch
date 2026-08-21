@@ -45,9 +45,11 @@ public sealed record SmoRigidMultiMaterialPackResult(
     IReadOnlyList<SmoRigidPackedTexture> Textures);
 
 /// <summary>
-/// Builds independent rigid skin/material/texture branches for an external GLB
-/// texture bundle. The target service graph and skeleton remain intact; every
-/// generated vertex uses the target primary palette's Head slot.
+/// Builds independent opaque rigid skin/material/texture branches for an external
+/// GLB texture bundle. The target service graph and skeleton remain intact; every
+/// generated vertex uses the target primary palette's Head slot. Attached texture
+/// frames with transparency are rejected until a complete alpha render branch is
+/// implemented and proven for this generated one-bone spSkin architecture.
 /// </summary>
 public static class SmoRigidMultiMaterialPacker
 {
@@ -57,7 +59,6 @@ public static class SmoRigidMultiMaterialPacker
     private const int SerializedTextureMarkerOffset = 0x3C;
     private const uint TextureSequenceClassId = 0x16FB0E47;
     private const uint SharedVisualHelperClassId = 0x7AC95AEC;
-    private const uint AlphaBlendFlag = 0x4;
     private const int ExpectedPaletteSize = 16;
     private const int DefaultRigidBoneSlot = 8;
     private const int SequenceFrameStepBits = 0x3D088889;
@@ -95,6 +96,7 @@ public static class SmoRigidMultiMaterialPacker
             ValidateTargetTemplates(target, context);
             foreach (RigidMaterialGroup group in bundle.MaterialGroups)
                 ValidateGroupInput(group, validateTexturePayloads: true);
+            RejectAttachedAlphaTextures(bundle);
 
             int upscaled = bundle.MaterialGroups
                 .SelectMany(group => group.Frames)
@@ -130,6 +132,9 @@ public static class SmoRigidMultiMaterialPacker
         ArgumentNullException.ThrowIfNull(transform);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ValidateBundleInput(bundle);
+        foreach (RigidMaterialGroup group in bundle.MaterialGroups)
+            ValidateGroupInput(group, validateTexturePayloads: true);
+        RejectAttachedAlphaTextures(bundle);
 
         BuildContext context = BuildContext.Create(target);
         ValidateTargetTemplates(target, context);
@@ -167,6 +172,10 @@ public static class SmoRigidMultiMaterialPacker
         string? directory = Path.GetDirectoryName(fullOutput);
         if (string.IsNullOrWhiteSpace(directory))
             throw new InvalidOperationException("Could not resolve the output directory.");
+        // Deliberately repeat the safety check at the filesystem boundary. Bundle
+        // records can contain mutable image byte arrays, so the Analyze/preflight
+        // result is not sufficient protection against a changed payload.
+        RejectAttachedAlphaTextures(bundle);
         Directory.CreateDirectory(directory);
         string temporary = Path.Combine(
             directory, $".{Path.GetFileName(fullOutput)}.{Guid.NewGuid():N}.tmp");
@@ -222,8 +231,50 @@ public static class SmoRigidMultiMaterialPacker
         }
     }
 
+    private static void RejectAttachedAlphaTextures(RigidGlbTextureBundle bundle)
+    {
+        string[] alphaGroups = bundle.MaterialGroups
+            .OrderBy(group => group.MaterialNumber)
+            .Select(group => new
+            {
+                Group = group,
+                Frames = group.Frames
+                    .Where(frame => TextureHasTransparency(frame.Texture))
+                    .OrderBy(frame => frame.FrameNumber)
+                    .ToArray()
+            })
+            .Where(item => item.Frames.Length > 0)
+            .Select(item =>
+                $"{item.Group.Name} (material {item.Group.MaterialNumber}, frame(s) " +
+                string.Join(", ", item.Frames.Select(frame => frame.FrameNumber)) + ")")
+            .ToArray();
+        if (alphaGroups.Length == 0)
+            return;
+
+        throw new NotSupportedException(
+            "Rigid multi-material packing cannot safely write attached texture " +
+            "frames containing alpha texels (A < 255) into generated one-bone " +
+            "spSkin branches. Separate material/spSkin alpha branches with a " +
+            "confirmed complete render and sort-state contract are required. " +
+            "Writing was blocked before output creation. Affected groups: " +
+            string.Join("; ", alphaGroups) + ".");
+    }
+
     private static void ValidateTargetTemplates(SmoDocument target, BuildContext context)
     {
+        if (!SmoMaterialRenderState.TryDecodeFlags(
+                target, context.OpaqueMaterial, out uint opaqueBlendOperation))
+        {
+            throw new InvalidDataException(
+                $"Primary material [{context.OpaqueMaterial.Index}] has no FinalBlendOp.");
+        }
+        if (!SmoFinalBlendOperation.IsKnownOpaque(opaqueBlendOperation))
+        {
+            throw new NotSupportedException(
+                $"Primary material [{context.OpaqueMaterial.Index}] uses FinalBlendOp " +
+                $"0x{opaqueBlendOperation:X}; rigid packing requires an opaque 0x0/0x2 " +
+                "template so opaque donor groups remain opaque.");
+        }
         SmoObjectEntry textureEntry = FindInlineChild(
             target, context.OpaqueMaterial, SmoClassIds.TextureData);
         if (!SmoTextureDecoder.TryDecode(
@@ -342,10 +393,7 @@ public static class SmoRigidMultiMaterialPacker
             : null;
         uint meshId = allocator.Take();
 
-        bool usesAlpha = group.Frames.Any(frame => TextureHasTransparency(frame.Texture));
-        SmoObjectEntry materialTemplate = usesAlpha
-            ? context.AlphaMaterial
-            : context.OpaqueMaterial;
+        SmoObjectEntry materialTemplate = context.OpaqueMaterial;
         SmoObjectEntry textureTemplate = FindInlineChild(
             target, materialTemplate, SmoClassIds.TextureData);
 
@@ -369,7 +417,7 @@ public static class SmoRigidMultiMaterialPacker
                 objectName,
                 frame.Texture.Width,
                 frame.Texture.Height,
-                TextureHasTransparency(frame.Texture)));
+                UsesAlpha: false));
         }
 
         BuiltObject? sequence = null;
@@ -387,8 +435,7 @@ public static class SmoRigidMultiMaterialPacker
             materialId,
             $"layla_mat{group.MaterialNumber}_material",
             textures[0],
-            sequence,
-            usesAlpha);
+            sequence);
 
         ImportedMesh combined = ImportedMeshCombiner.Combine(
             new ImportedScene(group.Meshes),
@@ -564,8 +611,7 @@ public static class SmoRigidMultiMaterialPacker
         uint id,
         string name,
         BuiltObject firstTexture,
-        BuiltObject? sequence,
-        bool usesAlpha)
+        BuiltObject? sequence)
     {
         ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
         SmoObjectEntry templateTexture = FindInlineChild(
@@ -595,14 +641,6 @@ public static class SmoRigidMultiMaterialPacker
                 byte[] raw = source.Slice(
                     field.Offset,
                     checked((int)field.PayloadEnd - field.Offset)).ToArray();
-                if (usesAlpha && field.FieldType == 3 &&
-                    field.PayloadSize == sizeof(uint))
-                {
-                    uint flags = BinaryPrimitives.ReadUInt32LittleEndian(
-                        raw.AsSpan(field.HeaderSize));
-                    BinaryPrimitives.WriteUInt32LittleEndian(
-                        raw.AsSpan(field.HeaderSize), flags | AlphaBlendFlag);
-                }
                 stream.Write(raw);
             }
             offset = checked((int)field.PayloadEnd);
@@ -981,6 +1019,14 @@ public static class SmoRigidMultiMaterialPacker
 
         IReadOnlyDictionary<int, SmoTextureBinding> bindings =
             SmoTextureBindingResolver.ResolveAll(output);
+        if (!SmoMaterialRenderState.TryDecodeFlags(
+                target, context.OpaqueMaterial, out uint opaqueBlendOperation))
+        {
+            errors.Add(
+                $"target opaque material ID {context.OpaqueMaterial.Id} has no FinalBlendOp");
+        }
+        if (packedTextures.Any(texture => texture.UsesAlpha))
+            errors.Add("an unsupported alpha texture passed the rigid safety gate");
         foreach (SmoObjectEntry meshEntry in addedMeshes)
         {
             if (!bindings.TryGetValue(meshEntry.Index, out SmoTextureBinding? binding) ||
@@ -992,12 +1038,12 @@ public static class SmoRigidMultiMaterialPacker
         {
             if (!SmoMaterialRenderState.TryDecodeFlags(output, material, out uint flags))
                 errors.Add($"generated material ID {material.Id} has no render flags");
-            bool expectedAlpha = output.Objects.Any(entry =>
-                material.PhysicalOffset <= entry.PhysicalOffset &&
-                entry.PhysicalEnd <= material.PhysicalEnd &&
-                packedTextures.Any(texture => texture.ObjectId == entry.Id && texture.UsesAlpha));
-            if (expectedAlpha != SmoMaterialRenderState.UsesAlphaBlend(flags))
-                errors.Add($"generated material ID {material.Id} alpha-blend state is wrong");
+            if (flags != opaqueBlendOperation)
+            {
+                errors.Add(
+                    $"generated opaque material ID {material.Id} changed FinalBlendOp " +
+                    $"from 0x{opaqueBlendOperation:X} to 0x{flags:X}");
+            }
         }
 
         if (errors.Count > 0)
@@ -1331,7 +1377,6 @@ public static class SmoRigidMultiMaterialPacker
         SmoObjectEntry Render,
         SmoObjectEntry Skin,
         SmoObjectEntry OpaqueMaterial,
-        SmoObjectEntry AlphaMaterial,
         SmoObjectEntry Helper,
         SmoObjectEntry Mesh,
         SmoSkin Palette,
@@ -1376,12 +1421,9 @@ public static class SmoRigidMultiMaterialPacker
                 throw new InvalidOperationException(
                     $"Primary palette slot 8 is '{headName}', not Head.");
 
-            // Bloom's body/eye materials currently share the same opaque state.
-            // Alpha is enabled explicitly on generated material copies.
             return new BuildContext(
                 render,
                 skin,
-                material,
                 material,
                 helper,
                 mesh,

@@ -7,7 +7,18 @@ namespace SmoImporter.Core;
 
 public static class GlbModelReader
 {
-    public static ImportedScene Read(string path)
+    public static ImportedScene Read(string path) =>
+        ReadCore(path, ignoreSkinning: false);
+
+    /// <summary>
+    /// Reads only mesh/material/texture data and deliberately ignores any skin
+    /// attributes. This lets the explicit generate-weights mode recover geometry
+    /// from a donor whose rig is unusable; the normal reader remains fail-loud.
+    /// </summary>
+    public static ImportedScene ReadGeometryOnly(string path) =>
+        ReadCore(path, ignoreSkinning: true);
+
+    private static ImportedScene ReadCore(string path, bool ignoreSkinning)
     {
         byte[] file = File.ReadAllBytes(path);
         if (file.Length < 20 || BinaryPrimitives.ReadUInt32LittleEndian(file) != 0x46546C67 ||
@@ -26,7 +37,7 @@ public static class GlbModelReader
         string?[] meshNodeNames = ResolveMeshNodeNames(root, meshes.GetArrayLength());
         Matrix4x4[] meshTransforms = ResolveMeshTransforms(root, meshes.GetArrayLength());
         int?[] meshSkins = ResolveMeshSkins(root, meshes.GetArrayLength());
-        GlbSkinLayout[] skins = ReadSkins(root, binary);
+        GlbSkinLayout[] skins = ignoreSkinning ? [] : ReadSkins(root, binary);
         var result = new List<ImportedMesh>();
 
         for (int meshIndex = 0; meshIndex < meshes.GetArrayLength(); meshIndex++)
@@ -57,10 +68,10 @@ public static class GlbModelReader
                 ImportedSkinning? skinning = null;
                 bool hasJoints = attributes.TryGetProperty("JOINTS_0", out JsonElement joints);
                 bool hasWeights = attributes.TryGetProperty("WEIGHTS_0", out JsonElement weights);
-                if (hasJoints != hasWeights)
+                if (!ignoreSkinning && hasJoints != hasWeights)
                     throw new InvalidDataException(
                         $"Mesh {meshIndex} primitive {primitiveIndex} must contain both JOINTS_0 and WEIGHTS_0.");
-                if (hasJoints)
+                if (!ignoreSkinning && hasJoints)
                 {
                     int skinIndex = meshSkins[meshIndex] ?? throw new InvalidDataException(
                         $"Mesh {meshIndex} contains skin attributes but its node has no skin.");
@@ -71,7 +82,7 @@ public static class GlbModelReader
                         ReadJointIndices(root, binary, joints.GetInt32()),
                         skin.SourceToCanonicalJoint,
                         skinIndex);
-                    Vector4[] weightValues = ReadVector4(
+                    Vector4[] weightValues = ReadWeights(
                         root, binary, weights.GetInt32());
                     if (jointValues.Length != positions.Length || weightValues.Length != positions.Length)
                         throw new InvalidDataException("Skin attribute count differs from POSITION count.");
@@ -98,13 +109,16 @@ public static class GlbModelReader
                 primitiveIndex++;
             }
         }
+        GlbTextureCatalog textureCatalog = ReadEmbeddedBaseColorTextures(root, binary);
         return new ImportedScene(
             result,
-            ReadEmbeddedBaseColorTextures(root, binary),
-            ReadMaterials(root));
+            textureCatalog.Textures,
+            ReadMaterials(root, textureCatalog.SceneTextureIndexByImage));
     }
 
-    private static IReadOnlyList<ImportedMaterial> ReadMaterials(JsonElement root)
+    private static IReadOnlyList<ImportedMaterial> ReadMaterials(
+        JsonElement root,
+        IReadOnlyDictionary<int, int> sceneTextureIndexByImage)
     {
         if (!root.TryGetProperty("materials", out JsonElement materials))
             return [];
@@ -119,6 +133,7 @@ public static class GlbModelReader
                 ? materialName.GetString()!
                 : $"material_{materialIndex}";
             string? textureName = null;
+            int sceneTextureIndex = -1;
             if (hasTextures && hasImages &&
                 TryGetColorTextureIndex(material, out int texture))
             {
@@ -136,10 +151,14 @@ public static class GlbModelReader
                               !string.IsNullOrWhiteSpace(imageName.GetString())
                                 ? imageName.GetString()
                                 : null;
+                        if (!sceneTextureIndexByImage.TryGetValue(
+                                image, out sceneTextureIndex))
+                            sceneTextureIndex = -1;
                     }
                 }
             }
-            result[materialIndex] = new ImportedMaterial(name, textureName);
+            result[materialIndex] = new ImportedMaterial(
+                name, textureName, sceneTextureIndex);
         }
         return result;
     }
@@ -152,6 +171,7 @@ public static class GlbModelReader
             return [];
         if (!root.TryGetProperty("nodes", out JsonElement nodes))
             throw new InvalidDataException("GLB skins require nodes.");
+        int[] nodeParents = ReadNodeParents(nodes);
         var result = new GlbSkinLayout[skins.GetArrayLength()];
         for (int skinIndex = 0; skinIndex < result.Length; skinIndex++)
         {
@@ -184,7 +204,7 @@ public static class GlbModelReader
                 ? skinName.GetString() ?? $"skin_{skinIndex}"
                 : $"skin_{skinIndex}";
             result[skinIndex] = CanonicalizeSkin(
-                skinIndex, name, nodeIndices, names, matrices);
+                skinIndex, name, nodeIndices, names, matrices, nodeParents);
         }
         return result;
     }
@@ -194,9 +214,11 @@ public static class GlbModelReader
         string name,
         IReadOnlyList<int> sourceNodes,
         IReadOnlyList<string> sourceNames,
-        IReadOnlyList<Matrix4x4> sourceMatrices)
+        IReadOnlyList<Matrix4x4> sourceMatrices,
+        IReadOnlyList<int> nodeParents)
     {
         var canonicalSlotByNode = new Dictionary<int, int>();
+        var canonicalNodes = new List<int>();
         var canonicalNames = new List<string>();
         var canonicalMatrices = new List<Matrix4x4>();
         var sourceToCanonical = new int[sourceNodes.Count];
@@ -219,6 +241,7 @@ public static class GlbModelReader
             canonicalSlot = canonicalNames.Count;
             canonicalSlotByNode.Add(node, canonicalSlot);
             sourceToCanonical[sourceSlot] = canonicalSlot;
+            canonicalNodes.Add(node);
             canonicalNames.Add(sourceNames[sourceSlot]);
             canonicalMatrices.Add(matrix);
         }
@@ -228,9 +251,100 @@ public static class GlbModelReader
             throw new InvalidDataException(
                 $"Skin {skinIndex} contains duplicate joint names on distinct nodes.");
         }
+
+        var parentJointIndices = new int[canonicalNames.Count];
+        Array.Fill(parentJointIndices, -1);
+        for (int joint = 0; joint < parentJointIndices.Length; joint++)
+        {
+            int ancestorNode = nodeParents[canonicalNodes[joint]];
+            while (ancestorNode >= 0)
+            {
+                if (canonicalSlotByNode.TryGetValue(ancestorNode, out int parentJoint))
+                {
+                    parentJointIndices[joint] = parentJoint;
+                    break;
+                }
+                ancestorNode = nodeParents[ancestorNode];
+            }
+        }
+
+        Matrix4x4[]? bindWorldMatrices = TryInvertBindMatrices(
+            canonicalMatrices, out Matrix4x4[] invertedBindMatrices)
+            ? invertedBindMatrices
+            : null;
+        Matrix4x4[]? bindLocalMatrices = null;
+        if (bindWorldMatrices is not null)
+        {
+            bindLocalMatrices = new Matrix4x4[bindWorldMatrices.Length];
+            for (int joint = 0; joint < bindLocalMatrices.Length; joint++)
+            {
+                int parent = parentJointIndices[joint];
+                bindLocalMatrices[joint] = parent < 0
+                    ? bindWorldMatrices[joint]
+                    : bindWorldMatrices[joint] * canonicalMatrices[parent];
+            }
+        }
         return new GlbSkinLayout(
-            new ImportedSkeleton(name, canonicalNames, canonicalMatrices),
+            new ImportedSkeleton(name, canonicalNames, canonicalMatrices)
+            {
+                ParentJointIndices = parentJointIndices,
+                BindWorldMatrices = bindWorldMatrices,
+                BindLocalMatrices = bindLocalMatrices
+            },
             sourceToCanonical);
+    }
+
+    private static bool TryInvertBindMatrices(
+        IReadOnlyList<Matrix4x4> inverseBindMatrices,
+        out Matrix4x4[] bindWorldMatrices)
+    {
+        bindWorldMatrices = new Matrix4x4[inverseBindMatrices.Count];
+        for (int joint = 0; joint < bindWorldMatrices.Length; joint++)
+        {
+            if (!Matrix4x4.Invert(
+                    inverseBindMatrices[joint], out bindWorldMatrices[joint]))
+            {
+                bindWorldMatrices = [];
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int[] ReadNodeParents(JsonElement nodes)
+    {
+        int[] parents = new int[nodes.GetArrayLength()];
+        Array.Fill(parents, -1);
+        for (int parent = 0; parent < parents.Length; parent++)
+        {
+            if (!nodes[parent].TryGetProperty("children", out JsonElement children))
+                continue;
+            foreach (JsonElement childElement in children.EnumerateArray())
+            {
+                int child = childElement.GetInt32();
+                if ((uint)child >= (uint)parents.Length)
+                    throw new InvalidDataException(
+                        $"Node {parent} references invalid child node {child}.");
+                if (parents[child] >= 0 && parents[child] != parent)
+                    throw new InvalidDataException(
+                        $"Node {child} has multiple parents ({parents[child]} and {parent}).");
+                parents[child] = parent;
+            }
+        }
+
+        for (int node = 0; node < parents.Length; node++)
+        {
+            var ancestors = new HashSet<int>();
+            int cursor = node;
+            while (cursor >= 0)
+            {
+                if (!ancestors.Add(cursor))
+                    throw new InvalidDataException(
+                        $"glTF node hierarchy contains a cycle through node {cursor}.");
+                cursor = parents[cursor];
+            }
+        }
+        return parents;
     }
 
     private static ImportedJointIndices[] RemapJointIndices(
@@ -314,14 +428,15 @@ public static class GlbModelReader
         return result;
     }
 
-    private static IReadOnlyList<ImportedTexture> ReadEmbeddedBaseColorTextures(
+    private static GlbTextureCatalog ReadEmbeddedBaseColorTextures(
         JsonElement root, ReadOnlyMemory<byte> binary)
     {
+        var sceneTextureIndexByImage = new Dictionary<int, int>();
         if (!root.TryGetProperty("materials", out JsonElement materials) ||
             !root.TryGetProperty("textures", out JsonElement textures) ||
             !root.TryGetProperty("images", out JsonElement images) ||
             !root.TryGetProperty("bufferViews", out JsonElement views))
-            return [];
+            return new GlbTextureCatalog([], sceneTextureIndexByImage);
 
         var imageIndices = new List<int>();
         foreach (JsonElement material in materials.EnumerateArray())
@@ -351,18 +466,27 @@ public static class GlbModelReader
             int length = view.GetProperty("byteLength").GetInt32();
             if (offset < 0 || length <= 0 || offset > binary.Length - length)
                 throw new InvalidDataException($"GLB image {imageIndex} crosses the binary buffer boundary.");
-            string name = image.TryGetProperty("name", out JsonElement imageName)
-                ? imageName.GetString() ?? $"image_{imageIndex}" : $"image_{imageIndex}";
+            string? sourceName = image.TryGetProperty("name", out JsonElement imageName)
+                ? imageName.GetString() : null;
+            string name = string.IsNullOrWhiteSpace(sourceName)
+                ? $"image_{imageIndex}"
+                : sourceName;
             string mime = image.TryGetProperty("mimeType", out JsonElement mimeType)
                 ? mimeType.GetString() ?? "application/octet-stream" : "application/octet-stream";
             byte[] imageBytes = binary.Slice(offset, length).ToArray();
             ImageInfo info = Image.Identify(imageBytes) ?? throw new InvalidDataException(
                 $"GLB image {imageIndex} has an unsupported or invalid image payload.");
+            sceneTextureIndexByImage.Add(imageIndex, result.Count);
             result.Add(new ImportedTexture(
                 name, mime, info.Width, info.Height, imageBytes));
         }
-        return result;
+        return new GlbTextureCatalog(
+            result.AsReadOnly(), sceneTextureIndexByImage);
     }
+
+    private sealed record GlbTextureCatalog(
+        IReadOnlyList<ImportedTexture> Textures,
+        IReadOnlyDictionary<int, int> SceneTextureIndexByImage);
 
     private static bool TryGetColorTextureIndex(
         JsonElement material,
@@ -442,9 +566,103 @@ public static class GlbModelReader
     private static Vector2[] ReadVector2(JsonElement root, ReadOnlyMemory<byte> binary, int accessor) =>
         ReadFloats(root, binary, accessor, 2).Select(v => new Vector2(v[0], v[1])).ToArray();
 
-    private static Vector4[] ReadVector4(JsonElement root, ReadOnlyMemory<byte> binary, int accessor) =>
-        ReadFloats(root, binary, accessor, 4)
-            .Select(v => new Vector4(v[0], v[1], v[2], v[3])).ToArray();
+    // glTF permits floating-point weights and normalized unsigned integer
+    // storage. Decode the latter to [0, 1] without renormalizing the VEC4 sum;
+    // the transfer planner remains responsible for validating/normalizing it.
+    private static Vector4[] ReadWeights(
+        JsonElement root,
+        ReadOnlyMemory<byte> binary,
+        int accessorIndex)
+    {
+        JsonElement accessor = root.GetProperty("accessors")[accessorIndex];
+        if (accessor.GetProperty("type").GetString() != "VEC4")
+            throw new InvalidDataException("WEIGHTS_0 must be VEC4.");
+
+        int componentType = accessor.GetProperty("componentType").GetInt32();
+        int componentSize = componentType switch
+        {
+            5121 => 1,
+            5123 => 2,
+            5126 => 4,
+            _ => throw new InvalidDataException(
+                "WEIGHTS_0 must use FLOAT or normalized UNSIGNED_BYTE/UNSIGNED_SHORT.")
+        };
+        bool normalized = accessor.TryGetProperty(
+            "normalized", out JsonElement normalizedElement) &&
+            normalizedElement.GetBoolean();
+        if (componentType is 5121 or 5123 && !normalized)
+        {
+            throw new InvalidDataException(
+                "Integer WEIGHTS_0 must set normalized to true.");
+        }
+        if (componentType == 5126 && normalized)
+            throw new InvalidDataException("FLOAT WEIGHTS_0 cannot be normalized.");
+        if (!accessor.TryGetProperty("bufferView", out JsonElement viewIndex))
+        {
+            throw new InvalidDataException(
+                "Sparse WEIGHTS_0 accessors without a bufferView are not supported.");
+        }
+
+        JsonElement view = root.GetProperty("bufferViews")[viewIndex.GetInt32()];
+        int count = accessor.GetProperty("count").GetInt32();
+        int viewOffset = view.TryGetProperty("byteOffset", out JsonElement viewOffsetElement)
+            ? viewOffsetElement.GetInt32() : 0;
+        int accessorOffset = accessor.TryGetProperty(
+            "byteOffset", out JsonElement accessorOffsetElement)
+            ? accessorOffsetElement.GetInt32() : 0;
+        int elementSize = checked(componentSize * 4);
+        int stride = view.TryGetProperty("byteStride", out JsonElement strideElement)
+            ? strideElement.GetInt32() : elementSize;
+        int viewLength = view.GetProperty("byteLength").GetInt32();
+        if (count < 0 || viewOffset < 0 || accessorOffset < 0 ||
+            stride < elementSize || viewLength < 0)
+        {
+            throw new InvalidDataException("WEIGHTS_0 has an invalid buffer layout.");
+        }
+
+        long relativeEnd = count == 0
+            ? accessorOffset
+            : (long)accessorOffset + (long)(count - 1) * stride + elementSize;
+        long absoluteEnd = (long)viewOffset + relativeEnd;
+        if (relativeEnd > viewLength || absoluteEnd > binary.Length)
+            throw new InvalidDataException("WEIGHTS_0 crosses the binary buffer boundary.");
+
+        ReadOnlySpan<byte> data = binary.Span;
+        var result = new Vector4[count];
+        for (int index = 0; index < count; index++)
+        {
+            int start = checked(viewOffset + accessorOffset + index * stride);
+            Vector4 value = new(
+                ReadWeightComponent(data, start, 0, componentType, componentSize),
+                ReadWeightComponent(data, start, 1, componentType, componentSize),
+                ReadWeightComponent(data, start, 2, componentType, componentSize),
+                ReadWeightComponent(data, start, 3, componentType, componentSize));
+            if (!float.IsFinite(value.X) || value.X < 0 ||
+                !float.IsFinite(value.Y) || value.Y < 0 ||
+                !float.IsFinite(value.Z) || value.Z < 0 ||
+                !float.IsFinite(value.W) || value.W < 0)
+            {
+                throw new InvalidDataException(
+                    $"WEIGHTS_0 contains an invalid value at element {index}.");
+            }
+            result[index] = value;
+        }
+        return result;
+    }
+
+    private static float ReadWeightComponent(
+        ReadOnlySpan<byte> data,
+        int start,
+        int component,
+        int componentType,
+        int componentSize) => componentType switch
+        {
+            5121 => data[start + component] / 255f,
+            5123 => BinaryPrimitives.ReadUInt16LittleEndian(
+                data.Slice(start + component * componentSize, componentSize)) / 65535f,
+            _ => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(
+                data.Slice(start + component * componentSize, componentSize)))
+        };
 
     private static Matrix4x4[] ReadMatrix4(
         JsonElement root,
@@ -625,5 +843,16 @@ public static class ImportedModelReader
         ".obj" => ObjModelReader.Read(path),
         _ => throw new NotSupportedException(
             "Supported replacement formats: .fbx, .glb and .obj.")
+    };
+
+    public static ImportedScene ReadGeometryOnly(
+        string path,
+        string? blenderPath = null) => Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".glb" => GlbModelReader.ReadGeometryOnly(path),
+        ".fbx" => FbxModelReader.ReadGeometryOnly(path, blenderPath),
+        ".obj" => ObjModelReader.Read(path),
+        _ => throw new NotSupportedException(
+            "Geometry-only fallback supports .fbx, .glb and .obj.")
     };
 }

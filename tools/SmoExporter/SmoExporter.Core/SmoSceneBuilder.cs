@@ -12,34 +12,70 @@ public static class SmoSceneBuilder
     {
         ArgumentNullException.ThrowIfNull(document);
         options ??= new SmoExportOptions();
+        SmoExportResourceTypes resources = options.Resources;
+        ValidateResources(resources);
+        bool includeMeshes = Includes(resources, SmoExportResourceTypes.Meshes);
+        bool includeSkeleton = Includes(resources, SmoExportResourceTypes.Skeleton);
+        bool includeMaterials = Includes(resources, SmoExportResourceTypes.Materials);
+        bool includeTextures = Includes(resources, SmoExportResourceTypes.Textures);
+        bool includeAnimations = Includes(resources, SmoExportResourceTypes.Animations);
+        bool includeServiceNodes = Includes(resources, SmoExportResourceTypes.ServiceNodes);
+
         var warnings = new List<string>();
         var meshes = new List<SmoExportMesh>();
-        IReadOnlyDictionary<int, SmoTextureBinding> textures =
-            SmoTextureBindingResolver.ResolveAll(document);
+        IReadOnlyDictionary<int, SmoTextureBinding> materialBindings =
+            includeMaterials
+                ? SmoTextureBindingResolver.ResolveAll(document)
+                : new Dictionary<int, SmoTextureBinding>();
         IReadOnlyDictionary<int, uint> materialColors =
-            SmoMaterialColorResolver.ResolveAll(document);
+            includeMaterials
+                ? SmoMaterialColorResolver.ResolveAll(document)
+                : new Dictionary<int, uint>();
         IReadOnlyDictionary<int, uint> materialFlags =
-            SmoMaterialRenderState.ResolveAll(document);
-        SmoNodeHierarchy hierarchy = SmoNodeHierarchy.Decode(document);
-        IReadOnlyDictionary<int, Matrix4x4> bindWorld =
-            SmoSkinBindingResolver.ResolveBindWorldMatrices(document);
-        Dictionary<int, SmoSkin> decodedSkins = document.Objects
-            .Where(entry => entry.TypeHash == SmoClassIds.Skin)
-            .Select(entry => SmoSkinDecoder.TryDecode(document, entry, out SmoSkin? skin, out _)
-                ? skin : null)
-            .Where(skin => skin is not null).Cast<SmoSkin>()
-            .ToDictionary(skin => skin.ObjectIndex);
-        Dictionary<int, Matrix4x4> nodeWorld = BuildNodeWorldMatrices(
-            document, hierarchy, bindWorld);
-        List<SmoExportNode> nodes = BuildExportNodes(document, hierarchy, nodeWorld);
-        List<SmoExportSkin> skins = decodedSkins.Values.Select(skin => new SmoExportSkin(
-            skin.ObjectIndex,
-            skin.Name,
-            skin.Bones.Select(bone => bone.NodeObjectIndex).ToArray(),
-            skin.Bones.Select(bone => ReflectMatrix(bone.InverseBindMatrix)).ToArray())).ToList();
+            includeMaterials
+                ? SmoMaterialRenderState.ResolveAll(document)
+                : new Dictionary<int, uint>();
+        Dictionary<int, SmoSkin> decodedSkins = [];
+        Dictionary<int, string> skinDecodeErrors = [];
+        Dictionary<int, Matrix4x4> nodeWorld = [];
+        List<SmoExportNode> allNodes = [];
+        List<SmoExportNode> nodes = [];
+        List<SmoExportSkin> skins = [];
+        if (includeSkeleton)
+        {
+            SmoNodeHierarchy hierarchy = SmoNodeHierarchy.Decode(document);
+            IReadOnlyDictionary<int, Matrix4x4> bindWorld =
+                SmoSkinBindingResolver.ResolveBindWorldMatrices(document);
+            foreach (SmoObjectEntry skinEntry in document.Objects.Where(
+                         entry => entry.TypeHash == SmoClassIds.Skin))
+            {
+                if (SmoSkinDecoder.TryDecode(
+                        document, skinEntry, out SmoSkin? skin, out string skinError) &&
+                    skin is not null)
+                {
+                    decodedSkins[skin.ObjectIndex] = skin;
+                }
+                else
+                {
+                    skinDecodeErrors[skinEntry.Index] = skinError;
+                    warnings.Add(
+                        $"Skin [{skinEntry.Index}] {skinEntry.Name}: {skinError}");
+                }
+            }
+            nodeWorld = BuildNodeWorldMatrices(document, hierarchy, bindWorld);
+            allNodes = BuildExportNodes(document, hierarchy, nodeWorld);
+            skins = decodedSkins.Values.Select(skin => new SmoExportSkin(
+                skin.ObjectIndex,
+                skin.Name,
+                skin.Bones.Select(bone => bone.NodeObjectIndex).ToArray(),
+                skin.Bones.Select(bone =>
+                    ReflectMatrix(bone.InverseBindMatrix)).ToArray())).ToList();
+        }
 
-        foreach (SmoObjectEntry entry in document.Objects.Where(
-                     item => item.TypeHash == SmoClassIds.MeshData))
+        IEnumerable<SmoObjectEntry> meshEntries = includeMeshes
+            ? document.Objects.Where(item => item.TypeHash == SmoClassIds.MeshData)
+            : Enumerable.Empty<SmoObjectEntry>();
+        foreach (SmoObjectEntry entry in meshEntries)
         {
             if (!SmoMeshDecoder.TryDecode(document, entry, out SmoMesh? mesh, out string error) ||
                 mesh is null)
@@ -48,9 +84,28 @@ public static class SmoSceneBuilder
                 continue;
             }
 
-            int? skinObjectIndex = FindAncestorObjectIndex(
-                document.Objects, entry, SmoClassIds.Skin);
-            bool exportSkin = mesh.HasSkinningData && skinObjectIndex is int skinIndex &&
+            int? skinObjectIndex = includeSkeleton
+                ? FindAncestorObjectIndex(document.Objects, entry, SmoClassIds.Skin)
+                : null;
+            if (includeSkeleton && mesh.HasSkinningData && skinObjectIndex is null)
+            {
+                throw new InvalidDataException(
+                    $"Skinned mesh [{entry.Index}] {entry.Name} has no owning skin object; " +
+                    "exporting it as a static mesh would change the model.");
+            }
+            if (includeSkeleton && mesh.HasSkinningData &&
+                skinObjectIndex is int requiredSkinIndex &&
+                !decodedSkins.ContainsKey(requiredSkinIndex))
+            {
+                string detail = skinDecodeErrors.GetValueOrDefault(
+                    requiredSkinIndex, "the referenced skin was not decoded");
+                throw new InvalidDataException(
+                    $"Skinned mesh [{entry.Index}] {entry.Name} requires skin " +
+                    $"[{requiredSkinIndex}], but it is unavailable: {detail}. " +
+                    "Exporting it as a static mesh would change the model.");
+            }
+            bool exportSkin = includeSkeleton && mesh.HasSkinningData &&
+                              skinObjectIndex is int skinIndex &&
                               decodedSkins.ContainsKey(skinIndex);
 
             int? parentNodeObjectIndex = null;
@@ -59,8 +114,9 @@ public static class SmoSceneBuilder
             if (options.ApplyWorldTransforms && !exportSkin)
             {
                 world = SmoNodeTransformDecoder.ResolveModelWorldMatrix(document, entry);
-                int? rigidNodeObjectIndex =
-                    SmoRigidBindingResolver.ResolveAnimationNodeObjectIndex(document, entry);
+                int? rigidNodeObjectIndex = includeSkeleton && !mesh.HasSkinningData
+                    ? SmoRigidBindingResolver.ResolveAnimationNodeObjectIndex(document, entry)
+                    : null;
                 if (rigidNodeObjectIndex is int rigidIndex &&
                     nodeWorld.TryGetValue(rigidIndex, out Matrix4x4 parentWorld) &&
                     Matrix4x4.Invert(parentWorld, out Matrix4x4 inverseParent))
@@ -92,33 +148,24 @@ public static class SmoSceneBuilder
 
             SmoExportTexture? texture = null;
             SmoExportTexture? effectTexture = null;
-            bool usesAlphaBlend = materialFlags.TryGetValue(entry.Index, out uint flags) &&
+            bool usesAlphaBlend = includeMaterials &&
+                materialFlags.TryGetValue(entry.Index, out uint flags) &&
                 SmoMaterialRenderState.UsesAlphaBlend(flags);
-            if (textures.TryGetValue(entry.Index, out SmoTextureBinding? binding))
-            {
+            SmoTextureBinding? binding = materialBindings.GetValueOrDefault(entry.Index);
+            if (includeMaterials && binding is not null)
                 usesAlphaBlend |= binding.UsesAlphaBlend;
+            if (includeTextures && binding is not null)
+            {
                 if (binding.Issue is not null)
                     warnings.Add(binding.Issue);
                 else if (binding.Texture is not null)
                 {
                     SmoTexture source = binding.BaseTexture ?? binding.Texture;
-                    texture = new SmoExportTexture(
-                        source.ObjectIndex,
-                        source.Name,
-                        source.Width,
-                        source.Height,
-                        PngEncoder.EncodeBgra32(
-                            source.Width, source.Height, source.Bgra32Pixels.Span));
+                    texture = BuildExportTexture(source);
                     if (binding.BaseTexture is not null)
                     {
                         SmoTexture effect = binding.Texture;
-                        effectTexture = new SmoExportTexture(
-                            effect.ObjectIndex,
-                            effect.Name,
-                            effect.Width,
-                            effect.Height,
-                            PngEncoder.EncodeBgra32(
-                                effect.Width, effect.Height, effect.Bgra32Pixels.Span));
+                        effectTexture = BuildExportTexture(effect);
                         if (binding.AnimationFrames is { Count: > 1 })
                         {
                             warnings.Add(
@@ -130,10 +177,15 @@ public static class SmoSceneBuilder
                 }
             }
 
-            Vector4 materialColor = materialColors.TryGetValue(entry.Index, out uint argb)
-                ? DecodeArgb(argb)
-                : Vector4.One;
-            bool hasUniformDiffuse = mesh.HasDiffuseColors &&
+            Vector4 materialColor = Vector4.One;
+            if (includeMaterials)
+            {
+                if (materialColors.TryGetValue(entry.Index, out uint argb))
+                    materialColor = DecodeArgb(argb);
+                else if (binding?.DiffuseArgb is uint inheritedArgb)
+                    materialColor = DecodeArgb(inheritedArgb);
+            }
+            bool hasUniformDiffuse = includeMaterials && mesh.HasDiffuseColors &&
                 mesh.DiffuseColorsArgb.Skip(1)
                     .All(color => color == mesh.DiffuseColorsArgb[0]);
             if (texture is null && hasUniformDiffuse)
@@ -142,11 +194,19 @@ public static class SmoSceneBuilder
             // placeholder. glTF COLOR_0 multiplies baseColorTexture, so exporting
             // that placeholder would turn a valid textured model completely black.
             // Keep COLOR_0 only when it carries actual RGB information.
-            bool hasRenderableDiffuse = mesh.HasDiffuseColors && !hasUniformDiffuse &&
+            bool hasRenderableDiffuse = includeMaterials && mesh.HasDiffuseColors &&
+                !hasUniformDiffuse &&
                 mesh.DiffuseColorsArgb.Any(color => (color & 0x00FFFFFF) != 0);
             Vector4[] colors = hasRenderableDiffuse
                 ? mesh.DiffuseColorsArgb.Select(DecodeArgb).ToArray()
                 : [];
+            // glTF ignores every alpha source while alphaMode remains OPAQUE.
+            // Texture atlases may contain unused/service alpha, so they still
+            // require the confirmed material blend state above. An explicit
+            // material factor or an exported COLOR_0 alpha, however, is already
+            // part of this mesh's rendered colour and must enable blending.
+            usesAlphaBlend |= materialColor.W < 1f ||
+                              colors.Any(color => color.W < 1f);
             meshes.Add(new SmoExportMesh(
                 entry.Index,
                 entry.Id,
@@ -175,12 +235,106 @@ public static class SmoSceneBuilder
                 ReflectMatrix(local)));
         }
 
-        List<SmoExportAnimation> animations = BuildAnimations(options.AnimationPaths, nodes, warnings);
+        if (includeSkeleton)
+        {
+            nodes = includeServiceNodes
+                ? allNodes
+                : FilterServiceNodes(allNodes, skins, meshes);
+        }
+
+        List<SmoExportAnimation> animations = includeAnimations
+            ? BuildAnimations(options.AnimationPaths, nodes, warnings)
+            : [];
 
         string sourcePath = document.SourcePath ?? "memory.smo";
         string hash = Convert.ToHexString(SHA256.HashData(document.Data.Span));
         return new SmoExportScene(
-            sourcePath, hash, document.Header.Version, meshes, nodes, skins, animations, warnings);
+            sourcePath, hash, document.Header.Version, resources,
+            meshes, nodes, skins, animations, warnings);
+    }
+
+    private static bool Includes(
+        SmoExportResourceTypes resources,
+        SmoExportResourceTypes value) => (resources & value) == value;
+
+    private static void ValidateResources(SmoExportResourceTypes resources)
+    {
+        if (resources == SmoExportResourceTypes.None ||
+            (resources & ~SmoExportResourceTypes.All) != 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(SmoExportOptions.Resources), resources,
+                "Export resources must contain one or more known resource types.");
+        }
+
+        if (Includes(resources, SmoExportResourceTypes.Materials) &&
+            !Includes(resources, SmoExportResourceTypes.Meshes))
+        {
+            throw new ArgumentException(
+                "Exporting materials requires meshes.",
+                nameof(SmoExportOptions.Resources));
+        }
+
+        if (Includes(resources, SmoExportResourceTypes.Textures) &&
+            !Includes(resources, SmoExportResourceTypes.Materials))
+        {
+            throw new ArgumentException(
+                "Exporting textures requires materials.",
+                nameof(SmoExportOptions.Resources));
+        }
+
+        if (Includes(resources, SmoExportResourceTypes.Animations) &&
+            !Includes(resources, SmoExportResourceTypes.Skeleton))
+        {
+            throw new ArgumentException(
+                "Exporting animations requires a skeleton.",
+                nameof(SmoExportOptions.Resources));
+        }
+
+        if (Includes(resources, SmoExportResourceTypes.ServiceNodes) &&
+            !Includes(resources, SmoExportResourceTypes.Skeleton))
+        {
+            throw new ArgumentException(
+                "Exporting service nodes requires a skeleton.",
+                nameof(SmoExportOptions.Resources));
+        }
+    }
+
+    private static List<SmoExportNode> FilterServiceNodes(
+        IReadOnlyList<SmoExportNode> nodes,
+        IReadOnlyList<SmoExportSkin> skins,
+        IReadOnlyList<SmoExportMesh> meshes)
+    {
+        Dictionary<int, SmoExportNode> nodesByObjectIndex =
+            nodes.ToDictionary(node => node.ObjectIndex);
+        HashSet<int> requiredObjectIndices = [];
+
+        void AddAncestorClosure(int objectIndex)
+        {
+            while (nodesByObjectIndex.TryGetValue(objectIndex, out SmoExportNode? node) &&
+                   requiredObjectIndices.Add(objectIndex) &&
+                   node.ParentObjectIndex is int parentObjectIndex)
+            {
+                objectIndex = parentObjectIndex;
+            }
+        }
+
+        foreach (SmoExportSkin skin in skins)
+        {
+            foreach (int jointObjectIndex in skin.JointObjectIndices)
+                AddAncestorClosure(jointObjectIndex);
+        }
+
+        foreach (SmoExportMesh mesh in meshes)
+        {
+            if (mesh.SkinObjectIndex is null &&
+                mesh.ParentNodeObjectIndex is int parentNodeObjectIndex)
+            {
+                AddAncestorClosure(parentNodeObjectIndex);
+            }
+        }
+
+        return nodes.Where(node => requiredObjectIndices.Contains(node.ObjectIndex)).ToList();
     }
 
     private static List<SmoExportAnimation> BuildAnimations(
@@ -199,20 +353,185 @@ public static class SmoSceneBuilder
                 warnings.Add($"Animation {Path.GetFileName(path)}: {error}");
                 continue;
             }
-            SmoExportAnimationTrack[] tracks = clip.Tracks
-                .Where(track => byName.ContainsKey(track.NodeName))
-                .Select(track => new SmoExportAnimationTrack(
-                    byName[track.NodeName].ObjectIndex, track.NodeName,
-                    track.Positions.Select(key => new SmoAnimationKey<Vector3>(
-                        key.Time, new Vector3(key.Value.X, key.Value.Y, -key.Value.Z))).ToArray(),
-                    track.Rotations.Select(key => new SmoAnimationKey<Quaternion>(
-                        key.Time, new Quaternion(-key.Value.X, -key.Value.Y, key.Value.Z, key.Value.W))).ToArray(),
-                    track.Scales.ToArray())).ToArray();
+            int discardedKeys = 0;
+            int duplicateChannels = 0;
+            var tracks = new List<SmoExportAnimationTrack>();
+            foreach (IGrouping<int, SmoAnimationTrack> group in clip.Tracks
+                         .Where(track => byName.ContainsKey(track.NodeName))
+                         .GroupBy(track => byName[track.NodeName].ObjectIndex))
+            {
+                SmoExportNode node = nodes.First(item => item.ObjectIndex == group.Key);
+                var positionCurves = new List<SmoAnimationKey<Vector3>[]>();
+                var rotationCurves = new List<SmoAnimationKey<Quaternion>[]>();
+                var scaleCurves = new List<SmoAnimationKey<Vector3>[]>();
+                foreach (SmoAnimationTrack sourceTrack in group)
+                {
+                    SmoAnimationKey<Vector3>[] positionCurve = SanitizeVectorCurve(
+                        sourceTrack.Positions,
+                        value => new Vector3(value.X, value.Y, -value.Z),
+                        ref discardedKeys);
+                    SmoAnimationKey<Quaternion>[] rotationCurve = SanitizeQuaternionCurve(
+                        sourceTrack.Rotations, ref discardedKeys);
+                    SmoAnimationKey<Vector3>[] scaleCurve = SanitizeVectorCurve(
+                        sourceTrack.Scales, value => value, ref discardedKeys);
+                    if (positionCurve.Length > 0) positionCurves.Add(positionCurve);
+                    if (rotationCurve.Length > 0) rotationCurves.Add(rotationCurve);
+                    if (scaleCurve.Length > 0) scaleCurves.Add(scaleCurve);
+                }
+
+                duplicateChannels += Math.Max(0, positionCurves.Count - 1);
+                duplicateChannels += Math.Max(0, rotationCurves.Count - 1);
+                duplicateChannels += Math.Max(0, scaleCurves.Count - 1);
+                SmoAnimationKey<Vector3>[] positions = positionCurves.FirstOrDefault() ?? [];
+                SmoAnimationKey<Quaternion>[] rotations = rotationCurves.FirstOrDefault() ?? [];
+                SmoAnimationKey<Vector3>[] scales = scaleCurves.FirstOrDefault() ?? [];
+                if (positions.Length > 0 || rotations.Length > 0 || scales.Length > 0)
+                {
+                    tracks.Add(new SmoExportAnimationTrack(
+                        node.ObjectIndex, node.Name, positions, rotations, scales));
+                }
+            }
+            if (tracks.Count == 0)
+                continue;
+
+            float minimumTime = tracks
+                .SelectMany(EnumerateTrackTimes)
+                .DefaultIfEmpty(0)
+                .Min();
+            if (minimumTime < 0)
+            {
+                float offset = -minimumTime;
+                tracks = tracks.Select(track => ShiftTrack(track, offset)).ToList();
+                warnings.Add(
+                    $"Animation {Path.GetFileName(path)}: shifted key times by " +
+                    $"{offset:G9}s so the glTF/FBX timeline starts at zero.");
+            }
+            if (discardedKeys > 0)
+            {
+                warnings.Add(
+                    $"Animation {Path.GetFileName(path)}: discarded {discardedKeys} " +
+                    "non-finite, zero-quaternion, or duplicate-time keys.");
+            }
+            if (duplicateChannels > 0)
+            {
+                warnings.Add(
+                    $"Animation {Path.GetFileName(path)}: ignored {duplicateChannels} " +
+                    "duplicate node/property curves after the first valid curve.");
+            }
+            float maximumTime = tracks
+                .SelectMany(EnumerateTrackTimes)
+                .DefaultIfEmpty(0)
+                .Max();
+            float duration = float.IsFinite(clip.Duration)
+                ? Math.Max(0, clip.Duration - Math.Min(0, minimumTime))
+                : maximumTime;
+            duration = Math.Max(duration, maximumTime);
             result.Add(new SmoExportAnimation(
-                Path.GetFileNameWithoutExtension(path), clip.Duration, tracks));
+                Path.GetFileNameWithoutExtension(path), duration, tracks));
         }
         return result;
     }
+
+    private static SmoAnimationKey<Vector3>[] SanitizeVectorCurve(
+        IReadOnlyList<SmoAnimationKey<Vector3>> keys,
+        Func<Vector3, Vector3> convert,
+        ref int discardedKeys)
+    {
+        var valid = new List<SmoAnimationKey<Vector3>>(keys.Count);
+        foreach (SmoAnimationKey<Vector3> key in keys)
+        {
+            Vector3 value = convert(key.Value);
+            if (!float.IsFinite(key.Time) || !IsFinite(value))
+            {
+                discardedKeys++;
+                continue;
+            }
+            valid.Add(new SmoAnimationKey<Vector3>(key.Time, value));
+        }
+        return SortAndDeduplicate(valid, ref discardedKeys);
+    }
+
+    private static SmoAnimationKey<Quaternion>[] SanitizeQuaternionCurve(
+        IReadOnlyList<SmoAnimationKey<Quaternion>> keys,
+        ref int discardedKeys)
+    {
+        var valid = new List<SmoAnimationKey<Quaternion>>(keys.Count);
+        foreach (SmoAnimationKey<Quaternion> key in keys)
+        {
+            Quaternion value = new(
+                -key.Value.X, -key.Value.Y, key.Value.Z, key.Value.W);
+            float lengthSquared = value.LengthSquared();
+            if (!float.IsFinite(key.Time) || !IsFinite(value) ||
+                !float.IsFinite(lengthSquared) ||
+                lengthSquared <= 0.000000000001f)
+            {
+                discardedKeys++;
+                continue;
+            }
+            valid.Add(new SmoAnimationKey<Quaternion>(
+                key.Time, Quaternion.Normalize(value)));
+        }
+        SmoAnimationKey<Quaternion>[] result =
+            SortAndDeduplicate(valid, ref discardedKeys);
+        for (int index = 1; index < result.Length; index++)
+        {
+            if (Quaternion.Dot(result[index - 1].Value, result[index].Value) < 0)
+            {
+                Quaternion value = result[index].Value;
+                result[index] = result[index] with
+                {
+                    Value = new Quaternion(-value.X, -value.Y, -value.Z, -value.W)
+                };
+            }
+        }
+        return result;
+    }
+
+    private static SmoAnimationKey<T>[] SortAndDeduplicate<T>(
+        IReadOnlyList<SmoAnimationKey<T>> keys,
+        ref int discardedKeys)
+    {
+        SmoAnimationKey<T>[] ordered = keys
+            .Select((key, order) => (key, order))
+            .OrderBy(item => item.key.Time)
+            .ThenBy(item => item.order)
+            .Select(item => item.key)
+            .ToArray();
+        var result = new List<SmoAnimationKey<T>>(ordered.Length);
+        foreach (SmoAnimationKey<T> key in ordered)
+        {
+            if (result.Count > 0 && key.Time == result[^1].Time)
+            {
+                discardedKeys++;
+                continue;
+            }
+            result.Add(key);
+        }
+        return result.ToArray();
+    }
+
+    private static IEnumerable<float> EnumerateTrackTimes(SmoExportAnimationTrack track) =>
+        track.Positions.Select(key => key.Time)
+            .Concat(track.Rotations.Select(key => key.Time))
+            .Concat(track.Scales.Select(key => key.Time));
+
+    private static SmoExportAnimationTrack ShiftTrack(
+        SmoExportAnimationTrack track, float offset) => track with
+    {
+        Positions = track.Positions
+            .Select(key => key with { Time = key.Time + offset }).ToArray(),
+        Rotations = track.Rotations
+            .Select(key => key with { Time = key.Time + offset }).ToArray(),
+        Scales = track.Scales
+            .Select(key => key with { Time = key.Time + offset }).ToArray()
+    };
+
+    private static bool IsFinite(Vector3 value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
+
+    private static bool IsFinite(Quaternion value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) &&
+        float.IsFinite(value.Z) && float.IsFinite(value.W);
 
     private static List<SmoExportNode> BuildExportNodes(
         SmoDocument document, SmoNodeHierarchy hierarchy,
@@ -282,6 +601,24 @@ public static class SmoSceneBuilder
     {
         Matrix4x4 reflection = Matrix4x4.CreateScale(1, 1, -1);
         return reflection * value * reflection;
+    }
+
+    private static SmoExportTexture BuildExportTexture(SmoTexture source)
+    {
+        byte[]? opacityMask = PngEncoder.EncodeOpacityMaskBgra32(
+            source.Width, source.Height, source.Bgra32Pixels.Span);
+        return new SmoExportTexture(
+            source.ObjectIndex,
+            source.Name,
+            source.Width,
+            source.Height,
+            PngEncoder.EncodeBgra32(
+                source.Width, source.Height, source.Bgra32Pixels.Span),
+            opacityMask,
+            opacityMask is null
+                ? null
+                : PngEncoder.EncodeBgr24(
+                    source.Width, source.Height, source.Bgra32Pixels.Span));
     }
 
     private static Vector4 DecodeArgb(uint argb) => new(

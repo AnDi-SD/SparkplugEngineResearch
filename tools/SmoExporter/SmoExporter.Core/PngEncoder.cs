@@ -11,19 +11,11 @@ internal static class PngEncoder
 
     public static byte[] EncodeBgra32(int width, int height, ReadOnlySpan<byte> pixels)
     {
-        if (width <= 0 || height <= 0 || pixels.Length != checked(width * height * 4))
-            throw new ArgumentException("Invalid BGRA32 texture dimensions or buffer length.");
+        ValidateBgra32(width, height, pixels);
+        bool hasAlpha = HasTransparency(pixels);
+        int channels = hasAlpha ? 4 : 3;
 
-        using var output = new MemoryStream();
-        output.Write(Signature);
-        Span<byte> header = stackalloc byte[13];
-        BinaryPrimitives.WriteUInt32BigEndian(header, (uint)width);
-        BinaryPrimitives.WriteUInt32BigEndian(header[4..], (uint)height);
-        header[8] = 8;
-        header[9] = 6;
-        WriteChunk(output, "IHDR", header);
-
-        using var raw = new MemoryStream(checked((width * 4 + 1) * height));
+        using var raw = new MemoryStream(checked((width * channels + 1) * height));
         for (int y = 0; y < height; y++)
         {
             raw.WriteByte(0);
@@ -34,9 +26,65 @@ internal static class PngEncoder
                 raw.WriteByte(pixels[source + 2]);
                 raw.WriteByte(pixels[source + 1]);
                 raw.WriteByte(pixels[source]);
-                raw.WriteByte(pixels[source + 3]);
+                if (hasAlpha)
+                    raw.WriteByte(pixels[source + 3]);
             }
         }
+
+        return EncodePng(width, height, hasAlpha ? (byte)6 : (byte)2, raw);
+    }
+
+    public static byte[] EncodeBgr24(int width, int height, ReadOnlySpan<byte> pixels)
+    {
+        ValidateBgra32(width, height, pixels);
+        using var raw = new MemoryStream(checked((width * 3 + 1) * height));
+        for (int y = 0; y < height; y++)
+        {
+            raw.WriteByte(0);
+            int row = y * width * 4;
+            for (int x = 0; x < width; x++)
+            {
+                int source = row + x * 4;
+                raw.WriteByte(pixels[source + 2]);
+                raw.WriteByte(pixels[source + 1]);
+                raw.WriteByte(pixels[source]);
+            }
+        }
+
+        return EncodePng(width, height, 2, raw);
+    }
+
+    public static byte[]? EncodeOpacityMaskBgra32(
+        int width, int height, ReadOnlySpan<byte> pixels)
+    {
+        ValidateBgra32(width, height, pixels);
+        if (!HasTransparency(pixels))
+            return null;
+
+        using var raw = new MemoryStream(checked((width + 1) * height));
+        for (int y = 0; y < height; y++)
+        {
+            raw.WriteByte(0);
+            int row = y * width * 4;
+            for (int x = 0; x < width; x++)
+                raw.WriteByte(pixels[row + x * 4 + 3]);
+        }
+
+        return EncodePng(width, height, 0, raw);
+    }
+
+    private static byte[] EncodePng(
+        int width, int height, byte colorType, MemoryStream raw)
+    {
+        using var output = new MemoryStream();
+        output.Write(Signature);
+        Span<byte> header = stackalloc byte[13];
+        header.Clear();
+        BinaryPrimitives.WriteUInt32BigEndian(header, (uint)width);
+        BinaryPrimitives.WriteUInt32BigEndian(header[4..], (uint)height);
+        header[8] = 8;
+        header[9] = colorType;
+        WriteChunk(output, "IHDR", header);
 
         using var compressed = new MemoryStream();
         using (var zlib = new ZLibStream(compressed, CompressionLevel.SmallestSize, true))
@@ -44,6 +92,23 @@ internal static class PngEncoder
         WriteChunk(output, "IDAT", compressed.ToArray());
         WriteChunk(output, "IEND", []);
         return output.ToArray();
+    }
+
+    private static void ValidateBgra32(
+        int width, int height, ReadOnlySpan<byte> pixels)
+    {
+        if (width <= 0 || height <= 0 || pixels.Length != checked(width * height * 4))
+            throw new ArgumentException("Invalid BGRA32 texture dimensions or buffer length.");
+    }
+
+    private static bool HasTransparency(ReadOnlySpan<byte> pixels)
+    {
+        for (int index = 3; index < pixels.Length; index += 4)
+        {
+            if (pixels[index] < byte.MaxValue)
+                return true;
+        }
+        return false;
     }
 
     private static void WriteChunk(Stream output, string type, ReadOnlySpan<byte> data)

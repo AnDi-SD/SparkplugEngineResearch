@@ -5,12 +5,11 @@
         Width="720"
         Height="800"
         MinWidth="520"
-        MinHeight="620"
+        MinHeight="720"
         WindowStartupLocation="CenterScreen"
         Background="#F4F6F8">
-    <Grid Margin="24">
+    <Grid Margin="24" Grid.IsSharedSizeScope="True">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -27,34 +26,36 @@
                    FontWeight="SemiBold"
                    Foreground="#17202A" />
 
-        <Border Grid.Row="1"
-                Margin="0,18,0,14"
-                Padding="12"
-                Background="White"
-                BorderBrush="#D5DAE0"
-                BorderThickness="1"
-                CornerRadius="5">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Модель:"
-                           Margin="0,0,10,0"
-                           VerticalAlignment="Center"
-                           FontWeight="SemiBold" />
-                <TextBlock x:Name="ModelPathText"
-                           Grid.Column="1"
-                           Text="Файл не выбран"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-            </Grid>
-        </Border>
+        <Grid Grid.Row="1" Margin="0,18,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="PathLabel" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Модель:"
+                       Margin="0,0,12,0"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+            <TextBox x:Name="ModelPathText"
+                     Grid.Column="1"
+                     Height="32"
+                     Padding="8,4"
+                     IsReadOnly="True"
+                     Text="Файл не выбран"
+                     VerticalContentAlignment="Center"
+                     ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+            <Button x:Name="SelectButton"
+                    Grid.Column="2"
+                    Width="82"
+                    Height="32"
+                    Margin="8,0,0,0"
+                    Content="Обзор…"
+                    Click="SelectModel_Click" />
+        </Grid>
 
         <Grid Grid.Row="2" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="PathLabel" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
@@ -78,18 +79,23 @@
                     Click="BrowseOutput_Click" />
         </Grid>
 
-        <Grid Grid.Row="3">
+        <Grid x:Name="FormatBlenderRow" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="220" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Формат экспорта:"
+            <TextBlock Text="Формат:"
                        Margin="0,0,12,0"
                        VerticalAlignment="Center"
                        FontWeight="SemiBold" />
             <ComboBox x:Name="FormatComboBox"
                       Grid.Column="1"
+                      MinWidth="140"
+                      MaxWidth="220"
+                      Margin="0,0,14,0"
+                      HorizontalAlignment="Left"
                       SelectedIndex="0"
                       Padding="8,5"
                       SelectionChanged="FormatComboBox_SelectionChanged">
@@ -98,101 +104,268 @@
                 <ComboBoxItem Content="OBJ + MTL + PNG" Tag="obj" />
                 <ComboBoxItem x:Name="AllFormatsItem" Content="Все форматы" Tag="all" />
             </ComboBox>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Ellipse x:Name="BlenderStatusDot"
+                         Width="10"
+                         Height="10"
+                         Margin="0,0,6,0"
+                         Fill="#C0392B" />
+                <TextBlock x:Name="BlenderSummaryText"
+                           MaxWidth="78"
+                           VerticalAlignment="Center"
+                           Foreground="#8A2D24"
+                           Text="Поиск…"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button x:Name="BlenderSettingsButton"
+                    Grid.Column="3"
+                    Margin="10,0,0,0"
+                    Padding="9,5"
+                    Click="BlenderSettings_Click"
+                    Content="Blender…" />
+            <Popup x:Name="BlenderSettingsPopup"
+                   PlacementTarget="{Binding ElementName=FormatBlenderRow}"
+                   Placement="Bottom"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade"
+                   StaysOpen="False">
+                <Border Width="410"
+                        Margin="0,5,0,0"
+                        Padding="12"
+                        Background="White"
+                        BorderBrush="#AEB6BF"
+                        BorderThickness="1"
+                        CornerRadius="5">
+                    <StackPanel>
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="Настройки Blender" />
+                        <TextBlock x:Name="BlenderStatusText"
+                                   Margin="0,5,0,10"
+                                   Foreground="#8A2D24"
+                                   Text="Проверка наличия Blender…"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Margin="0,0,0,4"
+                                   FontWeight="SemiBold"
+                                   Text="Путь к blender.exe" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="BlenderPathTextBox"
+                                     Height="30"
+                                     Padding="7,3"
+                                     VerticalContentAlignment="Center"
+                                     ToolTip="Можно указать папку Blender или полный путь к blender.exe"
+                                     KeyDown="BlenderPathTextBox_KeyDown" />
+                            <Button x:Name="BrowseBlenderButton"
+                                    Grid.Column="1"
+                                    Margin="7,0,0,0"
+                                    Padding="9,4"
+                                    Click="BrowseBlender_Click"
+                                    Content="Файл…" />
+                        </Grid>
+                        <StackPanel Margin="0,10,0,0"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                            <Button x:Name="AutoFindBlenderButton"
+                                    Padding="9,4"
+                                    Click="CheckBlender_Click"
+                                    Content="Найти автоматически" />
+                            <Button x:Name="ApplyBlenderPathButton"
+                                    Margin="7,0,0,0"
+                                    Padding="9,4"
+                                    Click="ApplyBlenderPath_Click"
+                                    Content="Применить" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Popup>
         </Grid>
 
-        <Border Grid.Row="4" Margin="0,14,0,0" Padding="10" Background="White" BorderBrush="#D5DAE0" BorderThickness="1" CornerRadius="5">
+        <Border Grid.Row="4"
+                Margin="0,14,0,0"
+                Padding="10"
+                Background="White"
+                BorderBrush="#D5DAE0"
+                BorderThickness="1"
+                CornerRadius="5">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Ellipse x:Name="BlenderStatusDot" Width="11" Height="11" Margin="0,4,8,0" VerticalAlignment="Top" Fill="#C0392B"/>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock FontWeight="SemiBold" Text="Blender необходим для экспорта FBX"/>
-                        <TextBlock x:Name="BlenderStatusText" Margin="0,3,0,0" Foreground="#8A2D24" Text="Проверка наличия Blender…" TextWrapping="Wrap"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="ResourceTypesPanel" Margin="0,0,8,0">
+                        <TextBlock FontWeight="SemiBold"
+                                   Text="Ресурсы модели" />
+                        <WrapPanel Margin="0,7,0,8">
+                            <Button Margin="0,0,5,0"
+                                    Padding="7,3"
+                                    Click="SelectAllResourceTypes_Click"
+                                    Content="Все" />
+                            <Button Padding="7,3"
+                                    Click="ClearResourceTypes_Click"
+                                    Content="Ничего" />
+                        </WrapPanel>
+                        <CheckBox x:Name="MeshesResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Меши" />
+                        <CheckBox x:Name="SkeletonResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Деформирующие кости" />
+                        <CheckBox x:Name="ServiceNodesResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Служебные узлы"
+                                  ToolTip="Необязательные управляющие/IK-узлы, точки крепления и маркеры. Узлы, необходимые скелету и rigid-мешам, сохраняются всегда." />
+                        <CheckBox x:Name="MaterialsResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Материалы" />
+                        <CheckBox x:Name="TexturesResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Текстуры" />
+                        <CheckBox x:Name="AnimationsResourceCheckBox"
+                                  Margin="2,3,0,3"
+                                  Checked="ResourceTypeCheckBox_Changed"
+                                  Unchecked="ResourceTypeCheckBox_Changed"
+                                  Content="Анимации" />
+                        <TextBlock Margin="2,8,0,0"
+                                   Foreground="#52606D"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Text="OBJ: меши, материалы и текстуры. Деформирующие кости, служебные узлы и анимации — GLB/FBX." />
                     </StackPanel>
-                    <Button x:Name="AutoFindBlenderButton" Grid.Column="2" Margin="10,0,0,0" Padding="9,4"
-                            VerticalAlignment="Top" Click="CheckBlender_Click" Content="Автопоиск"/>
-                </Grid>
-                <Grid Grid.Row="1" Margin="19,10,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="BlenderPathTextBox" Height="30" Padding="7,3"
-                             VerticalContentAlignment="Center"
-                             ToolTip="Можно указать папку Blender или полный путь к blender.exe"
-                             KeyDown="BlenderPathTextBox_KeyDown"/>
-                    <Button x:Name="BrowseBlenderButton" Grid.Column="1" Margin="7,0,0,0" Padding="9,4"
-                            Click="BrowseBlender_Click" Content="Файл…"/>
-                    <Button x:Name="ApplyBlenderPathButton" Grid.Column="2" Margin="7,0,0,0" Padding="9,4"
-                            Click="ApplyBlenderPath_Click" Content="Применить"/>
+                </ScrollViewer>
+
+                <Border Grid.Column="1" Background="#D5DAE0" />
+
+                <Grid x:Name="AnimationSelectionPanel" Grid.Column="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock FontWeight="SemiBold"
+                               Text="Анимации SAN для GLB/FBX" />
+                    <TextBlock x:Name="AnimationSourceText"
+                               Grid.Row="1"
+                               Margin="0,4,0,0"
+                               Foreground="#52606D"
+                               FontSize="11"
+                               Text="Анимации будут найдены рядом с моделью."
+                               TextWrapping="Wrap" />
+                    <WrapPanel Grid.Row="2" Margin="0,7,0,6">
+                        <Button Padding="7,3"
+                                Margin="0,0,5,5"
+                                Click="AddAnimationFiles_Click"
+                                Content="Добавить SAN/ANM…" />
+                        <Button Padding="7,3"
+                                Margin="0,0,5,5"
+                                Click="AddAnimationFolder_Click"
+                                Content="Папка…" />
+                        <Button Padding="7,3"
+                                Margin="0,0,5,5"
+                                Click="SelectAllAnimations_Click"
+                                Content="Все клипы" />
+                        <Button Padding="7,3"
+                                Margin="0,0,0,5"
+                                Click="ClearAnimations_Click"
+                                Content="Ни одного" />
+                    </WrapPanel>
+                    <TextBox x:Name="AnimationFilterBox"
+                             Grid.Row="3"
+                             Margin="0,0,0,6"
+                             Padding="6,4"
+                             TextChanged="AnimationFilter_Changed"
+                             ToolTip="Фильтр по имени клипа или ANM-состоянию" />
+                    <Expander Grid.Row="4"
+                              Margin="0,0,0,6"
+                              Foreground="#17202A"
+                              Header="Наборы анимаций">
+                        <DockPanel Margin="0,3,0,0">
+                            <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                                <Button Padding="6,2"
+                                        Margin="0,0,5,0"
+                                        Click="EnableAllAnimationGroups_Click"
+                                        Content="Все группы" />
+                                <Button Padding="6,2"
+                                        Click="DisableAllAnimationGroups_Click"
+                                        Content="Ни одной" />
+                            </WrapPanel>
+                            <ScrollViewer MaxHeight="105"
+                                          VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="AnimationGroupsPanel" />
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Expander>
+                    <ListBox x:Name="AnimationList"
+                             Grid.Row="5"
+                             MinHeight="80"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}"
+                                          Content="{Binding Display}"
+                                          ToolTip="{Binding Path}"
+                                          Margin="2" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
             </Grid>
         </Border>
 
-        <Border Grid.Row="5" Margin="0,12,0,0" Padding="10" Background="White" BorderBrush="#D5DAE0" BorderThickness="1" CornerRadius="5">
-            <DockPanel>
-                <Grid DockPanel.Dock="Top" Margin="0,0,0,7">
-                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="Анимации SAN для GLB/FBX"/>
-                    <WrapPanel Grid.Column="1">
-                        <Button Padding="7,3" Margin="0,0,5,0" Click="AddAnimationFiles_Click" Content="Добавить…"/>
-                        <Button Padding="7,3" Margin="0,0,5,0" Click="AddAnimationFolder_Click" Content="Папка…"/>
-                        <Button Padding="7,3" Margin="0,0,5,0" Click="SelectAllAnimations_Click" Content="Все"/>
-                        <Button Padding="7,3" Click="ClearAnimations_Click" Content="Ничего"/>
-                    </WrapPanel>
-                </Grid>
-                <ListBox x:Name="AnimationList" MinHeight="130" MaxHeight="210" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Display}" Margin="2"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
-        </Border>
-
-        <StackPanel Grid.Row="6"
+        <StackPanel Grid.Row="5"
                     Margin="0,16,0,12"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Center"
+                    HorizontalAlignment="Right"
                     VerticalAlignment="Center">
-            <Button x:Name="SelectButton"
-                    Width="160"
-                    Height="42"
-                    Margin="0,0,10,0"
-                    Content="Выбрать модель"
-                    Click="SelectModel_Click" />
-            <Button x:Name="ExportButton"
-                    Width="160"
-                    Height="42"
-                    Margin="0,0,10,0"
-                    Content="Экспортировать"
-                    IsEnabled="False"
-                    Click="Export_Click" />
             <Button x:Name="ResetButton"
-                    Width="110"
+                    MinWidth="100"
                     Height="42"
+                    Margin="0,0,10,0"
+                    Padding="14,6"
                     Content="Сброс"
                     IsEnabled="False"
                     Click="Reset_Click" />
+            <Button x:Name="ExportButton"
+                    MinWidth="160"
+                    Height="42"
+                    Padding="14,6"
+                    FontWeight="SemiBold"
+                    ToolTipService.ShowOnDisabled="True"
+                    Content="Экспортировать"
+                    IsEnabled="False"
+                    Click="Export_Click" />
         </StackPanel>
 
         <TextBlock x:Name="StatusText"
-                   Grid.Row="7"
+                   Grid.Row="6"
                    Text="Выберите исходный SMO-файл."
                    Foreground="#52606D"
                    TextWrapping="Wrap" />
 
-        <Border Grid.Row="8" Margin="0,10,0,0" Background="#171A20" BorderBrush="#343946" BorderThickness="1" CornerRadius="4">
+        <Border Grid.Row="7" Margin="0,10,0,0" Background="#171A20" BorderBrush="#343946" BorderThickness="1" CornerRadius="4">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Padding="9,6" Background="#242832" Foreground="#E5E8EE" FontWeight="SemiBold" Text="Журнал экспорта"/>
                 <ListBox x:Name="ExportLog" Padding="5" Background="#171A20" BorderThickness="0" Foreground="#C9D0DC" FontFamily="Consolas" FontSize="12" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
