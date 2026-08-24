@@ -13,6 +13,7 @@ Product-version-win-x64/
 |-- app/
 |   `-- Product.exe        # framework-dependent single-file application
 |-- docs/
+|-- native/                # shared native FBX bridge, SDK DLL and Autodesk license
 `-- tools/                 # only for suites
     |-- SmoExporter/
     |   |-- SmoExporter.Gui.exe
@@ -27,8 +28,10 @@ Product-version-win-x64/
 
 Only the product executable and configuration/manifest files may be present in
 the package root. Documentation belongs in `docs/`; suite applications belong
-in `tools/<name>/`. Runtime, managed dependencies, native libraries, symbols,
-and satellite assemblies must not be loose files in a release.
+in `tools/<name>/`. The Autodesk FBX SDK bridge is stored once in `native/`, so a
+Viewer suite does not duplicate the same executable, DLL and license under both
+Importer and Exporter. Other runtime or managed dependencies, symbols and
+satellite assemblies must not be loose files in a release.
 
 The application payload is a clean, framework-dependent, single-file Windows
 x64 publish. The root executable is a small .NET Framework-based bootstrapper,

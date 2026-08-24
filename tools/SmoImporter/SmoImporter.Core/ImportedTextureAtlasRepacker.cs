@@ -184,8 +184,12 @@ internal static class ImportedTextureAtlasRepacker
 
     private static bool SourceGroupContainsTransparency(
         ImportedTextureAtlasSourceGroup group)
+        => TextureContainsTransparency(group.Texture);
+
+    internal static bool TextureContainsTransparency(ImportedTexture texture)
     {
-        using Image<Rgba32> decoded = LoadAndValidate(group.Texture);
+        ArgumentNullException.ThrowIfNull(texture);
+        using Image<Rgba32> decoded = LoadAndValidate(texture);
         return ContainsTransparency(decoded);
     }
 
@@ -368,14 +372,25 @@ internal static class ImportedTextureAtlasRepacker
         int expectedWidth,
         int expectedHeight,
         ReadOnlySpan<byte> serializedBgra,
-        out string error)
+        out string error,
+        bool resizeToExpected = false)
     {
         using Image<Rgba32> image = Image.Load<Rgba32>(encodedImage);
         if (image.Width != expectedWidth || image.Height != expectedHeight)
         {
-            error = $"source image is {image.Width}x{image.Height}, expected " +
-                    $"{expectedWidth}x{expectedHeight}";
-            return false;
+            if (!resizeToExpected)
+            {
+                error = $"source image is {image.Width}x{image.Height}, expected " +
+                        $"{expectedWidth}x{expectedHeight}";
+                return false;
+            }
+            image.Mutate(context => context.Resize(new ResizeOptions
+            {
+                Size = new Size(expectedWidth, expectedHeight),
+                Mode = ResizeMode.Stretch,
+                Sampler = KnownResamplers.Bicubic,
+                PremultiplyAlpha = true
+            }));
         }
         int expectedBytes = checked(expectedWidth * expectedHeight * 4);
         if (serializedBgra.Length != expectedBytes)

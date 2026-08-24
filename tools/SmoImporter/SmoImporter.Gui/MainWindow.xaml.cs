@@ -2,19 +2,26 @@ using System.Globalization;
 using System.IO;
 using System.Numerics;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using SmoExporter.Core;
 using SmoImporter.Core;
 using SmoViewer.Core;
+using SixLabors.ImageSharp.Processing;
 using Quaternion = System.Numerics.Quaternion;
 using WpfEllipse = System.Windows.Shapes.Ellipse;
 using WpfLine = System.Windows.Shapes.Line;
+using WpfPolyline = System.Windows.Shapes.Polyline;
+using WpfRectangle = System.Windows.Shapes.Rectangle;
 
 namespace SmoImporter.Gui;
 
@@ -25,10 +32,27 @@ public partial class MainWindow : Window
     private const double MinimumCameraDistance = 0.01;
     private const double MaximumCameraDistance = 1_000_000;
     private const double PitchLimit = Math.PI / 2 - 0.001;
+    private const double GizmoAxisLengthPixels = 76;
+    private const double GizmoHitRadiusPixels = 11;
+    private const double GizmoRotationDegreesPerPixel = 0.65;
+    private const double GizmoScaleExponentPerPixel = 0.012;
+    private const long MaximumSafeSmoFileBytes = 512L * 1024 * 1024;
+    private const int MaximumPreviewTextureSide = 1024;
+    private const long AssumedGameMemoryBudgetBytes = 3_972_844_749;
+    private const long TextureMemoryWarningMinimumBytes = 256L * 1024 * 1024;
+    private const double TextureMemoryWarningMinimumBudgetFraction = 0.10;
+    private static readonly TimeSpan MaximumGeneratedSkinningCalculationTime =
+        TimeSpan.FromSeconds(90);
 
     private readonly ImporterNativeValidator _nativeValidator = new();
     private CancellationTokenSource? _nativeValidationCancellation;
+    private CancellationTokenSource? _replacementLoadCancellation;
+    private CancellationTokenSource? _protectedRegionPreviewCancellation;
+    private CancellationTokenSource? _generatedSkinningCalculationCancellation;
+    private Task? _protectedRegionPreviewOperation;
     private bool _nativeValidationRunning;
+    private bool _replacementLoadRunning;
+    private bool _generatedSkinningCalculationRunning;
     private bool _settingNativeExecutablePath;
     private bool _settingPreserveOriginalTextures;
     private bool _settingPortingMode;
@@ -37,8 +61,13 @@ public partial class MainWindow : Window
     private bool _settingRigFittingControls;
     private bool _settingBodyPoseControls;
     private bool _settingGeneratedAttachmentSelection;
+    private bool _settingProtectedRegionControls;
     private bool _settingModelTransform;
     private bool _isClosing;
+    private bool _forceProcessExitOnClosed;
+    private int _lastLoggedProgressPercent = -1;
+    private string? _lastLoggedProgressStage;
+    private readonly StartupPreset? _startupPreset;
 
     private string? _sourcePath;
     private SmoDocument? _document;
@@ -50,6 +79,7 @@ public partial class MainWindow : Window
     private ImportedTextureCatalogResult? _textureCatalogResult;
     private readonly List<ImportedTexture> _externalTextures = [];
     private readonly HashSet<int> _opaqueOverlaySourceMeshKeys = [];
+    private readonly HashSet<int> _transparentSurfaceSourceMeshKeys = [];
     private SmoRigidMultiMaterialPackAnalysis? _rigidMultiMaterialAnalysis;
     private MeshSplitPlan? _plan;
     private SmoDocument? _replacementSmoDocument;
@@ -63,6 +93,11 @@ public partial class MainWindow : Window
     private ImportedTextureCatalogResult? _generatedSkinningTextureCatalog;
     private GeneratedSkinningPreparationResult? _generatedSkinningPreparation;
     private GeneratedSkinningComponentOverrides? _generatedSkinningComponentOverrides;
+    private GeneratedSkinningRegionOverrides? _generatedSkinningRegionOverrides;
+    private GeneratedSkinningRegionOverrides? _protectedRegionDraftOverrides;
+    private GeneratedSkinningPreparationResult? _protectedRegionDraftPreparation;
+    private GlbSkinTransferPlan? _protectedRegionDraftTransferPlan;
+    private ProtectedRegionPreparationRequest? _protectedRegionDraftRequest;
     private TargetRigBodySelection? _generatedBodySelection;
     private string? _generatedSkinningPreparationIssue;
     private TargetRigDefinition? _targetRigDefinition;
@@ -80,6 +115,13 @@ public partial class MainWindow : Window
     private bool _bodyPoseEditorDirty;
     private bool _manualAlignmentEditorDirty;
     private bool _generatedAlignmentEditorDirty;
+    private bool _protectedRegionEditorDirty;
+    private long _protectedRegionDraftRevision = -1;
+    private long _protectedRegionPreviewRequestRevision;
+    private bool _protectedRegionPreviewRunning;
+    private readonly Dictionary<GeneratedSkinningSemanticRegion,
+        GeneratedSkinningRegionAdjustment> _protectedRegionDraftAdjustments = [];
+    private readonly DispatcherTimer _protectedRegionPreviewTimer;
     private BodyPoseControlValues _committedBodyPoseControls;
     private BodyPoseControlValues _draftBodyPoseControls;
     private TargetRigFittingPoseSnapshot? _bodyPoseDraftSnapshot;
@@ -98,8 +140,12 @@ public partial class MainWindow : Window
     private readonly HashSet<int> _selectedGeneratedAttachmentComponents = [];
     private readonly List<UIElement> _generatedAttachmentOverlayElements = new();
     private readonly List<UIElement> _rigOverlayElements = new();
+    private readonly List<UIElement> _modelTransformGizmoElements = new();
     private readonly List<RigJointScreenPoint> _rigJointScreenPoints = new();
     private Vector3[]? _rigOverlayJointPositions;
+    private ModelTransformGizmoDrag? _modelTransformGizmoDrag;
+    private bool _generatedAlignmentAccepted;
+    private bool _generatedRigPoseAccepted;
     private Point3D? _selectedBonePosition;
     private Point _lastMousePosition;
     private Point3D _cameraTarget;
@@ -112,20 +158,319 @@ public partial class MainWindow : Window
     private bool _explicitGeneratedReviewRequested;
     private ImportedScene? _finalTexturedPreviewScene;
     private Matrix4x4 _finalTexturedPreviewTransform = Matrix4x4.Identity;
+    private Model3DGroup? _finalTexturedPreviewVisual;
+    private Point3D[]? _finalTexturedPreviewBounds;
 
     public MainWindow()
     {
         InitializeComponent();
+        DiagnosticLogPathText.Text = SessionLog.FilePath;
+        DiagnosticLogPathText.ToolTip = SessionLog.FilePath;
+        AttachDiagnosticEventLogging();
+        SessionLog.Info("WINDOW", "Main window constructed.");
+        // Kept only as a cancellation-compatible sentinel for sessions opened
+        // by older builds. Protected-region sliders must never start a Core
+        // preparation: they now redraw the ellipsoid locally, and only the
+        // explicit Apply button performs the expensive recalculation.
+        _protectedRegionPreviewTimer = new DispatcherTimer(
+            DispatcherPriority.Background,
+            Dispatcher)
+        {
+            Interval = TimeSpan.FromMilliseconds(180),
+            IsEnabled = false
+        };
         if (!string.IsNullOrWhiteSpace(_nativeValidator.SavedExecutablePath))
             SetGameExecutablePath(_nativeValidator.SavedExecutablePath);
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
-        string? commandLineSource = Environment.GetCommandLineArgs().Skip(1)
+        Closed += MainWindow_Closed;
+        string[] commandLineArguments = Environment.GetCommandLineArgs().Skip(1)
+            .ToArray();
+        _startupPreset = ParseStartupPreset(commandLineArguments);
+        string? commandLineSource = commandLineArguments
             .FirstOrDefault(argument =>
                 argument.EndsWith(".smo", StringComparison.OrdinalIgnoreCase) && File.Exists(argument));
         if (commandLineSource is not null)
             LoadSource(commandLineSource);
     }
+
+    private static StartupPreset? ParseStartupPreset(IReadOnlyList<string> arguments)
+    {
+        int donorOption = FindOption(arguments, "--donor");
+        int alignmentOption = FindOption(arguments, "--alignment");
+        int poseOption = FindOption(arguments, "--pose");
+        if (donorOption < 0 && alignmentOption < 0 && poseOption < 0)
+            return null;
+        if (donorOption < 0 || alignmentOption < 0 || poseOption < 0 ||
+            donorOption + 1 >= arguments.Count ||
+            alignmentOption + 7 >= arguments.Count ||
+            poseOption + 7 >= arguments.Count)
+        {
+            throw new ArgumentException(
+                "Startup restoration requires --donor <path>, " +
+                "--alignment <scale rx ry rz tx ty tz> and " +
+                "--pose <arms-up arms-forward elbows legs knees torso neck>.");
+        }
+
+        string donorPath = Path.GetFullPath(arguments[donorOption + 1]);
+        if (!File.Exists(donorPath))
+            throw new FileNotFoundException("Startup donor was not found.", donorPath);
+        float[] alignment = ParseFiniteValues(arguments, alignmentOption + 1, 7);
+        float[] pose = ParseFiniteValues(arguments, poseOption + 1, 7);
+        if (alignment[0] <= 0)
+            throw new ArgumentException("Startup alignment scale must be positive.");
+        return new StartupPreset(
+            donorPath,
+            new ReplacementTransform(
+                alignment[0],
+                new Vector3(alignment[1], alignment[2], alignment[3]),
+                new Vector3(alignment[4], alignment[5], alignment[6])),
+            new BodyPoseControlValues(
+                pose[0], pose[1], pose[2], pose[3], pose[4], pose[5], pose[6]));
+
+        static int FindOption(IReadOnlyList<string> values, string option)
+        {
+            for (int index = 0; index < values.Count; index++)
+            {
+                if (string.Equals(values[index], option, StringComparison.OrdinalIgnoreCase))
+                    return index;
+            }
+            return -1;
+        }
+
+        static float[] ParseFiniteValues(
+            IReadOnlyList<string> values,
+            int start,
+            int count)
+        {
+            var result = new float[count];
+            for (int index = 0; index < count; index++)
+            {
+                if (!float.TryParse(
+                        values[start + index],
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out result[index]) ||
+                    !float.IsFinite(result[index]))
+                {
+                    throw new ArgumentException(
+                        $"Startup value '{values[start + index]}' is not finite.");
+                }
+            }
+            return result;
+        }
+    }
+
+    private void AttachDiagnosticEventLogging()
+    {
+        AddHandler(
+            ButtonBase.ClickEvent,
+            new RoutedEventHandler(DiagnosticButton_Click),
+            handledEventsToo: true);
+        AddHandler(
+            Selector.SelectionChangedEvent,
+            new SelectionChangedEventHandler(DiagnosticSelection_Changed),
+            handledEventsToo: true);
+        AddHandler(
+            RangeBase.ValueChangedEvent,
+            new RoutedPropertyChangedEventHandler<double>(DiagnosticSlider_ValueChanged),
+            handledEventsToo: true);
+        AddHandler(
+            TextBox.TextChangedEvent,
+            new TextChangedEventHandler(DiagnosticText_Changed),
+            handledEventsToo: true);
+        PreviewMouseDown += DiagnosticPreview_MouseDown;
+        PreviewMouseUp += DiagnosticPreview_MouseUp;
+        PreviewMouseWheel += DiagnosticPreview_MouseWheel;
+        PreviewKeyDown += DiagnosticPreview_KeyDown;
+
+        ObserveDiagnosticText(StatusText, "STATUS");
+        ObserveDiagnosticText(ReplacementSummaryText, "REPLACEMENT_SUMMARY");
+        ObserveDiagnosticText(CompatibilityText, "COMPATIBILITY");
+        ObserveDiagnosticText(GeneratedSkinningPrimaryStatusText, "GENERATED_STATUS");
+        ObserveDiagnosticText(GeneratedCalculationProgressText, "CALCULATION_STATUS");
+        ObserveDiagnosticText(PlanSummaryText, "PLAN_STATUS");
+        ObserveDiagnosticText(NativeValidationResultText, "NATIVE_VALIDATION");
+        ObserveDiagnosticText(BodyPoseStatusText, "BODY_POSE_STATUS");
+        ObserveDiagnosticText(RigFittingStatusText, "RIG_STATUS");
+        ObserveDiagnosticText(ProtectedRegionStatusText, "PROTECTED_REGION_STATUS");
+        ObserveDiagnosticText(GeneratedAttachmentStatusText, "ATTACHMENT_STATUS");
+    }
+
+    private static void ObserveDiagnosticText(TextBlock textBlock, string category)
+    {
+        DependencyPropertyDescriptor.FromProperty(
+                TextBlock.TextProperty,
+                typeof(TextBlock))
+            ?.AddValueChanged(textBlock, (_, _) =>
+                SessionLog.Info(category, textBlock.Text ?? string.Empty));
+    }
+
+    private void DiagnosticButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is not ButtonBase button)
+            return;
+        SessionLog.Info(
+            "UI_BUTTON",
+            $"{DiagnosticControlName(button)}; content={button.Content}; " +
+            $"enabled={button.IsEnabled}");
+        LogDiagnosticState("STATE_AFTER_BUTTON");
+    }
+
+    private void DiagnosticSelection_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.OriginalSource is not Selector selector ||
+            (!selector.IsKeyboardFocusWithin && Mouse.LeftButton != MouseButtonState.Pressed))
+        {
+            return;
+        }
+        SessionLog.Info(
+            "UI_SELECTION",
+            $"{DiagnosticControlName(selector)}; selectedIndex={selector.SelectedIndex}; " +
+            $"selected={DiagnosticSelectedValue(selector)}");
+    }
+
+    private void DiagnosticSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (e.OriginalSource is not Slider slider ||
+            (!slider.IsKeyboardFocusWithin && Mouse.LeftButton != MouseButtonState.Pressed))
+        {
+            return;
+        }
+        SessionLog.Info(
+            "UI_SLIDER",
+            $"{DiagnosticControlName(slider)}; old={e.OldValue:G9}; new={e.NewValue:G9}");
+    }
+
+    private void DiagnosticText_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (e.OriginalSource is not TextBox textBox || !textBox.IsKeyboardFocusWithin)
+            return;
+        SessionLog.Info(
+            "UI_TEXT",
+            $"{DiagnosticControlName(textBox)}; value={textBox.Text}");
+    }
+
+    private void DiagnosticPreview_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!PreviewSurface.IsMouseOver)
+            return;
+        Point point = e.GetPosition(PreviewSurface);
+        SessionLog.Info(
+            "PREVIEW_INPUT",
+            $"mouse-down button={e.ChangedButton}; x={point.X:F1}; y={point.Y:F1}");
+    }
+
+    private void DiagnosticPreview_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!PreviewSurface.IsMouseOver && _modelTransformGizmoDrag is null)
+            return;
+        Point point = e.GetPosition(PreviewSurface);
+        SessionLog.Info(
+            "PREVIEW_INPUT",
+            $"mouse-up button={e.ChangedButton}; x={point.X:F1}; y={point.Y:F1}");
+        LogDiagnosticState("STATE_AFTER_PREVIEW_DRAG");
+    }
+
+    private void DiagnosticPreview_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (PreviewSurface.IsMouseOver)
+            SessionLog.Info("PREVIEW_INPUT", $"mouse-wheel delta={e.Delta}");
+    }
+
+    private void DiagnosticPreview_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (PreviewSurface.IsKeyboardFocusWithin && !e.IsRepeat)
+            SessionLog.Info("PREVIEW_INPUT", $"key={e.Key}; modifiers={Keyboard.Modifiers}");
+    }
+
+    private static void LogFittingPoseSnapshot(TargetRigFittingPoseSnapshot pose)
+    {
+        var edited = new List<string>();
+        for (int index = 0; index < pose.LocalRotationDeltas.Count; index++)
+        {
+            Quaternion rotation = pose.LocalRotationDeltas[index];
+            if (MathF.Abs(rotation.X) < 0.000001f &&
+                MathF.Abs(rotation.Y) < 0.000001f &&
+                MathF.Abs(rotation.Z) < 0.000001f &&
+                MathF.Abs(MathF.Abs(rotation.W) - 1) < 0.000001f)
+            {
+                continue;
+            }
+
+            TargetRigJoint joint = pose.Definition.Joints[index];
+            Vector3 euler = QuaternionToEulerDegrees(rotation);
+            Matrix4x4 world = pose.WorldMatrices[index];
+            edited.Add(
+                $"[{index}] {joint.Name}:euler=({euler.X:G9},{euler.Y:G9},{euler.Z:G9})," +
+                $"q=({rotation.X:G9},{rotation.Y:G9},{rotation.Z:G9},{rotation.W:G9})," +
+                $"world=({world.M41:G9},{world.M42:G9},{world.M43:G9})");
+        }
+
+        SessionLog.Info(
+            "RIG_POSE_SNAPSHOT",
+            $"identity={pose.IsIdentityPose}; rootQ=({pose.RootRotation.X:G9}," +
+            $"{pose.RootRotation.Y:G9},{pose.RootRotation.Z:G9},{pose.RootRotation.W:G9}); " +
+            $"rootMove=({pose.RootTranslation.X:G9},{pose.RootTranslation.Y:G9}," +
+            $"{pose.RootTranslation.Z:G9}); editedJoints={edited.Count}; " +
+            (edited.Count == 0 ? "deltas=[]" : $"deltas=[{string.Join(" | ", edited)}]"));
+    }
+
+    private void LogDiagnosticState(string category)
+    {
+        try
+        {
+            var state = new StringBuilder();
+            state.Append($"source={_sourcePath ?? "<none>"}; donor={_replacementPath ?? "<none>"}; ");
+            state.Append($"modeIndex={PortingModeCombo.SelectedIndex}; mode={DiagnosticSelectedValue(PortingModeCombo)}; ");
+            state.Append($"preserveTextures={PreserveOriginalTexturesCheckBox.IsChecked}; ");
+            state.Append($"transform=scale:{ScaleBox.Text}, rotate:({RotXBox.Text},{RotYBox.Text},{RotZBox.Text}), ");
+            state.Append($"move:({MoveXBox.Text},{MoveYBox.Text},{MoveZBox.Text}); ");
+            state.Append($"alignmentAccepted={_generatedAlignmentAccepted}; alignmentDirty={_generatedAlignmentEditorDirty}; ");
+            state.Append($"rigPoseAccepted={_generatedRigPoseAccepted}; ");
+            state.Append($"pose=({BodyArmRaiseSlider.Value:G6},{BodyArmForwardSlider.Value:G6}," +
+                         $"{BodyElbowBendSlider.Value:G6},{BodyLegSpreadSlider.Value:G6}," +
+                         $"{BodyKneeBendSlider.Value:G6},{BodyTorsoPitchSlider.Value:G6}," +
+                         $"{BodyNeckForwardSlider.Value:G6}); poseDirty={_bodyPoseEditorDirty}; ");
+            state.Append($"rigMode={DiagnosticSelectedValue(RigPoseEditorModeCombo)}; joint={DiagnosticSelectedValue(RigFittingJointCombo)}; ");
+            state.Append($"jointRotation=({RigLocalRotXSlider.Value:G6},{RigLocalRotYSlider.Value:G6}," +
+                         $"{RigLocalRotZSlider.Value:G6}); rigDirty={_rigPoseEditorDirty}; ");
+            state.Append($"rootRotate=({RigRootRotXBox.Text},{RigRootRotYBox.Text},{RigRootRotZBox.Text}); ");
+            state.Append($"rootMove=({RigRootMoveXBox.Text},{RigRootMoveYBox.Text},{RigRootMoveZBox.Text}); ");
+            state.Append($"protectedRegion={DiagnosticSelectedValue(ProtectedRegionCombo)}; enabled={ProtectedRegionEnabledCheckBox.IsChecked}; ");
+            state.Append($"mirrorHands={MirrorProtectedHandsCheckBox.IsChecked}; protectedValues=" +
+                         $"({ProtectedRegionPositionSlider.Value:G6},{ProtectedRegionLengthSlider.Value:G6}," +
+                         $"{ProtectedRegionThicknessSlider.Value:G6},tilt={ProtectedRegionTiltSlider.Value:G6}); " +
+                         $"protectedDirty={_protectedRegionEditorDirty}; ");
+            state.Append($"protectedOverrides=[{string.Join(",", _protectedRegionDraftAdjustments
+                .OrderBy(pair => pair.Key)
+                .Select(pair => $"{pair.Key}:on={pair.Value.Enabled}:offset={pair.Value.AxialOffset:G6}:" +
+                                $"length={pair.Value.AxialScale:G6}:radius={pair.Value.RadialScale:G6}:" +
+                                $"tilt={pair.Value.ForwardTiltDegrees:G6}"))}]; ");
+            state.Append($"selectedAttachments=[{string.Join(",", _selectedGeneratedAttachmentComponents.Order())}]; ");
+            state.Append($"generatedCurrent={GeneratedSkinningPreparationIsCurrent}; generatedReady={GeneratedSkinningIsReady}; ");
+            state.Append($"planCanReplace={_glbSkinTransferPlan?.CanReplace}; confirmation={GeneratedSkinningConfirmationCheckBox.IsChecked}; ");
+            state.Append($"rebaseBindPose={RebaseBindPoseCheckBox.IsChecked}; externalTextures={_externalTextures.Count}; ");
+            state.Append($"memoryMiB={Process.GetCurrentProcess().WorkingSet64 / (1024d * 1024d):F1}");
+            SessionLog.Info(category, state.ToString());
+        }
+        catch (Exception exception)
+        {
+            SessionLog.Error("STATE_SNAPSHOT_FAILED", exception);
+        }
+    }
+
+    private static string DiagnosticControlName(FrameworkElement control) =>
+        string.IsNullOrWhiteSpace(control.Name)
+            ? control.GetType().Name
+            : $"{control.GetType().Name}#{control.Name}";
+
+    private static object? DiagnosticSelectedValue(Selector selector) =>
+        selector.SelectedItem is ComboBoxItem item
+            ? item.Content
+            : selector.SelectedItem;
 
     private bool PreserveOriginalTextures =>
         PreserveOriginalTexturesCheckBox.IsChecked == true;
@@ -214,8 +559,23 @@ public partial class MainWindow : Window
     private bool CanSelectGeneratedAttachments =>
         UsesGeneratedWeightsPortingMode &&
         !IsJointPoseEditorMode &&
+        !ProtectedRegionEditorActive &&
         GeneratedSkinningPreparationIsCurrent &&
         !_nativeValidationRunning;
+
+    private bool ProtectedRegionEditorActive =>
+        ProtectedRegionEditorExpander?.IsExpanded == true &&
+        UsesGeneratedWeightsPortingMode &&
+        !IsJointPoseEditorMode;
+
+    private bool CanEditProtectedRegions =>
+        UsesGeneratedWeightsPortingMode &&
+        !IsJointPoseEditorMode &&
+        GeneratedSkinningPreparationIsCurrent &&
+        !_nativeValidationRunning &&
+        !_generatedAlignmentEditorDirty &&
+        !_rigPoseEditorDirty &&
+        !_bodyPoseEditorDirty;
 
     private bool CanShowFinalTexturedPreview =>
         !_nativeValidationRunning &&
@@ -236,7 +596,7 @@ public partial class MainWindow : Window
          (UsesAdaptDonorWeightsPortingMode && ManualAdaptWeights)) &&
         (_rigPoseEditorDirty || _bodyPoseEditorDirty ||
          (UsesGeneratedWeightsPortingMode &&
-          _generatedAlignmentEditorDirty) ||
+          (_generatedAlignmentEditorDirty || _protectedRegionEditorDirty)) ||
          (UsesAdaptDonorWeightsPortingMode && ManualAdaptWeights &&
           _manualAlignmentEditorDirty));
 
@@ -357,7 +717,8 @@ public partial class MainWindow : Window
     }
 
     private static bool IsMaterialGroupTransferBlocker(string message) =>
-        message.Contains("material groups", StringComparison.OrdinalIgnoreCase) ||
+        message.Contains("material group", StringComparison.OrdinalIgnoreCase) ||
+        message.Contains("material-group", StringComparison.OrdinalIgnoreCase) ||
         message.Contains("texture groups", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsOpaqueAlphaSplitBlocker(string message) =>
@@ -481,6 +842,7 @@ public partial class MainWindow : Window
     private void ResetSkinnedMaterialOverrides()
     {
         _opaqueOverlaySourceMeshKeys.Clear();
+        _transparentSurfaceSourceMeshKeys.Clear();
     }
 
     private SkinnedRenderableMaterialProfile ResolveSkinnedMaterialProfile(
@@ -489,15 +851,20 @@ public partial class MainWindow : Window
     {
         if (!UsesGeneratedWeightsPortingMode ||
             textureMode != SkinnedTextureTransferMode.ImportDonor ||
-            _opaqueOverlaySourceMeshKeys.Count == 0)
+            _opaqueOverlaySourceMeshKeys.Count == 0 &&
+            _transparentSurfaceSourceMeshKeys.Count == 0)
         {
             return SkinnedRenderableMaterialProfile.Default;
         }
 
-        ValidateMaterialMeshKeys(donor, _opaqueOverlaySourceMeshKeys);
+        ValidateMaterialMeshKeys(
+            donor,
+            _opaqueOverlaySourceMeshKeys.Concat(
+                _transparentSurfaceSourceMeshKeys));
         return CreateSkinnedMaterialProfile(
             donor,
-            _opaqueOverlaySourceMeshKeys);
+            _opaqueOverlaySourceMeshKeys,
+            _transparentSurfaceSourceMeshKeys);
     }
 
     private void ValidateMaterialMeshKeys(
@@ -559,7 +926,8 @@ public partial class MainWindow : Window
 
     private static SkinnedRenderableMaterialProfile CreateSkinnedMaterialProfile(
         ImportedScene donor,
-        IEnumerable<int> opaqueOverlaySourceMeshKeys) =>
+        IEnumerable<int> opaqueOverlaySourceMeshKeys,
+        IEnumerable<int> transparentSurfaceSourceMeshKeys) =>
         new(
             donor,
             opaqueOverlaySourceMeshKeys
@@ -568,7 +936,14 @@ public partial class MainWindow : Window
                 .Select(sourceMeshKey =>
                     new SkinnedRenderableMaterialOverride(
                         sourceMeshKey,
-                        SkinnedRenderableMaterialMode.OpaqueOverlay)));
+                        SkinnedRenderableMaterialMode.OpaqueOverlay))
+                .Concat(transparentSurfaceSourceMeshKeys
+                    .Distinct()
+                    .Order()
+                    .Select(sourceMeshKey =>
+                        new SkinnedRenderableMaterialOverride(
+                            sourceMeshKey,
+                            SkinnedRenderableMaterialMode.TransparentSurface))));
 
     private void ClearFinalTexturedPreview()
     {
@@ -576,11 +951,15 @@ public partial class MainWindow : Window
         _showFinalTexturedPreview = false;
         _finalTexturedPreviewScene = null;
         _finalTexturedPreviewTransform = Matrix4x4.Identity;
+        _finalTexturedPreviewVisual = null;
+        _finalTexturedPreviewBounds = null;
     }
 
     private void ResetRigFittingState(bool resetManualMode = true)
     {
+        CancelProtectedRegionPreview();
         _generatedSkinningComponentOverrides = null;
+        ResetProtectedRegionEditor(clearCommitted: true, updateControls: false);
         _generatedBodySelection = null;
         ClearFinalTexturedPreview();
         _selectedGeneratedAttachmentComponents.Clear();
@@ -610,6 +989,10 @@ public partial class MainWindow : Window
         _manualDonorAlignment = ReplacementTransform.Identity;
         _generatedDonorAlignment = null;
         _generatedDonorAlignmentDraft = null;
+        _generatedAlignmentAccepted = false;
+        _generatedRigPoseAccepted = false;
+        _modelTransformGizmoDrag = null;
+        ClearModelTransformGizmoOverlay();
         _rigFittingIssue = null;
         _rigPoseEditorDirty = false;
         _bodyPoseEditorDirty = false;
@@ -909,7 +1292,7 @@ public partial class MainWindow : Window
         }
         else if (UsesGeneratedWeightsPortingMode)
         {
-            UpdateGeneratedSkinningPreparation();
+            InitializeGeneratedSkinningForManualApply();
         }
         else if (UsesLegacyRigidPortingMode &&
                  _replacementRigidTextureBundle is not null)
@@ -940,9 +1323,11 @@ public partial class MainWindow : Window
 
     private void LoadSource(string path)
     {
+        SessionLog.Info("SOURCE_LOAD", $"Requested source SMO: {Path.GetFullPath(path)}");
         try
         {
             string sourcePath = Path.GetFullPath(path);
+            ValidateSafeSmoFile(sourcePath);
             SmoDocument document = SmoDocument.Load(sourcePath);
             SmoExportScene sourceScene = SmoSceneBuilder.Build(document);
             BoneItem[] boneItems = SmoWholeModelReplacer.GetRigidBoneChoices(document)
@@ -977,7 +1362,7 @@ public partial class MainWindow : Window
                      _replacementScene?.HasSkinning == true)
                 UpdateAdaptedPortingPreparation();
             else if (UsesGeneratedWeightsPortingMode)
-                UpdateGeneratedSkinningPreparation();
+                InitializeGeneratedSkinningForManualApply();
             else if (UseRigidMultiTextureMode)
             {
                 ApplyAutoFit();
@@ -1003,12 +1388,20 @@ public partial class MainWindow : Window
                  string.IsNullOrWhiteSpace(
                      _nativeValidator.SavedExecutablePath)))
                 _ = LocateGameExecutableAsync();
+            SessionLog.Info(
+                "SOURCE_LOAD",
+                $"Loaded {_sourcePath}; meshes={_sourceScene.Meshes.Count}; " +
+                $"vertices={_sourceScene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+                $"triangles={_sourceScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)}; " +
+                $"bytes={new FileInfo(_sourcePath).Length}");
         }
         catch (Exception exception) { ShowError(exception); }
     }
 
-    private void SelectReplacement_Click(object sender, RoutedEventArgs e)
+    private async void SelectReplacement_Click(object sender, RoutedEventArgs e)
     {
+        if (_replacementLoadRunning)
+            return;
         var dialog = new OpenFileDialog
         {
             Filter = "Модель замены (*.smo;*.fbx;*.glb;*.obj)|*.smo;*.fbx;*.glb;*.obj|SMO (*.smo)|*.smo|FBX (*.fbx)|*.fbx|GLB (*.glb)|*.glb|OBJ (*.obj)|*.obj",
@@ -1019,26 +1412,115 @@ public partial class MainWindow : Window
         {
             if (Path.GetExtension(dialog.FileName).Equals(
                     ".smo", StringComparison.OrdinalIgnoreCase))
-                LoadSmoReplacement(dialog.FileName);
+                await LoadSmoReplacementAsync(dialog.FileName);
             else
             {
                 if (Path.GetExtension(dialog.FileName).Equals(
                         ".fbx", StringComparison.OrdinalIgnoreCase) &&
                     !EnsureBlenderForFbx())
                     return;
-                LoadExternalReplacement(dialog.FileName);
+                await LoadExternalReplacementAsync(dialog.FileName);
             }
             _framePreviewOnRefresh = true;
-            RefreshState();
+            if (!_replacementLoadRunning)
+                RefreshState();
         }
-        catch (Exception exception) { ShowError(exception); }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Загрузка модели отменена.";
+            if (!_isClosing)
+                RefreshState();
+        }
+        catch (Exception exception)
+        {
+            if (!_isClosing)
+                RefreshState();
+            ShowError(exception);
+        }
     }
 
-    private void LoadSmoReplacement(string path)
+    private async Task LoadSmoReplacementAsync(string path)
+    {
+        SessionLog.Info("DONOR_LOAD", $"Requested donor SMO: {Path.GetFullPath(path)}");
+        _replacementLoadRunning = true;
+        ControlsScrollViewer.IsEnabled = false;
+        var runCancellation = new CancellationTokenSource();
+        _replacementLoadCancellation = runCancellation;
+        try
+        {
+            StatusText.Text = "Отменяется предыдущий фоновый расчёт…";
+            await CancelProtectedRegionPreviewAndWaitAsync();
+            runCancellation.Token.ThrowIfCancellationRequested();
+            bool reclaimOldModel = HasLoadedReplacementResources();
+            BeginReplacementLoad();
+            StatusText.Text = reclaimOldModel
+                ? "Освобождается предыдущая модель…"
+                : "SMO проверяется и загружается…";
+            await Dispatcher.Yield(DispatcherPriority.Render);
+            if (reclaimOldModel)
+                await Task.Run(ReclaimReleasedReplacementMemory);
+            runCancellation.Token.ThrowIfCancellationRequested();
+            StatusText.Text = "SMO проверяется и загружается…";
+
+            SmoReplacementLoadResult loaded = await Task.Run(
+                () => ReadSmoReplacement(path, runCancellation.Token),
+                runCancellation.Token);
+            runCancellation.Token.ThrowIfCancellationRequested();
+            if (_isClosing)
+                return;
+            ApplySmoReplacement(loaded);
+            SessionLog.Info(
+                "DONOR_LOAD",
+                $"Loaded donor SMO {loaded.FullPath}; meshes={loaded.Scene.Meshes.Count}; " +
+                $"vertices={loaded.Scene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+                $"triangles={loaded.Scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)}");
+        }
+        finally
+        {
+            if (ReferenceEquals(_replacementLoadCancellation, runCancellation))
+                _replacementLoadCancellation = null;
+            runCancellation.Dispose();
+            _replacementLoadRunning = false;
+            if (!_isClosing)
+                ControlsScrollViewer.IsEnabled = !_protectedRegionPreviewRunning;
+        }
+    }
+
+    private static SmoReplacementLoadResult ReadSmoReplacement(
+        string path,
+        CancellationToken cancellationToken)
     {
         string fullPath = Path.GetFullPath(path);
+        ValidateSafeSmoFile(fullPath);
+        cancellationToken.ThrowIfCancellationRequested();
         SmoDocument donor = SmoDocument.Load(fullPath);
+        cancellationToken.ThrowIfCancellationRequested();
         SmoExportScene donorScene = SmoSceneBuilder.Build(donor);
+        cancellationToken.ThrowIfCancellationRequested();
+        return new SmoReplacementLoadResult(fullPath, donor, donorScene);
+    }
+
+    private static void ValidateSafeSmoFile(string fullPath)
+    {
+        var file = new FileInfo(fullPath);
+        if (!file.Exists)
+            throw new FileNotFoundException("SMO model was not found.", fullPath);
+        if (file.Length <= MaximumSafeSmoFileBytes)
+            return;
+
+        throw new InvalidDataException(
+            $"SMO model is {file.Length / (1024d * 1024d):N1} MiB; " +
+            $"the safe importer limit is " +
+            $"{MaximumSafeSmoFileBytes / (1024 * 1024)} MiB. " +
+            "The action was blocked to prevent the computer from running out " +
+            "of memory. Reduce or split the model first.");
+    }
+
+    private void ApplySmoReplacement(SmoReplacementLoadResult loaded)
+    {
+        string fullPath = loaded.FullPath;
+        SmoDocument donor = loaded.Document;
+        SmoExportScene donorScene = loaded.Scene;
         SetPreserveOriginalTextures(false);
         SetPortingModeChoice(PortingModeUiChoice.Auto);
         _portingModeRecommendation = null;
@@ -1068,6 +1550,7 @@ public partial class MainWindow : Window
             $"{donorScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
             $"{donorScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
             $"{textures} textures.";
+        HideTextureMemoryWarning();
         PlanSummaryText.Text =
             "Service/skeleton graph target сохраняется. Donor meshes, materials и " +
             "textures добавляются отдельными visual branches со своими palettes; " +
@@ -1077,7 +1560,170 @@ public partial class MainWindow : Window
         UpdateSmoReplacementPlan();
     }
 
-    private void LoadExternalReplacement(string path)
+    private async Task LoadExternalReplacementAsync(string path)
+    {
+        SessionLog.Info("DONOR_LOAD", $"Requested external donor: {Path.GetFullPath(path)}");
+        _replacementLoadRunning = true;
+        ControlsScrollViewer.IsEnabled = false;
+        var runCancellation = new CancellationTokenSource();
+        _replacementLoadCancellation = runCancellation;
+        try
+        {
+            StatusText.Text = "Отменяется предыдущий фоновый расчёт…";
+            await CancelProtectedRegionPreviewAndWaitAsync();
+            runCancellation.Token.ThrowIfCancellationRequested();
+            bool reclaimOldModel = HasLoadedReplacementResources();
+            BeginReplacementLoad();
+            StatusText.Text = reclaimOldModel
+                ? "Освобождается предыдущая модель…"
+                : "Модель проверяется и загружается…";
+            await Dispatcher.Yield(DispatcherPriority.Render);
+            if (reclaimOldModel)
+                await Task.Run(ReclaimReleasedReplacementMemory);
+            runCancellation.Token.ThrowIfCancellationRequested();
+            StatusText.Text = "Модель проверяется и загружается…";
+
+            ExternalReplacementLoadResult loaded = await Task.Run(
+                () => ReadExternalReplacement(path, runCancellation.Token),
+                runCancellation.Token);
+            runCancellation.Token.ThrowIfCancellationRequested();
+            if (_isClosing)
+                return;
+
+            _externalTextures.Clear();
+            ApplyExternalReplacementState(
+                loaded.FullPath,
+                loaded.SourceScene,
+                loaded.EffectiveScene,
+                loaded.RigidTextureBundle,
+                loaded.Catalog,
+                loaded.TextureDirectory,
+                resetTransform: true,
+                textureBindingIssue: loaded.TextureBindingIssue,
+                geometryOnlyFallbackIssue: loaded.GeometryOnlyFallbackIssue);
+            SessionLog.Info(
+                "DONOR_LOAD",
+                $"Loaded external donor {loaded.FullPath}; meshes={loaded.EffectiveScene.Meshes.Count}; " +
+                $"vertices={loaded.EffectiveScene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+                $"triangles={loaded.EffectiveScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)}; " +
+                $"materials={loaded.EffectiveScene.Materials.Count}; textures={loaded.EffectiveScene.Textures.Count}; " +
+                $"skinned={loaded.EffectiveScene.HasSkinning}; warnings=" +
+                string.Join(" | ", loaded.EffectiveScene.ImportWarnings));
+        }
+        catch (OperationCanceledException)
+        {
+            if (!_isClosing)
+                StatusText.Text = "Загрузка модели отменена; предыдущие тяжёлые данные освобождены.";
+            throw;
+        }
+        catch
+        {
+            if (!_isClosing)
+            {
+                ReplacementSummaryText.Text =
+                    "Модель не загружена: проверка безопасности или чтение завершились ошибкой.";
+                RefreshState();
+            }
+            throw;
+        }
+        finally
+        {
+            if (ReferenceEquals(_replacementLoadCancellation, runCancellation))
+                _replacementLoadCancellation = null;
+            runCancellation.Dispose();
+            _replacementLoadRunning = false;
+            if (!_isClosing)
+                ControlsScrollViewer.IsEnabled = !_protectedRegionPreviewRunning;
+        }
+    }
+
+    private void BeginReplacementLoad()
+    {
+        CancelProtectedRegionPreview();
+        GeneratedCalculationProgressPanel.Visibility = Visibility.Collapsed;
+        GeneratedCalculationProgressBar.Value = 0;
+        GeneratedCalculationOverlay.Visibility = Visibility.Collapsed;
+
+        // Detach WPF/Direct3D resources before opening and decoding the next
+        // character.  Keeping the previous final preview alive here doubles the
+        // peak working set and can force the whole machine into paging.
+        SceneVisual.Content = null;
+        ClearRigSkeletonOverlay();
+        ClearGeneratedAttachmentScreenOverlay();
+        ClearModelTransformGizmoOverlay();
+        _replacementPath = null;
+        _baseReplacementScene = null;
+        _replacementScene = null;
+        _replacementRigidTextureBundle = null;
+        _textureCatalogResult = null;
+        _replacementSmoDocument = null;
+        _replacementSmoScene = null;
+        _smoReplacementPlan = null;
+        _externalTextures.Clear();
+        _multiTextureDirectory = null;
+        _rigidTextureBindingIssue = null;
+        _geometryOnlyFallbackIssue = null;
+        _rigidMultiMaterialAnalysis = null;
+        _glbSkinTransferPlan = null;
+        _plan = null;
+        ResetSkinnedMaterialOverrides();
+        ResetRigFittingState();
+        InvalidateAdaptedPortingPreparation();
+        InvalidateGeneratedSkinningPreparation(clearGeometryBase: true);
+        ReplacementPathText.Text = string.Empty;
+        ReplacementSummaryText.Text = "Предыдущая модель освобождена; загружается новая…";
+        HideTextureMemoryWarning();
+    }
+
+    private bool HasLoadedReplacementResources() =>
+        _replacementPath is not null ||
+        _baseReplacementScene is not null ||
+        _replacementScene is not null ||
+        _replacementSmoDocument is not null ||
+        _finalTexturedPreviewVisual is not null;
+
+    private static void ReclaimReleasedReplacementMemory()
+    {
+        // Character scenes contain several large managed arrays and decoded
+        // texture buffers.  A deliberate full collection at the document
+        // boundary prevents those dead large-object-heap blocks from becoming
+        // the peak working set of the next character.
+        GC.Collect(
+            GC.MaxGeneration,
+            GCCollectionMode.Aggressive,
+            blocking: true,
+            compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(
+            GC.MaxGeneration,
+            GCCollectionMode.Optimized,
+            blocking: true,
+            compacting: false);
+    }
+
+    private async Task CancelProtectedRegionPreviewAndWaitAsync()
+    {
+        CancelProtectedRegionPreview();
+        Task? operation = _protectedRegionPreviewOperation;
+        if (operation is null)
+            return;
+        try
+        {
+            await operation;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception)
+        {
+            // The timer handler owns presentation of calculation errors.  A
+            // reload only needs the old operation to release its captured scene.
+        }
+    }
+
+    private ExternalReplacementLoadResult ReadExternalReplacement(
+        string path,
+        CancellationToken cancellationToken)
     {
         string fullPath = Path.GetFullPath(path);
         string extension = Path.GetExtension(fullPath);
@@ -1088,13 +1734,15 @@ public partial class MainWindow : Window
         string? geometryOnlyFallbackIssue = null;
         try
         {
-            sourceScene = ImportedModelReader.Read(fullPath, _blenderPath);
+            sourceScene = ImportedModelReader.Read(
+                fullPath, _blenderPath, cancellationToken);
         }
         catch (InvalidDataException exception) when (canReadGeometryOnly)
         {
             sourceScene = ImportedModelReader.ReadGeometryOnly(
                 fullPath,
-                _blenderPath);
+                _blenderPath,
+                cancellationToken);
             geometryOnlyFallbackIssue = exception.Message;
         }
         ImportedTextureCatalogResult catalog =
@@ -1112,7 +1760,9 @@ public partial class MainWindow : Window
             {
                 rigidTextureBundle = sourceIsFbx
                         ? RigidGlbTextureBundleReader.ReadModel(
-                            fullPath, blenderPath: _blenderPath)
+                            fullPath,
+                            nativeFbxBridgePath: _blenderPath,
+                            cancellationToken: cancellationToken)
                         : RigidGlbTextureBundleReader.Bind(fullPath, sourceScene);
                 effectiveScene = rigidTextureBundle.Scene;
                 textureDirectory = rigidTextureBundle.TextureDirectory;
@@ -1143,17 +1793,16 @@ public partial class MainWindow : Window
             }
         }
 
-        _externalTextures.Clear();
-        ApplyExternalReplacementState(
+        cancellationToken.ThrowIfCancellationRequested();
+        return new ExternalReplacementLoadResult(
             fullPath,
             sourceScene,
             effectiveScene,
             rigidTextureBundle,
             catalog,
             textureDirectory,
-            resetTransform: true,
-            textureBindingIssue: textureBindingIssue,
-            geometryOnlyFallbackIssue: geometryOnlyFallbackIssue);
+            textureBindingIssue,
+            geometryOnlyFallbackIssue);
     }
 
     private void ApplyTextureOverrides(IReadOnlyList<ImportedTexture> externalTextures)
@@ -1270,6 +1919,7 @@ public partial class MainWindow : Window
               (string.IsNullOrWhiteSpace(_geometryOnlyFallbackIssue)
                   ? string.Empty
                   : "\nRig файла проигнорирован; загружена только геометрия.");
+        UpdateTextureMemoryWarning(effectiveScene);
         RefreshTextureList();
         AppendRigidTextureBindingStatus();
 
@@ -1308,7 +1958,12 @@ public partial class MainWindow : Window
             if (automaticFit is not null)
                 ApplyTransform(automaticFit);
             if (UsesGeneratedWeightsPortingMode)
-                UpdateGeneratedSkinningPreparation();
+            {
+                if (resetTransform)
+                    InitializeGeneratedSkinningForManualApply();
+                else
+                    QueueGeneratedSkinningRecalculationAfterRigChange();
+            }
         }
         else if (effectiveScene.HasSkinning)
         {
@@ -1327,7 +1982,12 @@ public partial class MainWindow : Window
             else if (UsesAdaptDonorWeightsPortingMode)
                 UpdateAdaptedPortingPreparation();
             else if (UsesGeneratedWeightsPortingMode)
-                UpdateGeneratedSkinningPreparation();
+            {
+                if (resetTransform)
+                    InitializeGeneratedSkinningForManualApply();
+                else
+                    QueueGeneratedSkinningRecalculationAfterRigChange();
+            }
         }
         else
         {
@@ -1344,7 +2004,12 @@ public partial class MainWindow : Window
             PlanButton.Content = "Построить план и проверить";
             StatusText.Text = "Модель замены загружена. Постройте план нарезки.";
             if (UsesGeneratedWeightsPortingMode)
-                UpdateGeneratedSkinningPreparation();
+            {
+                if (resetTransform)
+                    InitializeGeneratedSkinningForManualApply();
+                else
+                    QueueGeneratedSkinningRecalculationAfterRigChange();
+            }
         }
         if (GetPortingModeBlockMessage() is string blocked)
             StatusText.Text = blocked;
@@ -1413,24 +2078,29 @@ public partial class MainWindow : Window
 
     private bool EnsureBlenderForFbx()
     {
-        _blenderPath = FbxExporter.FindBlenderExecutable(_blenderPath);
-        if (_blenderPath is not null)
-            return true;
-        var dialog = new OpenFileDialog
-        {
-            Title = "Для импорта FBX укажите blender.exe",
-            Filter = "Blender (blender.exe)|blender.exe|Исполняемые файлы (*.exe)|*.exe",
-            CheckFileExists = true
-        };
-        if (dialog.ShowDialog(this) != true)
-            return false;
-        _blenderPath = FbxExporter.ResolveBlenderExecutable(dialog.FileName);
+        _blenderPath = FbxExporter.FindNativeBridgeExecutable(_blenderPath);
         if (_blenderPath is not null)
             return true;
         MessageBox.Show(this,
-            "Выбранный файл не является blender.exe.",
-            "Blender не найден", MessageBoxButton.OK, MessageBoxImage.Warning);
+            $"В комплекте программы отсутствует {NativeFbxBridge.ExecutableName}. " +
+            "Переустановите полную сборку SMO Tools.",
+            "Нативный модуль FBX не найден",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
         return false;
+    }
+
+    private void CancelProtectedRegionPreview()
+    {
+        _protectedRegionPreviewTimer.Stop();
+        _protectedRegionPreviewRequestRevision++;
+        try
+        {
+            _protectedRegionPreviewCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     private void UpdateGlbSkinTransferPlan()
@@ -1817,6 +2487,265 @@ public partial class MainWindow : Window
         }
     }
 
+    private void InitializeGeneratedSkinningForManualApply()
+    {
+        if (!_generatedSkinningCalculationRunning)
+        {
+            GeneratedCalculationProgressPanel.Visibility = Visibility.Collapsed;
+            GeneratedCalculationProgressBar.Value = 0;
+            GeneratedCalculationOverlay.Visibility = Visibility.Collapsed;
+        }
+        _plan = null;
+        _glbSkinTransferPlan = null;
+        InvalidateGeneratedSkinningPreparation();
+        ReplacementModeText.Text = "3. Автоматическое создание весов";
+        SplitModeText.Text =
+            "Geometry выравнивается по основному телу target, получает игровые веса " +
+            "и затем распределяется по существующим 16-bone palettes без изменения target graph.";
+        BoneMappingTree.Items.Clear();
+        BoneMappingPanel.Visibility = Visibility.Collapsed;
+
+        if (_document is null)
+        {
+            SetGeneratedSkinningFailure(
+                "Сначала выберите целевой SMO для alignment и расчёта весов.",
+                isError: false);
+            return;
+        }
+        if (_replacementScene is null)
+        {
+            SetGeneratedSkinningFailure(
+                "Сначала выберите модель-донор.",
+                isError: false);
+            return;
+        }
+
+        try
+        {
+            ImportedScene inputScene = ResolveGeneratedSkinningInputScene();
+            SetGeneratedDonorAlignmentState(
+                ComputeCoarseGeneratedDonorAlignment(inputScene),
+                updateEditor: true);
+            SetGeneratedSkinningFailure(
+                "Модель загружена. Тяжёлый расчёт весов ещё не запускался: " +
+                "подгоните размер, поворот и положение, затем нажмите " +
+                "«Применить размер и положение».",
+                isError: false);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          OverflowException or
+                                          ArgumentException or
+                                          NotSupportedException)
+        {
+            SetGeneratedSkinningFailure(exception.Message);
+        }
+        finally
+        {
+            RefreshTextureList();
+        }
+    }
+
+    private async Task CalculateGeneratedSkinningAsync(
+        CancellationToken cancellationToken)
+    {
+        if (_document is null || _sourceScene is null ||
+            _replacementScene is null || _generatedDonorAlignment is null)
+        {
+            throw new InvalidOperationException(
+                "Для расчёта нужны target SMO, donor model и применённый alignment.");
+        }
+        if (_targetRigDefinition is null && !EnsureRigFittingState())
+        {
+            throw new InvalidOperationException(
+                _rigFittingIssue ?? "Игровой скелет недоступен.");
+        }
+
+        ImportedScene inputScene = ResolveGeneratedSkinningInputScene();
+        TargetRigFittingPoseSnapshot fittingPose = CaptureRigFittingPose(
+            localRotationsOnly: true);
+        SmoDocument target = _document;
+        TargetRigDefinition rig = _targetRigDefinition!;
+        ReplacementTransform alignment = _generatedDonorAlignment;
+        GeneratedSkinningComponentOverrides? componentOverrides =
+            _generatedSkinningComponentOverrides;
+        GeneratedSkinningRegionOverrides? regionOverrides =
+            _generatedSkinningRegionOverrides;
+        SkinnedTextureTransferMode textureMode =
+            SelectedSkinnedTextureTransferMode;
+        SkinnedRenderableMaterialProfile materialProfile =
+            ResolveSkinnedMaterialProfile(inputScene, textureMode);
+        long revision = _rigFittingRevision;
+        _lastLoggedProgressPercent = -1;
+        _lastLoggedProgressStage = null;
+        SessionLog.Info(
+            "GENERATED_CALCULATION",
+            $"Started; revision={revision}; textureMode={textureMode}; " +
+            $"materialProfile={materialProfile}; alignment={alignment}; " +
+            $"componentOverrides={componentOverrides}; regionOverrides={regionOverrides}");
+        LogFittingPoseSnapshot(fittingPose);
+        LogDiagnosticState("GENERATED_CALCULATION_INPUT");
+
+        IProgress<GeneratedSkinningProgress> uiProgress =
+            new Progress<GeneratedSkinningProgress>(progress =>
+        {
+            int percent = (int)Math.Round(
+                Math.Clamp(progress.Fraction, 0, 1) * 100);
+            GeneratedCalculationProgressBar.Value = percent;
+            GeneratedCalculationProgressText.Text =
+                $"{percent}% — {progress.Stage}";
+            GeneratedCalculationOverlayBar.Value = percent;
+            GeneratedCalculationOverlayText.Text =
+                $"{percent}% — {progress.Stage}";
+            StatusText.Text = progress.Stage;
+            if (percent != _lastLoggedProgressPercent ||
+                !string.Equals(progress.Stage, _lastLoggedProgressStage, StringComparison.Ordinal))
+            {
+                _lastLoggedProgressPercent = percent;
+                _lastLoggedProgressStage = progress.Stage;
+                SessionLog.Info(
+                    "GENERATED_PROGRESS",
+                    $"percent={percent}; fraction={progress.Fraction:G9}; stage={progress.Stage}");
+            }
+        });
+        uiProgress.Report(new GeneratedSkinningProgress(
+            0, "Подготовка данных для расчёта"));
+
+        GeneratedSkinningCalculationResult result = await Task.Run(
+            () =>
+            {
+                Thread worker = Thread.CurrentThread;
+                ThreadPriority originalPriority = worker.Priority;
+                try
+                {
+                    worker.Priority = ThreadPriority.BelowNormal;
+                    return ComputeGeneratedSkinning(
+                        target,
+                        inputScene,
+                        fittingPose,
+                        alignment,
+                        rig,
+                        componentOverrides,
+                        regionOverrides,
+                        textureMode,
+                        materialProfile,
+                        cancellationToken,
+                        uiProgress);
+                }
+                finally
+                {
+                    try
+                    {
+                        worker.Priority = originalPriority;
+                    }
+                    catch (ThreadStateException)
+                    {
+                    }
+                }
+            },
+            cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!ReferenceEquals(target, _document) ||
+            !ReferenceEquals(inputScene, _generatedSkinningEffectiveScene) ||
+            revision != _rigFittingRevision)
+        {
+            throw new OperationCanceledException(
+                "Исходные данные изменились во время расчёта.",
+                cancellationToken);
+        }
+
+        _generatedDonorAlignment = result.Alignment;
+        _generatedDonorAlignmentDraft = result.Alignment;
+        _generatedAlignmentEditorDirty = false;
+        _generatedAlignmentAccepted = true;
+        _generatedBodySelection = result.BodySelection;
+        _generatedSkinningPreparation = result.Preparation;
+        _generatedSkinningPreparationIssue = null;
+        _generatedSkinningPreparationRevision = _rigFittingRevision;
+        _glbSkinTransferPlan = result.Plan;
+        WriteTransformEditor(result.Alignment);
+        PopulateGeneratedSkinningDiagnostics(result.Preparation.Analysis);
+        UpdateGeneratedSkinningCompatibilityPresentation();
+        RefreshTextureList();
+        GeneratedCalculationProgressBar.Value = 100;
+        GeneratedCalculationOverlayBar.Value = 100;
+        GeneratedCalculationProgressText.Text = result.Plan.CanReplace
+            ? "100% — веса и итоговый план построены"
+            : "100% — веса построены, итоговый план требует исправлений";
+        StatusText.Text = result.Plan.CanReplace
+            ? "Автоматические веса построены и показаны. Проверьте результат."
+            : "Веса построены, но итоговый skinned-план несовместим. " +
+              "Проверьте сообщения.";
+        SessionLog.Info(
+            "GENERATED_CALCULATION",
+            $"Completed; canReplace={result.Plan.CanReplace}; " +
+            $"preparedVertices={result.Preparation.Analysis.PreparedVertexCount}; " +
+            $"components={result.Preparation.Analysis.DonorComponentCount}; " +
+            $"attachments={result.Preparation.Analysis.Attachments.Count}; " +
+            $"activeJoints={result.Plan.ActiveJointCount}; materialGroups={result.Plan.MaterialGroupCount}; " +
+            $"warnings={string.Join(" | ", result.Preparation.Analysis.Warnings)}; " +
+            $"planMessages={string.Join(" | ", result.Plan.Messages)}");
+    }
+
+    private static GeneratedSkinningCalculationResult ComputeGeneratedSkinning(
+        SmoDocument target,
+        ImportedScene inputScene,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform alignment,
+        TargetRigDefinition rig,
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides,
+        SkinnedTextureTransferMode textureMode,
+        SkinnedRenderableMaterialProfile materialProfile,
+        CancellationToken cancellationToken,
+        IProgress<GeneratedSkinningProgress> progress)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        progress.Report(new GeneratedSkinningProgress(
+            0.04, "Поиск основных поверхностей тела"));
+        TargetRigBodySelection bodySelection =
+            TargetRigAutomaticPoseFitter.SelectBody(
+                rig,
+                inputScene,
+                alignment);
+        cancellationToken.ThrowIfCancellationRequested();
+        progress.Report(new GeneratedSkinningProgress(
+            0.09, "Поверхности тела выбраны; начинается расчёт весов"));
+
+        var weightProgress = new MappedGeneratedSkinningProgress(
+            progress,
+            start: 0.10,
+            span: 0.73);
+        GeneratedSkinningPreparationResult preparation =
+            PrepareGeneratedSkinningForTarget(
+                target,
+                inputScene,
+                fittingPose,
+                alignment,
+                bodySelection,
+                componentOverrides,
+                regionOverrides,
+                cancellationToken,
+                weightProgress);
+        cancellationToken.ThrowIfCancellationRequested();
+        progress.Report(new GeneratedSkinningProgress(
+            0.86, "Проверка игровых palettes, материалов и текстур"));
+        GlbSkinTransferPlan plan = AnalyzeGlbSkinTransferCore(
+            target,
+            preparation.PreparedScene,
+            textureMode,
+            materialProfile,
+            cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        progress.Report(new GeneratedSkinningProgress(
+            1, "Расчёт и проверка завершены"));
+        return new GeneratedSkinningCalculationResult(
+            alignment,
+            bodySelection,
+            preparation,
+            plan);
+    }
+
     private void UpdateGeneratedSkinningPreparation()
     {
         _plan = null;
@@ -1880,12 +2809,20 @@ public partial class MainWindow : Window
                         ResolveGeneratedBodySelection(
                             inputScene,
                             _generatedDonorAlignment!);
-                    _generatedSkinningPreparation = PrepareGeneratedSkinning(
-                        inputScene,
-                        fittingPose,
-                        _generatedDonorAlignment!,
-                        bodySelection,
-                        _generatedSkinningComponentOverrides);
+                    _generatedSkinningPreparation =
+                        CanReuseAlignmentDiscoveryPreparation(
+                            alignmentDiscovery,
+                            bodySelection,
+                            _generatedSkinningComponentOverrides,
+                            _generatedSkinningRegionOverrides)
+                            ? alignmentDiscovery
+                            : PrepareGeneratedSkinning(
+                                inputScene,
+                                fittingPose,
+                                _generatedDonorAlignment!,
+                                bodySelection,
+                                _generatedSkinningComponentOverrides,
+                                _generatedSkinningRegionOverrides);
                 }
                 catch (Exception automaticException) when (
                     automaticException is InvalidDataException or
@@ -1907,7 +2844,8 @@ public partial class MainWindow : Window
                         fittingPose,
                         _generatedDonorAlignment!,
                         bodySelection,
-                        _generatedSkinningComponentOverrides);
+                        _generatedSkinningComponentOverrides,
+                        _generatedSkinningRegionOverrides);
                 }
             }
             else
@@ -1921,7 +2859,8 @@ public partial class MainWindow : Window
                     fittingPose,
                     _generatedDonorAlignment!,
                     bodySelection,
-                    _generatedSkinningComponentOverrides);
+                    _generatedSkinningComponentOverrides,
+                    _generatedSkinningRegionOverrides);
             }
             _generatedSkinningPreparationRevision = _rigFittingRevision;
             _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
@@ -1949,6 +2888,23 @@ public partial class MainWindow : Window
         {
             RefreshTextureList();
         }
+    }
+
+    private static bool CanReuseAlignmentDiscoveryPreparation(
+        GeneratedSkinningPreparationResult preparation,
+        TargetRigBodySelection bodySelection,
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides)
+    {
+        if (componentOverrides is not null || regionOverrides is not null ||
+            bodySelection.Components.Count != 1)
+            return false;
+
+        long selectedVertexCount = bodySelection.Components[0]
+            .VerticesByMesh
+            .Sum(membership => (long)membership.VertexIndices.Count);
+        return selectedVertexCount ==
+            preparation.Analysis.DonorMainComponentVertexCount;
     }
 
     private TargetRigBodySelection ResolveGeneratedBodySelection(
@@ -2008,13 +2964,91 @@ public partial class MainWindow : Window
         TargetRigFittingPoseSnapshot fittingPose,
         ReplacementTransform alignment,
         TargetRigBodySelection? bodySelection,
-        GeneratedSkinningComponentOverrides? componentOverrides)
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides)
     {
         if (_document is null)
             throw new InvalidOperationException("Сначала выберите исходный SMO.");
+        if (_protectedRegionPreviewRunning)
+        {
+            throw new InvalidOperationException(
+                "Дождитесь фонового расчёта защищённых областей перед запуском " +
+                "другой подготовки generated weights.");
+        }
+
+        return PrepareGeneratedSkinningForTarget(
+            _document,
+            inputScene,
+            fittingPose,
+            alignment,
+            bodySelection,
+            componentOverrides,
+            regionOverrides);
+    }
+
+    private static GeneratedSkinningPreparationResult
+        PrepareGeneratedSkinningForTarget(
+            SmoDocument target,
+            ImportedScene inputScene,
+            TargetRigFittingPoseSnapshot fittingPose,
+            ReplacementTransform alignment,
+            TargetRigBodySelection? bodySelection,
+            GeneratedSkinningComponentOverrides? componentOverrides,
+            GeneratedSkinningRegionOverrides? regionOverrides,
+            CancellationToken cancellationToken = default,
+            IProgress<GeneratedSkinningProgress>? progress = null)
+    {
+        ArgumentNullException.ThrowIfNull(target);
 
         bool bodySelectionIsCurrent = bodySelection is not null &&
             Equals(bodySelection.DonorAlignment, alignment);
+        if (regionOverrides is not null)
+        {
+            if (!bodySelectionIsCurrent)
+            {
+                throw new InvalidOperationException(
+                    "Защищённые области требуют актуального выбора поверхности тела.");
+            }
+            if (componentOverrides is not null)
+            {
+                HashSet<int> explicitlyRigidComponents = componentOverrides.Components
+                    .Select(component => component.ComponentIndex)
+                    .ToHashSet();
+                TargetRigSelectedBodyComponent[] filteredBody = bodySelection!.Components
+                    .Where(component => !explicitlyRigidComponents.Contains(
+                        component.ComponentIndex))
+                    .ToArray();
+                if (filteredBody.Length != bodySelection.Components.Count)
+                {
+                    bodySelection = bodySelection with
+                    {
+                        Components = Array.AsReadOnly(filteredBody),
+                        ExcludedComponentCount =
+                            bodySelection.TotalComponentCount - filteredBody.Length
+                    };
+                }
+                return GeneratedSkinningPreparer.PrepareCancellable(
+                    target,
+                    inputScene,
+                    fittingPose,
+                    alignment,
+                    bodySelection,
+                    componentOverrides,
+                    regionOverrides,
+                    cancellationToken,
+                    progress);
+            }
+            return GeneratedSkinningPreparer.PrepareCancellable(
+                target,
+                inputScene,
+                fittingPose,
+                alignment,
+                bodySelection!,
+                componentOverrides: null,
+                regionOverrides,
+                cancellationToken,
+                progress);
+        }
         if (componentOverrides is not null)
         {
             if (bodySelectionIsCurrent)
@@ -2041,34 +3075,28 @@ public partial class MainWindow : Window
                     };
                 }
             }
-            return bodySelectionIsCurrent
-                ? GeneratedSkinningPreparer.Prepare(
-                    _document,
-                    inputScene,
-                    fittingPose,
-                    alignment,
-                    bodySelection!,
-                    componentOverrides)
-                : GeneratedSkinningPreparer.Prepare(
-                    _document,
-                    inputScene,
-                    fittingPose,
-                    alignment,
-                    componentOverrides);
-        }
-
-        return bodySelectionIsCurrent
-            ? GeneratedSkinningPreparer.Prepare(
-                _document,
+            return GeneratedSkinningPreparer.PrepareCancellable(
+                target,
                 inputScene,
                 fittingPose,
                 alignment,
-                bodySelection!)
-            : GeneratedSkinningPreparer.Prepare(
-                _document,
-                inputScene,
-                fittingPose,
-                alignment);
+                bodySelectionIsCurrent ? bodySelection : null,
+                componentOverrides,
+                regionOverrides: null,
+                cancellationToken,
+                progress);
+        }
+
+        return GeneratedSkinningPreparer.PrepareCancellable(
+            target,
+            inputScene,
+            fittingPose,
+            alignment,
+            bodySelectionIsCurrent ? bodySelection : null,
+            componentOverrides: null,
+            regionOverrides: null,
+            cancellationToken,
+            progress);
     }
 
     private ImportedScene ResolveGeneratedSkinningInputScene()
@@ -2120,7 +3148,7 @@ public partial class MainWindow : Window
         if (_sourceScene is null)
         {
             throw new InvalidOperationException(
-                "Для подгонки размера и положения сначала выберите целевой SMO.");
+                "Для подгонки размера, поворота и положения сначала выберите целевой SMO.");
         }
 
         return ReplacementTransformFitter.FitByHeightAndCenter(
@@ -2133,6 +3161,8 @@ public partial class MainWindow : Window
         bool updateEditor)
     {
         ValidateGeneratedDonorAlignment(alignment);
+        _generatedAlignmentAccepted = false;
+        _generatedRigPoseAccepted = false;
         _generatedDonorAlignment = alignment;
         _generatedDonorAlignmentDraft = alignment;
         _generatedAlignmentEditorDirty = false;
@@ -2145,7 +3175,9 @@ public partial class MainWindow : Window
     {
         GeneratedSkinningAlignmentText.Text = alignment is null
             ? "Alignment: —"
-            : $"Alignment: scale {alignment.Scale:G6}; move " +
+            : $"Alignment: scale {alignment.Scale:G6}; rotate " +
+              $"({alignment.RotationDegrees.X:G6}, {alignment.RotationDegrees.Y:G6}, " +
+              $"{alignment.RotationDegrees.Z:G6}); move " +
               $"({alignment.Translation.X:G6}, {alignment.Translation.Y:G6}, " +
               $"{alignment.Translation.Z:G6})";
     }
@@ -2183,13 +3215,984 @@ public partial class MainWindow : Window
                     $"{attachment.TargetBoneName} " +
                     $"({attachment.VertexCount:N0} vertices, " +
                     $"{attachment.TriangleCount:N0} triangles, " +
-                    $"distance {attachment.DistanceToBone:G5})"));
+                    $"distance {attachment.DistanceToBone:G5})" +
+                    (attachment.ManualAssignment is not null
+                        ? $" [manual {attachment.ManualAssignment}]"
+                        : attachment.SemanticAssignment is not null
+                            ? $" [semantic {attachment.SemanticAssignment}]"
+                            : string.Empty)));
         GeneratedSkinningDetailsExpander.Header =
             $"Технические детали: предупреждений {distinctWarnings.Length}, " +
             $"rigid attachments {analysis.Attachments.Count}";
+        PopulateProtectedRegionEditor(analysis.SemanticRegions);
         PopulateGeneratedAttachmentEditor(analysis);
         UpdateGeneratedSkinningConfirmationAvailability();
         UpdateGeneratedSkinningPrimaryStatus();
+    }
+
+    private void PopulateProtectedRegionEditor(
+        GeneratedSkinningRegionAnalysis analysis)
+    {
+        if (!_protectedRegionEditorDirty)
+        {
+            unchecked
+            {
+                _protectedRegionPreviewRequestRevision++;
+            }
+            _protectedRegionDraftAdjustments.Clear();
+            foreach (GeneratedSkinningRegionResolution region in analysis.Regions)
+            {
+                _protectedRegionDraftAdjustments[region.Region] =
+                    region.Status == GeneratedSkinningRegionStatus.UnsafeCalibration
+                        ? region.Adjustment with { Enabled = false }
+                        : region.Adjustment;
+            }
+            _protectedRegionDraftOverrides = null;
+            _protectedRegionDraftPreparation = null;
+            _protectedRegionDraftTransferPlan = null;
+            _protectedRegionDraftRequest = null;
+            _protectedRegionDraftRevision = -1;
+        }
+        LoadProtectedRegionControlsFromDraft();
+        UpdateProtectedRegionEditorAvailability();
+    }
+
+    private GeneratedSkinningRegionAnalysis? DisplayedProtectedRegionAnalysis =>
+        ProtectedRegionEditorActive &&
+        _protectedRegionDraftPreparation is not null &&
+        _protectedRegionDraftRevision == _rigFittingRevision
+            ? _protectedRegionDraftPreparation.Analysis.SemanticRegions
+            : _generatedSkinningPreparation?.Analysis.SemanticRegions;
+
+    private GeneratedSkinningSemanticRegion[] SelectedProtectedRegions(
+        bool includeMirroredHand)
+    {
+        int selection = ProtectedRegionCombo?.SelectedIndex ?? 0;
+        return selection switch
+        {
+            1 =>
+            [
+                GeneratedSkinningSemanticRegion.LeftHand,
+                GeneratedSkinningSemanticRegion.RightHand
+            ],
+            2 when includeMirroredHand &&
+                       MirrorProtectedHandsCheckBox?.IsChecked == true =>
+            [
+                GeneratedSkinningSemanticRegion.LeftHand,
+                GeneratedSkinningSemanticRegion.RightHand
+            ],
+            2 => [GeneratedSkinningSemanticRegion.LeftHand],
+            3 when includeMirroredHand &&
+                       MirrorProtectedHandsCheckBox?.IsChecked == true =>
+            [
+                GeneratedSkinningSemanticRegion.RightHand,
+                GeneratedSkinningSemanticRegion.LeftHand
+            ],
+            3 => [GeneratedSkinningSemanticRegion.RightHand],
+            _ => [GeneratedSkinningSemanticRegion.Head]
+        };
+    }
+
+    private GeneratedSkinningSemanticRegion PrimaryProtectedRegion() =>
+        SelectedProtectedRegions(includeMirroredHand: false)[0];
+
+    private GeneratedSkinningRegionAdjustment ResolveProtectedRegionDraft(
+        GeneratedSkinningSemanticRegion region)
+    {
+        if (_protectedRegionDraftAdjustments.TryGetValue(
+                region,
+                out GeneratedSkinningRegionAdjustment? adjustment))
+        {
+            return adjustment;
+        }
+
+        GeneratedSkinningRegionResolution? resolved =
+            _generatedSkinningPreparation?.Analysis.SemanticRegions.Regions
+                .FirstOrDefault(value => value.Region == region);
+        adjustment = resolved?.Adjustment ?? new GeneratedSkinningRegionAdjustment(
+            region,
+            Enabled: true,
+            AxialOffset: 0,
+            AxialScale: 1,
+            RadialScale: 1);
+        _protectedRegionDraftAdjustments[region] = adjustment;
+        return adjustment;
+    }
+
+    private void LoadProtectedRegionControlsFromDraft()
+    {
+        if (ProtectedRegionCombo is null)
+            return;
+
+        GeneratedSkinningSemanticRegion primary = PrimaryProtectedRegion();
+        GeneratedSkinningRegionAdjustment adjustment =
+            ResolveProtectedRegionDraft(primary);
+        GeneratedSkinningSemanticRegion[] selected =
+            SelectedProtectedRegions(includeMirroredHand: true);
+        GeneratedSkinningRegionResolution[] selectedResolutions =
+            DisplayedProtectedRegionAnalysis?.Regions
+                .Where(value => selected.Contains(value.Region))
+                .ToArray() ?? [];
+        GeneratedSkinningRegionResolution? resolution =
+            selectedResolutions
+                .FirstOrDefault(value => value.Region == primary);
+        double fallbackOffsetExtent = Math.Max(
+            resolution?.AutomaticVolume?.AxialRadius ?? 1,
+            0.001) * 1.5;
+        double minimumOffset = selectedResolutions.Length == 0
+            ? -fallbackOffsetExtent
+            : selectedResolutions.Max(value =>
+                (double)value.AdjustmentLimits.MinimumAxialOffset);
+        double maximumOffset = selectedResolutions.Length == 0
+            ? fallbackOffsetExtent
+            : selectedResolutions.Min(value =>
+                (double)value.AdjustmentLimits.MaximumAxialOffset);
+        double minimumLength = selectedResolutions.Length == 0
+            ? 0.5
+            : selectedResolutions.Max(value =>
+                (double)value.AdjustmentLimits.MinimumAxialScale);
+        double maximumLength = selectedResolutions.Length == 0
+            ? primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75
+            : selectedResolutions.Min(value =>
+                (double)value.AdjustmentLimits.MaximumAxialScale);
+        double minimumThickness = selectedResolutions.Length == 0
+            ? 0.5
+            : selectedResolutions.Max(value =>
+                (double)value.AdjustmentLimits.MinimumRadialScale);
+        double maximumThickness = selectedResolutions.Length == 0
+            ? primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75
+            : selectedResolutions.Min(value =>
+                (double)value.AdjustmentLimits.MaximumRadialScale);
+        if (minimumOffset > maximumOffset)
+            (minimumOffset, maximumOffset) = (-fallbackOffsetExtent, fallbackOffsetExtent);
+        if (minimumLength > maximumLength)
+            (minimumLength, maximumLength) =
+                (0.5, primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75);
+        if (minimumThickness > maximumThickness)
+            (minimumThickness, maximumThickness) =
+                (0.5, primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75);
+        bool selectedVolumeIsAvailable =
+            selectedResolutions.Length == selected.Length &&
+            selectedResolutions.All(value =>
+                value.AutomaticVolume is not null);
+
+        _settingProtectedRegionControls = true;
+        try
+        {
+            ProtectedRegionPositionSlider.Minimum = minimumOffset;
+            ProtectedRegionPositionSlider.Maximum = maximumOffset;
+            double offsetSpan = Math.Max(maximumOffset - minimumOffset, 0.001);
+            ProtectedRegionPositionSlider.SmallChange = offsetSpan / 100;
+            ProtectedRegionPositionSlider.LargeChange = offsetSpan / 10;
+            ProtectedRegionPositionSlider.Value = Math.Clamp(
+                adjustment.AxialOffset,
+                ProtectedRegionPositionSlider.Minimum,
+                ProtectedRegionPositionSlider.Maximum);
+            ProtectedRegionLengthSlider.Minimum = minimumLength;
+            ProtectedRegionLengthSlider.Maximum = maximumLength;
+            ProtectedRegionLengthSlider.Value = Math.Clamp(
+                adjustment.AxialScale,
+                ProtectedRegionLengthSlider.Minimum,
+                ProtectedRegionLengthSlider.Maximum);
+            ProtectedRegionThicknessSlider.Minimum = minimumThickness;
+            ProtectedRegionThicknessSlider.Maximum = maximumThickness;
+            ProtectedRegionThicknessSlider.Value = Math.Clamp(
+                adjustment.RadialScale,
+                ProtectedRegionThicknessSlider.Minimum,
+                ProtectedRegionThicknessSlider.Maximum);
+            ProtectedRegionTiltSlider.Value = Math.Clamp(
+                adjustment.ForwardTiltDegrees,
+                ProtectedRegionTiltSlider.Minimum,
+                ProtectedRegionTiltSlider.Maximum);
+            ProtectedRegionEnabledCheckBox.IsChecked =
+                selectedVolumeIsAvailable &&
+                selected.All(region => ResolveProtectedRegionDraft(region).Enabled);
+            bool handSelection = primary != GeneratedSkinningSemanticRegion.Head;
+            Visibility tiltVisibility = handSelection
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ProtectedRegionTiltLabel.Visibility = tiltVisibility;
+            ProtectedRegionTiltSlider.Visibility = tiltVisibility;
+            ProtectedRegionTiltValueText.Visibility = tiltVisibility;
+            MirrorProtectedHandsCheckBox.Visibility = handSelection
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            MirrorProtectedHandsCheckBox.IsEnabled = handSelection &&
+                ProtectedRegionCombo.SelectedIndex is 2 or 3 &&
+                CanEditProtectedRegions;
+        }
+        finally
+        {
+            _settingProtectedRegionControls = false;
+        }
+
+        UpdateProtectedRegionSelectionText();
+    }
+
+    private void UpdateProtectedRegionSelectionText()
+    {
+        if (ProtectedRegionSelectionText is null)
+            return;
+
+        GeneratedSkinningRegionAnalysis? analysis =
+            DisplayedProtectedRegionAnalysis;
+        GeneratedSkinningSemanticRegion[] selected =
+            SelectedProtectedRegions(includeMirroredHand: true);
+        GeneratedSkinningRegionResolution[] resolutions = analysis?.Regions
+            .Where(region => selected.Contains(region.Region))
+            .OrderBy(region => region.Region)
+            .ToArray() ?? [];
+        if (resolutions.Length == 0)
+        {
+            ProtectedRegionSelectionText.Text =
+                "Точная область появится после успешного расчёта весов.";
+            return;
+        }
+
+        GeneratedSkinningRegionResolution[] skipped = resolutions
+            .Where(region =>
+                region.Status == GeneratedSkinningRegionStatus.UnsafeCalibration ||
+                region.AutomaticVolume is null)
+            .ToArray();
+        if (skipped.Length > 0)
+        {
+            string diagnostic = string.Join(
+                " | ",
+                skipped.SelectMany(region => region.Warnings)
+                    .Distinct(StringComparer.Ordinal)
+                    .Take(3));
+            ProtectedRegionSelectionText.Text =
+                "Автокалибровка пропущена для: " +
+                string.Join(", ", skipped.Select(region =>
+                    DescribeProtectedRegion(region.Region))) +
+                (string.IsNullOrWhiteSpace(diagnostic)
+                    ? ". Геометрия области недостаточно надёжна. "
+                    : ". " + diagnostic + " ") +
+                (skipped.All(region => region.AutomaticVolume is not null)
+                    ? "Доступен ручной target-эллипс: включите область, настройте его " +
+                      "без пересчёта и затем нажмите «Применить»."
+                    : "Для этой области не удалось построить даже опорный target-объём.");
+            return;
+        }
+
+        if (resolutions.All(region =>
+                region.Status == GeneratedSkinningRegionStatus.Disabled))
+        {
+            ProtectedRegionSelectionText.Text =
+                "Защита отключена. Серый контур показывает автоматический объём; " +
+                "включите защиту или нажмите «Авто», чтобы вернуть параметры Core.";
+            return;
+        }
+
+        int core = resolutions.Sum(region => region.CoreVerticesByMesh.Sum(
+            membership => membership.VertexIndices.Count));
+        int transition = resolutions.Sum(region =>
+            region.TransitionVerticesByMesh.Sum(
+                membership => membership.VertexIndices.Count));
+        string names = string.Join(
+            ", ",
+            resolutions.Select(region => region.AnchorBoneName));
+        string approximateFingerMotion = string.Join(
+            "; ",
+            resolutions
+                .Where(region =>
+                    region.IsApplied &&
+                    region.Region != GeneratedSkinningSemanticRegion.Head)
+                .Select(region => region.MotionBranchBoneNames.Count == 0
+                    ? $"{DescribeProtectedRegion(region.Region)}: без безопасных ветвей пальцев"
+                    : $"{DescribeProtectedRegion(region.Region)}: " +
+                      $"приблизительные пальцы, " +
+                      $"ветвей {region.MotionBranchBoneNames.Count}, " +
+                      $"{region.CoarseMotionVertexCount:N0} вершин, " +
+                      $"до {region.MaximumMotionProxyWeight:P0}"));
+        GeneratedSkinningRegionResolution[] disabled = resolutions
+            .Where(region => region.Status == GeneratedSkinningRegionStatus.Disabled)
+            .ToArray();
+        ProtectedRegionSelectionText.Text =
+            $"Кости: {names}. Захвачено: ядро {core:N0}, переход " +
+            $"{transition:N0} вершин." +
+            (string.IsNullOrWhiteSpace(approximateFingerMotion)
+                ? string.Empty
+                : " " + approximateFingerMotion + ".") +
+            (disabled.Length == 0
+                ? string.Empty
+                : " Отключено: " + string.Join(", ", disabled.Select(region =>
+                    DescribeProtectedRegion(region.Region))) + ".");
+    }
+
+    private static string DescribeProtectedRegion(
+        GeneratedSkinningSemanticRegion region) => region switch
+    {
+        GeneratedSkinningSemanticRegion.Head => "голова",
+        GeneratedSkinningSemanticRegion.LeftHand => "левая кисть",
+        GeneratedSkinningSemanticRegion.RightHand => "правая кисть",
+        _ => region.ToString()
+    };
+
+    private void UpdateProtectedRegionEditorAvailability()
+    {
+        if (ProtectedRegionEditorExpander is null)
+            return;
+
+        bool visible = UsesGeneratedWeightsPortingMode && !IsJointPoseEditorMode;
+        ProtectedRegionEditorExpander.Visibility = visible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        bool canEdit = CanEditProtectedRegions && !_protectedRegionPreviewRunning;
+        GeneratedSkinningSemanticRegion[] selected =
+            SelectedProtectedRegions(includeMirroredHand: true);
+        GeneratedSkinningRegionResolution[] resolutions =
+            DisplayedProtectedRegionAnalysis?.Regions
+                .Where(region => selected.Contains(region.Region))
+                .ToArray() ?? [];
+        bool parametersAvailable = resolutions.Length == selected.Length &&
+            resolutions.All(region => region.AutomaticVolume is not null);
+        ProtectedRegionCombo.IsEnabled = canEdit;
+        ProtectedRegionEnabledCheckBox.IsEnabled = canEdit && parametersAvailable;
+        ProtectedRegionPositionSlider.IsEnabled = canEdit && parametersAvailable;
+        ProtectedRegionLengthSlider.IsEnabled = canEdit && parametersAvailable;
+        ProtectedRegionThicknessSlider.IsEnabled = canEdit && parametersAvailable;
+        ProtectedRegionTiltSlider.IsEnabled = canEdit && parametersAvailable &&
+            PrimaryProtectedRegion() == GeneratedSkinningSemanticRegion.Head;
+        AutoProtectedRegionButton.IsEnabled = canEdit && parametersAvailable;
+        ResetProtectedRegionButton.IsEnabled = canEdit &&
+            _protectedRegionEditorDirty;
+        ApplyProtectedRegionButton.IsEnabled = canEdit &&
+            _protectedRegionEditorDirty &&
+            !_protectedRegionPreviewRunning;
+        ApplyProtectedRegionButton.Content = _protectedRegionPreviewRunning
+            ? "Расчёт…"
+            : _protectedRegionEditorDirty
+                ? "Применить"
+                : "Применено";
+        MirrorProtectedHandsCheckBox.IsEnabled = canEdit &&
+            ProtectedRegionCombo.SelectedIndex is 2 or 3;
+        ProtectedRegionEditorExpander.Opacity =
+            GeneratedSkinningPreparationIsCurrent ? 1 : 0.6;
+        UpdateProtectedRegionSelectionText();
+    }
+
+    private void ProtectedRegionEditor_Expanded(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+            return;
+        ClearFinalTexturedPreview();
+        if (ShowFittingPoseCheckBox.IsChecked != true)
+            ShowFittingPoseCheckBox.IsChecked = true;
+        LoadProtectedRegionControlsFromDraft();
+        UpdateProtectedRegionEditorAvailability();
+        UpdateGeneratedAttachmentEditorAvailability();
+        RefreshPreview();
+    }
+
+    private void ProtectedRegionEditor_Collapsed(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+            return;
+        _protectedRegionPreviewTimer.Stop();
+        UpdateProtectedRegionEditorAvailability();
+        UpdateGeneratedAttachmentEditorAvailability();
+        RefreshPreview();
+    }
+
+    private void ProtectedRegion_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        LoadProtectedRegionControlsFromDraft();
+        UpdateProtectedRegionEditorAvailability();
+        RefreshPreview();
+    }
+
+    private void ProtectedRegionEnabled_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        CaptureProtectedRegionControlsIntoDraft();
+    }
+
+    private void MirrorProtectedHands_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        if (PrimaryProtectedRegion() != GeneratedSkinningSemanticRegion.Head &&
+            MirrorProtectedHandsCheckBox.IsChecked == true)
+        {
+            CaptureProtectedRegionControlsIntoDraft();
+        }
+        LoadProtectedRegionControlsFromDraft();
+        UpdateProtectedRegionEditorAvailability();
+    }
+
+    private void ProtectedRegionSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        CaptureProtectedRegionControlsIntoDraft();
+    }
+
+    private void CaptureProtectedRegionControlsIntoDraft()
+    {
+        if (!CanEditProtectedRegions)
+            return;
+
+        bool enabled = ProtectedRegionEnabledCheckBox.IsChecked == true;
+        foreach (GeneratedSkinningSemanticRegion region in
+                 SelectedProtectedRegions(includeMirroredHand: true))
+        {
+            GeneratedSkinningRegionAdjustment current =
+                ResolveProtectedRegionDraft(region);
+            _protectedRegionDraftAdjustments[region] = current with
+            {
+                Enabled = enabled,
+                AxialOffset = checked((float)ProtectedRegionPositionSlider.Value),
+                AxialScale = checked((float)ProtectedRegionLengthSlider.Value),
+                RadialScale = checked((float)ProtectedRegionThicknessSlider.Value),
+                ForwardTiltDegrees = region == GeneratedSkinningSemanticRegion.Head
+                    ? checked((float)ProtectedRegionTiltSlider.Value)
+                    : 0
+            };
+        }
+
+        MarkProtectedRegionDraftDirty();
+    }
+
+    private void MarkProtectedRegionDraftDirty()
+    {
+        unchecked
+        {
+            _protectedRegionPreviewRequestRevision++;
+        }
+        _protectedRegionEditorDirty = true;
+        _protectedRegionDraftOverrides = null;
+        _protectedRegionDraftPreparation = null;
+        _protectedRegionDraftTransferPlan = null;
+        _protectedRegionDraftRequest = null;
+        _protectedRegionDraftRevision = -1;
+        ClearFinalTexturedPreview();
+        ProtectedRegionStatusText.Text =
+            "Показан лёгкий черновой эллипс без пересчёта весов. " +
+            "Последний применённый результат сохранён; тяжёлый расчёт начнётся " +
+            "только после нажатия «Применить».";
+        _protectedRegionPreviewTimer.Stop();
+        UpdateProtectedRegionEditorAvailability();
+        UpdateGeneratedAttachmentEditorAvailability();
+        UpdateGeneratedSkinningConfirmationAvailability();
+        RefreshPreview();
+    }
+
+    private async void ProtectedRegionPreviewTimer_Tick(object? sender, EventArgs e)
+    {
+        _protectedRegionPreviewTimer.Stop();
+        if (!CanEditProtectedRegions || !_protectedRegionEditorDirty ||
+            _protectedRegionPreviewRunning)
+        {
+            return;
+        }
+
+        long requestRevision = _protectedRegionPreviewRequestRevision;
+        long fittingRevision = _rigFittingRevision;
+        _protectedRegionPreviewRunning = true;
+        var runCancellation = new CancellationTokenSource();
+        _protectedRegionPreviewCancellation = runCancellation;
+        ProtectedRegionStatusText.Text =
+            "Точный live preview рассчитывается в фоне…";
+        UpdateProtectedRegionEditorAvailability();
+        ControlsScrollViewer.IsEnabled = false;
+
+        ProtectedRegionPreparationRequest? request = null;
+        Task? runOperation = null;
+        try
+        {
+            GeneratedSkinningRegionOverrides overrides =
+                BuildProtectedRegionOverrides();
+            request = CaptureProtectedRegionPreparationRequest(overrides);
+            Task<(GeneratedSkinningPreparationResult Preparation,
+                GlbSkinTransferPlan Plan)> preparationOperation = Task.Run(
+                () =>
+                {
+                    runCancellation.Token.ThrowIfCancellationRequested();
+                    var result = PrepareProtectedRegionCandidate(
+                        request,
+                        runCancellation.Token);
+                    runCancellation.Token.ThrowIfCancellationRequested();
+                    return result;
+                },
+                runCancellation.Token);
+            runOperation = preparationOperation;
+            _protectedRegionPreviewOperation = preparationOperation;
+            (GeneratedSkinningPreparationResult preparation,
+                GlbSkinTransferPlan plan) = await preparationOperation;
+
+            if (_isClosing ||
+                requestRevision != _protectedRegionPreviewRequestRevision ||
+                fittingRevision != _rigFittingRevision ||
+                !CanEditProtectedRegions ||
+                !_protectedRegionEditorDirty ||
+                !IsProtectedRegionPreparationRequestCurrent(request))
+            {
+                return;
+            }
+
+            _protectedRegionDraftOverrides = overrides;
+            _protectedRegionDraftPreparation = preparation;
+            _protectedRegionDraftTransferPlan = plan;
+            _protectedRegionDraftRequest = request;
+            _protectedRegionDraftRevision = fittingRevision;
+            ProtectedRegionStatusText.Text = plan.CanReplace
+                ? "Live preview обновлён. Нажмите «Применить», чтобы заменить writer input."
+                : "Область показана, но writer plan несовместим: " +
+                  string.Join(" | ", plan.Messages);
+            UpdateProtectedRegionSelectionText();
+            RefreshPreview();
+        }
+        catch (OperationCanceledException)
+        {
+            if (!_isClosing)
+            {
+                ProtectedRegionStatusText.Text =
+                    "Фоновый расчёт защищённых областей отменён.";
+            }
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          OverflowException or
+                                          ArgumentException or
+                                          NotSupportedException)
+        {
+            if (!_isClosing &&
+                requestRevision == _protectedRegionPreviewRequestRevision &&
+                fittingRevision == _rigFittingRevision &&
+                CanEditProtectedRegions &&
+                _protectedRegionEditorDirty &&
+                (request is null ||
+                 IsProtectedRegionPreparationRequestCurrent(request)))
+            {
+                _protectedRegionDraftOverrides = null;
+                _protectedRegionDraftPreparation = null;
+                _protectedRegionDraftTransferPlan = null;
+                _protectedRegionDraftRequest = null;
+                _protectedRegionDraftRevision = -1;
+                ProtectedRegionStatusText.Text =
+                    "Live preview отклонён: " + exception.Message;
+                RefreshPreview();
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(_protectedRegionPreviewCancellation, runCancellation))
+                _protectedRegionPreviewCancellation = null;
+            if (ReferenceEquals(_protectedRegionPreviewOperation, runOperation))
+                _protectedRegionPreviewOperation = null;
+            runCancellation.Dispose();
+            _protectedRegionPreviewRunning = false;
+            if (!_isClosing)
+                ControlsScrollViewer.IsEnabled = !_replacementLoadRunning;
+            bool requestIdentityChanged = !_isClosing &&
+                request is not null &&
+                !IsProtectedRegionPreparationRequestCurrent(request);
+            if (!_isClosing &&
+                CanEditProtectedRegions &&
+                _protectedRegionEditorDirty &&
+                (requestRevision != _protectedRegionPreviewRequestRevision ||
+                 requestIdentityChanged))
+            {
+                ProtectedRegionStatusText.Text =
+                    "Изменения обновились во время расчёта; запускается новый preview…";
+                _protectedRegionPreviewTimer.Stop();
+                _protectedRegionPreviewTimer.Start();
+            }
+            UpdateProtectedRegionEditorAvailability();
+        }
+    }
+
+    private GeneratedSkinningRegionOverrides BuildProtectedRegionOverrides()
+    {
+        GeneratedSkinningRegionAnalysis identity =
+            _generatedSkinningPreparation?.Analysis.SemanticRegions ??
+            throw new InvalidOperationException(
+                "Автоматические защищённые области ещё не рассчитаны.");
+        GeneratedSkinningRegionAdjustment[] adjustments =
+            Enum.GetValues<GeneratedSkinningSemanticRegion>()
+                .Select(ResolveProtectedRegionDraft)
+                .OrderBy(value => value.Region)
+                .ToArray();
+        return new GeneratedSkinningRegionOverrides(
+            Array.AsReadOnly(adjustments),
+            identity.TargetRigFingerprint,
+            identity.DonorGeometryFingerprint,
+            identity.AlignmentFingerprint,
+            identity.FittingPoseFingerprint);
+    }
+
+    private sealed record ProtectedRegionPreparationRequest(
+        SmoDocument Target,
+        ImportedScene SourceReplacementScene,
+        ImportedScene GeneratedBaseScene,
+        ImportedScene InputScene,
+        string? ReplacementPath,
+        string? BlenderPath,
+        IReadOnlyList<ImportedTexture> ExternalTextures,
+        TargetRigFittingPoseSnapshot FittingPose,
+        ReplacementTransform Alignment,
+        TargetRigBodySelection BodySelection,
+        GeneratedSkinningComponentOverrides? ComponentOverrides,
+        GeneratedSkinningRegionOverrides RegionOverrides,
+        SkinnedTextureTransferMode TextureMode,
+        IReadOnlyList<int> OpaqueOverlaySourceMeshKeys,
+        IReadOnlyList<int> TransparentSurfaceSourceMeshKeys);
+
+    private ProtectedRegionPreparationRequest
+        CaptureProtectedRegionPreparationRequest(
+            GeneratedSkinningRegionOverrides overrides)
+    {
+        if (_document is null || _generatedDonorAlignment is null)
+        {
+            throw new InvalidOperationException(
+                "Целевой SMO или alignment защищённых областей недоступен.");
+        }
+
+        ImportedScene inputScene = ResolveGeneratedSkinningInputScene();
+        TargetRigFittingPoseSnapshot fittingPose = CaptureRigFittingPose(
+            localRotationsOnly: true);
+        TargetRigBodySelection bodySelection = ResolveGeneratedBodySelection(
+            inputScene,
+            _generatedDonorAlignment);
+        SkinnedTextureTransferMode textureMode =
+            SelectedSkinnedTextureTransferMode;
+        int[] overlayKeys = UsesGeneratedWeightsPortingMode &&
+                            textureMode == SkinnedTextureTransferMode.ImportDonor
+            ? _opaqueOverlaySourceMeshKeys.Order().ToArray()
+            : [];
+        int[] transparentKeys = UsesGeneratedWeightsPortingMode &&
+                                textureMode == SkinnedTextureTransferMode.ImportDonor
+            ? _transparentSurfaceSourceMeshKeys.Order().ToArray()
+            : [];
+        if (overlayKeys.Length > 0 || transparentKeys.Length > 0)
+        {
+            ValidateMaterialMeshKeys(
+                inputScene,
+                overlayKeys.Concat(transparentKeys));
+        }
+
+        return new ProtectedRegionPreparationRequest(
+            _document,
+            _baseReplacementScene ?? throw new InvalidOperationException(
+                "Исходная donor scene недоступна."),
+            _generatedSkinningBaseScene ?? throw new InvalidOperationException(
+                "Geometry-only donor scene недоступна."),
+            inputScene,
+            _replacementPath,
+            _blenderPath,
+            Array.AsReadOnly(_externalTextures.ToArray()),
+            fittingPose,
+            _generatedDonorAlignment,
+            bodySelection,
+            _generatedSkinningComponentOverrides,
+            overrides,
+            textureMode,
+            Array.AsReadOnly(overlayKeys),
+            Array.AsReadOnly(transparentKeys));
+    }
+
+    private bool IsProtectedRegionPreparationRequestCurrent(
+        ProtectedRegionPreparationRequest request)
+    {
+        if (!ReferenceEquals(_document, request.Target) ||
+            !ReferenceEquals(
+                _baseReplacementScene,
+                request.SourceReplacementScene) ||
+            !ReferenceEquals(
+                _generatedSkinningBaseScene,
+                request.GeneratedBaseScene) ||
+            !string.Equals(
+                _replacementPath,
+                request.ReplacementPath,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                _blenderPath,
+                request.BlenderPath,
+                StringComparison.Ordinal) ||
+            _generatedDonorAlignment is null ||
+            !Equals(_generatedDonorAlignment, request.Alignment) ||
+            !ReferenceEquals(
+                _generatedSkinningComponentOverrides,
+                request.ComponentOverrides) ||
+            SelectedSkinnedTextureTransferMode != request.TextureMode)
+        {
+            return false;
+        }
+
+        if (_externalTextures.Count != request.ExternalTextures.Count)
+            return false;
+        for (int index = 0; index < _externalTextures.Count; index++)
+        {
+            if (!ReferenceEquals(
+                    _externalTextures[index],
+                    request.ExternalTextures[index]))
+            {
+                return false;
+            }
+        }
+
+        int[] currentOverlayKeys = UsesGeneratedWeightsPortingMode &&
+                                   request.TextureMode ==
+                                   SkinnedTextureTransferMode.ImportDonor
+            ? _opaqueOverlaySourceMeshKeys.Order().ToArray()
+            : [];
+        int[] currentTransparentKeys = UsesGeneratedWeightsPortingMode &&
+                                       request.TextureMode ==
+                                       SkinnedTextureTransferMode.ImportDonor
+            ? _transparentSurfaceSourceMeshKeys.Order().ToArray()
+            : [];
+        return currentOverlayKeys.AsSpan().SequenceEqual(
+                   request.OpaqueOverlaySourceMeshKeys.ToArray()) &&
+               currentTransparentKeys.AsSpan().SequenceEqual(
+                   request.TransparentSurfaceSourceMeshKeys.ToArray());
+    }
+
+    private static (GeneratedSkinningPreparationResult Preparation,
+        GlbSkinTransferPlan Plan) PrepareProtectedRegionCandidate(
+            ProtectedRegionPreparationRequest request,
+            CancellationToken cancellationToken)
+    {
+        GeneratedSkinningPreparationResult preparation =
+            PrepareGeneratedSkinningForTarget(
+                request.Target,
+                request.InputScene,
+                request.FittingPose,
+                request.Alignment,
+                request.BodySelection,
+                request.ComponentOverrides,
+                request.RegionOverrides,
+                cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        SkinnedRenderableMaterialProfile materialProfile =
+            request.TextureMode == SkinnedTextureTransferMode.ImportDonor &&
+            (request.OpaqueOverlaySourceMeshKeys.Count > 0 ||
+             request.TransparentSurfaceSourceMeshKeys.Count > 0)
+                ? CreateSkinnedMaterialProfile(
+                    preparation.PreparedScene,
+                    request.OpaqueOverlaySourceMeshKeys,
+                    request.TransparentSurfaceSourceMeshKeys)
+                : SkinnedRenderableMaterialProfile.Default;
+        GlbSkinTransferPlan plan = AnalyzeGlbSkinTransferCore(
+            request.Target,
+            preparation.PreparedScene,
+            request.TextureMode,
+            materialProfile);
+        cancellationToken.ThrowIfCancellationRequested();
+        return (preparation, plan);
+    }
+
+    private void AutoProtectedRegion_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditProtectedRegions)
+            return;
+        foreach (GeneratedSkinningSemanticRegion region in
+                 SelectedProtectedRegions(includeMirroredHand: true))
+        {
+            _protectedRegionDraftAdjustments[region] =
+                new GeneratedSkinningRegionAdjustment(
+                    region,
+                    Enabled: true,
+                    AxialOffset: 0,
+                    AxialScale: 1,
+                    RadialScale: 1);
+        }
+        LoadProtectedRegionControlsFromDraft();
+        MarkProtectedRegionDraftDirty();
+    }
+
+    private void ResetProtectedRegion_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditProtectedRegions)
+            return;
+        ResetProtectedRegionEditor(clearCommitted: false, updateControls: true);
+        ProtectedRegionStatusText.Text =
+            "Черновик сброшен к последнему применённому результату.";
+        UpdateProtectedRegionEditorAvailability();
+        UpdateGeneratedAttachmentEditorAvailability();
+        RefreshState();
+    }
+
+    private async void ApplyProtectedRegion_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditProtectedRegions || !_protectedRegionEditorDirty)
+            return;
+        if (_protectedRegionPreviewRunning)
+        {
+            ProtectedRegionStatusText.Text =
+                "Дождитесь завершения текущего расчёта защищённых областей.";
+            return;
+        }
+
+        long requestRevision = _protectedRegionPreviewRequestRevision;
+        long fittingRevision = _rigFittingRevision;
+        GeneratedSkinningSemanticRegion[] selectedRegions =
+            SelectedProtectedRegions(includeMirroredHand: true);
+        var runCancellation = new CancellationTokenSource();
+        _protectedRegionPreviewCancellation = runCancellation;
+        _protectedRegionPreviewRunning = true;
+        UpdateProtectedRegionEditorAvailability();
+        ProtectedRegionStatusText.Text =
+            "Применение запущено: пересчитываются веса и проверяется итоговый план…";
+        SessionLog.Info(
+            "PROTECTED_REGION",
+            $"Explicit apply started; revision={fittingRevision}; selected=" +
+            string.Join(",", selectedRegions));
+        try
+        {
+            _protectedRegionPreviewTimer.Stop();
+            GeneratedSkinningRegionOverrides candidateOverrides =
+                BuildProtectedRegionOverrides();
+            ProtectedRegionPreparationRequest candidateRequest =
+                CaptureProtectedRegionPreparationRequest(candidateOverrides);
+            (GeneratedSkinningPreparationResult candidatePreparation,
+             GlbSkinTransferPlan candidatePlan) = await Task.Run(
+                () => PrepareProtectedRegionCandidate(
+                    candidateRequest,
+                    runCancellation.Token),
+                runCancellation.Token);
+            runCancellation.Token.ThrowIfCancellationRequested();
+            if (_isClosing ||
+                requestRevision != _protectedRegionPreviewRequestRevision ||
+                fittingRevision != _rigFittingRevision ||
+                !_protectedRegionEditorDirty ||
+                !IsProtectedRegionPreparationRequestCurrent(candidateRequest))
+            {
+                throw new OperationCanceledException(
+                    "Настройки защищённой области изменились во время расчёта.",
+                    runCancellation.Token);
+            }
+            if (!candidatePlan.CanReplace)
+            {
+                throw new InvalidOperationException(
+                    "Точный writer plan отклонил область: " +
+                    string.Join(" | ", candidatePlan.Messages));
+            }
+            GeneratedSkinningRegionResolution[] rejectedEnabled =
+                candidatePreparation.Analysis.SemanticRegions.Regions
+                    .Where(region => selectedRegions.Contains(region.Region))
+                    .Where(region => ResolveProtectedRegionDraft(region.Region).Enabled)
+                    .Where(region => !region.IsApplied)
+                    .ToArray();
+            if (rejectedEnabled.Length > 0)
+            {
+                throw new InvalidOperationException(
+                    "Ручная защищённая область была отклонена для: " +
+                    string.Join(", ", rejectedEnabled.Select(region =>
+                        DescribeProtectedRegion(region.Region))) + ". " +
+                    string.Join(" | ", rejectedEnabled
+                        .SelectMany(region => region.Warnings)
+                        .Distinct(StringComparer.Ordinal)
+                        .TakeLast(4)));
+            }
+
+            // Commit only after both generated-skinning preparation and the
+            // exact writer analysis have accepted the same immutable override.
+            ClearFinalTexturedPreview();
+            _generatedSkinningRegionOverrides = candidateOverrides;
+            _generatedSkinningPreparation = candidatePreparation;
+            _generatedSkinningPreparationIssue = null;
+            _generatedSkinningPreparationRevision = _rigFittingRevision;
+            _generatedPreparedSceneViewedRevision = -1;
+            _glbSkinTransferPlan = candidatePlan;
+            _plan = null;
+            _protectedRegionEditorDirty = false;
+            _protectedRegionDraftOverrides = null;
+            _protectedRegionDraftPreparation = null;
+            _protectedRegionDraftTransferPlan = null;
+            _protectedRegionDraftRequest = null;
+            _protectedRegionDraftRevision = -1;
+            unchecked
+            {
+                _protectedRegionPreviewRequestRevision++;
+            }
+            SetGeneratedSkinningConfirmation(false);
+            PopulateGeneratedSkinningDiagnostics(candidatePreparation.Analysis);
+            UpdateGeneratedSkinningCompatibilityPresentation();
+            RefreshTextureList();
+            ProtectedRegionStatusText.Text =
+                "Защищённые области применены. Настройки остаются доступными: " +
+                "их можно уточнить и применить повторно.";
+            SessionLog.Info(
+                "PROTECTED_REGION",
+                $"Explicit apply completed; canReplace={candidatePlan.CanReplace}; " +
+                $"selected={string.Join(",", selectedRegions)}");
+            RefreshState();
+        }
+        catch (OperationCanceledException)
+        {
+            if (!_isClosing)
+            {
+                ProtectedRegionStatusText.Text =
+                    "Применение защищённой области отменено; черновой эллипс сохранён.";
+            }
+            SessionLog.Warning("PROTECTED_REGION", "Explicit apply cancelled.");
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          OverflowException or
+                                          ArgumentException or
+                                          NotSupportedException)
+        {
+            ProtectedRegionStatusText.Text =
+                "Область не применена; writer input не изменён: " +
+                exception.Message;
+            StatusText.Text = ProtectedRegionStatusText.Text;
+            SessionLog.Error("PROTECTED_REGION", exception);
+        }
+        finally
+        {
+            if (ReferenceEquals(_protectedRegionPreviewCancellation, runCancellation))
+                _protectedRegionPreviewCancellation = null;
+            runCancellation.Dispose();
+            _protectedRegionPreviewRunning = false;
+            if (!_isClosing)
+            {
+                UpdateProtectedRegionEditorAvailability();
+                UpdateGeneratedAttachmentEditorAvailability();
+                UpdateGeneratedSkinningConfirmationAvailability();
+                RefreshPreview();
+            }
+        }
+    }
+
+    private void ResetProtectedRegionEditor(
+        bool clearCommitted,
+        bool updateControls)
+    {
+        _protectedRegionPreviewTimer?.Stop();
+        unchecked
+        {
+            _protectedRegionPreviewRequestRevision++;
+        }
+        if (clearCommitted)
+            _generatedSkinningRegionOverrides = null;
+        _protectedRegionDraftOverrides = null;
+        _protectedRegionDraftPreparation = null;
+        _protectedRegionDraftTransferPlan = null;
+        _protectedRegionDraftRequest = null;
+        _protectedRegionDraftRevision = -1;
+        _protectedRegionEditorDirty = false;
+        _protectedRegionDraftAdjustments.Clear();
+        if (!clearCommitted && _generatedSkinningPreparation is not null)
+        {
+            foreach (GeneratedSkinningRegionResolution region in
+                     _generatedSkinningPreparation.Analysis.SemanticRegions.Regions)
+            {
+                _protectedRegionDraftAdjustments[region.Region] = region.Adjustment;
+            }
+        }
+        if (ProtectedRegionStatusText is not null)
+            ProtectedRegionStatusText.Text = string.Empty;
+        if (updateControls && ProtectedRegionCombo is not null)
+            LoadProtectedRegionControlsFromDraft();
     }
 
     private void PopulateGeneratedAttachmentEditor(
@@ -2258,6 +4261,7 @@ public partial class MainWindow : Window
 
         bool selectionAvailable = UsesGeneratedWeightsPortingMode &&
             !IsJointPoseEditorMode &&
+            !ProtectedRegionEditorActive &&
             GeneratedSkinningPreparationIsCurrent &&
             !_nativeValidationRunning;
         bool assignmentAvailable = selectionAvailable &&
@@ -2285,6 +4289,11 @@ public partial class MainWindow : Window
         {
             GeneratedAttachmentStatusText.Text =
                 "Переключитесь в режим «Человек», чтобы выбирать жёсткие детали.";
+        }
+        else if (ProtectedRegionEditorActive)
+        {
+            GeneratedAttachmentStatusText.Text =
+                "Сверните «Защищённые области», чтобы выбирать жёсткие детали.";
         }
         else if (RigFittingEditorHasPendingChanges)
         {
@@ -2467,7 +4476,8 @@ public partial class MainWindow : Window
                     ResolveGeneratedBodySelection(
                         inputScene,
                         _generatedDonorAlignment),
-                    candidateOverrides);
+                    candidateOverrides,
+                    _generatedSkinningRegionOverrides);
             GlbSkinTransferPlan candidateTransferPlan = AnalyzeGlbSkinTransfer(
                 _document,
                 candidatePreparation.PreparedScene,
@@ -2522,7 +4532,8 @@ public partial class MainWindow : Window
 
     private static bool IsGeneratedAttachmentEchoWarning(string warning) =>
         warning.StartsWith("Detached component ", StringComparison.Ordinal) &&
-        warning.Contains(" was kept rigid on ", StringComparison.Ordinal);
+        (warning.Contains(" was kept rigid on ", StringComparison.Ordinal) ||
+         warning.Contains(" was proven to be a compact ", StringComparison.Ordinal));
 
     private void SetGeneratedSkinningFailure(string message, bool isError = true)
     {
@@ -2544,7 +4555,7 @@ public partial class MainWindow : Window
         CompatibilityText.Text = _generatedDonorAlignment is null
             ? message
             : message +
-              "\nРазмер и положение модели сохранены. Исправьте их вручную при " +
+              "\nРазмер, поворот и положение модели сохранены. Исправьте их вручную при " +
               "необходимости; raw preview остаётся доступен, но plan/save заблокированы.";
         ReplacementModePanel.Background = new SolidColorBrush(
             isError ? Color.FromRgb(254, 226, 226) : Color.FromRgb(255, 243, 205));
@@ -2557,12 +4568,33 @@ public partial class MainWindow : Window
         SkinnedTextureTransferMode textureMode,
         SkinnedRenderableMaterialProfile? materialProfile = null)
     {
+        if (_protectedRegionPreviewRunning)
+        {
+            throw new InvalidOperationException(
+                "Дождитесь фонового расчёта защищённых областей перед новым " +
+                "writer Analyze.");
+        }
         materialProfile ??= ResolveSkinnedMaterialProfile(donor, textureMode);
-        GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
+        return AnalyzeGlbSkinTransferCore(
             target,
             donor,
             textureMode,
             materialProfile);
+    }
+
+    private static GlbSkinTransferPlan AnalyzeGlbSkinTransferCore(
+        SmoDocument target,
+        ImportedScene donor,
+        SkinnedTextureTransferMode textureMode,
+        SkinnedRenderableMaterialProfile materialProfile,
+        CancellationToken cancellationToken = default)
+    {
+        GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
+            target,
+            donor,
+            textureMode,
+            materialProfile,
+            cancellationToken);
         if (textureMode == SkinnedTextureTransferMode.PreserveTarget)
             return plan;
 
@@ -3036,6 +5068,12 @@ public partial class MainWindow : Window
         try
         {
             string fullOutputPath = Path.GetFullPath(dialog.FileName);
+            SessionLog.Info(
+                "SAVE",
+                $"Requested output={fullOutputPath}; smoMode={smoMode}; " +
+                $"multiTextureMode={multiTextureMode}; skinnedMode={skinnedGlbMode}; " +
+                $"preserveOriginalTextures={preserveOriginalTextures}");
+            LogDiagnosticState("SAVE_INPUT_STATE");
             EnsureSeparateOutput(fullOutputPath, _sourcePath, "исходный SMO");
             EnsureSeparateOutput(fullOutputPath, _replacementPath, "файл-донор");
             string outputPath;
@@ -3123,6 +5161,9 @@ public partial class MainWindow : Window
             }
 
             await ValidateSavedModelAsync(outputPath, _sourcePath);
+            SessionLog.Info(
+                "SAVE",
+                $"Completed output={outputPath}; bytes={new FileInfo(outputPath).Length}");
         }
         catch (Exception exception) { ShowError(exception); }
     }
@@ -3142,12 +5183,83 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void MainWindow_Loaded(object sender, RoutedEventArgs e) =>
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        SessionLog.Info("WINDOW", "Main window loaded.");
+        await RestoreStartupPresetAsync();
+        if (_isClosing)
+            return;
         await LocateGameExecutableAsync();
+    }
+
+    private async Task RestoreStartupPresetAsync()
+    {
+        if (_startupPreset is null)
+            return;
+        try
+        {
+            if (_document is null)
+                throw new InvalidOperationException(
+                    "Startup restoration requires an existing source SMO argument.");
+            SessionLog.Info(
+                "STARTUP_RESTORE",
+                $"Loading donor={_startupPreset.DonorPath}; " +
+                $"alignment={_startupPreset.Alignment}; pose={_startupPreset.Pose}");
+            await LoadExternalReplacementAsync(_startupPreset.DonorPath);
+            if (!UsesGeneratedWeightsPortingMode)
+            {
+                throw new InvalidOperationException(
+                    "Startup donor did not select generated-weight porting mode.");
+            }
+
+            CommitGeneratedDonorAlignment(
+                _startupPreset.Alignment,
+                "Параметры положения восстановлены из командной строки.",
+                recalculate: false);
+            _generatedAlignmentAccepted = true;
+            RigPoseEditorModeCombo.SelectedIndex = 1;
+            WriteBodyPoseControls(_startupPreset.Pose);
+            StageBodyPose(
+                _startupPreset.Pose,
+                "Поза восстановлена из командной строки; применяется…");
+            ApplyBodyPose_Click(this, new RoutedEventArgs());
+            SessionLog.Info(
+                "STARTUP_RESTORE",
+                "Source, donor, alignment and body pose were restored; " +
+                "generated calculation was requested.");
+        }
+        catch (Exception exception)
+        {
+            SessionLog.Error("STARTUP_RESTORE", exception);
+            ShowError(exception);
+        }
+    }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        SessionLog.Info(
+            "WINDOW",
+            $"Closing requested; replacementLoad={_replacementLoadRunning}; " +
+            $"generatedCalculation={_generatedSkinningCalculationRunning}; " +
+            $"protectedPreview={_protectedRegionPreviewRunning}; nativeValidation={_nativeValidationRunning}");
+        LogDiagnosticState("FINAL_STATE");
         _isClosing = true;
+        _forceProcessExitOnClosed = _generatedSkinningCalculationRunning;
+        CancelProtectedRegionPreview();
+        try
+        {
+            _replacementLoadCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        try
+        {
+            _generatedSkinningCalculationCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
         try
         {
             _nativeValidationCancellation?.Cancel();
@@ -3581,11 +5693,15 @@ public partial class MainWindow : Window
         int opaqueOverlayGroupCount = items.Count(item =>
             item.SourceMeshKeys is { Count: > 0 } keys &&
             keys.All(_opaqueOverlaySourceMeshKeys.Contains));
+        int transparentSurfaceGroupCount = items.Count(item =>
+            item.SourceMeshKeys is { Count: > 0 } keys &&
+            keys.All(_transparentSurfaceSourceMeshKeys.Contains));
         TextureSummaryText.Text =
             $"Доступно: {items.Count}; привязано к материалам: " +
             $"{referencedTextureIndices.Count}; добавлено извне: {_externalTextures.Count}; " +
             $"ожидается файлов: {unresolvedGroups.Length}; не привязано: {unusedCount}; " +
-            $"непрозрачных накладок: {opaqueOverlayGroupCount}." +
+            $"непрозрачных накладок: {opaqueOverlayGroupCount}; " +
+            $"прозрачных поверхностей: {transparentSurfaceGroupCount}." +
             (generatedWeightsMode && _replacementRigidTextureBundle is not null
                 ? " Rigid matN bundle здесь проигнорирован; показаны ресурсы полной исходной geometry."
                 : string.Empty);
@@ -3614,13 +5730,17 @@ public partial class MainWindow : Window
 
         int opaqueCount = sourceMeshKeys.Count(
             _opaqueOverlaySourceMeshKeys.Contains);
-        return opaqueCount switch
+        int transparentCount = sourceMeshKeys.Count(
+            _transparentSurfaceSourceMeshKeys.Contains);
+        return (opaqueCount, transparentCount) switch
         {
-            0 => "Режим материала: Авто",
-            _ when opaqueCount == sourceMeshKeys.Count =>
+            (0, 0) => "Режим материала: Авто",
+            _ when opaqueCount == sourceMeshKeys.Count && transparentCount == 0 =>
                 "Режим материала: Непрозрачная накладка",
-            _ => "Режим материала: смешанный — выберите «Авто» или " +
-                 "«Непрозрачная накладка» для всей группы"
+            _ when transparentCount == sourceMeshKeys.Count && opaqueCount == 0 =>
+                "Режим материала: Прозрачная поверхность",
+            _ => "Режим материала: смешанный — выберите «Авто», " +
+                 "«Непрозрачная накладка» или «Прозрачная поверхность» для всей группы"
         };
     }
 
@@ -3636,6 +5756,7 @@ public partial class MainWindow : Window
     private void UpdateMaterialOverrideAvailability()
     {
         if (MaterialOverridePanel is null || SetOpaqueOverlayButton is null ||
+            SetTransparentSurfaceButton is null ||
             ResetMaterialModeButton is null ||
             MaterialOverrideStatusText is null || TextureList is null)
         {
@@ -3649,8 +5770,13 @@ public partial class MainWindow : Window
         SetOpaqueOverlayButton.IsEnabled = canEdit &&
             selectedMeshKeys.Any(key =>
                 !_opaqueOverlaySourceMeshKeys.Contains(key));
+        SetTransparentSurfaceButton.IsEnabled = canEdit &&
+            selectedMeshKeys.Any(key =>
+                !_transparentSurfaceSourceMeshKeys.Contains(key));
         ResetMaterialModeButton.IsEnabled = canEdit &&
-            selectedMeshKeys.Any(_opaqueOverlaySourceMeshKeys.Contains);
+            selectedMeshKeys.Any(key =>
+                _opaqueOverlaySourceMeshKeys.Contains(key) ||
+                _transparentSurfaceSourceMeshKeys.Contains(key));
 
         MaterialOverrideStatusText.Text = !UsesGeneratedWeightsPortingMode
             ? "Доступно только в режиме 3 «Создать веса с нуля»."
@@ -3663,16 +5789,24 @@ public partial class MainWindow : Window
                 ? "Выберите одну или несколько привязанных текстурных групп в списке выше."
                 : $"Выбрано элементов: {selectedMeshKeys.Length}; " +
                   $"непрозрачных накладок среди них: " +
-                  $"{selectedMeshKeys.Count(_opaqueOverlaySourceMeshKeys.Contains)}.";
+                  $"{selectedMeshKeys.Count(_opaqueOverlaySourceMeshKeys.Contains)}; " +
+                  $"прозрачных поверхностей: " +
+                  $"{selectedMeshKeys.Count(_transparentSurfaceSourceMeshKeys.Contains)}.";
     }
 
     private void SetOpaqueOverlay_Click(object sender, RoutedEventArgs e) =>
-        ApplySelectedSkinnedMaterialMode(opaqueOverlay: true);
+        ApplySelectedSkinnedMaterialMode(
+            SkinnedRenderableMaterialMode.OpaqueOverlay);
+
+    private void SetTransparentSurface_Click(object sender, RoutedEventArgs e) =>
+        ApplySelectedSkinnedMaterialMode(
+            SkinnedRenderableMaterialMode.TransparentSurface);
 
     private void ResetMaterialMode_Click(object sender, RoutedEventArgs e) =>
-        ApplySelectedSkinnedMaterialMode(opaqueOverlay: false);
+        ApplySelectedSkinnedMaterialMode(SkinnedRenderableMaterialMode.Auto);
 
-    private void ApplySelectedSkinnedMaterialMode(bool opaqueOverlay)
+    private void ApplySelectedSkinnedMaterialMode(
+        SkinnedRenderableMaterialMode mode)
     {
         ImportedScene? catalogScene = SkinnedMaterialOverrideCatalogScene;
         if (!CanEditSkinnedMaterialOverrides || catalogScene is null)
@@ -3696,19 +5830,31 @@ public partial class MainWindow : Window
             return;
         }
 
-        var candidateKeys = new HashSet<int>(_opaqueOverlaySourceMeshKeys);
+        var candidateOpaqueKeys = new HashSet<int>(
+            _opaqueOverlaySourceMeshKeys);
+        var candidateTransparentKeys = new HashSet<int>(
+            _transparentSurfaceSourceMeshKeys);
         bool changed = false;
         foreach (int sourceMeshKey in selectedMeshKeys)
         {
-            changed |= opaqueOverlay
-                ? candidateKeys.Add(sourceMeshKey)
-                : candidateKeys.Remove(sourceMeshKey);
+            SkinnedRenderableMaterialMode previous =
+                candidateOpaqueKeys.Contains(sourceMeshKey)
+                    ? SkinnedRenderableMaterialMode.OpaqueOverlay
+                    : candidateTransparentKeys.Contains(sourceMeshKey)
+                        ? SkinnedRenderableMaterialMode.TransparentSurface
+                        : SkinnedRenderableMaterialMode.Auto;
+            candidateOpaqueKeys.Remove(sourceMeshKey);
+            candidateTransparentKeys.Remove(sourceMeshKey);
+            if (mode == SkinnedRenderableMaterialMode.OpaqueOverlay)
+                candidateOpaqueKeys.Add(sourceMeshKey);
+            else if (mode == SkinnedRenderableMaterialMode.TransparentSurface)
+                candidateTransparentKeys.Add(sourceMeshKey);
+            changed |= previous != mode;
         }
         if (!changed)
         {
-            StatusText.Text = opaqueOverlay
-                ? "Выбранные группы уже имеют режим «Непрозрачная накладка»."
-                : "Выбранные группы уже используют режим «Авто».";
+            StatusText.Text = $"Выбранные группы уже используют режим " +
+                              $"«{MaterialModeDisplayName(mode)}».";
             UpdateMaterialOverrideAvailability();
             return;
         }
@@ -3720,9 +5866,14 @@ public partial class MainWindow : Window
             ImportedScene profileSource = hasCurrentPreparedScene
                 ? _generatedSkinningPreparation!.PreparedScene
                 : catalogScene;
-            ValidateMaterialMeshKeys(profileSource, candidateKeys);
+            ValidateMaterialMeshKeys(
+                profileSource,
+                candidateOpaqueKeys.Concat(candidateTransparentKeys));
             SkinnedRenderableMaterialProfile candidateProfile =
-                CreateSkinnedMaterialProfile(profileSource, candidateKeys);
+                CreateSkinnedMaterialProfile(
+                    profileSource,
+                    candidateOpaqueKeys,
+                    candidateTransparentKeys);
             GlbSkinTransferPlan? candidatePlan = null;
             if (_document is not null)
             {
@@ -3738,7 +5889,7 @@ public partial class MainWindow : Window
                 if (materialProfileIssue is not null)
                 {
                     throw new InvalidOperationException(
-                        "Выбранные группы нельзя применить как непрозрачные накладки: " +
+                        "Выбранный режим материала нельзя применить: " +
                         materialProfileIssue[
                             "Renderable material profile is invalid:".Length..].Trim());
                 }
@@ -3751,7 +5902,10 @@ public partial class MainWindow : Window
             // stable source mesh keys; the first preparation performs the same
             // strict validation before plan/save can become available.
             _opaqueOverlaySourceMeshKeys.Clear();
-            _opaqueOverlaySourceMeshKeys.UnionWith(candidateKeys);
+            _opaqueOverlaySourceMeshKeys.UnionWith(candidateOpaqueKeys);
+            _transparentSurfaceSourceMeshKeys.Clear();
+            _transparentSurfaceSourceMeshKeys.UnionWith(
+                candidateTransparentKeys);
             ClearFinalTexturedPreview();
             _plan = null;
             _glbSkinTransferPlan = candidatePlan;
@@ -3768,11 +5922,15 @@ public partial class MainWindow : Window
             StatusText.Text = !hasCurrentPreparedScene
                 ? $"Режим сохранён для групп: {selectedItems.Length}. Он будет строго " +
                   "проверен при создании PreparedScene; plan/save пока недоступны."
-                : opaqueOverlay
+                : mode == SkinnedRenderableMaterialMode.OpaqueOverlay
                     ? $"Групп назначено как «Непрозрачная накладка»: " +
                       $"{selectedItems.Length}. Прозрачность их исходных изображений " +
                       "будет убрана только в этой ветви SMO."
-                    : $"Для групп восстановлен режим «Авто»: {selectedItems.Length}.";
+                    : mode == SkinnedRenderableMaterialMode.TransparentSurface
+                        ? $"Групп назначено как «Прозрачная поверхность»: " +
+                          $"{selectedItems.Length}. Все их triangles будут записаны " +
+                          "в нативные Alpha-ветви SMO."
+                        : $"Для групп восстановлен режим «Авто»: {selectedItems.Length}.";
         }
         catch (Exception exception) when (exception is InvalidDataException or
                                           InvalidOperationException or
@@ -3784,7 +5942,7 @@ public partial class MainWindow : Window
             MessageBox.Show(
                 this,
                 StatusText.Text,
-                "Непрозрачная накладка",
+                "Режим материала",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             UpdateMaterialOverrideAvailability();
@@ -3808,6 +5966,92 @@ public partial class MainWindow : Window
             .Select(mesh => scene.Materials[mesh.MaterialIndex].BaseColorTextureIndex)
             .Where(index => index >= 0 && index < scene.Textures.Count)
             .ToHashSet();
+
+    private void UpdateTextureMemoryWarning(ImportedScene scene)
+    {
+        HashSet<int> referencedIndices = GetReferencedTextureIndices(scene);
+        ImportedTexture[] textures = (referencedIndices.Count == 0
+                ? scene.Textures
+                : referencedIndices.Order().Select(index => scene.Textures[index]))
+            .ToArray();
+        if (textures.Length == 0)
+        {
+            HideTextureMemoryWarning();
+            return;
+        }
+
+        ImportedTextureMemoryEstimate estimate =
+            ImportedTextureMemoryEstimator.Estimate(
+                textures,
+                AssumedGameMemoryBudgetBytes);
+        bool shouldWarn =
+            estimate.DecodedMipmappedRgbaBytes >= TextureMemoryWarningMinimumBytes ||
+            estimate.MipmappedBudgetFraction >=
+                TextureMemoryWarningMinimumBudgetFraction;
+        if (!shouldWarn)
+        {
+            HideTextureMemoryWarning();
+            return;
+        }
+
+        bool critical = estimate.MipmappedBudgetFraction >= 0.25 ||
+            estimate.DecodedMipmappedRgbaBytes >= 1024L * 1024 * 1024;
+        Color background = critical
+            ? Color.FromRgb(254, 242, 242)
+            : Color.FromRgb(255, 247, 237);
+        Color border = critical
+            ? Color.FromRgb(252, 165, 165)
+            : Color.FromRgb(253, 186, 116);
+        Color foreground = critical
+            ? Color.FromRgb(153, 27, 27)
+            : Color.FromRgb(154, 52, 18);
+        TextureMemoryWarningPanel.Background = new SolidColorBrush(background);
+        TextureMemoryWarningPanel.BorderBrush = new SolidColorBrush(border);
+        TextureMemoryWarningHeadingText.Foreground =
+            new SolidColorBrush(foreground);
+        TextureMemoryWarningText.Foreground = new SolidColorBrush(foreground);
+        TextureMemoryWarningHeadingText.Text = critical
+            ? "Очень большой набор текстур"
+            : "Большой набор текстур";
+
+        string[] shownGroups = estimate.ResolutionGroups
+            .Take(6)
+            .Select(group =>
+                $"{group.Width:N0}×{group.Height:N0} — {group.Count} шт.")
+            .ToArray();
+        string groupSummary = string.Join("; ", shownGroups) +
+            (estimate.ResolutionGroups.Count > shownGroups.Length
+                ? $"; ещё вариантов: {estimate.ResolutionGroups.Count - shownGroups.Length}"
+                : string.Empty);
+        TextureMemoryWarningText.Text =
+            $"Привязанных текстур: {estimate.TextureCount}: {groupSummary} " +
+            $"Сжатые изображения в исходной модели занимают " +
+            $"{FormatMemorySize(estimate.EncodedBytes)}. После распаковки в RGBA32: " +
+            $"{FormatMemorySize(estimate.DecodedBaseRgbaBytes)} " +
+            $"({estimate.BaseBudgetFraction:P1} от доступных игре 3,70 ГиБ); " +
+            $"с полной цепочкой mipmap: до " +
+            $"{FormatMemorySize(estimate.DecodedMipmappedRgbaBytes)} " +
+            $"({estimate.MipmappedBudgetFraction:P1}). Импорт разрешён: программа " +
+            $"декодирует оригиналы последовательно, а предпросмотр использует копии " +
+            $"не больше {MaximumPreviewTextureSide}×{MaximumPreviewTextureSide}. " +
+            "Это консервативная оценка до упаковки в SMO; фактическая память в игре " +
+            "зависит от итогового формата и созданных mipmap.";
+        TextureMemoryWarningPanel.Visibility = Visibility.Visible;
+    }
+
+    private void HideTextureMemoryWarning()
+    {
+        if (TextureMemoryWarningPanel is not null)
+            TextureMemoryWarningPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private static string FormatMemorySize(long bytes)
+    {
+        const double gibibyte = 1024d * 1024 * 1024;
+        return bytes >= gibibyte
+            ? $"{bytes / gibibyte:N2} ГиБ"
+            : $"{bytes / (1024d * 1024):N1} МиБ";
+    }
 
     private ImportedTexture? ResolveRigidSingleTexture()
     {
@@ -4090,7 +6334,7 @@ public partial class MainWindow : Window
             _replacementScene?.HasSkinning == true)
             UpdateAdaptedPortingPreparation();
         else if (UsesGeneratedWeightsPortingMode)
-            UpdateGeneratedSkinningPreparation();
+            QueueGeneratedSkinningRecalculationAfterRigChange();
         else if (UsesPreparedModelPortingMode &&
             _replacementScene?.HasSkinning == true)
             UpdateGlbSkinTransferPlan();
@@ -4675,8 +6919,12 @@ public partial class MainWindow : Window
             BodyPoseStatusText.ToolTip = null;
             LoadRigFittingEditorValues();
             CommitRigFittingChange("Групповая поза тела применена.");
-            BodyPoseStatusText.Text = GeneratedSkinningPreparationIsCurrent ||
-                                      AdaptedPortingPreparationIsCurrent
+            BodyPoseStatusText.Text = UsesGeneratedWeightsPortingMode &&
+                                      !GeneratedSkinningPreparationIsCurrent
+                ? "Поза применена и видна на серой игровой модели. " +
+                  "Веса и итоговый план пересчитываются в фоне; расчёт можно остановить."
+                : GeneratedSkinningPreparationIsCurrent ||
+                  AdaptedPortingPreparationIsCurrent
                 ? "Поза применена; окно просмотра и подготовка модели используют одну ревизию."
                 : "Поза применена и видна на серой игровой модели. Подготовка весов всё ещё " +
                   "заблокирована: " +
@@ -5040,12 +7288,32 @@ public partial class MainWindow : Window
     {
         if (!IsLoaded)
             return;
+        if (ProtectedRegionEditorActive &&
+            ShowFittingPoseCheckBox.IsChecked != true)
+        {
+            // Region volumes and exact captured memberships are expressed in
+            // fitting space. Keep that space visible while the editor is open.
+            ShowFittingPoseCheckBox.IsChecked = true;
+            return;
+        }
         ClearFinalTexturedPreview();
         RefreshPreview();
     }
 
     private void CommitRigFittingChange(string status)
     {
+        bool resetProtectedRegions = UsesGeneratedWeightsPortingMode &&
+            (_generatedSkinningRegionOverrides is not null ||
+             _protectedRegionEditorDirty);
+        if (resetProtectedRegions)
+        {
+            // Exact memberships are fitting-pose fingerprinted. Reusing the
+            // old token would either be rejected by Core or describe a
+            // different set of donor vertices after this pose change.
+            ResetProtectedRegionEditor(
+                clearCommitted: true,
+                updateControls: false);
+        }
         _rigFittingRevision++;
         _plan = null;
         _glbSkinTransferPlan = null;
@@ -5056,10 +7324,16 @@ public partial class MainWindow : Window
         if (UsesAdaptDonorWeightsPortingMode)
             UpdateAdaptedPortingPreparation();
         else if (UsesGeneratedWeightsPortingMode)
-            UpdateGeneratedSkinningPreparation();
+        {
+            _generatedRigPoseAccepted = true;
+            QueueGeneratedSkinningRecalculationAfterRigChange();
+        }
         RefreshState();
         RigFittingStatusText.Text =
-            $"{status} Revision {_rigFittingRevision}. Длины и иерархия проверены.";
+            $"{status} Revision {_rigFittingRevision}. Длины и иерархия проверены." +
+            (resetProtectedRegions
+                ? " Защищённые области пересчитаны автоматически; ручные поправки сброшены."
+                : string.Empty);
     }
 
     private void LoadRigFittingEditorValues(
@@ -5235,12 +7509,34 @@ public partial class MainWindow : Window
     private void ApplyAutomaticGeneratedDonorAlignment()
     {
         ImportedScene inputScene = ResolveGeneratedSkinningInputScene();
-        ReplacementTransform alignment =
-            ComputeCoarseGeneratedDonorAlignment(inputScene);
+        Vector3 rotation = TryReadTransform(out ReplacementTransform current)
+            ? current.RotationDegrees
+            : Vector3.Zero;
+        Matrix4x4 rotationMatrix = new ReplacementTransform(
+            1,
+            rotation,
+            Vector3.Zero).Matrix;
+        ImportedScene rotatedInput = inputScene with
+        {
+            Meshes = inputScene.Meshes
+                .Select(mesh => mesh with
+                {
+                    Positions = mesh.Positions
+                        .Select(position => Vector3.Transform(position, rotationMatrix))
+                        .ToArray()
+                })
+                .ToArray()
+        };
+        ReplacementTransform fit =
+            ComputeCoarseGeneratedDonorAlignment(rotatedInput);
+        ReplacementTransform alignment = fit with { RotationDegrees = rotation };
         CommitGeneratedDonorAlignment(
             alignment,
             "Автоподгонка по полным bounds применена. Крылья и отдельные аксессуары " +
-            "участвуют в границах — проверьте масштаб и положение вручную.");
+            "участвуют в границах — проверьте масштаб и положение вручную.",
+            recalculate: false);
+        _generatedAlignmentAccepted = true;
+        RefreshState();
     }
 
     private void ApplyAutoFit()
@@ -5269,7 +7565,8 @@ public partial class MainWindow : Window
 
     private void ApplyModelAlignment_Click(object sender, RoutedEventArgs e)
     {
-        if (_nativeValidationRunning || !UsesGeneratedWeightsPortingMode ||
+        if (_nativeValidationRunning || _generatedSkinningCalculationRunning ||
+            !UsesGeneratedWeightsPortingMode ||
             _document is null || _replacementScene is null)
             return;
 
@@ -5278,7 +7575,20 @@ public partial class MainWindow : Window
             ReplacementTransform alignment = ReadGeneratedDonorAlignment();
             CommitGeneratedDonorAlignment(
                 alignment,
-                $"Размер и положение применены: scale {alignment.Scale:G5}.");
+                $"Размер, поворот и положение применены: scale {alignment.Scale:G5}.",
+                recalculate: false);
+            _generatedAlignmentAccepted = true;
+            SessionLog.Info(
+                "ALIGNMENT",
+                $"Accepted without weight calculation; revision={_rigFittingRevision}; " +
+                $"alignment={alignment}");
+            StatusText.Text =
+                "Размер, поворот и положение применены. Теперь подгоните игровой " +
+                "скелет; веса и итоговый план будут рассчитаны только после применения позы.";
+            RigFittingStatusText.Text =
+                "Подгонка скелета доступна. Настройте суставы или общую позу и нажмите " +
+                "кнопку применения позы для единственного расчёта весов.";
+            RefreshState();
         }
         catch (Exception exception) when (exception is InvalidDataException or
                                           InvalidOperationException or
@@ -5286,22 +7596,188 @@ public partial class MainWindow : Window
                                           ArgumentException or
                                           NotSupportedException)
         {
+            SessionLog.Error("ALIGNMENT", exception);
             _generatedAlignmentEditorDirty = true;
-            StatusText.Text = "Размер и положение не применены: " + exception.Message;
+            StatusText.Text =
+                "Размер, поворот и положение не применены: " + exception.Message;
             RefreshState();
+        }
+    }
+
+    private void QueueGeneratedSkinningRecalculationAfterRigChange()
+    {
+        if (!_generatedRigPoseAccepted)
+        {
+            SessionLog.Info(
+                "GENERATED_CALCULATION",
+                "Deferred: model alignment is available, but the rig pose has not been applied yet.");
+            return;
+        }
+
+        // Rig edits used to enter UpdateGeneratedSkinningPreparation here.  That
+        // is the old synchronous compatibility path: it runs palette packing on
+        // the dispatcher thread and does not use the same material profile as
+        // the cancellable calculation started by the alignment button.  Apart
+        // from freezing the whole window, the two paths could therefore accept
+        // the same model before a pose edit and reject it immediately after.
+        // Queue the one authoritative asynchronous calculation after the click
+        // handler has returned so WPF can paint the progress/cancel overlay.
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(RecalculateGeneratedSkinningAfterRigChangeAsync));
+    }
+
+    private async void RecalculateGeneratedSkinningAfterRigChangeAsync()
+    {
+        if (_isClosing || _nativeValidationRunning ||
+            _generatedSkinningCalculationRunning ||
+            !UsesGeneratedWeightsPortingMode || _document is null ||
+            _replacementScene is null || _generatedDonorAlignment is null ||
+            !_generatedRigPoseAccepted)
+        {
+            return;
+        }
+
+        _generatedSkinningCalculationRunning = true;
+        ControlsScrollViewer.IsEnabled = false;
+        GeneratedCalculationProgressPanel.Visibility = Visibility.Visible;
+        GeneratedCalculationProgressBar.Value = 0;
+        GeneratedCalculationProgressText.Text = "0% — подготовка пересчёта позы";
+        GeneratedCalculationOverlay.Visibility = Visibility.Visible;
+        GeneratedCalculationOverlayBar.Value = 0;
+        GeneratedCalculationOverlayText.Text = "0% — подготовка пересчёта позы";
+        CancelGeneratedCalculationButton.IsEnabled = true;
+        GeneratedCalculationProgressPanel.BringIntoView();
+        var runCancellation = new CancellationTokenSource();
+        _generatedSkinningCalculationCancellation = runCancellation;
+        using var calculationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(runCancellation.Token);
+        calculationCancellation.CancelAfter(MaximumGeneratedSkinningCalculationTime);
+        SessionLog.Info(
+            "GENERATED_CALCULATION",
+            "Rig pose changed; authoritative asynchronous recalculation started.");
+        try
+        {
+            StatusText.Text = "Поза применена; веса и итоговый план пересчитываются…";
+            await Dispatcher.Yield(DispatcherPriority.Render);
+            await CalculateGeneratedSkinningAsync(calculationCancellation.Token);
+            RefreshState();
+        }
+        catch (OperationCanceledException)
+        {
+            bool timedOut = calculationCancellation.IsCancellationRequested &&
+                            !runCancellation.IsCancellationRequested;
+            SessionLog.Warning(
+                "GENERATED_CALCULATION",
+                $"Rig-pose recalculation cancelled; closing={_isClosing}; " +
+                $"userCancellation={runCancellation.IsCancellationRequested}; timeout={timedOut}");
+            if (!_isClosing)
+            {
+                string message = timedOut
+                    ? $"Пересчёт позы остановлен после безопасного лимита " +
+                      $"{MaximumGeneratedSkinningCalculationTime.TotalSeconds:N0} секунд."
+                    : "Пересчёт позы отменён.";
+                GeneratedCalculationProgressText.Text = message;
+                GeneratedCalculationOverlayText.Text = message;
+                StatusText.Text = message;
+                SetGeneratedSkinningFailure(message);
+                RefreshState();
+            }
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          OverflowException or
+                                          ArgumentException or
+                                          NotSupportedException)
+        {
+            SessionLog.Error("GENERATED_CALCULATION", exception);
+            if (!_isClosing)
+            {
+                GeneratedCalculationProgressText.Text =
+                    "Ошибка пересчёта позы: " + exception.Message;
+                SetGeneratedSkinningFailure(exception.Message);
+                RefreshState();
+            }
+        }
+        finally
+        {
+            if (ReferenceEquals(
+                    _generatedSkinningCalculationCancellation,
+                    runCancellation))
+            {
+                _generatedSkinningCalculationCancellation = null;
+            }
+            runCancellation.Dispose();
+            _generatedSkinningCalculationRunning = false;
+            if (!_isClosing)
+            {
+                GeneratedCalculationOverlay.Visibility = Visibility.Collapsed;
+                ControlsScrollViewer.IsEnabled =
+                    !_replacementLoadRunning && !_protectedRegionPreviewRunning;
+                RefreshState();
+            }
+        }
+    }
+
+    private void CancelGeneratedCalculation_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (!_generatedSkinningCalculationRunning)
+            return;
+        SessionLog.Warning("GENERATED_CALCULATION", "User requested cancellation.");
+        CancelGeneratedCalculationButton.IsEnabled = false;
+        GeneratedCalculationOverlayText.Text = "Запрошена остановка расчёта…";
+        GeneratedCalculationProgressText.Text = "Запрошена остановка расчёта…";
+        try
+        {
+            _generatedSkinningCalculationCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        SessionLog.Info(
+            "WINDOW",
+            $"Window closed; forceProcessExit={_forceProcessExitOnClosed}.");
+        SessionLog.Flush();
+        if (_forceProcessExitOnClosed)
+        {
+            // A user closing the only window is an explicit request to stop. A
+            // non-cooperative decoder/native call must never leave a headless
+            // importer consuming CPU or memory after that point.
+            Environment.Exit(0);
         }
     }
 
     private void CommitGeneratedDonorAlignment(
         ReplacementTransform alignment,
-        string successPrefix)
+        string successPrefix,
+        bool recalculate = false)
     {
         ValidateGeneratedDonorAlignment(alignment);
         bool alignmentChanged = _generatedDonorAlignment is null ||
             !Equals(_generatedDonorAlignment, alignment);
+        if (!alignmentChanged && GeneratedSkinningPreparationIsCurrent)
+        {
+            _generatedDonorAlignmentDraft = alignment;
+            _generatedAlignmentEditorDirty = false;
+            WriteTransformEditor(alignment);
+            UpdateGeneratedAlignmentText(alignment);
+            RefreshState();
+            StatusText.Text = successPrefix +
+                " Значения совпадают с применёнными; готовые веса, проверка и план сохранены.";
+            return;
+        }
         bool discardedBodyDraft = alignmentChanged && _bodyPoseEditorDirty;
         bool invalidatedAutomaticPose = alignmentChanged &&
             _bodyPoseAutoFitResult is not null;
+        bool resetProtectedRegions = alignmentChanged &&
+            (_generatedSkinningRegionOverrides is not null ||
+             _protectedRegionEditorDirty);
         if (discardedBodyDraft)
         {
             _bodyPoseEditorDirty = false;
@@ -5314,6 +7790,10 @@ public partial class MainWindow : Window
         _generatedAlignmentEditorDirty = false;
         if (alignmentChanged)
         {
+            _generatedRigPoseAccepted = false;
+            ResetProtectedRegionEditor(
+                clearCommitted: true,
+                updateControls: false);
             _bodyPoseAutoFitResult = null;
             _generatedBodySelection = null;
             _bodyPoseAutoFitDetails = null;
@@ -5325,24 +7805,32 @@ public partial class MainWindow : Window
         InvalidateAdaptedPortingPreparation();
         InvalidateGeneratedSkinningPreparation();
         PlanSummaryText.Text =
-            "План ещё не построен для текущего размера и положения модели.";
+            "План ещё не построен для текущих размера, поворота и положения модели.";
         WriteTransformEditor(alignment);
-        UpdateGeneratedSkinningPreparation();
+        if (!recalculate)
+        {
+            RefreshState();
+            StatusText.Text = successPrefix +
+                " Расчёт весов отложен до применения позы игрового скелета.";
+            return;
+        }
+        QueueGeneratedSkinningRecalculationAfterRigChange();
         RefreshState();
 
         if (discardedBodyDraft || invalidatedAutomaticPose)
         {
             BodyPoseStatusText.Text = discardedBodyDraft
-                ? "Размер или положение модели изменились; старый черновик позы отброшен. " +
+                ? "Размер, поворот или положение модели изменились; старый черновик позы отброшен. " +
                   "Повторите автоподгонку тела."
-                : "Размер или положение модели изменились. Сохранённая поза оставлена " +
+                : "Размер, поворот или положение модели изменились. Сохранённая поза оставлена " +
                   "как ручная, но для нового положения нужно повторить автоподгонку тела.";
         }
 
-        StatusText.Text = GeneratedSkinningPreparationIsCurrent
-            ? successPrefix + " Автоматические веса пересчитаны."
-            : successPrefix + " Подготовка весов пока заблокирована: " +
-              (_generatedSkinningPreparationIssue ?? "неизвестная ошибка подготовки");
+        StatusText.Text = successPrefix +
+            " Автоматические веса пересчитываются в фоне; расчёт можно остановить." +
+            (resetProtectedRegions
+                ? " Защищённые области будут пересчитаны автоматически; ручные поправки сброшены."
+                : string.Empty);
     }
 
     private void WriteTransformEditor(ReplacementTransform transform)
@@ -5385,20 +7873,10 @@ public partial class MainWindow : Window
         }
         else if (UsesGeneratedWeightsPortingMode)
         {
-            _generatedAlignmentEditorDirty = true;
-            _generatedDonorAlignmentDraft =
+            MarkGeneratedAlignmentDraft(
                 TryReadGeneratedDonorAlignment(out ReplacementTransform alignment)
                     ? alignment
-                    : null;
-            _plan = null;
-            _generatedPreparedSceneViewedRevision = -1;
-            SetGeneratedSkinningConfirmation(false);
-            PlanSummaryText.Text =
-                "Есть неприменённые значения размера или положения модели.";
-            StatusText.Text =
-                "Размер и положение ещё не применены. Raw preview обновляется без " +
-                "пересчёта весов; нажмите «Применить размер и положение».";
-            RefreshState();
+                    : null);
         }
         else if (_replacementSmoDocument is null)
             RefreshPreview();
@@ -5408,6 +7886,7 @@ public partial class MainWindow : Window
     {
         if (_nativeValidationRunning)
             return;
+        SessionLog.Info("RESET", "Full UI/model state reset requested.");
 
         _sourcePath = null; _document = null; _sourceScene = null;
         _replacementPath = null; _baseReplacementScene = null;
@@ -5430,6 +7909,7 @@ public partial class MainWindow : Window
         SetPortingModeChoice(PortingModeUiChoice.Auto);
         SourcePathText.Text = "Не выбран"; SourceSummaryText.Text = "—";
         ReplacementPathText.Text = "Не выбрана"; ReplacementSummaryText.Text = "—";
+        HideTextureMemoryWarning();
         BoneCombo.ItemsSource = null;
         PlanSummaryText.Text = "План ещё не построен.";
         SplitModeText.Text =
@@ -5446,6 +7926,9 @@ public partial class MainWindow : Window
         MoveXBox.Text = MoveYBox.Text = MoveZBox.Text = "0";
         StatusText.Text = "Выберите исходный SMO.";
         NativeValidationResultBorder.Visibility = Visibility.Collapsed;
+        GeneratedCalculationProgressPanel.Visibility = Visibility.Collapsed;
+        GeneratedCalculationProgressBar.Value = 0;
+        GeneratedCalculationOverlay.Visibility = Visibility.Collapsed;
         RefreshTextureList();
         _framePreviewOnRefresh = true;
         RefreshState();
@@ -5490,24 +7973,32 @@ public partial class MainWindow : Window
             !_nativeValidationRunning && modelAlignmentMode;
         TransformEditorGrid.Opacity = TransformEditorGrid.IsEnabled ? 1 : 0.55;
         bool rotationAvailable = !_nativeValidationRunning &&
-            (legacyRigidMode || manualDonorAlignmentMode);
+            (legacyRigidMode || manualDonorAlignmentMode || generatedWeightsMode);
         RotXBox.IsEnabled = RotYBox.IsEnabled = RotZBox.IsEnabled = rotationAvailable;
         RotationLabelText.Opacity = rotationAvailable ? 1 : 0.55;
         RotXBox.Opacity = RotYBox.Opacity = RotZBox.Opacity =
             rotationAvailable ? 1 : 0.55;
-        RotationUnavailableHintText.Visibility = generatedWeightsMode
+        RotationUnavailableHintText.Visibility = Visibility.Collapsed;
+        ModelTransformGizmoPanel.Visibility = generatedWeightsMode
             ? Visibility.Visible
             : Visibility.Collapsed;
+        ModelTransformGizmoPanel.IsEnabled = !_nativeValidationRunning &&
+            generatedWeightsMode;
         ApplyModelAlignmentButton.Visibility = generatedWeightsMode
             ? Visibility.Visible
             : Visibility.Collapsed;
         ApplyModelAlignmentButton.IsEnabled = !_nativeValidationRunning &&
             generatedWeightsMode && _document is not null &&
-            _replacementScene is not null && _generatedAlignmentEditorDirty &&
+            _replacementScene is not null &&
+            (!_generatedAlignmentAccepted || _generatedAlignmentEditorDirty) &&
             TryReadGeneratedDonorAlignment(out _);
+        ApplyModelAlignmentButton.Content = _generatedAlignmentAccepted &&
+            !_generatedAlignmentEditorDirty
+                ? "Размер и положение применены"
+                : "Применить размер и положение";
         ModelTransformHeadingText.Text = manualDonorAlignmentMode
             ? "3. Coherent donor alignment для ручной подгонки"
-            : "3. Положение и масштаб";
+            : "3. Положение, поворот и масштаб";
         ModelTransformPanel.Opacity = smoMode ? 0.65 : 1;
         ModelTransformHintText.Text = smoMode
             ? "Для SMO → SMO положение и масштаб берутся из готовой donor-модели."
@@ -5518,8 +8009,10 @@ public partial class MainWindow : Window
                       "скелет. Масштабирование сдвинуло бы геометрию относительно " +
                       "неизменных костей; для подгонки выберите режим 2 или 3."
                 : generatedWeightsMode
-                    ? "Сначала подгоните рост и положение модели, затем настраивайте " +
-                      "игровой скелет. Автоподгонка использует полные bounds, поэтому " +
+                    ? "Сначала подгоните размер, поворот и положение модели полями или " +
+                      "gizmo в окне предпросмотра, затем нажмите «Применить» и " +
+                      "настраивайте игровой скелет. Автоподгонка использует полные " +
+                      "bounds, поэтому " +
                       "крылья и отдельные аксессуары могут потребовать ручной коррекции."
                 : manualDonorAlignmentMode
                     ? "Размер, поворот и положение задают единый weights-only donor alignment. " +
@@ -5677,7 +8170,8 @@ public partial class MainWindow : Window
             mode2 && AllReplacementMeshesAreSkinned && !_nativeValidationRunning;
         bool editorEnabled = hasRig && !_nativeValidationRunning &&
             (mode3 || ManualAdaptWeights) &&
-            (!mode3 || !_generatedAlignmentEditorDirty);
+            (!mode3 || _generatedAlignmentAccepted &&
+             !_generatedAlignmentEditorDirty);
         AutoFitBodyPoseButton.IsEnabled = !jointsMode && editorEnabled &&
             !_rigPoseEditorDirty &&
             _baseReplacementScene is { Meshes.Count: > 0 };
@@ -5727,7 +8221,8 @@ public partial class MainWindow : Window
             ? jointsMode
                 ? "Выбирайте сустав в списке или прямо в окне просмотра и задавайте " +
                   "абсолютные local-углы X/Y/Z. Скелет всегда показан поверх модели."
-                : "После размера и положения используйте автоподгонку или симметричные " +
+                : "После размера, поворота и положения используйте автоподгонку или " +
+                  "симметричные " +
                   "ползунки тела. Длины костей и связи между ними остаются прежними."
             : ManualAdaptWeights
                 ? jointsMode
@@ -5740,9 +8235,12 @@ public partial class MainWindow : Window
         BoneHighlightText.Visibility = Visibility.Visible;
         BoneHighlightText.Text = jointsMode
             ? "Красный — выбранная deform-кость · голубой — deform · жёлтый — service ancestor"
+            : mode3 && ProtectedRegionEditorActive
+                ? "Голубой контур — объём · синий — rigid-ядро · жёлтый — внешний переход (у Head на шее) · фиолетовый — внешняя деталь"
             : mode3
                 ? "Фиолетовый — выбранная жёсткая деталь · голубой — deform · жёлтый — service ancestor"
                 : "Голубой — deform · жёлтый — service ancestor";
+        UpdateProtectedRegionEditorAvailability();
         UpdateGeneratedAttachmentEditorAvailability();
     }
 
@@ -5758,8 +8256,37 @@ public partial class MainWindow : Window
         bool showFinalTexturedPreview = _showFinalTexturedPreview &&
             _finalTexturedPreviewScene is not null &&
             CanShowFinalTexturedPreview;
+        if (showFinalTexturedPreview &&
+            _finalTexturedPreviewVisual is not null &&
+            _finalTexturedPreviewBounds is not null)
+        {
+            SceneVisual.Content = _finalTexturedPreviewVisual;
+            ClearRigSkeletonOverlay();
+            bool currentGeneratedScene = UsesGeneratedWeightsPortingMode &&
+                GeneratedSkinningPreparationIsCurrent;
+            if (_explicitGeneratedReviewRequested && currentGeneratedScene)
+            {
+                _generatedPreparedSceneViewedRevision = _rigFittingRevision;
+                UpdateGeneratedSkinningConfirmationAvailability();
+                UpdateGeneratedSkinningPrimaryStatus();
+            }
+            _previewBounds.Clear();
+            _previewBounds.AddRange(_finalTexturedPreviewBounds);
+            if (_framePreviewOnRefresh && _finalTexturedPreviewBounds.Length > 0)
+            {
+                Frame(_finalTexturedPreviewBounds);
+                _framePreviewOnRefresh = false;
+            }
+            UpdateBoneMarkerOverlay();
+            UpdateRigSkeletonScreenOverlay();
+            UpdateGeneratedAttachmentScreenOverlay();
+            UpdateModelTransformGizmoOverlay();
+            return;
+        }
         bool showFittingPose = !showFinalTexturedPreview &&
-            ShowFittingPoseCheckBox.IsChecked == true;
+            (ShowFittingPoseCheckBox.IsChecked == true ||
+             ProtectedRegionEditorActive);
+        GeneratedSkinningAnalysis? protectedRegionOverlayAnalysis = null;
         SmoExportScene? sourcePreviewScene = showFinalTexturedPreview
             ? null
             : _sourceScene;
@@ -5823,16 +8350,34 @@ public partial class MainWindow : Window
                 if (GeneratedSkinningPreparationIsCurrent &&
                     !_generatedAlignmentEditorDirty)
                 {
+                    bool useProtectedRegionDraft =
+                        ProtectedRegionEditorActive &&
+                        _protectedRegionDraftPreparation is not null &&
+                        _protectedRegionDraftRevision == _rigFittingRevision;
+                    GeneratedSkinningPreparationResult displayedPreparation =
+                        useProtectedRegionDraft
+                            ? _protectedRegionDraftPreparation!
+                            : _generatedSkinningPreparation!;
                     previewScene = showFittingPose
-                        ? _generatedSkinningPreparation!.FittingPreviewScene
-                        : _generatedSkinningPreparation!.PreparedScene;
+                        ? displayedPreparation.FittingPreviewScene
+                        : displayedPreparation.PreparedScene;
+                    if (ProtectedRegionEditorActive && showFittingPose)
+                    {
+                        protectedRegionOverlayAnalysis =
+                            displayedPreparation.Analysis;
+                    }
                     renderedCurrentGeneratedPreparedScene =
                         !showFittingPose &&
+                        !useProtectedRegionDraft &&
                         ReferenceEquals(
                             previewScene,
-                            _generatedSkinningPreparation.PreparedScene);
+                            displayedPreparation.PreparedScene);
                     transform = Matrix4x4.Identity;
-                    SetPortingPreviewStatus(showFittingPose
+                    SetPortingPreviewStatus(ProtectedRegionEditorActive
+                        ? useProtectedRegionDraft
+                            ? "Показана точная fitting pose черновика защищённых областей; writer input ещё не изменён."
+                            : "Показаны применённые защищённые области в точной fitting pose."
+                        : showFittingPose
                         ? "Показана временная fitting pose с автоматически созданными весами; SMO сохранит канонический PreparedScene."
                         : GeneratedSkinningIsConfirmed
                             ? "Показан точный канонический PreparedScene writer-а. Результат подтверждён."
@@ -5854,9 +8399,9 @@ public partial class MainWindow : Window
                     SetPortingPreviewStatus(
                         _generatedAlignmentEditorDirty
                             ? pendingAlignmentValid
-                                ? "Показан raw preview с введённым размером и положением; " +
+                                ? "Показан raw preview с введёнными размером, поворотом и положением; " +
                                   "веса ещё не пересчитаны. Нажмите «Применить размер и положение»."
-                                : "В полях размера или положения есть ошибка. Показан raw " +
+                                : "В полях размера, поворота или положения есть ошибка. Показан raw " +
                                   "preview с последним применённым alignment."
                             : (_generatedSkinningPreparationIssue ??
                                "Автоматические веса для предпросмотра не подготовлены.") +
@@ -5970,6 +8515,14 @@ public partial class MainWindow : Window
                         renderedIndices);
                 }
             }
+            if (protectedRegionOverlayAnalysis is not null)
+            {
+                AddProtectedRegionVisualization(
+                    group,
+                    previewScene,
+                    transform,
+                    protectedRegionOverlayAnalysis);
+            }
         }
         else if (_replacementSmoScene is not null)
         {
@@ -5979,6 +8532,11 @@ public partial class MainWindow : Window
         }
         ResolveSelectedBonePosition();
         SceneVisual.Content = group;
+        if (showFinalTexturedPreview)
+        {
+            _finalTexturedPreviewVisual = group;
+            _finalTexturedPreviewBounds = all.ToArray();
+        }
         if (showFinalTexturedPreview)
             ClearRigSkeletonOverlay();
         else if (UsesAdaptDonorWeightsPortingMode || UsesGeneratedWeightsPortingMode)
@@ -6003,6 +8561,7 @@ public partial class MainWindow : Window
         UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
+        UpdateModelTransformGizmoOverlay();
     }
 
     private void SetPortingPreviewStatus(string? message)
@@ -6013,6 +8572,440 @@ public partial class MainWindow : Window
         PortingPreviewStatusText.Visibility = string.IsNullOrWhiteSpace(message)
             ? Visibility.Collapsed
             : Visibility.Visible;
+    }
+
+    private void MarkGeneratedAlignmentDraft(ReplacementTransform? alignment)
+    {
+        _generatedAlignmentAccepted = false;
+        _generatedRigPoseAccepted = false;
+        _generatedAlignmentEditorDirty = true;
+        _generatedDonorAlignmentDraft = alignment;
+        PlanSummaryText.Text =
+            "Есть неприменённые значения размера, поворота или положения модели; " +
+            "последний готовый план сохранён.";
+        StatusText.Text =
+            "Размер, поворот и положение ещё не применены. Raw preview обновляется " +
+            "без пересчёта весов; предыдущий результат не сброшен. " +
+            "Нажмите «Применить размер и положение».";
+        RefreshState();
+    }
+
+    private void AddProtectedRegionVisualization(
+        Model3DGroup group,
+        ImportedScene previewScene,
+        Matrix4x4 transform,
+        GeneratedSkinningAnalysis analysis)
+    {
+        HashSet<GeneratedSkinningSemanticRegion> selected =
+            SelectedProtectedRegions(includeMirroredHand: true).ToHashSet();
+        foreach (GeneratedSkinningRegionResolution region in
+                 analysis.SemanticRegions.Regions
+                     .Where(value => selected.Contains(value.Region))
+                     .OrderBy(value => value.Region))
+        {
+            _protectedRegionDraftAdjustments.TryGetValue(
+                region.Region,
+                out GeneratedSkinningRegionAdjustment? draft);
+            bool showDraft = ProtectedRegionEditorActive &&
+                             _protectedRegionEditorDirty &&
+                             draft is not null;
+            GeneratedSkinningRegionVolume? volume = showDraft &&
+                                                      region.AutomaticVolume is not null
+                ? ApplyProtectedRegionDraftVolume(region.AutomaticVolume, draft!)
+                : region.ResolvedVolume ?? region.AutomaticVolume;
+            if (volume is null)
+                continue;
+
+            Color outlineColor = showDraft
+                ? draft!.Enabled
+                    ? Color.FromArgb(250, 56, 189, 248)
+                    : Color.FromArgb(220, 148, 163, 184)
+                : region.Status switch
+            {
+                GeneratedSkinningRegionStatus.UnsafeCalibration =>
+                    Color.FromArgb(240, 248, 70, 70),
+                GeneratedSkinningRegionStatus.Disabled =>
+                    Color.FromArgb(220, 148, 163, 184),
+                _ => Color.FromArgb(240, 34, 211, 238)
+            };
+            AddProtectedRegionWireframe(
+                group,
+                region.Region,
+                volume,
+                transform,
+                outlineColor);
+
+            float transformedScale = ResolveProtectedRegionTransformScale(
+                volume,
+                transform);
+            float markerRadius = MathF.Max(
+                MathF.Max(
+                    volume.AxialRadius,
+                    MathF.Max(volume.LateralRadius, volume.ForwardRadius)) *
+                transformedScale * 0.012f,
+                0.00001f);
+            AddProtectedRegionVertexMarkers(
+                group,
+                ResolveProtectedRegionVertices(
+                    previewScene,
+                    region.CoreVerticesByMesh,
+                    transform),
+                markerRadius,
+                Color.FromArgb(245, 20, 110, 255));
+            AddProtectedRegionVertexMarkers(
+                group,
+                ResolveProtectedRegionVertices(
+                    previewScene,
+                    region.TransitionVerticesByMesh,
+                    transform),
+                markerRadius,
+                Color.FromArgb(245, 250, 204, 21));
+            AddProtectedRegionVertexMarkers(
+                group,
+                ResolveProtectedRegionVertices(
+                    previewScene,
+                    analysis.Attachments
+                        .Where(attachment =>
+                            attachment.SemanticAssignment == region.Region)
+                        .SelectMany(attachment => attachment.VerticesByMesh)
+                        .ToArray(),
+                    transform),
+                markerRadius,
+                Color.FromArgb(245, 186, 85, 211));
+        }
+    }
+
+    private static GeneratedSkinningRegionVolume ApplyProtectedRegionDraftVolume(
+        GeneratedSkinningRegionVolume automatic,
+        GeneratedSkinningRegionAdjustment adjustment)
+    {
+        float axialRadius = automatic.AxialRadius * adjustment.AxialScale;
+        Vector3 automaticProximal = automatic.Center -
+                                    automatic.AxialAxis * automatic.AxialRadius;
+        Vector3 center = automaticProximal +
+                         automatic.AxialAxis * axialRadius +
+                         automatic.AxialAxis * adjustment.AxialOffset;
+        float angle = adjustment.ForwardTiltDegrees * (MathF.PI / 180f);
+        float cosine = MathF.Cos(angle);
+        float sine = MathF.Sin(angle);
+        Vector3 axialAxis = Vector3.Normalize(
+            automatic.AxialAxis * cosine - automatic.ForwardAxis * sine);
+        Vector3 forwardAxis = Vector3.Normalize(
+            automatic.ForwardAxis * cosine + automatic.AxialAxis * sine);
+        return automatic with
+        {
+            Center = center,
+            AxialAxis = axialAxis,
+            ForwardAxis = forwardAxis,
+            AxialRadius = axialRadius,
+            LateralRadius = automatic.LateralRadius * adjustment.RadialScale,
+            ForwardRadius = automatic.ForwardRadius * adjustment.RadialScale,
+            ProximalTransitionLength = MathF.Min(
+                automatic.ProximalTransitionLength * adjustment.AxialScale,
+                axialRadius * 1.5f)
+        };
+    }
+
+    private static string MaterialModeDisplayName(
+        SkinnedRenderableMaterialMode mode) => mode switch
+        {
+            SkinnedRenderableMaterialMode.OpaqueOverlay =>
+                "Непрозрачная накладка",
+            SkinnedRenderableMaterialMode.TransparentSurface =>
+                "Прозрачная поверхность",
+            _ => "Авто"
+        };
+
+    private static IReadOnlyList<Vector3> ResolveProtectedRegionVertices(
+        ImportedScene previewScene,
+        IReadOnlyList<TargetRigBodyVertexMembership> memberships,
+        Matrix4x4 transform)
+    {
+        var positions = new HashSet<Vector3>();
+        foreach (TargetRigBodyVertexMembership membership in memberships)
+        {
+            if ((uint)membership.MeshIndex >= (uint)previewScene.Meshes.Count)
+                continue;
+            Vector3[] meshPositions =
+                previewScene.Meshes[membership.MeshIndex].Positions;
+            foreach (int vertexIndex in membership.VertexIndices)
+            {
+                if ((uint)vertexIndex >= (uint)meshPositions.Length)
+                    continue;
+                positions.Add(Vector3.Transform(
+                    meshPositions[vertexIndex],
+                    transform));
+            }
+        }
+        return positions.ToArray();
+    }
+
+    private static void AddProtectedRegionVertexMarkers(
+        Model3DGroup group,
+        IReadOnlyList<Vector3> centers,
+        float radius,
+        Color color)
+    {
+        if (centers.Count == 0 || !float.IsFinite(radius) || radius <= 0)
+            return;
+
+        var positions = new List<Vector3>(checked(centers.Count * 6));
+        var indices = new List<uint>(checked(centers.Count * 24));
+        Vector3 x = Vector3.UnitX * radius;
+        Vector3 y = Vector3.UnitY * radius;
+        Vector3 z = Vector3.UnitZ * radius;
+        foreach (Vector3 center in centers)
+        {
+            uint start = checked((uint)positions.Count);
+            positions.Add(center + x);
+            positions.Add(center - x);
+            positions.Add(center + y);
+            positions.Add(center - y);
+            positions.Add(center + z);
+            positions.Add(center - z);
+            foreach (uint index in ProtectedRegionMarkerTriangleIndices)
+                indices.Add(start + index);
+        }
+        AddProtectedRegionOverlayModel(group, positions, indices, color);
+    }
+
+    private static void AddProtectedRegionWireframe(
+        Model3DGroup group,
+        GeneratedSkinningSemanticRegion region,
+        GeneratedSkinningRegionVolume volume,
+        Matrix4x4 transform,
+        Color outlineColor)
+    {
+        float shapeExponent = volume.ShapeExponent;
+        if (!float.IsFinite(shapeExponent) || shapeExponent < 2)
+            return;
+        float transformedScale = ResolveProtectedRegionTransformScale(
+            volume,
+            transform);
+        float maximumRadius = MathF.Max(
+            volume.AxialRadius,
+            MathF.Max(volume.LateralRadius, volume.ForwardRadius));
+        float lineRadius = MathF.Max(
+            maximumRadius * transformedScale * 0.0045f,
+            0.000005f);
+
+        // These three Lp superellipse sections use the exact ShapeExponent
+        // consumed by Core's superellipsoid containment test.
+        AddProtectedRegionSuperellipseRing(
+            group,
+            volume.Center,
+            volume.AxialAxis,
+            volume.AxialRadius,
+            volume.LateralAxis,
+            volume.LateralRadius,
+            shapeExponent,
+            transform,
+            lineRadius,
+            outlineColor);
+        AddProtectedRegionSuperellipseRing(
+            group,
+            volume.Center,
+            volume.AxialAxis,
+            volume.AxialRadius,
+            volume.ForwardAxis,
+            volume.ForwardRadius,
+            shapeExponent,
+            transform,
+            lineRadius,
+            outlineColor);
+        AddProtectedRegionSuperellipseRing(
+            group,
+            volume.Center,
+            volume.LateralAxis,
+            volume.LateralRadius,
+            volume.ForwardAxis,
+            volume.ForwardRadius,
+            shapeExponent,
+            transform,
+            lineRadius,
+            outlineColor);
+
+        Vector3 proximal =
+            volume.Center - volume.AxialAxis * volume.AxialRadius;
+        Vector3 distal =
+            volume.Center + volume.AxialAxis * volume.AxialRadius;
+        AddProtectedRegionPolyline(
+            group,
+            [
+                Vector3.Transform(proximal, transform),
+                Vector3.Transform(distal, transform)
+            ],
+            close: false,
+            lineRadius,
+            outlineColor);
+
+        // Head uses an exact topology-proved rigid island. Its yellow vertices
+        // form a geodesic collar outside that island, so the old ellipsoid-slab
+        // guide would falsely draw the transition inside the protected head.
+        // Hand transitions still use the proximal volume slab below.
+        if (region == GeneratedSkinningSemanticRegion.Head ||
+            volume.ProximalTransitionLength <= 0 ||
+            volume.AxialRadius <= 0)
+        {
+            return;
+        }
+
+        float transitionCoordinate = Math.Clamp(
+            -volume.AxialRadius + volume.ProximalTransitionLength,
+            -volume.AxialRadius,
+            volume.AxialRadius);
+        float normalized = transitionCoordinate / volume.AxialRadius;
+        float crossSectionScale = MathF.Pow(
+            MathF.Max(
+                0,
+                1 - MathF.Pow(MathF.Abs(normalized), shapeExponent)),
+            1 / shapeExponent);
+        Vector3 transitionCenter =
+            volume.Center + volume.AxialAxis * transitionCoordinate;
+        Color transitionColor = Color.FromArgb(245, 250, 204, 21);
+        if (crossSectionScale > 0.0001f)
+        {
+            AddProtectedRegionSuperellipseRing(
+                group,
+                transitionCenter,
+                volume.LateralAxis,
+                volume.LateralRadius * crossSectionScale,
+                volume.ForwardAxis,
+                volume.ForwardRadius * crossSectionScale,
+                shapeExponent,
+                transform,
+                lineRadius * 1.2f,
+                transitionColor);
+        }
+        AddProtectedRegionPolyline(
+            group,
+            [
+                Vector3.Transform(proximal, transform),
+                Vector3.Transform(transitionCenter, transform)
+            ],
+            close: false,
+            lineRadius * 1.2f,
+            transitionColor);
+    }
+
+    private static float ResolveProtectedRegionTransformScale(
+        GeneratedSkinningRegionVolume volume,
+        Matrix4x4 transform)
+    {
+        float scale = MathF.Max(
+            Vector3.TransformNormal(volume.AxialAxis, transform).Length(),
+            MathF.Max(
+                Vector3.TransformNormal(volume.LateralAxis, transform).Length(),
+                Vector3.TransformNormal(volume.ForwardAxis, transform).Length()));
+        return float.IsFinite(scale) && scale > 0 ? scale : 1;
+    }
+
+    private static void AddProtectedRegionSuperellipseRing(
+        Model3DGroup group,
+        Vector3 center,
+        Vector3 firstAxis,
+        float firstRadius,
+        Vector3 secondAxis,
+        float secondRadius,
+        float shapeExponent,
+        Matrix4x4 transform,
+        float lineRadius,
+        Color color)
+    {
+        const int segmentCount = 64;
+        var points = new Vector3[segmentCount];
+        float parametricPower = 2 / shapeExponent;
+        for (int index = 0; index < segmentCount; index++)
+        {
+            float angle = MathF.Tau * index / segmentCount;
+            float cosine = MathF.Cos(angle);
+            float sine = MathF.Sin(angle);
+            float firstCoordinate = MathF.CopySign(
+                MathF.Pow(MathF.Abs(cosine), parametricPower),
+                cosine);
+            float secondCoordinate = MathF.CopySign(
+                MathF.Pow(MathF.Abs(sine), parametricPower),
+                sine);
+            Vector3 value = center +
+                firstAxis * (firstRadius * firstCoordinate) +
+                secondAxis * (secondRadius * secondCoordinate);
+            points[index] = Vector3.Transform(value, transform);
+        }
+        AddProtectedRegionPolyline(
+            group,
+            points,
+            close: true,
+            lineRadius,
+            color);
+    }
+
+    private static void AddProtectedRegionPolyline(
+        Model3DGroup group,
+        IReadOnlyList<Vector3> points,
+        bool close,
+        float radius,
+        Color color)
+    {
+        int segmentCount = close ? points.Count : points.Count - 1;
+        if (segmentCount <= 0)
+            return;
+        var positions = new List<Vector3>(checked(segmentCount * 8));
+        var indices = new List<uint>(checked(segmentCount * 36));
+        for (int index = 0; index < segmentCount; index++)
+        {
+            Vector3 start = points[index];
+            Vector3 end = points[(index + 1) % points.Count];
+            Vector3 direction = end - start;
+            float lengthSquared = direction.LengthSquared();
+            if (!float.IsFinite(lengthSquared) || lengthSquared <= 1e-12f)
+                continue;
+            direction = Vector3.Normalize(direction);
+            Vector3 helper = MathF.Abs(Vector3.Dot(direction, Vector3.UnitY)) < 0.9f
+                ? Vector3.UnitY
+                : Vector3.UnitX;
+            Vector3 sideA = Vector3.Normalize(Vector3.Cross(direction, helper)) * radius;
+            Vector3 sideB = Vector3.Normalize(Vector3.Cross(direction, sideA)) * radius;
+            uint startIndex = checked((uint)positions.Count);
+            positions.Add(start - sideA - sideB);
+            positions.Add(start + sideA - sideB);
+            positions.Add(start + sideA + sideB);
+            positions.Add(start - sideA + sideB);
+            positions.Add(end - sideA - sideB);
+            positions.Add(end + sideA - sideB);
+            positions.Add(end + sideA + sideB);
+            positions.Add(end - sideA + sideB);
+            foreach (uint triangleIndex in RigBoxTriangleIndices)
+                indices.Add(startIndex + triangleIndex);
+        }
+        AddProtectedRegionOverlayModel(group, positions, indices, color);
+    }
+
+    private static void AddProtectedRegionOverlayModel(
+        Model3DGroup group,
+        IReadOnlyList<Vector3> positions,
+        IReadOnlyList<uint> indices,
+        Color color)
+    {
+        if (positions.Count == 0 || indices.Count == 0)
+            return;
+        var points = new Point3DCollection(positions.Count);
+        foreach (Vector3 value in positions)
+            points.Add(new Point3D(value.X, value.Y, value.Z));
+        var triangles = new Int32Collection(indices.Count);
+        foreach (uint index in indices)
+            triangles.Add(checked((int)index));
+        var geometry = new MeshGeometry3D
+        {
+            Positions = points,
+            TriangleIndices = triangles
+        };
+        var material = new MaterialGroup();
+        material.Children.Add(new DiffuseMaterial(new SolidColorBrush(color)));
+        material.Children.Add(new EmissiveMaterial(new SolidColorBrush(color)));
+        group.Children.Add(new GeometryModel3D(geometry, material)
+        {
+            BackMaterial = material
+        });
     }
 
     private void UpdateGeneratedAttachmentPreviewCenters(
@@ -6232,6 +9225,17 @@ public partial class MainWindow : Window
                     SixLabors.ImageSharp.PixelFormats.Bgra32> image =
                     SixLabors.ImageSharp.Image.Load<
                         SixLabors.ImageSharp.PixelFormats.Bgra32>(texture.Data);
+                if (image.Width > MaximumPreviewTextureSide ||
+                    image.Height > MaximumPreviewTextureSide)
+                {
+                    double previewScale = Math.Min(
+                        MaximumPreviewTextureSide / (double)image.Width,
+                        MaximumPreviewTextureSide / (double)image.Height);
+                    image.Mutate(context => context.Resize(
+                        Math.Max(1, (int)Math.Round(image.Width * previewScale)),
+                        Math.Max(1, (int)Math.Round(image.Height * previewScale)),
+                        KnownResamplers.Bicubic));
+                }
                 byte[] pixels = new byte[checked(image.Width * image.Height * 4)];
                 image.CopyPixelDataTo(pixels);
                 BitmapSource bitmap = BitmapSource.Create(
@@ -6343,6 +9347,422 @@ public partial class MainWindow : Window
                     $"Preview triangle index {index} is outside {positions.Count} positions.");
             bounds.Add(positions[checked((int)index)]);
         }
+    }
+
+    private ModelTransformGizmoMode SelectedModelTransformGizmoMode =>
+        ModelTransformGizmoModeCombo?.SelectedIndex switch
+        {
+            1 => ModelTransformGizmoMode.Scale,
+            2 => ModelTransformGizmoMode.Rotate,
+            _ => ModelTransformGizmoMode.Translate
+        };
+
+    private void ModelTransformGizmoMode_Changed(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded)
+            return;
+        _modelTransformGizmoDrag = null;
+        UpdateModelTransformGizmoOverlay();
+    }
+
+    private bool TryGetModelTransformGizmoState(
+        out ReplacementTransform transform,
+        out Point3D pivot,
+        out Point pivotScreen,
+        out double depth)
+    {
+        transform = ReplacementTransform.Identity;
+        pivot = default;
+        pivotScreen = default;
+        depth = 0;
+        if (_nativeValidationRunning ||
+            _showFinalTexturedPreview || !UsesGeneratedWeightsPortingMode ||
+            _replacementScene is null ||
+            !TryReadGeneratedDonorAlignment(out transform))
+        {
+            return false;
+        }
+
+        ImportedScene scene = _generatedSkinningEffectiveScene ??
+            _generatedSkinningBaseScene ??
+            _replacementScene;
+        Vector3[] positions = scene.Meshes
+            .SelectMany(mesh => mesh.Positions)
+            .ToArray();
+        if (positions.Length == 0)
+            return false;
+        Vector3 minimum = positions.Aggregate(Vector3.Min);
+        Vector3 maximum = positions.Aggregate(Vector3.Max);
+        Vector3 center = Vector3.Transform(
+            (minimum + maximum) * 0.5f,
+            transform.Matrix);
+        if (!IsFinite(center))
+            return false;
+        pivot = new Point3D(center.X, center.Y, center.Z);
+        return TryProjectToPreview(pivot, out pivotScreen, out depth);
+    }
+
+    private void ClearModelTransformGizmoOverlay()
+    {
+        if (RigOverlayCanvas is null)
+            return;
+        foreach (UIElement element in _modelTransformGizmoElements)
+            RigOverlayCanvas.Children.Remove(element);
+        _modelTransformGizmoElements.Clear();
+    }
+
+    private void UpdateModelTransformGizmoOverlay()
+    {
+        ClearModelTransformGizmoOverlay();
+        if (ModelTransformGizmoViewportHint is not null)
+            ModelTransformGizmoViewportHint.Visibility = Visibility.Collapsed;
+        if (RigOverlayCanvas is null ||
+            !TryGetModelTransformGizmoState(
+                out _, out Point3D pivot, out Point pivotScreen, out double depth))
+        {
+            return;
+        }
+        if (ModelTransformGizmoViewportHint is not null)
+            ModelTransformGizmoViewportHint.Visibility = Visibility.Visible;
+
+        switch (SelectedModelTransformGizmoMode)
+        {
+            case ModelTransformGizmoMode.Translate:
+                DrawTranslationGizmo(pivot, pivotScreen, depth);
+                break;
+            case ModelTransformGizmoMode.Scale:
+                DrawScaleGizmo(pivotScreen);
+                break;
+            case ModelTransformGizmoMode.Rotate:
+                DrawRotationGizmo(pivot, depth);
+                break;
+        }
+    }
+
+    private void DrawTranslationGizmo(Point3D pivot, Point pivotScreen, double depth)
+    {
+        double length = GetWorldUnitsPerPixel(depth) * GizmoAxisLengthPixels;
+        foreach ((ModelTransformAxis axis, Vector3D direction, Color color) in
+                 GizmoAxes())
+        {
+            Point3D end = pivot + direction * length;
+            if (!TryProjectToPreview(end, out Point endScreen, out _))
+                continue;
+            AddGizmoLine(pivotScreen, endScreen, color, endpoint: true);
+            AddGizmoLabel(endScreen, axis.ToString(), color);
+        }
+    }
+
+    private void DrawScaleGizmo(Point pivot)
+    {
+        var direction = new System.Windows.Vector(1, -1);
+        direction.Normalize();
+        Point end = pivot + direction * GizmoAxisLengthPixels;
+        AddGizmoLine(pivot, end, Color.FromRgb(250, 204, 21), endpoint: false);
+        var handle = new WpfRectangle
+        {
+            Width = 15,
+            Height = 15,
+            RadiusX = 2,
+            RadiusY = 2,
+            Fill = new SolidColorBrush(Color.FromRgb(250, 204, 21)),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+        Canvas.SetLeft(handle, end.X - 7.5);
+        Canvas.SetTop(handle, end.Y - 7.5);
+        RigOverlayCanvas.Children.Add(handle);
+        _modelTransformGizmoElements.Add(handle);
+        AddGizmoLabel(end, "S", Color.FromRgb(250, 204, 21));
+    }
+
+    private void DrawRotationGizmo(Point3D pivot, double depth)
+    {
+        double radius = GetWorldUnitsPerPixel(depth) * GizmoAxisLengthPixels;
+        foreach ((ModelTransformAxis axis, _, Color color) in GizmoAxes())
+        {
+            Point[] ring = BuildRotationRing(axis, pivot, radius);
+            if (ring.Length < 3)
+                continue;
+            var polyline = new WpfPolyline
+            {
+                Points = new PointCollection(ring),
+                Stroke = new SolidColorBrush(color),
+                StrokeThickness = 3,
+                StrokeLineJoin = PenLineJoin.Round,
+                Opacity = 0.95
+            };
+            RigOverlayCanvas.Children.Add(polyline);
+            _modelTransformGizmoElements.Add(polyline);
+        }
+    }
+
+    private void AddGizmoLine(Point start, Point end, Color color, bool endpoint)
+    {
+        var outline = new WpfLine
+        {
+            X1 = start.X,
+            Y1 = start.Y,
+            X2 = end.X,
+            Y2 = end.Y,
+            Stroke = Brushes.Black,
+            StrokeThickness = 7,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round
+        };
+        var line = new WpfLine
+        {
+            X1 = start.X,
+            Y1 = start.Y,
+            X2 = end.X,
+            Y2 = end.Y,
+            Stroke = new SolidColorBrush(color),
+            StrokeThickness = 4,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round
+        };
+        RigOverlayCanvas.Children.Add(outline);
+        RigOverlayCanvas.Children.Add(line);
+        _modelTransformGizmoElements.Add(outline);
+        _modelTransformGizmoElements.Add(line);
+        if (!endpoint)
+            return;
+        var marker = new WpfEllipse
+        {
+            Width = 13,
+            Height = 13,
+            Fill = new SolidColorBrush(color),
+            Stroke = Brushes.Black,
+            StrokeThickness = 2
+        };
+        Canvas.SetLeft(marker, end.X - 6.5);
+        Canvas.SetTop(marker, end.Y - 6.5);
+        RigOverlayCanvas.Children.Add(marker);
+        _modelTransformGizmoElements.Add(marker);
+    }
+
+    private void AddGizmoLabel(Point point, string text, Color color)
+    {
+        var label = new TextBlock
+        {
+            Text = text,
+            Foreground = new SolidColorBrush(color),
+            Background = new SolidColorBrush(Color.FromArgb(180, 0, 0, 0)),
+            FontWeight = FontWeights.Bold,
+            Padding = new Thickness(3, 0, 3, 1)
+        };
+        Canvas.SetLeft(label, point.X + 8);
+        Canvas.SetTop(label, point.Y - 9);
+        RigOverlayCanvas.Children.Add(label);
+        _modelTransformGizmoElements.Add(label);
+    }
+
+    private Point[] BuildRotationRing(
+        ModelTransformAxis axis,
+        Point3D pivot,
+        double radius)
+    {
+        (Vector3D first, Vector3D second) = axis switch
+        {
+            ModelTransformAxis.X => (new Vector3D(0, 1, 0), new Vector3D(0, 0, 1)),
+            ModelTransformAxis.Y => (new Vector3D(1, 0, 0), new Vector3D(0, 0, 1)),
+            _ => (new Vector3D(1, 0, 0), new Vector3D(0, 1, 0))
+        };
+        var points = new List<Point>(65);
+        for (int sample = 0; sample <= 64; sample++)
+        {
+            double angle = sample * Math.PI * 2 / 64;
+            Point3D world = pivot +
+                first * (Math.Cos(angle) * radius) +
+                second * (Math.Sin(angle) * radius);
+            if (TryProjectToPreview(world, out Point screen, out _))
+                points.Add(screen);
+        }
+        return points.ToArray();
+    }
+
+    private static IEnumerable<(ModelTransformAxis Axis, Vector3D Direction, Color Color)>
+        GizmoAxes()
+    {
+        yield return (ModelTransformAxis.X, new Vector3D(1, 0, 0),
+            Color.FromRgb(239, 68, 68));
+        yield return (ModelTransformAxis.Y, new Vector3D(0, 1, 0),
+            Color.FromRgb(34, 197, 94));
+        yield return (ModelTransformAxis.Z, new Vector3D(0, 0, 1),
+            Color.FromRgb(59, 130, 246));
+    }
+
+    private bool TryBeginModelTransformGizmoDrag(Point point)
+    {
+        if (!TryResolveModelTransformGizmoHandle(
+                point,
+                out ModelTransformAxis axis,
+                out System.Windows.Vector screenDirection,
+                out double worldUnitsPerPixel) ||
+            !TryReadGeneratedDonorAlignment(out ReplacementTransform transform))
+        {
+            return false;
+        }
+        _modelTransformGizmoDrag = new ModelTransformGizmoDrag(
+            SelectedModelTransformGizmoMode,
+            axis,
+            point,
+            transform,
+            screenDirection,
+            worldUnitsPerPixel);
+        PreviewSurface.CaptureMouse();
+        PreviewSurface.Focus();
+        PreviewSurface.Cursor = Cursors.Cross;
+        return true;
+    }
+
+    private bool TryResolveModelTransformGizmoHandle(
+        Point point,
+        out ModelTransformAxis axis,
+        out System.Windows.Vector screenDirection,
+        out double worldUnitsPerPixel)
+    {
+        axis = ModelTransformAxis.Uniform;
+        screenDirection = default;
+        worldUnitsPerPixel = 0;
+        if (!TryGetModelTransformGizmoState(
+                out _, out Point3D pivot, out Point pivotScreen, out double depth))
+        {
+            return false;
+        }
+
+        if (SelectedModelTransformGizmoMode == ModelTransformGizmoMode.Scale)
+        {
+            screenDirection = new System.Windows.Vector(1, -1);
+            screenDirection.Normalize();
+            Point end = pivotScreen + screenDirection * GizmoAxisLengthPixels;
+            return DistanceToSegment(point, pivotScreen, end) <=
+                GizmoHitRadiusPixels;
+        }
+
+        double handleLength = GetWorldUnitsPerPixel(depth) * GizmoAxisLengthPixels;
+        double bestDistance = double.PositiveInfinity;
+        foreach ((ModelTransformAxis candidate, Vector3D direction, _) in GizmoAxes())
+        {
+            if (SelectedModelTransformGizmoMode == ModelTransformGizmoMode.Translate)
+            {
+                if (!TryProjectToPreview(
+                        pivot + direction * handleLength,
+                        out Point end,
+                        out _))
+                {
+                    continue;
+                }
+                double distance = DistanceToSegment(point, pivotScreen, end);
+                if (distance >= bestDistance)
+                    continue;
+                var projected = end - pivotScreen;
+                double projectedLength = projected.Length;
+                if (projectedLength <= 0.001)
+                    continue;
+                bestDistance = distance;
+                axis = candidate;
+                screenDirection = projected / projectedLength;
+                worldUnitsPerPixel = handleLength / projectedLength;
+            }
+            else
+            {
+                Point[] ring = BuildRotationRing(candidate, pivot, handleLength);
+                for (int index = 1; index < ring.Length; index++)
+                {
+                    double distance = DistanceToSegment(
+                        point, ring[index - 1], ring[index]);
+                    if (distance >= bestDistance)
+                        continue;
+                    var tangent = ring[index] - ring[index - 1];
+                    if (tangent.Length <= 0.001)
+                        continue;
+                    tangent.Normalize();
+                    bestDistance = distance;
+                    axis = candidate;
+                    screenDirection = tangent;
+                }
+            }
+        }
+        return bestDistance <= GizmoHitRadiusPixels;
+    }
+
+    private static double DistanceToSegment(Point point, Point start, Point end)
+    {
+        System.Windows.Vector segment = end - start;
+        double lengthSquared = segment.LengthSquared;
+        if (lengthSquared <= 0.000001)
+            return (point - start).Length;
+        double amount = Math.Clamp(
+            System.Windows.Vector.Multiply(point - start, segment) / lengthSquared,
+            0,
+            1);
+        Point closest = start + segment * amount;
+        return (point - closest).Length;
+    }
+
+    private void UpdateModelTransformGizmoDrag(Point point)
+    {
+        if (_modelTransformGizmoDrag is not ModelTransformGizmoDrag drag)
+            return;
+        System.Windows.Vector delta = point - drag.StartScreen;
+        double projectedPixels = System.Windows.Vector.Multiply(
+            delta,
+            drag.ScreenDirection);
+        ReplacementTransform updated = drag.InitialTransform;
+        if (drag.Mode == ModelTransformGizmoMode.Translate)
+        {
+            float amount = checked((float)(projectedPixels * drag.WorldUnitsPerPixel));
+            Vector3 direction = drag.Axis switch
+            {
+                ModelTransformAxis.X => Vector3.UnitX,
+                ModelTransformAxis.Y => Vector3.UnitY,
+                _ => Vector3.UnitZ
+            };
+            updated = updated with
+            {
+                Translation = drag.InitialTransform.Translation + direction * amount
+            };
+        }
+        else if (drag.Mode == ModelTransformGizmoMode.Rotate)
+        {
+            float degrees = checked((float)(projectedPixels *
+                GizmoRotationDegreesPerPixel));
+            Vector3 rotation = drag.InitialTransform.RotationDegrees;
+            rotation = drag.Axis switch
+            {
+                ModelTransformAxis.X => rotation with
+                    { X = NormalizeDegrees(rotation.X + degrees) },
+                ModelTransformAxis.Y => rotation with
+                    { Y = NormalizeDegrees(rotation.Y + degrees) },
+                _ => rotation with
+                    { Z = NormalizeDegrees(rotation.Z + degrees) }
+            };
+            updated = updated with { RotationDegrees = rotation };
+        }
+        else
+        {
+            double factor = Math.Exp(projectedPixels * GizmoScaleExponentPerPixel);
+            float scale = (float)Math.Clamp(
+                drag.InitialTransform.Scale * factor,
+                0.000001,
+                1_000_000);
+            updated = updated with { Scale = scale };
+        }
+        WriteTransformEditor(updated);
+        MarkGeneratedAlignmentDraft(updated);
+    }
+
+    private static float NormalizeDegrees(float value)
+    {
+        float normalized = value % 360;
+        if (normalized > 180)
+            normalized -= 360;
+        else if (normalized < -180)
+            normalized += 360;
+        return normalized;
     }
 
     private void PrepareRigSkeletonOverlay(bool showFittingPose)
@@ -6597,6 +10017,12 @@ public partial class MainWindow : Window
         3, 0, 4, 3, 4, 7
     ];
 
+    private static readonly uint[] ProtectedRegionMarkerTriangleIndices =
+    [
+        0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 4,
+        2, 0, 5, 1, 2, 5, 3, 1, 5, 0, 3, 5
+    ];
+
     private void ResolveSelectedBonePosition()
     {
         _selectedBonePosition = null;
@@ -6661,11 +10087,16 @@ public partial class MainWindow : Window
         if (depth <= Camera.NearPlaneDistance)
             return false;
 
-        double halfHeight = depth * Math.Tan(Camera.FieldOfView * Math.PI / 360.0);
-        if (!double.IsFinite(halfHeight) || halfHeight <= 0)
+        // WPF's PerspectiveCamera.FieldOfView is horizontal. Treating it as a
+        // vertical FOV makes the screen-space overlay shrink towards the viewport
+        // centre by an aspect-ratio-dependent factor, while Viewport3D itself
+        // continues to render the model with the correct projection.
+        double halfWidth = depth * Math.Tan(Camera.FieldOfView * Math.PI / 360.0);
+        if (!double.IsFinite(halfWidth) || halfWidth <= 0)
             return false;
         double aspect = PreviewViewport.ActualWidth / PreviewViewport.ActualHeight;
-        double normalizedX = Vector3D.DotProduct(fromCamera, right) / (halfHeight * aspect);
+        double halfHeight = halfWidth / aspect;
+        double normalizedX = Vector3D.DotProduct(fromCamera, right) / halfWidth;
         double normalizedY = Vector3D.DotProduct(fromCamera, up) / halfHeight;
         double screenX = (normalizedX + 1) * PreviewViewport.ActualWidth * 0.5;
         double screenY = (1 - normalizedY) * PreviewViewport.ActualHeight * 0.5;
@@ -6682,6 +10113,7 @@ public partial class MainWindow : Window
         UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
+        UpdateModelTransformGizmoOverlay();
     }
 
     private void Frame(IReadOnlyList<Point3D> points)
@@ -6695,6 +10127,12 @@ public partial class MainWindow : Window
 
     private void Preview_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton == MouseButton.Left &&
+            TryBeginModelTransformGizmoDrag(e.GetPosition(PreviewSurface)))
+        {
+            e.Handled = true;
+            return;
+        }
         if (e.ChangedButton == MouseButton.Left && IsJointPoseEditorMode &&
             TrySelectRigJointAt(e.GetPosition(PreviewSurface)))
         {
@@ -6733,6 +10171,16 @@ public partial class MainWindow : Window
 
     private void Preview_MouseUp(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton == MouseButton.Left &&
+            _modelTransformGizmoDrag is not null)
+        {
+            _modelTransformGizmoDrag = null;
+            if (_cameraNavigationMode == CameraNavigationMode.None)
+                PreviewSurface.ReleaseMouseCapture();
+            PreviewSurface.Cursor = null;
+            e.Handled = true;
+            return;
+        }
         if (e.ChangedButton != MouseButton.Middle)
             return;
         EndCameraNavigation();
@@ -6741,21 +10189,42 @@ public partial class MainWindow : Window
 
     private void Preview_LostMouseCapture(object sender, MouseEventArgs e)
     {
+        _modelTransformGizmoDrag = null;
         _cameraNavigationMode = CameraNavigationMode.None;
         PreviewSurface.Cursor = null;
     }
 
     private void Preview_MouseMove(object sender, MouseEventArgs e)
     {
+        if (_modelTransformGizmoDrag is not null)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                _modelTransformGizmoDrag = null;
+                PreviewSurface.ReleaseMouseCapture();
+                PreviewSurface.Cursor = null;
+            }
+            else
+            {
+                UpdateModelTransformGizmoDrag(e.GetPosition(PreviewSurface));
+                e.Handled = true;
+            }
+            return;
+        }
         if (_cameraNavigationMode == CameraNavigationMode.None)
         {
-            bool selectable = IsJointPoseEditorMode
+            bool overGizmo = TryResolveModelTransformGizmoHandle(
+                e.GetPosition(PreviewSurface),
+                out _,
+                out _,
+                out _);
+            bool selectable = overGizmo || (IsJointPoseEditorMode
                 ? FindRigJointAt(e.GetPosition(PreviewSurface)) is not null
                 : CanSelectGeneratedAttachments &&
                   FindGeneratedAttachmentComponentAt(
-                      e.GetPosition(PreviewViewport)) is not null;
+                      e.GetPosition(PreviewViewport)) is not null);
             PreviewSurface.Cursor = selectable
-                    ? Cursors.Hand
+                    ? overGizmo ? Cursors.Cross : Cursors.Hand
                     : null;
             return;
         }
@@ -6819,9 +10288,14 @@ public partial class MainWindow : Window
 
     private double GetWorldUnitsPerPixel()
     {
-        double viewportHeight = Math.Max(PreviewViewport.ActualHeight, 1);
+        return GetWorldUnitsPerPixel(_cameraDistance);
+    }
+
+    private double GetWorldUnitsPerPixel(double depth)
+    {
+        double viewportWidth = Math.Max(PreviewViewport.ActualWidth, 1);
         double halfFieldOfView = Camera.FieldOfView * Math.PI / 360.0;
-        return 2 * _cameraDistance * Math.Tan(halfFieldOfView) / viewportHeight;
+        return 2 * depth * Math.Tan(halfFieldOfView) / viewportWidth;
     }
 
     private void GetCameraBasis(out Vector3D forward, out Vector3D right, out Vector3D up)
@@ -6856,6 +10330,7 @@ public partial class MainWindow : Window
         UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
+        UpdateModelTransformGizmoOverlay();
     }
 
     private bool TrySelectRigJointAt(Point point)
@@ -7041,9 +10516,7 @@ public partial class MainWindow : Window
     private bool TryReadGeneratedDonorAlignment(
         out ReplacementTransform alignment)
     {
-        bool valid = TryReadTransform(out alignment) &&
-            alignment.RotationDegrees == Vector3.Zero;
-        return valid;
+        return TryReadTransform(out alignment);
     }
 
     private ReplacementTransform ReadGeneratedDonorAlignment()
@@ -7051,8 +10524,8 @@ public partial class MainWindow : Window
         if (!TryReadGeneratedDonorAlignment(out ReplacementTransform alignment))
         {
             throw new InvalidOperationException(
-                "Масштаб должен быть конечным и положительным, положение — содержать " +
-                "конечные числа, а поворот в режиме 3 должен оставаться нулевым.");
+                "Масштаб должен быть конечным и положительным, а поворот и " +
+                "положение — содержать конечные числа.");
         }
         ValidateGeneratedDonorAlignment(alignment);
         return alignment;
@@ -7063,12 +10536,13 @@ public partial class MainWindow : Window
     {
         Matrix4x4 matrix = alignment.Matrix;
         if (!float.IsFinite(alignment.Scale) || alignment.Scale <= 0 ||
-            alignment.RotationDegrees != Vector3.Zero ||
+            !IsFinite(alignment.RotationDegrees) ||
+            !IsFinite(alignment.Translation) ||
             !IsFiniteMatrix(matrix) || !Matrix4x4.Invert(matrix, out _))
         {
             throw new ArgumentException(
                 "Alignment режима 3 должен иметь положительный uniform scale, " +
-                "конечное положение и нулевой поворот.",
+                "конечные поворот и положение.",
                 nameof(alignment));
         }
     }
@@ -7083,13 +10557,70 @@ public partial class MainWindow : Window
         float.IsFinite(matrix.M41) && float.IsFinite(matrix.M42) &&
         float.IsFinite(matrix.M43) && float.IsFinite(matrix.M44);
 
+    private static bool IsFinite(Vector3 value) =>
+        float.IsFinite(value.X) &&
+        float.IsFinite(value.Y) &&
+        float.IsFinite(value.Z);
+
     private void ShowError(Exception exception)
     {
+        SessionLog.Error("USER_VISIBLE_ERROR", exception);
         StatusText.Text = "Ошибка: " + exception.Message;
         MessageBox.Show(this, exception.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
+    private void OpenDiagnosticLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SessionLog.Flush();
+            string logPath = SessionLog.FilePath;
+            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
+                throw new FileNotFoundException("Файл диагностического лога ещё не создан.", logPath);
+            SessionLog.Info("LOG", $"Opening log location: {logPath}");
+            Process.Start(new ProcessStartInfo(
+                "explorer.exe",
+                $"/select,\"{logPath}\"")
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception exception)
+        {
+            ShowError(exception);
+        }
+    }
+
     private sealed record BoneItem(int Slot, uint ObjectId, string Display);
+    private sealed record SmoReplacementLoadResult(
+        string FullPath,
+        SmoDocument Document,
+        SmoExportScene Scene);
+    private sealed record GeneratedSkinningCalculationResult(
+        ReplacementTransform Alignment,
+        TargetRigBodySelection BodySelection,
+        GeneratedSkinningPreparationResult Preparation,
+        GlbSkinTransferPlan Plan);
+    private sealed class MappedGeneratedSkinningProgress(
+        IProgress<GeneratedSkinningProgress> target,
+        double start,
+        double span) : IProgress<GeneratedSkinningProgress>
+    {
+        public void Report(GeneratedSkinningProgress value) =>
+            target.Report(value with
+            {
+                Fraction = Math.Clamp(start + value.Fraction * span, 0, 1)
+            });
+    }
+    private sealed record ExternalReplacementLoadResult(
+        string FullPath,
+        ImportedScene SourceScene,
+        ImportedScene EffectiveScene,
+        RigidGlbTextureBundle? RigidTextureBundle,
+        ImportedTextureCatalogResult Catalog,
+        string? TextureDirectory,
+        string? TextureBindingIssue,
+        string? GeometryOnlyFallbackIssue);
     private sealed record TargetRigJointItem(int JointIndex, string Display);
     private sealed record GeneratedAttachmentListItem(
         GeneratedSkinningAttachment Attachment)
@@ -7123,6 +10654,10 @@ public partial class MainWindow : Window
         float KneeBendDegrees,
         float TorsoPitchDegrees,
         float NeckForwardDegrees);
+    private sealed record StartupPreset(
+        string DonorPath,
+        ReplacementTransform Alignment,
+        BodyPoseControlValues Pose);
     private sealed record TextureResourceItem(
         string Display,
         string Details,
@@ -7148,4 +10683,27 @@ public partial class MainWindow : Window
         Pan,
         Zoom
     }
+
+    private enum ModelTransformGizmoMode
+    {
+        Translate,
+        Scale,
+        Rotate
+    }
+
+    private enum ModelTransformAxis
+    {
+        X,
+        Y,
+        Z,
+        Uniform
+    }
+
+    private readonly record struct ModelTransformGizmoDrag(
+        ModelTransformGizmoMode Mode,
+        ModelTransformAxis Axis,
+        Point StartScreen,
+        ReplacementTransform InitialTransform,
+        System.Windows.Vector ScreenDirection,
+        double WorldUnitsPerPixel);
 }

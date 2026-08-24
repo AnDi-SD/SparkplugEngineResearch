@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Numerics;
 using SmoExporter.Core;
 using SmoViewer.Core;
@@ -7,16 +6,25 @@ using SmoViewer.Core;
 namespace SmoImporter.Core;
 
 /// <summary>
-/// Uniform external-space alignment derived only from the largest connected
-/// target and donor surface components.
+/// Uniform external-space alignment. The automatic path derives scale and
+/// translation from connected surfaces; the explicit path may also carry a
+/// user-authored XYZ rotation.
 /// </summary>
 public sealed record GeneratedSkinningAlignment(
     float Scale,
     Vector3 Translation)
 {
+    public Vector3 RotationDegrees { get; init; }
+
     public Matrix4x4 Matrix =>
         Matrix4x4.CreateScale(Scale) *
+        Matrix4x4.CreateFromYawPitchRoll(
+            Degrees(RotationDegrees.Y),
+            Degrees(RotationDegrees.X),
+            Degrees(RotationDegrees.Z)) *
         Matrix4x4.CreateTranslation(Translation);
+
+    private static float Degrees(float value) => value * MathF.PI / 180f;
 }
 
 /// <summary>
@@ -34,7 +42,8 @@ public enum GeneratedSkinningComponentAttachmentTarget
 /// <summary>
 /// An exact connected-surface assignment captured in original donor vertex
 /// coordinates. Alignment is deliberately not part of this identity: changing
-/// a positive uniform scale/translation cannot change component topology.
+/// a finite rotation, positive uniform scale and translation cannot change
+/// component topology.
 /// </summary>
 public sealed record GeneratedSkinningComponentOverride(
     int ComponentIndex,
@@ -75,6 +84,12 @@ public sealed record GeneratedSkinningAttachment(
     /// Non-null when the rigid one-hot assignment was supplied explicitly.
     /// </summary>
     public GeneratedSkinningComponentAttachmentTarget? ManualAssignment { get; init; }
+
+    /// <summary>
+    /// Non-null when a detached component was proven to be a geometric companion
+    /// of an applied semantic region. Explicit manual assignments take precedence.
+    /// </summary>
+    public GeneratedSkinningSemanticRegion? SemanticAssignment { get; init; }
 }
 
 public sealed record GeneratedSkinningAnalysis(
@@ -115,6 +130,35 @@ public sealed record GeneratedSkinningAnalysis(
     /// bit-identical to the legacy implementation.
     /// </summary>
     public int AnatomicalVolumeLegacyVertexCount { get; init; }
+
+    /// <summary>Selected-body vertices handled by a semantic core/transition.</summary>
+    public int SemanticRegionAppliedVertexCount { get; init; }
+
+    /// <summary>
+    /// Smooth lower-body vertices for which the sagittal wall removed every
+    /// opposite-side leg capsule before weight ranking.
+    /// </summary>
+    public int LowerBodyWallAffectedVertexCount { get; init; }
+
+    /// <summary>
+    /// Target-calibrated semantic head/hand volumes and their exact captured
+    /// original-donor vertex memberships.
+    /// </summary>
+    public GeneratedSkinningRegionAnalysis SemanticRegions { get; init; } =
+        new(
+            Array.Empty<GeneratedSkinningRegionResolution>(),
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty);
+
+    /// <summary>
+    /// Bounded internal instrumentation for proving that adaptive legacy
+    /// palette probes do not repeat semantic-region resolution.
+    /// </summary>
+    internal int InternalPreparationPassCount { get; init; }
+
+    internal int SemanticResolutionPassCount { get; init; }
 }
 
 public sealed record GeneratedSkinningPreparationResult(
@@ -129,6 +173,10 @@ public sealed record GeneratedSkinningPreparationResult(
     public ImportedScene FittingPreviewScene { get; init; } = PreparedScene;
 }
 
+public sealed record GeneratedSkinningProgress(
+    double Fraction,
+    string Stage);
+
 /// <summary>
 /// Conservative prototype for mode 3. It aligns an unskinned donor to the
 /// target bind geometry, generates up to four normalized capsule weights per
@@ -139,7 +187,7 @@ public sealed record GeneratedSkinningPreparationResult(
 /// direction as the target. An unskinned surface cannot prove front/back or
 /// detect a mirrored character reliably, so this API never rotates or reflects it.
 /// </summary>
-public static class GeneratedSkinningPreparer
+public static partial class GeneratedSkinningPreparer
 {
     // Start with the full nearest-four result and reduce it only when the exact
     // target palette plan proves that result cannot fit. Three is the highest
@@ -158,6 +206,82 @@ public static class GeneratedSkinningPreparer
     private const float MinimumAlignmentScale = 0.0001f;
     private const float MaximumAlignmentScale = 10000f;
     private const float TargetEnvelopeWeightThreshold = 0.5f;
+    private const int MaximumSafeGeneratedMeshes = 256;
+    private const int MaximumSafeGeneratedVertices = 200_000;
+    private const int MaximumSafeGeneratedTriangles = 600_000;
+    private const int MaximumSafeGeneratedTargetBytes = 512 * 1024 * 1024;
+    private const long MaximumSafeGeneratedManagedBytes =
+        1536L * 1024 * 1024;
+
+    private sealed class PreparationPassState(
+        CancellationToken cancellationToken,
+        IProgress<GeneratedSkinningProgress>? progress)
+    {
+        public int PreparationPassCount { get; private set; }
+
+        public int SemanticResolutionCount { get; private set; }
+
+        public CancellationToken CancellationToken => cancellationToken;
+
+        public void BeginPass()
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ValidateRuntimeMemoryHeadroom();
+            PreparationPassCount++;
+            if (PreparationPassCount >
+                TopFourComparisonInfluences - MinimumGeneratedInfluences + 2)
+            {
+                throw new InvalidOperationException(
+                    "Generated-skinning exceeded its bounded adaptive pass count.");
+            }
+            Report(
+                0.06 + (PreparationPassCount - 1) * 0.22,
+                $"Расчёт весов: проход {PreparationPassCount} из максимум 4");
+        }
+
+        public void RecordSemanticResolution()
+        {
+            SemanticResolutionCount++;
+            if (SemanticResolutionCount > 1)
+            {
+                throw new InvalidOperationException(
+                    "Generated-skinning attempted semantic-region resolution " +
+                    "more than once in one public preparation.");
+            }
+        }
+
+        public void ThrowIfCancellationRequested() =>
+            cancellationToken.ThrowIfCancellationRequested();
+
+        public void Report(double fraction, string stage) =>
+            progress?.Report(new GeneratedSkinningProgress(
+                Math.Clamp(fraction, 0, 1),
+                stage));
+
+        private static void ValidateRuntimeMemoryHeadroom()
+        {
+            long managedBytes = GC.GetTotalMemory(forceFullCollection: false);
+            GCMemoryInfo memory = GC.GetGCMemoryInfo();
+            bool systemMemoryCritical = memory.HighMemoryLoadThresholdBytes > 0 &&
+                memory.MemoryLoadBytes >=
+                memory.HighMemoryLoadThresholdBytes * 9 / 10;
+            const long meaningfulImporterPressureBytes = 512L * 1024 * 1024;
+            bool importerIsContributingToSystemPressure =
+                managedBytes >= meaningfulImporterPressureBytes &&
+                systemMemoryCritical;
+            if (managedBytes <= MaximumSafeGeneratedManagedBytes &&
+                !importerIsContributingToSystemPressure)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Расчёт автоматических весов остановлен до следующего прохода: " +
+                "приложение или система приблизились к безопасному пределу памяти. " +
+                $"Managed memory: {managedBytes / (1024 * 1024):N0} MiB. " +
+                "Закройте другие тяжёлые программы либо упростите/разделите модель.");
+        }
+    }
     private const float EnvelopeCoreRatio = 1f;
     private const float EnvelopeFadeRatio = 1.25f;
     private const int MinimumEnvelopeSamples = 8;
@@ -238,7 +362,12 @@ public static class GeneratedSkinningPreparer
         Vector3 Center,
         Vector3 LeftAxis,
         float DeadZone,
-        bool UseVectorAxis);
+        bool UseVectorAxis)
+    {
+        public Vector3 LowerBodyWallOrigin { get; init; }
+
+        public bool HasLowerBodyWall { get; init; }
+    }
 
     private sealed record PackedInfluence(
         ushort Joint,
@@ -249,7 +378,10 @@ public static class GeneratedSkinningPreparer
         PackedInfluence[] TopFourInfluences,
         float DiscardedTopFourWeightMass,
         float TopFourToFinalWeightL1Distance,
-        bool AnatomicalVolumeAffected);
+        bool AnatomicalVolumeAffected)
+    {
+        public bool LowerBodyWallAffected { get; init; }
+    }
 
     private sealed record FittingDeformationComparison(
         int VertexCount,
@@ -513,20 +645,151 @@ public static class GeneratedSkinningPreparer
             componentOverrides);
     }
 
+    /// <summary>
+    /// Applies validated semantic head/hand adjustments to an explicitly
+    /// selected smooth body before fitting-pose geometry is baked back to the
+    /// canonical target bind pose.
+    /// </summary>
+    public static GeneratedSkinningPreparationResult Prepare(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform donorAlignment,
+        TargetRigBodySelection bodySelection,
+        GeneratedSkinningRegionOverrides regionOverrides)
+    {
+        ArgumentNullException.ThrowIfNull(fittingPose);
+        ArgumentNullException.ThrowIfNull(bodySelection);
+        ArgumentNullException.ThrowIfNull(regionOverrides);
+        fittingPose.ValidateForTarget(target);
+        ValidateGeneratedFittingPoseRoot(fittingPose);
+        return PrepareCore(
+            target,
+            donor,
+            fittingPose,
+            ValidateExplicitAlignment(donorAlignment),
+            bodySelection,
+            componentOverrides: null,
+            regionOverrides);
+    }
+
+    /// <summary>
+    /// Full generated-skinning preparation contract: explicit body selection,
+    /// detached-component assignments, and semantic vertex-region edits are
+    /// all independently revalidated against their immutable source state.
+    /// </summary>
+    public static GeneratedSkinningPreparationResult Prepare(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform donorAlignment,
+        TargetRigBodySelection bodySelection,
+        GeneratedSkinningComponentOverrides componentOverrides,
+        GeneratedSkinningRegionOverrides regionOverrides)
+    {
+        ArgumentNullException.ThrowIfNull(fittingPose);
+        ArgumentNullException.ThrowIfNull(bodySelection);
+        ArgumentNullException.ThrowIfNull(componentOverrides);
+        ArgumentNullException.ThrowIfNull(regionOverrides);
+        fittingPose.ValidateForTarget(target);
+        ValidateGeneratedFittingPoseRoot(fittingPose);
+        return PrepareCore(
+            target,
+            donor,
+            fittingPose,
+            ValidateExplicitAlignment(donorAlignment),
+            bodySelection,
+            componentOverrides,
+            regionOverrides);
+    }
+
+    /// <summary>
+    /// Cancellable full-contract entry point used by interactive previews.  The
+    /// cancellation is observed before every expensive adaptive pass so stale
+    /// revisions cannot start another complete scene build.
+    /// </summary>
+    public static GeneratedSkinningPreparationResult PrepareCancellable(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform donorAlignment,
+        TargetRigBodySelection? bodySelection,
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides,
+        CancellationToken cancellationToken,
+        IProgress<GeneratedSkinningProgress>? progress = null)
+    {
+        ArgumentNullException.ThrowIfNull(fittingPose);
+        fittingPose.ValidateForTarget(target);
+        ValidateGeneratedFittingPoseRoot(fittingPose);
+        cancellationToken.ThrowIfCancellationRequested();
+        return PrepareCore(
+            target,
+            donor,
+            fittingPose,
+            ValidateExplicitAlignment(donorAlignment),
+            bodySelection,
+            componentOverrides,
+            regionOverrides,
+            cancellationToken,
+            progress);
+    }
+
+    public static GeneratedSkinningPreparationResult PrepareCancellable(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        CancellationToken cancellationToken,
+        IProgress<GeneratedSkinningProgress>? progress = null)
+    {
+        ArgumentNullException.ThrowIfNull(fittingPose);
+        fittingPose.ValidateForTarget(target);
+        ValidateGeneratedFittingPoseRoot(fittingPose);
+        cancellationToken.ThrowIfCancellationRequested();
+        return PrepareCore(
+            target,
+            donor,
+            fittingPose,
+            alignmentOverride: null,
+            bodySelection: null,
+            componentOverrides: null,
+            regionOverrides: null,
+            cancellationToken,
+            progress);
+    }
+
     private static GeneratedSkinningPreparationResult PrepareCore(
         SmoDocument target,
         ImportedScene donor,
         TargetRigFittingPoseSnapshot? fittingPose,
         GeneratedSkinningAlignment? alignmentOverride,
         TargetRigBodySelection? bodySelection,
-        GeneratedSkinningComponentOverrides? componentOverrides)
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides = null,
+        CancellationToken cancellationToken = default,
+        IProgress<GeneratedSkinningProgress>? progress = null)
     {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(donor);
+        ValidatePreparationResourceBudget(target, donor);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Select the palette-compatible influence limit from the exact legacy
+        // capsule result with semantic replacement disabled. Semantic cores can
+        // remove palette pressure; allowing that to raise the global limit would
+        // silently change weights on vertices outside every captured region.
+        // Once selected, the same limit is used for the semantic result.
+        progress?.Report(new GeneratedSkinningProgress(
+            0.01, "Проверка модели и бюджета расчёта"));
+        var passState = new PreparationPassState(cancellationToken, progress);
         var paletteFailures = new List<string>();
+        int selectedInfluenceLimit = MinimumGeneratedInfluences;
+        bool legacyPlanFits = false;
         for (int maximumInfluences = TopFourComparisonInfluences;
              maximumInfluences >= MinimumGeneratedInfluences;
              maximumInfluences--)
         {
-            GeneratedSkinningPreparationResult candidate =
+            GeneratedSkinningPreparationResult legacyCandidate =
                 PrepareWithInfluenceLimit(
                     target,
                     donor,
@@ -534,39 +797,141 @@ public static class GeneratedSkinningPreparer
                     alignmentOverride,
                     bodySelection,
                     componentOverrides,
-                    maximumInfluences);
-            GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
-                target,
-                candidate.PreparedScene,
-                SkinnedTextureTransferMode.PreserveTarget);
+                    regionOverrides,
+                    maximumInfluences,
+                    applySemanticRegions: false,
+                    passState: passState);
+            cancellationToken.ThrowIfCancellationRequested();
+            passState.Report(
+                0.17 + (passState.PreparationPassCount - 1) * 0.22,
+                $"Проверка palettes после прохода " +
+                $"{passState.PreparationPassCount}");
+            GlbSkinTransferPlan plan;
+            try
+            {
+                plan = SmoSkinnedGlbReplacer.Analyze(
+                    target,
+                    legacyCandidate.PreparedScene,
+                    SkinnedTextureTransferMode.PreserveTarget,
+                    cancellationToken: passState.CancellationToken);
+            }
+            catch (PaletteSearchLimitException exception)
+            {
+                // A bounded exact-search refusal is a capacity result for this
+                // influence count, not a fatal preparation failure. Retrying with
+                // one fewer influence makes the palette problem strictly simpler
+                // while every individual search remains protected by its own hard
+                // state and wall-clock budgets.
+                paletteFailures.Add($"max {maximumInfluences}: {exception.Message}");
+                continue;
+            }
             string[] capacityFailures = plan.Messages
                 .Where(IsPaletteCapacityFailure)
                 .ToArray();
             if (capacityFailures.Length == 0)
             {
-                return maximumInfluences == TopFourComparisonInfluences
-                    ? candidate
-                    : AppendAnalysisWarning(
-                        candidate,
-                        $"The exact PreserveTarget palette plan rejected higher " +
-                        $"influence limits and selected {maximumInfluences} as the " +
-                        "highest compatible mode-3 limit. " +
-                        string.Join(" | ", paletteFailures));
+                selectedInfluenceLimit = maximumInfluences;
+                legacyPlanFits = true;
+                break;
             }
 
             paletteFailures.Add(
                 $"max {maximumInfluences}: {string.Join(" | ", capacityFailures)}");
-            if (maximumInfluences == MinimumGeneratedInfluences)
-            {
-                return AppendAnalysisWarning(
-                    candidate,
-                    "Even the minimum generated influence limit remains incompatible " +
-                    "with the exact PreserveTarget palette plan. " +
-                    string.Join(" | ", paletteFailures));
-            }
         }
 
-        throw new UnreachableException();
+        GeneratedSkinningPreparationResult candidate = PrepareWithInfluenceLimit(
+            target,
+            donor,
+            fittingPose,
+            alignmentOverride,
+            bodySelection,
+            componentOverrides,
+            regionOverrides,
+            selectedInfluenceLimit,
+            applySemanticRegions: true,
+            passState: passState);
+        cancellationToken.ThrowIfCancellationRequested();
+        passState.Report(0.88, "Финальная проверка semantic regions и palettes");
+        if (!legacyPlanFits)
+        {
+            candidate = AppendAnalysisWarning(
+                candidate,
+                "Even the minimum generated influence limit remains incompatible " +
+                "with the exact PreserveTarget palette plan. " +
+                string.Join(" | ", paletteFailures));
+        }
+        else if (selectedInfluenceLimit < TopFourComparisonInfluences)
+        {
+            candidate = AppendAnalysisWarning(
+                candidate,
+                $"The exact PreserveTarget palette plan rejected higher legacy " +
+                $"influence limits and selected {selectedInfluenceLimit} as the " +
+                "highest compatible mode-3 limit. Semantic regions retain that " +
+                "same limit so every outside vertex stays bit-identical. " +
+                string.Join(" | ", paletteFailures));
+        }
+
+        string[] semanticCapacityFailures;
+        try
+        {
+            GlbSkinTransferPlan semanticPlan = SmoSkinnedGlbReplacer.Analyze(
+                target,
+                candidate.PreparedScene,
+                SkinnedTextureTransferMode.PreserveTarget,
+                cancellationToken: passState.CancellationToken);
+            semanticCapacityFailures = semanticPlan.Messages
+                .Where(IsPaletteCapacityFailure)
+                .ToArray();
+        }
+        catch (PaletteSearchLimitException exception)
+        {
+            semanticCapacityFailures = [exception.Message];
+        }
+        if (semanticCapacityFailures.Length > 0)
+        {
+            candidate = AppendAnalysisWarning(
+                candidate,
+                "Semantic rigid regions cannot fit the exact PreserveTarget palette " +
+                $"plan at the legacy-stable {selectedInfluenceLimit}-influence limit. " +
+                "The limit was not reduced because that would alter outside-region " +
+                "weights; disable or adjust the reported semantic regions before " +
+                "writing. " + string.Join(" | ", semanticCapacityFailures));
+        }
+        if (passState.SemanticResolutionCount != 1 ||
+            passState.PreparationPassCount is < 2 or > 4)
+        {
+            throw new InvalidOperationException(
+                "Generated-skinning adaptive preparation violated its bounded " +
+                "one-semantic-final-pass contract.");
+        }
+        passState.Report(1, "Создание весов завершено");
+        return candidate;
+    }
+
+    private static void ValidatePreparationResourceBudget(
+        SmoDocument target,
+        ImportedScene donor)
+    {
+        int meshCount = donor.Meshes.Count;
+        long vertexCount = donor.Meshes.Sum(mesh => (long)mesh.Positions.Length);
+        long triangleCount = donor.Meshes.Sum(
+            mesh => (long)mesh.TriangleIndices.Length / 3);
+        if (target.Data.Length > MaximumSafeGeneratedTargetBytes ||
+            meshCount > MaximumSafeGeneratedMeshes ||
+            vertexCount > MaximumSafeGeneratedVertices ||
+            triangleCount > MaximumSafeGeneratedTriangles)
+        {
+            throw new InvalidDataException(
+                "Generated-skinning was blocked by its interactive safety " +
+                $"budget: target={target.Data.Length / (1024d * 1024d):N1} MiB, " +
+                $"donor={meshCount:N0} meshes, {vertexCount:N0} vertices, " +
+                $"{triangleCount:N0} triangles. Limits are " +
+                $"{MaximumSafeGeneratedTargetBytes / (1024 * 1024)} MiB, " +
+                $"{MaximumSafeGeneratedMeshes:N0} meshes, " +
+                $"{MaximumSafeGeneratedVertices:N0} vertices and " +
+                $"{MaximumSafeGeneratedTriangles:N0} triangles. Reduce or split " +
+                "the model before creating weights.");
+        }
     }
 
     private static GeneratedSkinningPreparationResult PrepareWithInfluenceLimit(
@@ -576,10 +941,15 @@ public static class GeneratedSkinningPreparer
         GeneratedSkinningAlignment? alignmentOverride,
         TargetRigBodySelection? bodySelection,
         GeneratedSkinningComponentOverrides? componentOverrides,
-        int maximumInfluences)
+        GeneratedSkinningRegionOverrides? regionOverrides,
+        int maximumInfluences,
+        bool applySemanticRegions,
+        PreparationPassState passState)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
+        ArgumentNullException.ThrowIfNull(passState);
+        passState.BeginPass();
         if (donor.Meshes.Count == 0)
             throw new InvalidDataException("The donor contains no meshes.");
         if (donor.Meshes.Any(mesh => mesh.Skinning is not null))
@@ -636,8 +1006,12 @@ public static class GeneratedSkinningPreparer
             .Select((mesh, index) => new GeometrySource(
                 index, mesh.Name, mesh.Positions, mesh.TriangleIndices))
             .ToArray();
-        SceneTopology targetTopology = BuildTopology(targetSources, "target SMO");
-        SceneTopology donorTopology = BuildTopology(donorSources, "donor");
+        SceneTopology targetTopology = BuildTopology(
+            targetSources, "target SMO", passState.CancellationToken);
+        passState.ThrowIfCancellationRequested();
+        SceneTopology donorTopology = BuildTopology(
+            donorSources, "donor", passState.CancellationToken);
+        passState.ThrowIfCancellationRequested();
         GeometryComponent targetMain = SelectUnambiguousMainComponent(
             targetTopology.Components, targetSources, "target SMO");
         GeometryComponent[] donorBodyComponents;
@@ -695,15 +1069,24 @@ public static class GeneratedSkinningPreparer
         }
         else
         {
-            // An explicit scale/translation cannot correct a non-Y-up model.
-            // Keep this structural mode-3 precondition while deliberately not
-            // replacing the requested alignment with the automatic fit.
+            // Validate orientation after the complete explicit transform. This
+            // lets a user-authored rotation stand up a sideways donor while the
+            // automatic path remains conservative and never guesses orientation.
             ValidateVerticalAxis(targetBounds, "target main component");
-            ValidateVerticalAxis(
-                donorBounds,
+            RobustBounds alignedDonorBounds = ComputeRobustBounds(
+                donorMainPositions
+                    .Select(position => Vector3.Transform(
+                        position,
+                        alignmentOverride.Matrix))
+                    .ToArray(),
                 bodySelection is null
-                    ? "donor main component"
-                    : "selected donor body components");
+                    ? "aligned donor main component"
+                    : "aligned selected donor body components");
+            ValidateVerticalAxis(
+                alignedDonorBounds,
+                bodySelection is null
+                    ? "aligned donor main component"
+                    : "aligned selected donor body components");
             alignment = alignmentOverride;
         }
 
@@ -738,13 +1121,15 @@ public static class GeneratedSkinningPreparer
         var attachments = new List<GeneratedSkinningAttachment>();
         var warnings = new List<string>
         {
-            "Generated-skinning input is required to be upright, Y-up, unmirrored, " +
-            "and facing the same direction as the target; an unskinned surface " +
-            "cannot prove this orientation automatically.",
+            "Generated-skinning input must be upright and Y-up after explicit donor " +
+            "alignment, unmirrored, and facing the same direction as the target; an " +
+            "unskinned surface cannot prove mirror or facing automatically.",
             "Weights were generated heuristically from target bind-pose bone capsules " +
             "plus finite target-weight-calibrated torso/head fields; extreme animation " +
             "poses still require visual inspection."
         };
+        foreach (string warning in donor.ImportWarnings)
+            warnings.Add(warning);
         foreach (string diagnostic in envelopeDiagnostics)
             warnings.Add(diagnostic);
         if (anatomicalVolumes.Values.Any(volume =>
@@ -798,6 +1183,40 @@ public static class GeneratedSkinningPreparer
                 .Select(position => ApplyAlignment(position, alignment))
                 .ToArray())
             .ToArray();
+        passState.ThrowIfCancellationRequested();
+        SemanticRegionPreparation? semanticRegionPreparation = null;
+        if (applySemanticRegions)
+        {
+            passState.RecordSemanticResolution();
+            semanticRegionPreparation = ResolveSemanticRegions(
+                target,
+                donor,
+                rig,
+                targetSkeleton,
+                targetScene,
+                targetSkinnedMeshes,
+                targetBounds,
+                fittingWorldMatrices,
+                donorBodyComponents,
+                donorSources,
+                donorTopology,
+                alignedPositionsByMesh,
+                sideCalibration,
+                capsules,
+                anatomicalVolumes,
+                maximumInfluences,
+                alignment,
+                fittingPose,
+                manualAssignments.Keys.ToHashSet(),
+                regionOverrides);
+            passState.ThrowIfCancellationRequested();
+            foreach (GeneratedSkinningRegionResolution resolution in
+                     semanticRegionPreparation.Analysis.Regions)
+            {
+                foreach (string diagnostic in resolution.Warnings)
+                    warnings.Add(diagnostic);
+            }
+        }
         ImportedJointIndices[][] jointsByMesh = donor.Meshes
             .Select(mesh => new ImportedJointIndices[mesh.Positions.Length])
             .ToArray();
@@ -818,6 +1237,8 @@ public static class GeneratedSkinningPreparer
             .ToArray();
         int smoothVertexCount = 0;
         int anatomicalVolumeAffectedVertexCount = 0;
+        int lowerBodyWallAffectedVertexCount = 0;
+        int semanticRegionAppliedVertexCount = 0;
         double discardedTopFourWeightMassSum = 0;
         double topFourToFinalWeightL1DistanceSum = 0;
         float maximumDiscardedTopFourWeightMass = 0;
@@ -825,18 +1246,42 @@ public static class GeneratedSkinningPreparer
 
         foreach (GeometryComponent component in donorTopology.Components)
         {
+            passState.ThrowIfCancellationRequested();
             bool isMain = donorBodyComponentIndices.Contains(component.ComponentIndex);
             if (isMain)
             {
                 foreach (GeometryVertex vertex in component.Vertices)
                 {
-                    GeneratedVertexInfluences generated = GenerateVertexInfluences(
-                        alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-                        capsules,
-                        anatomicalVolumes,
-                        sideCalibration,
-                        targetBounds.Size.Y,
-                        maximumInfluences);
+                    if ((smoothVertexCount & 0xFFF) == 0)
+                        passState.ThrowIfCancellationRequested();
+                    SemanticVertexAssignment? semanticAssignment = null;
+                    bool usesSemanticRegion =
+                        applySemanticRegions &&
+                        semanticRegionPreparation!.Assignments.TryGetValue(
+                            vertex,
+                            out semanticAssignment);
+                    GeneratedVertexInfluences generated;
+                    if (usesSemanticRegion)
+                    {
+                        generated = BuildSemanticVertexInfluences(
+                            semanticAssignment!);
+                    }
+                    else if (semanticRegionPreparation is not null)
+                    {
+                        generated =
+                            semanticRegionPreparation.CapsuleInfluences[vertex];
+                    }
+                    else
+                    {
+                        generated = GenerateVertexInfluences(
+                            alignedPositionsByMesh[vertex.MeshIndex]
+                                [vertex.VertexIndex],
+                            capsules,
+                            anatomicalVolumes,
+                            sideCalibration,
+                            targetBounds.Size.Y,
+                            maximumInfluences);
+                    }
                     WriteInfluences(
                         generated.Influences,
                         out jointsByMesh[vertex.MeshIndex][vertex.VertexIndex],
@@ -850,6 +1295,10 @@ public static class GeneratedSkinningPreparer
                     smoothVertexCount++;
                     if (generated.AnatomicalVolumeAffected)
                         anatomicalVolumeAffectedVertexCount++;
+                    if (generated.LowerBodyWallAffected)
+                        lowerBodyWallAffectedVertexCount++;
+                    if (usesSemanticRegion)
+                        semanticRegionAppliedVertexCount++;
                     discardedTopFourWeightMassSum +=
                         generated.DiscardedTopFourWeightMass;
                     topFourToFinalWeightL1DistanceSum +=
@@ -868,19 +1317,14 @@ public static class GeneratedSkinningPreparer
             string componentLabel = DescribeComponent(component, donorSources);
             ManualComponentAssignment? manualAssignment = manualAssignments
                 .GetValueOrDefault(component.ComponentIndex);
+            SemanticComponentAssignment? semanticComponentAssignment =
+                applySemanticRegions
+                    ? semanticRegionPreparation!.ComponentAssignments
+                        .GetValueOrDefault(component.ComponentIndex)
+                    : null;
             BoneCapsule attachmentBone;
-            if (manualAssignment is null)
-            {
-                attachmentBone = SelectAttachmentBone(
-                    alignedCenter,
-                    capsules,
-                    sideCalibration,
-                    targetBounds.Size.Y,
-                    warnings,
-                    componentLabel,
-                    component.ComponentIndex);
-            }
-            else
+            bool usesAutomaticRootAssignment = false;
+            if (manualAssignment is not null)
             {
                 attachmentBone = capsules
                     .Where(capsule =>
@@ -891,8 +1335,46 @@ public static class GeneratedSkinningPreparer
                         $"Manual target joint '{manualAssignment.BoneName}' has no " +
                         "generated capsule.");
             }
+            else if (semanticComponentAssignment is not null)
+            {
+                attachmentBone = capsules
+                    .Where(capsule => capsule.SkeletonJointIndex ==
+                                      semanticComponentAssignment.AnchorSkeletonJointIndex)
+                    .OrderBy(capsule => DistanceToCapsuleCenterline(
+                        alignedCenter, capsule.Start, capsule.End))
+                    .FirstOrDefault() ?? throw new InvalidDataException(
+                        $"Semantic {semanticComponentAssignment.Region} anchor joint " +
+                        $"'{semanticComponentAssignment.AnchorBoneName}' has no " +
+                        "generated capsule.");
+            }
+            else
+            {
+                if (TrySelectElongatedHeadRoot(
+                        component,
+                        alignedPositionsByMesh,
+                        capsules,
+                        targetBounds.Size.Y,
+                        out BoneCapsule? rootedBone))
+                {
+                    attachmentBone = rootedBone;
+                    usesAutomaticRootAssignment = true;
+                }
+                else
+                {
+                    attachmentBone = SelectAttachmentBone(
+                        alignedCenter,
+                        capsules,
+                        sideCalibration,
+                        targetBounds.Size.Y,
+                        warnings,
+                        componentLabel,
+                        component.ComponentIndex);
+                }
+            }
             foreach (GeometryVertex vertex in component.Vertices)
             {
+                if ((vertex.VertexIndex & 0xFFF) == 0)
+                    passState.ThrowIfCancellationRequested();
                 jointsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
                     new ImportedJointIndices(
                         checked((ushort)attachmentBone.SkeletonJointIndex), 0, 0, 0);
@@ -926,14 +1408,27 @@ public static class GeneratedSkinningPreparer
                 alignedCenter)
             {
                 VerticesByMesh = membership,
-                ManualAssignment = manualAssignment?.Target
+                ManualAssignment = manualAssignment?.Target,
+                SemanticAssignment = manualAssignment is null
+                    ? semanticComponentAssignment?.Region
+                    : null
             });
-            warnings.Add(manualAssignment is null
-                ? $"Detached component {componentLabel}#{component.ComponentIndex} was kept " +
-                  $"rigid on {attachmentBone.BoneName}; confirm this attachment before writing SMO."
-                : $"Detached component {componentLabel}#{component.ComponentIndex} uses the " +
+            warnings.Add(manualAssignment is not null
+                ? $"Detached component {componentLabel}#{component.ComponentIndex} uses the " +
                   $"validated manual {manualAssignment.Target} assignment and is rigidly " +
-                  $"one-hot weighted to exact joint {attachmentBone.BoneName}.");
+                  $"one-hot weighted to exact joint {attachmentBone.BoneName}."
+                : semanticComponentAssignment is not null
+                    ? $"Detached component {componentLabel}#{component.ComponentIndex} was " +
+                      $"proven to be a compact {semanticComponentAssignment.Region} companion " +
+                      $"and is rigidly one-hot weighted to exact joint " +
+                      $"{attachmentBone.BoneName}."
+                    : usesAutomaticRootAssignment
+                        ? $"Detached elongated component {componentLabel}" +
+                          $"#{component.ComponentIndex} has a bounded distal root " +
+                          $"inside the target Head envelope and is rigidly one-hot " +
+                          $"weighted to Head instead of its misleading geometric center."
+                    : $"Detached component {componentLabel}#{component.ComponentIndex} was kept " +
+                      $"rigid on {attachmentBone.BoneName}; confirm this attachment before writing SMO.");
         }
 
         // ImportedSkinning remains indexed exactly like every source vertex
@@ -954,6 +1449,8 @@ public static class GeneratedSkinningPreparer
             ushort placeholderJoint = checked((ushort)placeholder.SkeletonJointIndex);
             foreach (GeometryVertex vertex in donorTopology.UnreferencedVertices)
             {
+                if ((vertex.VertexIndex & 0xFFF) == 0)
+                    passState.ThrowIfCancellationRequested();
                 jointsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
                     new ImportedJointIndices(placeholderJoint, 0, 0, 0);
                 weightsByMesh[vertex.MeshIndex][vertex.VertexIndex] = Vector4.UnitX;
@@ -964,10 +1461,19 @@ public static class GeneratedSkinningPreparer
             }
         }
 
+        ValidateLowerBodyWallWeights(
+            alignedPositionsByMesh,
+            smoothByMesh,
+            jointsByMesh,
+            weightsByMesh,
+            targetSkeleton.Skeleton,
+            sideCalibration);
+
         var preparedMeshes = new ImportedMesh[donor.Meshes.Count];
         int preparedVertices = 0;
         for (int meshIndex = 0; meshIndex < donor.Meshes.Count; meshIndex++)
         {
+            passState.ThrowIfCancellationRequested();
             ImportedMesh source = donor.Meshes[meshIndex];
             if (assignedByMesh[meshIndex].Any(value => !value))
             {
@@ -983,7 +1489,9 @@ public static class GeneratedSkinningPreparer
             preparedMeshes[meshIndex] = source with
             {
                 Positions = alignedPositionsByMesh[meshIndex],
-                Normals = source.Normals.ToArray(),
+                Normals = source.Normals
+                    .Select(normal => ApplyNormalAlignment(normal, alignment))
+                    .ToArray(),
                 TextureCoordinates = source.TextureCoordinates.ToArray(),
                 TriangleIndices = donorTopology
                     .RenderableTriangleIndicesByMesh[meshIndex]
@@ -1014,12 +1522,20 @@ public static class GeneratedSkinningPreparer
         warnings.Add(
             $"Finite torso/head anatomical fields changed capsule scores for " +
             $"{anatomicalVolumeAffectedVertexCount} of {smoothVertexCount} smooth " +
-            $"vertices; {smoothVertexCount - anatomicalVolumeAffectedVertexCount} " +
+            $"vertices; semantic rigid regions replaced weights for " +
+            $"{semanticRegionAppliedVertexCount}; " +
+            $"{smoothVertexCount - anatomicalVolumeAffectedVertexCount - semanticRegionAppliedVertexCount} " +
             "vertices retained the bit-identical legacy capsule score path.");
+        warnings.Add(
+            $"The target-rig sagittal lower-body wall excluded opposite-leg " +
+            $"capsules for {lowerBodyWallAffectedVertexCount} smooth " +
+            "vertex/vertices below Pelvis/Spine_01; close or crossed donor legs " +
+            "therefore cannot exchange left/right leg weights across the wall.");
 
-        ImportedTexture[] preparedTextures = donor.Textures
-            .Select(texture => texture with { Data = texture.Data.ToArray() })
-            .ToArray();
+        // Imported scenes are immutable by contract.  Reusing encoded texture
+        // resources avoids cloning every PNG on each of the bounded adaptive
+        // weight passes; geometry and skin arrays remain independently owned.
+        ImportedTexture[] preparedTextures = donor.Textures.ToArray();
         ImportedMaterial[] preparedMaterials = donor.Materials.ToArray();
         var fittingScene = new ImportedScene(
             Array.AsReadOnly(preparedMeshes),
@@ -1075,14 +1591,39 @@ public static class GeneratedSkinningPreparer
             DonorComponentCount = donorTopology.Components.Count,
             AnatomicalVolumeAffectedVertexCount = anatomicalVolumeAffectedVertexCount,
             AnatomicalVolumeLegacyVertexCount =
-                smoothVertexCount - anatomicalVolumeAffectedVertexCount
+                smoothVertexCount - anatomicalVolumeAffectedVertexCount -
+                semanticRegionAppliedVertexCount,
+            SemanticRegionAppliedVertexCount = semanticRegionAppliedVertexCount,
+            LowerBodyWallAffectedVertexCount = lowerBodyWallAffectedVertexCount,
+            InternalPreparationPassCount = passState.PreparationPassCount,
+            SemanticResolutionPassCount = passState.SemanticResolutionCount
         };
+        if (semanticRegionPreparation is not null)
+        {
+            analysis = analysis with
+            {
+                SemanticRegions = semanticRegionPreparation.Analysis
+            };
+        }
         return new GeneratedSkinningPreparationResult(
             analysis,
             preparedScene)
         {
             FittingPreviewScene = fittingScene
         };
+    }
+
+    private static void ValidateGeneratedFittingPoseRoot(
+        TargetRigFittingPoseSnapshot fittingPose)
+    {
+        if (fittingPose.RootRotation != Quaternion.Identity ||
+            fittingPose.RootTranslation != Vector3.Zero)
+        {
+            throw new InvalidOperationException(
+                "Generated-skinning fitting supports local bone rotations only; " +
+                "root rotation and translation require an explicit donor-alignment " +
+                "space contract.");
+        }
     }
 
     private static bool IsPaletteCapacityFailure(string message) =>
@@ -1744,6 +2285,14 @@ public static class GeneratedSkinningPreparer
         int maximumInfluences)
     {
         BodySide vertexSide = ClassifyPositionSide(position, calibration);
+        BodySide lowerBodyWallSide = ClassifyLowerBodyWallSide(
+            position,
+            calibration);
+        BodySide compatibilitySide = lowerBodyWallSide == BodySide.Center
+            ? vertexSide
+            : lowerBodyWallSide;
+        bool lowerBodyWallAffected = lowerBodyWallSide != BodySide.Center &&
+                                     lowerBodyWallSide != vertexSide;
         bool anatomicalVolumeAffected = false;
         float headFieldAlpha = anatomicalVolumes.Values
             .Where(volume => volume.IsHead)
@@ -1759,7 +2308,7 @@ public static class GeneratedSkinningPreparer
             .Max() * (1 - headFieldAlpha);
         var distances = capsules
             .Where(capsule => capsule.SafeForAutomaticWeights &&
-                              !IsOpposite(vertexSide, capsule.Side))
+                              !IsOpposite(compatibilitySide, capsule.Side))
             .GroupBy(capsule => capsule.SkeletonJointIndex)
             .Select(group =>
             {
@@ -1872,7 +2421,10 @@ public static class GeneratedSkinningPreparer
             topFourInfluences,
             discardedMass,
             l1Distance,
-            anatomicalVolumeAffected);
+            anatomicalVolumeAffected)
+        {
+            LowerBodyWallAffected = lowerBodyWallAffected
+        };
     }
 
     private static bool IsTorsoFieldBone(string boneName) =>
@@ -1956,6 +2508,63 @@ public static class GeneratedSkinningPreparer
                        (EnvelopeFadeRatio - EnvelopeCoreRatio);
         // Smoothstep stays exactly zero/one at the field boundaries.
         return amount * amount * (3 - 2 * amount);
+    }
+
+    private static bool TrySelectElongatedHeadRoot(
+        GeometryComponent component,
+        IReadOnlyList<Vector3[]> alignedPositionsByMesh,
+        IReadOnlyList<BoneCapsule> capsules,
+        float targetHeight,
+        out BoneCapsule rootedBone)
+    {
+        rootedBone = null!;
+        BoneCapsule? head = capsules
+            .Where(capsule => capsule.SafeForAutomaticWeights &&
+                              string.Equals(
+                                  capsule.BoneName,
+                                  "Head",
+                                  StringComparison.Ordinal))
+            .OrderBy(capsule => capsule.SkeletonJointIndex)
+            .FirstOrDefault();
+        if (head is null)
+            return false;
+
+        Vector3[] positions = component.Vertices
+            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
+                [vertex.VertexIndex])
+            .Distinct()
+            .ToArray();
+        if (positions.Length < 8)
+            return false;
+        float minimumY = positions.Min(position => position.Y);
+        float maximumY = positions.Max(position => position.Y);
+        float verticalExtent = maximumY - minimumY;
+        if (!float.IsFinite(verticalExtent) ||
+            verticalExtent < targetHeight * 0.45f ||
+            maximumY < MathF.Max(head.Start.Y, head.End.Y) -
+                       targetHeight * 0.12f)
+        {
+            return false;
+        }
+
+        float topBandHeight = MathF.Max(
+            verticalExtent * 0.12f,
+            targetHeight * 0.025f);
+        Vector3[] topBand = positions
+            .Where(position => position.Y >= maximumY - topBandHeight)
+            .ToArray();
+        if (topBand.Length < 4)
+            return false;
+        float rootRadius = targetHeight * 0.11f;
+        int nearHead = topBand.Count(position =>
+            DistanceToCapsuleCenterline(position, head.Start, head.End) <=
+            rootRadius);
+        int required = Math.Max(4, (int)MathF.Ceiling(topBand.Length * 0.03f));
+        if (nearHead < required)
+            return false;
+
+        rootedBone = head;
+        return true;
     }
 
     private static BoneCapsule SelectAttachmentBone(
@@ -2058,6 +2667,54 @@ public static class GeneratedSkinningPreparer
         }
     }
 
+    private static void ValidateLowerBodyWallWeights(
+        IReadOnlyList<Vector3[]> positionsByMesh,
+        IReadOnlyList<bool[]> smoothByMesh,
+        IReadOnlyList<ImportedJointIndices[]> jointsByMesh,
+        IReadOnlyList<Vector4[]> weightsByMesh,
+        ImportedSkeleton skeleton,
+        SideCalibration calibration)
+    {
+        for (int meshIndex = 0; meshIndex < positionsByMesh.Count; meshIndex++)
+        {
+            for (int vertexIndex = 0;
+                 vertexIndex < positionsByMesh[meshIndex].Length;
+                 vertexIndex++)
+            {
+                if (!smoothByMesh[meshIndex][vertexIndex])
+                    continue;
+                BodySide side = ClassifyLowerBodyWallSide(
+                    positionsByMesh[meshIndex][vertexIndex],
+                    calibration);
+                if (side == BodySide.Center)
+                    continue;
+
+                ImportedJointIndices joints = jointsByMesh[meshIndex][vertexIndex];
+                Vector4 weights = weightsByMesh[meshIndex][vertexIndex];
+                ushort[] indices = [joints.X, joints.Y, joints.Z, joints.W];
+                for (int influence = 0; influence < indices.Length; influence++)
+                {
+                    float weight = VectorComponent(weights, influence);
+                    if (weight <= WeightEpsilon)
+                        continue;
+                    int jointIndex = indices[influence];
+                    if ((uint)jointIndex >= (uint)skeleton.JointNames.Count)
+                        continue;
+                    BodySide boneSide = ClassifyBoneSide(
+                        skeleton.JointNames[jointIndex]);
+                    if (IsOpposite(side, boneSide))
+                    {
+                        throw new InvalidDataException(
+                            $"Sagittal lower-body wall validation found an " +
+                            $"opposite-side influence on mesh {meshIndex}, vertex " +
+                            $"{vertexIndex}: {skeleton.JointNames[jointIndex]}=" +
+                            $"{weight:G6}.");
+                    }
+                }
+            }
+        }
+    }
+
     private static GeneratedSkinningAlignment BuildAlignment(
         RobustBounds target,
         RobustBounds donor)
@@ -2083,14 +2740,8 @@ public static class GeneratedSkinningPreparer
         ReplacementTransform donorAlignment)
     {
         ArgumentNullException.ThrowIfNull(donorAlignment);
-        if (donorAlignment.RotationDegrees != Vector3.Zero)
-        {
-            throw new ArgumentException(
-                "Generated-skinning donor alignment does not support rotation; " +
-                "RotationDegrees must be exactly zero.",
-                nameof(donorAlignment));
-        }
         if (!float.IsFinite(donorAlignment.Scale) || donorAlignment.Scale <= 0 ||
+            !IsFinite(donorAlignment.RotationDegrees) ||
             !IsFinite(donorAlignment.Translation))
         {
             throw new ArgumentException(
@@ -2110,7 +2761,10 @@ public static class GeneratedSkinningPreparer
         }
         return new GeneratedSkinningAlignment(
             donorAlignment.Scale,
-            donorAlignment.Translation);
+            donorAlignment.Translation)
+        {
+            RotationDegrees = donorAlignment.RotationDegrees
+        };
     }
 
     private static void ValidateVerticalAxis(RobustBounds bounds, string label)
@@ -2153,6 +2807,29 @@ public static class GeneratedSkinningPreparer
         RobustBounds targetBounds,
         IReadOnlyList<Matrix4x4>? fittingWorldMatrices)
     {
+        TargetRigJoint? lowerBodyWallAnchor = deformJoints
+            .Where(joint => string.Equals(
+                joint.Name,
+                "Pelvis",
+                StringComparison.Ordinal))
+            .Concat(deformJoints.Where(joint => string.Equals(
+                joint.Name,
+                "Spine_01",
+                StringComparison.Ordinal)))
+            .FirstOrDefault();
+        Vector3 lowerBodyWallOrigin = lowerBodyWallAnchor is null
+            ? Vector3.Zero
+            : Translation(GetFittingWorldMatrix(
+                lowerBodyWallAnchor,
+                fittingWorldMatrices));
+        bool hasLowerBodyWall = lowerBodyWallAnchor is not null &&
+                                IsFinite(lowerBodyWallOrigin);
+        if (!hasLowerBodyWall)
+        {
+            throw new InvalidDataException(
+                "Target skeleton has no finite Pelvis/Spine_01 anchor for the " +
+                "mandatory sagittal lower-body wall.");
+        }
         if (fittingWorldMatrices is null)
         {
             float[] legacyLeft = deformJoints
@@ -2188,7 +2865,11 @@ public static class GeneratedSkinningPreparer
                 Vector3.Zero,
                 Vector3.Zero,
                 legacyMinimumSeparation * 0.5f,
-                UseVectorAxis: false);
+                UseVectorAxis: false)
+            {
+                LowerBodyWallOrigin = lowerBodyWallOrigin,
+                HasLowerBodyWall = hasLowerBodyWall
+            };
         }
 
         Vector3[] left = deformJoints
@@ -2227,7 +2908,11 @@ public static class GeneratedSkinningPreparer
             (leftAverage + rightAverage) * 0.5f,
             separation / separationLength,
             minimumSeparation * 0.5f,
-            UseVectorAxis: true);
+            UseVectorAxis: true)
+        {
+            LowerBodyWallOrigin = lowerBodyWallOrigin,
+            HasLowerBodyWall = hasLowerBodyWall
+        };
 
         static Vector3 Average(IReadOnlyList<Vector3> values)
         {
@@ -2330,6 +3015,29 @@ public static class GeneratedSkinningPreparer
         return BodySide.Center;
     }
 
+    private static BodySide ClassifyLowerBodyWallSide(
+        Vector3 position,
+        SideCalibration calibration)
+    {
+        if (!calibration.HasLowerBodyWall ||
+            position.Y > calibration.LowerBodyWallOrigin.Y + PositionEpsilon)
+        {
+            return BodySide.Center;
+        }
+
+        float signed = calibration.UseVectorAxis
+            ? Vector3.Dot(
+                position - calibration.LowerBodyWallOrigin,
+                calibration.LeftAxis)
+            : (position.X - calibration.LowerBodyWallOrigin.X) *
+              calibration.LeftDirection;
+        if (signed > PositionEpsilon)
+            return BodySide.Left;
+        if (signed < -PositionEpsilon)
+            return BodySide.Right;
+        return BodySide.Center;
+    }
+
     private static bool IsOpposite(BodySide position, BodySide bone) =>
         position == BodySide.Left && bone == BodySide.Right ||
         position == BodySide.Right && bone == BodySide.Left;
@@ -2351,8 +3059,10 @@ public static class GeneratedSkinningPreparer
 
     private static SceneTopology BuildTopology(
         IReadOnlyList<GeometrySource> meshes,
-        string label)
+        string label,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var offsets = new int[meshes.Count];
         int totalVertexCount = 0;
         for (int expectedIndex = 0; expectedIndex < meshes.Count; expectedIndex++)
@@ -2370,8 +3080,12 @@ public static class GeneratedSkinningPreparer
         foreach (GeometrySource mesh in meshes)
         {
             for (int vertex = 0; vertex < mesh.Positions.Length; vertex++)
+            {
+                if ((vertex & 0xFFF) == 0)
+                    cancellationToken.ThrowIfCancellationRequested();
                 vertices[offsets[mesh.MeshIndex] + vertex] =
                     new GeometryVertex(mesh.MeshIndex, vertex);
+            }
         }
 
         var union = new UnionFind(totalVertexCount);
@@ -2406,6 +3120,8 @@ public static class GeneratedSkinningPreparer
 
             for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
             {
+                if ((index & 0x3FFF) == 0)
+                    cancellationToken.ThrowIfCancellationRequested();
                 int first = CheckedIndex(mesh, mesh.TriangleIndices[index], label);
                 int second = CheckedIndex(mesh, mesh.TriangleIndices[index + 1], label);
                 int third = CheckedIndex(mesh, mesh.TriangleIndices[index + 2], label);
@@ -2450,6 +3166,8 @@ public static class GeneratedSkinningPreparer
         var verticesByPosition = new Dictionary<Vector3, List<int>>();
         for (int globalVertex = 0; globalVertex < vertices.Length; globalVertex++)
         {
+            if ((globalVertex & 0xFFF) == 0)
+                cancellationToken.ThrowIfCancellationRequested();
             if (!referenced[globalVertex])
                 continue;
             GeometryVertex vertex = vertices[globalVertex];
@@ -2464,6 +3182,7 @@ public static class GeneratedSkinningPreparer
         var sharedPositionCount = new Dictionary<(int First, int Second), int>();
         foreach (List<int> equalVertices in verticesByPosition.Values)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             int[] roots = equalVertices.Select(union.Find).Distinct().Order().ToArray();
             if (roots.Length > 32)
             {
@@ -2612,7 +3331,7 @@ public static class GeneratedSkinningPreparer
         }
         if (selection.DonorAlignment is null ||
             selection.DonorAlignment.Scale != alignment.Scale ||
-            selection.DonorAlignment.RotationDegrees != Vector3.Zero ||
+            selection.DonorAlignment.RotationDegrees != alignment.RotationDegrees ||
             selection.DonorAlignment.Translation != alignment.Translation ||
             !IsFinite(selection.DonorAlignment.Matrix))
         {
@@ -2621,7 +3340,8 @@ public static class GeneratedSkinningPreparer
         }
         if (selection.Components is null ||
             selection.Components.Any(component => component is null) ||
-            selection.Components.Count is < 1 or > 2 ||
+            selection.Components.Count < 1 ||
+            selection.Components.Count > topology.Components.Count ||
             selection.TotalComponentCount != topology.Components.Count ||
             selection.ExcludedComponentCount !=
                 topology.Components.Count - selection.Components.Count)
@@ -2630,22 +3350,25 @@ public static class GeneratedSkinningPreparer
                 "Explicit donor body selection component totals are inconsistent " +
                 "with the current donor topology.");
         }
-        TargetRigBodyComponentRole[] roles = selection.Components
-            .Select(component => component.Role)
-            .Order()
-            .ToArray();
-        bool validRoles = roles.Length == 1
-            ? roles[0] == TargetRigBodyComponentRole.WholeBody
-            : roles.SequenceEqual(new[]
-            {
-                TargetRigBodyComponentRole.LowerBody,
-                TargetRigBodyComponentRole.TorsoAndArms
-            });
+        int wholeCount = selection.Components.Count(component =>
+            component.Role == TargetRigBodyComponentRole.WholeBody);
+        int lowerCount = selection.Components.Count(component =>
+            component.Role == TargetRigBodyComponentRole.LowerBody);
+        int upperCount = selection.Components.Count(component =>
+            component.Role == TargetRigBodyComponentRole.TorsoAndArms);
+        int supplementalCount = selection.Components.Count(component =>
+            component.Role == TargetRigBodyComponentRole.SupplementalBody);
+        bool validRoles = supplementalCount ==
+                              selection.Components.Count -
+                              wholeCount - lowerCount - upperCount &&
+                          ((wholeCount == 1 && lowerCount == 0 && upperCount == 0) ||
+                           (wholeCount == 0 && lowerCount == 1 && upperCount == 1));
         if (!validRoles)
         {
             throw new InvalidDataException(
-                "Explicit donor body selection roles must be one whole body or " +
-                "one lower body plus one torso-and-arms component.");
+                "Explicit donor body selection roles must contain one whole-body " +
+                "anchor or one lower/upper anchor pair; any remaining components " +
+                "must be supplemental body surfaces.");
         }
 
         Dictionary<int, GeometryComponent> topologyByIndex = topology.Components
@@ -3022,13 +3745,29 @@ public static class GeneratedSkinningPreparer
         Vector3 value,
         GeneratedSkinningAlignment alignment)
     {
-        Vector3 result = value * alignment.Scale + alignment.Translation;
+        Vector3 result = Vector3.Transform(value, alignment.Matrix);
         if (!IsFinite(result))
         {
             throw new InvalidDataException(
                 "Donor alignment produced a non-finite geometry position.");
         }
         return result;
+    }
+
+    private static Vector3 ApplyNormalAlignment(
+        Vector3 value,
+        GeneratedSkinningAlignment alignment)
+    {
+        Vector3 result = Vector3.TransformNormal(value, alignment.Matrix);
+        float lengthSquared = result.LengthSquared();
+        if (!IsFinite(result) || !float.IsFinite(lengthSquared))
+        {
+            throw new InvalidDataException(
+                "Donor alignment produced a non-finite geometry normal.");
+        }
+        return lengthSquared <= 0.000000000001f
+            ? Vector3.Zero
+            : Vector3.Normalize(result);
     }
 
     private static float DistanceToCapsuleCenterline(

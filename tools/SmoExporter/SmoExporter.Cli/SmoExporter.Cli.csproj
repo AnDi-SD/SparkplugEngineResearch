@@ -4,11 +4,25 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.3.0</Version>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
-    <FileVersion>0.3.0.0</FileVersion>
+    <Version>0.4.0</Version>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <FileVersion>0.4.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SmoExporter.Core\SmoExporter.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\FbxBridge.Native\build\bin\Release\SmoFbxBridge.exe"
+             Condition="Exists('..\..\FbxBridge.Native\build\bin\Release\SmoFbxBridge.exe')"
+             Link="SmoFbxBridge.exe" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\FbxBridge.Native\build\bin\Release\libfbxsdk.dll"
+             Condition="Exists('..\..\FbxBridge.Native\build\bin\Release\libfbxsdk.dll')"
+             Link="libfbxsdk.dll" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\FbxBridge.Native\build\bin\Release\FBX_SDK_License.rtf"
+             Condition="Exists('..\..\FbxBridge.Native\build\bin\Release\FBX_SDK_License.rtf')"
+             Link="FBX_SDK_License.rtf" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

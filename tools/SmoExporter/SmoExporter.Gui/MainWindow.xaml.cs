@@ -555,13 +555,13 @@ public partial class MainWindow : Window
 
         string selectedFormat = GetSelectedFormat();
         if (selectedFormat is "fbx" or "all" &&
-            FbxExporter.ResolveBlenderExecutable(_blenderPath) is null)
+            NativeFbxBridge.ResolveExecutable(_blenderPath) is null)
         {
             CheckBlenderAvailability(writeLog: false);
         }
         if (selectedFormat is "fbx" or "all" && _blenderPath is null)
         {
-            AddLog("ОШИБКА: FBX недоступен — Blender не найден.");
+            AddLog("ОШИБКА: FBX недоступен — нативный модуль не найден.");
             UpdateExportAvailability();
             return;
         }
@@ -622,7 +622,7 @@ public partial class MainWindow : Window
                 }
                 if (format is "fbx" or "all")
                 {
-                    progress.Report("Подготовка FBX и запуск Blender. Большая модель может обрабатываться несколько минут…");
+                    progress.Report("Прямая запись FBX нативным модулем…");
                     string fbx = Path.Combine(outputDirectory, stem + ".fbx");
                     FbxExporter.Export(scene, fbx, _blenderPath);
                     files.Add(fbx);
@@ -758,7 +758,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        string? resolved = FbxExporter.ResolveBlenderExecutable(enteredPath);
+        string? resolved = NativeFbxBridge.ResolveExecutable(enteredPath);
         if (resolved is null)
         {
             MessageBox.Show(this,
@@ -777,10 +777,10 @@ public partial class MainWindow : Window
 
     private void CheckBlenderAvailability(bool writeLog)
     {
-        _blenderPath = FbxExporter.FindBlenderExecutable(_configuredBlenderPath);
+        _blenderPath = FbxExporter.FindNativeBridgeExecutable(_configuredBlenderPath);
         bool found = _blenderPath is not null;
         bool manuallyConfigured = found &&
-            FbxExporter.ResolveBlenderExecutable(_configuredBlenderPath)?.Equals(
+            NativeFbxBridge.ResolveExecutable(_configuredBlenderPath)?.Equals(
                 _blenderPath, StringComparison.OrdinalIgnoreCase) == true;
         if (found)
             BlenderPathTextBox.Text = _blenderPath!;
@@ -789,17 +789,17 @@ public partial class MainWindow : Window
         BlenderSummaryText.Text = found ? "Найден" : "Не найден";
         BlenderSummaryText.ToolTip = found
             ? $"Blender найден: {_blenderPath}"
-            : "Blender не найден. Откройте настройки, чтобы указать blender.exe.";
+            : "Нативный модуль FBX не найден рядом с программой.";
         BlenderStatusText.Foreground = found ? Brushes.SeaGreen : Brushes.Firebrick;
         BlenderStatusText.Text = found
             ? $"Blender {(manuallyConfigured ? "указан вручную" : "найден автоматически")}: {_blenderPath}. FBX доступен."
-            : "Blender не найден. Введите папку установки или путь к blender.exe; GLB и OBJ доступны без Blender.";
+            : "Нативный модуль FBX не найден; проверьте комплект поставки программы.";
         FbxFormatItem.IsEnabled = found;
         AllFormatsItem.IsEnabled = found;
         if (!found && GetSelectedFormat() is "fbx" or "all")
             FormatComboBox.SelectedIndex = 0;
         if (writeLog)
-            AddLog(found ? $"Blender найден: {_blenderPath}" : "Blender не найден; FBX отключён.");
+            AddLog(found ? $"Нативный модуль FBX найден: {_blenderPath}" : "Нативный модуль FBX не найден; FBX отключён.");
         UpdateExportAvailability();
     }
 
@@ -852,7 +852,7 @@ public partial class MainWindow : Window
             (!needsBlender || _blenderPath is not null);
         ExportButton.ToolTip = resourceValidationIssue ??
             (needsBlender && _blenderPath is null
-                ? "Для выбранного формата требуется Blender."
+                ? "В комплекте программы отсутствует нативный модуль FBX."
                 : null);
     }
 

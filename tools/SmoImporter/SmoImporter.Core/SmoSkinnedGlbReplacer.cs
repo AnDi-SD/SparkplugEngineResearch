@@ -207,6 +207,9 @@ internal static class SmoFinalBlendOperation
     public static bool IsKnownOpaque(uint operation) => operation is 0x0 or 0x2;
 }
 
+internal sealed class PaletteSearchLimitException(string message)
+    : InvalidOperationException(message);
+
 /// <summary>
 /// Experimental GLB skin transfer. The complete target SMO graph stays intact;
 /// only existing mesh leaves and reference-only skin palettes are rewritten.
@@ -218,9 +221,10 @@ public static class SmoSkinnedGlbReplacer
         ImportedScene donor,
         SkinnedTextureTransferMode textureMode =
             SkinnedTextureTransferMode.ImportDonor,
-        SkinnedRenderableMaterialProfile? materialProfile = null) =>
+        SkinnedRenderableMaterialProfile? materialProfile = null,
+        CancellationToken cancellationToken = default) =>
         SmoVisualTransplanter.AnalyzeSkinnedGlb(
-            target, donor, textureMode, materialProfile);
+            target, donor, textureMode, materialProfile, cancellationToken);
 
     /// <summary>
     /// Builds the external-space visual equivalent of the geometry that
@@ -293,6 +297,19 @@ public static class SmoSkinnedGlbReplacer
 
 internal static partial class SmoVisualTransplanter
 {
+    private const int MaximumSafeDonorMaterialGroups = 16;
+    private const int MaximumSafeTargetMaterialGroups = 32;
+    private const int MaximumMaterialAssignmentSearchStates = 4_096;
+    private const int MaximumMaterialMergeCombinations = 1_024;
+    // Dense modular characters with all five finger lanes can legitimately
+    // cross the old 4K state boundary. Keep the independent five-second wall
+    // clock and cooperative cancellation as the hard responsiveness guards.
+    private const int MaximumPalettePackingSearchStates = 8_192;
+    private const int MaximumPaletteRequirementSets = 4_096;
+    private const int MaximumMaximalPaletteRequirements = 512;
+    private static readonly TimeSpan MaximumPalettePackingWallTime =
+        TimeSpan.FromSeconds(10);
+
     private sealed record GlbPlanContext(
         GlbSkinTransferPlan PublicPlan,
         ImportedScene PreparedDonor,
@@ -314,6 +331,18 @@ internal static partial class SmoVisualTransplanter
     private sealed record ImportedGroupPair(
         int TargetTextureObjectIndex,
         ImportedGroup Donor);
+
+    private sealed record ImportedGroupPairingPlan(
+        IReadOnlyList<ImportedGroupPair> Pairs,
+        IReadOnlyList<string> Messages,
+        string? Error)
+    {
+        public bool IsSafe => Error is null;
+    }
+
+    private sealed record ImportedMaterialAtlasPlan(
+        ImportedTextureAtlasRepackResult Atlas,
+        int TargetTextureObjectIndex);
 
     private sealed record ImportedTextureAssignment(
         byte[] Data,
@@ -475,11 +504,17 @@ internal static partial class SmoVisualTransplanter
         SmoDocument target,
         ImportedScene donor,
         SkinnedTextureTransferMode textureTransferMode,
-        SkinnedRenderableMaterialProfile? materialProfile)
+        SkinnedRenderableMaterialProfile? materialProfile,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         materialProfile ??= SkinnedRenderableMaterialProfile.Default;
         GlbPlanContext context = BuildGlbPlan(
-            target, donor, textureTransferMode, materialProfile);
+            target,
+            donor,
+            textureTransferMode,
+            materialProfile,
+            cancellationToken: cancellationToken);
         return context.PublicPlan;
     }
 
@@ -653,6 +688,9 @@ internal static partial class SmoVisualTransplanter
                 SmoSkinnedRenderableOpacityPlan opacity =
                     SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
                         splitMeshes, sourceTexture, materialProfile);
+                splitMeshes = SmoSkinnedBranchSplitBuilder
+                    .ConformCloseSurfaceNormals(splitMeshes, opacity)
+                    .Meshes;
                 uint textureObjectId =
                     target.Objects[targetGroup.TextureObjectIndex].Id;
                 if (opacity.SeparateBranchTriangleCount > 0)
@@ -885,8 +923,10 @@ internal static partial class SmoVisualTransplanter
         ImportedScene donor,
         SkinnedTextureTransferMode textureTransferMode,
         SkinnedRenderableMaterialProfile materialProfile,
-        bool allowMaterialAtlas = true)
+        bool allowMaterialAtlas = true,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
         ArgumentNullException.ThrowIfNull(materialProfile);
@@ -957,12 +997,16 @@ internal static partial class SmoVisualTransplanter
             StringComparer.Ordinal);
         var targetInverse = new Dictionary<string, Matrix4x4>(StringComparer.Ordinal);
         foreach ((string name, Matrix4x4 bind) in targetBindSmo)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             if (Matrix4x4.Invert(bind, out Matrix4x4 inverse))
                 targetInverse[name] = inverse;
+        }
 
         var donorBind = new Dictionary<string, Matrix4x4>(StringComparer.Ordinal);
         for (int index = 0; index < skeleton.JointNames.Count; index++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Matrix4x4.Invert(
                     skeleton.InverseBindMatrices[index], out Matrix4x4 bind) || !IsFinite(bind))
                 errors.Add($"Joint {skeleton.JointNames[index]} имеет необратимую inverse bind matrix.");
@@ -975,6 +1019,7 @@ internal static partial class SmoVisualTransplanter
         var remapped = new List<GlbBoneRemap>();
         foreach (string donorName in usedJoints.Order(StringComparer.Ordinal))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (targetBind.ContainsKey(donorName))
             {
                 remap[donorName] = donorName;
@@ -1062,208 +1107,149 @@ internal static partial class SmoVisualTransplanter
         {
             ValidateImportedTextureIndices(donor, errors);
             donorGroups = BuildImportedGroups(donor, warnings);
-            if (donorGroups.Length > targetGroups.Length &&
-                targetGroups.Length > 0 &&
-                allowMaterialAtlas)
+            int[] referencedTextureIndices = donorGroups
+                .Select(group => group.SourceTextureIndex)
+                .Where(index => index >= 0)
+                .Distinct()
+                .Order()
+                .ToArray();
+            foreach (int textureIndex in referencedTextureIndices)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                if ((uint)textureIndex >= (uint)donor.Textures.Count)
+                    continue;
                 try
                 {
-                    VisualGroup atlasTarget = targetGroups
-                        .OrderByDescending(group =>
-                            group.Meshes.Sum(mesh => mesh.Mesh.TriangleCount))
-                        .ThenBy(group => group.TextureObjectIndex)
-                        .FirstOrDefault(group => !IsRigidTargetGroup(target, group)) ??
-                        targetGroups.OrderByDescending(group =>
-                                group.Meshes.Sum(mesh => mesh.Mesh.TriangleCount))
-                            .ThenBy(group => group.TextureObjectIndex)
-                            .First();
-                    if (atlasTarget.TextureFormat is not (0x32E3 or 0x43E3) ||
-                        atlasTarget.TextureLayout != SmoTextureLayout.Bgra)
+                    if (!ImportedTextureAtlasRepacker.TextureContainsTransparency(
+                            donor.Textures[textureIndex]))
                     {
-                        throw new NotSupportedException(
-                            $"Primary target texture [{atlasTarget.TextureObjectIndex}] must " +
-                            "use writable BGRA 0x32E3/0x43E3 for atlas transfer.");
+                        continue;
                     }
-                    ImportedTextureAtlasSourceGroup[] atlasSources = donorGroups
-                        .Select(group => new ImportedTextureAtlasSourceGroup(
-                            ResolveImportedGroupTexture(donor, group) ??
-                                throw new InvalidDataException(
-                                    $"Material group {group.MaterialIndex} has no texture to atlas."),
-                            group.Meshes.Select(mesh =>
-                                    GetImportedMeshIndex(donor.Meshes, mesh))
-                                .Order()
-                                .ToArray(),
-                            $"material group {group.MaterialIndex}"))
-                        .ToArray();
-                    ImportedTextureAtlasRepackResult atlas =
-                        ImportedTextureAtlasRepacker.RepackToSingleAtlas(
-                            donor,
-                            atlasSources,
-                            atlasTarget.TextureWidth,
-                            atlasTarget.TextureHeight);
-                    donor = atlas.Scene;
-                    fullRgbaTextureIndices.Add(atlas.AtlasTextureIndex);
-                    warnings.AddRange(atlas.Messages);
-                    ValidateImportedTextureIndices(donor, errors);
-                    donorGroups = BuildImportedGroups(donor, warnings);
-                    if (atlas.UsesTransparency)
-                        alphaBlendTextureIndices.Add(atlas.AtlasTextureIndex);
+                    fullRgbaTextureIndices.Add(textureIndex);
+                    alphaBlendTextureIndices.Add(textureIndex);
                 }
                 catch (Exception exception) when (exception is InvalidDataException or
-                                                  InvalidOperationException or
-                                                  NotSupportedException or
-                                                  OverflowException)
+                                                  UnknownImageFormatException or
+                                                  InvalidImageContentException or
+                                                  NotSupportedException)
                 {
                     errors.Add(
-                        "Donor material atlas could not be built safely: " +
+                        $"Cannot inspect donor texture {textureIndex} " +
+                        $"'{donor.Textures[textureIndex].Name}' for transparency: " +
                         exception.Message);
                 }
             }
-        }
-        if (donorGroups.Length > targetGroups.Length)
-            errors.Add(
-                $"GLB material groups ({donorGroups.Length}) не помещаются в target texture groups ({targetGroups.Length}).");
-        ImportedGroupPair[] groupPairs = [];
-        if (targetGroups.Length > 0 && donorGroups.Length > 0 &&
-            donorGroups.Length <= targetGroups.Length)
-        {
-            VisualGroup[] orderedTargets = targetGroups
-                .OrderByDescending(group => group.Meshes.Sum(mesh => mesh.Mesh.TriangleCount))
-                .ThenBy(group => group.TextureObjectIndex)
-                .ToArray();
-            VisualGroup primaryTarget = orderedTargets
-                .FirstOrDefault(group => !IsRigidTargetGroup(target, group)) ??
-                orderedTargets[0];
-            var primaryMeshes = donorGroups[0].Meshes.ToList();
-            var pairs = new List<ImportedGroupPair>();
-            var unusedTargets = new List<VisualGroup>(
-                orderedTargets.Where(group => group.TextureObjectIndex !=
-                    primaryTarget.TextureObjectIndex));
-            foreach (ImportedGroup donorGroup in donorGroups.Skip(1))
+            if (alphaBlendTextureIndices.Count > 0)
             {
-                int compatibleIndex = unusedTargets.FindIndex(candidate =>
-                    !IsRigidTargetGroup(target, candidate) ||
-                    ImportedGroupFitsPreservedPalettes(
-                        target, candidate, donorGroup, remap));
-                if (compatibleIndex >= 0)
-                {
-                    VisualGroup selected = unusedTargets[compatibleIndex];
-                    unusedTargets.RemoveAt(compatibleIndex);
-                    pairs.Add(new ImportedGroupPair(
-                        selected.TextureObjectIndex, donorGroup));
-                }
-                else
-                {
-                    if (!HaveSameImportedTextureSource(donorGroups[0], donorGroup))
-                    {
-                        errors.Add(
-                            $"Material group {donorGroup.MaterialIndex} cannot fit a separate " +
-                            "target visual group and uses a different source texture from the " +
-                            $"primary material group {donorGroups[0].MaterialIndex}. " +
-                            "Merging them would discard one texture.");
-                        continue;
-                    }
-                    primaryMeshes.AddRange(donorGroup.Meshes);
-                    warnings.Add(
-                        $"Material group {donorGroup.MaterialIndex} нельзя помещать во " +
-                        "вложенную однокостную target-ветку. Geometry объединена с основным " +
-                        "body group; отдельные material/alpha flags этого primitive не сохраняются.");
-                }
+                warnings.Add(
+                    $"Detected real transparency in {alphaBlendTextureIndices.Count} " +
+                    "donor base-color texture(s). Their RGBA pixels will be transferred, " +
+                    "and only UV-connected geometry that samples transparent texels will " +
+                    "use native alpha material/spSkin branches in Auto mode.");
             }
-            pairs.Add(new ImportedGroupPair(
-                primaryTarget.TextureObjectIndex,
-                new ImportedGroup(
-                    donorGroups[0].MaterialIndex,
-                    donorGroups[0].SourceTextureIndex,
-                    donorGroups[0].LegacyTextureName,
-                    primaryMeshes,
-                    primaryMeshes.Sum(mesh => mesh.TriangleIndices.Length / 3))));
-            groupPairs = pairs.ToArray();
         }
 
+        ImportedGroupPair[] groupPairs = [];
         if (errors.Count == 0)
         {
-            try
+            if (targetGroups.Length == 0)
             {
-                ImportedTransferMesh[] dryMeshes = BuildImportedTransferMeshes(
+                errors.Add(
+                    $"GLB material groups ({donorGroups.Length}) cannot be assigned: " +
+                    "the target has no skinned visual groups.");
+            }
+            else if (donorGroups.Length == 0)
+            {
+                errors.Add("The donor has no material groups to assign.");
+            }
+            else
+            {
+                ImportedGroupPairingPlan pairing = BuildSafeImportedGroupPairing(
+                    target,
                     donor,
-                    new GlbPlanContext(
-                        new GlbSkinTransferPlan(
-                            SmoSkeletonCompatibility.Exact, donor.Meshes.Count,
-                            donorGroups.Length, skeleton.JointNames.Count, usedJoints.Count,
-                            differentBindPose, matched, remapped, [], [], []),
-                        donor,
-                        skeleton,
-                        remap,
-                        targetBind,
-                        targetInverse,
-                        groupPairs,
-                        fullRgbaTextureIndices,
-                        alphaBlendTextureIndices),
-                    ReplacementTransform.Identity,
-                    SkinnedGeometryTransferMode.PreservePreparedGeometry)
-                    .Select(ConvertImportedMeshToSmoSpace)
-                    .ToArray();
-                byte[] scratch = target.Data.ToArray();
-                foreach (ImportedGroupPair pair in groupPairs)
+                    skeleton,
+                    remap,
+                    targetBind,
+                    targetInverse,
+                    targetGroups,
+                    donorGroups,
+                    fullRgbaTextureIndices,
+                    alphaBlendTextureIndices,
+                    materialProfile,
+                    cancellationToken: cancellationToken);
+                string initialPairingError = pairing.Error ?? string.Empty;
+                bool mayBuildAtlas = ShouldAttemptImportedMaterialAtlas(
+                    pairing.IsSafe,
+                    textureTransferMode,
+                    allowMaterialAtlas,
+                    donorGroups.Length);
+                if (mayBuildAtlas)
                 {
-                    VisualGroup targetGroup = targetGroups.Single(group =>
-                        group.TextureObjectIndex == pair.TargetTextureObjectIndex);
-                    ImportedTransferMesh[] groupMeshes = pair.Donor.Meshes.Select(mesh =>
-                        dryMeshes.Single(value => value.Key ==
-                            GetImportedMeshIndex(donor.Meshes, mesh))).ToArray();
-                    ImportedTransferMesh[] paletteMeshes = groupMeshes;
-                    bool hasExplicitMaterial = groupMeshes.Any(mesh =>
-                        materialProfile.GetMode(mesh.Key) !=
-                        SkinnedRenderableMaterialMode.Auto);
-                    if (alphaBlendTextureIndices.Contains(
-                            pair.Donor.SourceTextureIndex) ||
-                        hasExplicitMaterial)
+                    try
                     {
-                        ImportedTexture sourceTexture =
-                            ResolveImportedGroupTexture(donor, pair.Donor) ??
-                            throw new InvalidDataException(
-                                $"Transparent material group {pair.Donor.MaterialIndex} " +
-                                "has no source texture.");
-                        SmoSkinnedBranchSourceMesh[] splitMeshes = groupMeshes
-                            .Select(ToSkinnedBranchSourceMesh)
-                            .ToArray();
-                        SmoSkinnedRenderableOpacityPlan opacity =
-                            SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
-                                splitMeshes, sourceTexture, materialProfile);
-                        if (opacity.SeparateBranchTriangleCount > 0)
+                        ImportedMaterialAtlasPlan atlasPlan = BuildImportedMaterialAtlas(
+                            target, donor, targetGroups, donorGroups);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        ImportedTextureAtlasRepackResult atlas = atlasPlan.Atlas;
+                        donor = atlas.Scene;
+                        fullRgbaTextureIndices.Add(atlas.AtlasTextureIndex);
+                        if (atlas.UsesTransparency)
+                            alphaBlendTextureIndices.Add(atlas.AtlasTextureIndex);
+                        warnings.AddRange(atlas.Messages);
+                        int validationErrorCount = errors.Count;
+                        ValidateImportedTextureIndices(donor, errors);
+                        donorGroups = BuildImportedGroups(donor, warnings);
+                        if (errors.Count == validationErrorCount)
                         {
-                            uint textureObjectId =
-                                target.Objects[targetGroup.TextureObjectIndex].Id;
-                            _ = SmoSkinnedBranchSplitBuilder.Analyze(
+                            pairing = BuildSafeImportedGroupPairing(
                                 target,
-                                textureObjectId,
-                                splitMeshes,
-                                opacity,
+                                donor,
+                                skeleton,
                                 remap,
-                                targetInverse);
+                                targetBind,
+                                targetInverse,
+                                targetGroups,
+                                donorGroups,
+                                fullRgbaTextureIndices,
+                                alphaBlendTextureIndices,
+                                materialProfile,
+                                atlasPlan.TargetTextureObjectIndex,
+                                cancellationToken);
                         }
-                        paletteMeshes = FilterImportedTriangles(
-                            groupMeshes, opacity, keepSeparateBranch: false);
                     }
-                    if (paletteMeshes.Any(mesh => mesh.TriangleIndices.Length > 0))
+                    catch (PaletteSearchLimitException)
                     {
-                        PatchImportedPalettes(
-                            scratch,
-                            target,
-                            targetGroup,
-                            paletteMeshes,
-                            remap,
-                            targetInverse);
+                        throw;
+                    }
+                    catch (Exception exception) when (exception is InvalidDataException or
+                                                      InvalidOperationException or
+                                                      NotSupportedException or
+                                                      OverflowException)
+                    {
+                        errors.Add(
+                            initialPairingError + " Donor material atlas fallback failed: " +
+                            exception.Message);
                     }
                 }
-            }
-            catch (Exception exception) when (exception is InvalidDataException or
-                                              InvalidOperationException or
-                                              NotSupportedException or
-                                              OverflowException)
-            {
-                errors.Add("План palettes не построен: " + exception.Message);
+                if (errors.Count == 0)
+                {
+                    if (!pairing.IsSafe)
+                    {
+                        string failure = pairing.Error ?? "Material-group pairing failed.";
+                        if (!string.IsNullOrWhiteSpace(initialPairingError) &&
+                            !string.Equals(
+                                failure, initialPairingError, StringComparison.Ordinal))
+                        {
+                            failure += " Initial assignment failure: " + initialPairingError;
+                        }
+                        errors.Add(failure);
+                    }
+                    else
+                    {
+                        groupPairs = pairing.Pairs.ToArray();
+                        warnings.AddRange(pairing.Messages);
+                    }
+                }
             }
         }
 
@@ -1432,6 +1418,554 @@ internal static partial class SmoVisualTransplanter
             .OrderByDescending(group => group.TriangleCount)
             .ThenBy(group => group.MaterialIndex)
             .ToArray();
+    }
+
+    private static ImportedMaterialAtlasPlan BuildImportedMaterialAtlas(
+        SmoDocument target,
+        ImportedScene donor,
+        IReadOnlyList<VisualGroup> targetGroups,
+        IReadOnlyList<ImportedGroup> donorGroups)
+    {
+        VisualGroup atlasTarget = OrderTargetGroupsByPreference(target, targetGroups)[0];
+        if (atlasTarget.TextureFormat is not (0x32E3 or 0x43E3) ||
+            atlasTarget.TextureLayout != SmoTextureLayout.Bgra)
+        {
+            throw new NotSupportedException(
+                $"Primary target texture [{atlasTarget.TextureObjectIndex}] must " +
+                "use writable BGRA 0x32E3/0x43E3 for atlas transfer.");
+        }
+        ImportedTextureAtlasSourceGroup[] atlasSources = donorGroups
+            .Select(group => new ImportedTextureAtlasSourceGroup(
+                ResolveImportedGroupTexture(donor, group) ??
+                    throw new InvalidDataException(
+                        $"Material group {group.MaterialIndex} has no texture to atlas."),
+                group.Meshes.Select(mesh => GetImportedMeshIndex(donor.Meshes, mesh))
+                    .Order()
+                    .ToArray(),
+                $"material group {group.MaterialIndex}"))
+            .ToArray();
+        ImportedTextureAtlasRepackResult atlas =
+            ImportedTextureAtlasRepacker.RepackToSingleAtlas(
+                donor,
+                atlasSources,
+                atlasTarget.TextureWidth,
+                atlasTarget.TextureHeight);
+        return new ImportedMaterialAtlasPlan(
+            atlas, atlasTarget.TextureObjectIndex);
+    }
+
+    private static ImportedGroupPairingPlan BuildSafeImportedGroupPairing(
+        SmoDocument target,
+        ImportedScene donor,
+        ImportedSkeleton skeleton,
+        IReadOnlyDictionary<string, string> boneRemap,
+        IReadOnlyDictionary<string, Matrix4x4> targetBind,
+        IReadOnlyDictionary<string, Matrix4x4> targetInverse,
+        IReadOnlyList<VisualGroup> targetGroups,
+        IReadOnlyList<ImportedGroup> donorGroups,
+        IReadOnlySet<int> fullRgbaTextureIndices,
+        IReadOnlySet<int> alphaBlendTextureIndices,
+        SkinnedRenderableMaterialProfile materialProfile,
+        int? requiredPrimaryTargetTextureObjectIndex = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (donorGroups.Count > MaximumSafeDonorMaterialGroups ||
+            targetGroups.Count > MaximumSafeTargetMaterialGroups)
+        {
+            return new ImportedGroupPairingPlan(
+                [],
+                [],
+                $"Safe material assignment supports at most " +
+                $"{MaximumSafeDonorMaterialGroups} donor and " +
+                $"{MaximumSafeTargetMaterialGroups} target groups, but this " +
+                $"model requires {donorGroups.Count} and {targetGroups.Count}. " +
+                "The exhaustive assignment was blocked to prevent an " +
+                "unbounded calculation; merge materials before importing.");
+        }
+
+        ImportedTransferMesh[] dryMeshes;
+        try
+        {
+            dryMeshes = BuildImportedTransferMeshes(
+                    donor,
+                    new GlbPlanContext(
+                        new GlbSkinTransferPlan(
+                            SmoSkeletonCompatibility.Exact,
+                            donor.Meshes.Count,
+                            donorGroups.Count,
+                            skeleton.JointNames.Count,
+                            0,
+                            0,
+                            [],
+                            [],
+                            [],
+                            [],
+                            []),
+                        donor,
+                        skeleton,
+                        boneRemap,
+                        targetBind,
+                        targetInverse,
+                        [],
+                        fullRgbaTextureIndices,
+                        alphaBlendTextureIndices),
+                    ReplacementTransform.Identity,
+                    SkinnedGeometryTransferMode.PreservePreparedGeometry)
+                .Select(ConvertImportedMeshToSmoSpace)
+                .ToArray();
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          NotSupportedException or
+                                          OverflowException)
+        {
+            return new ImportedGroupPairingPlan(
+                [],
+                [],
+                "Material-group dry-run could not be initialized: " +
+                exception.Message);
+        }
+
+        ImportedGroupPairingPlan direct = FindSafeImportedGroupMatching(
+            target,
+            donor,
+            targetGroups,
+            donorGroups,
+            dryMeshes,
+            boneRemap,
+            targetInverse,
+            alphaBlendTextureIndices,
+            materialProfile,
+            requiredPrimaryTargetTextureObjectIndex,
+            cancellationToken);
+        if (direct.IsSafe || donorGroups.Count < 2)
+            return direct;
+
+        ImportedGroup primary = donorGroups[0];
+        ImportedGroup[] sameSource = donorGroups.Skip(1)
+            .Where(group => HaveSameImportedTextureSource(primary, group))
+            .ToArray();
+        if (sameSource.Length == 0)
+            return direct;
+
+        int minimumMergeCount = Math.Max(
+            1, donorGroups.Count - targetGroups.Count);
+        for (int mergeCount = minimumMergeCount;
+             mergeCount <= sameSource.Length;
+             mergeCount++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (ImportedGroup[] selected in EnumerateCombinations(
+                         sameSource, mergeCount, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                HashSet<ImportedGroup> mergedGroups = selected.ToHashSet();
+                ImportedMesh[] mergedMeshes = primary.Meshes
+                    .Concat(selected.SelectMany(group => group.Meshes))
+                    .ToArray();
+                var mergedPrimary = new ImportedGroup(
+                    primary.MaterialIndex,
+                    primary.SourceTextureIndex,
+                    primary.LegacyTextureName,
+                    mergedMeshes,
+                    mergedMeshes.Sum(mesh => mesh.TriangleIndices.Length / 3));
+                ImportedGroup[] mergedDonors =
+                [
+                    mergedPrimary,
+                    .. donorGroups.Skip(1).Where(group =>
+                        !mergedGroups.Contains(group))
+                ];
+                ImportedGroupPairingPlan merged = FindSafeImportedGroupMatching(
+                    target,
+                    donor,
+                    targetGroups,
+                    mergedDonors,
+                    dryMeshes,
+                    boneRemap,
+                    targetInverse,
+                    alphaBlendTextureIndices,
+                    materialProfile,
+                    requiredPrimaryTargetTextureObjectIndex,
+                    cancellationToken);
+                if (!merged.IsSafe)
+                    continue;
+
+                string[] messages = selected.Select(group =>
+                        $"Material group {group.MaterialIndex} could not keep a separate " +
+                        "target visual branch and uses the same source texture as primary " +
+                        $"material group {primary.MaterialIndex}. Its geometry was merged into " +
+                        "the primary group; separate material/alpha flags are not preserved.")
+                    .ToArray();
+                return merged with { Messages = messages };
+            }
+        }
+        return direct;
+    }
+
+    private static IEnumerable<ImportedGroup[]> EnumerateCombinations(
+        IReadOnlyList<ImportedGroup> groups,
+        int selectionCount,
+        CancellationToken cancellationToken = default)
+    {
+        if (selectionCount <= 0 || selectionCount > groups.Count)
+            yield break;
+        int[] indices = Enumerable.Range(0, selectionCount).ToArray();
+        int yielded = 0;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (++yielded > MaximumMaterialMergeCombinations)
+            {
+                throw new InvalidOperationException(
+                    $"Material merge search exceeded its safe limit of " +
+                    $"{MaximumMaterialMergeCombinations:N0} combinations. " +
+                    "The action was blocked; merge equivalent donor materials " +
+                    "before importing.");
+            }
+            yield return indices.Select(index => groups[index]).ToArray();
+            int position = selectionCount - 1;
+            while (position >= 0 &&
+                   indices[position] == groups.Count - selectionCount + position)
+            {
+                position--;
+            }
+            if (position < 0)
+                yield break;
+            indices[position]++;
+            for (int index = position + 1; index < selectionCount; index++)
+                indices[index] = indices[index - 1] + 1;
+        }
+    }
+
+    private static ImportedGroupPairingPlan FindSafeImportedGroupMatching(
+        SmoDocument target,
+        ImportedScene donor,
+        IReadOnlyList<VisualGroup> targetGroups,
+        IReadOnlyList<ImportedGroup> donorGroups,
+        IReadOnlyList<ImportedTransferMesh> dryMeshes,
+        IReadOnlyDictionary<string, string> boneRemap,
+        IReadOnlyDictionary<string, Matrix4x4> targetInverse,
+        IReadOnlySet<int> alphaBlendTextureIndices,
+        SkinnedRenderableMaterialProfile materialProfile,
+        int? requiredPrimaryTargetTextureObjectIndex,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (donorGroups.Count > targetGroups.Count)
+        {
+            return new ImportedGroupPairingPlan(
+                [],
+                [],
+                $"No complete safe material-group assignment exists: {donorGroups.Count} " +
+                $"donor groups require distinct texture branches, but the target has " +
+                $"{targetGroups.Count}.");
+        }
+
+        VisualGroup[] orderedTargets = OrderTargetGroupsByPreference(target, targetGroups);
+        if (requiredPrimaryTargetTextureObjectIndex is int requiredTarget &&
+            !orderedTargets.Any(group =>
+                group.TextureObjectIndex == requiredTarget))
+        {
+            return new ImportedGroupPairingPlan(
+                [],
+                [],
+                $"Required target texture object [{requiredTarget}] is not present in " +
+                "the skinned visual-group catalog.");
+        }
+        var compatible = new bool[donorGroups.Count, orderedTargets.Length];
+        var edgeFailures = new string?[donorGroups.Count, orderedTargets.Length];
+        byte[] dryRunScratch = GC.AllocateUninitializedArray<byte>(
+            target.Data.Length);
+        for (int donorIndex = 0; donorIndex < donorGroups.Count; donorIndex++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            for (int targetIndex = 0; targetIndex < orderedTargets.Length; targetIndex++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (donorIndex == 0 &&
+                    requiredPrimaryTargetTextureObjectIndex is int pinnedTarget &&
+                    orderedTargets[targetIndex].TextureObjectIndex != pinnedTarget)
+                {
+                    edgeFailures[donorIndex, targetIndex] =
+                        $"The atlas was built for target texture object [{pinnedTarget}] " +
+                        "and cannot be reassigned after UV packing.";
+                    continue;
+                }
+                var pair = new ImportedGroupPair(
+                    orderedTargets[targetIndex].TextureObjectIndex,
+                    donorGroups[donorIndex]);
+                try
+                {
+                    ValidateImportedGroupPairsDryRun(
+                        target,
+                        donor,
+                        targetGroups,
+                        dryMeshes,
+                        [pair],
+                        boneRemap,
+                        targetInverse,
+                        alphaBlendTextureIndices,
+                        materialProfile,
+                        dryRunScratch,
+                        cancellationToken);
+                    compatible[donorIndex, targetIndex] = true;
+                }
+                catch (PaletteSearchLimitException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is InvalidDataException or
+                                                  InvalidOperationException or
+                                                  NotSupportedException or
+                                                  OverflowException)
+                {
+                    edgeFailures[donorIndex, targetIndex] = exception.Message;
+                }
+            }
+        }
+
+        string? completePlanFailure = null;
+        int[]? assignment = FindDeterministicCapabilityMatching(
+            compatible,
+            targetAssignment =>
+            {
+                ImportedGroupPair[] candidate = Enumerable.Range(0, donorGroups.Count)
+                    .Select(donorIndex => new ImportedGroupPair(
+                        orderedTargets[targetAssignment[donorIndex]].TextureObjectIndex,
+                        donorGroups[donorIndex]))
+                    .ToArray();
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ValidateImportedGroupPairsDryRun(
+                        target,
+                        donor,
+                        targetGroups,
+                        dryMeshes,
+                        candidate,
+                        boneRemap,
+                        targetInverse,
+                        alphaBlendTextureIndices,
+                        materialProfile,
+                        dryRunScratch,
+                        cancellationToken);
+                    return true;
+                }
+                catch (PaletteSearchLimitException)
+                {
+                    throw;
+                }
+                catch (Exception exception) when (exception is InvalidDataException or
+                                                  InvalidOperationException or
+                                                  NotSupportedException or
+                                                  OverflowException)
+                {
+                    completePlanFailure ??= exception.Message;
+                    return false;
+                }
+            },
+            cancellationToken);
+        if (assignment is not null)
+        {
+            ImportedGroupPair[] result = Enumerable.Range(0, donorGroups.Count)
+                .Select(donorIndex => new ImportedGroupPair(
+                    orderedTargets[assignment[donorIndex]].TextureObjectIndex,
+                    donorGroups[donorIndex]))
+                .ToArray();
+            return new ImportedGroupPairingPlan(result, [], null);
+        }
+
+        string counts = string.Join(
+            ", ",
+            Enumerable.Range(0, donorGroups.Count).Select(donorIndex =>
+                $"material group {donorGroups[donorIndex].MaterialIndex}=" +
+                Enumerable.Range(0, orderedTargets.Length).Count(targetIndex =>
+                    compatible[donorIndex, targetIndex])));
+        string failure =
+            $"No complete safe material-group assignment exists ({donorGroups.Count} " +
+            $"donor groups, {targetGroups.Count} target groups). Compatible target " +
+            $"counts: {counts}.";
+        if (!string.IsNullOrWhiteSpace(completePlanFailure))
+            failure += " Full-plan dry-run failed: " + completePlanFailure;
+        else
+        {
+            string? firstEdgeFailure = Enumerable.Range(0, donorGroups.Count)
+                .SelectMany(donorIndex => Enumerable.Range(0, orderedTargets.Length)
+                    .Select(targetIndex => edgeFailures[donorIndex, targetIndex]))
+                .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message));
+            if (!string.IsNullOrWhiteSpace(firstEdgeFailure))
+                failure += " Example rejected pairing: " + firstEdgeFailure;
+        }
+        return new ImportedGroupPairingPlan([], [], failure);
+    }
+
+    internal static bool ShouldAttemptImportedMaterialAtlas(
+        bool directPairingIsSafe,
+        SkinnedTextureTransferMode textureTransferMode,
+        bool allowMaterialAtlas,
+        int donorGroupCount)
+    {
+        if (donorGroupCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(donorGroupCount));
+        return !directPairingIsSafe &&
+               textureTransferMode == SkinnedTextureTransferMode.ImportDonor &&
+               allowMaterialAtlas &&
+               donorGroupCount > 1;
+    }
+
+    internal static int[]? FindDeterministicCapabilityMatching(
+        bool[,] compatibility,
+        Func<IReadOnlyList<int>, bool>? validateCompleteAssignment = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(compatibility);
+        int donorCount = compatibility.GetLength(0);
+        int targetCount = compatibility.GetLength(1);
+        if (donorCount > targetCount)
+            return null;
+
+        var usedTargets = new bool[targetCount];
+        var current = new int[donorCount];
+        int[]? result = null;
+        int visitedStates = 0;
+        _ = Search(0);
+        return result;
+
+        bool Search(int donorIndex)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (++visitedStates > MaximumMaterialAssignmentSearchStates)
+            {
+                throw new InvalidOperationException(
+                    $"Material assignment search exceeded its safe limit of " +
+                    $"{MaximumMaterialAssignmentSearchStates:N0} states. " +
+                    "The action was blocked; reduce or merge donor materials.");
+            }
+            if (donorIndex == donorCount)
+            {
+                int[] candidate = current.ToArray();
+                if (validateCompleteAssignment is not null &&
+                    !validateCompleteAssignment(Array.AsReadOnly(candidate)))
+                {
+                    return false;
+                }
+                result = candidate;
+                return true;
+            }
+
+            for (int targetIndex = 0; targetIndex < targetCount; targetIndex++)
+            {
+                if (usedTargets[targetIndex] ||
+                    !compatibility[donorIndex, targetIndex])
+                {
+                    continue;
+                }
+                usedTargets[targetIndex] = true;
+                current[donorIndex] = targetIndex;
+                if (Search(donorIndex + 1))
+                    return true;
+                usedTargets[targetIndex] = false;
+            }
+            return false;
+        }
+    }
+
+    private static void ValidateImportedGroupPairsDryRun(
+        SmoDocument target,
+        ImportedScene donor,
+        IReadOnlyList<VisualGroup> targetGroups,
+        IReadOnlyList<ImportedTransferMesh> dryMeshes,
+        IReadOnlyList<ImportedGroupPair> pairs,
+        IReadOnlyDictionary<string, string> boneRemap,
+        IReadOnlyDictionary<string, Matrix4x4> targetInverse,
+        IReadOnlySet<int> alphaBlendTextureIndices,
+        SkinnedRenderableMaterialProfile materialProfile,
+        byte[]? reusableScratch = null,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] scratch = reusableScratch ??
+            GC.AllocateUninitializedArray<byte>(target.Data.Length);
+        if (scratch.Length < target.Data.Length)
+            throw new ArgumentException(
+                "Reusable dry-run buffer is smaller than the target SMO.",
+                nameof(reusableScratch));
+        target.Data.Span.CopyTo(scratch);
+        foreach (ImportedGroupPair pair in pairs)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            VisualGroup targetGroup = targetGroups.Single(group =>
+                group.TextureObjectIndex == pair.TargetTextureObjectIndex);
+            ImportedTransferMesh[] groupMeshes = pair.Donor.Meshes.Select(mesh =>
+                    dryMeshes.Single(value => value.Key ==
+                        GetImportedMeshIndex(donor.Meshes, mesh)))
+                .ToArray();
+            ImportedTransferMesh[] paletteMeshes = groupMeshes;
+            bool hasExplicitMaterial = groupMeshes.Any(mesh =>
+                materialProfile.GetMode(mesh.Key) != SkinnedRenderableMaterialMode.Auto);
+            if (alphaBlendTextureIndices.Contains(pair.Donor.SourceTextureIndex) ||
+                hasExplicitMaterial)
+            {
+                ImportedTexture sourceTexture =
+                    ResolveImportedGroupTexture(donor, pair.Donor) ??
+                    throw new InvalidDataException(
+                        $"Transparent material group {pair.Donor.MaterialIndex} " +
+                        "has no source texture.");
+                SmoSkinnedBranchSourceMesh[] splitMeshes = groupMeshes
+                    .Select(ToSkinnedBranchSourceMesh)
+                    .ToArray();
+                SmoSkinnedRenderableOpacityPlan opacity =
+                    SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
+                        splitMeshes, sourceTexture, materialProfile);
+                splitMeshes = SmoSkinnedBranchSplitBuilder
+                    .ConformCloseSurfaceNormals(splitMeshes, opacity)
+                    .Meshes;
+                if (opacity.SeparateBranchTriangleCount > 0)
+                {
+                    uint textureObjectId = target.Objects[targetGroup.TextureObjectIndex].Id;
+                    _ = SmoSkinnedBranchSplitBuilder.Analyze(
+                        target,
+                        textureObjectId,
+                        splitMeshes,
+                        opacity,
+                        boneRemap,
+                        targetInverse);
+                }
+                paletteMeshes = FilterImportedTriangles(
+                    groupMeshes, opacity, keepSeparateBranch: false);
+            }
+            if (paletteMeshes.Any(mesh => mesh.TriangleIndices.Length > 0))
+            {
+                PatchImportedPalettes(
+                    scratch,
+                    target,
+                    targetGroup,
+                    paletteMeshes,
+                    boneRemap,
+                    targetInverse,
+                    cancellationToken);
+            }
+        }
+    }
+
+    private static VisualGroup[] OrderTargetGroupsByPreference(
+        SmoDocument target,
+        IReadOnlyList<VisualGroup> targetGroups)
+    {
+        VisualGroup[] ordered = targetGroups
+            .OrderByDescending(group => group.Meshes.Sum(mesh => mesh.Mesh.TriangleCount))
+            .ThenBy(group => group.TextureObjectIndex)
+            .ToArray();
+        VisualGroup primary = ordered
+            .FirstOrDefault(group => !IsRigidTargetGroup(target, group)) ??
+            ordered[0];
+        return
+        [
+            primary,
+            .. ordered.Where(group =>
+                group.TextureObjectIndex != primary.TextureObjectIndex)
+        ];
     }
 
     private static void ValidateRenderableMaterialProfile(
@@ -1937,7 +2471,9 @@ internal static partial class SmoVisualTransplanter
                 target, targetMaterial);
             byte[] outputState = MaterialBytesWithoutTexturePayloads(
                 output, outputMaterial);
-            if (!targetState.AsSpan().SequenceEqual(outputState))
+            if (!targetState.AsSpan().SequenceEqual(outputState) &&
+                !RetainedMaterialDiffersOnlyByTextureResize(
+                    target, targetMaterial, output, outputMaterial))
             {
                 errors.Add(
                     $"retained material ID {targetMaterial.Id} changed outside texture pixels");
@@ -1966,6 +2502,90 @@ internal static partial class SmoVisualTransplanter
             }
         }
     }
+
+    private static bool RetainedMaterialDiffersOnlyByTextureResize(
+        SmoDocument target,
+        SmoObjectEntry targetMaterial,
+        SmoDocument output,
+        SmoObjectEntry outputMaterial)
+    {
+        SmoObjectEntry[] targetTextures = target.Objects.Where(entry =>
+                entry.ParentIndex == targetMaterial.Index &&
+                entry.TypeHash == SmoClassIds.TextureData)
+            .OrderBy(entry => entry.Id)
+            .ToArray();
+        SmoObjectEntry[] outputTextures = output.Objects.Where(entry =>
+                entry.ParentIndex == outputMaterial.Index &&
+                entry.TypeHash == SmoClassIds.TextureData)
+            .OrderBy(entry => entry.Id)
+            .ToArray();
+        if (targetTextures.Length == 0 ||
+            !targetTextures.Select(entry => entry.Id)
+                .SequenceEqual(outputTextures.Select(entry => entry.Id)))
+        {
+            return false;
+        }
+
+        long textureDelta = targetTextures.Zip(outputTextures).Sum(pair =>
+            (long)pair.Second.SerializedSize - pair.First.SerializedSize);
+        if ((long)outputMaterial.SerializedSize - targetMaterial.SerializedSize !=
+            textureDelta)
+        {
+            return false;
+        }
+
+        if (!SmoMaterialRenderState.TryDecode(
+                target, targetMaterial, out SmoMaterialRenderStateInfo? targetState) ||
+            targetState is null ||
+            !SmoMaterialRenderState.TryDecode(
+                output, outputMaterial, out SmoMaterialRenderStateInfo? outputState) ||
+            outputState is null ||
+            targetState.FinalBlendOperation != outputState.FinalBlendOperation ||
+            !targetState.MaterialRenderStates.SequenceEqual(
+                outputState.MaterialRenderStates))
+        {
+            return false;
+        }
+
+        SMOTextureTool.Core.SmoDocument targetTextureDocument =
+            SMOTextureTool.Core.SmoDocument.Parse(target.Data.Span);
+        SMOTextureTool.Core.SmoDocument outputTextureDocument =
+            SMOTextureTool.Core.SmoDocument.Parse(output.Data.Span);
+        Dictionary<int, SMOTextureTool.Core.TextureInfo> targetByOffset =
+            targetTextureDocument.Textures.ToDictionary(item => item.BlockOffset);
+        Dictionary<int, SMOTextureTool.Core.TextureInfo> outputByOffset =
+            outputTextureDocument.Textures.ToDictionary(item => item.BlockOffset);
+        foreach ((SmoObjectEntry targetTexture, SmoObjectEntry outputTexture) in
+                 targetTextures.Zip(outputTextures))
+        {
+            if (targetTexture.PhysicalOffset is < 0 or > int.MaxValue ||
+                outputTexture.PhysicalOffset is < 0 or > int.MaxValue ||
+                !targetByOffset.TryGetValue(
+                    checked((int)targetTexture.PhysicalOffset),
+                    out SMOTextureTool.Core.TextureInfo? targetInfo) ||
+                !outputByOffset.TryGetValue(
+                    checked((int)outputTexture.PhysicalOffset),
+                    out SMOTextureTool.Core.TextureInfo? outputInfo) ||
+                targetInfo.FormatCode != outputInfo.FormatCode ||
+                targetInfo.Layout != outputInfo.Layout ||
+                !SameRetainedMaterialState(targetInfo.Material, outputInfo.Material))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool SameRetainedMaterialState(
+        SMOTextureTool.Core.MaterialReferenceInfo? target,
+        SMOTextureTool.Core.MaterialReferenceInfo? output) =>
+        target is not null && output is not null &&
+        target.PassIndex == output.PassIndex &&
+        target.LayerIndex == output.LayerIndex &&
+        target.LayerClassId == output.LayerClassId &&
+        target.FinalBlendOperation == output.FinalBlendOperation &&
+        target.MaterialRenderStates.SequenceEqual(output.MaterialRenderStates) &&
+        target.LayerTextureStates.SequenceEqual(output.LayerTextureStates);
 
     private static byte[] MaterialBytesWithoutTexturePayloads(
         SmoDocument document,
@@ -2157,9 +2777,9 @@ internal static partial class SmoVisualTransplanter
                     "cannot be mapped to the fixed-size texture table by physical offset.");
             }
             output = assignment.ReplaceAlpha
-                ? FixedSizeTextureWriter.ReplaceRgba(
+                ? FixedSizeTextureWriter.ReplaceRgbaWithoutDownscaling(
                     output, textureInfo.Index, assignment.Data)
-                : FixedSizeTextureWriter.ReplaceRgb(
+                : FixedSizeTextureWriter.ReplaceRgbWithoutDownscaling(
                     output, textureInfo.Index, assignment.Data);
         }
         return output;
@@ -2198,7 +2818,8 @@ internal static partial class SmoVisualTransplanter
                     texture.Width,
                     texture.Height,
                     texture.Bgra32Pixels.Span,
-                    out string mismatch))
+                    out string mismatch,
+                    resizeToExpected: true))
             {
                 errors.Add(
                     $"transferred RGBA texture [{objectIndex}] failed pixel " +
@@ -2644,51 +3265,6 @@ internal static partial class SmoVisualTransplanter
             .Take(2)
             .Count() == 1;
 
-    private static bool ImportedGroupFitsPreservedPalettes(
-        SmoDocument target,
-        VisualGroup targetGroup,
-        ImportedGroup donorGroup,
-        IReadOnlyDictionary<string, string> boneRemap)
-    {
-        HashSet<string>[] palettes = targetGroup.Meshes.Select(mesh =>
-            mesh.Skin.Bones.Select(bone =>
-                    target.Objects[bone.NodeObjectIndex].Name)
-                .ToHashSet(StringComparer.Ordinal)).ToArray();
-        foreach (ImportedMesh mesh in donorGroup.Meshes)
-        {
-            ImportedSkinning skinning = mesh.Skinning ??
-                throw new InvalidOperationException($"Mesh {mesh.Name} has no skinning data.");
-            for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
-            {
-                var bones = new HashSet<string>(StringComparer.Ordinal);
-                AddVertex(checked((int)mesh.TriangleIndices[index]));
-                AddVertex(checked((int)mesh.TriangleIndices[index + 1]));
-                AddVertex(checked((int)mesh.TriangleIndices[index + 2]));
-                if (!palettes.Any(palette => bones.IsSubsetOf(palette)))
-                    return false;
-
-                void AddVertex(int vertex)
-                {
-                    Vector4 weights = skinning.Weights[vertex];
-                    ImportedJointIndices joints = skinning.JointIndices[vertex];
-                    Add(weights.X, joints.X);
-                    Add(weights.Y, joints.Y);
-                    Add(weights.Z, joints.Z);
-                    Add(weights.W, joints.W);
-                }
-
-                void Add(float weight, ushort joint)
-                {
-                    if (weight <= WeightEpsilon)
-                        return;
-                    string donorName = skinning.Skeleton.JointNames[joint];
-                    bones.Add(boneRemap[donorName]);
-                }
-            }
-        }
-        return true;
-    }
-
     private static Vector3[] GenerateImportedSmoothNormals(ImportedMesh mesh)
     {
         var result = new Vector3[mesh.Positions.Length];
@@ -2716,8 +3292,11 @@ internal static partial class SmoVisualTransplanter
         VisualGroup targetGroup,
         IReadOnlyList<ImportedTransferMesh> donorMeshes,
         IReadOnlyDictionary<string, string> boneRemap,
-        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
+        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        long paletteSearchStarted = System.Diagnostics.Stopwatch.GetTimestamp();
         var slots = targetGroup.Meshes.Select(mesh =>
         {
             string[] originalNames = mesh.Skin.Bones.Select(bone =>
@@ -2744,11 +3323,14 @@ internal static partial class SmoVisualTransplanter
         PaletteSlotPlan[] writableSlots = slots
             .Where(slot => !slot.Fixed)
             .ToArray();
-        var requirements = new List<HashSet<string>>();
+        var requirements = new Dictionary<string, HashSet<string>>(
+            StringComparer.Ordinal);
         foreach (ImportedTransferMesh mesh in donorMeshes)
         {
             for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
             {
+                if ((index & 0x3FFF) == 0)
+                    CheckPaletteSearchBudget();
                 int[] vertices =
                 [
                     checked((int)mesh.TriangleIndices[index]),
@@ -2757,35 +3339,66 @@ internal static partial class SmoVisualTransplanter
                 ];
                 HashSet<string> bones = GetImportedTriangleBones(mesh, vertices, boneRemap);
                 if (!fixedPalettes.Any(palette => bones.IsSubsetOf(palette)))
-                    requirements.Add(bones);
+                {
+                    string key = string.Join(
+                        "\0", bones.Order(StringComparer.Ordinal));
+                    requirements.TryAdd(key, bones);
+                    if (requirements.Count > MaximumPaletteRequirementSets)
+                    {
+                        throw new PaletteSearchLimitException(
+                            $"Material group needs more than the safely searchable " +
+                            $"palette requirement limit (over " +
+                            $"{MaximumPaletteRequirementSets:N0} distinct triangle " +
+                            "bone sets). The exact palette search was blocked to " +
+                            "protect system responsiveness.");
+                    }
+                }
             }
         }
-        HashSet<string>[] uniqueRequirements = requirements
-            .GroupBy(
-                bones => string.Join("\0", bones.Order(StringComparer.Ordinal)),
-                StringComparer.Ordinal)
-            .Select(group => group.First())
+        HashSet<string>[] uniqueRequirements = requirements.Values
             .OrderByDescending(bones => bones.Count)
             .ThenBy(
                 bones => string.Join("\0", bones.Order(StringComparer.Ordinal)),
                 StringComparer.Ordinal)
             .ToArray();
+        if (uniqueRequirements.Length > MaximumPaletteRequirementSets)
+        {
+            throw new PaletteSearchLimitException(
+                $"Material group needs more than the safely searchable palette " +
+                $"requirement limit ({uniqueRequirements.Length:N0} distinct triangle " +
+                $"bone sets; limit {MaximumPaletteRequirementSets:N0}). " +
+                "The exact palette search was blocked to protect system responsiveness.");
+        }
         // A bin containing a maximal triangle set also contains all of its
         // subsets. Removing proper subsets makes the exact search smaller
         // without changing feasibility.
-        HashSet<string>[] maximalRequirements = uniqueRequirements
-            .Where((candidate, index) => !uniqueRequirements
-                .Where((_, other) => other != index)
-                .Any(candidate.IsProperSubsetOf))
-            .ToArray();
+        var maximal = new List<HashSet<string>>(uniqueRequirements.Length);
+        foreach (HashSet<string> candidate in uniqueRequirements)
+        {
+            CheckPaletteSearchBudget();
+            if (!maximal.Any(candidate.IsProperSubsetOf))
+                maximal.Add(candidate);
+        }
+        HashSet<string>[] maximalRequirements = maximal.ToArray();
+        if (maximalRequirements.Length > MaximumMaximalPaletteRequirements)
+        {
+            throw new PaletteSearchLimitException(
+                $"Material group needs more than the safely searchable maximal " +
+                $"palette requirement limit ({maximalRequirements.Length:N0}; limit " +
+                $"{MaximumMaximalPaletteRequirements:N0}). The exact recursive " +
+                "palette search was blocked to protect system responsiveness.");
+        }
         var bins = writableSlots
             .Select(slot => new HashSet<string>(slot.Bones, StringComparer.Ordinal))
             .ToArray();
         var failedStates = new HashSet<string>(StringComparer.Ordinal);
-        // This is an exact deterministic partition, not an online first-fit.
-        // First-fit can fill all four Bloom palettes with unrelated bones and
-        // reject a later five-bone triangle even when a valid partition exists.
-        if (!TryPack(0))
+        int visitedPackingStates = 0;
+        var assignedRequirements = new bool[maximalRequirements.Length];
+        // A deterministic best-overlap pass solves the common layout without
+        // entering the recursive search. It is only a valid-solution fast path:
+        // when an early choice paints itself into a corner, the exact search
+        // below still starts from the untouched original bins.
+        if (!TryPackGreedy() && !TryPack(0))
         {
             throw new InvalidOperationException(
                 $"Material group needs more than {writableSlots.Length} writable " +
@@ -2794,11 +3407,24 @@ internal static partial class SmoVisualTransplanter
         for (int index = 0; index < writableSlots.Length; index++)
             writableSlots[index].Bones.UnionWith(bins[index]);
 
-        bool TryPack(int requirementIndex)
+        bool TryPack(int assignedCount)
         {
-            if (requirementIndex == maximalRequirements.Length)
+            CheckPaletteSearchBudget();
+            if (++visitedPackingStates > MaximumPalettePackingSearchStates)
+            {
+                throw new PaletteSearchLimitException(
+                    $"Material group needs more than the safely searchable 16-bone " +
+                    $"palette layout ({MaximumPalettePackingSearchStates:N0} exact " +
+                    "packing states inspected). The action was blocked to protect " +
+                    "system responsiveness; simplify the generated weights or split " +
+                    "the model.");
+            }
+            if (assignedCount == maximalRequirements.Length)
                 return true;
-            string state = requirementIndex + "|" + string.Join("|", bins
+            string state = string.Join(",", Enumerable.Range(
+                    0, maximalRequirements.Length)
+                .Where(index => !assignedRequirements[index])) + "|" +
+                string.Join("|", bins
                 .Select((bin, index) =>
                     $"{writableSlots[index].Capacity}:" +
                     string.Join(",", bin.Order(StringComparer.Ordinal)))
@@ -2806,29 +3432,108 @@ internal static partial class SmoVisualTransplanter
             if (!failedStates.Add(state))
                 return false;
 
+            int requirementIndex = -1;
+            int[] candidateBins = [];
+            for (int candidateIndex = 0;
+                 candidateIndex < maximalRequirements.Length;
+                 candidateIndex++)
+            {
+                if (assignedRequirements[candidateIndex])
+                    continue;
+
+                HashSet<string> candidate = maximalRequirements[candidateIndex];
+                int[] feasibleBins = Enumerable.Range(0, bins.Length)
+                    .Where(index => bins[index].Union(candidate)
+                        .Distinct(StringComparer.Ordinal).Count() <=
+                        writableSlots[index].Capacity)
+                    .OrderBy(index => candidate.Count(name => !bins[index].Contains(name)))
+                    .ThenByDescending(index => candidate.Count(bins[index].Contains))
+                    .ThenBy(index => index)
+                    .GroupBy(index => writableSlots[index].Capacity + ":" +
+                        string.Join(",", bins[index].Order(StringComparer.Ordinal)),
+                        StringComparer.Ordinal)
+                    .Select(group => group.First())
+                    .ToArray();
+                if (feasibleBins.Length == 0)
+                    return false;
+                if (requirementIndex >= 0 &&
+                    (feasibleBins.Length > candidateBins.Length ||
+                     feasibleBins.Length == candidateBins.Length &&
+                     candidate.Count <= maximalRequirements[requirementIndex].Count))
+                {
+                    continue;
+                }
+
+                requirementIndex = candidateIndex;
+                candidateBins = feasibleBins;
+            }
+            if (requirementIndex < 0)
+                throw new InvalidOperationException(
+                    "Palette search lost its unassigned requirement state.");
+
             HashSet<string> required = maximalRequirements[requirementIndex];
-            string? previousSignature = null;
-            foreach (int binIndex in Enumerable.Range(0, bins.Length)
-                         .Where(index => bins[index].Union(required)
-                             .Distinct(StringComparer.Ordinal).Count() <=
-                             writableSlots[index].Capacity)
-                         .OrderBy(index => required.Count(name => !bins[index].Contains(name)))
-                         .ThenByDescending(index => required.Count(bins[index].Contains))
-                         .ThenBy(index => index))
+            assignedRequirements[requirementIndex] = true;
+            foreach (int binIndex in candidateBins)
             {
                 HashSet<string> bin = bins[binIndex];
-                string signature = writableSlots[binIndex].Capacity + ":" +
-                    string.Join(",", bin.Order(StringComparer.Ordinal));
-                if (signature == previousSignature)
-                    continue;
-                previousSignature = signature;
                 string[] added = required.Where(name => !bin.Contains(name)).ToArray();
                 bin.UnionWith(added);
-                if (TryPack(requirementIndex + 1))
+                if (TryPack(assignedCount + 1))
                     return true;
                 bin.ExceptWith(added);
             }
+            assignedRequirements[requirementIndex] = false;
             return false;
+        }
+
+        bool TryPackGreedy()
+        {
+            HashSet<string>[] candidateBins = bins
+                .Select(bin => new HashSet<string>(bin, StringComparer.Ordinal))
+                .ToArray();
+            foreach (HashSet<string> required in maximalRequirements)
+            {
+                CheckPaletteSearchBudget();
+                int selectedBin = Enumerable.Range(0, candidateBins.Length)
+                    .Where(index => candidateBins[index].Union(required)
+                        .Distinct(StringComparer.Ordinal).Count() <=
+                        writableSlots[index].Capacity)
+                    .OrderBy(index => required.Count(name =>
+                        !candidateBins[index].Contains(name)))
+                    .ThenByDescending(index => required.Count(
+                        candidateBins[index].Contains))
+                    .ThenByDescending(index => writableSlots[index].Capacity -
+                        candidateBins[index].Count)
+                    .ThenBy(index => index)
+                    .DefaultIfEmpty(-1)
+                    .First();
+                if (selectedBin < 0)
+                    return false;
+                candidateBins[selectedBin].UnionWith(required);
+            }
+
+            for (int index = 0; index < bins.Length; index++)
+            {
+                bins[index].Clear();
+                bins[index].UnionWith(candidateBins[index]);
+            }
+            return true;
+        }
+
+        void CheckPaletteSearchBudget()
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (System.Diagnostics.Stopwatch.GetElapsedTime(paletteSearchStarted) <=
+                MaximumPalettePackingWallTime)
+            {
+                return;
+            }
+
+            throw new PaletteSearchLimitException(
+                $"Material group needs more than the safe " +
+                $"{MaximumPalettePackingWallTime.TotalSeconds:N0}-second exact " +
+                "palette-search budget. The action was blocked to protect system " +
+                "responsiveness; simplify the generated weights or split the model.");
         }
 
         string fallback = boneRemap.Values.Order(StringComparer.Ordinal).First();

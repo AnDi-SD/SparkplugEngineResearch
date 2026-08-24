@@ -5,15 +5,17 @@ namespace SmoImporter.Core;
 
 public static class ObjModelReader
 {
-    public static ImportedScene Read(string path)
+    public static ImportedScene Read(
+        string path,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         string fullPath = Path.GetFullPath(path);
-        if (!File.Exists(fullPath))
-            throw new FileNotFoundException("OBJ model was not found.", fullPath);
+        ImportedModelResourceLimits.ValidateInputFile(fullPath, "OBJ");
+        cancellationToken.ThrowIfCancellationRequested();
 
-        string[] lines = File.ReadAllLines(fullPath);
-        var materials = ReadMaterials(fullPath, lines);
+        var materials = ReadMaterials(
+            fullPath, File.ReadLines(fullPath), cancellationToken);
         var materialIndices = materials
             .Select((material, index) => (material.Name, index))
             .ToDictionary(item => item.Name, item => item.index, StringComparer.OrdinalIgnoreCase);
@@ -26,8 +28,13 @@ public static class ObjModelReader
         Builder current = NewBuilder(objectName, materialIndex, materials);
         builders.Add(current);
 
-        foreach (string raw in lines)
+        long generatedIndexCount = 0;
+        int lineNumber = 0;
+        foreach (string raw in File.ReadLines(fullPath))
         {
+            lineNumber++;
+            if ((lineNumber & 0x3FFF) == 0)
+                cancellationToken.ThrowIfCancellationRequested();
             string line = raw.Trim();
             if (line.Length == 0 || line[0] == '#')
                 continue;
@@ -36,6 +43,10 @@ public static class ObjModelReader
             {
                 case "v" when parts.Length >= 4:
                     positions.Add(new Vector3(Parse(parts[1]), Parse(parts[2]), Parse(parts[3])));
+                    ImportedModelResourceLimits.ValidateCount(
+                        positions.Count,
+                        ImportedModelResourceLimits.MaximumTotalVertices,
+                        "OBJ source vertex");
                     break;
                 case "vn" when parts.Length >= 4:
                     normals.Add(new Vector3(Parse(parts[1]), Parse(parts[2]), Parse(parts[3])));
@@ -47,6 +58,10 @@ public static class ObjModelReader
                     objectName = string.Join('_', parts.Skip(1));
                     current = SwitchBuilder(
                         current, builders, objectName, materialIndex, materials);
+                    ImportedModelResourceLimits.ValidateCount(
+                        builders.Count,
+                        ImportedModelResourceLimits.MaximumMeshes,
+                        "OBJ mesh group");
                     break;
                 case "usemtl" when parts.Length >= 2:
                 {
@@ -55,10 +70,18 @@ public static class ObjModelReader
                     {
                         materialIndex = materials.Count;
                         materials.Add(new ImportedMaterial(materialName));
+                        ImportedModelResourceLimits.ValidateCount(
+                            materials.Count,
+                            ImportedModelResourceLimits.MaximumMaterials,
+                            "OBJ material");
                         materialIndices.Add(materialName, materialIndex);
                     }
                     current = SwitchBuilder(
                         current, builders, objectName, materialIndex, materials);
+                    ImportedModelResourceLimits.ValidateCount(
+                        builders.Count,
+                        ImportedModelResourceLimits.MaximumMeshes,
+                        "OBJ mesh group");
                     break;
                 }
                 case "f" when parts.Length >= 4:
@@ -68,6 +91,11 @@ public static class ObjModelReader
                         .ToArray();
                     for (int i = 1; i < polygon.Length - 1; i++)
                     {
+                        generatedIndexCount = checked(generatedIndexCount + 3);
+                        ImportedModelResourceLimits.ValidateCount(
+                            generatedIndexCount,
+                            ImportedModelResourceLimits.MaximumTotalIndices,
+                            "OBJ generated index");
                         current.Indices.Add((uint)polygon[0]);
                         current.Indices.Add((uint)polygon[i]);
                         current.Indices.Add((uint)polygon[i + 1]);
@@ -83,6 +111,10 @@ public static class ObjModelReader
             .ToArray();
         if (meshes.Length == 0)
             throw new InvalidDataException("OBJ contains no faces.");
+        ImportedModelResourceLimits.ValidateCount(
+            meshes.Sum(mesh => (long)mesh.Positions.Length),
+            ImportedModelResourceLimits.MaximumTotalVertices,
+            "OBJ expanded vertex");
         return new ImportedScene(meshes, SourceMaterials: materials.AsReadOnly());
     }
 
@@ -121,13 +153,15 @@ public static class ObjModelReader
 
     private static List<ImportedMaterial> ReadMaterials(
         string objPath,
-        IEnumerable<string> lines)
+        IEnumerable<string> lines,
+        CancellationToken cancellationToken)
     {
         string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
         var result = new List<ImportedMaterial>();
         var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (string raw in lines)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string line = raw.Trim();
             if (!line.StartsWith("mtllib ", StringComparison.OrdinalIgnoreCase))
                 continue;
@@ -135,7 +169,9 @@ public static class ObjModelReader
             string materialPath = Path.GetFullPath(Path.Combine(directory, reference));
             if (!File.Exists(materialPath))
                 continue;
-            ReadMaterialLibrary(materialPath, result, indices);
+            ImportedModelResourceLimits.ValidateInputFile(materialPath, "MTL");
+            ReadMaterialLibrary(
+                materialPath, result, indices, cancellationToken);
         }
         return result;
     }
@@ -143,11 +179,13 @@ public static class ObjModelReader
     private static void ReadMaterialLibrary(
         string path,
         List<ImportedMaterial> materials,
-        Dictionary<string, int> indices)
+        Dictionary<string, int> indices,
+        CancellationToken cancellationToken)
     {
         int current = -1;
         foreach (string raw in File.ReadLines(path))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string line = raw.Trim();
             if (line.Length == 0 || line[0] == '#')
                 continue;
@@ -160,6 +198,10 @@ public static class ObjModelReader
                 {
                     current = materials.Count;
                     materials.Add(new ImportedMaterial(name));
+                    ImportedModelResourceLimits.ValidateCount(
+                        materials.Count,
+                        ImportedModelResourceLimits.MaximumMaterials,
+                        "MTL material");
                     indices.Add(name, current);
                 }
                 continue;

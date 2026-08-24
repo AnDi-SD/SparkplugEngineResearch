@@ -19,7 +19,8 @@
 **/bin/
 **/obj/
 TestResults/
-/artifacts/release/
+/artifacts/
+/native-validation-results/
 
 # Operating-system files
 Thumbs.db

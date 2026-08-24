@@ -6,6 +6,118 @@ using SmoViewer.Core;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
+if (args.Length == 2 && args[0] == "--native-fbx-import-smoke")
+{
+ ImportedScene scene = FbxModelReader.ReadRigid(args[1]);
+ if (scene.Meshes.Count == 0 || scene.Meshes.Any(mesh =>
+      mesh.Positions.Length == 0 || mesh.TriangleIndices.Length == 0))
+  throw new InvalidOperationException("Native FBX smoke test returned empty geometry.");
+ Console.WriteLine(
+  $"NATIVE FBX IMPORT PASS: meshes={scene.Meshes.Count}; " +
+  $"vertices={scene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+  $"materials={scene.Materials.Count}; textures={scene.Textures.Count}; " +
+  $"skinned={scene.Meshes.Count(mesh => mesh.Skinning is not null)}");
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--model-import-smoke")
+{
+ ImportedScene scene = ImportedModelReader.ReadGeometryOnly(args[1]);
+ if (scene.Meshes.Count == 0 || scene.Meshes.Any(mesh =>
+      mesh.Positions.Length == 0 || mesh.TriangleIndices.Length == 0))
+  throw new InvalidOperationException("Model import smoke test returned empty geometry.");
+ Console.WriteLine(
+  $"MODEL IMPORT PASS: meshes={scene.Meshes.Count}; " +
+  $"vertices={scene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+  $"triangles={scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)}; " +
+  $"materials={scene.Materials.Count}; textures={scene.Textures.Count}");
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--model-mesh-bounds")
+{
+ ImportedScene scene = ImportedModelReader.ReadGeometryOnly(args[1]);
+ foreach ((ImportedMesh mesh, int index) in scene.Meshes.Select((mesh, index) => (mesh, index)))
+ {
+  Vector3 minimum = new(
+   mesh.Positions.Min(value => value.X),
+   mesh.Positions.Min(value => value.Y),
+   mesh.Positions.Min(value => value.Z));
+  Vector3 maximum = new(
+   mesh.Positions.Max(value => value.X),
+   mesh.Positions.Max(value => value.Y),
+   mesh.Positions.Max(value => value.Z));
+  Vector3 size = maximum - minimum;
+  Console.WriteLine(
+   $"[{index}] {mesh.Name}: vertices={mesh.Positions.Length}; " +
+   $"triangles={mesh.TriangleIndices.Length / 3}; material={mesh.MaterialIndex}; " +
+   $"min=({minimum.X:N4},{minimum.Y:N4},{minimum.Z:N4}); " +
+   $"max=({maximum.X:N4},{maximum.Y:N4},{maximum.Z:N4}); " +
+   $"size=({size.X:N4},{size.Y:N4},{size.Z:N4})");
+ }
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--model-full-import-smoke")
+{
+ var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+ ImportedScene scene = ImportedModelReader.Read(args[1]);
+ TimeSpan readElapsed = stopwatch.Elapsed;
+ ImportedTextureCatalogResult catalog =
+  ImportedTextureCatalog.ResolveExternalOverrides(scene, []);
+ TimeSpan catalogElapsed = stopwatch.Elapsed - readElapsed;
+ bool hasCandidates = RigidGlbTextureBundleReader.HasCandidateTextureFiles(args[1]);
+ string binding;
+ try
+ {
+  binding = RigidGlbTextureBundleReader.TryBindSceneTextures(
+    args[1], catalog.EffectiveScene, out RigidGlbTextureBundle? bundle)
+   ? $"bound {bundle!.MaterialGroups.Count} groups"
+   : "not applicable";
+ }
+ catch (InvalidDataException exception)
+ {
+  binding = "rejected: " + exception.Message;
+ }
+ TimeSpan bindingElapsed = stopwatch.Elapsed - readElapsed - catalogElapsed;
+ Console.WriteLine(
+  $"MODEL FULL IMPORT PASS: read={readElapsed.TotalSeconds:N2}s; " +
+  $"catalog={catalogElapsed.TotalSeconds:N2}s; bind={bindingElapsed.TotalSeconds:N2}s; " +
+  $"meshes={scene.Meshes.Count}; vertices={scene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
+  $"skinned={scene.HasSkinning}; materials={scene.Materials.Count}; " +
+  $"textures={scene.Textures.Count}; candidates={hasCandidates}; {binding}");
+ Console.WriteLine("TEXTURES: " + string.Join(
+  "; ", scene.Textures.Select(texture =>
+   $"{texture.Name}={texture.Width}x{texture.Height}/{texture.Data.Length:N0} bytes")));
+ HashSet<int> referencedTextureIndices = scene.Meshes
+  .Where(mesh => mesh.MaterialIndex >= 0 && mesh.MaterialIndex < scene.Materials.Count)
+  .Select(mesh => scene.Materials[mesh.MaterialIndex].BaseColorTextureIndex)
+  .Where(index => index >= 0 && index < scene.Textures.Count)
+  .ToHashSet();
+ ImportedTextureMemoryEstimate memory = ImportedTextureMemoryEstimator.Estimate(
+  referencedTextureIndices.Order().Select(index => scene.Textures[index]),
+  3_972_844_749);
+ Console.WriteLine(
+  $"TEXTURE MEMORY: encoded={memory.EncodedBytes / (1024d * 1024):N1} MiB; " +
+  $"RGBA={memory.DecodedBaseRgbaBytes / (1024d * 1024):N1} MiB " +
+  $"({memory.BaseBudgetFraction:P1}); mipmapped=" +
+  $"{memory.DecodedMipmappedRgbaBytes / (1024d * 1024):N1} MiB " +
+  $"({memory.MipmappedBudgetFraction:P1} of 3.70 GiB)");
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--native-fbx-roundtrip")
+{
+ NativeFbxRoundTripRegression.Run(args[1]);
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--auto-alpha-fbx-regression")
+{
+ AutoAlphaTextureRegression.Run(args[1]);
+ return 0;
+}
+
 if (args.Length == 3 &&
     args[0] == "--generated-skinning-degenerate-fbx-regression")
 {
@@ -23,6 +135,387 @@ if (args.Length == 2 &&
 if (args.Length == 2 && args[0] == "--target-fitting-preview-regression")
 {
  TargetRigFittingPreviewRegression.Run(args[1]);
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--semantic-region-regression")
+{
+ GeneratedSkinningSemanticRegionRegression.RunSynthetic(args[1]);
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--semantic-head-topology-regression")
+{
+ GeneratedSkinningSemanticRegionRegression.RunBoundedHeadTopology(args[1]);
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--semantic-hand-topology-regression")
+{
+ GeneratedSkinningSemanticHandRegression.Run(args[1]);
+ return 0;
+}
+
+if (args.Length == 3 && args[0] == "--daphne-semantic-coverage-audit")
+{
+ DaphneSemanticCoverageAudit.Run(args[1], args[2]);
+ return 0;
+}
+
+if (args.Length == 8 && args[0] == "--semantic-head-donor-audit")
+{
+ GeneratedSkinningSemanticRegionRegression.RunHeadDonorAudit(
+  args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+ return 0;
+}
+
+if (args.Length is 4 or 5 && args[0] == "--daphne-semantic-region-regression")
+{
+ GeneratedSkinningSemanticRegionRegression.RunDaphne(
+  args[1], args[2], args[3], args.Length == 5 ? args[4] : null);
+ return 0;
+}
+
+if (args.Length == 1 && args[0] == "--alpha-component-regression")
+{
+ AlphaBranchRegression.RunConnectedComponentClassification();
+ Console.WriteLine("ALPHA CONNECTED-COMPONENT REGRESSION PASS");
+ return 0;
+}
+
+if (args.Length == 4 && args[0] == "--daphne-mode3-regression")
+{
+ DaphneMode3Regression.Run(args[1], args[2], args[3]);
+ return 0;
+}
+
+if (args.Length == 1 && args[0] == "--material-group-matching-regression")
+{
+ MaterialGroupMatchingRegression.Run();
+ Console.WriteLine("MATERIAL GROUP MATCHING REGRESSION PASS");
+ return 0;
+}
+
+if (args.Length == 1 && args[0] == "--glb-normal-repair-regression")
+{
+ GlbNormalRepairRegression.Run();
+ return 0;
+}
+
+if (args.Length == 1 && args[0] == "--glb-resource-safety-regression")
+{
+ GlbResourceSafetyRegression.Run();
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--generated-resource-safety-regression")
+{
+ GeneratedResourceSafetyRegression.Run(args[1]);
+ return 0;
+}
+
+if (args.Length == 3 && args[0] == "--generated-preparation-smoke")
+{
+ var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+ SmoDocument target = SmoDocument.Load(Path.GetFullPath(args[1]));
+ ImportedScene donor = ImportedModelReader.ReadGeometryOnly(args[2]);
+ TimeSpan loaded = stopwatch.Elapsed;
+ GeneratedSkinningPreparationResult preparation =
+  GeneratedSkinningPreparer.Prepare(target, donor);
+ Console.WriteLine(
+  $"GENERATED PREPARATION PASS: load={loaded.TotalSeconds:N2}s; " +
+  $"prepare={(stopwatch.Elapsed - loaded).TotalSeconds:N2}s; " +
+  $"vertices={preparation.Analysis.PreparedVertexCount}; " +
+  $"components={preparation.Analysis.DonorComponentCount}");
+ return 0;
+}
+
+if ((args.Length == 3 && args[0] is
+     "--generated-gui-fallback-smoke" or
+     "--generated-modular-body-regression") ||
+    (args.Length == 10 && args[0] == "--generated-modular-pose-regression") ||
+    (args.Length == 14 && args[0] == "--generated-modular-pose-alignment-regression") ||
+    (args.Length == 18 && args[0] == "--generated-head-volume-regression"))
+{
+ bool requireModularBody = args[0] is
+  "--generated-modular-body-regression" or
+  "--generated-modular-pose-regression";
+ bool requireSemanticRegions =
+  args[0] == "--generated-modular-body-regression";
+ var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+ SmoDocument target = SmoDocument.Load(Path.GetFullPath(args[1]));
+ SmoExportScene targetScene = SmoSceneBuilder.Build(target);
+ ImportedScene donor = args.Length is 14 or 18
+  ? ImportedTextureCatalog.ResolveExternalOverrides(
+   ImportedModelReader.Read(args[2]), []).EffectiveScene
+  : ImportedModelReader.ReadGeometryOnly(args[2]);
+ ReplacementTransform alignment = args.Length is 14 or 18
+  ? new ReplacementTransform(
+   ParseInvariantFloat(args[3]),
+   Vector3.Zero,
+   new Vector3(
+    ParseInvariantFloat(args[4]),
+    ParseInvariantFloat(args[5]),
+    ParseInvariantFloat(args[6])))
+  : ReplacementTransformFitter.FitByHeightAndCenter(
+   targetScene.Meshes.SelectMany(mesh => mesh.Positions),
+   donor.Meshes.SelectMany(mesh => mesh.Positions));
+ TargetRigDefinition rig = TargetRigDefinition.FromSmoDocument(target);
+ TimeSpan loaded = stopwatch.Elapsed;
+ TargetRigBodySelection body = TargetRigAutomaticPoseFitter.SelectBody(
+  rig, donor, alignment);
+ TimeSpan selected = stopwatch.Elapsed;
+ var progress = new GeneratedSkinningProgressRecorder();
+ int poseOffset = args.Length is 14 or 18 ? 7 : 3;
+ TargetRigBodyPoseParameters poseParameters = args.Length is 10 or 14 or 18
+  ? new TargetRigBodyPoseParameters(
+   ArmElevationDegrees: ParseInvariantFloat(args[poseOffset]),
+   ArmForwardDegrees: ParseInvariantFloat(args[poseOffset + 1]),
+   ElbowBendDegrees: ParseInvariantFloat(args[poseOffset + 2]),
+   LegSpreadDegrees: ParseInvariantFloat(args[poseOffset + 3]),
+   KneeBendDegrees: ParseInvariantFloat(args[poseOffset + 4]),
+   TorsoPitchDegrees: ParseInvariantFloat(args[poseOffset + 5]),
+   NeckForward: ParseInvariantFloat(args[poseOffset + 6]))
+  : TargetRigBodyPoseParameters.Neutral;
+ GeneratedSkinningPreparationResult preparation = GeneratedSkinningPreparer.PrepareCancellable(
+   target,
+   donor,
+   TargetRigBodyPoseMapper.CreateSnapshot(rig, poseParameters),
+   alignment,
+   body,
+   componentOverrides: null,
+   regionOverrides: null,
+   CancellationToken.None,
+   progress);
+ if (args.Length == 18)
+ {
+  GeneratedSkinningRegionAdjustment[] regionAdjustments = preparation.Analysis
+   .SemanticRegions.Regions
+   .Select(region => region.Region == GeneratedSkinningSemanticRegion.Head
+    ? region.Adjustment with
+    {
+     Enabled = true,
+     AxialOffset = ParseInvariantFloat(args[14]),
+     AxialScale = ParseInvariantFloat(args[15]),
+     RadialScale = ParseInvariantFloat(args[16]),
+     ForwardTiltDegrees = ParseInvariantFloat(args[17])
+    }
+    : region.Adjustment with { Enabled = true })
+   .ToArray();
+  preparation = GeneratedSkinningPreparer.PrepareCancellable(
+   target,
+   donor,
+   TargetRigBodyPoseMapper.CreateSnapshot(rig, poseParameters),
+   alignment,
+   body,
+   componentOverrides: null,
+   preparation.Analysis.SemanticRegions.CreateOverrides(regionAdjustments),
+   CancellationToken.None,
+   progress: null);
+  GeneratedSkinningRegionResolution head = preparation.Analysis.SemanticRegions
+   .Regions.Single(region => region.Region == GeneratedSkinningSemanticRegion.Head);
+  if (!head.IsApplied || head.Adjustment.ForwardTiltDegrees !=
+      ParseInvariantFloat(args[17]) ||
+      preparation.Analysis.LowerBodyWallAffectedVertexCount <= 0)
+  {
+    throw new InvalidOperationException(
+    "The explicit tilted Head volume or sagittal lower-body wall was not " +
+    "applied to the real donor.");
+  }
+ }
+ if (progress.Updates.Count < 5 ||
+     progress.Updates[^1].Fraction != 1 ||
+     progress.Updates.Zip(progress.Updates.Skip(1),
+       (left, right) => right.Fraction >= left.Fraction).Any(monotonic => !monotonic))
+  throw new InvalidOperationException(
+   "Generated-skinning progress did not report a monotonic completed sequence.");
+ TimeSpan prepared = stopwatch.Elapsed;
+ GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
+  target,
+  preparation.PreparedScene,
+  SkinnedTextureTransferMode.ImportDonor);
+ if (args.Length == 18)
+ {
+  string[] fingerMarkers =
+  [
+   "_Thumb_", "_Index_", "_Middle_", "_Ring_", "_Pinky_"
+  ];
+  string[] unusedFingerJoints = plan.UnusedGlbJoints
+   .Where(name => fingerMarkers.Any(marker =>
+    name.Contains(marker, StringComparison.Ordinal)))
+   .ToArray();
+  if (unusedFingerJoints.Length > 0)
+  {
+   throw new InvalidOperationException(
+    "The real modular donor left target finger chains inactive: " +
+    string.Join(", ", unusedFingerJoints));
+  }
+ }
+  if (requireModularBody)
+ {
+  GeneratedSkinningRegionResolution[] semantic =
+   preparation.Analysis.SemanticRegions.Regions.ToArray();
+  if (body.Components.Count <= 2 ||
+       requireSemanticRegions && semantic.Length != 3 ||
+       requireSemanticRegions && semantic.Any(region => !region.IsApplied) ||
+       requireSemanticRegions && semantic
+        .Where(region => region.Region != GeneratedSkinningSemanticRegion.Head)
+        .Any(region => region.CoarseMotionVertexCount <= 0) ||
+      preparation.Analysis.Attachments.Any(attachment =>
+       !string.Equals(attachment.TargetBoneName, "Head", StringComparison.Ordinal)) ||
+       !plan.CanReplace ||
+       preparation.Analysis.Warnings.Any(warning =>
+        warning.Contains("safely searchable 16-bone palette layout",
+         StringComparison.Ordinal)))
+  {
+   throw new InvalidOperationException(
+     "Modular donor did not assemble a composite deform body with Head and " +
+     "both articulated Hand regions while preserving only Head-rooted rigid shells. " +
+     $"body={body.Components.Count}; semantic=" +
+     string.Join(",", semantic.Select(region =>
+      $"{region.Region}:{region.Status}:{region.CoarseMotionVertexCount}")) +
+     $"; attachments={string.Join(",", preparation.Analysis.Attachments.Select(attachment => attachment.TargetBoneName))}; " +
+     $"canReplace={plan.CanReplace}; warnings=" +
+     string.Join(" | ", preparation.Analysis.Warnings));
+  }
+ }
+ Console.WriteLine(
+  $"GENERATED GUI FALLBACK PASS: load={loaded.TotalSeconds:N2}s; " +
+  $"select={(selected - loaded).TotalSeconds:N2}s; " +
+  $"prepare={(prepared - selected).TotalSeconds:N2}s; " +
+   $"analyze={(stopwatch.Elapsed - prepared).TotalSeconds:N2}s; " +
+   $"vertices={preparation.Analysis.PreparedVertexCount}; " +
+   $"components={preparation.Analysis.DonorComponentCount}; " +
+   $"bodySurfaces={body.Components.Count}; bodyMeshes=" +
+   $"{string.Join(",", body.Components.SelectMany(component => component.VerticesByMesh).Select(group => group.MeshName).Distinct())}; " +
+   $"progressUpdates={progress.Updates.Count}; " +
+   $"lowerBodyWall={preparation.Analysis.LowerBodyWallAffectedVertexCount}; " +
+   $"activeJoints={plan.ActiveJointCount}; " +
+   $"unused=[{string.Join(",", plan.UnusedGlbJoints)}]; " +
+   $"canReplace={plan.CanReplace}");
+ foreach (GeneratedSkinningRegionResolution region in
+          preparation.Analysis.SemanticRegions.Regions)
+ {
+  Console.WriteLine(
+   $"SEMANTIC {region.Region}: status={region.Status}; " +
+   $"core={region.CoreVerticesByMesh.Sum(group => group.VertexIndices.Count)}; " +
+   $"transition={region.TransitionVerticesByMesh.Sum(group => group.VertexIndices.Count)}; " +
+   $"motion={region.CoarseMotionVertexCount}; " +
+   $"warnings={string.Join(" | ", region.Warnings)}");
+ }
+ foreach (GeneratedSkinningAttachment attachment in preparation.Analysis.Attachments
+           .OrderByDescending(attachment => attachment.VertexCount)
+           .ThenBy(attachment => attachment.ComponentIndex))
+ {
+  Console.WriteLine(
+   $"ATTACHMENT #{attachment.ComponentIndex}: vertices={attachment.VertexCount}; " +
+   $"triangles={attachment.TriangleCount}; meshes={string.Join(",", attachment.MeshNames)}; " +
+   $"center=({attachment.AlignedCenter.X:N3},{attachment.AlignedCenter.Y:N3}," +
+   $"{attachment.AlignedCenter.Z:N3}); bone={attachment.TargetBoneName}; " +
+   $"semantic={attachment.SemanticAssignment?.ToString() ?? "none"}");
+ }
+ if (requireModularBody || args.Length is 14 or 18)
+   Console.WriteLine(args.Length is 10 or 14 or 18
+    ? "GENERATED MODULAR POSE REGRESSION PASS"
+    : "GENERATED MODULAR BODY REGRESSION PASS");
+ return 0;
+}
+
+if ((args.Length == 4 && args[0] == "--generated-gui-write-smoke") ||
+    (args.Length == 11 && args[0] == "--generated-pose-write-smoke"))
+{
+ string targetPath = Path.GetFullPath(args[1]);
+ string donorPath = Path.GetFullPath(args[2]);
+ string outputPath = Path.GetFullPath(args[3]);
+ if (string.Equals(outputPath, targetPath, StringComparison.OrdinalIgnoreCase) ||
+     string.Equals(outputPath, donorPath, StringComparison.OrdinalIgnoreCase))
+  throw new InvalidOperationException("Write-smoke output must be separate from both inputs.");
+
+ byte[] targetBefore = File.ReadAllBytes(targetPath);
+ byte[] donorBefore = File.ReadAllBytes(donorPath);
+ var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+ SmoDocument target = SmoDocument.Load(targetPath);
+ SmoExportScene targetScene = SmoSceneBuilder.Build(target);
+ ImportedScene sourceScene = ImportedModelReader.Read(donorPath);
+ ImportedScene donor = ImportedTextureCatalog.ResolveExternalOverrides(
+  sourceScene, []).EffectiveScene;
+ ReplacementTransform alignment = ReplacementTransformFitter.FitByHeightAndCenter(
+  targetScene.Meshes.SelectMany(mesh => mesh.Positions),
+  donor.Meshes.SelectMany(mesh => mesh.Positions));
+ TargetRigDefinition rig = TargetRigDefinition.FromSmoDocument(target);
+ TargetRigBodySelection body = TargetRigAutomaticPoseFitter.SelectBody(
+  rig, donor, alignment);
+ TargetRigBodyPoseParameters writePoseParameters = args.Length == 11
+  ? new TargetRigBodyPoseParameters(
+   ArmElevationDegrees: ParseInvariantFloat(args[4]),
+   ArmForwardDegrees: ParseInvariantFloat(args[5]),
+   ElbowBendDegrees: ParseInvariantFloat(args[6]),
+   LegSpreadDegrees: ParseInvariantFloat(args[7]),
+   KneeBendDegrees: ParseInvariantFloat(args[8]),
+   TorsoPitchDegrees: ParseInvariantFloat(args[9]),
+   NeckForward: ParseInvariantFloat(args[10]))
+  : TargetRigBodyPoseParameters.Neutral;
+ GeneratedSkinningPreparationResult preparation =
+  GeneratedSkinningPreparer.PrepareCancellable(
+   target,
+   donor,
+   TargetRigBodyPoseMapper.CreateSnapshot(
+    rig, writePoseParameters),
+   alignment,
+   body,
+   componentOverrides: null,
+   regionOverrides: null,
+   CancellationToken.None,
+   progress: null);
+ TimeSpan prepared = stopwatch.Elapsed;
+ GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
+  target,
+  preparation.PreparedScene,
+  SkinnedTextureTransferMode.ImportDonor);
+ if (!plan.CanReplace)
+  throw new InvalidOperationException(
+   "Prepared Miku scene cannot be written: " + string.Join(" | ", plan.Messages));
+ GlbSkinTransferResult result = SmoSkinnedGlbReplacer.Replace(
+  target,
+  preparation.PreparedScene,
+  ReplacementTransform.Identity,
+  outputPath,
+  SkinnedGeometryTransferMode.PreservePreparedGeometry,
+  texture: null,
+  textureMode: SkinnedTextureTransferMode.ImportDonor);
+ VerifySkinnedWriterTargetGraph(target, outputPath);
+ if (!File.ReadAllBytes(targetPath).SequenceEqual(targetBefore) ||
+     !File.ReadAllBytes(donorPath).SequenceEqual(donorBefore))
+  throw new InvalidOperationException("Write-smoke modified an input file.");
+ Console.WriteLine(
+  $"GENERATED GUI WRITE PASS: prepare={prepared.TotalSeconds:N2}s; " +
+  $"write={(stopwatch.Elapsed - prepared).TotalSeconds:N2}s; " +
+  $"vertices={result.VertexCount}; triangles={result.TriangleCount}; " +
+  $"palettes={result.PaletteCount}; bytes={result.FileSize}; output={result.OutputPath}");
+ return 0;
+}
+
+if (args.Length == 2 && args[0] == "--glb-normal-repair-audit")
+{
+ ImportedScene scene = GlbModelReader.ReadGeometryOnly(args[1]);
+ if (scene.Meshes.SelectMany(mesh => mesh.Normals).Any(normal =>
+      !float.IsFinite(normal.X) ||
+      !float.IsFinite(normal.Y) ||
+      !float.IsFinite(normal.Z)))
+  throw new InvalidOperationException("GLB normal repair left non-finite values.");
+ if (scene.ImportWarnings.Count == 0)
+  throw new InvalidOperationException("GLB normal repair emitted no user warning.");
+ Console.WriteLine(
+  $"GLB NORMAL REPAIR AUDIT PASS: meshes={scene.Meshes.Count}; " +
+  $"vertices={scene.Meshes.Sum(mesh => mesh.Positions.Length)}; warnings=" +
+  string.Join(" | ", scene.ImportWarnings));
+ return 0;
+}
+
+if (args.Length == 4 && args[0] == "--material-group-atlas-integration")
+{
+ MaterialGroupMatchingRegression.RunAtlasIntegration(args[1], args[2], args[3]);
+ Console.WriteLine("MATERIAL GROUP ATLAS INTEGRATION PASS");
  return 0;
 }
 
@@ -1255,12 +1748,12 @@ if (args.Length == 2 && args[0] == "--rigid-texture-resize-regression")
   RigidTextureFrame normalized = resized.MaterialGroups
    .Single(group => group.MaterialNumber == firstGroup.MaterialNumber).BaseFrame;
   if (!normalized.WasUpscaled || normalized.SourceWidth != 3 ||
-      normalized.SourceHeight != 5 || normalized.Texture.Width != 4 ||
+      normalized.SourceHeight != 5 || normalized.Texture.Width != 8 ||
       normalized.Texture.Height != 8)
-   throw new InvalidOperationException("Non-POT texture was not enlarged from 3x5 to 4x8.");
+   throw new InvalidOperationException("Non-representable texture was not enlarged from 3x5 to 8x8.");
   using Image<Rgba32> decoded = Image.Load<Rgba32>(normalized.Texture.Data);
   if (decoded[0, 0] != new Rgba32(17, 91, 203, 0) ||
-      decoded[3, 7] != new Rgba32(211, 37, 9, 255))
+      decoded[7, 7] != new Rgba32(211, 37, 9, 255))
    throw new InvalidOperationException(
     "Alpha-aware POT enlargement did not preserve clamped corner pixels.");
 
@@ -1278,7 +1771,7 @@ if (args.Length == 2 && args[0] == "--rigid-texture-resize-regression")
   if (!refusedDownscale)
    throw new InvalidOperationException("Texture reader did not reject a required downscale.");
   Console.WriteLine(
-   "RIGID TEXTURE RESIZE PASS: 3x5 -> 4x8; hidden RGB/alpha corners preserved; downscale rejected.");
+   "RIGID TEXTURE RESIZE PASS: 3x5 -> 8x8; hidden RGB/alpha corners preserved; downscale rejected.");
  }
  finally
  {
@@ -2192,6 +2685,8 @@ if (args.Length == 4 && args[0] == "--porting-mode3")
  ValidateGeneratedPreparation(
   manuallyAlignedIdentity, rig, "mode3 explicit nonidentity alignment");
  if (manuallyAlignedIdentity.Analysis.Alignment.Scale != manualAlignment.Scale ||
+     manuallyAlignedIdentity.Analysis.Alignment.RotationDegrees !=
+      manualAlignment.RotationDegrees ||
      manuallyAlignedIdentity.Analysis.Alignment.Translation != manualAlignment.Translation)
  {
   throw new InvalidOperationException(
@@ -2213,21 +2708,27 @@ if (args.Length == 4 && args[0] == "--porting-mode3")
   manualAlignment,
   "mode3 explicit nonidentity alignment");
 
- bool rejectedRotation = false;
- try
+ ReplacementTransform rotatedAlignment = manualAlignment with
  {
-  _ = GeneratedSkinningPreparer.Prepare(
+  RotationDegrees = new Vector3(0, 0.01f, 0)
+ };
+ GeneratedSkinningPreparationResult rotatedPreparation =
+  GeneratedSkinningPreparer.Prepare(
    target,
    donor,
    identityPose.Capture(),
-   manualAlignment with { RotationDegrees = new Vector3(0, 0.01f, 0) });
- }
- catch (ArgumentException)
- {
-  rejectedRotation = true;
- }
- if (!rejectedRotation)
-  throw new InvalidOperationException("Mode-3 explicit alignment accepted a rotation.");
+   rotatedAlignment);
+ ValidateGeneratedPreparation(
+  rotatedPreparation, rig, "mode3 explicit rotated alignment");
+ if (rotatedPreparation.Analysis.Alignment.RotationDegrees !=
+     rotatedAlignment.RotationDegrees)
+  throw new InvalidOperationException(
+   "Mode-3 analysis does not report the exact explicit rotation.");
+ VerifyExplicitGeneratedAlignment(
+  donor,
+  rotatedPreparation.FittingPreviewScene,
+  rotatedAlignment,
+  "mode3 explicit rotated alignment");
  ReplacementTransform[] invalidAlignments =
  [
   manualAlignment with { Scale = 0 },
@@ -2580,7 +3081,32 @@ if (args.Length is not 1 and not 3 and not 4 || !File.Exists(args[0]) ||
  Console.Error.WriteLine("       SmoImporter.FormatTests --target-rig-auto-fit <target.smo> <donor.obj|fbx> <alignment-scale>");
  Console.Error.WriteLine("       SmoImporter.FormatTests --generated-skinning-degenerate-fbx-regression <target.smo> <donor.fbx>");
  Console.Error.WriteLine("       SmoImporter.FormatTests --generated-topology-normalization-regression <target.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --semantic-region-regression <target.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --semantic-head-topology-regression <target.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --semantic-hand-topology-regression <target.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --daphne-semantic-coverage-audit <target.smo> <donor.obj>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --semantic-head-donor-audit <target.smo> <donor.obj|fbx|glb> <scale> <x> <y> <z> <minimum-companions>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --daphne-semantic-region-regression <target.smo> <donor.obj> <output.smo> [animation-dir]");
  Console.Error.WriteLine("       SmoImporter.FormatTests --target-rig-layla-equivalence <target.smo> <layla.obj> <layla.fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --alpha-component-regression");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --daphne-mode3-regression <target.smo> <donor.obj> <output.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --material-group-matching-regression");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --glb-normal-repair-regression");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --glb-normal-repair-audit <donor.glb>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --glb-resource-safety-regression");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-resource-safety-regression <target.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --model-import-smoke <donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --model-full-import-smoke <donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-preparation-smoke <target.smo> <donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-gui-fallback-smoke <target.smo> <donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-modular-body-regression <target.smo> <modular-donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-modular-pose-regression <target.smo> <modular-donor.glb|obj|fbx> <arms-up> <arms-forward> <elbows> <legs> <knees> <torso> <neck>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-modular-pose-alignment-regression <target.smo> <modular-donor.glb|obj|fbx> <scale> <x> <y> <z> <arms-up> <arms-forward> <elbows> <legs> <knees> <torso> <neck>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-head-volume-regression <target.smo> <donor.glb|obj|fbx> <scale> <x> <y> <z> <arms-up> <arms-forward> <elbows> <legs> <knees> <torso> <neck> <head-offset> <head-length> <head-radius> <head-face-tilt>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-gui-write-smoke <target.smo> <donor.glb|obj|fbx> <output.smo>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --generated-pose-write-smoke <target.smo> <donor.glb|obj|fbx> <output.smo> <arms-up> <arms-forward> <elbows> <legs> <knees> <torso> <neck>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --model-mesh-bounds <donor.glb|obj|fbx>");
+ Console.Error.WriteLine("       SmoImporter.FormatTests --material-group-atlas-integration <target.smo> <donor.obj> <output.smo>");
  Console.Error.WriteLine("       SmoImporter.FormatTests --texture-catalog-regression");
  Console.Error.WriteLine("       SmoImporter.FormatTests --skinned-glb <target.smo> <donor.glb> <output.smo> [texture.png]");
  Console.Error.WriteLine("       SmoImporter.FormatTests --skinned-fbx <target.smo> <donor.fbx> <output.smo> [texture.png]");
@@ -2787,6 +3313,74 @@ static void RunFixedSizeTextureWriterRegression(
  CheckRawBgra(rgba, lastOffset, last, preserveAlpha: false,
   0, check, "full BGRA last pixel");
  CheckOutsidePixelPayloadUnchanged(source, rgba, texture, check, "full BGRA replacement");
+
+ const int sourceWidth = 300;
+ const int sourceHeight = 500;
+ using var nonPowerOfTwo = new Image<Rgba32>(sourceWidth, sourceHeight, first);
+ nonPowerOfTwo[sourceWidth - 1, sourceHeight - 1] = last;
+ using var nonPowerOfTwoPng = new MemoryStream();
+ nonPowerOfTwo.SaveAsPng(nonPowerOfTwoPng);
+ byte[] sourceSized = FixedSizeTextureWriter.ReplaceRgbaWithoutDownscaling(
+  source, texture.Index, nonPowerOfTwoPng.ToArray());
+ SMOTextureTool.Core.SmoDocument sourceSizedDocument =
+  SMOTextureTool.Core.SmoDocument.Parse(sourceSized);
+ SMOTextureTool.Core.TextureInfo sourceSizedTexture = sourceSizedDocument.Textures
+  .Single(item => item.Index == texture.Index);
+ check(sourceSizedTexture.Width == 512 && sourceSizedTexture.Height == 512,
+  "unrepresentable dimensions are only upscaled to the nearest powers of two");
+ SmoDocument strictSourceSized = SmoDocument.Parse(sourceSized, "npot-regression.smo");
+ check(!strictSourceSized.HasErrors,
+  "source-size non-power-of-two replacement passes the strict SMO parser");
+ SmoDocument strictOriginal = SmoDocument.Parse(source, "texture-resize-source.smo");
+ Dictionary<uint, int[]> originalSkinPalettes = strictOriginal.Objects
+  .Where(entry => entry.TypeHash == SmoClassIds.Skin)
+  .Select(entry => (Entry: entry, Decoded: SmoSkinDecoder.TryDecode(
+   strictOriginal, entry, out SmoSkin? skin, out _), Skin: skin))
+  .Where(item => item.Decoded && item.Skin is not null)
+  .ToDictionary(
+   item => item.Entry.Id,
+   item => item.Skin!.Bones.Select(bone => bone.NodeObjectIndex).ToArray());
+ bool skinPalettesPreserved = originalSkinPalettes.All(pair =>
+ {
+  SmoObjectEntry? resizedEntry = strictSourceSized.Objects.FirstOrDefault(entry =>
+   entry.Id == pair.Key && entry.TypeHash == SmoClassIds.Skin);
+  return resizedEntry is not null &&
+   SmoSkinDecoder.TryDecode(
+    strictSourceSized, resizedEntry, out SmoSkin? resizedSkin, out _) &&
+   resizedSkin is not null &&
+   pair.Value.SequenceEqual(
+    resizedSkin.Bones.Select(bone => bone.NodeObjectIndex));
+ });
+ check(skinPalettesPreserved,
+  $"texture growth preserves all {originalSkinPalettes.Count} decodable skin palettes");
+ using Image<Rgba32> decodedSourceSized =
+  sourceSizedDocument.Decode(sourceSizedTexture);
+ check(decodedSourceSized[0, 0] == first,
+  "source-size replacement preserves the first RGBA pixel");
+ check(sourceSizedTexture.Channels.AlphaMin < sourceSizedTexture.Channels.AlphaMax &&
+       sourceSizedTexture.Channels.AlphaMax < byte.MaxValue,
+  "power-of-two fallback preserves variable transparency");
+
+ const int representableWidth = 24;
+ const int representableHeight = 24;
+ using var representableNpot = new Image<Rgba32>(
+  representableWidth, representableHeight, first);
+ using var representableNpotPng = new MemoryStream();
+ representableNpot.SaveAsPng(representableNpotPng);
+ byte[] exactNpot = FixedSizeTextureWriter.ReplaceRgbaWithoutDownscaling(
+  source, texture.Index, representableNpotPng.ToArray());
+ SMOTextureTool.Core.TextureInfo exactNpotTexture =
+  SMOTextureTool.Core.SmoDocument.Parse(exactNpot).Textures
+   .Single(item => item.Index == texture.Index);
+ check(exactNpotTexture.Width == representableWidth &&
+       exactNpotTexture.Height == representableHeight,
+  "representable non-power-of-two dimensions remain exact");
+ SmoDocument exactNpotStrict = SmoDocument.Parse(
+  exactNpot, "exact-npot-regression.smo");
+ check(!exactNpotStrict.HasErrors,
+  "exact non-power-of-two replacement passes the strict SMO parser: " +
+  string.Join(" | ", exactNpotStrict.Diagnostics.Where(item =>
+   item.Severity == SmoDiagnosticSeverity.Error).Select(item => item.Message)));
 }
 
 static void CheckRawBgra(
@@ -3342,7 +3936,7 @@ static void VerifyExplicitGeneratedAlignment(
   uint[] expectedRenderableIndices = FilterRenderableTriangleIndices(
    source, $"{context}: donor mesh [{meshIndex}] '{source.Name}'");
   if (source.Positions.Length != fitting.Positions.Length ||
-      !source.Normals.SequenceEqual(fitting.Normals) ||
+      source.Normals.Length != fitting.Normals.Length ||
       !source.TextureCoordinates.SequenceEqual(fitting.TextureCoordinates) ||
       !expectedRenderableIndices.SequenceEqual(fitting.TriangleIndices) ||
       !source.DiffuseColors.SequenceEqual(fitting.DiffuseColors))
@@ -3352,8 +3946,7 @@ static void VerifyExplicitGeneratedAlignment(
   }
   for (int vertex = 0; vertex < source.Positions.Length; vertex++)
   {
-   Vector3 expected = source.Positions[vertex] * alignment.Scale +
-    alignment.Translation;
+   Vector3 expected = Vector3.Transform(source.Positions[vertex], alignment.Matrix);
    Vector3 actual = fitting.Positions[vertex];
    float tolerance = 0.00001f * MathF.Max(1f, expected.Length());
    if (!IsFinite(actual) ||
@@ -3362,6 +3955,22 @@ static void VerifyExplicitGeneratedAlignment(
     throw new InvalidOperationException(
      $"{context}: mesh [{meshIndex}] '{source.Name}' vertex {vertex} " +
      "does not contain the requested final alignment.");
+   }
+   if (source.Normals.Length != 0)
+   {
+    Vector3 transformedNormal = Vector3.TransformNormal(
+     source.Normals[vertex], alignment.Matrix);
+    Vector3 expectedNormal = transformedNormal.LengthSquared() <= 0.000000000001f
+     ? Vector3.Zero
+     : Vector3.Normalize(transformedNormal);
+    Vector3 actualNormal = fitting.Normals[vertex];
+    if (!IsFinite(actualNormal) ||
+        Vector3.DistanceSquared(expectedNormal, actualNormal) > 0.00000001f)
+    {
+     throw new InvalidOperationException(
+      $"{context}: mesh [{meshIndex}] '{source.Name}' normal {vertex} " +
+      "does not contain the requested rotation.");
+    }
    }
   }
  }
@@ -3413,6 +4022,7 @@ static void ValidateGeneratedPreparation(
   throw new InvalidOperationException($"{context}: generated weights do not require confirmation.");
  if (!float.IsFinite(preparation.Analysis.Alignment.Scale) ||
      preparation.Analysis.Alignment.Scale <= 0 ||
+     !IsFinite(preparation.Analysis.Alignment.RotationDegrees) ||
      !IsFinite(preparation.Analysis.Alignment.Translation))
   throw new InvalidOperationException($"{context}: generated alignment is invalid.");
  if (preparation.Analysis.PreparedVertexCount !=
@@ -3768,3 +4378,13 @@ static bool MatrixApproximatelyEqual(
  MathF.Abs(left.M42 - right.M42) <= epsilon &&
  MathF.Abs(left.M43 - right.M43) <= epsilon &&
  MathF.Abs(left.M44 - right.M44) <= epsilon;
+
+static float ParseInvariantFloat(string value) =>
+ float.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+
+sealed class GeneratedSkinningProgressRecorder : IProgress<GeneratedSkinningProgress>
+{
+ public List<GeneratedSkinningProgress> Updates { get; } = [];
+
+ public void Report(GeneratedSkinningProgress value) => Updates.Add(value);
+}

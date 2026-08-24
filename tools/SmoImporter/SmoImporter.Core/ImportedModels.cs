@@ -74,6 +74,11 @@ public sealed record ImportedScene(
 {
     public IReadOnlyList<ImportedTexture> Textures => EmbeddedTextures ?? [];
     public IReadOnlyList<ImportedMaterial> Materials => SourceMaterials ?? [];
+    /// <summary>
+    /// Non-fatal repairs or compatibility decisions made while decoding the
+    /// source asset. Preparation paths must preserve and surface these messages.
+    /// </summary>
+    public IReadOnlyList<string> ImportWarnings { get; init; } = [];
     public bool HasSkinning => Meshes.Any(mesh => mesh.Skinning is not null);
 }
 

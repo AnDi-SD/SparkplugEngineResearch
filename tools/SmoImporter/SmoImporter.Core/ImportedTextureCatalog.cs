@@ -145,7 +145,13 @@ public static class ImportedTextureCatalog
         var effectiveScene = new ImportedScene(
             source.Meshes,
             effectiveTextures.AsReadOnly(),
-            Array.AsReadOnly(effectiveMaterials));
+            Array.AsReadOnly(effectiveMaterials))
+        {
+            ImportWarnings = source.ImportWarnings
+        };
+        ImportedModelResourceLimits.ValidateTextures(
+            effectiveScene.Textures,
+            "Imported scene");
         return new ImportedTextureCatalogResult(
             effectiveScene,
             Array.AsReadOnly(unused),

@@ -51,8 +51,8 @@ public sealed class RigidTextureBundleContainsSkinnedMeshesException
 /// </summary>
 public static class RigidGlbTextureBundleReader
 {
-    public const int DefaultMaximumTextureDimension = 2048;
-    public const int AbsoluteMaximumTextureDimension = 2048;
+    public const int DefaultMaximumTextureDimension = 16384;
+    public const int AbsoluteMaximumTextureDimension = 16384;
 
     private static readonly Regex NodeMaterialPattern = new(
         @"(?:^|[^a-z0-9])mat(?<material>[1-9][0-9]*)(?=(?:\.?png)?(?:[^a-z0-9]|$))",
@@ -83,14 +83,14 @@ public static class RigidGlbTextureBundleReader
         string modelPath,
         out RigidGlbTextureBundle? bundle,
         string? textureDirectory = null,
-        string? blenderPath = null,
+        string? nativeFbxBridgePath = null,
         int maximumTextureDimension = DefaultMaximumTextureDimension)
     {
         bundle = null;
         if (!HasCandidateTextureFiles(modelPath, textureDirectory))
             return false;
         bundle = ReadModel(
-            modelPath, textureDirectory, blenderPath, maximumTextureDimension);
+            modelPath, textureDirectory, nativeFbxBridgePath, maximumTextureDimension);
         return true;
     }
 
@@ -126,15 +126,19 @@ public static class RigidGlbTextureBundleReader
     public static RigidGlbTextureBundle ReadModel(
         string modelPath,
         string? textureDirectory = null,
-        string? blenderPath = null,
-        int maximumTextureDimension = DefaultMaximumTextureDimension)
+        string? nativeFbxBridgePath = null,
+        int maximumTextureDimension = DefaultMaximumTextureDimension,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(modelPath);
         string fullModelPath = Path.GetFullPath(modelPath);
         ImportedScene scene = Path.GetExtension(fullModelPath).Equals(
             ".fbx", StringComparison.OrdinalIgnoreCase)
-                ? FbxModelReader.ReadRigid(fullModelPath, blenderPath)
-                : ImportedModelReader.Read(fullModelPath, blenderPath);
+                ? FbxModelReader.ReadRigid(
+                    fullModelPath, nativeFbxBridgePath, cancellationToken)
+                : ImportedModelReader.Read(
+                    fullModelPath, nativeFbxBridgePath, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return Bind(
             fullModelPath,
             scene,
@@ -520,8 +524,20 @@ public static class RigidGlbTextureBundleReader
                 "Downscaling is forbidden.");
         }
 
-        int width = CeilingPowerOfTwo(sourceWidth);
-        int height = CeilingPowerOfTwo(sourceHeight);
+        int width = sourceWidth;
+        int height = sourceHeight;
+        if (!IsSerializedTextureSizeRepresentable(width, height))
+        {
+            width = CeilingPowerOfTwo(width);
+            height = CeilingPowerOfTwo(height);
+            while (!IsSerializedTextureSizeRepresentable(width, height))
+            {
+                if (width <= height)
+                    width = checked(width * 2);
+                else
+                    height = checked(height * 2);
+            }
+        }
         if (width > maximumTextureDimension || height > maximumTextureDimension)
         {
             throw new InvalidDataException(
@@ -660,6 +676,9 @@ public static class RigidGlbTextureBundleReader
             result = checked(result << 1);
         return result;
     }
+
+    internal static bool IsSerializedTextureSizeRepresentable(int width, int height) =>
+        width > 0 && height > 0 && ((long)width * height & 63) == 0;
 
     private static int ParseNumber(string value, string description)
     {

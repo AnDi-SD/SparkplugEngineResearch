@@ -6,6 +6,8 @@
 
 ### 2026
 
+- [2026-08-24 — выпуск Importer 0.5.0, Exporter 0.4.0 и Viewer 0.4.2](2026/2026-08-24-release-importer-0.5-exporter-0.4-viewer-0.4.2.md)
+- [2026-08-24 — универсальные веса Importer и нативный FBX](2026/2026-08-24-importer-universal-skinning-and-native-fbx.md)
 - [2026-08-15 — внешние волосы в меню костюмов](2026/2026-08-15-costume-menu-hair-patcher.md)
 - [2026-08-14 — release candidates SmoViewer 0.4, SmoImporter 0.3 и SMOTextureTool 2.1](2026/2026-08-14-release-candidates.md)
 - [2026-08-14 — нативная проверка SMO кодом Winx Club](2026/2026-08-14-native-smo-validator.md)

@@ -7,41 +7,71 @@ namespace SmoImporter.Core;
 
 public static class GlbModelReader
 {
-    public static ImportedScene Read(string path) =>
-        ReadCore(path, ignoreSkinning: false);
+    public static ImportedScene Read(
+        string path,
+        CancellationToken cancellationToken = default) =>
+        ReadCore(path, ignoreSkinning: false, cancellationToken);
 
     /// <summary>
     /// Reads only mesh/material/texture data and deliberately ignores any skin
     /// attributes. This lets the explicit generate-weights mode recover geometry
     /// from a donor whose rig is unusable; the normal reader remains fail-loud.
     /// </summary>
-    public static ImportedScene ReadGeometryOnly(string path) =>
-        ReadCore(path, ignoreSkinning: true);
+    public static ImportedScene ReadGeometryOnly(
+        string path,
+        CancellationToken cancellationToken = default) =>
+        ReadCore(path, ignoreSkinning: true, cancellationToken);
 
-    private static ImportedScene ReadCore(string path, bool ignoreSkinning)
+    private static ImportedScene ReadCore(
+        string path,
+        bool ignoreSkinning,
+        CancellationToken cancellationToken)
     {
-        byte[] file = File.ReadAllBytes(path);
+        string fullPath = Path.GetFullPath(path);
+        ImportedModelResourceLimits.ValidateInputFile(fullPath, "GLB");
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] file = File.ReadAllBytes(fullPath);
         if (file.Length < 20 || BinaryPrimitives.ReadUInt32LittleEndian(file) != 0x46546C67 ||
             BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(4)) != 2)
             throw new InvalidDataException("Only binary glTF 2.0 (.glb) is supported.");
         int jsonLength = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(12)));
+        if (jsonLength <= 0 ||
+            jsonLength > ImportedModelResourceLimits.MaximumJsonBytes ||
+            jsonLength > file.Length - 20)
+        {
+            throw new InvalidDataException(
+                $"GLB JSON chunk length {jsonLength:N0} is invalid or exceeds the " +
+                $"safe limit {ImportedModelResourceLimits.MaximumJsonBytes:N0}.");
+        }
         using JsonDocument document = JsonDocument.Parse(file.AsMemory(20, jsonLength));
-        int binaryHeader = 20 + jsonLength;
+        int binaryHeader = checked(20 + jsonLength);
         if (binaryHeader + 8 > file.Length ||
             BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(binaryHeader + 4)) != 0x004E4942)
             throw new InvalidDataException("GLB has no binary buffer chunk.");
         int binaryLength = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(binaryHeader)));
+        if (binaryLength < 0 || binaryLength > file.Length - binaryHeader - 8)
+            throw new InvalidDataException("GLB binary chunk crosses the file boundary.");
         ReadOnlyMemory<byte> binary = file.AsMemory(binaryHeader + 8, binaryLength);
         JsonElement root = document.RootElement;
+        ValidateDocumentResourceLimits(root, binary);
+        cancellationToken.ThrowIfCancellationRequested();
         JsonElement meshes = root.GetProperty("meshes");
+        int[] nodeParents = root.TryGetProperty("nodes", out JsonElement nodes)
+            ? ReadNodeParents(nodes)
+            : [];
         string?[] meshNodeNames = ResolveMeshNodeNames(root, meshes.GetArrayLength());
-        Matrix4x4[] meshTransforms = ResolveMeshTransforms(root, meshes.GetArrayLength());
+        Matrix4x4[] meshTransforms = ResolveMeshTransforms(
+            root, meshes.GetArrayLength(), nodeParents);
         int?[] meshSkins = ResolveMeshSkins(root, meshes.GetArrayLength());
-        GlbSkinLayout[] skins = ignoreSkinning ? [] : ReadSkins(root, binary);
+        GlbSkinLayout[] skins = ignoreSkinning
+            ? []
+            : ReadSkins(root, binary, nodeParents);
         var result = new List<ImportedMesh>();
+        var importWarnings = new List<string>();
 
         for (int meshIndex = 0; meshIndex < meshes.GetArrayLength(); meshIndex++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             JsonElement mesh = meshes[meshIndex];
             string baseName = meshNodeNames[meshIndex] ??
                 (mesh.TryGetProperty("name", out JsonElement name)
@@ -50,6 +80,7 @@ public static class GlbModelReader
             int primitiveIndex = 0;
             foreach (JsonElement primitive in mesh.GetProperty("primitives").EnumerateArray())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 int mode = primitive.TryGetProperty("mode", out JsonElement modeElement)
                     ? modeElement.GetInt32() : 4;
                 if (mode != 4) throw new InvalidDataException("Only glTF TRIANGLES primitives are supported.");
@@ -96,8 +127,33 @@ public static class GlbModelReader
                         Matrix4x4 normalTransform = transform;
                         if (Matrix4x4.Invert(transform, out Matrix4x4 inverse))
                             normalTransform = Matrix4x4.Transpose(inverse);
-                        normals = normals.Select(value => Vector3.Normalize(
+                        normals = normals.Select(value => NormalizeOrZero(
                             Vector3.TransformNormal(value, normalTransform))).ToArray();
+                    }
+                }
+                if (normals.Length == positions.Length)
+                {
+                    normals = RepairInvalidNormals(
+                        positions,
+                        normals,
+                        indices,
+                        out int reconstructedNormals,
+                        out int fallbackNormals);
+                    int repairedNormals = reconstructedNormals + fallbackNormals;
+                    if (repairedNormals > 0)
+                    {
+                        string resultName = primitiveIndex == 0
+                            ? baseName
+                            : $"{baseName}_{primitiveIndex}";
+                        importWarnings.Add(
+                            $"Нормали donor mesh [{result.Count}] '{resultName}': " +
+                            $"автоматически исправлено {repairedNormals} нулевых или " +
+                            $"нечисловых значений; {reconstructedNormals} пересчитано " +
+                            "по треугольникам" +
+                            (fallbackNormals == 0
+                                ? "."
+                                : $", {fallbackNormals} неиспользуемых/вырожденных " +
+                                  "вершин получили безопасную резервную нормаль."));
                     }
                 }
                 result.Add(new ImportedMesh(
@@ -113,8 +169,323 @@ public static class GlbModelReader
         return new ImportedScene(
             result,
             textureCatalog.Textures,
-            ReadMaterials(root, textureCatalog.SceneTextureIndexByImage));
+            ReadMaterials(root, textureCatalog.SceneTextureIndexByImage))
+        {
+            ImportWarnings = importWarnings.AsReadOnly()
+        };
     }
+
+    private static void ValidateDocumentResourceLimits(
+        JsonElement root,
+        ReadOnlyMemory<byte> binary)
+    {
+        if (!root.TryGetProperty("meshes", out JsonElement meshes) ||
+            meshes.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException("GLB contains no mesh array.");
+
+        ImportedModelResourceLimits.ValidateCount(
+            meshes.GetArrayLength(), ImportedModelResourceLimits.MaximumMeshes,
+            "GLB mesh");
+        ValidateOptionalArrayCount(
+            root, "nodes", ImportedModelResourceLimits.MaximumNodes);
+        ValidateOptionalArrayCount(
+            root, "skins", ImportedModelResourceLimits.MaximumSkins);
+        ValidateOptionalArrayCount(
+            root, "materials", ImportedModelResourceLimits.MaximumMaterials);
+        ValidateOptionalArrayCount(
+            root, "textures", ImportedModelResourceLimits.MaximumTextures);
+        ValidateOptionalArrayCount(
+            root, "images", ImportedModelResourceLimits.MaximumTextures);
+        ValidateOptionalArrayCount(
+            root, "bufferViews", ImportedModelResourceLimits.MaximumBufferViews);
+        ValidateOptionalArrayCount(
+            root, "accessors", ImportedModelResourceLimits.MaximumAccessors);
+
+        JsonElement views = root.TryGetProperty("bufferViews", out JsonElement foundViews)
+            ? foundViews
+            : default;
+        if (views.ValueKind == JsonValueKind.Array)
+        {
+            for (int viewIndex = 0; viewIndex < views.GetArrayLength(); viewIndex++)
+            {
+                JsonElement view = views[viewIndex];
+                long offset = view.TryGetProperty("byteOffset", out JsonElement offsetElement)
+                    ? offsetElement.GetInt64()
+                    : 0;
+                long length = view.GetProperty("byteLength").GetInt64();
+                if (offset < 0 || length < 0 || offset > binary.Length - length)
+                {
+                    throw new InvalidDataException(
+                        $"GLB bufferView {viewIndex} crosses the binary chunk boundary.");
+                }
+            }
+        }
+
+        if (!root.TryGetProperty("accessors", out JsonElement accessors) ||
+            accessors.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException("GLB contains no accessor array.");
+
+        long decodedAccessorBytes = 0;
+        for (int accessorIndex = 0;
+             accessorIndex < accessors.GetArrayLength();
+             accessorIndex++)
+        {
+            JsonElement accessor = accessors[accessorIndex];
+            int count = accessor.GetProperty("count").GetInt32();
+            ImportedModelResourceLimits.ValidateCount(
+                count,
+                ImportedModelResourceLimits.MaximumIndicesPerPrimitive,
+                $"GLB accessor {accessorIndex}");
+            int width = AccessorWidth(
+                accessor.GetProperty("type").GetString(), accessorIndex);
+            int componentSize = ComponentSize(
+                accessor.GetProperty("componentType").GetInt32(), accessorIndex);
+            decodedAccessorBytes = checked(
+                decodedAccessorBytes + (long)count * width * sizeof(float));
+            if (decodedAccessorBytes >
+                ImportedModelResourceLimits.MaximumDecodedAccessorBytes)
+            {
+                throw new InvalidDataException(
+                    "GLB accessors exceed the safe decoded-memory budget of " +
+                    $"{ImportedModelResourceLimits.MaximumDecodedAccessorBytes / (1024 * 1024):N0} MiB.");
+            }
+
+            if (!accessor.TryGetProperty("bufferView", out JsonElement viewElement))
+            {
+                throw new InvalidDataException(
+                    $"GLB accessor {accessorIndex} has no bufferView; sparse-only " +
+                    "accessors are not supported safely.");
+            }
+            int viewIndex = viewElement.GetInt32();
+            if (views.ValueKind != JsonValueKind.Array ||
+                (uint)viewIndex >= (uint)views.GetArrayLength())
+                throw new InvalidDataException(
+                    $"GLB accessor {accessorIndex} references invalid bufferView {viewIndex}.");
+            JsonElement view = views[viewIndex];
+            long viewOffset = view.TryGetProperty("byteOffset", out JsonElement viewOffsetElement)
+                ? viewOffsetElement.GetInt64()
+                : 0;
+            long viewLength = view.GetProperty("byteLength").GetInt64();
+            long accessorOffset = accessor.TryGetProperty(
+                "byteOffset", out JsonElement accessorOffsetElement)
+                ? accessorOffsetElement.GetInt64()
+                : 0;
+            long elementSize = checked((long)componentSize * width);
+            long stride = view.TryGetProperty("byteStride", out JsonElement strideElement)
+                ? strideElement.GetInt64()
+                : elementSize;
+            if (accessorOffset < 0 || stride < elementSize)
+                throw new InvalidDataException(
+                    $"GLB accessor {accessorIndex} has an invalid offset or stride.");
+            long relativeEnd = count == 0
+                ? accessorOffset
+                : checked(accessorOffset + (long)(count - 1) * stride + elementSize);
+            if (relativeEnd > viewLength ||
+                viewOffset > binary.Length - relativeEnd)
+            {
+                throw new InvalidDataException(
+                    $"GLB accessor {accessorIndex} crosses its bufferView boundary.");
+            }
+        }
+
+        long totalVertices = 0;
+        long totalIndices = 0;
+        int primitiveCount = 0;
+        foreach (JsonElement mesh in meshes.EnumerateArray())
+        {
+            if (!mesh.TryGetProperty("primitives", out JsonElement primitives) ||
+                primitives.ValueKind != JsonValueKind.Array)
+                throw new InvalidDataException("GLB mesh has no primitive array.");
+            primitiveCount = checked(primitiveCount + primitives.GetArrayLength());
+            ImportedModelResourceLimits.ValidateCount(
+                primitiveCount,
+                ImportedModelResourceLimits.MaximumPrimitives,
+                "GLB primitive");
+            foreach (JsonElement primitive in primitives.EnumerateArray())
+            {
+                JsonElement attributes = primitive.GetProperty("attributes");
+                int positionAccessor = attributes.GetProperty("POSITION").GetInt32();
+                int vertexCount = GetAccessorCount(accessors, positionAccessor, "POSITION");
+                ImportedModelResourceLimits.ValidateCount(
+                    vertexCount,
+                    ImportedModelResourceLimits.MaximumVerticesPerPrimitive,
+                    "GLB primitive vertex");
+                totalVertices = checked(totalVertices + vertexCount);
+
+                int indexCount = primitive.TryGetProperty(
+                    "indices", out JsonElement indicesElement)
+                    ? GetAccessorCount(accessors, indicesElement.GetInt32(), "indices")
+                    : vertexCount;
+                ImportedModelResourceLimits.ValidateCount(
+                    indexCount,
+                    ImportedModelResourceLimits.MaximumIndicesPerPrimitive,
+                    "GLB primitive index");
+                totalIndices = checked(totalIndices + indexCount);
+            }
+        }
+        ImportedModelResourceLimits.ValidateCount(
+            totalVertices,
+            ImportedModelResourceLimits.MaximumTotalVertices,
+            "GLB total vertex");
+        ImportedModelResourceLimits.ValidateCount(
+            totalIndices,
+            ImportedModelResourceLimits.MaximumTotalIndices,
+            "GLB total index");
+
+        if (root.TryGetProperty("skins", out JsonElement skins))
+        {
+            for (int skinIndex = 0; skinIndex < skins.GetArrayLength(); skinIndex++)
+            {
+                if (!skins[skinIndex].TryGetProperty("joints", out JsonElement joints) ||
+                    joints.ValueKind != JsonValueKind.Array)
+                    throw new InvalidDataException($"GLB skin {skinIndex} has no joints.");
+                ImportedModelResourceLimits.ValidateCount(
+                    joints.GetArrayLength(),
+                    ImportedModelResourceLimits.MaximumJointsPerSkin,
+                    $"GLB skin {skinIndex} joint");
+            }
+        }
+    }
+
+    private static void ValidateOptionalArrayCount(
+        JsonElement root,
+        string property,
+        int maximum)
+    {
+        if (!root.TryGetProperty(property, out JsonElement array))
+            return;
+        if (array.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException($"GLB {property} must be an array.");
+        ImportedModelResourceLimits.ValidateCount(
+            array.GetArrayLength(), maximum, $"GLB {property}");
+    }
+
+    private static int GetAccessorCount(
+        JsonElement accessors,
+        int accessorIndex,
+        string owner)
+    {
+        if ((uint)accessorIndex >= (uint)accessors.GetArrayLength())
+            throw new InvalidDataException(
+                $"GLB {owner} references invalid accessor {accessorIndex}.");
+        return accessors[accessorIndex].GetProperty("count").GetInt32();
+    }
+
+    private static int AccessorWidth(string? type, int accessorIndex) => type switch
+    {
+        "SCALAR" => 1,
+        "VEC2" => 2,
+        "VEC3" => 3,
+        "VEC4" => 4,
+        "MAT2" => 4,
+        "MAT3" => 9,
+        "MAT4" => 16,
+        _ => throw new InvalidDataException(
+            $"GLB accessor {accessorIndex} has unsupported type '{type}'.")
+    };
+
+    private static int ComponentSize(int componentType, int accessorIndex) =>
+        componentType switch
+        {
+            5120 or 5121 => 1,
+            5122 or 5123 => 2,
+            5125 or 5126 => 4,
+            _ => throw new InvalidDataException(
+                $"GLB accessor {accessorIndex} has unsupported component type " +
+                $"{componentType}.")
+        };
+
+    private static Vector3 NormalizeOrZero(Vector3 value)
+    {
+        float lengthSquared = value.LengthSquared();
+        return IsFinite(value) && float.IsFinite(lengthSquared) &&
+               lengthSquared > 0.000000000001f
+            ? Vector3.Normalize(value)
+            : Vector3.Zero;
+    }
+
+    /// <summary>
+    /// Reconstructs only unusable vertex normals. Valid source normals remain
+    /// untouched; triangle cross products are accumulated area-weighted. An
+    /// invalid vertex without any usable incident face is unreferenced or fully
+    /// degenerate, so a finite fallback keeps downstream data deterministic.
+    /// </summary>
+    internal static Vector3[] RepairInvalidNormals(
+        IReadOnlyList<Vector3> positions,
+        IReadOnlyList<Vector3> normals,
+        IReadOnlyList<uint> triangleIndices,
+        out int reconstructedCount,
+        out int fallbackCount)
+    {
+        reconstructedCount = 0;
+        fallbackCount = 0;
+        if (normals.Count != positions.Count)
+            return normals.ToArray();
+
+        var repaired = normals.ToArray();
+        var invalid = new bool[repaired.Length];
+        var accumulated = new Vector3[repaired.Length];
+        int invalidCount = 0;
+        for (int vertex = 0; vertex < repaired.Length; vertex++)
+        {
+            float lengthSquared = repaired[vertex].LengthSquared();
+            invalid[vertex] = !IsFinite(repaired[vertex]) ||
+                              !float.IsFinite(lengthSquared) ||
+                              lengthSquared <= 0.000000000001f;
+            if (invalid[vertex])
+                invalidCount++;
+        }
+        if (invalidCount == 0)
+            return repaired;
+
+        for (int index = 0; index + 2 < triangleIndices.Count; index += 3)
+        {
+            uint a = triangleIndices[index];
+            uint b = triangleIndices[index + 1];
+            uint c = triangleIndices[index + 2];
+            if (a >= (uint)positions.Count ||
+                b >= (uint)positions.Count ||
+                c >= (uint)positions.Count)
+                continue;
+            Vector3 face = Vector3.Cross(
+                positions[(int)b] - positions[(int)a],
+                positions[(int)c] - positions[(int)a]);
+            float faceLengthSquared = face.LengthSquared();
+            if (!IsFinite(face) || !float.IsFinite(faceLengthSquared) ||
+                faceLengthSquared <= 0.000000000001f)
+            {
+                continue;
+            }
+            if (invalid[(int)a]) accumulated[(int)a] += face;
+            if (invalid[(int)b]) accumulated[(int)b] += face;
+            if (invalid[(int)c]) accumulated[(int)c] += face;
+        }
+
+        for (int vertex = 0; vertex < repaired.Length; vertex++)
+        {
+            if (!invalid[vertex])
+                continue;
+            Vector3 candidate = accumulated[vertex];
+            float lengthSquared = candidate.LengthSquared();
+            if (IsFinite(candidate) && float.IsFinite(lengthSquared) &&
+                lengthSquared > 0.000000000001f)
+            {
+                repaired[vertex] = Vector3.Normalize(candidate);
+                reconstructedCount++;
+            }
+            else
+            {
+                repaired[vertex] = Vector3.UnitY;
+                fallbackCount++;
+            }
+        }
+        return repaired;
+    }
+
+    private static bool IsFinite(Vector3 value) =>
+        float.IsFinite(value.X) &&
+        float.IsFinite(value.Y) &&
+        float.IsFinite(value.Z);
 
     private static IReadOnlyList<ImportedMaterial> ReadMaterials(
         JsonElement root,
@@ -165,13 +536,13 @@ public static class GlbModelReader
 
     private static GlbSkinLayout[] ReadSkins(
         JsonElement root,
-        ReadOnlyMemory<byte> binary)
+        ReadOnlyMemory<byte> binary,
+        IReadOnlyList<int> nodeParents)
     {
         if (!root.TryGetProperty("skins", out JsonElement skins))
             return [];
         if (!root.TryGetProperty("nodes", out JsonElement nodes))
             throw new InvalidDataException("GLB skins require nodes.");
-        int[] nodeParents = ReadNodeParents(nodes);
         var result = new GlbSkinLayout[skins.GetArrayLength()];
         for (int skinIndex = 0; skinIndex < result.Length; skinIndex++)
         {
@@ -452,6 +823,7 @@ public static class GlbModelReader
         }
 
         var result = new List<ImportedTexture>(imageIndices.Count);
+        long decodedTexturePixels = 0;
         foreach (int imageIndex in imageIndices)
         {
             JsonElement image = images[imageIndex];
@@ -466,6 +838,12 @@ public static class GlbModelReader
             int length = view.GetProperty("byteLength").GetInt32();
             if (offset < 0 || length <= 0 || offset > binary.Length - length)
                 throw new InvalidDataException($"GLB image {imageIndex} crosses the binary buffer boundary.");
+            if (length > ImportedModelResourceLimits.MaximumEncodedTextureBytes)
+            {
+                throw new InvalidDataException(
+                    $"GLB image {imageIndex} is {length / (1024d * 1024d):N1} MiB, " +
+                    "above the safe encoded-texture limit.");
+            }
             string? sourceName = image.TryGetProperty("name", out JsonElement imageName)
                 ? imageName.GetString() : null;
             string name = string.IsNullOrWhiteSpace(sourceName)
@@ -476,6 +854,11 @@ public static class GlbModelReader
             byte[] imageBytes = binary.Slice(offset, length).ToArray();
             ImageInfo info = Image.Identify(imageBytes) ?? throw new InvalidDataException(
                 $"GLB image {imageIndex} has an unsupported or invalid image payload.");
+            decodedTexturePixels = ImportedModelResourceLimits.AddTexturePixels(
+                decodedTexturePixels,
+                info.Width,
+                info.Height,
+                $"GLB image {imageIndex} '{name}'");
             sceneTextureIndexByImage.Add(imageIndex, result.Count);
             result.Add(new ImportedTexture(
                 name, mime, info.Width, info.Height, imageBytes));
@@ -512,23 +895,26 @@ public static class GlbModelReader
         return false;
     }
 
-    private static Matrix4x4[] ResolveMeshTransforms(JsonElement root, int meshCount)
+    private static Matrix4x4[] ResolveMeshTransforms(
+        JsonElement root,
+        int meshCount,
+        IReadOnlyList<int> nodeParents)
     {
         Matrix4x4[] result = Enumerable.Repeat(Matrix4x4.Identity, meshCount).ToArray();
         if (!root.TryGetProperty("nodes", out JsonElement nodes)) return result;
         Matrix4x4[] local = nodes.EnumerateArray().Select(ReadNodeMatrix).ToArray();
-        int?[] parents = new int?[local.Length];
-        for (int parent = 0; parent < local.Length; parent++)
-        {
-            if (!nodes[parent].TryGetProperty("children", out JsonElement children)) continue;
-            foreach (JsonElement child in children.EnumerateArray()) parents[child.GetInt32()] = parent;
-        }
+        if (nodeParents.Count != local.Length)
+            throw new InvalidDataException("GLB node-parent validation was not completed.");
         for (int nodeIndex = 0; nodeIndex < local.Length; nodeIndex++)
         {
             if (!nodes[nodeIndex].TryGetProperty("mesh", out JsonElement mesh)) continue;
             Matrix4x4 world = local[nodeIndex];
-            int? cursor = parents[nodeIndex];
-            while (cursor.HasValue) { world *= local[cursor.Value]; cursor = parents[cursor.Value]; }
+            int cursor = nodeParents[nodeIndex];
+            while (cursor >= 0)
+            {
+                world *= local[cursor];
+                cursor = nodeParents[cursor];
+            }
             int meshIndex = mesh.GetInt32();
             if ((uint)meshIndex < (uint)result.Length) result[meshIndex] = world;
         }
@@ -560,11 +946,44 @@ public static class GlbModelReader
         return new Vector3(v[0], v[1], v[2]);
     }
 
-    private static Vector3[] ReadVector3(JsonElement root, ReadOnlyMemory<byte> binary, int accessor) =>
-        ReadFloats(root, binary, accessor, 3).Select(v => new Vector3(v[0], v[1], v[2])).ToArray();
+    private static Vector3[] ReadVector3(
+        JsonElement root,
+        ReadOnlyMemory<byte> binary,
+        int accessor)
+    {
+        FloatAccessorLayout layout = GetFloatAccessorLayout(
+            root, accessor, 3, "VEC3");
+        ReadOnlySpan<byte> data = binary.Span;
+        var result = new Vector3[layout.Count];
+        for (int index = 0; index < result.Length; index++)
+        {
+            int start = checked(layout.Offset + index * layout.Stride);
+            result[index] = new Vector3(
+                ReadFloatComponent(data, start),
+                ReadFloatComponent(data, start + 4),
+                ReadFloatComponent(data, start + 8));
+        }
+        return result;
+    }
 
-    private static Vector2[] ReadVector2(JsonElement root, ReadOnlyMemory<byte> binary, int accessor) =>
-        ReadFloats(root, binary, accessor, 2).Select(v => new Vector2(v[0], v[1])).ToArray();
+    private static Vector2[] ReadVector2(
+        JsonElement root,
+        ReadOnlyMemory<byte> binary,
+        int accessor)
+    {
+        FloatAccessorLayout layout = GetFloatAccessorLayout(
+            root, accessor, 2, "VEC2");
+        ReadOnlySpan<byte> data = binary.Span;
+        var result = new Vector2[layout.Count];
+        for (int index = 0; index < result.Length; index++)
+        {
+            int start = checked(layout.Offset + index * layout.Stride);
+            result[index] = new Vector2(
+                ReadFloatComponent(data, start),
+                ReadFloatComponent(data, start + 4));
+        }
+        return result;
+    }
 
     // glTF permits floating-point weights and normalized unsigned integer
     // storage. Decode the latter to [0, 1] without renormalizing the VEC4 sum;
@@ -667,12 +1086,35 @@ public static class GlbModelReader
     private static Matrix4x4[] ReadMatrix4(
         JsonElement root,
         ReadOnlyMemory<byte> binary,
-        int accessor) =>
-        ReadFloats(root, binary, accessor, 16).Select(v => new Matrix4x4(
-            v[0], v[1], v[2], v[3],
-            v[4], v[5], v[6], v[7],
-            v[8], v[9], v[10], v[11],
-            v[12], v[13], v[14], v[15])).ToArray();
+        int accessor)
+    {
+        FloatAccessorLayout layout = GetFloatAccessorLayout(
+            root, accessor, 16, "MAT4");
+        ReadOnlySpan<byte> data = binary.Span;
+        var result = new Matrix4x4[layout.Count];
+        for (int index = 0; index < result.Length; index++)
+        {
+            int start = checked(layout.Offset + index * layout.Stride);
+            result[index] = new Matrix4x4(
+                ReadFloatComponent(data, start),
+                ReadFloatComponent(data, start + 4),
+                ReadFloatComponent(data, start + 8),
+                ReadFloatComponent(data, start + 12),
+                ReadFloatComponent(data, start + 16),
+                ReadFloatComponent(data, start + 20),
+                ReadFloatComponent(data, start + 24),
+                ReadFloatComponent(data, start + 28),
+                ReadFloatComponent(data, start + 32),
+                ReadFloatComponent(data, start + 36),
+                ReadFloatComponent(data, start + 40),
+                ReadFloatComponent(data, start + 44),
+                ReadFloatComponent(data, start + 48),
+                ReadFloatComponent(data, start + 52),
+                ReadFloatComponent(data, start + 56),
+                ReadFloatComponent(data, start + 60));
+        }
+        return result;
+    }
 
     private static ImportedJointIndices[] ReadJointIndices(
         JsonElement root,
@@ -787,28 +1229,38 @@ public static class GlbModelReader
     private static byte ToColorByte(float value) => checked((byte)Math.Clamp(
         (int)MathF.Round(value * byte.MaxValue), 0, byte.MaxValue));
 
-    private static float[][] ReadFloats(JsonElement root, ReadOnlyMemory<byte> binary, int accessorIndex, int width)
+    private static FloatAccessorLayout GetFloatAccessorLayout(
+        JsonElement root,
+        int accessorIndex,
+        int width,
+        string expectedType)
     {
         JsonElement accessor = root.GetProperty("accessors")[accessorIndex];
         if (accessor.GetProperty("componentType").GetInt32() != 5126)
             throw new InvalidDataException("Only FLOAT vertex attributes are supported.");
+        if (!string.Equals(
+                accessor.GetProperty("type").GetString(),
+                expectedType,
+                StringComparison.Ordinal))
+            throw new InvalidDataException(
+                $"Accessor {accessorIndex} must be {expectedType}.");
         JsonElement view = root.GetProperty("bufferViews")[accessor.GetProperty("bufferView").GetInt32()];
         int count = accessor.GetProperty("count").GetInt32();
         int offset = (view.TryGetProperty("byteOffset", out JsonElement vo) ? vo.GetInt32() : 0) +
             (accessor.TryGetProperty("byteOffset", out JsonElement ao) ? ao.GetInt32() : 0);
         int stride = view.TryGetProperty("byteStride", out JsonElement strideElement)
             ? strideElement.GetInt32() : width * 4;
-        var result = new float[count][];
-        ReadOnlySpan<byte> span = binary.Span;
-        for (int i = 0; i < count; i++)
-        {
-            result[i] = new float[width];
-            for (int c = 0; c < width; c++)
-                result[i][c] = BitConverter.Int32BitsToSingle(
-                    BinaryPrimitives.ReadInt32LittleEndian(span.Slice(offset + i * stride + c * 4, 4)));
-        }
-        return result;
+        return new FloatAccessorLayout(count, offset, stride);
     }
+
+    private static float ReadFloatComponent(ReadOnlySpan<byte> data, int offset) =>
+        BitConverter.Int32BitsToSingle(
+            BinaryPrimitives.ReadInt32LittleEndian(data.Slice(offset, 4)));
+
+    private readonly record struct FloatAccessorLayout(
+        int Count,
+        int Offset,
+        int Stride);
 
     private static uint[] ReadIndices(JsonElement root, ReadOnlyMemory<byte> binary, int accessorIndex)
     {
@@ -836,22 +1288,25 @@ public static class ImportedModelReader
 {
     public static ImportedScene Read(
         string path,
-        string? blenderPath = null) => Path.GetExtension(path).ToLowerInvariant() switch
+        string? nativeFbxBridgePath = null,
+        CancellationToken cancellationToken = default) => Path.GetExtension(path).ToLowerInvariant() switch
     {
-        ".glb" => GlbModelReader.Read(path),
-        ".fbx" => FbxModelReader.Read(path, blenderPath),
-        ".obj" => ObjModelReader.Read(path),
+        ".glb" => GlbModelReader.Read(path, cancellationToken),
+        ".fbx" => FbxModelReader.Read(path, nativeFbxBridgePath, cancellationToken),
+        ".obj" => ObjModelReader.Read(path, cancellationToken),
         _ => throw new NotSupportedException(
             "Supported replacement formats: .fbx, .glb and .obj.")
     };
 
     public static ImportedScene ReadGeometryOnly(
         string path,
-        string? blenderPath = null) => Path.GetExtension(path).ToLowerInvariant() switch
+        string? nativeFbxBridgePath = null,
+        CancellationToken cancellationToken = default) => Path.GetExtension(path).ToLowerInvariant() switch
     {
-        ".glb" => GlbModelReader.ReadGeometryOnly(path),
-        ".fbx" => FbxModelReader.ReadGeometryOnly(path, blenderPath),
-        ".obj" => ObjModelReader.Read(path),
+        ".glb" => GlbModelReader.ReadGeometryOnly(path, cancellationToken),
+        ".fbx" => FbxModelReader.ReadGeometryOnly(
+            path, nativeFbxBridgePath, cancellationToken),
+        ".obj" => ObjModelReader.Read(path, cancellationToken),
         _ => throw new NotSupportedException(
             "Geometry-only fallback supports .fbx, .glb and .obj.")
     };

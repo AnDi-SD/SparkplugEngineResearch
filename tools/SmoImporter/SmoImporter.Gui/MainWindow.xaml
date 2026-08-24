@@ -10,7 +10,7 @@
    <StackPanel Margin="20">
     <TextBlock Text="SMO Model Importer" FontSize="23" FontWeight="SemiBold"/>
     <TextBlock Margin="0,5,0,16" Foreground="#52606D" TextWrapping="Wrap"
-     Text="В SMO-режиме служебная структура target сохраняется, а меши, веса и текстуры переносятся из донора. Skinned GLB/FBX использует привязку костей; FBX предварительно конвертируется Blender. Исходные файлы не изменяются."/>
+     Text="В SMO-режиме служебная структура target сохраняется, а меши, веса и текстуры переносятся из донора. Skinned GLB/FBX использует привязку костей; FBX читается напрямую нативным модулем. Исходные файлы не изменяются."/>
 
     <TextBlock Text="1. Шаблон игры" FontSize="15" FontWeight="SemiBold"/>
     <Button Margin="0,6,0,0" Height="38" Content="Выбрать исходный SMO" Click="SelectSource_Click"/>
@@ -21,6 +21,18 @@
     <Button Margin="0,6,0,0" Height="38" Content="Импортировать SMO, FBX, GLB или OBJ" Click="SelectReplacement_Click"/>
     <TextBlock x:Name="ReplacementPathText" Margin="0,6,0,4" Text="Не выбрана" TextWrapping="Wrap"/>
     <TextBlock x:Name="ReplacementSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+
+    <Border x:Name="TextureMemoryWarningPanel" Margin="0,10,0,0" Padding="10"
+            Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1"
+            CornerRadius="4" Visibility="Collapsed">
+     <StackPanel>
+      <TextBlock x:Name="TextureMemoryWarningHeadingText"
+                 Text="Большой набор текстур" FontWeight="SemiBold"
+                 Foreground="#9A3412"/>
+      <TextBlock x:Name="TextureMemoryWarningText" Margin="0,4,0,0"
+                 Foreground="#9A3412" TextWrapping="Wrap"/>
+     </StackPanel>
+    </Border>
 
     <Border x:Name="TextureResourcesPanel" Margin="0,14,0,0" Padding="10"
             IsEnabled="False" Opacity="0.65"
@@ -61,6 +73,9 @@
           <Button x:Name="SetOpaqueOverlayButton" Height="31" Padding="9,0"
                   Margin="0,0,6,6" Content="Непрозрачная накладка"
                   IsEnabled="False" Click="SetOpaqueOverlay_Click"/>
+          <Button x:Name="SetTransparentSurfaceButton" Height="31" Padding="9,0"
+                  Margin="0,0,6,6" Content="Прозрачная поверхность"
+                  IsEnabled="False" Click="SetTransparentSurface_Click"/>
           <Button x:Name="ResetMaterialModeButton" Height="31" Padding="9,0"
                   Margin="0,0,0,6" Content="Авто"
                   IsEnabled="False" Click="ResetMaterialMode_Click"/>
@@ -70,7 +85,7 @@
                     Text="Выберите режим 3 с импортом текстур донора и текстурную группу."/>
          <TextBlock Margin="0,5,0,0" Foreground="#9A3412" FontSize="12"
                     TextWrapping="Wrap"
-                    Text="Используйте для плоских накладок кожи вокруг глаз или рта, у которых прозрачные пиксели должны закрывать базовое лицо. Настоящие прозрачные детали — крылья, стекло и украшения — оставляйте в режиме «Авто»."/>
+                    Text="Авто переносит RGBA и определяет прозрачность по texels, которых реально касаются UV. Для плоских накладок кожи вокруг глаз или рта выберите «Непрозрачная накладка». Если автоматическое определение ошиблось, явно выберите «Прозрачная поверхность»."/>
         </StackPanel>
        </Border>
        <WrapPanel Margin="0,7,0,0">
@@ -130,13 +145,26 @@
             Background="#F8FAFC">
      <StackPanel>
       <TextBlock x:Name="ModelTransformHeadingText"
-                 Text="3. Положение и масштаб" FontSize="15" FontWeight="SemiBold"/>
+                 Text="3. Положение, поворот и масштаб" FontSize="15" FontWeight="SemiBold"/>
       <TextBlock x:Name="ModelTransformHintText" Margin="0,5,0,0"
                  Foreground="#52606D" TextWrapping="Wrap"
                  Text="Выберите модель-донор и режим портирования."/>
       <Button x:Name="AutoFitButton" Margin="0,8,0,7" Height="35"
               Content="Автоматически подогнать рост и центр"
               IsEnabled="False" Click="AutoFit_Click"/>
+      <Grid x:Name="ModelTransformGizmoPanel" Margin="0,0,0,7">
+       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="72"/><ColumnDefinition/>
+       </Grid.ColumnDefinitions>
+       <TextBlock Text="Gizmo" VerticalAlignment="Center"/>
+       <ComboBox x:Name="ModelTransformGizmoModeCombo" Grid.Column="1"
+                 Height="28" SelectedIndex="0"
+                 SelectionChanged="ModelTransformGizmoMode_Changed">
+        <ComboBoxItem Content="Перемещение" Tag="Translate"/>
+        <ComboBoxItem Content="Масштаб" Tag="Scale"/>
+        <ComboBoxItem Content="Вращение" Tag="Rotate"/>
+       </ComboBox>
+      </Grid>
       <Grid x:Name="TransformEditorGrid" Margin="0,4,0,0">
        <Grid.ColumnDefinitions>
         <ColumnDefinition Width="72"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
@@ -165,11 +193,19 @@
        <TextBlock x:Name="RotationUnavailableHintText" Grid.Row="3" Grid.Column="1"
                   Grid.ColumnSpan="3" Margin="0,4,0,0" FontSize="12"
                   Foreground="#B45309" TextWrapping="Wrap" Visibility="Collapsed"
-                  Text="Вращение в режиме 3 пока недоступно: модель должна быть вертикальной, Y-up и смотреть в ту же сторону, что игровая."/>
+                  Text="Поворот применяется к геометрии и normals до создания весов."/>
       </Grid>
       <Button x:Name="ApplyModelAlignmentButton" Margin="0,8,0,0" Height="35"
               Content="Применить размер и положение" IsEnabled="False"
               Visibility="Collapsed" Click="ApplyModelAlignment_Click"/>
+      <StackPanel x:Name="GeneratedCalculationProgressPanel" Margin="0,8,0,0"
+                  Visibility="Collapsed">
+       <TextBlock x:Name="GeneratedCalculationProgressText"
+                  Text="Подготовка расчёта…" TextWrapping="Wrap"
+                  Foreground="#075985" FontSize="12"/>
+       <ProgressBar x:Name="GeneratedCalculationProgressBar" Margin="0,5,0,0"
+                    Height="14" Minimum="0" Maximum="100" Value="0"/>
+      </StackPanel>
      </StackPanel>
     </Border>
 
@@ -194,6 +230,9 @@
       </CheckBox>
       <TextBlock x:Name="RigFittingModeHintText" Margin="0,4,0,0"
                  Foreground="#52606D" TextWrapping="Wrap"/>
+       <TextBlock Margin="0,5,0,0" Foreground="#0369A1" FontSize="11"
+                  Text="К уже применённым этапам можно возвращаться. Черновые изменения не удаляют последний готовый результат; зависимые веса и план пересчитываются только после применения."
+                  TextWrapping="Wrap"/>
        <TextBlock Margin="0,8,0,0" Text="Режим редактирования" FontSize="12"
                   FontWeight="SemiBold"/>
        <ComboBox x:Name="RigPoseEditorModeCombo" Margin="0,4,0,0" SelectedIndex="0"
@@ -310,6 +349,123 @@
           </Grid>
           <TextBlock x:Name="BodyPoseStatusText" Margin="0,5,0,0"
                      Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+
+          <Expander x:Name="ProtectedRegionEditorExpander" Margin="0,12,0,0"
+                    Header="Защищённые области" IsExpanded="False"
+                    Expanded="ProtectedRegionEditor_Expanded"
+                    Collapsed="ProtectedRegionEditor_Collapsed">
+           <Border Margin="0,5,0,0" Padding="9" Background="#F8FAFC"
+                   BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+             <TextBlock Text="Голова и кисти" FontWeight="SemiBold"/>
+             <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                        Text="Автоматически найденная голова получает строго 100% Head, а её Head↔Neck переход строится снаружи, на шее. После ручного изменения именно эллипс задаёт жёсткую область Head; всё снаружи сохраняет обычные веса. Кисть сохраняет общий силуэт и, если скелет позволяет, получает приблизительный сгиб пальцев. Голубой контур — защитный объём, синие точки — защищённое ядро, жёлтые — переход."
+                        TextWrapping="Wrap"/>
+             <TextBlock Margin="0,8,0,0" Text="Область" FontSize="12"
+                        FontWeight="SemiBold"/>
+             <ComboBox x:Name="ProtectedRegionCombo" Margin="0,4,0,0"
+                       SelectedIndex="0"
+                       SelectionChanged="ProtectedRegion_SelectionChanged">
+              <ComboBoxItem Content="Голова"/>
+              <ComboBoxItem Content="Обе кисти"/>
+              <ComboBoxItem Content="Левая кисть"/>
+              <ComboBoxItem Content="Правая кисть"/>
+             </ComboBox>
+             <CheckBox x:Name="ProtectedRegionEnabledCheckBox" Margin="0,7,0,0"
+                       Content="Защищать выбранную область"
+                       Checked="ProtectedRegionEnabled_Changed"
+                       Unchecked="ProtectedRegionEnabled_Changed"/>
+             <CheckBox x:Name="MirrorProtectedHandsCheckBox" Margin="0,5,0,0"
+                       IsChecked="True"
+                       Content="Изменять вторую кисть зеркально"
+                       Checked="MirrorProtectedHands_Changed"
+                       Unchecked="MirrorProtectedHands_Changed"/>
+
+             <Grid Margin="0,7,0,0">
+              <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="112"/>
+               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="50"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Положение"/>
+              <Slider x:Name="ProtectedRegionPositionSlider" Grid.Row="0" Grid.Column="1"
+                      Margin="0,4" Minimum="-100" Maximum="100" Value="0"
+                      VerticalAlignment="Center"
+                      ValueChanged="ProtectedRegionSlider_ValueChanged"/>
+              <TextBlock Grid.Row="0" Grid.Column="2" Margin="6,4,0,4"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         FontSize="12"
+                         Text="{Binding ElementName=ProtectedRegionPositionSlider, Path=Value, StringFormat={}{0:F2}}"/>
+
+              <TextBlock Grid.Row="1" Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Длина"/>
+              <Slider x:Name="ProtectedRegionLengthSlider" Grid.Row="1" Grid.Column="1"
+                      Margin="0,4" Minimum="0.5" Maximum="3" Value="1"
+                      VerticalAlignment="Center"
+                      ValueChanged="ProtectedRegionSlider_ValueChanged"/>
+              <TextBlock Grid.Row="1" Grid.Column="2" Margin="6,4,0,4"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         FontSize="12"
+                         Text="{Binding ElementName=ProtectedRegionLengthSlider, Path=Value, StringFormat={}{0:F2}×}"/>
+
+              <TextBlock Grid.Row="2" Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Толщина"/>
+              <Slider x:Name="ProtectedRegionThicknessSlider" Grid.Row="2" Grid.Column="1"
+                      Margin="0,4" Minimum="0.5" Maximum="3" Value="1"
+                      VerticalAlignment="Center"
+                      ValueChanged="ProtectedRegionSlider_ValueChanged"/>
+              <TextBlock Grid.Row="2" Grid.Column="2" Margin="6,4,0,4"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         FontSize="12"
+                         Text="{Binding ElementName=ProtectedRegionThicknessSlider, Path=Value, StringFormat={}{0:F2}×}"/>
+
+              <TextBlock x:Name="ProtectedRegionTiltLabel" Grid.Row="3"
+                         Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Наклон к лицу"
+                         ToolTip="Положительное значение наклоняет нижнюю часть эллипса к лицу и подбородку"/>
+              <Slider x:Name="ProtectedRegionTiltSlider" Grid.Row="3" Grid.Column="1"
+                      Margin="0,4" Minimum="-45" Maximum="45" Value="0"
+                      SmallChange="1" LargeChange="5" TickFrequency="5"
+                      VerticalAlignment="Center"
+                      ToolTip="Положительное значение наклоняет нижнюю часть эллипса к лицу и подбородку"
+                      ValueChanged="ProtectedRegionSlider_ValueChanged"/>
+              <TextBlock x:Name="ProtectedRegionTiltValueText" Grid.Row="3" Grid.Column="2"
+                         Margin="6,4,0,4" HorizontalAlignment="Right"
+                         VerticalAlignment="Center" FontSize="12"
+                         Text="{Binding ElementName=ProtectedRegionTiltSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+             </Grid>
+
+             <TextBlock x:Name="ProtectedRegionSelectionText" Margin="0,5,0,0"
+                        Foreground="#52606D" FontSize="11" TextWrapping="Wrap"/>
+             <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Button x:Name="AutoProtectedRegionButton" Grid.Column="0"
+                      Margin="0,0,3,0" Height="30" Content="Авто"
+                      Click="AutoProtectedRegion_Click"/>
+              <Button x:Name="ResetProtectedRegionButton" Grid.Column="1"
+                      Margin="3,0" Height="30" Content="Сброс"
+                      Click="ResetProtectedRegion_Click"/>
+              <Button x:Name="ApplyProtectedRegionButton" Grid.Column="2"
+                      Margin="3,0,0,0" Height="30" Content="Применить"
+                      Click="ApplyProtectedRegion_Click"/>
+             </Grid>
+             <TextBlock x:Name="ProtectedRegionStatusText" Margin="0,6,0,0"
+                        Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+            </StackPanel>
+           </Border>
+          </Expander>
 
           <Border x:Name="GeneratedAttachmentEditorPanel" Margin="0,12,0,0"
                   Padding="9" Background="#F8FAFC" BorderBrush="#CBD5E1"
@@ -572,6 +728,15 @@
             CornerRadius="4" Visibility="Collapsed">
      <TextBlock x:Name="NativeValidationResultText" FontWeight="SemiBold" TextWrapping="Wrap"/>
     </Border>
+    <Border Margin="0,10,0,0" Padding="9" Background="#EEF2F6" CornerRadius="4">
+     <StackPanel>
+      <TextBlock Text="Диагностический лог текущего запуска" FontWeight="SemiBold"/>
+      <TextBlock x:Name="DiagnosticLogPathText" Margin="0,4,0,0"
+                 Foreground="#52606D" TextWrapping="Wrap"/>
+      <Button Margin="0,7,0,0" Height="30" Content="Открыть папку лога"
+              Click="OpenDiagnosticLogFolder_Click"/>
+     </StackPanel>
+    </Border>
     <TextBlock x:Name="StatusText" Margin="0,14,0,0" Text="Выберите исходный SMO." TextWrapping="Wrap" Foreground="#52606D"/>
    </StackPanel>
   </ScrollViewer>
@@ -600,7 +765,31 @@
       Text="Красный — выбранная palette bone"/>
      <TextBlock Margin="0,5,0,0" Foreground="#D7DEE7"
       Text="СКМ — вращение · Shift+СКМ — сдвиг · Ctrl+СКМ/колесо — масштаб · Home — показать всё"/>
+     <TextBlock x:Name="ModelTransformGizmoViewportHint" Margin="0,5,0,0"
+      Visibility="Collapsed" Foreground="#FDE68A"
+      Text="ЛКМ по gizmo — двигать, поворачивать или менять общий масштаб модели"/>
     </StackPanel>
+   </Border>
+   <Border x:Name="GeneratedCalculationOverlay"
+           HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+           Margin="16" Padding="12" Background="#E6111720"
+           BorderBrush="#64748B" BorderThickness="1" CornerRadius="5"
+           Visibility="Collapsed">
+    <Grid>
+     <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="210"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="Auto"/>
+     </Grid.ColumnDefinitions>
+     <TextBlock x:Name="GeneratedCalculationOverlayText"
+                VerticalAlignment="Center" Foreground="White"
+                Text="0% — подготовка расчёта" TextTrimming="CharacterEllipsis"/>
+     <ProgressBar x:Name="GeneratedCalculationOverlayBar" Grid.Column="1"
+                  Height="18" Margin="12,0" Minimum="0" Maximum="100"/>
+     <Button x:Name="CancelGeneratedCalculationButton" Grid.Column="2"
+             MinWidth="120" Height="30" Padding="10,0"
+             Content="Остановить" Click="CancelGeneratedCalculation_Click"/>
+    </Grid>
    </Border>
   </Grid>
  </Grid>

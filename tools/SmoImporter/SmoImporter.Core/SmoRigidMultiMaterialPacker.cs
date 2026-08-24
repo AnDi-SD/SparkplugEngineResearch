@@ -353,7 +353,8 @@ public static class SmoRigidMultiMaterialPacker
         foreach (RigidTextureFrame frame in group.Frames)
         {
             ImportedTexture texture = frame.Texture;
-            if (!IsPowerOfTwo(texture.Width) || !IsPowerOfTwo(texture.Height) ||
+            if (!RigidGlbTextureBundleReader.IsSerializedTextureSizeRepresentable(
+                    texture.Width, texture.Height) ||
                 texture.Width is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension ||
                 texture.Height is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension)
             {
@@ -484,7 +485,8 @@ public static class SmoRigidMultiMaterialPacker
             throw new NotSupportedException(
                 $"Texture template [{templateEntry.Index}] must be BGRA 0x32E3/0x43E3.");
         }
-        if (!IsPowerOfTwo(imported.Width) || !IsPowerOfTwo(imported.Height) ||
+        if (!RigidGlbTextureBundleReader.IsSerializedTextureSizeRepresentable(
+                imported.Width, imported.Height) ||
             imported.Width is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension ||
             imported.Height is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension)
         {
@@ -1274,9 +1276,6 @@ public static class SmoRigidMultiMaterialPacker
 
     private static string TextureObjectName(int materialNumber, int frameIndex) =>
         $"layla_mat{materialNumber}_{frameIndex + 1:D4}";
-
-    private static bool IsPowerOfTwo(int value) =>
-        value > 0 && (value & (value - 1)) == 0;
 
     private static void WriteMatrix(Span<byte> data, Matrix4x4 value)
     {

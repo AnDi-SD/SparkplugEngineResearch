@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 — 2026-08-24
+
+- FBX import/export переведён с Blender/GLB-конвертации на bundled x64 bridge с Autodesk FBX SDK 2020.3.10;
+- прямой writer сохраняет hierarchy, mesh attributes, embedded textures, skin clusters, bind pose и SAN animation curves;
+- GUI больше не требует путь к Blender, а release-сборка включает bridge, `libfbxsdk.dll` и лицензию SDK.
+
 ## 0.3.0 — 2026-08-22
 
 - строки выбора модели и папки сохранения выровнены и получили одинаковые кнопки

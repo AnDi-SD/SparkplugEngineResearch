@@ -10,7 +10,8 @@ public enum TargetRigBodyComponentRole
 {
     WholeBody,
     LowerBody,
-    TorsoAndArms
+    TorsoAndArms,
+    SupplementalBody
 }
 
 /// <summary>
@@ -80,6 +81,7 @@ public static class TargetRigAutomaticPoseFitter
         Vector3 Maximum)
     {
         public Vector3 Size => Maximum - Minimum;
+        public Vector3 BoundsCenter => (Minimum + Maximum) * 0.5f;
     }
 
     private sealed record LimbTargets(
@@ -88,6 +90,11 @@ public static class TargetRigAutomaticPoseFitter
         Vector3 LeftLegDirection,
         Vector3 RightLegDirection,
         Vector3 TorsoDirection);
+
+    private readonly record struct BodyEnvelopeSegment(
+        Vector3 Start,
+        Vector3 End,
+        float Radius);
 
     private sealed record FitContext(
         TargetRigDefinition Rig,
@@ -117,11 +124,14 @@ public static class TargetRigAutomaticPoseFitter
             donorAlignment.Matrix);
         (GeometryComponent lower, GeometryComponent upper) =
             SelectBodyComponents(targetRig, components);
+        GeometryComponent[] selected = SelectCompositeBodyComponents(
+            targetRig, components, lower, upper);
         return BuildPublicSelection(
             donor,
             components,
             lower,
             upper,
+            selected,
             targetRig.SourceFingerprint,
             ComputeDonorGeometryFingerprint(donor),
             donorAlignment);
@@ -145,20 +155,27 @@ public static class TargetRigAutomaticPoseFitter
         GeometryComponent[] components = BuildComponents(donor, alignment);
         (GeometryComponent lower, GeometryComponent upper) =
             SelectBodyComponents(targetRig, components);
-        GeometryComponent[] selected = lower.ComponentIndex == upper.ComponentIndex
-            ? [lower]
-            : [lower, upper];
+        GeometryComponent[] selected = SelectCompositeBodyComponents(
+            targetRig, components, lower, upper);
         TargetRigBodySelection publicSelection = BuildPublicSelection(
             donor,
             components,
             lower,
             upper,
+            selected,
             targetRig.SourceFingerprint,
             ComputeDonorGeometryFingerprint(donor),
             donorAlignment);
 
         LimbTargets targets = ExtractTargets(targetRig, lower, upper);
-        Vector3[] donorBodyPositions = selected
+        // Pose extraction remains anchored to the two dominant continuous
+        // surfaces. Supplemental shells (clothes, face layers, separate hands)
+        // participate in generated weights but must not skew limb directions or
+        // the automatic-pose objective merely because they contain more detail.
+        GeometryComponent[] poseAnchors = lower.ComponentIndex == upper.ComponentIndex
+            ? [lower]
+            : [lower, upper];
+        Vector3[] donorBodyPositions = poseAnchors
             .SelectMany(component => component.UniqueAlignedPositions)
             .Distinct()
             .ToArray();
@@ -259,14 +276,13 @@ public static class TargetRigAutomaticPoseFitter
                 "Automatic generated-rig fitting accepts only an unskinned donor.");
         if (!float.IsFinite(alignment.Scale) || alignment.Scale <= 0 ||
             !IsFinite(alignment.RotationDegrees) ||
-            alignment.RotationDegrees != Vector3.Zero ||
             !IsFinite(alignment.Translation) ||
             !TargetRigDefinition.IsFinite(alignment.Matrix) ||
             !Matrix4x4.Invert(alignment.Matrix, out _))
         {
             throw new ArgumentException(
                 "Automatic generated-rig fitting requires an invertible positive " +
-                "uniform scale and translation, with zero donor rotation.",
+                "uniform scale, finite rotation and finite translation.",
                 nameof(alignment));
         }
     }
@@ -408,8 +424,14 @@ public static class TargetRigAutomaticPoseFitter
                 throw new InvalidDataException(
                     $"Donor graph component {componentIndex} has invalid aligned positions.");
             (Vector3 minimum, Vector3 maximum) = Bounds(positions);
-            float alignedArea = checked((float)(rawArea *
-                (double)(alignment.M11 * alignment.M11)));
+            // Row-vector ReplacementTransform has a positive uniform scale. A
+            // rotated matrix cannot use M11 as that scale (at 90° it is zero),
+            // so recover scale² from the full transformed X basis row.
+            double uniformScaleSquared =
+                (double)alignment.M11 * alignment.M11 +
+                (double)alignment.M12 * alignment.M12 +
+                (double)alignment.M13 * alignment.M13;
+            float alignedArea = checked((float)(rawArea * uniformScaleSquared));
             result.Add(new GeometryComponent(
                 componentIndex++,
                 componentVertices,
@@ -448,21 +470,38 @@ public static class TargetRigAutomaticPoseFitter
             .ThenByDescending(component => component.Size.Y)
             .ThenBy(component => component.ComponentIndex)
             .First();
-        float armReach = ChainLength(rig, "L_Bicep", "L_UpperArm", "L_Hand");
-        if (upper.Size.X < armReach * 1.25f)
+        // Body selection must not assume a T-pose. Arms-down, A-pose and bent-arm
+        // characters can be perfectly valid while their total lateral extent is
+        // much shorter than the target's straight arm chain. Requiring the full
+        // chain made selection depend on the donor pose. A bilateral component
+        // only needs to span the target shoulder line here; arm direction is a
+        // separate optional automatic-pose concern.
+        float leftShoulderX = Translation(
+            rig.Joints[rig.GetJointIndex("L_Bicep")].BindWorldMatrix).X;
+        float rightShoulderX = Translation(
+            rig.Joints[rig.GetJointIndex("R_Bicep")].BindWorldMatrix).X;
+        float shoulderSpan = MathF.Abs(leftShoulderX - rightShoulderX);
+        if (!float.IsFinite(shoulderSpan) || shoulderSpan <= PositionEpsilon ||
+            upper.Size.X < shoulderSpan * 0.9f)
             throw new InvalidDataException(
-                "Donor has no unambiguous bilateral torso-and-arms component.");
+                "Donor has no substantial bilateral upper-body component spanning " +
+                "the target shoulder line.");
 
+        float legReach = ChainLength(rig, "L_Thigh", "L_calf", "L_Ankle");
+        float allowedGap = targetHeight * 0.04f;
         GeometryComponent lower = central
             .Where(component =>
-                component.ComponentIndex == upper.ComponentIndex ||
-                component.Minimum.Y <= upper.Minimum.Y + targetHeight * 0.12f)
+                (component.ComponentIndex == upper.ComponentIndex ||
+                 component.Minimum.Y <= upper.Minimum.Y + targetHeight * 0.12f) &&
+                component.Size.Y >= legReach * 0.55f &&
+                component.Maximum.Y >= upper.Minimum.Y - allowedGap)
             .OrderBy(component => component.Minimum.Y)
             .ThenByDescending(component => component.Size.Y)
             .ThenByDescending(component => component.Area)
             .ThenBy(component => component.ComponentIndex)
-            .First();
-        float legReach = ChainLength(rig, "L_Thigh", "L_calf", "L_Ankle");
+            .FirstOrDefault() ?? throw new InvalidDataException(
+                "Donor has no substantial centered lower-body component long enough " +
+                "for the target leg chain.");
         if (lower.Size.Y < legReach * 0.55f)
             throw new InvalidDataException(
                 "Donor has no substantial centered lower-body component.");
@@ -470,7 +509,6 @@ public static class TargetRigAutomaticPoseFitter
         {
             float overlap = MathF.Min(lower.Maximum.Y, upper.Maximum.Y) -
                             MathF.Max(lower.Minimum.Y, upper.Minimum.Y);
-            float allowedGap = targetHeight * 0.04f;
             if (overlap < -allowedGap)
                 throw new InvalidDataException(
                     "Selected donor lower-body and torso surfaces do not meet vertically.");
@@ -483,21 +521,23 @@ public static class TargetRigAutomaticPoseFitter
         IReadOnlyList<GeometryComponent> all,
         GeometryComponent lower,
         GeometryComponent upper,
+        IReadOnlyList<GeometryComponent> selected,
         string targetRigFingerprint,
         string donorGeometryFingerprint,
         ReplacementTransform donorAlignment)
     {
-        GeometryComponent[] selected = lower.ComponentIndex == upper.ComponentIndex
-            ? [lower]
-            : [lower, upper];
         TargetRigSelectedBodyComponent[] publicComponents = selected
             .Select(component =>
             {
                 TargetRigBodyComponentRole role = lower.ComponentIndex == upper.ComponentIndex
-                    ? TargetRigBodyComponentRole.WholeBody
+                    ? component.ComponentIndex == lower.ComponentIndex
+                        ? TargetRigBodyComponentRole.WholeBody
+                        : TargetRigBodyComponentRole.SupplementalBody
                     : component.ComponentIndex == lower.ComponentIndex
                         ? TargetRigBodyComponentRole.LowerBody
-                        : TargetRigBodyComponentRole.TorsoAndArms;
+                        : component.ComponentIndex == upper.ComponentIndex
+                            ? TargetRigBodyComponentRole.TorsoAndArms
+                            : TargetRigBodyComponentRole.SupplementalBody;
                 TargetRigBodyVertexMembership[] membership = component.Vertices
                     .GroupBy(vertex => vertex.MeshIndex)
                     .OrderBy(group => group.Key)
@@ -524,10 +564,165 @@ public static class TargetRigAutomaticPoseFitter
         return new TargetRigBodySelection(
             Array.AsReadOnly(publicComponents),
             all.Count,
-            all.Count - selected.Length,
+            all.Count - selected.Count,
             targetRigFingerprint,
             donorGeometryFingerprint,
             donorAlignment);
+    }
+
+    private static GeometryComponent[] SelectCompositeBodyComponents(
+        TargetRigDefinition rig,
+        IReadOnlyList<GeometryComponent> components,
+        GeometryComponent lower,
+        GeometryComponent upper)
+    {
+        float height = ComputeNormalizationLength(rig);
+        float bodyCenterX = BodyCenterX(rig);
+        BodyEnvelopeSegment[] envelope = BuildBodyEnvelope(rig, height);
+        var selected = new List<GeometryComponent> { lower };
+        if (upper.ComponentIndex != lower.ComponentIndex)
+            selected.Add(upper);
+        var selectedIndices = selected
+            .Select(component => component.ComponentIndex)
+            .ToHashSet();
+
+        foreach (GeometryComponent component in components
+                     .OrderBy(component => component.ComponentIndex))
+        {
+            if (selectedIndices.Contains(component.ComponentIndex) ||
+                component.UniqueAlignedPositions.Length < 3)
+            {
+                continue;
+            }
+
+            int inside = 0;
+            int near = 0;
+            float minimumNormalizedDistance = float.PositiveInfinity;
+            foreach (Vector3 position in component.UniqueAlignedPositions)
+            {
+                float normalizedDistance = envelope.Min(segment =>
+                    DistanceToSegment(position, segment.Start, segment.End) /
+                    segment.Radius);
+                minimumNormalizedDistance = MathF.Min(
+                    minimumNormalizedDistance, normalizedDistance);
+                if (normalizedDistance <= 1)
+                    inside++;
+                if (normalizedDistance <= 1.35f)
+                    near++;
+            }
+
+            float count = component.UniqueAlignedPositions.Length;
+            float insideFraction = inside / count;
+            float nearFraction = near / count;
+            Vector3 size = component.Size;
+            float maximumExtent = MathF.Max(size.X, MathF.Max(size.Y, size.Z));
+            bool compactAnatomicalShell =
+                maximumExtent <= height * 0.24f &&
+                minimumNormalizedDistance <= 0.8f &&
+                nearFraction >= 0.35f;
+            bool elongatedAnatomicalShell =
+                maximumExtent <= height * 0.50f &&
+                minimumNormalizedDistance <= 1.5f &&
+                nearFraction >= 0.10f;
+            bool bilateralAnatomicalShell =
+                maximumExtent <= height * 0.60f &&
+                MathF.Abs(component.BoundsCenter.X - bodyCenterX) <=
+                    height * 0.48f &&
+                HasMirroredBodyPeer(
+                    component,
+                    components,
+                    bodyCenterX,
+                    height);
+            bool followsBodyEnvelope =
+                insideFraction >= 0.58f ||
+                nearFraction >= 0.82f;
+            if (!followsBodyEnvelope &&
+                !compactAnatomicalShell &&
+                !elongatedAnatomicalShell &&
+                !bilateralAnatomicalShell)
+                continue;
+
+            selected.Add(component);
+            selectedIndices.Add(component.ComponentIndex);
+        }
+
+        return selected
+            .OrderBy(component =>
+                component.ComponentIndex == lower.ComponentIndex ? 0 :
+                component.ComponentIndex == upper.ComponentIndex ? 1 : 2)
+            .ThenBy(component => component.ComponentIndex)
+            .ToArray();
+    }
+
+    private static bool HasMirroredBodyPeer(
+        GeometryComponent component,
+        IReadOnlyList<GeometryComponent> components,
+        float centerX,
+        float height)
+    {
+        Vector3 center = component.BoundsCenter;
+        Vector3 size = component.Size;
+        float tolerance = height * 0.045f;
+        return components.Any(other =>
+            other.ComponentIndex != component.ComponentIndex &&
+            MathF.Abs((other.BoundsCenter.X - centerX) +
+                      (center.X - centerX)) <= tolerance &&
+            MathF.Abs(other.BoundsCenter.Y - center.Y) <= tolerance &&
+            MathF.Abs(other.BoundsCenter.Z - center.Z) <= tolerance &&
+            MathF.Abs(other.Size.X - size.X) <= tolerance &&
+            MathF.Abs(other.Size.Y - size.Y) <= tolerance &&
+            MathF.Abs(other.Size.Z - size.Z) <= tolerance);
+    }
+
+    private static BodyEnvelopeSegment[] BuildBodyEnvelope(
+        TargetRigDefinition rig,
+        float height)
+    {
+        Vector3 At(string name) => Translation(
+            rig.Joints[rig.GetJointIndex(name)].BindWorldMatrix);
+        var result = new List<BodyEnvelopeSegment>();
+        void Add(string start, string end, float radiusFraction) =>
+            result.Add(new BodyEnvelopeSegment(
+                At(start), At(end), height * radiusFraction));
+        void AddPoint(string name, float radiusFraction)
+        {
+            Vector3 point = At(name);
+            result.Add(new BodyEnvelopeSegment(
+                point, point, height * radiusFraction));
+        }
+
+        Add("Pelvis", "Spine_01", 0.13f);
+        Add("Spine_01", "Spine_02", 0.15f);
+        Add("Spine_02", "Spine_03", 0.17f);
+        Add("Spine_03", "Neck", 0.14f);
+        Add("Neck", "Head", 0.13f);
+        AddPoint("Head", 0.145f);
+        foreach (string side in new[] { "L", "R" })
+        {
+            Add($"{side}_Bicep", $"{side}_UpperArm", 0.095f);
+            Add($"{side}_UpperArm", $"{side}_Hand", 0.085f);
+            AddPoint($"{side}_Hand", 0.10f);
+            Add($"{side}_Thigh", $"{side}_calf", 0.11f);
+            Add($"{side}_calf", $"{side}_Ankle", 0.095f);
+            AddPoint($"{side}_Ankle", 0.105f);
+        }
+        return result.ToArray();
+    }
+
+    private static float DistanceToSegment(
+        Vector3 point,
+        Vector3 start,
+        Vector3 end)
+    {
+        Vector3 segment = end - start;
+        float lengthSquared = segment.LengthSquared();
+        if (!float.IsFinite(lengthSquared) || lengthSquared <= PositionEpsilon)
+            return Vector3.Distance(point, start);
+        float amount = Math.Clamp(
+            Vector3.Dot(point - start, segment) / lengthSquared,
+            0,
+            1);
+        return Vector3.Distance(point, start + segment * amount);
     }
 
     internal static string ComputeDonorGeometryFingerprint(ImportedScene donor)

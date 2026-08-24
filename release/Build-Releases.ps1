@@ -22,6 +22,20 @@ $outputRoot = [IO.Path]::GetFullPath($OutputDirectory)
 $releaseArtifactsRoot = Join-Path $repositoryRoot 'artifacts\release'
 $stagingRoot = Join-Path $releaseArtifactsRoot ('.staging\' + [Guid]::NewGuid().ToString('N'))
 
+$nativeFbxBuild = Join-Path $repositoryRoot 'tools\FbxBridge.Native\Build-Native.ps1'
+$nativeFbxOutput = Join-Path $repositoryRoot 'tools\FbxBridge.Native\build\bin\Release'
+$nativeFbxFiles = @('SmoFbxBridge.exe', 'libfbxsdk.dll', 'FBX_SDK_License.rtf')
+Write-Host 'Building bundled native FBX bridge...'
+if ([string]::IsNullOrWhiteSpace($env:FBX_SDK_ROOT)) {
+    & $nativeFbxBuild
+}
+else {
+    & $nativeFbxBuild -FbxSdkRoot $env:FBX_SDK_ROOT
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "Native FBX bridge build exited with code $LASTEXITCODE."
+}
+
 function Assert-PathUnderRoot([string]$Path, [string]$Root, [string]$Description) {
     $fullPath = [IO.Path]::GetFullPath($Path)
     $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
@@ -140,17 +154,33 @@ function Publish-Application($Application, [string]$Destination) {
             Remove-Item -Force
 
         $files = @(Get-ChildItem -LiteralPath $publishDirectory -File -Recurse)
-        if ($files.Count -ne 1 -or $files[0].Name -ne [string]$Application.executable) {
-            $names = ($files | ForEach-Object { $_.FullName.Substring($publishDirectory.Length + 1) }) -join ', '
+        $applicationFiles = @($files | Where-Object {
+            $nativeFbxFiles -notcontains $_.Name
+        })
+        if ($applicationFiles.Count -ne 1 -or
+            $applicationFiles[0].Name -ne [string]$Application.executable) {
+            $names = ($applicationFiles | ForEach-Object { $_.FullName.Substring($publishDirectory.Length + 1) }) -join ', '
             throw "Publish contract violation for $($Application.id): expected only $($Application.executable), got [$names]. Run from a clean tree and keep framework-dependent single-file enabled."
         }
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-        Copy-Item -LiteralPath $files[0].FullName -Destination (Join-Path $Destination $files[0].Name)
+        Copy-Item -LiteralPath $applicationFiles[0].FullName -Destination (Join-Path $Destination $applicationFiles[0].Name)
     }
     finally {
         if (Test-Path -LiteralPath $publishDirectory) {
             Remove-Item -LiteralPath $publishDirectory -Recurse -Force
         }
+    }
+}
+
+function Copy-NativeFbxRuntime([string]$Destination) {
+    $nativeDirectory = Join-Path $Destination 'native'
+    New-Item -ItemType Directory -Path $nativeDirectory -Force | Out-Null
+    foreach ($name in $nativeFbxFiles) {
+        $source = Join-Path $nativeFbxOutput $name
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "Bundled native FBX runtime file was not built: $source"
+        }
+        Copy-Item -LiteralPath $source -Destination (Join-Path $nativeDirectory $name)
     }
 }
 
@@ -234,6 +264,10 @@ try {
                 Publish-Application $tool $toolDirectory
                 Copy-Documents $tool $toolDirectory
             }
+        }
+        if ($null -ne $entry.PSObject.Properties['nativeFbx'] -and
+            [bool]$entry.nativeFbx) {
+            Copy-NativeFbxRuntime $packageDirectory
         }
 
         $manifestData = [ordered]@{

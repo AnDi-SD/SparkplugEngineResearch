@@ -7,10 +7,11 @@
       "project": "tools/SmoViewer/SmoViewer/SmoViewer.csproj",
       "executable": "SmoViewer.exe",
       "suite": true,
+      "nativeFbx": true,
       "documents": [
         "tools/SmoViewer/README.md",
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.4.1.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.4.2.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
@@ -23,7 +24,7 @@
           "documents": [
             "tools/SmoExporter/README.md",
             "tools/SmoExporter/CHANGELOG.md",
-            "tools/SmoExporter/RELEASE_NOTES_0.3.0.md"
+            "tools/SmoExporter/RELEASE_NOTES_0.4.0.md"
           ]
         },
         {
@@ -33,7 +34,7 @@
           "documents": [
             "tools/SmoImporter/README.md",
             "tools/SmoImporter/CHANGELOG.md",
-            "tools/SmoImporter/RELEASE_NOTES_0.4.0.md"
+            "tools/SmoImporter/RELEASE_NOTES_0.5.0.md"
           ]
         },
         {
@@ -52,20 +53,22 @@
       "id": "SmoExporter",
       "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
       "executable": "SmoExporter.Gui.exe",
+      "nativeFbx": true,
       "documents": [
         "tools/SmoExporter/README.md",
         "tools/SmoExporter/CHANGELOG.md",
-        "tools/SmoExporter/RELEASE_NOTES_0.3.0.md"
+        "tools/SmoExporter/RELEASE_NOTES_0.4.0.md"
       ]
     },
     {
       "id": "SmoImporter",
       "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
       "executable": "SmoImporter.Gui.exe",
+      "nativeFbx": true,
       "documents": [
         "tools/SmoImporter/README.md",
         "tools/SmoImporter/CHANGELOG.md",
-        "tools/SmoImporter/RELEASE_NOTES_0.4.0.md"
+        "tools/SmoImporter/RELEASE_NOTES_0.5.0.md"
       ]
     },
     {

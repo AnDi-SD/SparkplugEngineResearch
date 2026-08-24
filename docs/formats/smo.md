@@ -170,9 +170,14 @@ render node и следует его SAN-треку. Подтверждённы�
 
 Однако ранние эксперименты при изменении длины pixel buffer обновляли общие `FileSize`/`DataSize`, но не все последующие записи каталога. Поэтому signature scan полезен как восстановительный инструмент, но не заменяет корректный object parser и catalog-safe repack.
 
-Практический writer находится в `SmoImporter`. Legacy single-texture путь масштабирует
-PNG/JPEG или embedded GLB base-color до исходных размеров atlas и перезаписывает
-только R/G/B существующего BGRA-буфера, сохраняя target Alpha. Generated-skinning
+Практический writer находится в `SmoImporter`. Legacy single-texture путь переносит
+PNG/JPEG или embedded GLB/FBX base-color в BGRA-блок target. Если исходные размеры
+точно представимы полями SMO, они сохраняются без resize; это включает проверенный
+вариант `3000×3000`. Непредставимый размер никогда не уменьшается и поднимается до
+ближайшего совместимого POT-размера. При изменении длины блока writer пересчитывает
+FFPS catalog offsets/sizes, enclosing object sizes и вложенные размеры цепочки
+`spSkin → material → TextureData`, затем повторно запускает strict parser и проверку
+исходных skin palettes. Generated-skinning
 multi-material путь собирает один RGBA-atlas и сохраняет donor Alpha полностью.
 Opaque triangles остаются в существующих opaque consumers target, а alpha triangles
 получают добавленные `spSkin/material/mesh` branches с общей texture reference.

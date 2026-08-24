@@ -6,12 +6,12 @@ using SmoViewer.Core;
 
 int checks = 0;
 
-if (args is ["--blender-path-tests"])
-    return TestBlenderPathResolution();
+if (args is ["--native-fbx-path-tests"])
+    return TestNativeFbxPathResolution();
 
 if (args.Length != 1 || !File.Exists(args[0]))
 {
-    Console.Error.WriteLine("Usage: SmoExporter.FormatTests <sample.smo> | --blender-path-tests");
+    Console.Error.WriteLine("Usage: SmoExporter.FormatTests <sample.smo> | --native-fbx-path-tests");
     return 2;
 }
 
@@ -64,8 +64,15 @@ try
     }
     string glb = Path.Combine(directory, "sample.glb");
     string obj = Path.Combine(directory, "sample.obj");
+    string fbx = Path.Combine(directory, "sample.fbx");
     GlbExporter.Export(scene, glb);
     ObjExporter.Export(scene, obj);
+    FbxExporter.Export(scene, fbx);
+
+    byte[] fbxBytes = File.ReadAllBytes(fbx);
+    Check(fbxBytes.Length > 27, "native FBX is not empty");
+    Check(fbxBytes.AsSpan(0, 20).SequenceEqual("Kaydara FBX Binary  "u8),
+        "native FBX binary signature");
 
     byte[] bytes = File.ReadAllBytes(glb);
     Check(BinaryPrimitives.ReadUInt32LittleEndian(bytes) == 0x46546C67, "GLB magic");
@@ -401,7 +408,7 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
         () => FbxExporter.Export(
             varyingVertexScene, Path.Combine(outputDirectory, "unsupported-alpha.fbx"),
             Path.Combine(outputDirectory, "missing-blender.exe")),
-        "FBX rejects COLOR_0 alpha before invoking Blender");
+        "FBX rejects COLOR_0 alpha before invoking the native bridge");
 
     var alphaTexture = new SmoExportTexture(
         -1, "synthetic alpha", 1, 1,
@@ -420,7 +427,7 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
             scene with { Meshes = [compoundedAlphaMesh] },
             Path.Combine(outputDirectory, "compounded-alpha.fbx"),
             Path.Combine(outputDirectory, "missing-blender.exe")),
-        "FBX rejects compounded texture and material alpha before invoking Blender");
+        "FBX rejects compounded texture and material alpha before invoking the native bridge");
 
     SmoExportMesh invalidAlphaMesh = source with
     {
@@ -439,7 +446,7 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
         () => FbxExporter.Export(
             invalidAlphaScene, Path.Combine(outputDirectory, "invalid-alpha.fbx"),
             Path.Combine(outputDirectory, "missing-blender.exe")),
-        "FBX rejects non-finite alpha before invoking Blender");
+        "FBX rejects non-finite alpha before invoking the native bridge");
 }
 
 void ExpectThrows<TException>(Action action, string description)
@@ -524,44 +531,31 @@ int FindMeshNode(JsonElement nodes, int meshIndex)
     return -1;
 }
 
-int TestBlenderPathResolution()
+int TestNativeFbxPathResolution()
 {
-    string root = Path.Combine(Path.GetTempPath(), "smo-blender-path-tests-" + Guid.NewGuid().ToString("N"));
-    string installation = Path.Combine(root, "Nonstandard Blender Location");
-    string executable = Path.Combine(installation, "blender.exe");
-    string otherExecutable = Path.Combine(installation, "not-blender.exe");
+    string root = Path.Combine(Path.GetTempPath(), "smo-native-fbx-path-tests-" + Guid.NewGuid().ToString("N"));
+    string installation = Path.Combine(root, "Nonstandard Native FBX Location");
+    string executable = Path.Combine(installation, NativeFbxBridge.ExecutableName);
     Directory.CreateDirectory(installation);
     File.WriteAllBytes(executable, [0]);
-    File.WriteAllBytes(otherExecutable, [0]);
-    string? previous = Environment.GetEnvironmentVariable("SMO_TEST_BLENDER_ROOT");
-    string? previousBlenderPath = Environment.GetEnvironmentVariable("BLENDER_PATH");
+    string? previous = Environment.GetEnvironmentVariable(NativeFbxBridge.EnvironmentVariable);
     try
     {
-        Environment.SetEnvironmentVariable("SMO_TEST_BLENDER_ROOT", installation);
-        Check(FbxExporter.ResolveBlenderExecutable(installation) == executable,
-            "installation directory resolves blender.exe");
-        Check(FbxExporter.ResolveBlenderExecutable(executable) == executable,
+        Check(NativeFbxBridge.ResolveExecutable(installation) == executable,
+            "installation directory resolves native bridge");
+        Check(NativeFbxBridge.ResolveExecutable(executable) == executable,
             "direct executable resolves");
-        Check(FbxExporter.ResolveBlenderExecutable($"\"{executable}\"") == executable,
+        Check(NativeFbxBridge.ResolveExecutable($"\"{executable}\"") == executable,
             "quoted executable resolves");
-        Check(FbxExporter.ResolveBlenderExecutable("%SMO_TEST_BLENDER_ROOT%") == executable,
-            "environment variable expands");
-        Check(FbxExporter.ResolveBlenderExecutable(otherExecutable) is null,
-            "non-Blender executable is rejected");
-        Check(FbxExporter.ResolveBlenderExecutable(Path.Combine(root, "missing")) is null,
-            "missing path is rejected");
-        Check(FbxExporter.FindBlenderExecutable(installation) == executable,
-            "manual path has priority");
-        Environment.SetEnvironmentVariable("BLENDER_PATH", installation);
-        Check(FbxExporter.FindBlenderExecutable() == executable,
-            "BLENDER_PATH participates in automatic discovery");
-        Console.WriteLine($"PASS: {checks} Blender path assertions");
+        Environment.SetEnvironmentVariable(NativeFbxBridge.EnvironmentVariable, installation);
+        Check(NativeFbxBridge.ResolveExecutable() == executable,
+            "SMO_FBX_BRIDGE_PATH participates in automatic discovery");
+        Console.WriteLine($"PASS: {checks} native FBX path assertions");
         return 0;
     }
     finally
     {
-        Environment.SetEnvironmentVariable("SMO_TEST_BLENDER_ROOT", previous);
-        Environment.SetEnvironmentVariable("BLENDER_PATH", previousBlenderPath);
+        Environment.SetEnvironmentVariable(NativeFbxBridge.EnvironmentVariable, previous);
         Directory.Delete(root, true);
     }
 }

@@ -1,320 +1,59 @@
-using System.Diagnostics;
 using System.Numerics;
-using Microsoft.Win32;
 
 namespace SmoExporter.Core;
 
 /// <summary>
-/// Produces binary FBX through Blender's maintained FBX exporter. The common
-/// scene is first serialized as lossless GLB, so skeleton, weights, materials,
-/// textures and selected animations share one implementation.
+/// Writes binary FBX directly through the bundled Autodesk FBX SDK bridge.
+/// Blender, GLB conversion and Python are deliberately absent from this path.
 /// </summary>
 public static class FbxExporter
 {
-    public static void Export(SmoExportScene scene, string outputPath, string? blenderPath = null)
+    public static void Export(
+        SmoExportScene scene,
+        string outputPath,
+        string? nativeBridgePath = null)
     {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ValidateAlphaCompatibility(scene);
-        bool bakeAnimations =
-            (scene.Resources & SmoExportResourceTypes.Animations) != 0 &&
-            scene.Animations.Count > 0;
-        blenderPath ??= FindBlenderExecutable();
-        if (blenderPath is null)
-            throw new InvalidOperationException(
-                "Для бинарного FBX нужен Blender. Установите Blender или добавьте blender.exe в PATH.");
 
         string fullOutput = Path.GetFullPath(outputPath);
-        Directory.CreateDirectory(Path.GetDirectoryName(fullOutput)!);
+        string outputDirectory = Path.GetDirectoryName(fullOutput)!;
+        Directory.CreateDirectory(outputDirectory);
         string stagedOutput = Path.Combine(
-            Path.GetDirectoryName(fullOutput)!,
+            outputDirectory,
             $".{Path.GetFileNameWithoutExtension(fullOutput)}.{Guid.NewGuid():N}.tmp.fbx");
         string temporaryDirectory = Path.Combine(
-            Path.GetTempPath(), "smo-fbx-" + Guid.NewGuid().ToString("N"));
+            Path.GetTempPath(), "smo-export-fbx-native-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(temporaryDirectory);
         try
         {
-            string glb = Path.Combine(temporaryDirectory, "scene.glb");
-            GlbExporter.Export(scene, glb);
-            string expression =
-                "import bpy;" +
-                "bpy.ops.wm.read_factory_settings(use_empty=True);" +
-                $"bpy.ops.import_scene.gltf(filepath={PythonString(glb)}," +
-                "bone_heuristic='TEMPERANCE');" +
-                $"exec({PythonMultilineString(BuildMaterialNormalizationScript(scene))});" +
-                $"bpy.ops.export_scene.fbx(filepath={PythonString(stagedOutput)}," +
-                "use_selection=False,object_types={'EMPTY','ARMATURE','MESH'}," +
-                "apply_unit_scale=True,apply_scale_options='FBX_SCALE_ALL'," +
-                "use_mesh_modifiers=True,mesh_smooth_type='FACE',colors_type='SRGB'," +
-                "use_armature_deform_only=False,add_leaf_bones=False," +
-                $"bake_anim={(bakeAnimations ? "True" : "False")}," +
-                "bake_anim_use_all_bones=True,bake_anim_use_nla_strips=True," +
-                "bake_anim_use_all_actions=True,bake_anim_force_startend_keying=True," +
-                "bake_anim_step=1.0,bake_anim_simplify_factor=0.0," +
-                "path_mode='COPY',embed_textures=True,use_custom_props=True);";
-
-            var start = new ProcessStartInfo(blenderPath)
-            {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            start.ArgumentList.Add("--background");
-            start.ArgumentList.Add("--python-expr");
-            start.ArgumentList.Add(expression);
-            using Process process = Process.Start(start) ??
-                throw new InvalidOperationException("Не удалось запустить Blender.");
-            Task<string> stdoutTask = process.StandardOutput.ReadToEndAsync();
-            Task<string> stderrTask = process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
-            string stdout = stdoutTask.GetAwaiter().GetResult();
-            string stderr = stderrTask.GetAwaiter().GetResult();
-            if (process.ExitCode != 0 || !File.Exists(stagedOutput))
-                throw new InvalidOperationException(
-                    $"Blender FBX export failed ({process.ExitCode}). " +
-                    (string.IsNullOrWhiteSpace(stderr) ? stdout : stderr));
-            if (new FileInfo(stagedOutput).Length < 27)
-                throw new InvalidDataException("Blender создал пустой или неполный FBX.");
-
-            // Blender writes FBX progressively. Keep that incomplete file hidden
-            // under a temporary name and publish it only after Blender exits.
+            string payload = Path.Combine(temporaryDirectory, "scene.bin");
+            FbxExportPayloadWriter.Write(scene, payload);
+            NativeFbxBridge.Run(
+                "export", [payload, stagedOutput], nativeBridgePath);
+            if (!File.Exists(stagedOutput) || new FileInfo(stagedOutput).Length < 27)
+                throw new InvalidDataException(
+                    "Нативный модуль FBX создал пустой или неполный файл.");
             File.Move(stagedOutput, fullOutput, overwrite: true);
         }
         finally
         {
             try { File.Delete(stagedOutput); }
             catch { }
-            try { Directory.Delete(temporaryDirectory, true); }
+            try { Directory.Delete(temporaryDirectory, recursive: true); }
             catch { }
         }
     }
 
-    /// <summary>
-    /// Resolves either a direct blender.exe path or a Blender installation
-    /// directory. Environment variables and surrounding quotes are accepted.
-    /// </summary>
-    public static string? ResolveBlenderExecutable(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-            return null;
-
-        string candidate = Environment.ExpandEnvironmentVariables(path.Trim().Trim('"'));
-        int executableEnd = candidate.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
-        if (executableEnd >= 0)
-            candidate = candidate[..(executableEnd + 4)];
-
-        try
-        {
-            if (Directory.Exists(candidate))
-                candidate = Path.Combine(candidate, "blender.exe");
-            if (!File.Exists(candidate) ||
-                !Path.GetFileName(candidate).Equals("blender.exe", StringComparison.OrdinalIgnoreCase))
-                return null;
-            return Path.GetFullPath(candidate);
-        }
-        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or PathTooLongException)
-        {
-            return null;
-        }
-    }
-
-    public static string? FindBlenderExecutable(string? preferredPath = null)
-    {
-        string? resolved = ResolveBlenderExecutable(preferredPath);
-        if (resolved is not null)
-            return resolved;
-
-        resolved = ResolveBlenderExecutable(Environment.GetEnvironmentVariable("BLENDER_PATH"));
-        if (resolved is not null)
-            return resolved;
-
-        foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
-                     .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-        {
-            resolved = ResolveBlenderExecutable(directory);
-            if (resolved is not null)
-                return resolved;
-        }
-
-        foreach (string candidate in EnumerateRegistryCandidates())
-        {
-            resolved = ResolveBlenderExecutable(candidate);
-            if (resolved is not null)
-                return resolved;
-        }
-
-        var discovered = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (string root in GetCommonInstallationRoots())
-        {
-            if (!Directory.Exists(root))
-                continue;
-            try
-            {
-                foreach (string candidate in Directory.EnumerateFiles(
-                             root, "blender.exe", SearchOption.AllDirectories))
-                    discovered.Add(Path.GetFullPath(candidate));
-            }
-            catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
-            {
-                // One inaccessible installation root must not disable FBX when
-                // another valid Blender installation is available.
-            }
-        }
-
-        return discovered
-            .OrderByDescending(GetBlenderVersion)
-            .ThenByDescending(path => path, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault();
-    }
-
-    private static IEnumerable<string> GetCommonInstallationRoots()
-    {
-        string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-        string localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        if (!string.IsNullOrWhiteSpace(programFiles))
-            yield return Path.Combine(programFiles, "Blender Foundation");
-        if (!string.IsNullOrWhiteSpace(programFilesX86))
-            yield return Path.Combine(programFilesX86, "Blender Foundation");
-        if (!string.IsNullOrWhiteSpace(localApplicationData))
-        {
-            yield return Path.Combine(localApplicationData, "Programs", "Blender Foundation");
-            yield return Path.Combine(localApplicationData, "Programs", "Blender");
-        }
-    }
-
-    private static IReadOnlyList<string> EnumerateRegistryCandidates()
-    {
-        if (!OperatingSystem.IsWindows())
-            return [];
-
-        var candidates = new List<string>();
-        foreach (RegistryHive hive in new[] { RegistryHive.CurrentUser, RegistryHive.LocalMachine })
-        foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
-        {
-            try
-            {
-                using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, view);
-                using (RegistryKey? appPath = baseKey.OpenSubKey(
-                           @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\blender.exe"))
-                {
-                    AddRegistryValue(candidates, appPath?.GetValue(null));
-                    AddRegistryValue(candidates, appPath?.GetValue("Path"));
-                }
-
-                using RegistryKey? uninstall = baseKey.OpenSubKey(
-                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                if (uninstall is null)
-                    continue;
-                foreach (string subKeyName in uninstall.GetSubKeyNames())
-                {
-                    using RegistryKey? application = uninstall.OpenSubKey(subKeyName);
-                    string? displayName = application?.GetValue("DisplayName") as string;
-                    if (displayName?.StartsWith("Blender", StringComparison.OrdinalIgnoreCase) != true)
-                        continue;
-                    AddRegistryValue(candidates, application?.GetValue("InstallLocation"));
-                    AddRegistryValue(candidates, application?.GetValue("DisplayIcon"));
-                }
-            }
-            catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
-            {
-                // Registry discovery is best-effort; PATH and manual selection
-                // remain available on restricted systems.
-            }
-        }
-        return candidates;
-    }
-
-    private static void AddRegistryValue(ICollection<string> candidates, object? value)
-    {
-        if (value is string text && !string.IsNullOrWhiteSpace(text))
-            candidates.Add(text);
-    }
-
-    private static Version GetBlenderVersion(string path)
-    {
-        try
-        {
-            FileVersionInfo info = FileVersionInfo.GetVersionInfo(path);
-            return new Version(
-                Math.Max(0, info.FileMajorPart), Math.Max(0, info.FileMinorPart),
-                Math.Max(0, info.FileBuildPart), Math.Max(0, info.FilePrivatePart));
-        }
-        catch
-        {
-            return new Version(0, 0);
-        }
-    }
-
-    private static string PythonString(string value) =>
-        "r\"" + value.Replace("\"", "\\\"") + "\"";
-
-    private static string PythonMultilineString(string value) =>
-        "r\"\"\"" + value.Replace("\"\"\"", "\\\"\\\"\\\"") + "\"\"\"";
-
-    /// <summary>
-    /// Blender's glTF importer inserts a Multiply node between a base-color
-    /// image and Principled BSDF whenever baseColorFactor is not white. Its FBX
-    /// exporter only discovers an image connected directly to Base Color, so
-    /// those perfectly valid textured materials otherwise become untextured in
-    /// the FBX. Rebuild just that connection and restore the authoritative SMO
-    /// factor by the object-index metadata emitted by GlbExporter. Emissive and
-    /// alpha texture graphs remain untouched.
-    /// </summary>
-    private static string BuildMaterialNormalizationScript(SmoExportScene scene)
-    {
-        string factors = "{" + string.Join(",", scene.Meshes.Select(mesh =>
-            FormattableString.Invariant(
-                $"{mesh.ObjectIndex}:({mesh.MaterialColor.X:R},{mesh.MaterialColor.Y:R},{mesh.MaterialColor.Z:R},{mesh.MaterialColor.W:R})"))) + "}";
-        return $$"""
-from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
-_sparkplug_factors = {{factors}}
-def _sparkplug_base_image(socket, visited):
-    if socket is None:
-        return None
-    for link in socket.links:
-        node = link.from_node
-        key = node.as_pointer()
-        if key in visited:
-            continue
-        visited.add(key)
-        if node.type == 'TEX_IMAGE' and node.image is not None:
-            return node.image
-        for source in node.inputs:
-            image = _sparkplug_base_image(source, visited)
-            if image is not None:
-                return image
-    return None
-for obj in bpy.context.scene.objects:
-    if obj.type != 'MESH':
-        continue
-    source_index = obj.data.get('sparkplugObjectIndex')
-    if source_index is None or int(source_index) not in _sparkplug_factors:
-        continue
-    factor = _sparkplug_factors[int(source_index)]
-    for material in obj.data.materials:
-        if material is None or not material.use_nodes:
-            continue
-        principled = next((node for node in material.node_tree.nodes
-            if node.type == 'BSDF_PRINCIPLED'), None)
-        if principled is None:
-            continue
-        image = _sparkplug_base_image(principled.inputs.get('Base Color'), set())
-        wrapper = PrincipledBSDFWrapper(material, is_readonly=False, use_nodes=True)
-        wrapper.base_color = factor[:3]
-        wrapper.alpha = factor[3]
-        if image is not None:
-            wrapper.base_color_texture.image = image
-""";
-    }
+    public static string? FindNativeBridgeExecutable(string? preferredPath = null) =>
+        NativeFbxBridge.ResolveExecutable(preferredPath);
 
     private static void ValidateAlphaCompatibility(SmoExportScene scene)
     {
         bool includeMaterials =
             (scene.Resources & SmoExportResourceTypes.Materials) != 0;
-        bool includeTextures =
-            includeMaterials &&
+        bool includeTextures = includeMaterials &&
             (scene.Resources & SmoExportResourceTypes.Textures) != 0;
         foreach (SmoExportMesh mesh in scene.Meshes)
         {
@@ -327,18 +66,13 @@ for obj in bpy.context.scene.objects:
                     {
                         throw new InvalidDataException(
                             $"FBX cannot preserve COLOR_0 alpha on mesh " +
-                            $"[{mesh.ObjectIndex}] {mesh.Name}; " +
-                            "export this model as GLB instead.");
+                            $"[{mesh.ObjectIndex}] {mesh.Name}; export this model as GLB instead.");
                     }
                 }
             }
-
-            if (!includeMaterials)
-                continue;
+            if (!includeMaterials) continue;
             ValidateAlpha(mesh.MaterialColor.W, "material factor", mesh);
-
-            if (includeTextures &&
-                mesh.Texture?.OpacityMaskPngBytes is not null &&
+            if (includeTextures && mesh.Texture?.OpacityMaskPngBytes is not null &&
                 mesh.MaterialColor.W < 1f)
             {
                 throw new InvalidDataException(
@@ -349,8 +83,7 @@ for obj in bpy.context.scene.objects:
         }
     }
 
-    private static void ValidateAlpha(
-        float alpha, string source, SmoExportMesh mesh)
+    private static void ValidateAlpha(float alpha, string source, SmoExportMesh mesh)
     {
         if (!float.IsFinite(alpha) || alpha is < 0f or > 1f)
         {

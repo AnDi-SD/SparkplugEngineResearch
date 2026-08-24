@@ -24,7 +24,8 @@ public static class SmoWholeModelReplacer
         int? rigidBoneSlot = null,
         string? texturePath = null,
         ImportedTexture? embeddedTexture = null,
-        int maximumTextureDimension = 2048)
+        int maximumTextureDimension =
+            SMOTextureTool.Core.TextureInfo.MaximumCurrentHeaderDimension)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(replacement);
@@ -187,15 +188,25 @@ public static class SmoWholeModelReplacer
         if (textureOrdinal >= textureDocument.Textures.Count)
             throw new InvalidOperationException("Texture order changed during mesh repack.");
         SMOTextureTool.Core.TextureInfo target = textureDocument.Textures[textureOrdinal];
-        byte[] replaced = FixedSizeTextureWriter.ReplaceRgb(
+        using (Image<Rgba32> sourceImage = Image.Load<Rgba32>(imageData))
+        {
+            if (sourceImage.Width > maximumDimension ||
+                sourceImage.Height > maximumDimension)
+            {
+                throw new InvalidDataException(
+                    $"Texture is {sourceImage.Width}x{sourceImage.Height}; " +
+                    $"maximum is {maximumDimension}x{maximumDimension}. " +
+                    "Downscaling is forbidden.");
+            }
+        }
+        byte[] replaced = FixedSizeTextureWriter.ReplaceRgbWithoutDownscaling(
             output, target.Index, imageData);
         SMOTextureTool.Core.TextureInfo verifiedTarget =
             SMOTextureTool.Core.SmoDocument.Parse(replaced).Textures
                 .Single(texture => texture.Index == target.Index);
-        if (!SameMaterialOwner(target.Material, verifiedTarget.Material) ||
-            replaced.Length != output.Length)
+        if (!SameMaterialOwner(target.Material, verifiedTarget.Material))
             throw new InvalidDataException(
-                "Fixed-size texture replacement changed the SMO structure or material owner.");
+                "Texture replacement changed its material owner.");
         return replaced;
     }
 

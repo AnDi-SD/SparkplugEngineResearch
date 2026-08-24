@@ -26,9 +26,9 @@ internal enum SmoSkinnedRenderableMaterialFamily
 
 /// <summary>
 /// Records the material family selected for each source renderable. UV/texel
-/// coverage is measured per triangle, but native Sparkplug render state is a
-/// mesh-level contract: an explicit override or one alpha-sampling triangle
-/// promotes every triangle in that source mesh to its selected separate branch.
+/// coverage is measured per triangle. Automatic classification promotes a whole
+/// geometrically connected component when any of its triangles can sample alpha;
+/// explicit material overrides remain a mesh-level final decision.
 /// </summary>
 internal sealed class SmoSkinnedRenderableOpacityPlan
 {
@@ -96,6 +96,11 @@ internal sealed record SmoSkinnedBranchSplitResult(
     IReadOnlySet<uint> AddedMeshIds,
     IReadOnlyDictionary<uint, SmoSkinnedRenderableMaterialFamily> AddedObjectFamilies);
 
+internal sealed record SmoSurfaceOverlayNormalConformResult(
+    SmoSkinnedBranchSourceMesh[] Meshes,
+    int ConformedComponentCount,
+    int ConformedVertexCount);
+
 /// <summary>
 /// Builds independent post-body native Bloom material runs for opaque overlays
 /// and true-alpha surfaces. Each source renderable starts its own material/spSkin
@@ -130,10 +135,214 @@ internal static class SmoSkinnedBranchSplitBuilder
         [0, 3, 3, 0, 0, 0xFF000000, 2, 0, 0];
 
     /// <summary>
+    /// Makes a close alpha/opaque-overlay sheet shade continuously with the
+    /// larger opaque surface underneath it. This is deliberately geometric:
+    /// names and material IDs are not trusted, every vertex of a connected
+    /// overlay component must be very close to an opaque triangle in another
+    /// source mesh, and the authored normals must already face substantially
+    /// the same way. Wings, jewelry, clothing volumes and other detached parts
+    /// therefore retain their authored normals.
+    /// </summary>
+    public static SmoSurfaceOverlayNormalConformResult ConformCloseSurfaceNormals(
+        IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
+        SmoSkinnedRenderableOpacityPlan opacity)
+    {
+        ArgumentNullException.ThrowIfNull(meshes);
+        ArgumentNullException.ThrowIfNull(opacity);
+        if (meshes.Count == 0)
+            return new SmoSurfaceOverlayNormalConformResult([], 0, 0);
+
+        Vector3 globalMinimum = new(float.PositiveInfinity);
+        Vector3 globalMaximum = new(float.NegativeInfinity);
+        var referenceTriangles = new List<NormalReferenceTriangle>();
+        foreach (SmoSkinnedBranchSourceMesh mesh in meshes)
+        {
+            if (mesh.Normals.Length != mesh.Positions.Length)
+                continue;
+            foreach (Vector3 position in mesh.Positions)
+            {
+                globalMinimum = Vector3.Min(globalMinimum, position);
+                globalMaximum = Vector3.Max(globalMaximum, position);
+            }
+            for (int triangle = 0; triangle < mesh.TriangleIndices.Length / 3; triangle++)
+            {
+                if (opacity.GetFamily(mesh.Key, triangle) !=
+                    SmoSkinnedRenderableMaterialFamily.OpaqueBody)
+                {
+                    continue;
+                }
+                int index = triangle * 3;
+                int first = CheckedVertex(mesh, mesh.TriangleIndices[index]);
+                int second = CheckedVertex(mesh, mesh.TriangleIndices[index + 1]);
+                int third = CheckedVertex(mesh, mesh.TriangleIndices[index + 2]);
+                referenceTriangles.Add(new NormalReferenceTriangle(
+                    mesh.Key,
+                    mesh.Positions[first],
+                    mesh.Positions[second],
+                    mesh.Positions[third],
+                    mesh.Normals[first],
+                    mesh.Normals[second],
+                    mesh.Normals[third]));
+            }
+        }
+        float globalDiagonal = Vector3.Distance(globalMinimum, globalMaximum);
+        if (referenceTriangles.Count == 0 || !float.IsFinite(globalDiagonal) ||
+            globalDiagonal <= 0.000001f)
+        {
+            return new SmoSurfaceOverlayNormalConformResult(
+                meshes.ToArray(), 0, 0);
+        }
+
+        var search = new NormalReferenceSearch(referenceTriangles);
+        var output = meshes.ToArray();
+        int conformedComponents = 0;
+        int conformedVertices = 0;
+        for (int meshIndex = 0; meshIndex < meshes.Count; meshIndex++)
+        {
+            SmoSkinnedBranchSourceMesh mesh = meshes[meshIndex];
+            if (mesh.Positions.Length == 0 ||
+                mesh.Normals.Length != mesh.Positions.Length)
+            {
+                continue;
+            }
+            var connectivity = new UnionFind(mesh.Positions.Length);
+            var candidateVertices = new HashSet<int>();
+            for (int triangle = 0; triangle < mesh.TriangleIndices.Length / 3; triangle++)
+            {
+                if (!opacity.IsSeparateBranch(mesh.Key, triangle))
+                    continue;
+                int index = triangle * 3;
+                int first = CheckedVertex(mesh, mesh.TriangleIndices[index]);
+                int second = CheckedVertex(mesh, mesh.TriangleIndices[index + 1]);
+                int third = CheckedVertex(mesh, mesh.TriangleIndices[index + 2]);
+                candidateVertices.Add(first);
+                candidateVertices.Add(second);
+                candidateVertices.Add(third);
+                connectivity.Union(first, second);
+                connectivity.Union(first, third);
+            }
+            if (candidateVertices.Count == 0)
+                continue;
+
+            // Attribute seams often duplicate all three triangle vertices.
+            // Rejoin raw index islands only when they share an entire geometric
+            // edge (two exact positions); a single coincident point can be an
+            // intentional contact between independent overlay pieces.
+            var verticesByPosition = new Dictionary<Vector3, List<int>>();
+            foreach (int vertex in candidateVertices)
+            {
+                Vector3 position = mesh.Positions[vertex];
+                if (!verticesByPosition.TryGetValue(position, out List<int>? equal))
+                {
+                    equal = [];
+                    verticesByPosition.Add(position, equal);
+                }
+                equal.Add(vertex);
+            }
+            var sharedPositions = new Dictionary<(int First, int Second), int>();
+            foreach (List<int> equal in verticesByPosition.Values)
+            {
+                int[] roots = equal.Select(connectivity.Find)
+                    .Distinct().Order().ToArray();
+                if (roots.Length > 32)
+                {
+                    throw new InvalidDataException(
+                        $"Mesh {mesh.Name} has more than 32 overlapping overlay " +
+                        "components at one position; normal conformity is ambiguous.");
+                }
+                for (int first = 0; first < roots.Length; first++)
+                {
+                    for (int second = first + 1; second < roots.Length; second++)
+                    {
+                        var pair = (roots[first], roots[second]);
+                        sharedPositions[pair] =
+                            sharedPositions.GetValueOrDefault(pair) + 1;
+                    }
+                }
+            }
+            foreach (KeyValuePair<(int First, int Second), int> pair in sharedPositions)
+            {
+                if (pair.Value >= 2)
+                    connectivity.Union(pair.Key.First, pair.Key.Second);
+            }
+
+            Vector3[]? replacement = null;
+            foreach (int[] component in candidateVertices
+                         .GroupBy(connectivity.Find)
+                         .Select(group => group.Order().ToArray()))
+            {
+                Vector3 minimum = new(float.PositiveInfinity);
+                Vector3 maximum = new(float.NegativeInfinity);
+                foreach (int vertex in component)
+                {
+                    minimum = Vector3.Min(minimum, mesh.Positions[vertex]);
+                    maximum = Vector3.Max(maximum, mesh.Positions[vertex]);
+                }
+                float componentDiagonal = Vector3.Distance(minimum, maximum);
+                float maximumDistance = MathF.Min(
+                    globalDiagonal * 0.0015f,
+                    MathF.Max(
+                        componentDiagonal * 0.04f,
+                        globalDiagonal * 0.00075f));
+                if (!float.IsFinite(maximumDistance) ||
+                    maximumDistance <= globalDiagonal * 0.000001f)
+                {
+                    continue;
+                }
+
+                var inherited = new Vector3[component.Length];
+                float dotTotal = 0;
+                bool accepted = true;
+                for (int ordinal = 0; ordinal < component.Length; ordinal++)
+                {
+                    int vertex = component[ordinal];
+                    Vector3 sourceNormal = NormalizeOrZero(mesh.Normals[vertex]);
+                    if (sourceNormal == Vector3.Zero)
+                    {
+                        accepted = false;
+                        break;
+                    }
+                    if (!search.TryFind(
+                            mesh.Positions[vertex],
+                            sourceNormal,
+                            mesh.Key,
+                            maximumDistance,
+                            out Vector3 inheritedNormal))
+                    {
+                        accepted = false;
+                        break;
+                    }
+                    float dot = Vector3.Dot(sourceNormal, inheritedNormal);
+                    if (dot < 0.45f)
+                    {
+                        accepted = false;
+                        break;
+                    }
+                    dotTotal += dot;
+                    inherited[ordinal] = inheritedNormal;
+                }
+                if (!accepted || dotTotal / component.Length < 0.90f)
+                    continue;
+
+                replacement ??= mesh.Normals.ToArray();
+                for (int ordinal = 0; ordinal < component.Length; ordinal++)
+                    replacement[component[ordinal]] = inherited[ordinal];
+                conformedComponents++;
+                conformedVertices += component.Length;
+            }
+            if (replacement is not null)
+                output[meshIndex] = mesh with { Normals = replacement };
+        }
+        return new SmoSurfaceOverlayNormalConformResult(
+            output, conformedComponents, conformedVertices);
+    }
+
+    /// <summary>
     /// Conservatively classifies source meshes from their actually reachable
-    /// base-level alpha texels, including bilinear support. The resulting state
-    /// is uniform for every triangle of a source mesh so filtering/mip sampling
-    /// cannot cross opaque and alpha draw-call contracts.
+    /// base-level alpha texels, including bilinear support. Automatic state is
+    /// uniform within each geometrically connected component so one continuous
+    /// surface cannot cross opaque and alpha draw-call contracts. Explicit state
+    /// remains uniform for the entire source mesh.
     /// </summary>
     public static SmoSkinnedRenderableOpacityPlan ClassifyRenderables(
         IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
@@ -183,14 +392,18 @@ internal static class SmoSkinnedBranchSplitBuilder
                 throw new InvalidDataException(
                     $"Mesh {mesh.Name} has an incomplete triangle index stream.");
             int triangleCount = mesh.TriangleIndices.Length / 3;
-            bool meshUsesAlpha = false;
+            var triangleUsesAlpha = new bool[triangleCount];
+            var triangleVertices = new int[mesh.TriangleIndices.Length];
             for (int triangle = 0; triangle < triangleCount; triangle++)
             {
                 int index = triangle * 3;
                 int first = CheckedVertex(mesh, mesh.TriangleIndices[index]);
                 int second = CheckedVertex(mesh, mesh.TriangleIndices[index + 1]);
                 int third = CheckedVertex(mesh, mesh.TriangleIndices[index + 2]);
-                meshUsesAlpha |= TriangleCanSampleAlpha(
+                triangleVertices[index] = first;
+                triangleVertices[index + 1] = second;
+                triangleVertices[index + 2] = third;
+                triangleUsesAlpha[triangle] = TriangleCanSampleAlpha(
                     mesh.TextureCoordinates[first],
                     mesh.TextureCoordinates[second],
                     mesh.TextureCoordinates[third],
@@ -201,40 +414,136 @@ internal static class SmoSkinnedBranchSplitBuilder
                     mesh.Name,
                     triangle);
             }
-            SmoSkinnedRenderableMaterialFamily family =
+            SmoSkinnedRenderableMaterialFamily[] values =
                 materialProfile.GetMode(mesh.Key) switch
                 {
                     SkinnedRenderableMaterialMode.OpaqueOverlay =>
-                        SmoSkinnedRenderableMaterialFamily.OpaqueOverlay,
+                        Enumerable.Repeat(
+                            SmoSkinnedRenderableMaterialFamily.OpaqueOverlay,
+                            triangleCount).ToArray(),
                     SkinnedRenderableMaterialMode.TransparentSurface =>
-                        SmoSkinnedRenderableMaterialFamily.AlphaBlend,
-                    _ when meshUsesAlpha =>
-                        SmoSkinnedRenderableMaterialFamily.AlphaBlend,
-                    _ => SmoSkinnedRenderableMaterialFamily.OpaqueBody
+                        Enumerable.Repeat(
+                            SmoSkinnedRenderableMaterialFamily.AlphaBlend,
+                            triangleCount).ToArray(),
+                    _ => ClassifyAutomaticComponents(
+                        mesh, triangleVertices, triangleUsesAlpha)
                 };
-            SmoSkinnedRenderableMaterialFamily[] values = Enumerable
-                .Repeat(family, triangleCount)
-                .ToArray();
-            switch (family)
+            foreach (SmoSkinnedRenderableMaterialFamily family in values)
             {
-                case SmoSkinnedRenderableMaterialFamily.OpaqueBody:
-                    opaqueBodyCount += triangleCount;
-                    break;
-                case SmoSkinnedRenderableMaterialFamily.OpaqueOverlay:
-                    opaqueOverlayCount += triangleCount;
-                    break;
-                case SmoSkinnedRenderableMaterialFamily.AlphaBlend:
-                    alphaCount += triangleCount;
-                    break;
-                default:
-                    throw new InvalidOperationException(
-                        $"Unsupported renderable material family {family}.");
+                switch (family)
+                {
+                    case SmoSkinnedRenderableMaterialFamily.OpaqueBody:
+                        opaqueBodyCount++;
+                        break;
+                    case SmoSkinnedRenderableMaterialFamily.OpaqueOverlay:
+                        opaqueOverlayCount++;
+                        break;
+                    case SmoSkinnedRenderableMaterialFamily.AlphaBlend:
+                        alphaCount++;
+                        break;
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unsupported renderable material family {family}.");
+                }
             }
             if (!classifications.TryAdd(mesh.Key, values))
                 throw new InvalidDataException($"Duplicate imported mesh key {mesh.Key}.");
         }
         return new SmoSkinnedRenderableOpacityPlan(
             classifications, opaqueBodyCount, opaqueOverlayCount, alphaCount);
+    }
+
+    private static SmoSkinnedRenderableMaterialFamily[] ClassifyAutomaticComponents(
+        SmoSkinnedBranchSourceMesh mesh,
+        IReadOnlyList<int> triangleVertices,
+        IReadOnlyList<bool> triangleUsesAlpha)
+    {
+        int triangleCount = mesh.TriangleIndices.Length / 3;
+        if (triangleVertices.Count != mesh.TriangleIndices.Length ||
+            triangleUsesAlpha.Count != triangleCount)
+        {
+            throw new InvalidOperationException(
+                $"Mesh {mesh.Name} alpha classification inputs are inconsistent.");
+        }
+        if (triangleCount == 0)
+            return [];
+
+        var connectivity = new UnionFind(mesh.Positions.Length);
+        var referenced = new bool[mesh.Positions.Length];
+        for (int triangle = 0; triangle < triangleCount; triangle++)
+        {
+            int index = triangle * 3;
+            int first = triangleVertices[index];
+            int second = triangleVertices[index + 1];
+            int third = triangleVertices[index + 2];
+            referenced[first] = referenced[second] = referenced[third] = true;
+            connectivity.Union(first, second);
+            connectivity.Union(first, third);
+        }
+
+        // OBJ/glTF attribute seams commonly duplicate the vertices along one
+        // geometric edge. Join raw index components only when they share at
+        // least two exactly equal positions. One coincident point can merely be
+        // contact between otherwise separate clothing or accessory surfaces;
+        // an epsilon could likewise join surfaces which are only very close.
+        var verticesByPosition = new Dictionary<Vector3, List<int>>();
+        for (int vertex = 0; vertex < mesh.Positions.Length; vertex++)
+        {
+            if (!referenced[vertex])
+                continue;
+            Vector3 position = mesh.Positions[vertex];
+            if (!verticesByPosition.TryGetValue(position, out List<int>? equal))
+            {
+                equal = [];
+                verticesByPosition.Add(position, equal);
+            }
+            equal.Add(vertex);
+        }
+        var sharedPositionCount = new Dictionary<(int First, int Second), int>();
+        foreach (List<int> equal in verticesByPosition.Values)
+        {
+            int[] roots = equal.Select(connectivity.Find)
+                .Distinct()
+                .Order()
+                .ToArray();
+            if (roots.Length > 32)
+            {
+                throw new InvalidDataException(
+                    $"Mesh {mesh.Name} has more than 32 overlapping raw components " +
+                    "at one position; alpha-component connectivity is ambiguous.");
+            }
+            for (int first = 0; first < roots.Length; first++)
+            {
+                for (int second = first + 1; second < roots.Length; second++)
+                {
+                    var pair = (roots[first], roots[second]);
+                    sharedPositionCount[pair] =
+                        sharedPositionCount.GetValueOrDefault(pair) + 1;
+                }
+            }
+        }
+        foreach (KeyValuePair<(int First, int Second), int> pair in sharedPositionCount)
+        {
+            if (pair.Value >= 2)
+                connectivity.Union(pair.Key.First, pair.Key.Second);
+        }
+
+        var alphaByComponent = new Dictionary<int, bool>();
+        for (int triangle = 0; triangle < triangleCount; triangle++)
+        {
+            int root = connectivity.Find(triangleVertices[triangle * 3]);
+            alphaByComponent[root] =
+                alphaByComponent.GetValueOrDefault(root) || triangleUsesAlpha[triangle];
+        }
+        var result = new SmoSkinnedRenderableMaterialFamily[triangleCount];
+        for (int triangle = 0; triangle < triangleCount; triangle++)
+        {
+            int root = connectivity.Find(triangleVertices[triangle * 3]);
+            result[triangle] = alphaByComponent[root]
+                ? SmoSkinnedRenderableMaterialFamily.AlphaBlend
+                : SmoSkinnedRenderableMaterialFamily.OpaqueBody;
+        }
+        return result;
     }
 
     public static SmoSkinnedBranchSplitAnalysis Analyze(
@@ -1628,6 +1937,326 @@ internal static class SmoSkinnedBranchSplitBuilder
                     id, rawName, typeHash, 0, checked((uint)data.Length))],
                 0,
                 0);
+    }
+
+    private readonly record struct NormalReferenceTriangle(
+        int MeshKey,
+        Vector3 First,
+        Vector3 Second,
+        Vector3 Third,
+        Vector3 FirstNormal,
+        Vector3 SecondNormal,
+        Vector3 ThirdNormal)
+    {
+        public Vector3 Minimum => Vector3.Min(First, Vector3.Min(Second, Third));
+        public Vector3 Maximum => Vector3.Max(First, Vector3.Max(Second, Third));
+        public Vector3 Centroid => (First + Second + Third) / 3f;
+    }
+
+    private sealed class NormalReferenceSearch
+    {
+        private const int LeafSize = 8;
+        private readonly NormalReferenceTriangle[] _triangles;
+        private readonly Node _root;
+
+        public NormalReferenceSearch(IEnumerable<NormalReferenceTriangle> triangles)
+        {
+            _triangles = triangles.ToArray();
+            _root = Build(0, _triangles.Length);
+        }
+
+        public bool TryFind(
+            Vector3 point,
+            Vector3 sourceNormal,
+            int excludedMeshKey,
+            float maximumDistance,
+            out Vector3 normal)
+        {
+            float bestDistanceSquared = maximumDistance * maximumDistance;
+            float bestDot = float.NegativeInfinity;
+            Vector3 bestNormal = Vector3.Zero;
+            Find(
+                _root,
+                point,
+                sourceNormal,
+                excludedMeshKey,
+                ref bestDistanceSquared,
+                ref bestDot,
+                ref bestNormal);
+            normal = NormalizeOrZero(bestNormal);
+            return normal != Vector3.Zero;
+        }
+
+        private Node Build(int start, int count)
+        {
+            Vector3 minimum = new(float.PositiveInfinity);
+            Vector3 maximum = new(float.NegativeInfinity);
+            Vector3 centroidMinimum = new(float.PositiveInfinity);
+            Vector3 centroidMaximum = new(float.NegativeInfinity);
+            for (int index = start; index < start + count; index++)
+            {
+                NormalReferenceTriangle triangle = _triangles[index];
+                minimum = Vector3.Min(minimum, triangle.Minimum);
+                maximum = Vector3.Max(maximum, triangle.Maximum);
+                centroidMinimum = Vector3.Min(centroidMinimum, triangle.Centroid);
+                centroidMaximum = Vector3.Max(centroidMaximum, triangle.Centroid);
+            }
+            if (count <= LeafSize)
+                return new Node(minimum, maximum, start, count, null, null);
+
+            Vector3 extent = centroidMaximum - centroidMinimum;
+            int axis = extent.X >= extent.Y && extent.X >= extent.Z
+                ? 0
+                : extent.Y >= extent.Z ? 1 : 2;
+            Array.Sort(
+                _triangles,
+                start,
+                count,
+                Comparer<NormalReferenceTriangle>.Create((left, right) =>
+                    Axis(left.Centroid, axis).CompareTo(Axis(right.Centroid, axis))));
+            int leftCount = count / 2;
+            Node left = Build(start, leftCount);
+            Node right = Build(start + leftCount, count - leftCount);
+            return new Node(minimum, maximum, start, count, left, right);
+        }
+
+        private void Find(
+            Node node,
+            Vector3 point,
+            Vector3 sourceNormal,
+            int excludedMeshKey,
+            ref float bestDistanceSquared,
+            ref float bestDot,
+            ref Vector3 bestNormal)
+        {
+            if (DistanceSquaredToBounds(point, node.Minimum, node.Maximum) >
+                bestDistanceSquared)
+            {
+                return;
+            }
+            if (node.Left is null || node.Right is null)
+            {
+                for (int index = node.Start; index < node.Start + node.Count; index++)
+                {
+                    NormalReferenceTriangle triangle = _triangles[index];
+                    if (triangle.MeshKey == excludedMeshKey)
+                        continue;
+                    ClosestPointBarycentric(
+                        point,
+                        triangle.First,
+                        triangle.Second,
+                        triangle.Third,
+                        out Vector3 closest,
+                        out Vector3 barycentric);
+                    float distanceSquared = Vector3.DistanceSquared(point, closest);
+                    if (distanceSquared > bestDistanceSquared)
+                        continue;
+                    Vector3 candidate =
+                        triangle.FirstNormal * barycentric.X +
+                        triangle.SecondNormal * barycentric.Y +
+                        triangle.ThirdNormal * barycentric.Z;
+                    candidate = NormalizeOrZero(candidate);
+                    if (candidate == Vector3.Zero)
+                        continue;
+                    float dot = Vector3.Dot(sourceNormal, candidate);
+                    if (dot < 0.45f)
+                        continue;
+                    float tieTolerance = MathF.Max(
+                        0.000000000001f,
+                        bestDistanceSquared * 0.00001f);
+                    if (distanceSquared > bestDistanceSquared - tieTolerance &&
+                        dot <= bestDot)
+                    {
+                        continue;
+                    }
+                    bestDistanceSquared = distanceSquared;
+                    bestDot = dot;
+                    bestNormal = candidate;
+                }
+                return;
+            }
+
+            float leftDistance = DistanceSquaredToBounds(
+                point, node.Left.Minimum, node.Left.Maximum);
+            float rightDistance = DistanceSquaredToBounds(
+                point, node.Right.Minimum, node.Right.Maximum);
+            if (leftDistance <= rightDistance)
+            {
+                Find(node.Left, point, sourceNormal, excludedMeshKey,
+                    ref bestDistanceSquared, ref bestDot, ref bestNormal);
+                Find(node.Right, point, sourceNormal, excludedMeshKey,
+                    ref bestDistanceSquared, ref bestDot, ref bestNormal);
+            }
+            else
+            {
+                Find(node.Right, point, sourceNormal, excludedMeshKey,
+                    ref bestDistanceSquared, ref bestDot, ref bestNormal);
+                Find(node.Left, point, sourceNormal, excludedMeshKey,
+                    ref bestDistanceSquared, ref bestDot, ref bestNormal);
+            }
+        }
+
+        private static float Axis(Vector3 value, int axis) => axis switch
+        {
+            0 => value.X,
+            1 => value.Y,
+            _ => value.Z
+        };
+
+        private sealed record Node(
+            Vector3 Minimum,
+            Vector3 Maximum,
+            int Start,
+            int Count,
+            Node? Left,
+            Node? Right);
+    }
+
+    private static Vector3 NormalizeOrZero(Vector3 value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) &&
+        float.IsFinite(value.Z) && value.LengthSquared() > 0.000000000001f
+            ? Vector3.Normalize(value)
+            : Vector3.Zero;
+
+    private static float DistanceSquaredToBounds(
+        Vector3 point,
+        Vector3 minimum,
+        Vector3 maximum)
+    {
+        Vector3 delta = Vector3.Max(
+            Vector3.Zero,
+            Vector3.Max(minimum - point, point - maximum));
+        return delta.LengthSquared();
+    }
+
+    // Closest-point regions from Real-Time Collision Detection, with the
+    // barycentric coordinates retained for interpolating the reference normal.
+    private static void ClosestPointBarycentric(
+        Vector3 point,
+        Vector3 first,
+        Vector3 second,
+        Vector3 third,
+        out Vector3 closest,
+        out Vector3 barycentric)
+    {
+        Vector3 firstSecond = second - first;
+        Vector3 firstThird = third - first;
+        Vector3 firstPoint = point - first;
+        float d1 = Vector3.Dot(firstSecond, firstPoint);
+        float d2 = Vector3.Dot(firstThird, firstPoint);
+        if (d1 <= 0 && d2 <= 0)
+        {
+            closest = first;
+            barycentric = new Vector3(1, 0, 0);
+            return;
+        }
+
+        Vector3 secondPoint = point - second;
+        float d3 = Vector3.Dot(firstSecond, secondPoint);
+        float d4 = Vector3.Dot(firstThird, secondPoint);
+        if (d3 >= 0 && d4 <= d3)
+        {
+            closest = second;
+            barycentric = new Vector3(0, 1, 0);
+            return;
+        }
+
+        float vc = d1 * d4 - d3 * d2;
+        if (vc <= 0 && d1 >= 0 && d3 <= 0)
+        {
+            float v = d1 / (d1 - d3);
+            closest = first + firstSecond * v;
+            barycentric = new Vector3(1 - v, v, 0);
+            return;
+        }
+
+        Vector3 thirdPoint = point - third;
+        float d5 = Vector3.Dot(firstSecond, thirdPoint);
+        float d6 = Vector3.Dot(firstThird, thirdPoint);
+        if (d6 >= 0 && d5 <= d6)
+        {
+            closest = third;
+            barycentric = new Vector3(0, 0, 1);
+            return;
+        }
+
+        float vb = d5 * d2 - d1 * d6;
+        if (vb <= 0 && d2 >= 0 && d6 <= 0)
+        {
+            float w = d2 / (d2 - d6);
+            closest = first + firstThird * w;
+            barycentric = new Vector3(1 - w, 0, w);
+            return;
+        }
+
+        float va = d3 * d6 - d5 * d4;
+        if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0)
+        {
+            float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+            closest = second + (third - second) * w;
+            barycentric = new Vector3(0, 1 - w, w);
+            return;
+        }
+
+        float denominator = va + vb + vc;
+        if (!float.IsFinite(denominator) || MathF.Abs(denominator) <= 0.000000000001f)
+        {
+            closest = first;
+            barycentric = new Vector3(1, 0, 0);
+            return;
+        }
+        float inverse = 1 / denominator;
+        float insideV = vb * inverse;
+        float insideW = vc * inverse;
+        closest = first + firstSecond * insideV + firstThird * insideW;
+        barycentric = new Vector3(1 - insideV - insideW, insideV, insideW);
+    }
+
+    private sealed class UnionFind
+    {
+        private readonly int[] _parents;
+        private readonly byte[] _ranks;
+
+        public UnionFind(int count)
+        {
+            _parents = Enumerable.Range(0, count).ToArray();
+            _ranks = new byte[count];
+        }
+
+        public int Find(int value)
+        {
+            int root = value;
+            while (_parents[root] != root)
+                root = _parents[root];
+            while (_parents[value] != value)
+            {
+                int parent = _parents[value];
+                _parents[value] = root;
+                value = parent;
+            }
+            return root;
+        }
+
+        public void Union(int left, int right)
+        {
+            int leftRoot = Find(left);
+            int rightRoot = Find(right);
+            if (leftRoot == rightRoot)
+                return;
+            if (_ranks[leftRoot] < _ranks[rightRoot])
+            {
+                _parents[leftRoot] = rightRoot;
+            }
+            else if (_ranks[leftRoot] > _ranks[rightRoot])
+            {
+                _parents[rightRoot] = leftRoot;
+            }
+            else
+            {
+                _parents[rightRoot] = leftRoot;
+                _ranks[leftRoot]++;
+            }
+        }
     }
 
     private sealed class ObjectIdAllocator
