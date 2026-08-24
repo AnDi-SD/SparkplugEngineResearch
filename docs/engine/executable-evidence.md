@@ -10,13 +10,14 @@
 |---|---|---:|---|
 | `SLES_532.19` | PS2 ELF32 little-endian MIPS | 3 799 600 | `198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE` |
 | baseline `WinxClub.exe` | PE32 x86 native | 22 065 152 | `D8D0AD112D46F7229C7227B2D15338195D54957AB408E75C1E566895EF0988C0` |
+| resolution-research `WinxClub(4).exe` | PE32 x86 native | 22 065 152 | `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F` |
 | `WinxClubWithDebugMenu/WinxClub.exe` | PE32 x86 patch | 22 065 152 | `C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB` |
 | `Winx Club Resolution Changer.exe` | managed .NET PE32 | 26 624 | `384B8A029F9FF32404196192B7224472CCF8051168C72C285B42E11519BE6FE8` |
 | `Winx Club Tweak Center.exe` | managed .NET PE32 | 27 648 | `15AD37CD5D5D33DB9DB79AABAB2B6B82F885736ED9AFF1B846E4265881746C32` |
 | `WinxClubTweakCenter2.exe` | managed .NET PE32 | 48 640 | `FF352456512B9A4F40C07EA7E01651F2EBFBEBF7CC1D2BE849FAA7396207977A` |
 
 Полные пути и сами файлы остаются только в игнорируемом `local-data/`.
-Текущий PC baseline удобен для сравнения с debug-menu patch, но не считается pristine-сборкой.
+Текущий PC baseline удобен для сравнения с debug-menu patch, но не считается pristine-сборкой. Resolution-research EXE имеет тот же размер, но другой хэш; найденные в нём адреса нельзя переносить на baseline автоматически.
 
 ## Эквивалентные FFPS-проверки — подтверждено
 
@@ -103,6 +104,23 @@ utility также использует штатный `fullScreen=false`.
 
 Эти программы остаются картой patch points, а не источником истины формата;
 native validator намеренно не запускает их и ничего не записывает в EXE/SPT.
+
+## Display mode, камера и GUI
+
+Статический разбор resolution-research EXE подтвердил полный штатный путь от
+пункта `Resolution` в меню до таблицы физических режимов. UI циклически
+показывает `800x600`, `1024x768` и `1280x960`, но switch применения принимает
+также скрытый индекс `3` для `1600x1200`. Перед переинициализацией сравнивается
+только новая ширина, поэтому режимы с одинаковой шириной и разной высотой требуют
+исправления условия.
+
+Тот же разбор нашёл исходный FOV камеры `60` градусов, aspect-зависимую
+перспективную математику и отдельную ортографическую `GUI camera`, которой
+передаются виртуальные размеры `100x75`. Вывод о Vert- и схема Hor+/GUI safe-area
+пока являются статической реконструкцией и предложением соответственно.
+
+Адреса, формулы, поведение старого Resolution Changer и границы достоверности
+вынесены в [отдельное описание display mode, камер и GUI](display-resolution-camera-gui.md).
 
 ## Дополнительные подтверждения 2026-08-10
 

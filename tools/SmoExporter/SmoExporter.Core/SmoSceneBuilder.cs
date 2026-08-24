@@ -20,9 +20,11 @@ public static class SmoSceneBuilder
         bool includeTextures = Includes(resources, SmoExportResourceTypes.Textures);
         bool includeAnimations = Includes(resources, SmoExportResourceTypes.Animations);
         bool includeServiceNodes = Includes(resources, SmoExportResourceTypes.ServiceNodes);
+        ValidateSceneMode(options.SceneMode, options.SelectedMeshObjectIndices);
 
         var warnings = new List<string>();
         var meshes = new List<SmoExportMesh>();
+        var meshPlacements = new List<SmoExportMeshPlacement>();
         IReadOnlyDictionary<int, SmoTextureBinding> materialBindings =
             includeMaterials
                 ? SmoTextureBindingResolver.ResolveAll(document)
@@ -75,6 +77,11 @@ public static class SmoSceneBuilder
         IEnumerable<SmoObjectEntry> meshEntries = includeMeshes
             ? document.Objects.Where(item => item.TypeHash == SmoClassIds.MeshData)
             : Enumerable.Empty<SmoObjectEntry>();
+        if (options.SceneMode == SmoExportSceneMode.SeparateMeshes)
+        {
+            IReadOnlySet<int> selected = options.SelectedMeshObjectIndices!;
+            meshEntries = meshEntries.Where(entry => selected.Contains(entry.Index));
+        }
         foreach (SmoObjectEntry entry in meshEntries)
         {
             if (!SmoMeshDecoder.TryDecode(document, entry, out SmoMesh? mesh, out string error) ||
@@ -207,7 +214,7 @@ public static class SmoSceneBuilder
             // part of this mesh's rendered colour and must enable blending.
             usesAlphaBlend |= materialColor.W < 1f ||
                               colors.Any(color => color.W < 1f);
-            meshes.Add(new SmoExportMesh(
+            var exportMesh = new SmoExportMesh(
                 entry.Index,
                 entry.Id,
                 mesh.Name,
@@ -232,7 +239,67 @@ public static class SmoSceneBuilder
                 exportSkin ? skinObjectIndex : null,
                 parentNodeObjectIndex,
                 ReflectMatrix(world),
-                ReflectMatrix(local)));
+                ReflectMatrix(local));
+            meshes.Add(exportMesh);
+            meshPlacements.Add(new SmoExportMeshPlacement(
+                entry.Index,
+                entry.Name,
+                entry.Index,
+                IsSharedInstance: false,
+                StaticObjectIndex: FindAncestorObjectIndex(
+                    document.Objects, entry, SmoClassIds.StaticRenderObject),
+                MaterialObjectIndex: FindAncestorObjectIndex(
+                    document.Objects, entry, SmoClassIds.MaterialData),
+                parentNodeObjectIndex,
+                exportMesh.BindWorldMatrix,
+                exportMesh.BindLocalMatrix));
+        }
+
+        if (includeMeshes && options.SceneMode is
+            SmoExportSceneMode.All or
+            SmoExportSceneMode.LevelWithBakedObjects or
+            SmoExportSceneMode.LevelWithInstances)
+        {
+            Dictionary<int, SmoExportMesh> meshesByObjectIndex = meshes
+                .ToDictionary(mesh => mesh.ObjectIndex);
+            foreach (SmoSharedMeshInstanceInfo instance in
+                     SmoSharedMeshInstanceResolver.ResolveAll(document))
+            {
+                if (!meshesByObjectIndex.TryGetValue(
+                        instance.SourceMeshObjectIndex, out SmoExportMesh? sourceMesh))
+                {
+                    warnings.Add(
+                        $"SHARED_MESH_INSTANCE_SOURCE_MISSING: Model " +
+                        $"[{instance.ModelObjectIndex}] {instance.ModelObjectName} references " +
+                        $"mesh [{instance.SourceMeshObjectIndex}], but that mesh was not exported.");
+                    continue;
+                }
+                if (sourceMesh.SkinObjectIndex is not null)
+                {
+                    throw new InvalidDataException(
+                        $"Shared level placement [{instance.ModelObjectIndex}] " +
+                        $"{instance.ModelObjectName} references skinned mesh " +
+                        $"[{sourceMesh.ObjectIndex}] {sourceMesh.Name}. A rigid instance cannot " +
+                        "preserve that skin binding without duplicating geometry.");
+                }
+
+                Matrix4x4 world = options.ApplyWorldTransforms
+                    ? ReflectMatrix(instance.WorldTransform)
+                    : Matrix4x4.Identity;
+                string placementName = string.IsNullOrWhiteSpace(instance.ModelObjectName)
+                    ? instance.StaticObjectName
+                    : instance.ModelObjectName;
+                meshPlacements.Add(new SmoExportMeshPlacement(
+                    instance.ModelObjectIndex,
+                    placementName,
+                    instance.SourceMeshObjectIndex,
+                    IsSharedInstance: true,
+                    instance.StaticObjectIndex,
+                    instance.MaterialObjectIndex,
+                    ParentNodeObjectIndex: null,
+                    world,
+                    world));
+            }
         }
 
         if (includeSkeleton)
@@ -249,8 +316,8 @@ public static class SmoSceneBuilder
         string sourcePath = document.SourcePath ?? "memory.smo";
         string hash = Convert.ToHexString(SHA256.HashData(document.Data.Span));
         return new SmoExportScene(
-            sourcePath, hash, document.Header.Version, resources,
-            meshes, nodes, skins, animations, warnings);
+            sourcePath, hash, document.Header.Version, resources, options.SceneMode,
+            meshes, meshPlacements, nodes, skins, animations, warnings);
     }
 
     private static bool Includes(
@@ -297,6 +364,21 @@ public static class SmoSceneBuilder
             throw new ArgumentException(
                 "Exporting service nodes requires a skeleton.",
                 nameof(SmoExportOptions.Resources));
+        }
+    }
+
+    private static void ValidateSceneMode(
+        SmoExportSceneMode mode,
+        IReadOnlySet<int>? selectedMeshObjectIndices)
+    {
+        if (!Enum.IsDefined(mode))
+            throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown scene mode.");
+        if (mode == SmoExportSceneMode.SeparateMeshes &&
+            (selectedMeshObjectIndices is null || selectedMeshObjectIndices.Count == 0))
+        {
+            throw new ArgumentException(
+                "Separate mesh export requires at least one selected mesh object index.",
+                nameof(SmoExportOptions.SelectedMeshObjectIndices));
         }
     }
 

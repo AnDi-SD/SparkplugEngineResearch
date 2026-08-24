@@ -27,8 +27,8 @@ read-only границу для ещё не подтверждённых writer-
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Текущий опубликованный цикл от 2026-08-24: [SmoViewer `0.4.2`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.4.2),
-[SmoExporter `0.4.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.4.0),
+Текущий опубликованный цикл от 2026-08-24: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
+[SmoExporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.5.0),
 [SmoImporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.5.0),
 [Winx Hair Patcher `0.2.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/v0.2.0) и
 [SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0).
@@ -103,12 +103,13 @@ dotnet run --project tools/SMOTextureTool/SMOTextureTool.FormatTests -- path/to/
 
 1. [Обзор Sparkplug](docs/engine/overview.md)
 2. [Поиск и загрузка ресурсов Winx Club PC](docs/engine/resource-loading.md)
-3. [Формат SMO](docs/formats/smo.md)
-4. [Формат STX](docs/formats/stx.md)
-5. [PC и PS2](docs/platforms/pc-vs-ps2.md)
-6. [Подтверждённые class ID](docs/reference/class-ids.md)
-7. [План исследования](ROADMAP.md)
-8. [Открытые вопросы](research/open-questions.md)
+3. [Разрешение экрана, камеры и GUI](docs/engine/display-resolution-camera-gui.md)
+4. [Формат SMO](docs/formats/smo.md)
+5. [Формат STX](docs/formats/stx.md)
+6. [PC и PS2](docs/platforms/pc-vs-ps2.md)
+7. [Подтверждённые class ID](docs/reference/class-ids.md)
+8. [План исследования](ROADMAP.md)
+9. [Открытые вопросы](research/open-questions.md)
 
 ## Данные игры
 

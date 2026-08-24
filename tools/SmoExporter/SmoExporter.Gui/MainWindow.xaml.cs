@@ -21,7 +21,11 @@ public partial class MainWindow : Window
     private bool _resourceUiReady;
     private bool _updatingResourceTypes;
     private bool _updatingAnimationGroups;
+    private bool _updatingContentMode;
+    private SmoExportContentProfile? _contentProfile;
     private readonly ObservableCollection<AnimationChoice> _animations = [];
+    private readonly ObservableCollection<LevelElementChoice> _levelElements = [];
+    private readonly List<LevelElementChoice> _allLevelElements = [];
     private readonly Dictionary<string, HashSet<string>> _animationGroupsByPath =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _enabledAnimationGroups =
@@ -44,6 +48,7 @@ public partial class MainWindow : Window
         _resourceUiReady = true;
         SetSelectedResourceTypes(SmoExportResourceTypes.All);
         AnimationList.ItemsSource = _animations;
+        LevelElementList.ItemsSource = _levelElements;
         _configuredBlenderPath = LoadConfiguredBlenderPath();
         BlenderPathTextBox.Text = _configuredBlenderPath ?? string.Empty;
         CheckBlenderAvailability(writeLog: true);
@@ -56,7 +61,18 @@ public partial class MainWindow : Window
             string? viewerAnimationList = GetOption(arguments, "--viewer-animation-list");
             LoadModel(commandLineModel, discoverAnimations: viewerAnimationList is null);
             if (viewerAnimationList is not null)
-                LoadViewerAnimations(viewerAnimationList);
+            {
+                if (GetEffectiveContentKind() == SmoExportContentKind.Character)
+                {
+                    LoadViewerAnimations(viewerAnimationList);
+                }
+                else
+                {
+                    try { File.Delete(viewerAnimationList); }
+                    catch { }
+                    AddLog("Каталог SAN из Viewer не используется для профиля уровня.");
+                }
+            }
         }
     }
 
@@ -78,19 +94,38 @@ public partial class MainWindow : Window
     private void LoadModel(string path, bool discoverAnimations = true)
     {
         _sourcePath = Path.GetFullPath(path);
+        SmoDocument document = SmoDocument.Load(_sourcePath);
+        _contentProfile = SmoExportContentProfileAnalyzer.Analyze(document);
+        _updatingContentMode = true;
+        try
+        {
+            AutoContentModeItem.Content =
+                $"Авто — {GetContentKindDisplayName(_contentProfile.Kind).ToLowerInvariant()}";
+            ContentModeComboBox.SelectedIndex = 0;
+        }
+        finally
+        {
+            _updatingContentMode = false;
+        }
         _outputDirectory = Path.Combine(
             Path.GetDirectoryName(_sourcePath)!,
             Path.GetFileNameWithoutExtension(_sourcePath) + "_export");
         ModelPathText.Text = _sourcePath;
         OutputPathTextBox.Text = _outputDirectory;
-        StatusText.Text = "Модель выбрана. Результат будет сохранён в соседнюю папку экспорта.";
+        StatusText.Text = _contentProfile.Kind == SmoExportContentKind.Level
+            ? "Определён уровень. Выберите способ сборки сцены."
+            : "Определён персонаж. Результат будет сохранён в соседнюю папку экспорта.";
         ResetButton.IsEnabled = true;
         SetSelectedResourceTypes(SmoExportResourceTypes.All);
         ResetAnimationCatalog();
-        if (discoverAnimations)
+        ApplyContentProfile(resetLevelState: true);
+        if (discoverAnimations && GetEffectiveContentKind() == SmoExportContentKind.Character)
             DiscoverAnimations();
-        AddLog($"Выбрана модель: {_sourcePath}");
-        if (discoverAnimations)
+        AddLog($"Выбран файл: {_sourcePath}");
+        AddLog($"Автоопределение: {_contentProfile.Kind} — {_contentProfile.Reason}. " +
+               $"Физических мешей: {_contentProfile.PhysicalMeshCount}; " +
+               $"размещений: {_contentProfile.PlacementCount}.");
+        if (discoverAnimations && GetEffectiveContentKind() == SmoExportContentKind.Character)
             AddLog($"Найдено соседних SAN: {_animations.Count}.");
         UpdateExportAvailability();
     }
@@ -168,6 +203,148 @@ public partial class MainWindow : Window
             try { File.Delete(manifestPath); }
             catch { }
         }
+    }
+
+    private void ApplyContentProfile(bool resetLevelState = false)
+    {
+        bool isLevel = GetEffectiveContentKind() == SmoExportContentKind.Level;
+        ResourceTypesPanel.Visibility = isLevel
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        AnimationSelectionPanel.Visibility = isLevel
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        LevelModePanel.Visibility = isLevel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        LevelElementSelectionPanel.Visibility = isLevel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        if (isLevel && _contentProfile is not null)
+        {
+            HashSet<int> selectedElements = resetLevelState
+                ? []
+                : _allLevelElements.Where(item => item.IsSelected)
+                    .Select(item => item.MeshObjectIndex).ToHashSet();
+            _allLevelElements.Clear();
+            _levelElements.Clear();
+            foreach (SmoExportElementInfo element in _contentProfile.Elements)
+            {
+                _allLevelElements.Add(new LevelElementChoice(element)
+                {
+                    IsSelected = selectedElements.Contains(element.MeshObjectIndex)
+                });
+            }
+            bool automatic = GetSelectedContentMode() == "auto";
+            LevelProfileSummaryText.Text =
+                (automatic
+                    ? $"Определено автоматически: {_contentProfile.Reason}. "
+                    : $"Профиль уровня выбран вручную; автоопределение: " +
+                      $"{GetContentKindDisplayName(_contentProfile.Kind).ToLowerInvariant()} " +
+                      $"({_contentProfile.Reason}). ") +
+                $"Мешей {_contentProfile.PhysicalMeshCount}, размещений " +
+                $"{_contentProfile.PlacementCount}, ссылочных копий " +
+                $"{_contentProfile.SharedInstanceCount}.";
+            LevelElementSummaryText.Text =
+                $"Доступно уникальных физических мешей: {_allLevelElements.Count}. " +
+                "Список используется режимом раздельного экспорта.";
+            LevelElementFilterBox.Text = string.Empty;
+            RefreshLevelElementList();
+            if (resetLevelState)
+                LevelEverythingRadio.IsChecked = true;
+        }
+        else if (resetLevelState)
+        {
+            _allLevelElements.Clear();
+            _levelElements.Clear();
+        }
+        ApplyFormatCapabilities();
+        UpdateLevelModeUi();
+    }
+
+    private SmoExportSceneMode GetSelectedLevelMode()
+    {
+        if (LevelOnlyRadio.IsChecked == true)
+            return SmoExportSceneMode.LevelOnly;
+        if (LevelBakedRadio.IsChecked == true)
+            return SmoExportSceneMode.LevelWithBakedObjects;
+        if (LevelInstancesRadio.IsChecked == true)
+            return SmoExportSceneMode.LevelWithInstances;
+        if (LevelSeparateRadio.IsChecked == true)
+            return SmoExportSceneMode.SeparateMeshes;
+        return SmoExportSceneMode.All;
+    }
+
+    private void LevelMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_resourceUiReady)
+            return;
+        UpdateLevelModeUi();
+        UpdateExportAvailability();
+    }
+
+    private void UpdateLevelModeUi()
+    {
+        if (LevelElementSelectionPanel is null)
+            return;
+        bool separate = GetSelectedLevelMode() == SmoExportSceneMode.SeparateMeshes;
+        LevelElementSelectionPanel.IsEnabled = !_busy && separate;
+        LevelModeHintText.Text = GetSelectedLevelMode() switch
+        {
+            SmoExportSceneMode.LevelOnly =>
+                "Экспортируются физические меши SMO без reference-only размещений.",
+            SmoExportSceneMode.LevelWithBakedObjects =>
+                "Каждое размещение получает независимую геометрию; файлы будут крупнее.",
+            SmoExportSceneMode.LevelWithInstances =>
+                "GLB/FBX сохраняют одну геометрию и отдельные узлы-размещения.",
+            SmoExportSceneMode.SeparateMeshes =>
+                "Для каждого отмеченного меша будет создан самостоятельный файл.",
+            _ =>
+                "Сохраняются все поддерживаемые ресурсы и полная собранная сцена."
+        };
+    }
+
+    private void LevelElementFilter_Changed(object sender, TextChangedEventArgs e) =>
+        RefreshLevelElementList();
+
+    private void RefreshLevelElementList()
+    {
+        if (LevelElementFilterBox is null)
+            return;
+        string filter = LevelElementFilterBox.Text.Trim();
+        IEnumerable<LevelElementChoice> visible = _allLevelElements;
+        if (filter.Length > 0)
+        {
+            visible = visible.Where(item =>
+                item.Display.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        }
+        _levelElements.Clear();
+        foreach (LevelElementChoice item in visible)
+            _levelElements.Add(item);
+    }
+
+    private void SelectAllLevelElements_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (LevelElementChoice item in _levelElements)
+            item.IsSelected = true;
+        LevelElementList.Items.Refresh();
+        UpdateExportAvailability();
+    }
+
+    private void ClearLevelElements_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (LevelElementChoice item in _allLevelElements)
+            item.IsSelected = false;
+        LevelElementList.Items.Refresh();
+        UpdateExportAvailability();
+    }
+
+    private void LevelElementCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox { DataContext: LevelElementChoice item } checkBox)
+            item.IsSelected = checkBox.IsChecked == true;
+        UpdateExportAvailability();
     }
 
     private static string? GetOption(string[] arguments, string name)
@@ -566,10 +743,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        SmoExportResourceTypes resources = GetSelectedResourceTypes();
-        string? resourceValidationIssue = GetResourceValidationIssue(
-            selectedFormat,
-            resources);
+        SmoExportResourceTypes resources = GetResourcesForCurrentProfile();
+        string? resourceValidationIssue = GetExportValidationIssue(selectedFormat);
         if (resourceValidationIssue is not null)
         {
             StatusText.Text = resourceValidationIssue;
@@ -586,6 +761,14 @@ public partial class MainWindow : Window
             string sourcePath = _sourcePath;
             string outputDirectory = _outputDirectory;
             string format = selectedFormat;
+            SmoExportSceneMode sceneMode =
+                GetEffectiveContentKind() == SmoExportContentKind.Level
+                    ? GetSelectedLevelMode()
+                    : SmoExportSceneMode.All;
+            int[] selectedMeshObjectIndices = sceneMode == SmoExportSceneMode.SeparateMeshes
+                ? _allLevelElements.Where(item => item.IsSelected)
+                    .Select(item => item.MeshObjectIndex).ToArray()
+                : [];
             string[] animations = (sceneResources & SmoExportResourceTypes.Animations) != 0
                 ? _animations.Where(item => item.IsSelected)
                     .Select(item => item.Path).ToArray()
@@ -593,7 +776,8 @@ public partial class MainWindow : Window
             StatusText.Text = "Чтение SMO и подготовка выбранных ресурсов…";
             AddLog($"Начат экспорт {Path.GetFileName(sourcePath)}; " +
                    $"формат: {format.ToUpperInvariant()}; ресурсы: {sceneResources}; " +
-                   $"выбрано SAN: {animations.Length}.");
+                   $"режим: {sceneMode}; выбрано SAN: {animations.Length}; " +
+                   $"отдельных мешей: {selectedMeshObjectIndices.Length}.");
             IProgress<string> progress = new Progress<string>(message =>
             {
                 StatusText.Text = message;
@@ -608,43 +792,83 @@ public partial class MainWindow : Window
                 SmoExportScene scene = SmoSceneBuilder.Build(
                     document, new SmoExportOptions(
                         AnimationPaths: animations,
-                        Resources: sceneResources));
-                progress.Report($"Сцена подготовлена: meshes {scene.Meshes.Count}, nodes {scene.Nodes.Count}, skins {scene.Skins.Count}, animations {scene.Animations.Count}.");
+                        Resources: sceneResources,
+                        SceneMode: sceneMode,
+                        SelectedMeshObjectIndices:
+                            selectedMeshObjectIndices.ToHashSet()));
+                progress.Report($"Сцена подготовлена: уникальных meshes " +
+                    $"{scene.Meshes.Count}, размещений {scene.MeshPlacements.Count}, " +
+                    $"nodes {scene.Nodes.Count}, skins {scene.Skins.Count}, " +
+                    $"animations {scene.Animations.Count}.");
                 Directory.CreateDirectory(outputDirectory);
                 string stem = Path.GetFileNameWithoutExtension(sourcePath);
                 var files = new List<string>();
-                if (format is "glb" or "all")
+                var warnings = scene.Warnings.ToList();
+
+                void WriteFormats(SmoExportScene exportScene, string fileStem)
                 {
-                    progress.Report("Запись GLB…");
-                    string glb = Path.Combine(outputDirectory, stem + ".glb");
-                    GlbExporter.Export(scene, glb);
-                    files.Add(glb);
+                    if (format is "glb" or "all")
+                    {
+                        progress.Report($"Запись {fileStem}.glb…");
+                        string glb = Path.Combine(outputDirectory, fileStem + ".glb");
+                        GlbExporter.Export(exportScene, glb);
+                        files.Add(glb);
+                    }
+                    if (format is "fbx" or "all")
+                    {
+                        progress.Report($"Прямая запись {fileStem}.fbx нативным модулем…");
+                        string fbx = Path.Combine(outputDirectory, fileStem + ".fbx");
+                        FbxExporter.Export(exportScene, fbx, _blenderPath);
+                        files.Add(fbx);
+                    }
+                    if (format is "obj" or "all")
+                    {
+                        progress.Report($"Запись {fileStem}.obj…");
+                        string obj = Path.Combine(outputDirectory, fileStem + ".obj");
+                        ObjExporter.Export(exportScene, obj);
+                        files.Add(obj);
+                    }
                 }
-                if (format is "fbx" or "all")
+
+                if (sceneMode == SmoExportSceneMode.SeparateMeshes)
                 {
-                    progress.Report("Прямая запись FBX нативным модулем…");
-                    string fbx = Path.Combine(outputDirectory, stem + ".fbx");
-                    FbxExporter.Export(scene, fbx, _blenderPath);
-                    files.Add(fbx);
+                    foreach (int meshObjectIndex in selectedMeshObjectIndices)
+                    {
+                        SmoExportScene single =
+                            SmoExportSceneSplitter.CreateSingleMeshScene(
+                                scene, meshObjectIndex);
+                        SmoExportMesh mesh = single.Meshes[0];
+                        string fileStem = $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}";
+                        WriteFormats(single, fileStem);
+                    }
                 }
-                if (format is "obj" or "all")
+                else
                 {
-                    progress.Report("Запись OBJ…");
-                    string obj = Path.Combine(outputDirectory, stem + ".obj");
-                    ObjExporter.Export(scene, obj);
-                    files.Add(obj);
+                    WriteFormats(scene, stem);
+                }
+
+                int sharedInstances = scene.MeshPlacements.Count(placement =>
+                    placement.IsSharedInstance);
+                if ((format is "obj" or "all") && sharedInstances > 0)
+                {
+                    warnings.Add(
+                        $"OBJ не поддерживает mesh-инстансы: {sharedInstances} " +
+                        "ссылочных размещений запечены в независимые вершины. " +
+                        "GLB/FBX в том же экспорте сохраняют ссылки, если выбран соответствующий режим.");
                 }
                 return new ExportResult(
                     scene.Meshes.Count,
+                    scene.MeshPlacements.Count,
                     scene.Nodes.Count,
                     scene.Skins.Count,
                     scene.Animations.Count,
-                    scene.Warnings.ToArray(),
+                    warnings,
                     files);
             });
 
             StatusText.Text =
-                $"Готово: мешей {result.MeshCount}, узлов {result.NodeCount}, " +
+                $"Готово: уникальных мешей {result.MeshCount}, размещений " +
+                $"{result.PlacementCount}, узлов {result.NodeCount}, " +
                 $"скинов {result.SkinCount}, анимаций {result.AnimationCount}; " +
                 $"предупреждений: {result.Warnings.Count}. " +
                 $"Папка: {outputDirectory}";
@@ -675,10 +899,24 @@ public partial class MainWindow : Window
     {
         _sourcePath = null;
         _outputDirectory = null;
+        _contentProfile = null;
         ModelPathText.Text = "Файл не выбран";
         OutputPathTextBox.Text = "Не выбрана";
         FormatComboBox.SelectedIndex = 0;
+        _updatingContentMode = true;
+        try
+        {
+            AutoContentModeItem.Content = "Авто";
+            ContentModeComboBox.SelectedIndex = 0;
+        }
+        finally
+        {
+            _updatingContentMode = false;
+        }
         ResetAnimationCatalog();
+        _allLevelElements.Clear();
+        _levelElements.Clear();
+        ApplyContentProfile();
         SetSelectedResourceTypes(SmoExportResourceTypes.All);
         ExportLog.Items.Clear();
         AddLog("Форма очищена.");
@@ -693,6 +931,7 @@ public partial class MainWindow : Window
         SelectButton.IsEnabled = !busy;
         ResetButton.IsEnabled = !busy && _sourcePath is not null;
         FormatComboBox.IsEnabled = !busy;
+        ContentModeComboBox.IsEnabled = !busy;
         BrowseOutputButton.IsEnabled = !busy;
         BlenderPathTextBox.IsEnabled = !busy;
         BrowseBlenderButton.IsEnabled = !busy;
@@ -702,12 +941,70 @@ public partial class MainWindow : Window
         if (busy)
             BlenderSettingsPopup.IsOpen = false;
         ResourceTypesPanel.IsEnabled = !busy;
+        LevelModePanel.IsEnabled = !busy;
         UpdateAnimationControlsState();
+        ApplyFormatCapabilities();
+        UpdateLevelModeUi();
         UpdateExportAvailability();
     }
 
-    private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+    private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ApplyFormatCapabilities();
         UpdateExportAvailability();
+    }
+
+    private void ContentModeComboBox_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (!_resourceUiReady || _updatingContentMode || _contentProfile is null)
+            return;
+
+        SmoExportContentKind effectiveKind = GetEffectiveContentKind()!.Value;
+        ApplyContentProfile();
+        if (effectiveKind == SmoExportContentKind.Character && _animations.Count == 0)
+            DiscoverAnimations();
+
+        string selectedMode = GetSelectedContentMode();
+        StatusText.Text = selectedMode == "auto"
+            ? $"Автоматически определён {GetContentKindDisplayName(effectiveKind).ToLowerInvariant()}."
+            : $"Ручной профиль: {GetContentKindDisplayName(effectiveKind).ToLowerInvariant()}. " +
+              $"Автоопределение: {GetContentKindDisplayName(_contentProfile.Kind).ToLowerInvariant()}.";
+        AddLog(selectedMode == "auto"
+            ? $"Включено автоопределение профиля: {effectiveKind}."
+            : $"Профиль вручную изменён на {effectiveKind}; " +
+              $"автоопределение сохранено: {_contentProfile.Kind} — {_contentProfile.Reason}.");
+        UpdateExportAvailability();
+    }
+
+    private void ApplyFormatCapabilities()
+    {
+        if (!_resourceUiReady || FormatComboBox is null)
+            return;
+        string format = GetSelectedFormat();
+        bool objOnly = format == "obj";
+        SkeletonResourceCheckBox.IsEnabled = !objOnly && !_busy;
+        ServiceNodesResourceCheckBox.IsEnabled = !objOnly && !_busy;
+        AnimationsResourceCheckBox.IsEnabled = !objOnly && !_busy;
+        MeshesResourceCheckBox.IsEnabled = !_busy;
+        MaterialsResourceCheckBox.IsEnabled = !_busy;
+        TexturesResourceCheckBox.IsEnabled = !_busy;
+        if (objOnly && GetEffectiveContentKind() != SmoExportContentKind.Level)
+        {
+            SmoExportResourceTypes compatible = GetSelectedResourceTypes() &
+                (SmoExportResourceTypes.Meshes |
+                 SmoExportResourceTypes.Materials |
+                 SmoExportResourceTypes.Textures);
+            SetSelectedResourceTypes(compatible);
+        }
+
+        bool supportsInstances = format is "glb" or "fbx";
+        LevelInstancesRadio.IsEnabled = supportsInstances && !_busy;
+        if (!supportsInstances && LevelInstancesRadio.IsChecked == true)
+            LevelBakedRadio.IsChecked = true;
+        UpdateLevelModeUi();
+    }
 
     private void CheckBlender_Click(object sender, RoutedEventArgs e)
     {
@@ -839,14 +1136,30 @@ public partial class MainWindow : Window
     private string GetSelectedFormat() =>
         (FormatComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "glb";
 
+    private string GetSelectedContentMode() =>
+        (ContentModeComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "auto";
+
+    private SmoExportContentKind? GetEffectiveContentKind()
+    {
+        if (_contentProfile is null)
+            return null;
+        return GetSelectedContentMode() switch
+        {
+            "character" => SmoExportContentKind.Character,
+            "level" => SmoExportContentKind.Level,
+            _ => _contentProfile.Kind
+        };
+    }
+
+    private static string GetContentKindDisplayName(SmoExportContentKind kind) =>
+        kind == SmoExportContentKind.Level ? "Уровень" : "Персонаж";
+
     private void UpdateExportAvailability()
     {
         if (ExportButton is null) return;
         string selectedFormat = GetSelectedFormat();
         bool needsBlender = selectedFormat is "fbx" or "all";
-        string? resourceValidationIssue = GetResourceValidationIssue(
-            selectedFormat,
-            GetSelectedResourceTypes());
+        string? resourceValidationIssue = GetExportValidationIssue(selectedFormat);
         ExportButton.IsEnabled = !_busy && _sourcePath is not null &&
             _outputDirectory is not null && resourceValidationIssue is null &&
             (!needsBlender || _blenderPath is not null);
@@ -983,6 +1296,40 @@ public partial class MainWindow : Window
             : "Выберите хотя бы «Меши» или «Деформирующие кости».";
     }
 
+    private string? GetExportValidationIssue(string selectedFormat)
+    {
+        if (GetEffectiveContentKind() != SmoExportContentKind.Level)
+        {
+            return GetResourceValidationIssue(
+                selectedFormat, GetSelectedResourceTypes());
+        }
+
+        SmoExportSceneMode mode = GetSelectedLevelMode();
+        if (mode == SmoExportSceneMode.LevelWithInstances &&
+            selectedFormat is not ("glb" or "fbx"))
+        {
+            return "Mesh-инстансы поддерживаются только GLB и FBX; " +
+                   "для OBJ выберите режим без ссылок.";
+        }
+        if (mode == SmoExportSceneMode.SeparateMeshes &&
+            !_allLevelElements.Any(item => item.IsSelected))
+        {
+            return "Отметьте хотя бы один меш для раздельного экспорта.";
+        }
+        return null;
+    }
+
+    private SmoExportResourceTypes GetResourcesForCurrentProfile()
+    {
+        if (GetEffectiveContentKind() != SmoExportContentKind.Level)
+            return GetSelectedResourceTypes();
+        return GetSelectedLevelMode() == SmoExportSceneMode.All
+            ? SmoExportResourceTypes.All
+            : SmoExportResourceTypes.Meshes |
+              SmoExportResourceTypes.Materials |
+              SmoExportResourceTypes.Textures;
+    }
+
     private static SmoExportResourceTypes GetSceneResourcesForFormat(
         string selectedFormat,
         SmoExportResourceTypes resources) =>
@@ -1022,8 +1369,20 @@ public partial class MainWindow : Window
         AnimationList.Items.Refresh();
     }
 
+    private static string SafeFileName(string value)
+    {
+        HashSet<char> invalid = Path.GetInvalidFileNameChars().ToHashSet();
+        string result = new(value.Select(character =>
+            invalid.Contains(character) || char.IsControl(character)
+                ? '_'
+                : character).ToArray());
+        result = result.Trim().TrimEnd('.');
+        return string.IsNullOrWhiteSpace(result) ? "mesh" : result;
+    }
+
     private sealed record ExportResult(
         int MeshCount,
+        int PlacementCount,
         int NodeCount,
         int SkinCount,
         int AnimationCount,
@@ -1037,5 +1396,12 @@ public partial class MainWindow : Window
         public string Path { get; } = path;
         public string Display { get; set; } = display;
         public bool IsSelected { get; set; } = selected;
+    }
+
+    private sealed class LevelElementChoice(SmoExportElementInfo element)
+    {
+        public int MeshObjectIndex { get; } = element.MeshObjectIndex;
+        public string Display { get; } = element.Display;
+        public bool IsSelected { get; set; }
     }
 }

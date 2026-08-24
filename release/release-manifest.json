@@ -11,7 +11,7 @@
       "documents": [
         "tools/SmoViewer/README.md",
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.4.2.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.5.0.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
@@ -24,7 +24,7 @@
           "documents": [
             "tools/SmoExporter/README.md",
             "tools/SmoExporter/CHANGELOG.md",
-            "tools/SmoExporter/RELEASE_NOTES_0.4.0.md"
+            "tools/SmoExporter/RELEASE_NOTES_0.5.0.md"
           ]
         },
         {
@@ -57,7 +57,7 @@
       "documents": [
         "tools/SmoExporter/README.md",
         "tools/SmoExporter/CHANGELOG.md",
-        "tools/SmoExporter/RELEASE_NOTES_0.4.0.md"
+        "tools/SmoExporter/RELEASE_NOTES_0.5.0.md"
       ]
     },
     {

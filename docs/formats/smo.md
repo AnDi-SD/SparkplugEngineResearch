@@ -149,8 +149,9 @@ renderable. Тиара `bloom_princess.smo` по-прежнему полезна
 содержит 211 полностью прозрачных, 746 полупрозрачных и 67 непрозрачных пикселей.
 Материал тела `[26]` имеет `FinalBlendOp = 0x2`. Поэтому Viewer и Exporter
 определяют режим по полной связке material/consumer state, а не по одному биту
-или эвристике по пикселям. WPF-просмотр является приближением и не доказывает
-совпадение с native render path.
+или эвристике по пикселям. OpenGL-просмотр воспроизводит восстановленные
+render-state contracts, но сам по себе не доказывает полное совпадение с native
+render path.
 
 Rigid `spModel` без skinning может принадлежать анимируемому `spRenderNode`.
 Такой mesh сохраняет собственный model world transform в bind pose, но при
@@ -167,6 +168,74 @@ render node и следует его SAN-треку. Подтверждённы�
 - writer/repack `SMOTextureTool` не считается совместимым с игрой: его файлы могли проходить внутренний parser, но вызывать crash;
 - игровая проверка подтвердила замену только RGB-байтов внутри существующего fixed-size BGRA pixel buffer при сохранении исходного Alpha, headers, offsets и длины файла;
 - исторические заявления об игровой проверке texture replacement 1024/2048 считаются опровергнутыми до нового независимого подтверждения.
+
+Эти данные теперь воспроизводятся в основном viewport без промежуточной
+запеканки. Viewer загружает positions/indices, UV0/UV1, texture и vertex diffuse
+непосредственно в OpenGL buffers; fragment shader выполняет `texture ×
+interpolated diffuse`, как подтверждённый `D3DTOP_MODULATE` path игры. Один
+физический `spMeshData` имеет один VBO/EBO, а reference-only placements
+отличаются model matrix. Skinned mesh деформируются palette matrices в vertex
+shader, SAN обновляет bone/model transforms на GPU, texture sequences меняют
+кадры без CPU baking, а подтверждённые layered materials используют base UV0 и
+effect UV1. GUI-сцены используют orthographic projection. Opaque и transparent
+passes, а также сетка пола используют общий depth buffer.
+
+Private triangle-atlas ниже описывает только аварийный WPF fallback при
+недоступном OpenGL context. Невидимая WPF geometry сохраняется для hit testing,
+но не участвует в видимом кадре. Это ограничение просмотрщика, не часть формата
+и не алгоритм игры. Контрольный pristine
+`Alfea03.smo` использовал 509 unique mesh buffers, 63 textures и 1 263
+placements; подготовка сцены на локальной debug-сборке сократилась с 32,17 до
+0,20 с, working set — примерно с 934 до 281 МиБ.
+
+В `Alfea_broken_01.smo` mesh `[1022] Ray_light_F04` подтверждает vertex-only
+light без bitmap: mixed white/yellow RGB сочетается с alpha `0/0x65`,
+`FinalBlendOp=2` и companion state `2`. Direct GPU path сохраняет этот alpha и
+рисует quad после opaque wall. Правило требует нулевого и видимого alpha вместе
+с указанным material family, поэтому обычный baked-lighting alpha у opaque
+полов не становится прозрачностью. `[1005]` и `[1018]` подтверждают ту же схему.
+
+`[1078] poutreW06-000` при этом texture имеет: shared `marble2 [43]` 64×64.
+Она почти белая, а более контрастная `linegen00 [1065]` назначена отдельному
+парному mesh `[1082]`; это два физических элемента одной составной балки.
+
+Vertex format `0x1900` со stride 32 хранит `XYZ` по `+0`, diffuse ARGB по
+`+12`, UV0 по `+16`, UV1 по `+24`, без normal. Пять таких mesh в pristine
+`Alfea_broken_01.smo` — части `WallA-000`; mesh `[4085]` является
+vertex-colour-only стеной с 877 вершинами и 303 записанными RGB. До регистрации
+layout Viewer отбрасывал эти каналы и показывал стену своим голубым
+fallback-цветом. Opaque `FinalBlendOp=0` не использует неоднородный старший байт
+этого diffuse stream как прозрачность.
+
+Аудит pristine `Alfea03.smo` добавил ещё один строгий PC texture layout:
+`0x0EE3` хранит mip chain, при этом базовый BGRA-уровень использует width
+`+0x24`, height `+0x28`, нулевой marker `+0x3C` и pixels `+0x3D`, как
+`0x32E3`. Подтверждённый `[656] top` имеет размер 256×256; Viewer проверяет
+вложенные размеры `E3:0E`, `E1:20`, `E0:1A` и читает базовый уровень.
+
+Там же материал `[4599] Pcrystal12` подтверждает статическую двухслойную схему:
+`[4600] crystal2` семплируется по UV0, `[4601] cryst_hl` — по UV1 mesh `[4603]`,
+а `[4602] spUVController` управляет вторым слоем. Это не texture sequence.
+Rigid book glow/spark meshes `[273]`, `[278]`, `[294]`, `[298]`, `[313]`,
+`[317]` используют `FinalBlendOp=6` и tuple
+`[0,0,1,2,1,1,3,0,2,0,6]`; поэтому `RS[3]`/`RS[5]` без consumer geometry не
+доказывают skinning. OpenGL показывает их диагностическим effect-приближением,
+но это штатный материал уровня, а не ошибка загрузки.
+
+У `[2756] plaque02` правильная texture `[2755] sign_faragonda` имеет 128×64,
+а mesh сочетает её с девятью vertex RGB на общих UV. Прямой GPU-path сохраняет
+эти входы без преобразования. В WPF fallback требуется private triangle-atlas;
+его разрешение выбирается универсально, без проверки назначения
+объекта: максимальный UV-размах треугольника умножается на размеры исходной
+texture, затем добавляются крайний отсчёт и защитное поле. Несколько из 20
+треугольников адресуют почти все 128 texels по горизонтали, поэтому `[2756]`
+получает ячейку 133×133 вместо размытой 32×32.
+
+Единый WPF-бюджет ограничивает preview-atlas размером 2048 по стороне и
+1 048 576 пикселями. Это явно техническое ограничение просмотрщика, одинаковое
+для всех ресурсов, а не семантическое правило SMO и не признак достоверного
+разрешения исходной игры при срабатывании лимита. При выборе mesh журнал Viewer
+показывает отдельно требуемую и фактически выделенную ячейку atlas.
 
 Однако ранние эксперименты при изменении длины pixel buffer обновляли общие `FileSize`/`DataSize`, но не все последующие записи каталога. Поэтому signature scan полезен как восстановительный инструмент, но не заменяет корректный object parser и catalog-safe repack.
 
@@ -237,7 +306,7 @@ base-color texture; OBJ-директивы `d`, `Tr`, `map_d` и эквивал�
 Прозрачная подвеска `mat6` остаётся alpha overlay
 из двух triangles поверх opaque body branch, а не превращает всё тело в прозрачный
 consumer. Strict/Viewer/native проверки подтверждают структуру и загрузку такого
-графа, но не native blend, lighting или depth/sort; WPF Viewer может скрыть ошибку
+графа, но не native blend, lighting или depth/sort; OpenGL Viewer может скрыть ошибку
 объединённого alpha-run, а orbit камеры при фиксированном world-light — углозависимый
 дефект материала. Визуальный паритет нового контракта не подтверждён до
 пользовательского теста вновь созданного SMO непосредственно в игре.
@@ -264,6 +333,26 @@ consumer. Strict/Viewer/native проверки подтверждают стр�
 - PS2 `E1` содержит platform-specific DMA/VIF representation: для 973 mesh Gardenia01 выполняется `payloadSize = 0x28 + dmaQwordCount * 16`; первые четыре `float` задают bounding sphere.
 - PS2 `E2` в Gardenia01 имеет длину 24 байта и соответствует `esfMeshDataBoundingBox` (`minXYZ`, `maxXYZ`).
 - `menu.smo` — GUI scene. Button-state meshes используют layout `0x0100` (`XYZ + Diffuse ARGB`, без UV), а текст представлен `spTextNode`, `spTextRenderable` и `spFont`.
+- Чистый `Media/Menus/igmenu_opt_pc.smo` — другой GUI-вариант: 99 из 99 mesh
+  строго декодируются и остаются плоскими после node-transform. Отдельные ветви
+  `settings`, `controls`, `options`, `language`, `display` и `default` являются
+  экранами/панелями, а `NORMAL*`, `HIGHLIGHTED*`, `PUSHED*`, `DISABLED*` и
+  `shadow*` — слоями состояний. В нём есть 60 state-mesh и два mesh
+  `GUICollision`, но нет text-классов; узлы `resolution`, `value_resolution` и
+  `resolution_label` являются runtime-якорями. SHA-256 образца:
+  `D6ED2606BFCA4C4EED41F59869D1EC1C20DFAFE7A3BFD8E7FEC6C5F109052F0E`.
+- `Media/Menus/gameover.smo` — node-only 2D-layout размером 395 байт. Его шесть
+  `spNode` образуют `gameover/{shadow,NORMAL}/text_*`; два leaf-слота наследуют
+  transforms состояний. Mesh, texture, material, text-классов и самой строки в
+  ресурсе нет: они должны создаваться runtime. SHA-256:
+  `593DDE72EAFC36532B4976B5269EB53D0B3FAC217AB9B97472C6B8C1DBEBE2AA`.
+- В partitioned `Alfea02.smo` object-directory intervals вкладывают `sector` и
+  `portal` друг в друга, но это не transform-иерархия. `spStaticRenderObject`
+  хранит готовую world-матрицу и завершает placement chain; baked mesh под
+  sector group `0x94BBCA2A` сохраняет vertex coordinates. Объект `[4199]` —
+  `spModel dormBigroomNOSH-000`, его mesh `[4201]` должен иметь identity world
+  transform. SHA-256 образца:
+  `1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF`.
 - Наличие `Is32Bit()` в serializer подтверждает архитектурную поддержку 32-bit index buffers. Значение 65 535 нельзя считать доказанным общим лимитом Sparkplug.
 
 ## Связанные PC-анимации SAN/ANM

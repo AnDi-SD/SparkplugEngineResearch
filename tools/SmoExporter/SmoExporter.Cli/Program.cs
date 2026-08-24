@@ -4,6 +4,7 @@ using SmoViewer.Core;
 if (args.Length == 0 || args.Contains("--help"))
 {
     Console.WriteLine("Usage: smo-export <input.smo> [--output directory] [--glb] [--fbx] [--obj] [--animation clip.san]...");
+    Console.WriteLine("Level modes: --level-only | --bake-instances | --preserve-instances | --mesh objectIndex ...");
     Console.WriteLine("Without format switches both GLB and OBJ are exported.");
     return args.Length == 0 ? 2 : 0;
 }
@@ -19,6 +20,32 @@ if (!glb && !obj && !fbx) glb = obj = true;
 bool objOnly = obj && !glb && !fbx;
 string[] requestedAnimations = GetOptions(args, "--animation")
     .Select(Path.GetFullPath).ToArray();
+int[] selectedMeshes = GetOptions(args, "--mesh")
+    .Select(value => int.TryParse(value, out int index) && index >= 0
+        ? index
+        : throw new ArgumentException($"Invalid mesh object index: {value}"))
+    .Distinct().ToArray();
+int requestedLevelModes = new[]
+{
+    args.Contains("--level-only"),
+    args.Contains("--bake-instances"),
+    args.Contains("--preserve-instances"),
+    selectedMeshes.Length > 0
+}.Count(value => value);
+if (requestedLevelModes > 1)
+    throw new ArgumentException("Select only one level export mode.");
+SmoExportSceneMode sceneMode = selectedMeshes.Length > 0
+    ? SmoExportSceneMode.SeparateMeshes
+    : args.Contains("--level-only")
+        ? SmoExportSceneMode.LevelOnly
+        : args.Contains("--bake-instances")
+            ? SmoExportSceneMode.LevelWithBakedObjects
+            : args.Contains("--preserve-instances")
+                ? SmoExportSceneMode.LevelWithInstances
+                : SmoExportSceneMode.All;
+if (sceneMode == SmoExportSceneMode.LevelWithInstances && obj)
+    throw new ArgumentException(
+        "OBJ cannot preserve instances. Use GLB/FBX or --bake-instances.");
 string[] animations = objOnly ? [] : requestedAnimations;
 SmoExportResourceTypes resources = objOnly
     ? SmoExportResourceTypes.Meshes |
@@ -29,31 +56,53 @@ SmoExportResourceTypes resources = objOnly
 try
 {
     SmoDocument document = SmoDocument.Load(input);
+    SmoExportContentProfile profile = SmoExportContentProfileAnalyzer.Analyze(document);
     SmoExportScene scene = SmoSceneBuilder.Build(
         document, new SmoExportOptions(
             AnimationPaths: animations,
-            Resources: resources));
+            Resources: resources,
+            SceneMode: sceneMode,
+            SelectedMeshObjectIndices: selectedMeshes.ToHashSet()));
     Directory.CreateDirectory(outputDirectory);
     string stem = Path.GetFileNameWithoutExtension(input);
-    if (glb)
+    void ExportFormats(SmoExportScene exportScene, string fileStem)
     {
-        string path = Path.Combine(outputDirectory, stem + ".glb");
-        GlbExporter.Export(scene, path);
-        Console.WriteLine($"GLB: {path}");
+        if (glb)
+        {
+            string path = Path.Combine(outputDirectory, fileStem + ".glb");
+            GlbExporter.Export(exportScene, path);
+            Console.WriteLine($"GLB: {path}");
+        }
+        if (obj)
+        {
+            string path = Path.Combine(outputDirectory, fileStem + ".obj");
+            ObjExporter.Export(exportScene, path);
+            Console.WriteLine($"OBJ: {path}");
+        }
+        if (fbx)
+        {
+            string path = Path.Combine(outputDirectory, fileStem + ".fbx");
+            FbxExporter.Export(exportScene, path);
+            Console.WriteLine($"FBX: {path}");
+        }
     }
-    if (obj)
+    if (sceneMode == SmoExportSceneMode.SeparateMeshes)
     {
-        string path = Path.Combine(outputDirectory, stem + ".obj");
-        ObjExporter.Export(scene, path);
-        Console.WriteLine($"OBJ: {path}");
+        foreach (int meshObjectIndex in selectedMeshes)
+        {
+            SmoExportScene single = SmoExportSceneSplitter.CreateSingleMeshScene(
+                scene, meshObjectIndex);
+            SmoExportMesh mesh = single.Meshes[0];
+            ExportFormats(single, $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}");
+        }
     }
-    if (fbx)
+    else
     {
-        string path = Path.Combine(outputDirectory, stem + ".fbx");
-        FbxExporter.Export(scene, path);
-        Console.WriteLine($"FBX: {path}");
+        ExportFormats(scene, stem);
     }
-    Console.WriteLine($"Meshes: {scene.Meshes.Count}; warnings: {scene.Warnings.Count}");
+    Console.WriteLine($"Detected: {profile.Kind} ({profile.Reason})");
+    Console.WriteLine($"Meshes: {scene.Meshes.Count}; placements: " +
+                      $"{scene.MeshPlacements.Count}; warnings: {scene.Warnings.Count}");
     foreach (string warning in scene.Warnings)
         Console.Error.WriteLine($"warning: {warning}");
     return scene.Meshes.Count == 0 ? 1 : 0;
@@ -83,4 +132,14 @@ static string? GetOption(string[] values, string name)
     if (index == values.Length - 1)
         throw new ArgumentException($"Missing value after {name}.");
     return values[index + 1];
+}
+
+static string SafeFileName(string value)
+{
+    HashSet<char> invalid = Path.GetInvalidFileNameChars().ToHashSet();
+    string result = new(value.Select(character =>
+        invalid.Contains(character) || char.IsControl(character) ? '_' : character)
+        .ToArray());
+    result = result.Trim().TrimEnd('.');
+    return string.IsNullOrWhiteSpace(result) ? "mesh" : result;
 }

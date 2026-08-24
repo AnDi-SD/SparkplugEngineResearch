@@ -22,11 +22,12 @@ namespace fs = std::filesystem;
 namespace
 {
 constexpr std::array<char, 8> ExportMagic{'S', 'M', 'O', 'F', 'B', 'X', 'E', '1'};
-constexpr std::uint32_t ProtocolVersion = 1;
+constexpr std::uint32_t ProtocolVersion = 2;
 constexpr std::uint32_t ResourceSkeleton = 2;
 constexpr std::uint32_t ResourceMaterials = 4;
 constexpr std::uint32_t ResourceTextures = 8;
 constexpr std::uint32_t ResourceAnimations = 16;
+constexpr std::uint32_t SceneModeLevelWithBakedObjects = 2;
 constexpr std::uint32_t MaximumCount = 100'000'000;
 
 std::string ToUtf8(const std::wstring& value)
@@ -170,6 +171,19 @@ struct MeshData
     Mat4 bindLocal{};
 };
 
+struct PlacementData
+{
+    std::int32_t sceneObjectIndex{};
+    std::string name;
+    std::int32_t meshObjectIndex{};
+    bool sharedInstance{};
+    std::int32_t staticObjectIndex{-1};
+    std::int32_t materialObjectIndex{-1};
+    std::int32_t parentObjectIndex{-1};
+    Mat4 world{};
+    Mat4 local{};
+};
+
 struct NodeData
 {
     std::int32_t objectIndex{};
@@ -206,8 +220,10 @@ struct AnimationData
 struct ExportData
 {
     std::uint32_t resources{};
+    std::uint32_t sceneMode{};
     std::string sourcePath;
     std::vector<MeshData> meshes;
+    std::vector<PlacementData> placements;
     std::vector<NodeData> nodes;
     std::vector<SkinData> skins;
     std::vector<AnimationData> animations;
@@ -250,6 +266,21 @@ MeshData ReadMesh(BinaryReader& reader)
     result.parentObjectIndex = reader.Pod<std::int32_t>();
     result.bindWorld = reader.Matrix();
     result.bindLocal = reader.Matrix();
+    return result;
+}
+
+PlacementData ReadPlacement(BinaryReader& reader)
+{
+    PlacementData result;
+    result.sceneObjectIndex = reader.Pod<std::int32_t>();
+    result.name = reader.String();
+    result.meshObjectIndex = reader.Pod<std::int32_t>();
+    result.sharedInstance = reader.Boolean();
+    result.staticObjectIndex = reader.Pod<std::int32_t>();
+    result.materialObjectIndex = reader.Pod<std::int32_t>();
+    result.parentObjectIndex = reader.Pod<std::int32_t>();
+    result.world = reader.Matrix();
+    result.local = reader.Matrix();
     return result;
 }
 
@@ -311,8 +342,11 @@ ExportData ReadPayload(const fs::path& path)
         throw std::runtime_error("Unsupported FBX export payload version.");
     ExportData result;
     result.resources = reader.Pod<std::uint32_t>();
+    result.sceneMode = reader.Pod<std::uint32_t>();
     result.sourcePath = reader.String();
     result.meshes = reader.Array<MeshData>("mesh", [&] { return ReadMesh(reader); });
+    result.placements = reader.Array<PlacementData>(
+        "mesh placement", [&] { return ReadPlacement(reader); });
     result.nodes = reader.Array<NodeData>("node", [&] { return ReadNode(reader); });
     result.skins = reader.Array<SkinData>("skin", [&] { return ReadSkin(reader); });
     result.animations = reader.Array<AnimationData>(
@@ -532,7 +566,7 @@ FbxSurfaceMaterial* BuildMaterial(
     return material;
 }
 
-FbxNode* BuildMeshNode(SceneState& state, const MeshData& source, std::size_t meshNumber)
+FbxMesh* BuildMeshAttribute(SceneState& state, const MeshData& source)
 {
     std::string name = SafeName(source.name, "mesh_" + std::to_string(source.objectIndex));
     FbxMesh* mesh = FbxMesh::Create(state.scene, name.c_str());
@@ -558,18 +592,31 @@ FbxNode* BuildMeshNode(SceneState& state, const MeshData& source, std::size_t me
         mesh->EndPolygon();
     }
 
-    FbxNode* node = FbxNode::Create(state.scene, name.c_str());
-    node->SetNodeAttribute(mesh);
-    ApplyLocalMatrix(node, source.bindLocal);
     if ((state.data->resources & ResourceMaterials) != 0)
     {
-        node->AddMaterial(BuildMaterial(state, source, meshNumber));
         FbxGeometryElementMaterial* element = mesh->CreateElementMaterial();
         element->SetMappingMode(FbxLayerElement::eAllSame);
         element->SetReferenceMode(FbxLayerElement::eIndexToDirect);
         element->GetIndexArray().Add(0);
     }
-    auto parent = state.nodes.find(source.parentObjectIndex);
+    return mesh;
+}
+
+FbxNode* BuildMeshPlacementNode(
+    SceneState& state,
+    const PlacementData& placement,
+    FbxMesh* mesh,
+    FbxSurfaceMaterial* material)
+{
+    std::string name = SafeName(
+        placement.name, "placement_" + std::to_string(placement.sceneObjectIndex));
+    FbxNode* node = FbxNode::Create(state.scene, name.c_str());
+    // Reusing one FbxMesh node attribute is native FBX instancing: placement
+    // transforms remain per-node while control points/polygons are serialized once.
+    node->SetNodeAttribute(mesh);
+    ApplyLocalMatrix(node, placement.local);
+    if (material != nullptr) node->AddMaterial(material);
+    auto parent = state.nodes.find(placement.parentObjectIndex);
     (parent == state.nodes.end() ? state.scene->GetRootNode() : parent->second)->AddChild(node);
     return node;
 }
@@ -583,7 +630,11 @@ int JointSlot(float value, std::size_t count)
 }
 
 void BindSkin(
-    SceneState& state, const MeshData& source, FbxNode* meshNode, std::size_t meshNumber)
+    SceneState& state,
+    const MeshData& source,
+    const Mat4& bindWorld,
+    FbxNode* meshNode,
+    std::size_t meshNumber)
 {
     if ((state.data->resources & ResourceSkeleton) == 0 || source.skinObjectIndex < 0)
         return;
@@ -629,7 +680,7 @@ void BindSkin(
 
     FbxSkin* skin = FbxSkin::Create(
         state.scene, SafeName(skinData.name, "skin_" + std::to_string(meshNumber)).c_str());
-    FbxAMatrix meshBind = FromRowMatrix(source.bindWorld);
+    FbxAMatrix meshBind = FromRowMatrix(bindWorld);
     auto component = [](const Vec4& value, int index)
     {
         return index == 0 ? value.x : index == 1 ? value.y : index == 2 ? value.z : value.w;
@@ -817,14 +868,62 @@ void ExportScene(const ExportData& data, const fs::path& outputPath, const fs::p
     scene->GetGlobalSettings().SetSystemUnit(FbxSystemUnit::m);
     SceneState state{scene, &data, media};
     BuildLogicalNodes(state);
-    std::vector<std::pair<const MeshData*, FbxNode*>> meshNodes;
+
+    struct MeshAsset
+    {
+        const MeshData* source{};
+        FbxMesh* attribute{};
+        FbxSurfaceMaterial* material{};
+        std::size_t number{};
+    };
+    struct PlacedMesh
+    {
+        const MeshAsset* asset{};
+        const PlacementData* placement{};
+        FbxNode* node{};
+    };
+    std::unordered_map<std::int32_t, MeshAsset> meshAssets;
+    bool bakeMeshInstances =
+        data.sceneMode == SceneModeLevelWithBakedObjects;
     for (std::size_t index = 0; index < data.meshes.size(); ++index)
     {
-        FbxNode* node = BuildMeshNode(state, data.meshes[index], index);
-        meshNodes.emplace_back(&data.meshes[index], node);
+        const MeshData& source = data.meshes[index];
+        FbxMesh* attribute = bakeMeshInstances
+            ? nullptr
+            : BuildMeshAttribute(state, source);
+        FbxSurfaceMaterial* material =
+            (data.resources & ResourceMaterials) != 0
+                ? BuildMaterial(state, source, index)
+                : nullptr;
+        if (!meshAssets.emplace(
+                source.objectIndex,
+                MeshAsset{&source, attribute, material, index}).second)
+            throw std::runtime_error("Duplicate FBX mesh object index.");
     }
-    for (std::size_t index = 0; index < meshNodes.size(); ++index)
-        BindSkin(state, *meshNodes[index].first, meshNodes[index].second, index);
+    std::vector<PlacedMesh> placedMeshes;
+    placedMeshes.reserve(data.placements.size());
+    for (const PlacementData& placement : data.placements)
+    {
+        auto found = meshAssets.find(placement.meshObjectIndex);
+        if (found == meshAssets.end())
+            throw std::runtime_error("FBX placement references a missing mesh.");
+        MeshAsset& asset = found->second;
+        FbxMesh* placementAttribute = bakeMeshInstances
+            ? BuildMeshAttribute(state, *asset.source)
+            : asset.attribute;
+        FbxNode* node = BuildMeshPlacementNode(
+            state, placement, placementAttribute, asset.material);
+        placedMeshes.push_back({&asset, &placement, node});
+    }
+    for (const PlacedMesh& placed : placedMeshes)
+    {
+        BindSkin(
+            state,
+            *placed.asset->source,
+            placed.placement->world,
+            placed.node,
+            placed.asset->number);
+    }
     AddAnimations(state);
 
     io->SetBoolProp(EXP_FBX_MATERIAL, (data.resources & ResourceMaterials) != 0);

@@ -28,8 +28,13 @@ try
         AnimationPaths: animationPath is not null && File.Exists(animationPath)
             ? [animationPath]
             : null);
-    SmoExportScene scene = SmoSceneBuilder.Build(SmoDocument.Load(args[0]), options);
+    SmoDocument sourceDocument = SmoDocument.Load(args[0]);
+    SmoExportContentProfile contentProfile =
+        SmoExportContentProfileAnalyzer.Analyze(sourceDocument);
+    SmoExportScene scene = SmoSceneBuilder.Build(sourceDocument, options);
     Check(scene.Meshes.Count > 0, "scene contains meshes");
+    Check(scene.MeshPlacements.Count >= scene.Meshes.Count,
+        "scene separates physical meshes from placements");
     Check(scene.Meshes.All(mesh => mesh.Colors.Length == 0 ||
         mesh.Colors.Any(color => color.X > 0 || color.Y > 0 || color.Z > 0)),
         "COLOR_0 is omitted for all-zero diffuse placeholders");
@@ -38,6 +43,12 @@ try
              mesh.Colors.All(color => color.W >= 1f)) ||
             mesh.UsesAlphaBlend),
         "explicit material/COLOR_0 alpha enables the transparent pass");
+    if (sourceName.Equals("Alfea03.smo", StringComparison.OrdinalIgnoreCase))
+    {
+        TestAlfea03LevelExports(sourceDocument, contentProfile, options, directory);
+        Console.WriteLine($"PASS: {checks} assertions; Alfea03 level export");
+        return 0;
+    }
     SmoExportTexture[] textures = scene.Meshes
         .SelectMany(mesh => new[] { mesh.Texture, mesh.EffectTexture })
         .Where(texture => texture is not null)
@@ -145,8 +156,15 @@ try
     Check(imageCount == expectedImageVariants.Count,
         "GLB caches only distinct RGB/RGBA texture variants");
     JsonElement gltfNodes = gltf.GetProperty("nodes");
-    Check(gltfNodes.GetArrayLength() >= scene.Nodes.Count + scene.Meshes.Count,
-        "node count includes source nodes, meshes and optional palette clones");
+    int[] gltfMeshReferences = gltfNodes.EnumerateArray()
+        .Where(node => node.TryGetProperty("mesh", out _))
+        .Select(node => node.GetProperty("mesh").GetInt32()).ToArray();
+    Check(gltfMeshReferences.Length == scene.MeshPlacements.Count,
+        "GLB has one node per mesh placement");
+    Check(gltfMeshReferences.Distinct().Count() == scene.Meshes.Count,
+        "GLB placements reuse every physical mesh definition");
+    Check(gltfNodes.GetArrayLength() >= scene.Nodes.Count + scene.MeshPlacements.Count,
+        "node count includes source nodes, placements and optional palette clones");
     int?[] nodeParents = BuildNodeParents(gltfNodes, out bool validNodeHierarchy);
     Check(validNodeHierarchy, "glTF node hierarchy indices and parents");
 
@@ -207,7 +225,8 @@ try
     string objText = File.ReadAllText(obj);
     string mtlText = File.ReadAllText(Path.ChangeExtension(obj, ".mtl"));
     Check(objText.Contains("mtllib sample.mtl"), "OBJ material library");
-    Check(objText.Split('\n').Count(line => line.StartsWith("o ")) == scene.Meshes.Count, "OBJ object count");
+    Check(objText.Split('\n').Count(line => line.StartsWith("o ")) ==
+          scene.MeshPlacements.Count, "OBJ expands every placement");
     Check(objText.Contains("\nf "), "OBJ faces");
     foreach (SmoExportMesh mesh in scene.Meshes)
     {
@@ -338,6 +357,122 @@ finally
     Directory.Delete(directory, true);
 }
 
+void TestAlfea03LevelExports(
+    SmoDocument document,
+    SmoExportContentProfile profile,
+    SmoExportOptions baseOptions,
+    string outputDirectory)
+{
+    Check(profile.Kind == SmoExportContentKind.Level,
+        "Alfea03 is automatically classified as a level");
+    SmoExportScene instanced = SmoSceneBuilder.Build(
+        document,
+        baseOptions with { SceneMode = SmoExportSceneMode.LevelWithInstances });
+    Check(instanced.Meshes.Count == 510, "Alfea03 physical mesh count");
+    Check(instanced.MeshPlacements.Count == 1267,
+        "Alfea03 assembled placement count");
+    Check(instanced.MeshPlacements.Count(item => item.IsSharedInstance) == 757,
+        "Alfea03 shared placement count");
+
+    string instancedGlb = Path.Combine(outputDirectory, "alfea03-instanced.glb");
+    GlbExporter.Export(instanced, instancedGlb);
+    using JsonDocument instancedJson = ReadGlbJson(instancedGlb);
+    JsonElement instancedRoot = instancedJson.RootElement;
+    int[] instancedMeshReferences = instancedRoot.GetProperty("nodes")
+        .EnumerateArray()
+        .Where(node => node.TryGetProperty("mesh", out _))
+        .Select(node => node.GetProperty("mesh").GetInt32()).ToArray();
+    Check(instancedRoot.GetProperty("meshes").GetArrayLength() == 510 &&
+          instancedMeshReferences.Length == 1267 &&
+          instancedMeshReferences.Distinct().Count() == 510,
+        "Alfea03 GLB keeps links instead of duplicating mesh buffers");
+
+    SmoExportScene levelOnly = SmoSceneBuilder.Build(
+        document,
+        baseOptions with { SceneMode = SmoExportSceneMode.LevelOnly });
+    Check(levelOnly.MeshPlacements.Count == levelOnly.Meshes.Count &&
+          levelOnly.MeshPlacements.All(item => !item.IsSharedInstance),
+        "Alfea03 level-only mode excludes reference-only placements");
+
+    SmoExportScene baked = SmoSceneBuilder.Build(
+        document,
+        baseOptions with { SceneMode = SmoExportSceneMode.LevelWithBakedObjects });
+    string bakedGlb = Path.Combine(outputDirectory, "alfea03-baked.glb");
+    GlbExporter.Export(baked, bakedGlb);
+    using JsonDocument bakedJson = ReadGlbJson(bakedGlb);
+    JsonElement bakedRoot = bakedJson.RootElement;
+    int[] bakedMeshReferences = bakedRoot.GetProperty("nodes").EnumerateArray()
+        .Where(node => node.TryGetProperty("mesh", out _))
+        .Select(node => node.GetProperty("mesh").GetInt32()).ToArray();
+    Check(bakedRoot.GetProperty("meshes").GetArrayLength() == 1267 &&
+          bakedMeshReferences.Distinct().Count() == 1267,
+        "Alfea03 baked GLB gives every placement independent geometry");
+
+    int[] selected = profile.Elements.Take(2)
+        .Select(item => item.MeshObjectIndex).ToArray();
+    SmoExportScene selectedScene = SmoSceneBuilder.Build(
+        document,
+        baseOptions with
+        {
+            SceneMode = SmoExportSceneMode.SeparateMeshes,
+            SelectedMeshObjectIndices = selected.ToHashSet()
+        });
+    Check(selectedScene.Meshes.Count == 2,
+        "Alfea03 separate mode keeps selected physical meshes only");
+    SmoExportScene single = SmoExportSceneSplitter.CreateSingleMeshScene(
+        selectedScene, selected[0]);
+    Check(single.Meshes.Count == 1 && single.MeshPlacements.Count == 1 &&
+          single.MeshPlacements[0].WorldMatrix == Matrix4x4.Identity,
+        "separate mesh file uses one reusable local-space asset");
+
+    SmoExportScene geometryOnly = SmoSceneBuilder.Build(
+        document,
+        new SmoExportOptions(
+            Resources: SmoExportResourceTypes.Meshes,
+            SceneMode: SmoExportSceneMode.LevelWithInstances));
+    string fbx = Path.Combine(outputDirectory, "alfea03-instanced.fbx");
+    FbxExporter.Export(geometryOnly, fbx);
+    byte[] fbxBytes = File.ReadAllBytes(fbx);
+    Check(fbxBytes.AsSpan(0, 20).SequenceEqual("Kaydara FBX Binary  "u8),
+        "Alfea03 instanced FBX is written by the native bridge");
+    SmoExportScene bakedGeometry = SmoSceneBuilder.Build(
+        document,
+        new SmoExportOptions(
+            Resources: SmoExportResourceTypes.Meshes,
+            SceneMode: SmoExportSceneMode.LevelWithBakedObjects));
+    string bakedFbx = Path.Combine(outputDirectory, "alfea03-baked.fbx");
+    FbxExporter.Export(bakedGeometry, bakedFbx);
+    Check(new FileInfo(bakedFbx).Length > new FileInfo(fbx).Length,
+        "FBX instance mode serializes less geometry than baked mode");
+
+    SmoExportElementInfo family = profile.Elements.First(item =>
+        item.IsInstancedFamily);
+    SmoExportMesh familyMesh = geometryOnly.Meshes.Single(mesh =>
+        mesh.ObjectIndex == family.MeshObjectIndex);
+    SmoExportMeshPlacement[] familyPlacements = geometryOnly.MeshPlacements
+        .Where(item => item.MeshObjectIndex == family.MeshObjectIndex).ToArray();
+    SmoExportScene objFamily = geometryOnly with
+    {
+        Meshes = [familyMesh],
+        MeshPlacements = familyPlacements
+    };
+    string obj = Path.Combine(outputDirectory, "alfea03-family.obj");
+    ObjExporter.Export(objFamily, obj);
+    string objText = File.ReadAllText(obj);
+    Check(objText.Contains("OBJ has no mesh instancing", StringComparison.Ordinal) &&
+          objText.Split('\n').Count(line => line.StartsWith("o ")) ==
+          familyPlacements.Length,
+        "OBJ explicitly expands a shared level family");
+}
+
+JsonDocument ReadGlbJson(string path)
+{
+    byte[] bytes = File.ReadAllBytes(path);
+    int length = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(
+        bytes.AsSpan(12)));
+    return JsonDocument.Parse(bytes.AsMemory(20, length));
+}
+
 void Check(bool condition, string description)
 {
     checks++;
@@ -399,16 +534,22 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
         MaterialColor = Vector4.One,
         UsesAlphaBlend = true
     };
-    SmoExportScene varyingVertexScene = scene with { Meshes = [varyingVertexMesh] };
+    SmoExportMeshPlacement[] sourcePlacements = scene.MeshPlacements
+        .Where(item => item.MeshObjectIndex == source.ObjectIndex).ToArray();
+    SmoExportScene varyingVertexScene = scene with
+    {
+        Meshes = [varyingVertexMesh],
+        MeshPlacements = sourcePlacements
+    };
     ExpectThrows<InvalidDataException>(
         () => ObjExporter.Export(
             varyingVertexScene, Path.Combine(outputDirectory, "unsupported-alpha.obj")),
         "OBJ rejects varying COLOR_0 alpha");
-    ExpectThrows<InvalidDataException>(
-        () => FbxExporter.Export(
-            varyingVertexScene, Path.Combine(outputDirectory, "unsupported-alpha.fbx"),
-            Path.Combine(outputDirectory, "missing-blender.exe")),
-        "FBX rejects COLOR_0 alpha before invoking the native bridge");
+    string varyingFbx = Path.Combine(outputDirectory, "vertex-alpha.fbx");
+    FbxExporter.Export(varyingVertexScene, varyingFbx);
+    Check(File.ReadAllBytes(varyingFbx).AsSpan(0, 20)
+          .SequenceEqual("Kaydara FBX Binary  "u8),
+        "FBX preserves COLOR_0 alpha through its vertex-color layer");
 
     var alphaTexture = new SmoExportTexture(
         -1, "synthetic alpha", 1, 1,
@@ -424,7 +565,11 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
     };
     ExpectThrows<InvalidDataException>(
         () => FbxExporter.Export(
-            scene with { Meshes = [compoundedAlphaMesh] },
+            scene with
+            {
+                Meshes = [compoundedAlphaMesh],
+                MeshPlacements = sourcePlacements
+            },
             Path.Combine(outputDirectory, "compounded-alpha.fbx"),
             Path.Combine(outputDirectory, "missing-blender.exe")),
         "FBX rejects compounded texture and material alpha before invoking the native bridge");
@@ -437,7 +582,11 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
         MaterialColor = new Vector4(1f, 1f, 1f, float.NaN),
         UsesAlphaBlend = true
     };
-    SmoExportScene invalidAlphaScene = scene with { Meshes = [invalidAlphaMesh] };
+    SmoExportScene invalidAlphaScene = scene with
+    {
+        Meshes = [invalidAlphaMesh],
+        MeshPlacements = sourcePlacements
+    };
     ExpectThrows<InvalidDataException>(
         () => ObjExporter.Export(
             invalidAlphaScene, Path.Combine(outputDirectory, "invalid-alpha.obj")),

@@ -7,7 +7,7 @@ namespace SmoExporter.Core;
 internal static class FbxExportPayloadWriter
 {
     private static readonly byte[] Magic = "SMOFBXE1"u8.ToArray();
-    private const uint ProtocolVersion = 1;
+    private const uint ProtocolVersion = 2;
 
     public static void Write(SmoExportScene scene, string path)
     {
@@ -16,11 +16,27 @@ internal static class FbxExportPayloadWriter
         writer.Write(Magic);
         writer.Write(ProtocolVersion);
         writer.Write((uint)scene.Resources);
+        writer.Write((uint)scene.SceneMode);
         WriteString(writer, scene.SourcePath);
         WriteItems(writer, scene.Meshes, WriteMesh);
+        WriteItems(writer, scene.MeshPlacements, WritePlacement);
         WriteItems(writer, scene.Nodes, WriteNode);
         WriteItems(writer, scene.Skins, WriteSkin);
         WriteItems(writer, scene.Animations, WriteAnimation);
+    }
+
+    private static void WritePlacement(
+        BinaryWriter writer, SmoExportMeshPlacement placement)
+    {
+        writer.Write(placement.SceneObjectIndex);
+        WriteString(writer, placement.Name);
+        writer.Write(placement.MeshObjectIndex);
+        writer.Write(placement.IsSharedInstance);
+        writer.Write(placement.StaticObjectIndex ?? -1);
+        writer.Write(placement.MaterialObjectIndex ?? -1);
+        writer.Write(placement.ParentNodeObjectIndex ?? -1);
+        WriteMatrix(writer, placement.WorldMatrix);
+        WriteMatrix(writer, placement.LocalMatrix);
     }
 
     private static void WriteMesh(BinaryWriter writer, SmoExportMesh mesh)

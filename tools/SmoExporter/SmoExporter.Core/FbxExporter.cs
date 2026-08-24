@@ -60,15 +60,7 @@ public static class FbxExporter
             if (mesh.Colors.Length == mesh.Positions.Length)
             {
                 foreach (Vector4 color in mesh.Colors)
-                {
                     ValidateAlpha(color.W, "COLOR_0", mesh);
-                    if (color.W < 1f)
-                    {
-                        throw new InvalidDataException(
-                            $"FBX cannot preserve COLOR_0 alpha on mesh " +
-                            $"[{mesh.ObjectIndex}] {mesh.Name}; export this model as GLB instead.");
-                    }
-                }
             }
             if (!includeMaterials) continue;
             ValidateAlpha(mesh.MaterialColor.W, "material factor", mesh);

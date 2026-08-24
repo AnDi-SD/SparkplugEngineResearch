@@ -6,6 +6,11 @@
 
 ### 2026
 
+- [2026-08-24 — выпуск SmoViewer 0.5.0 и SmoExporter 0.5.0](2026/2026-08-24-smoviewer-0.5-exporter-0.5.md)
+- [2026-08-24 — прямой GPU-render уровней в SmoViewer](2026/2026-08-24-smoviewer-direct-gpu-level-rendering.md)
+- [2026-08-24 — transforms partitioned-уровня Alfea02](2026/2026-08-24-alfea02-partition-transforms.md)
+- [2026-08-24 — минимальный node-only layout gameover.smo](2026/2026-08-24-gameover-node-layout.md)
+- [2026-08-24 — GUI-граф igmenu_opt_pc.smo](2026/2026-08-24-igmenu-opt-pc-gui-viewer.md)
 - [2026-08-24 — выпуск Importer 0.5.0, Exporter 0.4.0 и Viewer 0.4.2](2026/2026-08-24-release-importer-0.5-exporter-0.4-viewer-0.4.2.md)
 - [2026-08-24 — универсальные веса Importer и нативный FBX](2026/2026-08-24-importer-universal-skinning-and-native-fbx.md)
 - [2026-08-15 — внешние волосы в меню костюмов](2026/2026-08-15-costume-menu-hair-patcher.md)

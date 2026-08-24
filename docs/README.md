@@ -6,6 +6,7 @@
 
 - [Обзор движка и границы исследования](engine/overview.md)
 - [Свидетельства из PC/PS2 executable и модов](engine/executable-evidence.md)
+- [Разрешение экрана, камеры и GUI в Winx Club PC](engine/display-resolution-camera-gui.md)
 - [Поиск и загрузка ресурсов Winx Club PC](engine/resource-loading.md)
 - [Контейнер и объектный граф SMO](formats/smo.md)
 - [Standalone-текстуры STX и их PC-диалекты](formats/stx.md)

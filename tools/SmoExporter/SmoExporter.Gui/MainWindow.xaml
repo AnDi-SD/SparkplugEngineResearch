@@ -82,6 +82,8 @@
         <Grid x:Name="FormatBlenderRow" Grid.Row="3" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -104,7 +106,26 @@
                 <ComboBoxItem Content="OBJ + MTL + PNG" Tag="obj" />
                 <ComboBoxItem x:Name="AllFormatsItem" Content="Все форматы" Tag="all" />
             </ComboBox>
-            <StackPanel Grid.Column="2"
+            <TextBlock Grid.Column="2"
+                       Text="Профиль:"
+                       Margin="0,0,12,0"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+            <ComboBox x:Name="ContentModeComboBox"
+                      Grid.Column="3"
+                      MinWidth="155"
+                      MaxWidth="220"
+                      Margin="0,0,14,0"
+                      HorizontalAlignment="Left"
+                      SelectedIndex="0"
+                      Padding="8,5"
+                      ToolTip="Автоопределение используется по умолчанию; ручной выбор переопределяет профиль только для текущего экспорта."
+                      SelectionChanged="ContentModeComboBox_SelectionChanged">
+                <ComboBoxItem x:Name="AutoContentModeItem" Content="Авто" Tag="auto" />
+                <ComboBoxItem Content="Персонаж" Tag="character" />
+                <ComboBoxItem Content="Уровень" Tag="level" />
+            </ComboBox>
+            <StackPanel Grid.Column="4"
                         Visibility="Collapsed"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
@@ -121,7 +142,7 @@
                            TextTrimming="CharacterEllipsis" />
             </StackPanel>
             <Button x:Name="BlenderSettingsButton"
-                    Grid.Column="3"
+                    Grid.Column="5"
                     Visibility="Collapsed"
                     Margin="10,0,0,0"
                     Padding="9,5"
@@ -205,6 +226,7 @@
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
                     <StackPanel x:Name="ResourceTypesPanel" Margin="0,0,8,0">
                         <TextBlock FontWeight="SemiBold"
                                    Text="Ресурсы модели" />
@@ -254,6 +276,49 @@
                                    TextWrapping="Wrap"
                                    Text="OBJ: меши, материалы и текстуры. Деформирующие кости, служебные узлы и анимации — GLB/FBX." />
                     </StackPanel>
+                    <StackPanel x:Name="LevelModePanel"
+                                Margin="0,0,8,0"
+                                Visibility="Collapsed">
+                        <TextBlock FontWeight="SemiBold" Text="Экспорт уровня" />
+                        <TextBlock x:Name="LevelProfileSummaryText"
+                                   Margin="0,5,0,8"
+                                   Foreground="#52606D"
+                                   FontSize="11"
+                                   TextWrapping="Wrap" />
+                        <RadioButton x:Name="LevelEverythingRadio"
+                                     Margin="2,3"
+                                     IsChecked="True"
+                                     Checked="LevelMode_Changed">
+                            <TextBlock Text="Экспортировать всё" TextWrapping="Wrap" />
+                        </RadioButton>
+                        <RadioButton x:Name="LevelOnlyRadio"
+                                     Margin="2,3"
+                                     Checked="LevelMode_Changed">
+                            <TextBlock Text="Только физическая геометрия уровня" TextWrapping="Wrap" />
+                        </RadioButton>
+                        <RadioButton x:Name="LevelBakedRadio"
+                                     Margin="2,3"
+                                     Checked="LevelMode_Changed">
+                            <TextBlock Text="Уровень и предметы без ссылок" TextWrapping="Wrap" />
+                        </RadioButton>
+                        <RadioButton x:Name="LevelInstancesRadio"
+                                     Margin="2,3"
+                                     Checked="LevelMode_Changed"
+                                     ToolTip="GLB/FBX: несколько узлов используют одну геометрию.">
+                            <TextBlock Text="Уровень с mesh-инстансами" TextWrapping="Wrap" />
+                        </RadioButton>
+                        <RadioButton x:Name="LevelSeparateRadio"
+                                     Margin="2,3"
+                                     Checked="LevelMode_Changed">
+                            <TextBlock Text="Каждый выбранный меш отдельно" TextWrapping="Wrap" />
+                        </RadioButton>
+                        <TextBlock x:Name="LevelModeHintText"
+                                   Margin="2,9,0,0"
+                                   Foreground="#52606D"
+                                   FontSize="11"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                    </Grid>
                 </ScrollViewer>
 
                 <Border Grid.Column="1" Background="#D5DAE0" />
@@ -330,6 +395,56 @@
                                           Content="{Binding Display}"
                                           ToolTip="{Binding Path}"
                                           Margin="2" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+                <Grid x:Name="LevelElementSelectionPanel"
+                      Grid.Column="3"
+                      Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock FontWeight="SemiBold" Text="Элементы уровня" />
+                    <TextBlock x:Name="LevelElementSummaryText"
+                               Grid.Row="1"
+                               Margin="0,4,0,7"
+                               Foreground="#52606D"
+                               FontSize="11"
+                               TextWrapping="Wrap" />
+                    <Grid Grid.Row="2" Margin="0,0,0,7">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="LevelElementFilterBox"
+                                 Padding="6,4"
+                                 TextChanged="LevelElementFilter_Changed"
+                                 ToolTip="Фильтр по имени, владельцу или индексу меша" />
+                        <StackPanel Grid.Column="1" Margin="7,0,0,0" Orientation="Horizontal">
+                            <Button Padding="7,3"
+                                    Margin="0,0,5,0"
+                                    Click="SelectAllLevelElements_Click"
+                                    Content="Все" />
+                            <Button Padding="7,3"
+                                    Click="ClearLevelElements_Click"
+                                    Content="Ничего" />
+                        </StackPanel>
+                    </Grid>
+                    <ListBox x:Name="LevelElementList"
+                             Grid.Row="3"
+                             MinHeight="120"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Margin="2"
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Checked="LevelElementCheckBox_Changed"
+                                          Unchecked="LevelElementCheckBox_Changed"
+                                          Content="{Binding Display}" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

@@ -24,6 +24,9 @@ public static class GlbExporter
         IReadOnlyList<SmoExportNode> sourceNodes = includeSkeleton ? scene.Nodes : [];
         IReadOnlyList<SmoExportSkin> sourceSkins = includeSkeleton ? scene.Skins : [];
         IReadOnlyList<SmoExportMesh> sourceMeshes = includeMeshes ? scene.Meshes : [];
+        IReadOnlyList<SmoExportMeshPlacement> sourcePlacements = includeMeshes
+            ? scene.MeshPlacements
+            : [];
         IReadOnlyList<SmoExportAnimation> sourceAnimations = includeAnimations
             ? scene.Animations
             : [];
@@ -38,6 +41,8 @@ public static class GlbExporter
         var nodes = new List<object>();
         var gltfSkins = new List<object>();
         var gltfAnimations = new List<object>();
+        var gltfMeshIndices = new Dictionary<int, int>();
+        var bakedGltfMeshIndices = new Dictionary<int, int>();
         var textureIndices = new Dictionary<(int ObjectIndex, bool OpaqueRgb), int>();
         var nodeObjects = new Dictionary<int, Dictionary<string, object>>();
         var nodeChildren = new Dictionary<int, List<int>>();
@@ -47,6 +52,8 @@ public static class GlbExporter
             .ToDictionary(item => item.ObjectIndex, item => item.index);
         Dictionary<int, SmoExportNode> sourceNodesByIndex = sourceNodes
             .ToDictionary(node => node.ObjectIndex);
+        Dictionary<int, SmoExportMesh> sourceMeshesByIndex = sourceMeshes
+            .ToDictionary(mesh => mesh.ObjectIndex);
         Dictionary<int, List<int>> animationNodeIndices = sourceNodes
             .ToDictionary(node => node.ObjectIndex,
                 node => new List<int> { nodeIndices[node.ObjectIndex] });
@@ -218,7 +225,23 @@ public static class GlbExporter
             return existing;
         }
 
-        foreach (SmoExportMesh mesh in sourceMeshes)
+        bool bakeInstances = scene.SceneMode ==
+            SmoExportSceneMode.LevelWithBakedObjects;
+        (SmoExportMesh Mesh, int? PlacementObjectIndex)[] meshUnits = bakeInstances
+            ? sourcePlacements.Select(placement =>
+            {
+                if (!sourceMeshesByIndex.TryGetValue(
+                        placement.MeshObjectIndex, out SmoExportMesh? source))
+                {
+                    throw new InvalidDataException(
+                        $"Mesh placement {placement.SceneObjectIndex} ({placement.Name}) " +
+                        $"references unavailable mesh {placement.MeshObjectIndex}.");
+                }
+                return (source, (int?)placement.SceneObjectIndex);
+            }).ToArray()
+            : sourceMeshes.Select(mesh => (mesh, (int?)null)).ToArray();
+
+        foreach ((SmoExportMesh mesh, int? placementObjectIndex) in meshUnits)
         {
             int positionAccessor = AddVector3Accessor(
                 binary, views, accessors, mesh.Positions, includeBounds: true, target: 34962);
@@ -312,7 +335,13 @@ public static class GlbExporter
             }
             gltfMeshes.Add(new
             {
-                name = CleanName(mesh.Name, $"mesh_{mesh.ObjectIndex}"),
+                name = CleanName(
+                    placementObjectIndex.HasValue
+                        ? mesh.Name + $"__placement_{placementObjectIndex.Value}"
+                        : mesh.Name,
+                    placementObjectIndex.HasValue
+                        ? $"mesh_{mesh.ObjectIndex}_placement_{placementObjectIndex.Value}"
+                        : $"mesh_{mesh.ObjectIndex}"),
                 primitives = new[] { primitive },
                 extras = new
                 {
@@ -325,34 +354,85 @@ public static class GlbExporter
                     sparkplugRuntimeStride = mesh.RuntimeStride
                 }
             });
+            if (placementObjectIndex is int bakedPlacementObjectIndex)
+            {
+                if (!bakedGltfMeshIndices.TryAdd(
+                        bakedPlacementObjectIndex, gltfMeshes.Count - 1))
+                {
+                    throw new InvalidDataException(
+                        $"Mesh placement object index {bakedPlacementObjectIndex} " +
+                        "occurs more than once.");
+                }
+            }
+            else if (!gltfMeshIndices.TryAdd(mesh.ObjectIndex, gltfMeshes.Count - 1))
+            {
+                throw new InvalidDataException(
+                    $"Mesh object index {mesh.ObjectIndex} occurs more than once.");
+            }
+        }
+
+        foreach (SmoExportMeshPlacement placement in sourcePlacements)
+        {
+            bool hasMeshIndex = bakeInstances
+                ? bakedGltfMeshIndices.TryGetValue(
+                    placement.SceneObjectIndex, out int gltfMeshIndex)
+                : gltfMeshIndices.TryGetValue(
+                    placement.MeshObjectIndex, out gltfMeshIndex);
+            if (!sourceMeshesByIndex.TryGetValue(
+                    placement.MeshObjectIndex, out SmoExportMesh? mesh) ||
+                !hasMeshIndex)
+            {
+                throw new InvalidDataException(
+                    $"Mesh placement {placement.SceneObjectIndex} ({placement.Name}) " +
+                    $"references unavailable mesh {placement.MeshObjectIndex}.");
+            }
+
             var meshNode = new Dictionary<string, object>
             {
-                ["name"] = CleanName(mesh.Name, $"node_{mesh.ObjectIndex}"),
-                ["mesh"] = gltfMeshes.Count - 1
+                ["name"] = CleanName(
+                    placement.Name,
+                    $"placement_{placement.SceneObjectIndex}"),
+                ["mesh"] = gltfMeshIndex,
+                ["extras"] = new
+                {
+                    sparkplugObjectIndex = placement.SceneObjectIndex,
+                    sparkplugMeshObjectIndex = placement.MeshObjectIndex,
+                    sparkplugSharedInstance = placement.IsSharedInstance,
+                    sparkplugStaticObjectIndex = placement.StaticObjectIndex,
+                    sparkplugMaterialObjectIndex = placement.MaterialObjectIndex
+                }
             };
-            if (!Matrix4x4.Decompose(mesh.BindLocalMatrix,
+            if (!Matrix4x4.Decompose(placement.LocalMatrix,
                     out Vector3 meshScale,
                     out Quaternion meshRotation,
                     out Vector3 meshTranslation))
             {
                 throw new InvalidDataException(
-                    $"Mesh node {mesh.ObjectIndex} ({mesh.Name}) has a " +
-                    "non-decomposable bind transform.");
+                    $"Mesh placement {placement.SceneObjectIndex} ({placement.Name}) has a " +
+                    "non-decomposable transform.");
             }
             ValidateTransform(meshScale, meshRotation, meshTranslation,
-                $"Mesh node {mesh.ObjectIndex} ({mesh.Name})");
+                $"Mesh placement {placement.SceneObjectIndex} ({placement.Name})");
             meshRotation = Quaternion.Normalize(meshRotation);
             meshNode["translation"] = new[]
                 { meshTranslation.X, meshTranslation.Y, meshTranslation.Z };
             meshNode["rotation"] = new[]
                 { meshRotation.X, meshRotation.Y, meshRotation.Z, meshRotation.W };
             meshNode["scale"] = new[] { meshScale.X, meshScale.Y, meshScale.Z };
-            if (gltfSkinIndex.HasValue)
-                meshNode["skin"] = gltfSkinIndex.Value;
+            if (mesh.SkinObjectIndex is int skinObjectIndex)
+            {
+                if (!skinIndices.TryGetValue(skinObjectIndex, out int gltfSkinIndex))
+                {
+                    throw new InvalidDataException(
+                        $"Mesh placement {placement.SceneObjectIndex} ({placement.Name}) " +
+                        $"references unavailable skin {skinObjectIndex}.");
+                }
+                meshNode["skin"] = gltfSkinIndex;
+            }
             int meshNodeIndex = nodes.Count;
             nodes.Add(meshNode);
             int? meshParentIndex = null;
-            if (mesh.ParentNodeObjectIndex is int parentObjectIndex &&
+            if (placement.ParentNodeObjectIndex is int parentObjectIndex &&
                 nodeObjects.TryGetValue(parentObjectIndex, out Dictionary<string, object>? parentNode))
             {
                 List<int> parentChildren = nodeChildren[parentObjectIndex];
@@ -399,6 +479,11 @@ public static class GlbExporter
                 sparkplugSourceSha256 = scene.SourceSha256,
                 sparkplugPlatformFlags = scene.PlatformFlags,
                 sparkplugResources = scene.Resources.ToString(),
+                sparkplugSceneMode = scene.SceneMode.ToString(),
+                sparkplugPhysicalMeshCount = scene.Meshes.Count,
+                sparkplugPlacementCount = scene.MeshPlacements.Count,
+                sparkplugSharedInstanceCount = scene.MeshPlacements.Count(
+                    placement => placement.IsSharedInstance),
                 warnings = scene.Warnings
             }
         };

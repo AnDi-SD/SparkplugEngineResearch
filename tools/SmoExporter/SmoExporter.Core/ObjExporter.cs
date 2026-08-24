@@ -34,17 +34,37 @@ public static class ObjExporter
         var mtl = new StringBuilder();
         obj.AppendLine("# Sparkplug SmoExporter OBJ compatibility export");
         obj.AppendLine($"# source-sha256 {scene.SourceSha256}");
+        int sharedInstanceCount = scene.MeshPlacements.Count(
+            placement => placement.IsSharedInstance);
+        if (sharedInstanceCount > 0)
+        {
+            obj.AppendLine(
+                $"# WARNING: OBJ has no mesh instancing; {sharedInstanceCount} " +
+                "shared SMO placements are expanded into transformed vertices.");
+        }
         if (includeMaterials)
             obj.AppendLine($"mtllib {materialFile}");
         var writtenTextures = new Dictionary<int, string>();
         var writtenOpacityMasks = new Dictionary<int, string>();
+        var writtenMaterials = new HashSet<int>();
+        Dictionary<int, SmoExportMesh> meshesByObjectIndex = scene.Meshes
+            .ToDictionary(mesh => mesh.ObjectIndex);
         int vertexBase = 1;
         int uvBase = 1;
         int normalBase = 1;
 
-        foreach (SmoExportMesh mesh in scene.Meshes)
+        foreach (SmoExportMeshPlacement placement in scene.MeshPlacements)
         {
-            string name = SafeName(mesh.Name, $"mesh_{mesh.ObjectIndex}");
+            if (!meshesByObjectIndex.TryGetValue(
+                    placement.MeshObjectIndex, out SmoExportMesh? mesh))
+            {
+                throw new InvalidDataException(
+                    $"OBJ placement [{placement.SceneObjectIndex}] {placement.Name} " +
+                    $"references unavailable mesh [{placement.MeshObjectIndex}].");
+            }
+            string name = SafeName(
+                placement.Name,
+                $"placement_{placement.SceneObjectIndex}");
             string material = $"material_{mesh.ObjectIndex}";
             obj.AppendLine($"o {name}");
             obj.AppendLine($"g {name}");
@@ -54,7 +74,7 @@ public static class ObjExporter
             bool hasNormals = mesh.Normals.Length == mesh.Positions.Length;
             foreach (Vector3 source in mesh.Positions)
             {
-                Vector3 value = Vector3.Transform(source, mesh.BindWorldMatrix);
+                Vector3 value = Vector3.Transform(source, placement.WorldMatrix);
                 obj.AppendLine(FormattableString.Invariant($"v {value.X:R} {value.Y:R} {value.Z:R}"));
             }
             if (hasUv)
@@ -63,8 +83,8 @@ public static class ObjExporter
                     obj.AppendLine(FormattableString.Invariant(
                         $"vt {value.X:R} {1f - value.Y:R}"));
             }
-            Matrix4x4 normalMatrix = mesh.BindWorldMatrix;
-            if (Matrix4x4.Invert(mesh.BindWorldMatrix, out Matrix4x4 inverseWorld))
+            Matrix4x4 normalMatrix = placement.WorldMatrix;
+            if (Matrix4x4.Invert(placement.WorldMatrix, out Matrix4x4 inverseWorld))
                 normalMatrix = Matrix4x4.Transpose(inverseWorld);
             if (hasNormals)
             {
@@ -78,7 +98,7 @@ public static class ObjExporter
                 }
             }
 
-            bool reversesWinding = mesh.BindWorldMatrix.GetDeterminant() < 0;
+            bool reversesWinding = placement.WorldMatrix.GetDeterminant() < 0;
             for (int index = 0; index < mesh.TriangleIndices.Length; index += 3)
             {
                 string[] corners = new string[3];
@@ -96,7 +116,7 @@ public static class ObjExporter
                 obj.AppendLine($"f {corners[0]} {corners[1]} {corners[2]}");
             }
 
-            if (includeMaterials)
+            if (includeMaterials && writtenMaterials.Add(mesh.ObjectIndex))
             {
                 mtl.AppendLine($"newmtl {material}");
                 mtl.AppendLine(FormattableString.Invariant(

@@ -16,10 +16,21 @@ public enum SmoExportResourceTypes
     All = 63
 }
 
+public enum SmoExportSceneMode
+{
+    All = 0,
+    LevelOnly = 1,
+    LevelWithBakedObjects = 2,
+    LevelWithInstances = 3,
+    SeparateMeshes = 4
+}
+
 public sealed record SmoExportOptions(
     bool ApplyWorldTransforms = true,
     IReadOnlyList<string>? AnimationPaths = null,
-    SmoExportResourceTypes Resources = SmoExportResourceTypes.All);
+    SmoExportResourceTypes Resources = SmoExportResourceTypes.All,
+    SmoExportSceneMode SceneMode = SmoExportSceneMode.All,
+    IReadOnlySet<int>? SelectedMeshObjectIndices = null);
 
 public sealed record SmoExportTexture(
     int ObjectIndex,
@@ -56,6 +67,21 @@ public sealed record SmoExportMesh(
     Matrix4x4 BindWorldMatrix,
     Matrix4x4 BindLocalMatrix);
 
+/// <summary>
+/// A scene node which places one physical mesh. Multiple placements may point
+/// at the same MeshObjectIndex without duplicating vertex or index buffers.
+/// </summary>
+public sealed record SmoExportMeshPlacement(
+    int SceneObjectIndex,
+    string Name,
+    int MeshObjectIndex,
+    bool IsSharedInstance,
+    int? StaticObjectIndex,
+    int? MaterialObjectIndex,
+    int? ParentNodeObjectIndex,
+    Matrix4x4 WorldMatrix,
+    Matrix4x4 LocalMatrix);
+
 public sealed record SmoExportNode(
     int ObjectIndex,
     string Name,
@@ -86,7 +112,9 @@ public sealed record SmoExportScene(
     string SourceSha256,
     uint PlatformFlags,
     SmoExportResourceTypes Resources,
+    SmoExportSceneMode SceneMode,
     IReadOnlyList<SmoExportMesh> Meshes,
+    IReadOnlyList<SmoExportMeshPlacement> MeshPlacements,
     IReadOnlyList<SmoExportNode> Nodes,
     IReadOnlyList<SmoExportSkin> Skins,
     IReadOnlyList<SmoExportAnimation> Animations,
