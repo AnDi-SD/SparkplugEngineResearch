@@ -22,6 +22,7 @@ read-only границу для ещё не подтверждённых writer-
 | [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; resize/repack отключён до отдельной нативной проверки |
 | [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в GLB, OBJ и нативный FBX через Autodesk FBX SDK |
 | [`tools/SmoImporter`](tools/SmoImporter) | Visual transplant SMO → SMO и импорт rigid/skinned OBJ, GLB и нативного FBX |
+| [`tools/SmoLVLcreator`](tools/SmoLVLcreator) | Модульный редактор SMO-уровней: сцена, размещения, коллизии, импорт, экспорт и сохранение |
 | [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Патчер `WinxClub.exe` для управления внешними волосами Bloom в игре и меню костюмов |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
@@ -37,6 +38,11 @@ read-only границу для ещё не подтверждённых writer-
 проверки в игре. `SmoNativeValidator` сохраняется в исходниках и
 встраивается в Viewer и Importer, но отдельной пользовательской программой и
 отдельным релизом не является.
+
+Первый тестовый выпуск [SmoLVLcreator `0.1.0`](tools/SmoLVLcreator/RELEASE_NOTES_0.1.0.md)
+закрывает минимальный цикл редактирования уровня и подготовлен для практической
+проверки на копиях игровых SMO. Отложенные улучшения ведутся в его отдельной
+[дорожной карте](tools/SmoLVLcreator/ROADMAP.md).
 
 Оба инструмента подключены как Git submodule и сохраняют собственную историю. Этот репозиторий фиксирует проверенную комбинацию их ревизий.
 

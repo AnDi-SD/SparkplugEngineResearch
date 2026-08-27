@@ -1,0 +1,803 @@
+<Window x:Class="SmoLVLcreator.Gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+        Title="SmoLVLcreator"
+        Width="1360"
+        Height="800"
+        MinWidth="1060"
+        MinHeight="660"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        PreviewKeyUp="Window_PreviewKeyUp"
+        Deactivated="Window_Deactivated"
+        Closing="MainWindow_Closing"
+        Background="#0D1117"
+        Foreground="#D8DEE9">
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBrush" Color="#151B23"/>
+        <SolidColorBrush x:Key="PanelRaisedBrush" Color="#1B222C"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#2B3542"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#8490A1"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#E69A46"/>
+        <SolidColorBrush x:Key="AccentDarkBrush" Color="#5A3B20"/>
+
+        <Style TargetType="MenuItem">
+            <!-- The native submenu popup is light, while the application menu bar is dark. -->
+            <Setter Property="Foreground" Value="#20252B"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="Role" Value="TopLevelHeader">
+                    <Setter Property="Foreground" Value="#F1F4F8"/>
+                </Trigger>
+                <Trigger Property="Role" Value="TopLevelItem">
+                    <Setter Property="Foreground" Value="#F1F4F8"/>
+                </Trigger>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Foreground" Value="#11161C"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </Trigger>
+                <Trigger Property="IsSubmenuOpen" Value="True">
+                    <Setter Property="Foreground" Value="#FFD5A3"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#858B92"/>
+                    <Setter Property="Opacity" Value="0.62"/>
+                    <Setter Property="Cursor" Value="Arrow"/>
+                    <Setter Property="FontWeight" Value="Normal"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Foreground" Value="#D8DEE9"/>
+            <Setter Property="Background" Value="#202833"/>
+            <Setter Property="BorderBrush" Value="#33404F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2A3542"/>
+                    <Setter Property="BorderBrush" Value="#536376"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="MinWidth" Value="86"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Padding" Value="11,0"/>
+            <Setter Property="Foreground" Value="#DCE3EA"/>
+            <Setter Property="Background" Value="#202833"/>
+            <Setter Property="BorderBrush" Value="#3A4654"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ActionBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ActionBorder" Property="Background" Value="#2A3542"/>
+                                <Setter TargetName="ActionBorder" Property="BorderBrush" Value="#617185"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ActionBorder" Property="Background" Value="#3B3024"/>
+                                <Setter TargetName="ActionBorder" Property="BorderBrush" Value="#E69A46"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.42"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActionButtonGroupStyle" TargetType="Border">
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Background" Value="#11171E"/>
+            <Setter Property="BorderBrush" Value="#303B49"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+
+        <Style x:Key="ToolModeStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#B9C2CE"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="ModeBorder"
+                                Margin="2"
+                                Padding="10,6"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ModeBorder" Property="Background" Value="#25303B"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ModeBorder" Property="Background" Value="#463321"/>
+                                <Setter TargetName="ModeBorder" Property="BorderBrush" Value="#E69A46"/>
+                                <Setter Property="Foreground" Value="#FFD8A9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionExpanderStyle" TargetType="Expander">
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Foreground" Value="#D8DEE9"/>
+            <Setter Property="Background" Value="#171E27"/>
+            <Setter Property="BorderBrush" Value="#2B3542"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="9,7"/>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#7F8B9B"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="FieldValueStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#DDE3EA"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,9"/>
+        </Style>
+
+        <Style x:Key="PanelTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F0F3F7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Foreground" Value="#D8DEE9"/>
+            <Setter Property="Background" Value="#10161D"/>
+            <Setter Property="BorderBrush" Value="#303B49"/>
+            <Setter Property="CaretBrush" Value="#E69A46"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="48"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition x:Name="AssetRow" Height="205" MinHeight="130"/>
+            <RowDefinition Height="27"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#0B0F14" BorderBrush="#27303B" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <Menu DockPanel.Dock="Left" Background="Transparent" Foreground="#DCE3EA">
+                    <MenuItem Header="Файл">
+                        <MenuItem x:Name="OpenMenuItem" Header="Открыть уровень или проект…" InputGestureText="Ctrl+O" Click="OpenLevel_Click"/>
+                        <MenuItem x:Name="SaveMenuItem" Header="Сохранить проект" InputGestureText="Ctrl+S" IsEnabled="False" Click="SaveLevel_Click"/>
+                        <MenuItem x:Name="SaveAsMenuItem" Header="Сохранить проект как…" InputGestureText="Ctrl+Shift+S" IsEnabled="False" Click="SaveLevelAs_Click"/>
+                        <MenuItem x:Name="BuildProjectSmoMenuItem" Header="Собрать SMO…" IsEnabled="False" Click="BuildProjectSmo_Click"/>
+                        <MenuItem x:Name="CreateProjectMenuItem" Visibility="Collapsed" IsEnabled="False" Click="CreateProject_Click"/>
+                        <MenuItem x:Name="OpenProjectMenuItem" Visibility="Collapsed" IsEnabled="False" Click="OpenProject_Click"/>
+                        <MenuItem x:Name="SaveProjectMenuItem" Visibility="Collapsed" IsEnabled="False" Click="SaveProject_Click"/>
+                        <MenuItem x:Name="SaveProjectAsMenuItem" Visibility="Collapsed" IsEnabled="False" Click="SaveProjectAs_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="ExportMenuItem" Header="Экспорт" InputGestureText="Ctrl+E" IsEnabled="False" Click="ExportSelection_Click"/>
+                        <MenuItem x:Name="ExportAsMenuItem" Header="Экспортировать как…" InputGestureText="Ctrl+Shift+E" IsEnabled="False" Click="ExportSelectionAs_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Выход" Click="Exit_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Правка">
+                        <MenuItem Header="Отменить" InputGestureText="Ctrl+Z" Click="UndoMenu_Click"/>
+                        <MenuItem Header="Повторить" InputGestureText="Ctrl+Y" Click="RedoMenu_Click"/>
+                        <Separator/>
+                        <MenuItem x:Name="CopyPlacementMenuItem" Header="Копировать размещение" InputGestureText="Ctrl+C" IsEnabled="False" Click="CopyPlacement_Click"/>
+                        <MenuItem x:Name="PastePlacementMenuItem" Header="Вставить размещение" InputGestureText="Ctrl+V" IsEnabled="False" Click="PastePlacement_Click"/>
+                        <MenuItem x:Name="DuplicatePlacementMenuItem" Header="Дублировать размещение" InputGestureText="Ctrl+D" IsEnabled="False" Click="DuplicatePlacement_Click"/>
+                        <MenuItem x:Name="AddProjectReferencePlacementMenuItem"
+                                  Header="Разместить ссылочную копию выбранного"
+                                  IsEnabled="False"
+                                  Click="AddProjectReferencePlacement_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Вид">
+                        <MenuItem Header="Инспектор" Click="ToggleInspector_Click"/>
+                        <MenuItem Header="Структура уровня" Click="ToggleOutliner_Click"/>
+                        <MenuItem Header="Каталог ресурсов" Click="ToggleAssets_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Инструменты">
+                        <MenuItem x:Name="ValidateProjectMenuItem" Header="Проверить уровень в игре…" IsEnabled="False" Click="ValidateProject_Click"/>
+                        <MenuItem x:Name="ValidateInGameMenuItem" Visibility="Collapsed" IsEnabled="False" Click="ValidateInGame_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Настройки…" Click="Settings_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Справка">
+                        <MenuItem Header="Управление и горячие клавиши…" Click="ControlsHelp_Click"/>
+                        <Separator/>
+                        <MenuItem Header="О программе" Click="About_Click"/>
+                    </MenuItem>
+                </Menu>
+                <TextBlock Margin="12,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="#687586"
+                           Text="SMO LEVEL WORKSPACE · 0.1.0"/>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="#171D25" BorderBrush="#2B3542" BorderThickness="0,0,0,1">
+            <DockPanel Margin="8,5">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Border Width="34" Height="34" Margin="0,0,9,0" Background="#E69A46" CornerRadius="6">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#17110B" FontSize="16" FontWeight="Bold" Text="SL"/>
+                    </Border>
+                    <StackPanel Width="190" VerticalAlignment="Center">
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="#F2F5F8" Text="SmoLVLcreator"/>
+                        <TextBlock x:Name="DocumentNameText" FontSize="11" Foreground="#7F8B9B" Text="Уровень не открыт"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="TransformSpacePanel" DockPanel.Dock="Right" Orientation="Horizontal">
+                    <RadioButton x:Name="WorldTransformSpaceButton" GroupName="TransformSpace" Style="{StaticResource ToolModeStyle}" IsChecked="True" Checked="TransformSpace_Checked" Tag="WORLD" Content="WORLD"/>
+                    <RadioButton x:Name="LocalTransformSpaceButton" GroupName="TransformSpace" Style="{StaticResource ToolModeStyle}" Checked="TransformSpace_Checked" Tag="LOCAL" Content="LOCAL"/>
+                    <Separator Width="1" Margin="8,7" Background="#34404D"/>
+                    <Button Width="34" Margin="2,0" Padding="0" Click="ToggleInspector_Click" Content="◧" ToolTip="Показать или скрыть Inspector"/>
+                    <Button Width="34" Margin="2,0" Padding="0" Click="ToggleOutliner_Click" Content="☷" ToolTip="Показать или скрыть структуру уровня"/>
+                    <Button Width="34" Margin="2,0" Padding="0" Click="ToggleAssets_Click" Content="▤" ToolTip="Показать или скрыть каталог ресурсов"/>
+                </StackPanel>
+
+                <StackPanel x:Name="EditorToolsPanel" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <RadioButton GroupName="EditorTool" Style="{StaticResource ToolModeStyle}" IsChecked="True" Checked="EditorTool_Checked" Tag="Выбор" Content="⌁  Выбор"/>
+                    <RadioButton GroupName="EditorTool" Style="{StaticResource ToolModeStyle}" Checked="EditorTool_Checked" Tag="Перемещение" Content="✥  Move"/>
+                    <RadioButton GroupName="EditorTool" Style="{StaticResource ToolModeStyle}" Checked="EditorTool_Checked" Tag="Вращение" Content="⟳  Rotate"/>
+                    <RadioButton GroupName="EditorTool" Style="{StaticResource ToolModeStyle}" Checked="EditorTool_Checked" Tag="Масштаб" Content="⌗  Scale"/>
+                    <Border Margin="12,0,0,0" Style="{StaticResource ActionButtonGroupStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="CreateCollisionButton"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    IsEnabled="False"
+                                    Click="CreateCollision_Click"
+                                    Content="Создать коллизию"
+                                    ToolTip="Создать выпуклую collision-сетку вокруг выделенной модели · не более 64 треугольников"/>
+                            <Button x:Name="DeleteSelectedButton"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    IsEnabled="False"
+                                    Click="DeleteSelected_Click"
+                                    Content="Удалить"
+                                    ToolTip="Удалить выделенный объект или коллизию (Delete)"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="InspectorColumn" Width="330" MinWidth="250"/>
+                <ColumnDefinition x:Name="InspectorSplitterColumn" Width="5"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition x:Name="OutlinerSplitterColumn" Width="5"/>
+                <ColumnDefinition x:Name="OutlinerColumn" Width="292" MinWidth="230"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Padding="13,10" Background="#1A212A" BorderBrush="#2B3542" BorderThickness="0,0,0,1">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Style="{StaticResource PanelTitleStyle}" Text="ИНСПЕКТОР"/>
+                                <Border x:Name="InspectorConfirmationBadge" Margin="8,0,0,0" Padding="5,1" HorizontalAlignment="Right" Background="#203727" CornerRadius="3">
+                                    <TextBlock FontSize="9" Foreground="#79C38B" Text="CONFIRMED"/>
+                                </Border>
+                            </DockPanel>
+                            <TextBlock x:Name="SelectedNameText" Margin="0,9,0,2" FontSize="16" FontWeight="SemiBold" Foreground="#F1F4F7" Text="Ничего не выбрано"/>
+                            <TextBlock x:Name="SelectedPathText" Foreground="#8390A0" FontSize="11" TextWrapping="Wrap" Text="—"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="9">
+                            <Expander Style="{StaticResource SectionExpanderStyle}" IsExpanded="True" Header="OBJECT">
+                                <StackPanel Margin="0,9,0,0">
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Class / Object index"/>
+                                    <TextBlock x:Name="ObjectIdentityText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Object ID"/>
+                                    <TextBlock x:Name="ObjectIdText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" IsExpanded="True" Header="PLACEMENT">
+                                <StackPanel Margin="0,9,0,0">
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Position · world"/>
+                                    <Grid Margin="0,2,0,7">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                            <TextBlock Foreground="#E66A63" FontSize="10" Text="X"/>
+                                            <TextBox x:Name="PositionXBox" Padding="5,3" FontFamily="Consolas" KeyDown="PositionBox_KeyDown" LostKeyboardFocus="PositionBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="2,0">
+                                            <TextBlock Foreground="#73BE78" FontSize="10" Text="Y"/>
+                                            <TextBox x:Name="PositionYBox" Padding="5,3" FontFamily="Consolas" KeyDown="PositionBox_KeyDown" LostKeyboardFocus="PositionBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                                            <TextBlock Foreground="#6B91DC" FontSize="10" Text="Z"/>
+                                            <TextBox x:Name="PositionZBox" Padding="5,3" FontFamily="Consolas" KeyDown="PositionBox_KeyDown" LostKeyboardFocus="PositionBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Rotation · degrees"/>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Foreground="#E66A63" FontSize="10" Text="X"/>
+                                            <TextBox x:Name="RotationXBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="RotationBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                            <TextBlock Foreground="#73BE78" FontSize="10" Text="Y"/>
+                                            <TextBox x:Name="RotationYBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="RotationBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                                            <TextBlock Foreground="#6B91DC" FontSize="10" Text="Z"/>
+                                            <TextBox x:Name="RotationZBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="RotationBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Scale"/>
+                                    <Grid Margin="0,0,0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Foreground="#E66A63" FontSize="10" Text="X"/>
+                                            <TextBox x:Name="ScaleXBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="ScaleBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                            <TextBlock Foreground="#73BE78" FontSize="10" Text="Y"/>
+                                            <TextBox x:Name="ScaleYBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="ScaleBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                                            <TextBlock Foreground="#6B91DC" FontSize="10" Text="Z"/>
+                                            <TextBox x:Name="ScaleZBox" Padding="5,3" FontFamily="Consolas" KeyDown="TransformBox_KeyDown" LostKeyboardFocus="ScaleBox_LostKeyboardFocus" GotKeyboardFocus="PositionBox_GotKeyboardFocus"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Instances"/>
+                                    <TextBlock x:Name="PlacementCountText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" IsExpanded="True" Header="GEOMETRY">
+                                <StackPanel Margin="0,9,0,0">
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Vertices / Triangles"/>
+                                    <TextBlock x:Name="GeometryCountText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Vertex layout"/>
+                                    <TextBlock x:Name="VertexLayoutText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Channels"/>
+                                    <TextBlock x:Name="ChannelsText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" IsExpanded="True" Header="MATERIAL &amp; TEXTURE">
+                                <StackPanel Margin="0,9,0,0">
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Texture"/>
+                                    <TextBlock x:Name="TextureNameText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                    <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Color / blend path"/>
+                                    <TextBlock x:Name="MaterialText" Style="{StaticResource FieldValueStyle}" Text="—"/>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" Header="BINDINGS">
+                                <StackPanel Margin="0,9,0,2">
+                                    <TextBlock x:Name="BindingsText" Foreground="#AAB4C1" TextWrapping="Wrap" Text="—"/>
+                                    <WrapPanel Margin="0,9,0,0">
+                                        <Button x:Name="LinkCollisionButton" Margin="0,0,5,5" Padding="7,4"
+                                                IsEnabled="False" Click="LinkCollision_Click"
+                                                Content="Связать выбранные"
+                                                ToolTip="Выберите один визуальный объект и одну коллизию"/>
+                                        <Button x:Name="UnlinkCollisionButton" Margin="0,0,0,5" Padding="7,4"
+                                                IsEnabled="False" Click="UnlinkCollision_Click"
+                                                Content="Разорвать связь"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" Header="DIAGNOSTICS">
+                                <TextBlock x:Name="DiagnosticsText" Margin="0,9,0,2" Foreground="#7F8B9B" TextWrapping="Wrap" Text="Откройте SMO-файл для начала работы."/>
+                            </Expander>
+
+                            <Expander Style="{StaticResource SectionExpanderStyle}" Header="RAW DATA">
+                                <TextBox x:Name="RawDataText"
+                                         Margin="0,9,0,2"
+                                         Padding="0"
+                                         MinHeight="44"
+                                         IsReadOnly="True"
+                                         IsTabStop="False"
+                                         AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Disabled"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="#9AA7B7"
+                                         FontFamily="Consolas"
+                                         FontSize="11"
+                                         Text="Нет данных: откройте SMO и выберите объект."/>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="#2B3542" ResizeDirection="Columns"/>
+
+            <Border Grid.Column="2" Background="#0C1117">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#141A22" BorderBrush="#2A3440" BorderThickness="0,0,0,1">
+                        <DockPanel Margin="7,0">
+                            <StackPanel x:Name="ViewportModePanel" Orientation="Horizontal">
+                                <Button x:Name="ProjectionModeButton"
+                                        Padding="8,3" Margin="0,4,4,4"
+                                        Click="ProjectionModeButton_Click"
+                                        ToolTip="Переключить перспективную и ортографическую проекцию"
+                                        Content="Perspective"/>
+                                <Button x:Name="RenderModeButton"
+                                        Padding="8,3" Margin="0,4,4,4"
+                                        Click="RenderModeButton_Click"
+                                        ToolTip="Переключить Lit / Unlit / Wireframe"
+                                        Content="Lit"/>
+                                <Button x:Name="GridVisibilityButton"
+                                        Padding="8,3" Margin="0,4,4,4"
+                                        Click="GridVisibilityButton_Click"
+                                        ToolTip="Показать или скрыть сетку пола"
+                                        Content="Grid"/>
+                                <Button x:Name="BoundsVisibilityButton"
+                                        Padding="8,3" Margin="0,4,4,4"
+                                        Click="BoundsVisibilityButton_Click"
+                                        ToolTip="Показать границы выделенных объектов"
+                                        Content="Bounds"/>
+                                <CheckBox x:Name="CollisionVisibilityToggle"
+                                          AutomationProperties.AutomationId="CollisionVisibilityToggle"
+                                          Margin="8,0,4,0"
+                                          VerticalAlignment="Center"
+                                          Foreground="#75DCAF"
+                                          Checked="CollisionVisibility_Changed"
+                                          Unchecked="CollisionVisibility_Changed"
+                                          Content="COLLISIONS"/>
+                                <CheckBox x:Name="LinkedCollisionMovementToggle"
+                                          AutomationProperties.AutomationId="LinkedCollisionMovementToggle"
+                                          Margin="10,0,4,0"
+                                          VerticalAlignment="Center"
+                                          Foreground="#E6A35B"
+                                          IsChecked="True"
+                                          Checked="LinkedCollisionMovement_Changed"
+                                          Unchecked="LinkedCollisionMovement_Changed"
+                                          ToolTip="Перемещать подтверждённую коллизию вместе с предметом; отключите для независимого редактирования"
+                                          Content="MOVE LINKED"/>
+                            </StackPanel>
+                            <TextBlock x:Name="CameraModeText" Margin="10,0" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#697789" Text="Camera  FREE  ·  55°  ·  MSAA 4×"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Grid x:Name="ViewportSurface"
+                          AutomationProperties.AutomationId="ViewportSurface"
+                          Grid.Row="1"
+                          Focusable="True"
+                          MouseDown="ViewportSurface_MouseDown"
+                          MouseUp="ViewportSurface_MouseUp"
+                          MouseMove="ViewportSurface_MouseMove"
+                          MouseWheel="ViewportSurface_MouseWheel"
+                          AllowDrop="True"
+                          DragOver="ViewportSurface_DragOver"
+                          Drop="ViewportSurface_Drop"
+                          LostMouseCapture="ViewportSurface_LostMouseCapture">
+                        <Grid.Background>
+                            <DrawingBrush TileMode="Tile" Viewport="0,0,32,32" ViewportUnits="Absolute">
+                                <DrawingBrush.Drawing>
+                                    <GeometryDrawing Brush="#0D131A">
+                                        <GeometryDrawing.Pen>
+                                            <Pen Brush="#18222D" Thickness="1"/>
+                                        </GeometryDrawing.Pen>
+                                        <GeometryDrawing.Geometry>
+                                            <RectangleGeometry Rect="0,0,32,32"/>
+                                        </GeometryDrawing.Geometry>
+                                    </GeometryDrawing>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Grid.Background>
+
+                        <glWpfControl:GLWpfControl x:Name="GpuViewport"
+                                                   AutomationProperties.AutomationId="GpuViewport"
+                                                   IsHitTestVisible="False"
+                                                   Render="GpuViewport_OnRender"/>
+
+                        <Border x:Name="ViewportPlaceholder" Width="430" Padding="22" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#E6141B23" BorderBrush="#354251" BorderThickness="1" CornerRadius="8">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock HorizontalAlignment="Center" Foreground="#E69A46" FontSize="42" Text="◇"/>
+                                <TextBlock x:Name="ViewportEmptyTitleText" Margin="0,5,0,3" HorizontalAlignment="Center" Foreground="#F0F3F6" FontSize="17" FontWeight="SemiBold" Text="Уровень не открыт"/>
+                                <TextBlock x:Name="ViewportStateText" HorizontalAlignment="Center" Foreground="#8D99A8" TextAlignment="Center" TextWrapping="Wrap" Text="Откройте SMO-файл, чтобы начать работу с уровнем."/>
+                                <Button Margin="0,15,0,0" HorizontalAlignment="Center" Click="OpenLevel_Click" Content="Открыть SMO…"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="ViewportSelectionBadge" Margin="12" Padding="9,6" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#D9182029" CornerRadius="4" Visibility="Collapsed">
+                            <TextBlock x:Name="ViewportSelectionText" AutomationProperties.AutomationId="ViewportSelectionText" Foreground="#DCE2E9" Text="NO SELECTION"/>
+                        </Border>
+
+                        <StackPanel x:Name="ViewportAxisLegend" Margin="14" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsHitTestVisible="False" Visibility="Collapsed">
+                            <TextBlock HorizontalAlignment="Center" Foreground="#E66A63" FontWeight="Bold" Text="X"/>
+                            <TextBlock HorizontalAlignment="Center" Foreground="#73BE78" FontWeight="Bold" Text="Y"/>
+                            <TextBlock HorizontalAlignment="Center" Foreground="#6B91DC" FontWeight="Bold" Text="Z"/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="ViewportControlsHint" Margin="13" HorizontalAlignment="Left" VerticalAlignment="Bottom" Foreground="#687587" FontSize="11" IsHitTestVisible="False" Visibility="Collapsed" Text="ЛКМ · model/gizmo    Alt+ЛКМ · mesh part    Ctrl+ЛКМ · multi    Ctrl+drag · snap    ПКМ · look/orbit    WASD/QE · fly    F · frame"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Background="#2B3542" ResizeDirection="Columns"/>
+
+            <Border Grid.Column="4" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Padding="11,9" Background="#1A212A" BorderBrush="#2B3542" BorderThickness="0,0,0,1">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <TextBlock Style="{StaticResource PanelTitleStyle}" Text="СТРУКТУРА УРОВНЯ"/>
+                                <TextBlock x:Name="OutlinerCountText" HorizontalAlignment="Right" Foreground="#748193" Text="0"/>
+                            </DockPanel>
+                            <TextBox x:Name="OutlinerFilterBox" TextChanged="OutlinerFilter_Changed" ToolTip="Поиск объекта по имени"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="9">
+                        <Separator Margin="0,4,0,8" Background="#2C3744"/>
+                        <WrapPanel>
+                            <Button x:Name="ShowAllEntitiesButton"
+                                    Margin="0,0,5,5" Padding="7,4"
+                                    Click="ShowAllEntities_Click"
+                                    Content="Показать всё"/>
+                            <Button x:Name="IsolateEntitiesButton"
+                                    Margin="0,0,5,5" Padding="7,4"
+                                    Click="IsolateEntities_Click"
+                                    Content="Изолировать"/>
+                            <Button x:Name="HideEntitiesButton"
+                                    Margin="0,0,0,5" Padding="7,4"
+                                    Click="HideEntities_Click"
+                                    Content="Скрыть"/>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <TreeView x:Name="SceneTree"
+                              Padding="5"
+                              Background="#121820"
+                              BorderThickness="0"
+                              Foreground="#E3E8EE"
+                              SelectedItemChanged="SceneTree_SelectedItemChanged">
+                        <TreeView.Resources>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#5A3B20"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFF"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#3B2D21"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFF"/>
+                            <Style TargetType="TreeViewItem">
+                                <Setter Property="Foreground" Value="#E3E8EE"/>
+                                <Setter Property="Padding" Value="2,1"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TreeView.Resources>
+                    </TreeView>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <GridSplitter Grid.Row="3" Height="5" Margin="0,-3,0,0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Background="#2B3542" ResizeDirection="Rows"/>
+
+        <Border Grid.Row="3" Margin="0,3,0,0" Background="#121820" BorderBrush="#2B3542" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Height="39" Background="#181F28" BorderBrush="#2B3542" BorderThickness="0,0,0,1">
+                    <DockPanel Margin="9,0">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                            <RadioButton x:Name="ModelsCatalogTab" GroupName="AssetTab" Style="{StaticResource ToolModeStyle}" IsChecked="True" Tag="Models" Checked="AssetTab_Checked" Content="МОДЕЛИ"/>
+                            <RadioButton x:Name="PlacementsCatalogTab" GroupName="AssetTab" Style="{StaticResource ToolModeStyle}" Tag="Placements" Checked="AssetTab_Checked" Content="РАЗМЕЩЕНИЯ"/>
+                            <RadioButton x:Name="TexturesCatalogTab" GroupName="AssetTab" Style="{StaticResource ToolModeStyle}" Tag="Textures" Checked="AssetTab_Checked" Content="ТЕКСТУРЫ"/>
+                            <RadioButton x:Name="UnknownCatalogTab" GroupName="AssetTab" Style="{StaticResource ToolModeStyle}" Tag="Unknown" Checked="AssetTab_Checked" Content="НЕОПОЗНАННОЕ"/>
+                        </StackPanel>
+                        <Border DockPanel.Dock="Right" Margin="12,2,0,2" Style="{StaticResource ActionButtonGroupStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="CatalogImportModelButton" Style="{StaticResource ActionButtonStyle}" IsEnabled="False" Click="CatalogImportModel_Click" Content="+ Модель…" ToolTip="Добавить внешнюю модель в каталог"/>
+                                <Button x:Name="CatalogPlaceButton" Style="{StaticResource ActionButtonStyle}" IsEnabled="False" Click="CatalogPlace_Click" Content="Разместить" ToolTip="Разместить выбранную модель там, куда смотрит камера"/>
+                            </StackPanel>
+                        </Border>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <TextBlock x:Name="AssetCountText" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="#748193" Text="0 моделей"/>
+                            <TextBox x:Name="AssetFilterBox" Width="220" Margin="0,5" TextChanged="AssetFilter_Changed" ToolTip="Фильтр моделей"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <ListBox x:Name="AssetList"
+                         Margin="4"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         SelectionMode="Extended"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         VirtualizingPanel.ScrollUnit="Pixel"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         ScrollViewer.ScrollChanged="AssetList_ScrollChanged"
+                         Loaded="AssetList_Loaded"
+                         SelectionChanged="AssetList_SelectionChanged"
+                         PreviewMouseLeftButtonDown="AssetList_PreviewMouseLeftButtonDown"
+                         PreviewMouseMove="AssetList_PreviewMouseMove"
+                         MouseDoubleClick="AssetList_MouseDoubleClick">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Добавить внешнюю модель…" Click="CatalogImportModel_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Заменить…" Click="CatalogReplace_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Показать в сцене" Click="CatalogFocus_Click"/>
+                            <MenuItem Header="Показать в структуре" Click="CatalogRevealInTree_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Экспортировать выбранное" Click="ExportSelection_Click"/>
+                            <MenuItem Header="Экспортировать выбранное как…" Click="ExportSelectionAs_Click"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Margin" Value="4"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="CardBorder" Background="#18202A" BorderBrush="#2C3744" BorderThickness="1" CornerRadius="5">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CardBorder" Property="Background" Value="#202A35"/>
+                                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#536375"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="CardBorder" Property="Background" Value="#31271D"/>
+                                                <Setter TargetName="CardBorder" Property="BorderBrush" Value="#E69A46"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid x:Name="CatalogCardContent" Width="176" Height="132">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="70"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Margin="6,6,6,0" Background="#0F151C" BorderBrush="#26313D" BorderThickness="1" CornerRadius="3">
+                                    <Grid>
+                                        <Image Source="{Binding Preview}"
+                                               Margin="3"
+                                               Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        <TextBlock x:Name="PreviewIcon"
+                                                   Visibility="Collapsed"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#526172"
+                                                   FontSize="32"
+                                                   Text="{Binding Icon}"/>
+                                        <Border Margin="5" Padding="5,2" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#D9252E39" CornerRadius="3">
+                                            <TextBlock Foreground="#C9D1DB" FontSize="10" Text="{Binding Badge}"/>
+                                        </Border>
+                                        <Border Margin="5" Padding="4,1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#D9463321" CornerRadius="3">
+                                            <TextBlock Foreground="#F0B574" FontSize="9" Text="{Binding Kind}"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <StackPanel Grid.Row="1" Margin="8,6">
+                                    <TextBlock Foreground="#ECF0F4" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding Name}"/>
+                                    <TextBlock Margin="0,3,0,0" Foreground="#7F8C9C" FontSize="10" TextTrimming="CharacterEllipsis" Text="{Binding Details}"/>
+                                    <TextBlock Margin="0,2,0,0" Foreground="{Binding StatusColor}" FontSize="10" TextTrimming="CharacterEllipsis" Text="{Binding Status}"/>
+                                </StackPanel>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Preview}" Value="{x:Null}">
+                                    <Setter TargetName="PreviewIcon" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsHidden}" Value="True">
+                                    <Setter TargetName="CatalogCardContent" Property="Opacity" Value="0.42"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="4" Background="#0B0F14" BorderBrush="#27303B" BorderThickness="0,1,0,0">
+            <DockPanel Margin="8,0">
+                <TextBlock x:Name="StatsText"
+                           DockPanel.Dock="Right"
+                           Margin="12,0,0,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="#697687"
+                           Text="Уровень не открыт"/>
+                <Button x:Name="SaveCancelButton"
+                        DockPanel.Dock="Right"
+                        Height="21"
+                        Margin="8,2,0,2"
+                        Padding="9,0"
+                        Visibility="Collapsed"
+                        Click="SaveCancel_Click"
+                        Content="Отмена"/>
+                <ProgressBar x:Name="SaveProgressBar"
+                             DockPanel.Dock="Right"
+                             Width="190"
+                             Height="7"
+                             Margin="12,0,0,0"
+                             VerticalAlignment="Center"
+                             Minimum="0"
+                             Maximum="1"
+                             Foreground="#E69A46"
+                             Background="#202A35"
+                             Visibility="Collapsed"/>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="#9CA7B5" Text="Откройте SMO-файл для начала работы"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

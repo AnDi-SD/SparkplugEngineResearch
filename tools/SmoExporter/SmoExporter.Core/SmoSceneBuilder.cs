@@ -71,7 +71,8 @@ public static class SmoSceneBuilder
                 skin.Name,
                 skin.Bones.Select(bone => bone.NodeObjectIndex).ToArray(),
                 skin.Bones.Select(bone =>
-                    ReflectMatrix(bone.InverseBindMatrix)).ToArray())).ToList();
+                    SmoExportCoordinateSystem.ToExportMatrix(
+                        bone.InverseBindMatrix)).ToArray())).ToList();
         }
 
         IEnumerable<SmoObjectEntry> meshEntries = includeMeshes
@@ -238,8 +239,8 @@ public static class SmoSceneBuilder
                 usesAlphaBlend,
                 exportSkin ? skinObjectIndex : null,
                 parentNodeObjectIndex,
-                ReflectMatrix(world),
-                ReflectMatrix(local));
+                SmoExportCoordinateSystem.ToExportMatrix(world),
+                SmoExportCoordinateSystem.ToExportMatrix(local));
             meshes.Add(exportMesh);
             meshPlacements.Add(new SmoExportMeshPlacement(
                 entry.Index,
@@ -284,7 +285,8 @@ public static class SmoSceneBuilder
                 }
 
                 Matrix4x4 world = options.ApplyWorldTransforms
-                    ? ReflectMatrix(instance.WorldTransform)
+                    ? SmoExportCoordinateSystem.ToExportMatrix(
+                        instance.WorldTransform)
                     : Matrix4x4.Identity;
                 string placementName = string.IsNullOrWhiteSpace(instance.ModelObjectName)
                     ? instance.StaticObjectName
@@ -630,7 +632,11 @@ public static class SmoSceneBuilder
                 Matrix4x4.Invert(parentWorld, out Matrix4x4 inverseParent))
                 local = world * inverseParent;
             result.Add(new SmoExportNode(
-                entry.Index, entry.Name, parent, ReflectMatrix(world), ReflectMatrix(local)));
+                entry.Index,
+                entry.Name,
+                parent,
+                SmoExportCoordinateSystem.ToExportMatrix(world),
+                SmoExportCoordinateSystem.ToExportMatrix(local)));
         }
         return result;
     }
@@ -677,12 +683,6 @@ public static class SmoSceneBuilder
             if (cursor.TypeHash == typeHash) return cursor.Index;
         }
         return null;
-    }
-
-    private static Matrix4x4 ReflectMatrix(Matrix4x4 value)
-    {
-        Matrix4x4 reflection = Matrix4x4.CreateScale(1, 1, -1);
-        return reflection * value * reflection;
     }
 
     private static SmoExportTexture BuildExportTexture(SmoTexture source)

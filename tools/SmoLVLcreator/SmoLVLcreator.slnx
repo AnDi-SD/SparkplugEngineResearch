@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="SmoLVLcreator.Core/SmoLVLcreator.Core.csproj" />
+  <Project Path="SmoLVLcreator.CoreTests/SmoLVLcreator.CoreTests.csproj" />
+  <Project Path="SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj" />
+  <Project Path="SmoLVLcreator.Gui/SmoLVLcreator.Gui.csproj" />
+  <Project Path="SmoLVLcreator.Viewport.Wpf/SmoLVLcreator.Viewport.Wpf.csproj" />
+  <Project Path="../SmoViewer/SmoViewer.Rendering.Wpf/SmoViewer.Rendering.Wpf.csproj" />
+  <Project Path="../SmoViewer/SmoViewer.Scene/SmoViewer.Scene.csproj" />
+</Solution>

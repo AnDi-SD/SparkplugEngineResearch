@@ -168,6 +168,8 @@ public sealed class SkinnedRenderableMaterialProfile
             AppendString(hash, material.Name);
             AppendString(hash, material.BaseColorTextureName ?? string.Empty);
             AppendInt(hash, material.BaseColorTextureIndex);
+            AppendInt(hash, (int)material.AlphaMode);
+            AppendInt(hash, BitConverter.SingleToInt32Bits(material.AlphaCutoff));
         }
         AppendInt(hash, donor.Textures.Count);
         foreach (ImportedTexture texture in donor.Textures)

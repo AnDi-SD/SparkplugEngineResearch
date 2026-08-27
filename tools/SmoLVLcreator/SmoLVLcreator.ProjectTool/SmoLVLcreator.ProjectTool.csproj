@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>SmoLVLcreator.ProjectTool</AssemblyName>
+    <Product>SmoLVLcreator Project Tool</Product>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmoLVLcreator.Core\SmoLVLcreator.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -62,10 +62,23 @@ public sealed record ImportedTexture(
     byte[] Data,
     string? SourcePath = null);
 
+public enum ImportedMaterialAlphaMode
+{
+    Opaque = 0,
+    Mask,
+    Blend
+}
+
 public sealed record ImportedMaterial(
     string Name,
     string? BaseColorTextureName = null,
-    int BaseColorTextureIndex = -1);
+    int BaseColorTextureIndex = -1,
+    ImportedMaterialAlphaMode AlphaMode = ImportedMaterialAlphaMode.Opaque,
+    float AlphaCutoff = 0.5f)
+{
+    public bool UsesTextureAlpha => AlphaMode is
+        ImportedMaterialAlphaMode.Mask or ImportedMaterialAlphaMode.Blend;
+}
 
 public sealed record ImportedScene(
     IReadOnlyList<ImportedMesh> Meshes,

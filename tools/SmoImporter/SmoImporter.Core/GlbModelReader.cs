@@ -528,10 +528,40 @@ public static class GlbModelReader
                     }
                 }
             }
+            ImportedMaterialAlphaMode alphaMode = ReadAlphaMode(material);
+            float alphaCutoff = material.TryGetProperty(
+                    "alphaCutoff", out JsonElement cutoffElement)
+                ? cutoffElement.GetSingle()
+                : 0.5f;
+            if (!float.IsFinite(alphaCutoff) || alphaCutoff is < 0 or > 1)
+            {
+                throw new InvalidDataException(
+                    $"Material {materialIndex} has invalid alphaCutoff {alphaCutoff}.");
+            }
             result[materialIndex] = new ImportedMaterial(
-                name, textureName, sceneTextureIndex);
+                name,
+                textureName,
+                sceneTextureIndex,
+                alphaMode,
+                alphaCutoff);
         }
         return result;
+    }
+
+    private static ImportedMaterialAlphaMode ReadAlphaMode(JsonElement material)
+    {
+        if (!material.TryGetProperty("alphaMode", out JsonElement value))
+            return ImportedMaterialAlphaMode.Opaque;
+        return value.GetString() switch
+        {
+            "OPAQUE" => ImportedMaterialAlphaMode.Opaque,
+            "MASK" => ImportedMaterialAlphaMode.Mask,
+            "BLEND" => ImportedMaterialAlphaMode.Blend,
+            null => throw new InvalidDataException(
+                "glTF alphaMode must be a string."),
+            string mode => throw new InvalidDataException(
+                $"Unsupported glTF alphaMode '{mode}'.")
+        };
     }
 
     private static GlbSkinLayout[] ReadSkins(

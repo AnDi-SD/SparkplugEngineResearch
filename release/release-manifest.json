@@ -50,6 +50,18 @@
       ]
     },
     {
+      "id": "SmoLVLcreator",
+      "project": "tools/SmoLVLcreator/SmoLVLcreator.Gui/SmoLVLcreator.Gui.csproj",
+      "executable": "SmoLVLcreator.exe",
+      "nativeFbx": true,
+      "documents": [
+        "tools/SmoLVLcreator/README.md",
+        "tools/SmoLVLcreator/CHANGELOG.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.0.md",
+        "tools/SmoLVLcreator/ROADMAP.md"
+      ]
+    },
+    {
       "id": "SmoExporter",
       "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
       "executable": "SmoExporter.Gui.exe",

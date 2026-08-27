@@ -8,7 +8,7 @@ namespace SmoImporter.Core;
 /// <paramref name="RelativeOffset"/> is measured from the start of the
 /// attachment's complete field bytes to the object's SBOO/type signature.
 /// </summary>
-internal sealed record SmoVisualForestEntry(
+public sealed record SmoVisualForestEntry(
     uint Id,
     byte[] RawName,
     uint TypeHash,
@@ -19,10 +19,26 @@ internal sealed record SmoVisualForestEntry(
 /// Complete FFPS field bytes to insert immediately before a target object's
 /// terminal empty field, plus the catalog entries serialized inside them.
 /// </summary>
-internal sealed record SmoVisualForestAttachment(
+public sealed record SmoVisualForestAttachment(
     uint TargetOwnerId,
     byte[] FieldData,
     IReadOnlyList<SmoVisualForestEntry> Entries);
+
+public enum SmoVisualForestInsertionKind
+{
+    BeforeTerminal = 0,
+    AfterLastFieldType
+}
+
+/// <summary>
+/// A serializer-owned field attachment and a semantic insertion anchor. This
+/// is the common boundary between format-specific import builders and clients
+/// that either rewrite an SMO immediately or retain the attachment in a project.
+/// </summary>
+public sealed record SmoVisualForestOperation(
+    SmoVisualForestAttachment Attachment,
+    SmoVisualForestInsertionKind InsertionKind,
+    int AnchorFieldType = 0);
 
 /// <summary>
 /// Low-level container writer shared by donor-graph and synthetic visual
@@ -64,6 +80,97 @@ internal static class SmoVisualForestInjector
                 $"Target owner [{owner.Index}] has no terminal empty field.");
         }
 
+        return InjectAt(
+            current,
+            owner,
+            checked((int)owner.LogicalEnd - 1),
+            attachments);
+    }
+
+    /// <summary>
+    /// Inserts fields immediately after the owner's last field of the requested
+    /// type. This preserves the native ordering of repeated reference arrays
+    /// whose entries precede other serialized properties.
+    /// </summary>
+    internal static byte[] InjectAfterLastFieldType(
+        SmoDocument current,
+        uint targetOwnerId,
+        int fieldType,
+        IReadOnlyList<SmoVisualForestAttachment> attachments)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(attachments);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == targetOwnerId);
+        ReadOnlySpan<byte> ownerData = ObjectBytes(current, owner);
+        int offset = ObjectSignatureSize;
+        int insertionOffset = -1;
+        while (offset < ownerData.Length &&
+               SmoDataBlockReader.TryReadHeader(
+                   ownerData, offset, out SmoDataBlockHeader field))
+        {
+            if (field.FieldType == fieldType)
+                insertionOffset = checked((int)field.PayloadEnd);
+            offset = checked((int)field.PayloadEnd);
+        }
+        if (insertionOffset < 0)
+        {
+            throw new InvalidOperationException(
+                $"Target owner [{owner.Index}] has no field type {fieldType}.");
+        }
+        return InjectAt(
+            current,
+            owner,
+            checked((int)owner.LogicalOffset + insertionOffset),
+            attachments);
+    }
+
+    internal static byte[] InjectAfterFieldPayload(
+        SmoDocument current,
+        uint targetOwnerId,
+        int absolutePayloadOffset,
+        byte[] fieldData)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(fieldData);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == targetOwnerId);
+        ReadOnlySpan<byte> ownerData = ObjectBytes(current, owner);
+        int offset = ObjectSignatureSize;
+        while (offset < ownerData.Length &&
+               SmoDataBlockReader.TryReadHeader(
+                   ownerData, offset, out SmoDataBlockHeader field))
+        {
+            if (checked((int)owner.PhysicalOffset + field.PayloadOffset) ==
+                absolutePayloadOffset)
+            {
+                var attachment = new SmoVisualForestAttachment(
+                    targetOwnerId,
+                    fieldData,
+                    Array.Empty<SmoVisualForestEntry>());
+                return InjectAt(
+                    current,
+                    owner,
+                    checked((int)owner.LogicalOffset + (int)field.PayloadEnd),
+                    [attachment]);
+            }
+            offset = checked((int)field.PayloadEnd);
+        }
+        throw new InvalidOperationException(
+            $"Target owner [{owner.Index}] has no field with payload at " +
+            $"0x{absolutePayloadOffset:X}.");
+    }
+
+    private static byte[] InjectAt(
+        SmoDocument current,
+        SmoObjectEntry owner,
+        int insertionLogical,
+        IReadOnlyList<SmoVisualForestAttachment> attachments)
+    {
+        if (attachments.Any(attachment => attachment is null ||
+                                          attachment.TargetOwnerId != owner.Id))
+        {
+            throw new InvalidOperationException(
+                "Attachment group has inconsistent target owners.");
+        }
         ValidateAttachments(current, attachments);
         int insertedLength = attachments.Sum(attachment => attachment.FieldData.Length);
         byte[] insertedFields = new byte[insertedLength];
@@ -74,14 +181,251 @@ internal static class SmoVisualForestInjector
             insertedCursor = checked(insertedCursor + attachment.FieldData.Length);
         }
 
-        int insertionLogical = checked((int)owner.LogicalEnd - 1);
-        byte[] modifiedData = InsertVisualFields(current, insertionLogical, insertedFields);
         IReadOnlyList<DirectoryEntry> directory = BuildDirectory(
             current,
             insertionLogical,
             insertedLength,
             attachments);
-        return BuildContainer(current, modifiedData, directory);
+        return InsertVisualFields(
+            current,
+            insertionLogical,
+            insertedFields,
+            directory);
+    }
+
+    /// <summary>
+    /// Turns one ordinary reference-only field into the canonical inline
+    /// definition of a new resource. The owner remains a normal scene
+    /// placement and every other placement may reference the generated ID.
+    /// </summary>
+    internal static byte[] PromoteReferenceToInline(
+        SmoDocument current,
+        uint ownerId,
+        byte fieldType,
+        uint oldReferenceId,
+        uint newObjectId,
+        byte[] rawName,
+        uint typeHash,
+        byte[] objectData)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(rawName);
+        ArgumentNullException.ThrowIfNull(objectData);
+        if (current.Objects.Any(entry => entry.Id == newObjectId))
+            throw new InvalidOperationException($"Object ID {newObjectId} already exists.");
+        if (objectData.Length < ObjectSignatureSize ||
+            BinaryPrimitives.ReadUInt32LittleEndian(objectData) != typeHash ||
+            !objectData.AsSpan(4, 4).SequenceEqual("SBOO"u8))
+        {
+            throw new InvalidDataException(
+                "Inline resource bytes do not match the requested class signature.");
+        }
+
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoDataBlockHeader reference = FindReferenceField(
+            current, owner, fieldType, oldReferenceId);
+        byte[] field = new byte[checked(13 + objectData.Length)];
+        field[0] = checked((byte)(0xE0 | fieldType));
+        WriteUInt32(field, 1, checked((uint)(ObjectReferenceSize + objectData.Length)));
+        WriteUInt32(field, 5, newObjectId);
+        WriteUInt32(field, 9, checked((uint)objectData.Length));
+        objectData.CopyTo(field, 13);
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + reference.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            checked((int)(reference.PayloadEnd - reference.Offset)),
+            field,
+            new DirectoryEntry(
+                newObjectId,
+                rawName,
+                typeHash,
+                checked((uint)(fieldLogicalOffset + 13)),
+                checked((uint)objectData.Length)));
+    }
+
+    /// <summary>
+    /// Replaces one inline leaf resource with another in a single container
+    /// rewrite. This is the fixed-size graph equivalent of demote + promote,
+    /// without materializing the large intermediate container between them.
+    /// </summary>
+    internal static byte[] ReplaceInlineLeaf(
+        SmoDocument current,
+        uint ownerId,
+        byte fieldType,
+        uint oldObjectId,
+        uint newObjectId,
+        byte[] rawName,
+        uint typeHash,
+        byte[] objectData)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(rawName);
+        ArgumentNullException.ThrowIfNull(objectData);
+        if (oldObjectId != newObjectId &&
+            current.Objects.Any(entry => entry.Id == newObjectId))
+        {
+            throw new InvalidOperationException(
+                $"Object ID {newObjectId} already exists.");
+        }
+        if (objectData.Length < ObjectSignatureSize ||
+            BinaryPrimitives.ReadUInt32LittleEndian(objectData) != typeHash ||
+            !objectData.AsSpan(4, 4).SequenceEqual("SBOO"u8))
+        {
+            throw new InvalidDataException(
+                "Inline replacement bytes do not match the requested class signature.");
+        }
+
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoObjectEntry child = current.Objects.Single(entry => entry.Id == oldObjectId);
+        if (child.ParentIndex != owner.Index)
+        {
+            throw new InvalidOperationException(
+                $"Object {oldObjectId} is not an inline child of owner {ownerId}.");
+        }
+        if (current.Objects.Any(entry => entry.ParentIndex == child.Index))
+        {
+            throw new NotSupportedException(
+                $"Inline object {oldObjectId} is not a leaf and cannot be replaced safely.");
+        }
+
+        SmoDataBlockHeader inline = FindInlineField(
+            current,
+            owner,
+            child,
+            fieldType);
+        byte[] field = new byte[checked(13 + objectData.Length)];
+        field[0] = checked((byte)(0xE0 | fieldType));
+        WriteUInt32(field, 1, checked((uint)(ObjectReferenceSize + objectData.Length)));
+        WriteUInt32(field, 5, newObjectId);
+        WriteUInt32(field, 9, checked((uint)objectData.Length));
+        objectData.CopyTo(field, 13);
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + inline.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            checked((int)(inline.PayloadEnd - inline.Offset)),
+            field,
+            new DirectoryEntry(
+                newObjectId,
+                rawName,
+                typeHash,
+                checked((uint)(fieldLogicalOffset + 13)),
+                checked((uint)objectData.Length)),
+            removedObjectId: oldObjectId);
+    }
+
+    /// <summary>Removes one reference-only placement binding without touching its resource.</summary>
+    internal static byte[] RemoveReference(
+        SmoDocument current,
+        uint ownerId,
+        byte fieldType,
+        uint referenceId)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoDataBlockHeader reference = FindReferenceField(
+            current, owner, fieldType, referenceId);
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + reference.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            checked((int)(reference.PayloadEnd - reference.Offset)),
+            [],
+            addedEntry: null);
+    }
+
+    internal static byte[] ReplaceReferenceId(
+        SmoDocument current,
+        uint ownerId,
+        byte fieldType,
+        uint oldReferenceId,
+        uint newReferenceId)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoDataBlockHeader reference = FindReferenceField(
+            current, owner, fieldType, oldReferenceId);
+        byte[] replacement = current.Data.Span.Slice(
+            checked((int)owner.PhysicalOffset + reference.Offset),
+            checked((int)(reference.PayloadEnd - reference.Offset))).ToArray();
+        WriteUInt32(replacement, reference.PayloadOffset - reference.Offset, newReferenceId);
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + reference.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            replacement.Length,
+            replacement,
+            addedEntry: null);
+    }
+
+    internal static byte[] RemoveInlineBranch(
+        SmoDocument current,
+        uint ownerId,
+        uint childObjectId)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoObjectEntry child = current.Objects.Single(entry => entry.Id == childObjectId);
+        if (child.ParentIndex != owner.Index)
+            throw new InvalidOperationException(
+                $"Object {childObjectId} is not an inline child of owner {ownerId}.");
+        SmoDataBlockHeader inline = FindInlineField(current, owner, child);
+        HashSet<uint> removedIds = current.Objects
+            .Where(entry => entry.PhysicalOffset >= child.PhysicalOffset &&
+                            entry.PhysicalEnd <= child.PhysicalEnd)
+            .Select(entry => entry.Id)
+            .ToHashSet();
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + inline.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            checked((int)(inline.PayloadEnd - inline.Offset)),
+            [],
+            addedEntry: null,
+            removedObjectIds: removedIds);
+    }
+
+    /// <summary>
+    /// Converts one inline leaf definition into an ordinary reference and
+    /// removes its catalog entry. The preserved serialized object bytes can
+    /// then be promoted into another reference field with the same object ID.
+    /// </summary>
+    internal static byte[] DemoteInlineLeafToReference(
+        SmoDocument current,
+        uint ownerId,
+        byte fieldType,
+        uint objectId)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoObjectEntry child = current.Objects.Single(entry => entry.Id == objectId);
+        if (child.ParentIndex != owner.Index)
+        {
+            throw new InvalidOperationException(
+                $"Object {objectId} is not an inline child of owner {ownerId}.");
+        }
+        if (current.Objects.Any(entry => entry.ParentIndex == child.Index))
+        {
+            throw new NotSupportedException(
+                $"Inline object {objectId} is not a leaf and cannot be relocated safely.");
+        }
+
+        SmoDataBlockHeader inline = FindInlineField(
+            current, owner, child, fieldType);
+        byte[] reference = new byte[13];
+        reference[0] = checked((byte)(0xE0 | fieldType));
+        WriteUInt32(reference, 1, ObjectReferenceSize);
+        WriteUInt32(reference, 5, objectId);
+        WriteUInt32(reference, 9, 0);
+        int fieldLogicalOffset = checked((int)owner.LogicalOffset + inline.Offset);
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            checked((int)(inline.PayloadEnd - inline.Offset)),
+            reference,
+            addedEntry: null,
+            removedObjectId: objectId);
     }
 
     private static void ValidateAttachments(
@@ -144,18 +488,212 @@ internal static class SmoVisualForestInjector
         }
     }
 
+    private static SmoDataBlockHeader FindReferenceField(
+        SmoDocument current,
+        SmoObjectEntry owner,
+        byte fieldType,
+        uint referenceId)
+    {
+        ReadOnlySpan<byte> bytes = ObjectBytes(current, owner);
+        int offset = ObjectSignatureSize;
+        SmoDataBlockHeader match = default;
+        int matches = 0;
+        while (offset < bytes.Length &&
+               SmoDataBlockReader.TryReadHeader(
+                   bytes, offset, out SmoDataBlockHeader field))
+        {
+            if (field.FieldType == fieldType && field.PayloadSize == ObjectReferenceSize &&
+                BinaryPrimitives.ReadUInt32LittleEndian(bytes[field.PayloadOffset..]) ==
+                    referenceId &&
+                BinaryPrimitives.ReadUInt32LittleEndian(
+                    bytes[(field.PayloadOffset + sizeof(uint))..]) == 0)
+            {
+                match = field;
+                matches++;
+            }
+            offset = checked((int)field.PayloadEnd);
+        }
+        return matches == 1
+            ? match
+            : throw new InvalidOperationException(
+                $"Owner {owner.Id} has {matches} reference-only field(s) " +
+                $"type {fieldType} for object {referenceId}; exactly one is required.");
+    }
+
+    private static SmoDataBlockHeader FindInlineField(
+        SmoDocument current,
+        SmoObjectEntry owner,
+        SmoObjectEntry child,
+        byte fieldType)
+    {
+        ReadOnlySpan<byte> bytes = ObjectBytes(current, owner);
+        int offset = ObjectSignatureSize;
+        while (offset < bytes.Length &&
+               SmoDataBlockReader.TryReadHeader(
+                   bytes, offset, out SmoDataBlockHeader field))
+        {
+            long payloadPhysical = owner.PhysicalOffset + field.PayloadOffset;
+            if (field.FieldType == fieldType &&
+                field.PayloadSize == child.SerializedSize + ObjectReferenceSize &&
+                payloadPhysical == child.PhysicalOffset - ObjectReferenceSize &&
+                BinaryPrimitives.ReadUInt32LittleEndian(bytes[field.PayloadOffset..]) ==
+                    child.Id &&
+                BinaryPrimitives.ReadUInt32LittleEndian(
+                    bytes[(field.PayloadOffset + sizeof(uint))..]) ==
+                    child.SerializedSize)
+            {
+                return field;
+            }
+            offset = checked((int)field.PayloadEnd);
+        }
+        throw new InvalidOperationException(
+            $"Owner {owner.Id} has no inline field type {fieldType} for object {child.Id}.");
+    }
+
+    private static SmoDataBlockHeader FindInlineField(
+        SmoDocument current,
+        SmoObjectEntry owner,
+        SmoObjectEntry child)
+    {
+        ReadOnlySpan<byte> bytes = ObjectBytes(current, owner);
+        int offset = ObjectSignatureSize;
+        while (offset < bytes.Length &&
+               SmoDataBlockReader.TryReadHeader(
+                   bytes, offset, out SmoDataBlockHeader field))
+        {
+            long payloadPhysical = owner.PhysicalOffset + field.PayloadOffset;
+            if (field.PayloadSize == child.SerializedSize + ObjectReferenceSize &&
+                payloadPhysical == child.PhysicalOffset - ObjectReferenceSize &&
+                BinaryPrimitives.ReadUInt32LittleEndian(bytes[field.PayloadOffset..]) ==
+                    child.Id &&
+                BinaryPrimitives.ReadUInt32LittleEndian(
+                    bytes[(field.PayloadOffset + sizeof(uint))..]) ==
+                    child.SerializedSize)
+            {
+                return field;
+            }
+            offset = checked((int)field.PayloadEnd);
+        }
+        throw new InvalidOperationException(
+            $"Owner {owner.Id} has no inline field for object {child.Id}.");
+    }
+
+    private static byte[] ReplaceReferenceField(
+        SmoDocument current,
+        int fieldStart,
+        int oldLength,
+        ReadOnlySpan<byte> replacement,
+        DirectoryEntry? addedEntry,
+        uint? removedObjectId = null,
+        IReadOnlySet<uint>? removedObjectIds = null)
+    {
+        int fieldEnd = checked(fieldStart + oldLength);
+        int delta = checked(replacement.Length - oldLength);
+        ReadOnlySpan<byte> source = current.Data.Span.Slice(
+            checked((int)current.Header.DataStart), checked((int)current.Header.DataSize));
+        var directory = current.Objects
+            .Where(entry => entry.Id != removedObjectId &&
+                            removedObjectIds?.Contains(entry.Id) != true)
+            .Select(entry =>
+        {
+            bool contains = (ulong)entry.LogicalOffset <= (ulong)fieldStart &&
+                            (ulong)fieldEnd <= entry.LogicalEnd;
+            uint mappedOffset = entry.LogicalOffset >= fieldEnd
+                ? checked((uint)(entry.LogicalOffset + delta))
+                : entry.LogicalOffset;
+            return new DirectoryEntry(
+                entry.Id,
+                entry.RawName.ToArray(),
+                entry.TypeHash,
+                mappedOffset,
+                contains
+                    ? checked((uint)(entry.SerializedSize + delta))
+                    : entry.SerializedSize);
+        }).ToList();
+        if (addedEntry is not null)
+            directory.Add(addedEntry);
+        byte[] container = CreateContainer(
+            current,
+            checked(source.Length + delta),
+            directory.OrderBy(entry => entry.LogicalOffset).ToArray(),
+            out int dataStart);
+        Span<byte> rewritten = container.AsSpan(
+            dataStart,
+            checked(source.Length + delta));
+        source[..fieldStart].CopyTo(rewritten);
+        replacement.CopyTo(rewritten[fieldStart..]);
+        source[fieldEnd..].CopyTo(rewritten[(fieldStart + replacement.Length)..]);
+
+        foreach (SmoObjectEntry entry in current.Objects)
+        {
+            ReadOnlySpan<byte> serialized = ObjectBytes(current, entry);
+            int offset = ObjectSignatureSize;
+            while (offset < serialized.Length &&
+                   SmoDataBlockReader.TryReadHeader(
+                       serialized, offset, out SmoDataBlockHeader field))
+            {
+                int absoluteHeader = checked((int)entry.LogicalOffset + field.Offset);
+                long payloadStart = entry.LogicalOffset + field.PayloadOffset;
+                long payloadEnd = entry.LogicalOffset + field.PayloadEnd;
+                if (absoluteHeader != fieldStart &&
+                    payloadStart <= fieldStart && fieldEnd <= payloadEnd)
+                {
+                    int mappedHeader = MapReplacedOffset(
+                        absoluteHeader, fieldEnd, delta);
+                    WritePayloadSize(
+                        rewritten,
+                        mappedHeader,
+                        field,
+                        checked((uint)(field.PayloadSize + delta)));
+                }
+                offset = checked((int)field.PayloadEnd);
+            }
+        }
+
+        foreach (SmoObjectEntry entry in current.Objects.Where(entry =>
+                     (ulong)entry.LogicalOffset <= (ulong)fieldStart &&
+                     (ulong)fieldEnd <= entry.LogicalEnd))
+        {
+            int prefix = checked((int)entry.LogicalOffset - ObjectReferenceSize);
+            if (prefix < 0 ||
+                BinaryPrimitives.ReadUInt32LittleEndian(source[prefix..]) != entry.Id ||
+                BinaryPrimitives.ReadUInt32LittleEndian(source[(prefix + 4)..]) !=
+                    entry.SerializedSize)
+            {
+                continue;
+            }
+            int mappedPrefix = MapReplacedOffset(prefix, fieldEnd, delta);
+            WriteUInt32(
+                rewritten,
+                mappedPrefix + sizeof(uint),
+                checked((uint)(entry.SerializedSize + delta)));
+        }
+
+        return container;
+    }
+
+    private static int MapReplacedOffset(int offset, int oldEnd, int delta) =>
+        offset >= oldEnd ? checked(offset + delta) : offset;
+
     private static byte[] InsertVisualFields(
         SmoDocument current,
         int insertionLogical,
-        ReadOnlySpan<byte> insertedFields)
+        ReadOnlySpan<byte> insertedFields,
+        IReadOnlyList<DirectoryEntry> directory)
     {
         ReadOnlySpan<byte> sourceData = current.Data.Span.Slice(
             checked((int)current.Header.DataStart), checked((int)current.Header.DataSize));
-        byte[] result = new byte[checked(sourceData.Length + insertedFields.Length)];
+        int rewrittenLength = checked(sourceData.Length + insertedFields.Length);
+        byte[] container = CreateContainer(
+            current,
+            rewrittenLength,
+            directory,
+            out int dataStart);
+        Span<byte> result = container.AsSpan(dataStart, rewrittenLength);
         sourceData[..insertionLogical].CopyTo(result);
-        insertedFields.CopyTo(result.AsSpan(insertionLogical));
+        insertedFields.CopyTo(result[insertionLogical..]);
         sourceData[insertionLogical..].CopyTo(
-            result.AsSpan(insertionLogical + insertedFields.Length));
+            result[(insertionLogical + insertedFields.Length)..]);
 
         foreach (SmoObjectEntry entry in current.Objects)
         {
@@ -203,7 +741,7 @@ internal static class SmoVisualForestInjector
                 newPrefix + sizeof(uint),
                 checked(entry.SerializedSize + (uint)insertedFields.Length));
         }
-        return result;
+        return container;
     }
 
     private static IReadOnlyList<DirectoryEntry> BuildDirectory(
@@ -243,18 +781,19 @@ internal static class SmoVisualForestInjector
         return result.OrderBy(entry => entry.LogicalOffset).ToArray();
     }
 
-    private static byte[] BuildContainer(
+    private static byte[] CreateContainer(
         SmoDocument current,
-        ReadOnlySpan<byte> dataSection,
-        IReadOnlyList<DirectoryEntry> entries)
+        int dataLength,
+        IReadOnlyList<DirectoryEntry> entries,
+        out int dataStart)
     {
         int tableSize = entries.Sum(entry => 18 + entry.RawName.Length);
-        int dataStart = checked(SmoHeader.Size + tableSize + sizeof(uint));
-        byte[] result = new byte[checked(dataStart + dataSection.Length)];
+        dataStart = checked(SmoHeader.Size + tableSize + sizeof(uint));
+        byte[] result = new byte[checked(dataStart + dataLength)];
         current.Data.Span[..SmoHeader.Size].CopyTo(result);
         WriteUInt32(result, 0x0C, checked((uint)result.Length));
         WriteUInt32(result, 0x14, checked((uint)dataStart));
-        WriteUInt32(result, 0x18, checked((uint)dataSection.Length));
+        WriteUInt32(result, 0x18, checked((uint)dataLength));
         WriteUInt32(result, 0x1C, checked((uint)entries.Count));
         int cursor = SmoHeader.ObjectTableOffset;
         foreach (DirectoryEntry entry in entries)
@@ -269,7 +808,6 @@ internal static class SmoVisualForestInjector
             WriteUInt32(result, fields + 2 * sizeof(uint), entry.SerializedSize);
             cursor += 18 + entry.RawName.Length;
         }
-        dataSection.CopyTo(result.AsSpan(dataStart));
         return result;
     }
 

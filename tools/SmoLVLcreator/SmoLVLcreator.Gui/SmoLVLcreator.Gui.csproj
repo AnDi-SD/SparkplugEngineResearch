@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>SmoLVLcreator.Gui.App</StartupObject>
+    <AssemblyName>SmoLVLcreator</AssemblyName>
+    <Product>SmoLVLcreator</Product>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTK.GLWpfControl" Version="4.3.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmoLVLcreator.Core\SmoLVLcreator.Core.csproj" />
+    <ProjectReference Include="..\SmoLVLcreator.Viewport.Wpf\SmoLVLcreator.Viewport.Wpf.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoViewer.Rendering.Wpf\SmoViewer.Rendering.Wpf.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoNativeValidator.Core\SmoNativeValidator.Core.csproj" />
+    <ProjectReference Include="..\..\SmoImporter\SmoImporter.Core\SmoImporter.Core.csproj" />
+  </ItemGroup>
+
+</Project>

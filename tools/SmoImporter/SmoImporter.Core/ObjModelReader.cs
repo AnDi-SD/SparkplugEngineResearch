@@ -115,7 +115,22 @@ public static class ObjModelReader
             meshes.Sum(mesh => (long)mesh.Positions.Length),
             ImportedModelResourceLimits.MaximumTotalVertices,
             "OBJ expanded vertex");
-        return new ImportedScene(meshes, SourceMaterials: materials.AsReadOnly());
+        var warnings = new List<string>();
+        AdjacentTextureResolution resolved = ResolveAdjacentTextures(
+            fullPath,
+            meshes,
+            materials,
+            warnings,
+            cancellationToken);
+        var scene = new ImportedScene(
+            resolved.Meshes,
+            resolved.Textures,
+            resolved.Materials)
+        {
+            ImportWarnings = warnings.AsReadOnly()
+        };
+        ImportedModelResourceLimits.ValidateTextures(scene.Textures, "OBJ scene");
+        return scene;
     }
 
     private static Builder SwitchBuilder(
@@ -159,16 +174,46 @@ public static class ObjModelReader
         string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
         var result = new List<ImportedMaterial>();
         var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var adjacentFiles = Directory.EnumerateFiles(directory)
+            .ToDictionary(
+                file => Path.GetFileName(file),
+                file => file,
+                StringComparer.OrdinalIgnoreCase);
+        var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (string raw in lines)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string line = raw.Trim();
             if (!line.StartsWith("mtllib ", StringComparison.OrdinalIgnoreCase))
                 continue;
-            string reference = Unquote(line[7..].Trim());
-            string materialPath = Path.GetFullPath(Path.Combine(directory, reference));
-            if (!File.Exists(materialPath))
-                continue;
+            string references = line[7..].Trim();
+            string? completeReference = FindAdjacentFile(
+                adjacentFiles,
+                Unquote(references));
+            if (completeReference is not null)
+                libraryPaths.Add(completeReference);
+            else
+            {
+                foreach (string reference in Tokenize(references))
+                {
+                    string? materialPath = FindAdjacentFile(
+                        adjacentFiles,
+                        reference);
+                    if (materialPath is not null)
+                        libraryPaths.Add(materialPath);
+                }
+            }
+        }
+        if (libraryPaths.Count == 0)
+        {
+            string fallbackName = Path.GetFileNameWithoutExtension(objPath) + ".mtl";
+            if (adjacentFiles.TryGetValue(fallbackName, out string? fallbackPath))
+                libraryPaths.Add(fallbackPath);
+        }
+        foreach (string materialPath in libraryPaths.OrderBy(
+                     path => path,
+                     StringComparer.OrdinalIgnoreCase))
+        {
             ImportedModelResourceLimits.ValidateInputFile(materialPath, "MTL");
             ReadMaterialLibrary(
                 materialPath, result, indices, cancellationToken);
@@ -208,13 +253,375 @@ public static class ObjModelReader
             }
             if (current >= 0 && line.StartsWith("map_Kd ", StringComparison.OrdinalIgnoreCase))
             {
-                string textureName = Unquote(line[7..].Trim());
+                string? textureName = ParseMapReference(line[7..]);
+                if (!string.IsNullOrWhiteSpace(textureName))
+                {
+                    materials[current] = materials[current] with
+                    {
+                        BaseColorTextureName = SafeFileName(textureName)
+                    };
+                }
+                continue;
+            }
+            if (current >= 0 && line.StartsWith("map_d ", StringComparison.OrdinalIgnoreCase))
+            {
                 materials[current] = materials[current] with
                 {
-                    BaseColorTextureName = Path.GetFileName(textureName)
+                    AlphaMode = ImportedMaterialAlphaMode.Blend
+                };
+                continue;
+            }
+            if (current >= 0 && TryReadDissolve(line, out bool usesAlpha) && usesAlpha)
+            {
+                materials[current] = materials[current] with
+                {
+                    AlphaMode = ImportedMaterialAlphaMode.Blend
                 };
             }
         }
+    }
+
+    private static AdjacentTextureResolution ResolveAdjacentTextures(
+        string objPath,
+        IReadOnlyList<ImportedMesh> sourceMeshes,
+        IReadOnlyList<ImportedMaterial> sourceMaterials,
+        ICollection<string> warnings,
+        CancellationToken cancellationToken)
+    {
+        string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
+        AdjacentTextureCandidate[] candidates = Directory.EnumerateFiles(directory)
+            .Where(IsSupportedTextureFile)
+            .Select(path => new AdjacentTextureCandidate(
+                Path.GetFullPath(path),
+                Path.GetFileName(path),
+                Path.GetFileNameWithoutExtension(path),
+                IsLikelyBaseColorTexture(path)))
+            .OrderBy(candidate => candidate.FileName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        AdjacentTextureCandidate[] colorCandidates = candidates
+            .Where(candidate => candidate.IsLikelyBaseColor)
+            .ToArray();
+        var meshes = sourceMeshes.ToArray();
+        var materials = sourceMaterials.ToList();
+        var textures = new List<ImportedTexture>();
+        var textureIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var textureHasAlpha = new Dictionary<int, bool>();
+        var usedCandidatePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        int ResolveTexture(AdjacentTextureCandidate candidate)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            usedCandidatePaths.Add(candidate.FullPath);
+            if (textureIndices.TryGetValue(candidate.FullPath, out int existing))
+                return existing;
+            ImportedTexture texture = ImportedTextureFileReader.Read(candidate.FullPath);
+            int index = textures.Count;
+            textures.Add(texture);
+            textureIndices.Add(candidate.FullPath, index);
+            textureHasAlpha.Add(
+                index,
+                ImportedTextureAtlasRepacker.TextureContainsTransparency(texture));
+            return index;
+        }
+
+        void AssignMaterial(int materialIndex, AdjacentTextureCandidate candidate)
+        {
+            int textureIndex = ResolveTexture(candidate);
+            ImportedMaterial material = materials[materialIndex];
+            materials[materialIndex] = material with
+            {
+                BaseColorTextureName = candidate.FileName,
+                BaseColorTextureIndex = textureIndex,
+                AlphaMode = textureHasAlpha[textureIndex]
+                    ? ImportedMaterialAlphaMode.Blend
+                    : material.AlphaMode
+            };
+        }
+
+        int[] usedMaterialIndices = meshes
+            .Select(mesh => mesh.MaterialIndex)
+            .Where(index => index >= 0 && index < materials.Count)
+            .Distinct()
+            .OrderBy(index => index)
+            .ToArray();
+        var unresolvedMaterials = new List<int>();
+        foreach (int materialIndex in usedMaterialIndices)
+        {
+            ImportedMaterial material = materials[materialIndex];
+            if (material.BaseColorTextureIndex >= 0)
+                continue;
+            CandidateMatch match = string.IsNullOrWhiteSpace(
+                    material.BaseColorTextureName)
+                ? new CandidateMatch(null, Ambiguous: false)
+                : FindCandidate(candidates, material.BaseColorTextureName);
+            if (match.Candidate is null && !match.Ambiguous)
+                match = FindCandidate(colorCandidates, material.Name);
+            if (match.Candidate is not null)
+                AssignMaterial(materialIndex, match.Candidate);
+            else
+            {
+                unresolvedMaterials.Add(materialIndex);
+                if (match.Ambiguous)
+                {
+                    warnings.Add(
+                        $"OBJ material '{material.Name}' matches multiple adjacent " +
+                        "textures and was left untextured.");
+                }
+            }
+        }
+
+        var unresolvedMeshGroups = new List<UnresolvedMeshGroup>();
+        foreach (IGrouping<string, (ImportedMesh Mesh, int Index)> group in meshes
+                     .Select((mesh, index) => (Mesh: mesh, Index: index))
+                     .Where(item => item.Mesh.MaterialIndex < 0)
+                     .GroupBy(item => item.Mesh.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            CandidateMatch match = FindCandidate(colorCandidates, group.Key);
+            if (match.Candidate is null)
+            {
+                unresolvedMeshGroups.Add(new UnresolvedMeshGroup(
+                    group.Key,
+                    group.Select(item => item.Index).ToArray()));
+                if (match.Ambiguous)
+                {
+                    warnings.Add(
+                        $"OBJ mesh group '{group.Key}' matches multiple adjacent " +
+                        "textures and was left untextured.");
+                }
+                continue;
+            }
+            AssignNewMaterialToMeshes(
+                group.Key,
+                group.Select(item => item.Index).ToArray(),
+                match.Candidate,
+                meshes,
+                materials,
+                AssignMaterial);
+        }
+
+        AdjacentTextureCandidate[] unusedCandidates = colorCandidates
+            .Where(candidate => !usedCandidatePaths.Contains(candidate.FullPath))
+            .ToArray();
+        int unresolvedGroupCount = unresolvedMaterials.Count + unresolvedMeshGroups.Count;
+        if (unresolvedGroupCount == 1 && unusedCandidates.Length == 1)
+        {
+            AdjacentTextureCandidate fallback = unusedCandidates[0];
+            if (unresolvedMaterials.Count == 1)
+                AssignMaterial(unresolvedMaterials[0], fallback);
+            else
+            {
+                UnresolvedMeshGroup group = unresolvedMeshGroups[0];
+                AssignNewMaterialToMeshes(
+                    group.Name,
+                    group.MeshIndices,
+                    fallback,
+                    meshes,
+                    materials,
+                    AssignMaterial);
+            }
+            warnings.Add(
+                $"OBJ adjacent texture '{fallback.FileName}' was assigned by the " +
+                "unique untextured-group fallback.");
+        }
+        else if (candidates.Length > 0 && textures.Count == 0 && unresolvedGroupCount > 0)
+        {
+            warnings.Add(
+                $"OBJ found {candidates.Length} adjacent image file(s), but none could " +
+                "be assigned unambiguously by material or mesh name.");
+        }
+
+        return new AdjacentTextureResolution(
+            Array.AsReadOnly(meshes),
+            textures.AsReadOnly(),
+            materials.AsReadOnly());
+    }
+
+    private static void AssignNewMaterialToMeshes(
+        string name,
+        IReadOnlyList<int> meshIndices,
+        AdjacentTextureCandidate candidate,
+        ImportedMesh[] meshes,
+        List<ImportedMaterial> materials,
+        Action<int, AdjacentTextureCandidate> assignMaterial)
+    {
+        int materialIndex = materials.Count;
+        materials.Add(new ImportedMaterial(
+            string.IsNullOrWhiteSpace(name) ? "OBJ_Default" : name,
+            candidate.FileName));
+        assignMaterial(materialIndex, candidate);
+        foreach (int meshIndex in meshIndices)
+            meshes[meshIndex] = meshes[meshIndex] with { MaterialIndex = materialIndex };
+    }
+
+    private static CandidateMatch FindCandidate(
+        IReadOnlyList<AdjacentTextureCandidate> candidates,
+        params string?[] references)
+    {
+        foreach (string reference in references
+                     .OfType<string>()
+                     .Where(reference => !string.IsNullOrWhiteSpace(reference)))
+        {
+            string fileName = SafeFileName(reference);
+            AdjacentTextureCandidate[] exact = candidates
+                .Where(candidate => candidate.FileName.Equals(
+                    fileName,
+                    StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (exact.Length == 1)
+                return new CandidateMatch(exact[0], Ambiguous: false);
+            if (exact.Length > 1)
+                return new CandidateMatch(null, Ambiguous: true);
+
+            string baseName = Path.GetFileNameWithoutExtension(fileName);
+            AdjacentTextureCandidate[] byBaseName = candidates
+                .Where(candidate => candidate.BaseName.Equals(
+                    baseName,
+                    StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (byBaseName.Length == 1)
+                return new CandidateMatch(byBaseName[0], Ambiguous: false);
+            if (byBaseName.Length > 1)
+                return new CandidateMatch(null, Ambiguous: true);
+        }
+        return new CandidateMatch(null, Ambiguous: false);
+    }
+
+    private static bool IsSupportedTextureFile(string path) =>
+        Path.GetExtension(path).ToLowerInvariant() is
+            ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tga";
+
+    private static bool IsLikelyBaseColorTexture(string path)
+    {
+        string name = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
+        string[] tokens = name.Split(
+            ['_', '-', '.', ' '],
+            StringSplitOptions.RemoveEmptyEntries);
+        string[] nonColorTokens =
+        [
+            "normal", "norm", "nomr", "rough", "roughness", "metal",
+            "metallic", "spec", "specular", "ao", "occlusion", "orm",
+            "bump", "height", "displacement"
+        ];
+        return !tokens.Any(token => nonColorTokens.Contains(
+                   token,
+                   StringComparer.OrdinalIgnoreCase)) &&
+               !name.EndsWith("_n", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? FindAdjacentFile(
+        IReadOnlyDictionary<string, string> adjacentFiles,
+        string reference)
+    {
+        string fileName = SafeFileName(reference);
+        return adjacentFiles.TryGetValue(fileName, out string? path)
+            ? path
+            : null;
+    }
+
+    private static string SafeFileName(string value)
+    {
+        string normalized = Unquote(value.Trim()).Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        return Path.GetFileName(normalized);
+    }
+
+    private static string? ParseMapReference(string value)
+    {
+        string[] tokens = Tokenize(value).ToArray();
+        int index = 0;
+        while (index < tokens.Length && tokens[index].StartsWith('-'))
+        {
+            string option = tokens[index++].ToLowerInvariant();
+            if (option is "-o" or "-s" or "-t")
+            {
+                int numericCount = 0;
+                while (index < tokens.Length && numericCount < 3 &&
+                       float.TryParse(
+                           tokens[index],
+                           NumberStyles.Float,
+                           CultureInfo.InvariantCulture,
+                           out _))
+                {
+                    index++;
+                    numericCount++;
+                }
+                continue;
+            }
+            int argumentCount = option switch
+            {
+                "-mm" => 2,
+                "-blendu" or "-blendv" or "-boost" or "-bm" or "-cc" or
+                "-clamp" or "-imfchan" or "-texres" or "-type" => 1,
+                _ => 0
+            };
+            index = Math.Min(tokens.Length, index + argumentCount);
+        }
+        return index < tokens.Length
+            ? string.Join(' ', tokens.Skip(index))
+            : null;
+    }
+
+    private static bool TryReadDissolve(string line, out bool usesAlpha)
+    {
+        usesAlpha = false;
+        string[] tokens = Tokenize(line).ToArray();
+        if (tokens.Length < 2)
+            return false;
+        bool isDissolve = tokens[0].Equals("d", StringComparison.OrdinalIgnoreCase);
+        bool isTransparency = tokens[0].Equals("Tr", StringComparison.OrdinalIgnoreCase);
+        if (!isDissolve && !isTransparency)
+            return false;
+        string? numeric = tokens.Skip(1).LastOrDefault(token => float.TryParse(
+            token,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out _));
+        if (numeric is null || !float.TryParse(
+                numeric,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out float value))
+            return false;
+        usesAlpha = isDissolve ? value < 0.999f : value > 0.001f;
+        return true;
+    }
+
+    private static IReadOnlyList<string> Tokenize(string value)
+    {
+        var result = new List<string>();
+        var current = new System.Text.StringBuilder();
+        char quote = '\0';
+        foreach (char character in value)
+        {
+            if (quote == '\0' && character == '#')
+                break;
+            if (character is '\'' or '"')
+            {
+                if (quote == '\0')
+                {
+                    quote = character;
+                    continue;
+                }
+                if (quote == character)
+                {
+                    quote = '\0';
+                    continue;
+                }
+            }
+            if (quote == '\0' && char.IsWhiteSpace(character))
+            {
+                if (current.Length > 0)
+                {
+                    result.Add(current.ToString());
+                    current.Clear();
+                }
+                continue;
+            }
+            current.Append(character);
+        }
+        if (current.Length > 0)
+            result.Add(current.ToString());
+        return result;
     }
 
     private static string Unquote(string value) =>
@@ -224,6 +631,25 @@ public static class ObjModelReader
 
     private static float Parse(string value) =>
         float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+
+    private sealed record AdjacentTextureCandidate(
+        string FullPath,
+        string FileName,
+        string BaseName,
+        bool IsLikelyBaseColor);
+
+    private sealed record CandidateMatch(
+        AdjacentTextureCandidate? Candidate,
+        bool Ambiguous);
+
+    private sealed record UnresolvedMeshGroup(
+        string Name,
+        IReadOnlyList<int> MeshIndices);
+
+    private sealed record AdjacentTextureResolution(
+        IReadOnlyList<ImportedMesh> Meshes,
+        IReadOnlyList<ImportedTexture> Textures,
+        IReadOnlyList<ImportedMaterial> Materials);
 
     private sealed class Builder(string name, int materialIndex)
     {

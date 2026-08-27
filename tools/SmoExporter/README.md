@@ -1,5 +1,11 @@
 # SmoExporter
 
+Editor hosts can create one export scene from arbitrary rendered occurrences via
+`SmoExportSceneSelection.Create`. Each selection identifies both mesh and scene
+object and may override its current native world matrix. Coordinate reflection,
+placement filtering, shared geometry, and format writing remain in
+`SmoExporter.Core`; hosts do not need to duplicate exporters.
+
 Текущая версия: **0.5.0**.
 
 Отдельные ядро, CLI и WPF-приложение для экспорта PC-моделей Sparkplug без изменения исходного SMO.

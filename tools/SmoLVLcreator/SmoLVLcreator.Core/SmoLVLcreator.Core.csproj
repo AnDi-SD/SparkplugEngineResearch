@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SmoImporter\SmoImporter.Core\SmoImporter.Core.csproj" />
+    <ProjectReference Include="..\..\SmoExporter\SmoExporter.Core\SmoExporter.Core.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoViewer.Core\SmoViewer.Core.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoViewer.Scene\SmoViewer.Scene.csproj" />
+  </ItemGroup>
+
+</Project>

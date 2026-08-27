@@ -53,7 +53,7 @@ public static class SmoWholeModelReplacer
         var empty = new ImportedMesh(
             "disabled_mesh", [Vector3.Zero], [Vector3.UnitY], [Vector2.Zero], [0, 0, 0]);
 
-        var replacements = new List<ObjectReplacement>(targets.Length);
+        var replacements = new List<SmoMeshObjectReplacement>(targets.Length);
         for (int index = 0; index < targets.Length; index++)
         {
             SmoObjectEntry target = targets[index];
@@ -72,12 +72,12 @@ public static class SmoWholeModelReplacer
             if (boneSlot is < 0 or > byte.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(rigidBoneSlot), "Bone palette slot must be in range 0..255.");
             ImportedMesh targetMesh = target.Index == host.Index ? combined : empty;
-            byte[] payload = BuildMeshObject(
+            byte[] payload = SmoMeshResourceReplacer.BuildMeshObject(
                 document, target, template, layout, targetMesh, transform, boneSlot);
-            replacements.Add(new ObjectReplacement(target, payload));
+            replacements.Add(new SmoMeshObjectReplacement(target, payload));
         }
 
-        byte[] output = Repack(document, replacements);
+        byte[] output = SmoMeshResourceReplacer.Repack(document, replacements);
         if (!string.IsNullOrWhiteSpace(texturePath))
         {
             output = ReplaceBodyTexture(
@@ -283,160 +283,6 @@ public static class SmoWholeModelReplacer
         }
     }
 
-    private static byte[] BuildMeshObject(
-        SmoDocument document,
-        SmoObjectEntry target,
-        SmoMesh template,
-        SmoVertexLayout layout,
-        ImportedMesh mesh,
-        ReplacementTransform transform,
-        int boneSlot)
-    {
-        int vertexCount = mesh.Positions.Length;
-        int indexCount = mesh.TriangleIndices.Length;
-        if (vertexCount > ushort.MaxValue || indexCount % 3 != 0)
-            throw new InvalidOperationException("A replacement chunk exceeds UInt16 limits or has incomplete triangles.");
-        foreach (uint index in mesh.TriangleIndices)
-            if (index >= vertexCount || index > ushort.MaxValue)
-                throw new InvalidDataException($"Replacement index {index} is outside its chunk.");
-
-        int indexBytes = checked(indexCount * sizeof(ushort));
-        int vertexBytes = checked(vertexCount * template.Stride);
-        const int preambleSize = 17;
-        const int primitiveHeaderSize = 12;
-        const int vertexHeaderSize = 12;
-        int payloadSize = checked(preambleSize + primitiveHeaderSize + indexBytes + vertexHeaderSize + vertexBytes);
-        byte[] result = new byte[checked(8 + 5 + payloadSize + 1)];
-        WriteUInt32(result, 0, SmoClassIds.MeshData);
-        "SBOO"u8.CopyTo(result.AsSpan(4));
-        result[8] = SmoMeshDecoder.E1Marker;
-        WriteUInt32(result, 9, (uint)payloadSize);
-        int payload = 13;
-        WriteUInt32(result, payload, template.VertexFormat);
-        WriteUInt32(result, payload + 4, (uint)vertexCount);
-        WriteUInt32(result, payload + 8, checked((uint)(vertexCount * template.RuntimeStride)));
-        WriteUInt32(result, payload + 12, (uint)indexBytes);
-        result[payload + 16] = 0;
-        int primitive = payload + preambleSize;
-        WriteUInt32(result, primitive, SmoMeshDecoder.TriangleListPrimitive);
-        WriteUInt32(result, primitive + 4, checked((uint)(indexCount / 3)));
-        WriteUInt32(result, primitive + 8, 0);
-        int indices = primitive + primitiveHeaderSize;
-        for (int triangle = 0; triangle < indexCount; triangle += 3)
-        {
-            WriteUInt16(result, indices + triangle * 2, checked((ushort)mesh.TriangleIndices[triangle]));
-            WriteUInt16(result, indices + (triangle + 1) * 2, checked((ushort)mesh.TriangleIndices[triangle + 2]));
-            WriteUInt16(result, indices + (triangle + 2) * 2, checked((ushort)mesh.TriangleIndices[triangle + 1]));
-        }
-        int vertexHeader = indices + indexBytes;
-        WriteUInt32(result, vertexHeader, template.VertexFormat);
-        WriteUInt32(result, vertexHeader + 4, (uint)vertexCount);
-        WriteUInt32(result, vertexHeader + 8, 0);
-        int vertices = vertexHeader + vertexHeaderSize;
-
-        Matrix4x4 world = SmoNodeTransformDecoder.ResolveModelWorldMatrix(document, target);
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverseWorld))
-            throw new InvalidOperationException($"Mesh [{target.Index}] has a singular world transform.");
-        Matrix4x4 adjustment = transform.Matrix;
-        Matrix4x4 adjustmentNormal = Matrix4x4.Invert(adjustment, out Matrix4x4 inverseAdjustment)
-            ? Matrix4x4.Transpose(inverseAdjustment) : adjustment;
-        Matrix4x4 worldToLocalNormal = Matrix4x4.Transpose(world);
-
-        for (int vertex = 0; vertex < vertexCount; vertex++)
-        {
-            int offset = vertices + vertex * template.Stride;
-            Vector3 adjusted = Vector3.Transform(mesh.Positions[vertex], adjustment);
-            Vector3 local = Vector3.Transform(new Vector3(adjusted.X, adjusted.Y, -adjusted.Z), inverseWorld);
-            WriteVector3(result, offset, local);
-            if (layout.NormalOffset is int normalOffset && mesh.Normals.Length == vertexCount)
-            {
-                Vector3 normal = Vector3.TransformNormal(mesh.Normals[vertex], adjustmentNormal);
-                normal.Z = -normal.Z;
-                normal = Vector3.TransformNormal(normal, worldToLocalNormal);
-                if (normal.LengthSquared() > 0.000001f) normal = Vector3.Normalize(normal);
-                WriteVector3(result, offset + normalOffset, normal);
-            }
-            if (layout.TextureCoordinate0Offset is int uvOffset && mesh.TextureCoordinates.Length == vertexCount)
-            {
-                WriteSingle(result, offset + uvOffset, mesh.TextureCoordinates[vertex].X);
-                WriteSingle(result, offset + uvOffset + 4, mesh.TextureCoordinates[vertex].Y);
-            }
-            if (layout.DiffuseArgbOffset is int colorOffset)
-                WriteUInt32(result, offset + colorOffset, 0xFFFFFFFF);
-            if (layout.BlendWeightsOffset is int weightsOffset && layout.BlendIndicesOffset is int bonesOffset)
-            {
-                WriteSingle(result, offset + weightsOffset, 1f);
-                result[offset + bonesOffset] = checked((byte)boneSlot);
-            }
-        }
-        return result;
-    }
-
-    private static byte[] Repack(SmoDocument document, IReadOnlyList<ObjectReplacement> replacements)
-    {
-        ObjectReplacement[] ordered = replacements.OrderBy(item => item.Entry.PhysicalOffset).ToArray();
-        for (int i = 1; i < ordered.Length; i++)
-            if (ordered[i].Entry.PhysicalOffset < ordered[i - 1].Entry.PhysicalEnd)
-                throw new InvalidOperationException("Replacement mesh intervals overlap.");
-
-        byte[] source = document.Data.ToArray();
-        long finalLength = source.LongLength + ordered.Sum(item => (long)item.Data.Length - item.Entry.SerializedSize);
-        byte[] result = new byte[checked((int)finalLength)];
-        int sourceCursor = 0, targetCursor = 0;
-        foreach (ObjectReplacement replacement in ordered)
-        {
-            int start = checked((int)replacement.Entry.PhysicalOffset);
-            int end = checked((int)replacement.Entry.PhysicalEnd);
-            source.AsSpan(sourceCursor, start - sourceCursor).CopyTo(result.AsSpan(targetCursor));
-            targetCursor += start - sourceCursor;
-            replacement.Data.CopyTo(result.AsSpan(targetCursor));
-            targetCursor += replacement.Data.Length;
-            sourceCursor = end;
-        }
-        source.AsSpan(sourceCursor).CopyTo(result.AsSpan(targetCursor));
-
-        long Map(long oldOffset) => oldOffset + ordered
-            .Where(item => item.Entry.PhysicalEnd <= oldOffset)
-            .Sum(item => (long)item.Data.Length - item.Entry.SerializedSize);
-        var replacementByIndex = ordered.ToDictionary(item => item.Entry.Index);
-        foreach (SmoObjectEntry entry in document.Objects)
-        {
-            long newStart = Map(entry.PhysicalOffset);
-            long newEnd = Map(entry.PhysicalEnd);
-            uint newSize = checked((uint)(newEnd - newStart));
-            int logicalOffsetField = entry.TableOffset + sizeof(uint) + sizeof(ushort) + entry.NameLength + sizeof(uint);
-            WriteUInt32(result, logicalOffsetField, checked((uint)(newStart - document.Header.DataStart)));
-            WriteUInt32(result, logicalOffsetField + sizeof(uint), newSize);
-
-            if (!replacementByIndex.ContainsKey(entry.Index) && newSize != entry.SerializedSize)
-            {
-                int objectStart = checked((int)newStart);
-                ReadOnlySpan<byte> originalObject = source.AsSpan(
-                    checked((int)entry.PhysicalOffset), checked((int)entry.SerializedSize));
-                if (SmoDataBlockReader.TryReadHeader(originalObject, 8, out SmoDataBlockHeader outer) &&
-                    outer.PayloadEnd + 1 == entry.SerializedSize)
-                {
-                    if (outer.SizeKind != SmoDataBlockSizeCode.UInt32)
-                        throw new InvalidOperationException(
-                            $"Resized wrapping object [{entry.Index}] has a non-writable outer size field.");
-                    WriteUInt32(result, objectStart + outer.Offset + outer.HeaderSize - sizeof(uint),
-                        checked(newSize - (uint)(8 + outer.HeaderSize + 1)));
-                }
-            }
-        }
-        WriteUInt32(result, 0x0C, checked((uint)result.Length));
-        WriteUInt32(result, 0x18, checked((uint)result.Length - document.Header.DataStart));
-        return result;
-    }
-
-    private static void WriteVector3(Span<byte> data, int offset, Vector3 value)
-    { WriteSingle(data, offset, value.X); WriteSingle(data, offset + 4, value.Y); WriteSingle(data, offset + 8, value.Z); }
-    private static void WriteSingle(Span<byte> data, int offset, float value) =>
-        BinaryPrimitives.WriteInt32LittleEndian(data[offset..], BitConverter.SingleToInt32Bits(value));
-    private static void WriteUInt16(Span<byte> data, int offset, ushort value) =>
-        BinaryPrimitives.WriteUInt16LittleEndian(data[offset..], value);
     private static void WriteUInt32(Span<byte> data, int offset, uint value) =>
         BinaryPrimitives.WriteUInt32LittleEndian(data[offset..], value);
-
-    private sealed record ObjectReplacement(SmoObjectEntry Entry, byte[] Data);
 }

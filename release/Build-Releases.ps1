@@ -314,5 +314,34 @@ finally {
     }
 }
 
+if (-not $NoArchive) {
+    $checksumPath = Join-Path $outputRoot 'SHA256SUMS.txt'
+    $checksums = [ordered]@{}
+    if (Test-Path -LiteralPath $checksumPath -PathType Leaf) {
+        foreach ($line in Get-Content -LiteralPath $checksumPath) {
+            if ($line -match '^([0-9a-fA-F]{64}) \*(.+)$') {
+                $archiveName = $Matches[2]
+                if (Test-Path -LiteralPath (Join-Path $outputRoot $archiveName) -PathType Leaf) {
+                    $checksums[$archiveName] = $Matches[1].ToLowerInvariant()
+                }
+            }
+        }
+    }
+
+    foreach ($packageDirectory in $builtPackages) {
+        $archiveName = (Split-Path $packageDirectory -Leaf) + '.zip'
+        $archivePath = Join-Path $outputRoot $archiveName
+        $checksums[$archiveName] = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+
+    $checksumLines = @($checksums.GetEnumerator() | ForEach-Object {
+        "$($_.Value) *$($_.Key)"
+    })
+    [System.IO.File]::WriteAllLines(
+        $checksumPath,
+        $checksumLines,
+        [System.Text.UTF8Encoding]::new($false))
+}
+
 Write-Host "`nRelease packages:"
 $builtPackages | ForEach-Object { Write-Host "  $_" }

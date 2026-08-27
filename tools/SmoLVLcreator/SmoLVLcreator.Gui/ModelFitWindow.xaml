@@ -1,0 +1,114 @@
+<Window x:Class="SmoLVLcreator.Gui.ModelFitWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+        Title="Подгонка модели"
+        Width="1120" Height="760"
+        MinWidth="900" MinHeight="620"
+        WindowStartupLocation="CenterOwner"
+        Background="#111820" Foreground="#E5EDF5">
+    <Grid Margin="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.ColumnSpan="2" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock x:Name="ModelNameText" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock x:Name="SourcePathText" Foreground="#8FA4B8" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="#0B1118" BorderBrush="#2A3B4B" BorderThickness="1"
+                CornerRadius="4" Margin="0,0,12,0" ClipToBounds="True">
+            <Grid x:Name="PreviewSurface"
+                  Background="Transparent"
+                  Focusable="True"
+                  MouseDown="Preview_MouseDown"
+                  MouseMove="Preview_MouseMove"
+                  MouseUp="Preview_MouseUp"
+                  LostMouseCapture="Preview_LostMouseCapture"
+                  MouseWheel="Preview_MouseWheel"
+                  KeyDown="Preview_KeyDown">
+                <glWpfControl:GLWpfControl x:Name="FitGpuViewport"
+                                           IsHitTestVisible="False"
+                                           Render="FitGpuViewport_OnRender"/>
+
+                <Border Margin="10" Padding="5" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Background="#D9182029" CornerRadius="4">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="MoveToolButton" Content="Move" GroupName="FitTools"
+                                     IsChecked="True" Padding="10,5" Checked="ToolButton_Checked"/>
+                        <RadioButton x:Name="RotateToolButton" Content="Rotate" GroupName="FitTools"
+                                     Margin="4,0,0,0" Padding="10,5" Checked="ToolButton_Checked"/>
+                        <RadioButton x:Name="ScaleToolButton" Content="Scale" GroupName="FitTools"
+                                     Margin="4,0,0,0" Padding="10,5" Checked="ToolButton_Checked"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Margin="10" Padding="8,5" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Background="#D9182029" CornerRadius="4">
+                    <StackPanel>
+                        <TextBlock Foreground="#E5EDF5" Text="Новая модель"/>
+                        <TextBlock Foreground="#8FA4B8" Text="Полупрозрачная — оригинал"/>
+                    </StackPanel>
+                </Border>
+
+                <Border VerticalAlignment="Bottom" Background="#CC111820" Padding="10,7">
+                    <TextBlock Foreground="#AFC0CF"
+                               Text="ЛКМ — гизмо · ПКМ — вращение камеры · Shift+ПКМ — панорама · колесо — масштаб · F — показать целиком"/>
+                </Border>
+                <TextBlock x:Name="PreviewStateText" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#C8D5E0" FontSize="16" Text="Подготовка GPU-предпросмотра…"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="1" Background="#17212B" BorderBrush="#2A3B4B"
+                BorderThickness="1" CornerRadius="4" Padding="14">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="ТРАНСФОРМАЦИЯ ГЕОМЕТРИИ" FontWeight="SemiBold" Foreground="#AFC0CF"/>
+                    <Button Content="Автоподгонка по высоте и центру" Margin="0,12,0,14"
+                            Padding="8" Click="AutoFit_Click"/>
+
+                    <TextBlock Text="Масштаб" Foreground="#8FA4B8"/>
+                    <TextBox x:Name="ScaleBox" Margin="0,4,0,12" LostFocus="NumericBox_LostFocus"/>
+
+                    <TextBlock Text="Поворот, градусы" Foreground="#8FA4B8"/>
+                    <UniformGrid Columns="3" Margin="0,4,0,12">
+                        <TextBox x:Name="RotationXBox" Margin="0,0,4,0" ToolTip="X" LostFocus="NumericBox_LostFocus"/>
+                        <TextBox x:Name="RotationYBox" Margin="2,0" ToolTip="Y" LostFocus="NumericBox_LostFocus"/>
+                        <TextBox x:Name="RotationZBox" Margin="4,0,0,0" ToolTip="Z" LostFocus="NumericBox_LostFocus"/>
+                    </UniformGrid>
+
+                    <TextBlock Text="Позиция" Foreground="#8FA4B8"/>
+                    <UniformGrid Columns="3" Margin="0,4,0,12">
+                        <TextBox x:Name="TranslationXBox" Margin="0,0,4,0" ToolTip="X" LostFocus="NumericBox_LostFocus"/>
+                        <TextBox x:Name="TranslationYBox" Margin="2,0" ToolTip="Y" LostFocus="NumericBox_LostFocus"/>
+                        <TextBox x:Name="TranslationZBox" Margin="4,0,0,0" ToolTip="Z" LostFocus="NumericBox_LostFocus"/>
+                    </UniformGrid>
+
+                    <Button Content="Сбросить" Padding="8" Margin="0,4,0,14" Click="Reset_Click"/>
+                    <Separator/>
+                    <TextBlock x:Name="GeometryText" Margin="0,12,0,0" Foreground="#8FA4B8" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="WarningText" Margin="0,12,0,0" Foreground="#F2B35D" TextWrapping="Wrap"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <DockPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,12,0,0">
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="#8FA4B8"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Отмена" Width="110" Padding="8" Margin="8,0" IsCancel="True"/>
+                <Button Content="Подтвердить замену" Width="180" Padding="8"
+                        IsDefault="True" Click="Confirm_Click"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>
