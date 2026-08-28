@@ -57,8 +57,8 @@ public static class SmoRigidMultiMaterialPacker
     private const int ObjectReferenceSize = 8;
     private const int SerializedTexturePixelOffset = 0x3D;
     private const int SerializedTextureMarkerOffset = 0x3C;
-    private const uint TextureSequenceClassId = 0x16FB0E47;
-    private const uint SharedVisualHelperClassId = 0x7AC95AEC;
+    private const uint TextureSequenceClassId = SmoClassIds.AnimTextureController;
+    private const uint SharedFogClassId = SmoClassIds.Fog;
     private const int ExpectedPaletteSize = 16;
     private const int DefaultRigidBoneSlot = 8;
     private const int SequenceFrameStepBits = 0x3D088889;
@@ -1404,7 +1404,7 @@ public static class SmoRigidMultiMaterialPacker
                 .FirstOrDefault() ?? throw new InvalidOperationException(
                     "Primary render contains no skin.");
             SmoObjectEntry material = FindInlineChild(target, skin, SmoClassIds.MaterialData);
-            SmoObjectEntry helper = FindInlineChild(target, skin, SharedVisualHelperClassId);
+            SmoObjectEntry helper = FindInlineChild(target, skin, SharedFogClassId);
             SmoObjectEntry mesh = FindInlineChild(target, skin, SmoClassIds.MeshData);
             if (!SmoSkinDecoder.TryDecode(
                     target, skin, out SmoSkin? palette, out string error) || palette is null)

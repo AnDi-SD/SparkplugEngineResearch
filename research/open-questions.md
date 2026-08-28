@@ -1,68 +1,174 @@
-# Открытые вопросы
+# Открытые вопросы SMO
 
-Приоритет означает ценность для следующего работающего среза, а не уверенность в гипотезе.
+Статус: актуализировано 28 августа 2026 года после завершения полного
+структурного/read-only разбора 36/36 классов, наблюдаемых в корпусах
+`pc-pristine`, `pc-working` и `ps2-pristine`.
 
-## P0 — границы строгого SMO parser
+Этот файл является каноническим списком нерешённых вопросов. Подробный порядок
+быстрых игровых проверок вынесен в
+[`../docs/research/smo-runtime-validation-plan.md`](../docs/research/smo-runtime-validation-plan.md).
+Долгие задачи, которые разумнее выполнять вместе с разработкой writer/importer,
+отделены от текущего runtime-этапа.
 
-| Вопрос | Нужное evidence | Условие закрытия |
+## Подтверждённая исходная точка
+
+- Проиндексированы 1 149 SMO-копий: по 416 в двух PC-корпусах и 317 уникальных
+  PS2 SMO; все они структурно разобраны без ошибок.
+- Все 36 встреченных class ID известны и имеют строгий read-only decoder.
+- Неизвестных границ наблюдаемых объектов и необъяснённых хвостов payload не
+  осталось. Неизвестность ниже означает семантику, runtime-поведение,
+  ненаблюдавшуюся serializer-ветвь или безопасность записи.
+- Primitive type `2` подтверждён как triangle list.
+- Прежние группы «494 PS2 preamble» и «137 PS2 boundary» являются настоящими
+  native PS2 mesh в PC-файлах `Menus/*_ps2.smo`, а не повреждениями.
+- Наблюдаемый material/layer/texture graph, PC skinning, PC SAN timing и
+  interpolation, collision geometry и navigation topology структурно разобраны.
+- Связь анимаций имеет вид `EXE -> ANM -> SAN -> track name -> SMO node name`.
+  Это строковый lookup, а не сырой указатель.
+- Native-validator теперь принудительно переводит все наблюдаемые
+  `BuildAssetPath` в `Media` рядом с выбранным executable. Неизменённые pristine
+  controls `RT-SMO-LOADER-000` и `RT-SMO-NAME-000` прошли; Bloom contextual
+  baseline на `startLevel=2` запросил 2 Bloom ANM и 111 различных Bloom SAN.
+- `RT-SMO-NAME-CASE-001` подтвердил регистрозависимость PC lookup: one-byte
+  `R_Ankle -> r_Ankle` mutation загрузилась, но новый ключ не получил ни exact,
+  ни cross-case равенства в нативном `char_traits<char>::compare`-дереве; pristine
+  дал два точных совпадения. Импортированные case-insensitive comparators эту
+  связь не обслуживают.
+- Missing parent/leaf и duplicate toes в обоих порядках не отвергают модель:
+  все четыре one-byte mutations прошли contextual load и окно стабильности.
+  Missing target локален; duplicate namespace сворачивается в один exact key.
+- FFPS header теперь разделён без прежней путаницы: `0x04=0x26` — serializer
+  version; `0x10` — platform mask (`1=common`, `2=PC`, `8=PS2`); `0x08`
+  допускает ноль в fast и Bloom contextual runtime и является 15-битным
+  export/session tag candidate с пока неизвестным producer.
+
+## P0 — быстрые runtime-проверки с высокой ценностью
+
+Эти вопросы можно закрывать контролируемыми length-preserving изменениями копий
+ресурсов, debug menu и загрузкой известных уровней/персонажей.
+
+| Вопрос | Быстрая проверка | Условие закрытия |
 |---|---|---|
-| Что означает primitive type `2`? | несколько pristine объектов, indices/vertex counts, runtime draw call | строгий decode + synthetic regression + корректная визуализация |
-| Как устроен PS2 `E1` preamble? | минимальные примеры вариантов `8/9`, сравнение границ и executable loader | все 494 текущих случая классифицированы структурно без signature scan |
-| Почему расходятся PS2 boundaries? | object tree и byte accounting вокруг 137 случаев | parser точно завершает каждый блок и следующий объект начинается ожидаемо |
-| Что означают header `0x08` и `0x10`? | распределение по clean PC/PS2 corpus и чтение loader | значения имеют проверяемую семантику, не только корреляцию с именем файла |
-| Какие stale offsets созданы старым repack? | pristine/modified пары и byte diff | детерминированный repair report и catalog-safe repack |
+| Как разрешаются duplicate node names? | transform/frame probe уже проверенной пары toes | loader допускает дубликат и key collapse доказан; осталось first/last/all-target |
+| Как визуально наследуется отсутствующий parent target? | frame/transform probe `Z_Ankle` и descendant `foot_right` | loader/error path уже закрыт; осталось различить bind pose и descendant fallback |
+| Что означают collision groups `1/2`? | переключение Group у простого collider и игровые collision/debug проверки | роли групп воспроизводимо различаются либо доказано отсутствие различия в выбранных consumers |
+| Что означают `wxFaceData.flags` и `surfaceID`? | изменение одного metadata-поля на выбранной поверхности с движением/звуком/коллизией | найден хотя бы один runtime consumer или подтверждено отсутствие эффекта в проверенных системах |
+| Как применяются `ProjectionGroup`, `AlphaSortEnable` и `Priority`? | по одному fixed-size изменению на видимой паре перекрывающихся моделей | определены projection path и порядок сортировки без per-file предположений |
+| Как ведут себя наблюдаемые `FinalBlendOp` и state slots? | матрица одиночных изменений на прозрачных, additive, masked и opaque объектах | для каждого реально встреченного значения есть эталонный кадр и подтверждённое render-поведение |
+| Как runtime обрабатывает конец AnimTex sequence? | наблюдение и изменение последнего timestamp/общей длительности | различены loop, clamp, restart и frame selection |
+| Как runtime связывает GUI anchors, текст и hit-testing? | перенос/rename anchor в menu SMO и проверка текста/клика | зафиксирована цепочка привязки и система координат |
 
-## P1 — корректный статический render
+## P1 — быстрые проверки мира, эффектов и defaults
 
-| Вопрос | Нужное evidence | Условие закрытия |
+| Область | Открытый вопрос | Практическая граница текущего этапа |
 |---|---|---|
-| Как декодируются все vertex layouts/FVF? | группировка layouts, D3D declarations, несколько visual checks | position/normal/color/UV/weights описаны для всего clean PC corpus |
-| Какие serializer references являются transform parent links? | object graph, runtime matrices и partitioned levels | node/model chains, static world placements и non-spatial sector/portal containment различаются структурно |
-| Какие оси, handedness, winding и units? | известная сцена, face culling и transforms | правило единообразно воспроизводит ориентацию/масштаб |
-| Что означают material state 0 и массивы 11+9? | D3D9 state call sites и controlled edits | состояния названы и preview совпадает с игрой на выбранных объектах |
-| Как вычисляются FinalBlendOp/alpha? | прозрачные, additive и masked материалы | renderer воспроизводит эталонные кадры без per-file hacks |
-| Как связаны material/layer/texture? | каталог и serializer references | все текстуры clean sample достигаются через graph, не signature scan |
+| Fog | роль alpha цвета; поведение типов `1/2` и ненулевой density | изменить существующий 20-байтовый payload и сравнить кадры |
+| Light | spot type, project-shadow и attenuation | сначала изменить type/углы в существующих полях; optional fields добавлять только после успешных primitive mutation tests |
+| ParticleSystem | влияние lifetime/emission, range pairs, loop, world-space и iterative | менять по одному существующему числу/флагу, не перестраивая список полей |
+| LensFlare | runtime occlusion | менять существующие radius/speed; ненулевой compound glare требует structural relationship и отложен |
+| SkyBox | camera-follow | наблюдать transform относительно камеры; reorder inline models отложен |
+| UV controller | формулы FunctionType `0..8` | тестировать только типы, уже представленные в выбранном объекте, и фиксировать движение UV |
+| MaterialColorController | формула применения evaluator к material color | менять одну константу/диапазон в существующем controller |
+| Navigation | второй байт alternative record и выбор маршрута | безопасно проверить Enabled/portal Open и один reserved byte на копии тестового уровня |
+| Occlusion | реальное culling-поведение volumes | переместить существующий volume через node transform и сравнить видимость |
+| Billboard | точный смысл axis `1/2` | сначала искать runtime-объект или создавать optional field только на отдельной копии простого node |
+| Text | code page, wrap и alignment | equal-length text/glyph tests сначала; добавление отсутствующих fields — после primitive structural test |
+| BV defaults | runtime-default для опущенных Position/Rotation и CollisionInfo Transform | сравнить отсутствие поля с явно материализованным default на простом объекте |
 
-## P2 — скелет и анимация
+## P2 — открытые вопросы формата и loader lifecycle
 
-| Вопрос | Нужное evidence | Условие закрытия |
-|---|---|---|
-| Какая runtime skinning formula и pose update используются? | controlled pose, inverse-bind и runtime trace | animated preview совпадает с игрой |
-| Как exporter строит 16-slot PC palettes и разбивает triangles? | независимые rigs >16 bones и синтетический импорт | воспроизводимое совпадение chunk/palette boundaries |
-| Почему runtime stride skinned E1 на 12 байт больше serialized stride? | loader/render trace для `0x097E`/`0x197E` | назначение дополнительных байтов подтверждено |
-| Как связаны `ANM` и `SAN`? | пары state/resource и loader trace | документированный lookup и один проигрываемый clip |
-| Где хранятся timing/interpolation? | несколько clips разной длины | воспроизводимая временная шкала без guessed constants |
+Эти вопросы важны для будущего writer, но часть из них нельзя честно закрыть
+одним визуальным тестом.
 
-## P3 — мир и gameplay layer
+- Точный producer 15-битного FFPS export/session tag `0x08`: диапазон и
+  отсутствие runtime-зависимости подтверждены, но имя исходной переменной и
+  способ генерации в exporter пока неизвестны.
+- Порядок создания runtime-объектов, владение inline-объектами и момент
+  разрешения ID-only/sized/inline relationships.
+- Какие object IDs и service/target bindings обязаны сохраняться при переносе
+  visual graph. Два catalog-safe donor/repack эксперимента проходили строгий
+  parser, но приводили к падению игры.
+- Полный инвентарь stale offsets/inline sizes, оставшихся в `pc-working` после
+  старых инструментов. Pristine-корпус остаётся единственным формальным эталоном.
+- Точные native engine enum names для 11 material render states, 9 texture
+  states и всех `FinalBlendOp`; runtime-тест может доказать поведение, но не имя.
+- Serializer field IDs/layout executable-only material sources: camera, cubemap,
+  movie, render target и UV generation.
+- Геометрические имена BSP child slots `0/1`; optional Polygon поддержан обоими
+  executable, но в корпусе отсутствует.
+- Runtime-роль `PartitionNode/PartitionRenderable.DebugColor`.
+- Существуют ли реальные `spStaticRenderObject` с несколькими renderables или
+  reference-only relationship.
+- Точный route-cost/alternative-choice algorithm navigation graph и правила
+  сохранения authored non-geometric links при rebuild.
+- Точная обработка 16 service/DCC track names, которые не имеют target в
+  `bloom_jeans.smo`, и выбор ANM-таблицы для героя/состояния.
+- Семантика первых семи ANM-колонок и причина отсутствия `AdvBloom.anm` в
+  найденном EXE-блоке.
 
-| Вопрос | Нужное evidence | Условие закрытия |
-|---|---|---|
-| Как `SPT` ссылается на SMO/компоненты? | parser ссылок и несколько шаблонов | dependency list совпадает с runtime loading |
-| Как `SPL` размещает экземпляры? | level file, transforms, известные landmarks | минимальная сцена уровня совпадает с игрой |
-| Как устроены collision/BV? | `spCollisionInfo`, `spMeshBV`, runtime queries | collision geometry визуализируется и согласуется с поверхностью |
+## Отложено до разработки writer/importer
 
-## Параллельный трек — widescreen и GUI
+Следующие задачи намеренно не входят в ближайший runtime-план: они требуют
+отдельного длительного реверса, новых образцов или безопасной структурной
+пересборки.
 
-Статическая карта нативного Resolution path, камеры и GUI зафиксирована в
-[документации](../docs/engine/display-resolution-camera-gui.md). Следующие вопросы
-требуют runtime-проверки и разбора menu `.smo`:
+- Декодирование PS2 DMA/VIF до всех vertex/index channels и PS2 skin weights.
+- Точная семантика двух PS2 mesh count words и алгоритм построения bounds.
+- PS2 texture swizzle и аппаратный смысл `auxiliaryValue`/descriptor words.
+- Optional attributes редкого vertex layout `0x013E`.
+- Поиск настоящего 32-bit index-buffer sample и восстановление storage layout.
+- Объяснение дополнительных 12 runtime-байтов layouts `0x097E/0x197E`.
+- Воспроизведение exporter-алгоритма деления skin на 16-slot PC palettes.
+- Полный coordinated writer для object directory, inline sizes, relationships,
+  navigation и multi-pass render graph.
+- Создание отсутствующих сложных ветвей: BSP Polygon, compound glare или
+  multi-element LensFlare, executable-only texture/material sources и
+  произвольные occlusion shapes.
+- Полный разбор PS2 SAN playback и соседних SPT/SPL как самостоятельных форматов.
+- Поиск SMO с 13 зарегистрированными, но ненаблюдаемыми классами; среди них могут
+  быть abstract/runtime/other-format классы, а не отсутствующие типы SMO.
 
-| Вопрос | Нужное evidence | Условие закрытия |
-|---|---|---|
-| Сохраняется ли Resolution index `3`? | выбор скрытого `1600x1200`, сохранение и повторная загрузка | индекс проходит UI/settings/apply path без повреждения состояния |
-| Как безопасно добавить четвёртую подпись? | размер объекта меню, constructor/destructor и все обращения к массиву | строка `+0x29C` имеет подтверждённое владение и жизненный цикл |
-| Какая камера является gameplay camera? | runtime trace camera setters в одной сцене | Hor+ применяется только к перспективным игровым камерам |
-| Следует ли mouse hit-testing за GUI camera? | controlled change virtual width и клики по известным элементам | визуальные и интерактивные координаты совпадают на 4:3/16:9/21:9 |
-| Как ведут себя FMV, loading screens и полноэкранные меню? | captures и trace render paths | для каждого класса выбран stretch, crop или pillarbox без регрессий |
-| Корректен ли D3D Reset при смене width/height? | повторные переключения режимов и lifecycle trace | ресурсы пересоздаются без пропажи, crash и stale viewport |
-| Как runtime связывает GUI anchors с текстом и hit-testing? | trace загрузки `igmenu_opt_pc.smo`, изменения `value_resolution` и клики по `GUICollision` | runtime-текст и интерактивные координаты связаны со статическими узлами без signature scan |
-| Нужен ли предел safe-area на ultrawide? | сравнение HUD на 16:9, 21:9 и 32:9 | сформулировано проверяемое правило layout без чрезмерного разнесения HUD |
+## Ненаблюдаемые serializer-ветви
 
-## Метод работы
+В `field_definitions` есть 73 подтверждённых executable-ветви, не встреченные в
+корпусе. Большинство — опущенные inherited defaults. Приоритетны реальные
+пробелы покрытия:
 
-1. Сначала зафиксировать класс корпуса и SHA-256 manifest локально.
-2. Сохранить команду, commit инструмента и агрегированный результат.
-3. Для нового варианта получить минимальную строгую диагностику.
-4. Добавить synthetic fixture, не содержащий игровых данных.
-5. Реализовать decode и проверить отсутствие regressions.
-6. Перенести подтверждённый итог в `docs/`, а ход эксперимента — в `journal/`.
+- `spBSPNode.polygon`;
+- Position у `spBoxBV`, `spSphereBV`, `spOBBBV` и Rotation у `spOBBBV`;
+- `spNode.billboard_axis`;
+- `spLightData.project_shadow` и `spLightData.attenuation`;
+- `spTextRenderable.wrap_width` и `spTextRenderable.alignment`;
+- `spTextureData.SourceNone` и `SourceReference`.
+
+В executable зарегистрированы, но в SMO-корпусе не встречены:
+`spAnimation`, `spBoundingVolume`, `spCapsuleBV`, `spCollisionManager`,
+`spCollisionMesh`, `spConvexBV`, `spDXShadowMesh`, `spDXShadowVolume`,
+`spEnvironmentMapLayer`, `spMaterialTextureLayer`, `spPhysicsManager`,
+`spShadowVolume`, `spStdLayer`.
+
+## Технический долг исследовательской базы
+
+- 2 584 наблюдаемых `spLightData` direct fields всё ещё имеют `is_decoded=0`.
+  Их field types `0..8`, payload layouts и семантические определения известны;
+  это конфликт выбора между `common pc_ps2` и `platform pc` definitions, а не
+  неизвестный формат. Исправление должно закончиться нулевым числом
+  неаннотированных содержательных Light-полей и повторным `AUDIT PASS`.
+- `docs/research/smo-class-analysis-plan.md` теперь является историей завершённой
+  очереди 36 классов, а не источником новых задач.
+
+## Условие закрытия вопроса
+
+Runtime-вопрос закрывается только после фиксации:
+
+1. SHA-256 исходного и изменённого файла;
+2. точного field/object locator и побайтового diff;
+3. способа запуска уровня, персонажа, меню или эффекта;
+4. результата минимум одного повторного запуска после восстановления baseline;
+5. платформы и сборки executable;
+6. снимка/видео/лога либо явно отрицательного наблюдения;
+7. обновления class-документа, evidence базы и этого списка.
+
+Падение игры само по себе не доказывает семантику изменённого поля: сначала
+должны быть исключены нарушение размеров, offsets, object graph и случайная
+порча соседнего payload.

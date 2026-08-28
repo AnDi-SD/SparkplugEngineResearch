@@ -24,8 +24,8 @@ internal static class SmoVisualGraphPacker
 {
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
-    private const uint SharedVisualHelperClassId = 0x7AC95AEC;
-    private const uint TextureSequenceClassId = 0x16FB0E47;
+    private const uint SharedFogClassId = SmoClassIds.Fog;
+    private const uint TextureSequenceClassId = SmoClassIds.AnimTextureController;
 
     public static SmoPackedVisualGraph Pack(SmoDocument target, SmoDocument donor)
     {
@@ -56,7 +56,7 @@ internal static class SmoVisualGraphPacker
             .ToArray();
 
         Dictionary<int, uint> reusedDonorObjects = donor.Objects
-            .Where(entry => entry.TypeHash == SharedVisualHelperClassId)
+            .Where(entry => entry.TypeHash == SharedFogClassId)
             .Select(entry => (Donor: entry, Targets: target.Objects.Where(candidate =>
                     candidate.TypeHash == entry.TypeHash &&
                     candidate.Name.Equals(entry.Name, StringComparison.Ordinal) &&
@@ -681,7 +681,7 @@ internal static class SmoVisualGraphPacker
                                 movedObject.TypeHash == SmoClassIds.TextureData
             ? 10
             : owner.TypeHash == SmoClassIds.Model &&
-              movedObject.TypeHash == SharedVisualHelperClassId
+              movedObject.TypeHash == SharedFogClassId
                 ? 1
                 : throw new InvalidOperationException(
                     $"Inline rewrite [{owner.Index}] -> [{movedObject.Index}] uses an " +
@@ -1027,7 +1027,7 @@ internal static class SmoVisualGraphPacker
             }
             SmoObjectEntry owner = donor.Objects[ownerIndex];
             if (owner.TypeHash != SmoClassIds.Model ||
-                reused.TypeHash != SharedVisualHelperClassId)
+                reused.TypeHash != SharedFogClassId)
             {
                 throw new InvalidOperationException(
                     $"Reusable rigid object [{reused.Index}] is not a confirmed " +
@@ -1828,11 +1828,11 @@ internal static class SmoVisualGraphPacker
             (owner.TypeHash == SmoClassIds.Skin && field.FieldType == 0 &&
                  referenced.TypeHash == SmoClassIds.MaterialData ||
              owner.TypeHash == SmoClassIds.Skin && field.FieldType == 1 &&
-                 referenced.TypeHash == SharedVisualHelperClassId ||
+                 referenced.TypeHash == SharedFogClassId ||
              owner.TypeHash == SmoClassIds.MaterialData && field.FieldType == 10 &&
                  referenced.TypeHash == SmoClassIds.TextureData ||
              owner.TypeHash == SmoClassIds.Model && field.FieldType == 1 &&
-                 referenced.TypeHash == SharedVisualHelperClassId);
+                 referenced.TypeHash == SharedFogClassId);
         return inlineObject || referenceOnly;
     }
 

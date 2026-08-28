@@ -1811,7 +1811,7 @@ if (args.Length == 2 && args[0] == "--scan-texture-metadata")
 
 if (args.Length == 2 && args[0] == "--dump-texture-sequences")
 {
- const uint sequenceClass = 0x16FB0E47;
+ const uint sequenceClass = SmoClassIds.AnimTextureController;
  SmoDocument document = SmoDocument.Load(args[1]);
  Dictionary<uint, SmoObjectEntry> byId = document.Objects
   .GroupBy(entry => entry.Id).Where(group => group.Count() == 1)
@@ -2084,7 +2084,7 @@ if (args.Length == 4 && args[0] == "--rigid-multitexture")
    throw new InvalidOperationException(
     $"Generated {group.Name} has missing, invalid or non-unit vertex normals.");
  }
- const uint textureSequenceClassId = 0x16FB0E47;
+ const uint textureSequenceClassId = SmoClassIds.AnimTextureController;
  foreach (RigidMaterialGroup group in bundle.MaterialGroups.Where(item => item.Frames.Count > 1))
  {
   SmoObjectEntry sequence = verified.Objects.Single(entry =>
@@ -2259,9 +2259,9 @@ if (args.Length == 4 && args[0] == "--smo-to-smo")
 
   if (isStellaToBloomRegression || isBloomToStellaRegression)
   {
-   const uint sharedHelperClassId = 0x7AC95AEC;
-   if (verified.Objects.Count(entry => entry.TypeHash == sharedHelperClassId) !=
-       target.Objects.Count(entry => entry.TypeHash == sharedHelperClassId))
+   const uint sharedFogClassId = SmoClassIds.Fog;
+   if (verified.Objects.Count(entry => entry.TypeHash == sharedFogClassId) !=
+       target.Objects.Count(entry => entry.TypeHash == sharedFogClassId))
     throw new InvalidOperationException(
      "The byte-identical shared visual helper was copied instead of reusing target identity.");
 

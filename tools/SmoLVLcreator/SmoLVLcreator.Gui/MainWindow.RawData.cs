@@ -74,11 +74,23 @@ public partial class MainWindow
             SmoObjectCapabilities capabilities = SmoSchemaRegistry.Describe(document, entry);
             text.Append("fields ").Append(capabilities.RawFields.Count)
                 .Append("  schema properties ").AppendLine(capabilities.Properties.Count.ToString(CultureInfo.InvariantCulture));
-            foreach (SmoObjectField field in capabilities.RawFields)
+            for (int fieldIndex = 0; fieldIndex < capabilities.RawFields.Count; fieldIndex++)
             {
+                SmoObjectField field = capabilities.RawFields[fieldIndex];
                 text.Append("  f").Append(field.FieldType)
                     .Append('[').Append(field.Occurrence).Append(']')
-                    .Append("  ").Append(field.SizeKind)
+                    .Append("  ").Append(field.SizeKind);
+                if (SmoSerializedFieldRegistry.TryDescribeOwnField(
+                        entry.TypeHash,
+                        capabilities.RawFields,
+                        fieldIndex,
+                        out SmoSerializedFieldDescriptor? serializedField) &&
+                    serializedField is not null)
+                {
+                    text.Append("  ").Append(serializedField.Key)
+                        .Append(" (").Append(serializedField.PayloadLayout).Append(')');
+                }
+                text
                     .Append("  rel 0x").Append(field.RelativePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
                     .Append("  abs 0x").Append(field.AbsolutePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
                     .Append("  ").Append(field.PayloadSize.ToString(CultureInfo.InvariantCulture))

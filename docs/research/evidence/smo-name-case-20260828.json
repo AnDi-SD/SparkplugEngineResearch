@@ -1,0 +1,14 @@
+[
+  {
+    "TypeIdentifier": "spNode",
+    "PlatformKey": "pc",
+    "CorpusKey": "pc-pristine",
+    "EvidenceKind": "runtime:name_lookup_case_sensitivity",
+    "SourcePath": "docs/research/evidence/smo-name-case-20260828.json",
+    "Locator": "bloom_jeans.smo object[14] name@0x1B0; WinxClub.exe char_traits map comparator 0x013BBCC4..0x013BBD13; pristine log run-20260828-234441-401; mutation log run-20260828-234116-260",
+    "Observation": "PC native lookup is case-sensitive. Same-length mutation object[14] R_Ankle->r_Ankle changed exactly byte 0x1B0 and loaded without rejection. After target load pristine produced 32 R_Ankle comparisons including two exact R_Ankle==R_Ankle hits. Mutation produced 16 comparisons for distinct key r_Ankle, zero r_Ankle==r_Ankle hits, zero R_Ankle/r_Ankle cross-case comparisons, and later independent R_Ankle lookups. All 41 static references to _stricmp, two to _strcmpi, and one to lstrcmpiA were probed; none handled the name. Comparator disassembly is an exact MSVC std::map-style lexicographic tree walk through char_traits<char>::compare.",
+    "Confidence": "confirmed",
+    "SourceSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "CreatedUtc": "2026-08-28T20:47:00Z"
+  }
+]

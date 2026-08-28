@@ -104,9 +104,10 @@ def main() -> int:
     disassembler.skipdata = True
     executable = [section for section in sections if section.flags & 0x4]
     decoded = []
-    for section in executable:
-        raw = data[section.offset : section.offset + section.size]
-        decoded.extend(disassembler.disasm(raw, section.address))
+    if args.context or args.xrefs_va:
+        for section in executable:
+            raw = data[section.offset : section.offset + section.size]
+            decoded.extend(disassembler.disasm(raw, section.address))
     print(
         f"sections={len(sections)}; executable_sections={len(executable)}; "
         f"decoded_instructions={len(decoded)}"

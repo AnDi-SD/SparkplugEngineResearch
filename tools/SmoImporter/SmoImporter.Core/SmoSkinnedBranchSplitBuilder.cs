@@ -113,7 +113,7 @@ internal static class SmoSkinnedBranchSplitBuilder
     private const int ObjectReferenceSize = 8;
     private const int PaletteCapacity = 16;
     private const float WeightEpsilon = 0.000001f;
-    private const uint SharedVisualHelperClassId = 0x7AC95AEC;
+    private const uint SharedFogClassId = SmoClassIds.Fog;
     private const uint OpaqueOverlayFinalBlendOperation = 0;
     private const uint SkinnedTransparentSurfaceFinalBlendOperation = 2;
     private const uint OpaqueOverlayAlphaSortEnable = 0;
@@ -2308,7 +2308,7 @@ internal static class SmoSkinnedBranchSplitBuilder
             SmoObjectEntry render = target.Objects[renderIndex];
             SmoObjectEntry helper = target.Objects.SingleOrDefault(entry =>
                 entry.ParentIndex == primarySkin.Index &&
-                entry.TypeHash == SharedVisualHelperClassId) ??
+                entry.TypeHash == SharedFogClassId) ??
                 throw new NotSupportedException(
                     "Primary Bloom skin has no native shared visual helper template.");
             SmoObjectEntry mesh = target.Objects.SingleOrDefault(entry =>

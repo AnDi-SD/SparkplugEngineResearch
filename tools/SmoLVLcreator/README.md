@@ -208,6 +208,10 @@ The inspector's `RAW DATA` section is read-only and comes from the shared
 `SmoObjectFieldReader`/`SmoSchemaRegistry`. It lists exact table, logical and
 physical offsets, every direct field, a bounded hex preview and current values of
 confirmed schema properties for the placement, resource or collision objects.
+For recovered `spFog`, `spLightData`, navigation, BSP and particle-system
+classes, the final (most-derived) serializer section also shows the confirmed
+engine field name and payload layout. Sparkplug reuses field numbers in inherited
+sections, so those earlier fields deliberately remain raw.
 Unknown fields remain visible and byte-preserved without being assigned guessed
 meaning. `Help > Управление и горячие клавиши…` summarizes camera, selection,
 editing, catalog and file workflows inside the application.

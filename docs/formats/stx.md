@@ -63,13 +63,13 @@ Offsets ниже считаются после четырёхбайтового 
 | `0x16` | 4 | height |
 
 Плагин называет поля X/Y scale и при записи вычисляет их как
-`25600 / userValue`. Однако весь 26-байтовый prefix побайтно совпадает с телом
-`E0` у встроенной SMO-текстуры формата `0x29E3`. В ней те же поля находятся по
-object offsets `+0x1B/+0x1F`, а основные dimensions, stride и pixels — по
-`+0x28/+0x30`, `+0x2C` и `+0x34`. Текущий strict decoder уже проверяет первую
-пару как дублированные `crossPlatformWidth/Height`. Поэтому лучшая рабочая
-интерпретация — повторные dimensions, а не проценты scale; окончательное имя
-поля всё ещё требует native evidence. См.
+`25600 / userValue`. Однако весь 26-байтовый prefix побайтно совпадает с первым
+Direct3D mip record встроенной SMO-текстуры. Старое имя формы `0x29E3` было
+ошибочным: это сочетание field header и младшего байта payload size, а не pixel
+format. Структурный decoder читает в prefix два общих dimensions, native format,
+флаг наличия данных, затем mip width, row stride, height и BGRA. Поэтому лучшая
+рабочая интерпретация — dimensions/descriptor, а не проценты scale; точное имя
+первых служебных полей всё ещё требует native evidence. См.
 [`SmoTextureDecoder.cs`](../../tools/SmoViewer/SmoViewer.Core/SmoTextureDecoder.cs).
 
 Названный в UI/writer плагина `magical_number` — не самостоятельное поле

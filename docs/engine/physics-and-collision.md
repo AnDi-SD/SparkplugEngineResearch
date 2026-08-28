@@ -13,9 +13,29 @@
 - `spZonePortal`;
 - `spPartitionRenderable`.
 
+Полный разбор уточняет эту схему: relationship `Child` отсутствует в 16 204
+объектах точного класса `spPartitionNode`, но сериализован 18 048 раз в
+унаследованных секциях 2 256 `spOctreeNode`. Он начинается с octant slot 0..7,
+за которым идёт inline relationship. Ещё 648 таких полей находятся в 324
+`spBSPNode`: slots 0/1 ведут на inline BSP split либо referenced terminal
+`spPartitionNode`. Остальные 232 035 отношений ранее разобранных partition/octree
+объектов строго разрешаются на ожидаемые
+классы; inline-цели совпадают с 74 324 физическими children. Подробности:
+[`../research/smo-class-sp-partition-node.md`](../research/smo-class-sp-partition-node.md).
+Геометрия дерева и битовая нумерация октантов описаны в
+[`../research/smo-class-sp-octree-node.md`](../research/smo-class-sp-octree-node.md).
+Двоичные plane-деревья описаны в
+[`../research/smo-class-sp-bsp-node.md`](../research/smo-class-sp-bsp-node.md).
+
 Поэтому физический collider не является дочерней частью визуального
 `spStaticRenderObject`. Близость в object table или общий partition node также не
 доказывают связь между конкретной моделью и collider.
+
+`spPartitionRenderable` является отдельным листом этой структуры: он хранит один
+ARGB `DebugColor` и 1..67 inline physical-child `spModel`, но не хранит transform.
+Во всех трёх корпусах строго декодированы 7 208 таких объектов и 19 989 model
+relationships; ID-only/reference-only форм нет. Подробности:
+[`../research/smo-class-sp-partition-renderable.md`](../research/smo-class-sp-partition-renderable.md).
 
 `spCollisionInfo` сериализует:
 
@@ -23,6 +43,13 @@
 2. collision group (`UInt32`);
 3. `esfCollisionInfoTransform`, 40 байт:
    `Vector3 position`, `Quaternion XYZW`, `Vector3 scale`.
+
+Во всех трёх корпусах строго декодированы 10 594 объекта. Наблюдаются три формы:
+10 108 полных Primitive+Group+Transform, 476 Primitive+Group и 10 Primitive-only.
+Group имеет только наблюдаемые значения 1 (4 271 объект) и 2 (6 313 объектов),
+ещё в десяти старых объектах поле отсутствует. Отсутствие optional-полей хранится
+явно и не подменяется недоказанным runtime-default. Полный отчёт:
+[`../research/smo-class-sp-collision-info.md`](../research/smo-class-sp-collision-info.md).
 
 Transform `spCollisionInfo` является transform самой физической формы. Для обычных
 node-based объектов он часто совпадает с world transform родительского `spNode`, но
@@ -36,14 +63,39 @@ node-based объектов он часто совпадает с world transfor
 | `0x3F453DE7` | `spMeshBV` |
 | `0x4DA04889` | `spOBBBV` |
 | `0x7B4C0876` | `spBoxBV` |
+| `0x390946D2` | `spSphereBV` |
 | `0x312FABC0` | `spCapsuleBV` |
 | `0x1BCC5322` | `spConvexBV` |
 | `0x21CC76AF` | `spBoundingVolume` |
 
 Пары ID/имя подтверждены class registration как в PC executable, так и в PS2 ELF.
-`spMeshBV` содержит индексированные треугольники и вершины. В `Alfea02.smo` все 132
-сериализованные collision primitive являются `spMeshBV`; box primitive в этом
-уровне отсутствуют.
+В самом корпусе Primitive target ограничен четырьмя конкретными классами:
+10 162 `spMeshBV`, 423 `spOBBBV`, шесть `spBoxBV` и три `spSphereBV`.
+`spCapsuleBV`, `spConvexBV` и точный `spBoundingVolume` зарегистрированы и
+допустимы по базовому типу serializer, но сериализованных объектов этих классов
+в исследуемых SMO нет.
+`spMeshBV` полностью разобран как общий PC/PS2 triangle-list формат. Field 0
+содержит version 2, `UInt16` indices и `Vector3` positions. Необязательный field
+1 — массив `wxFaceData` класса `0x313C4C17`, по одной разреженной записи на
+треугольник: `UInt8 surface type`, `UInt16 flags`, `UInt8 surface ID`.
+Восстановлены surface type `stone`, `dirt`, `grass`, `water`, `snow`, `swamp`,
+`mud`, `deepwater`, `carpet`; семантика битов flags и surface ID пока остаётся
+неизвестной. Все 10 513 объектов трёх корпусов строго декодируются. См.
+[`../research/smo-class-sp-mesh-bv.md`](../research/smo-class-sp-mesh-bv.md).
+
+В `Alfea02.smo` все 132 сериализованные collision primitive являются
+`spMeshBV`; box primitive в этом уровне отсутствуют.
+
+`spOBBBV` полностью разобран отдельно: собственный field 1 содержит полный размер
+box, из которого runtime получает half-extents умножением на `0.5`. Необязательные
+field 0/2 задают локальные position/quaternion rotation относительно transform
+родительского `spCollisionInfo`; в доступном корпусе они всегда опущены. См.
+[`../research/smo-class-sp-obbbv.md`](../research/smo-class-sp-obbbv.md).
+
+`spBoxBV` и `spSphereBV` также полностью декодируются в read-only режиме. Box
+хранит full size, sphere — один `Single radius`; оба имеют optional local
+position. См. [`spBoxBV`](../research/smo-class-sp-box-bv.md) и
+[`spSphereBV`](../research/smo-class-sp-sphere-bv.md).
 
 ## Runtime collision manager
 

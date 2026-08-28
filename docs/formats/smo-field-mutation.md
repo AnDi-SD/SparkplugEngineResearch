@@ -74,6 +74,12 @@ unchanged. The schema still describes that transform so future tools can edit
 it through the same property transaction after its runtime behavior is fully
 verified.
 
+The complete `spMeshBV` read contract also includes optional field 1 with one
+sparse `wxFaceData` record per triangle (`surface type`, `flags`, `surface ID`).
+Affine vertex baking preserves triangle count and order, so it preserves this
+field byte-for-byte. Topology edits and face-metadata writes remain disabled
+until their native runtime behavior is tested.
+
 ## Verification
 
 The format test corpus currently covers 59 level SMO files, 151,211 directory
@@ -82,3 +88,8 @@ UInt8/UInt16 payload-size boundary, add and remove an extended field type, grow
 a nested object, update its inline size prefix, and materialize missing node
 rotation/scale. The Alfea02_old level-editor regression covers the complete
 save/reopen path, including the node-owned `vase09` case.
+
+При изменении `spStaticRenderObject` field 2 обновляется не общим
+`Matrix4x4.Invert`, а по правилу движка: верхний `3x3` транспонируется, а
+translation становится `-T*A^T`. Для матриц с scale это намеренно не
+математический inverse; оба 64-байтовых payload должны изменяться совместно.

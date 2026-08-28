@@ -1,0 +1,26 @@
+[
+  {
+    "TypeIdentifier": "spNode",
+    "PlatformKey": "pc",
+    "CorpusKey": "pc-pristine",
+    "EvidenceKind": "runtime:name_missing_target_tolerance",
+    "SourcePath": "docs/research/evidence/smo-name-missing-duplicate-20260829.json",
+    "Locator": "bloom_jeans.smo parent object[14] R_Ankle->Z_Ankle name@0x1B0 and leaf object[13] R_Toe->Z_Toe name@0x198; load run-20260829-000650-409; exact parent run-20260829-000749-239",
+    "Observation": "PC native loader tolerates a missing animation-name target locally. Both one-byte same-length mutations returned non-null native resources, reached CP08, survived three seconds, and produced no engine rejection or crash. Static audit moved exactly 168 tracks from exact to missing for each name. After target load the parent trace had no exact R_Ankle or Z_Ankle equality and no R_Ankle/Z_Ankle cross-match. This confirms loader/error-path tolerance, but does not yet prove the visual bind-pose or descendant-transform fallback.",
+    "Confidence": "confirmed",
+    "SourceSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "CreatedUtc": "2026-08-28T21:30:00Z"
+  },
+  {
+    "TypeIdentifier": "spNode",
+    "PlatformKey": "pc",
+    "CorpusKey": "pc-pristine",
+    "EvidenceKind": "runtime:duplicate_name_key_collapse",
+    "SourcePath": "docs/research/evidence/smo-name-missing-duplicate-20260829.json",
+    "Locator": "bloom_jeans.smo object[13] R_Toe->L_Toe name@0x198 and object[8] L_Toe->R_Toe name@0x117; load run-20260829-001037-136; exact runs run-20260829-001130-431, run-20260829-001835-835, run-20260829-002040-762, run-20260829-002259-938",
+    "Observation": "PC native loader accepts duplicate spNode names in both object-order directions. R_Toe->L_Toe leaves exact hits only for the single L_Toe key and makes R_Toe missing; the mirror mutation leaves exact hits only for R_Toe and makes L_Toe missing. Both duplicated lookups return the same exact tree node and track slot (L_Toe 0x3B, R_Toe 0x3F), so the namespace collapses to one name key rather than preserving two independently addressable targets. Whether the resulting track is applied to the first, last, or both same-name SMO nodes still requires a transform/frame probe.",
+    "Confidence": "confirmed",
+    "SourceSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "CreatedUtc": "2026-08-28T21:30:00Z"
+  }
+]

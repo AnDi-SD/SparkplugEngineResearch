@@ -30,4 +30,7 @@ Desktop.ini
 # Temporary files
 /.scratch/
 /.tmp/
+/.codex-tmp/
+**/__pycache__/
+*.pyc
 *.tmp

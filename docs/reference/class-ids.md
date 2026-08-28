@@ -39,6 +39,21 @@
 | `0x63FEA321` | `spShadowVolume` |
 | `0x04680BC1` | `spDXShadowVolume` |
 | `0x774E52E3` | `spDXShadowMesh` |
+| `0x7AC95AEC` | `spFog` |
+| `0x5E6402DF` | `spLightData` |
+| `0x188A161F` | `spNavigationGraph` |
+| `0x74F9013E` | `spNavigationSet` |
+| `0x7297173C` | `spMeshNavigationSet` |
+| `0x385662AA` | `spNavigationPortal` |
+| `0x7362AB22` | `spBSPNode` |
+| `0x5AFA1A4F` | `spParticleSystem` |
+| `0x56EE563A` | `spAnimation` |
+| `0x4C633E85` | `spMaterialColorController` |
+| `0x7A7124AF` | `spSkyBox` |
+| `0x43D24430` | `spOcclusionVolume` |
+| `0x435370B5` | `spLensFlare` |
+| `0x16FB0E47` | `spAnimTexController` |
+| `0x390946D2` | `spSphereBV` |
 
 ## Правила обновления
 
@@ -49,3 +64,7 @@
 - существующим именем класса и воспроизводимым runtime experiment.
 
 Неизвестный hash сохраняется числом в выводе parser. Давать ему «похожее» имя без evidence не следует. Состояние decode полей нужно отслеживать отдельно от подтверждения имени класса.
+
+`spNavigationSet` подтверждён регистрацией и serializer-кодом PC/PS2 как
+базовый класс `spMeshNavigationSet`; отдельных объектов этого точного class ID в
+исследованном корпусе нет.
