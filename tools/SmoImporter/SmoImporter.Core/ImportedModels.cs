@@ -13,6 +13,13 @@ public sealed record ImportedMesh(
     ImportedSkinning? Skinning = null)
 {
     public uint[] DiffuseColors => DiffuseColorsArgb ?? [];
+
+    /// <summary>
+    /// Optional second texture-coordinate channel. Keeping it as an init-only
+    /// property preserves the existing positional constructor used by older
+    /// import paths while allowing glTF and level writers to retain TEXCOORD_1.
+    /// </summary>
+    public Vector2[] SecondaryTextureCoordinates { get; init; } = [];
 }
 
 public readonly record struct ImportedJointIndices(

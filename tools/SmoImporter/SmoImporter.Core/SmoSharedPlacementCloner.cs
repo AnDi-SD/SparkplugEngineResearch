@@ -27,10 +27,12 @@ public static class SmoSharedPlacementCloner
                 "Source object is not an spMeshData resource.");
         }
         uint sourceMeshObjectId = document.Objects[sourceMeshObjectIndex].Id;
-        if (!Matrix4x4.Invert(worldTransform, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(worldTransform, out _))
             throw new ArgumentException(
                 "A shared placement needs an invertible world transform.",
                 nameof(worldTransform));
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(worldTransform);
 
         IReadOnlyList<SmoSharedMeshInstanceInfo> instances =
             SmoSharedMeshInstanceResolver.ResolveAll(document);

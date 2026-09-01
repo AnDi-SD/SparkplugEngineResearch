@@ -129,11 +129,12 @@ internal static class SessionLog
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         var stream = new FileStream(
             fullPath,
-            FileMode.Create,
+            FileMode.Append,
             FileAccess.Write,
             FileShare.ReadWrite | FileShare.Delete);
-        // Emit a BOM so Windows PowerShell 5, Notepad and third-party viewers
-        // all agree that Russian diagnostic text is UTF-8.
+        // Append preserves the preceding session when the application is
+        // restarted after a crash or while diagnosing multiple donor models.
+        // StreamWriter emits the UTF-8 BOM only for a new empty file.
         _writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true))
         {
             AutoFlush = true

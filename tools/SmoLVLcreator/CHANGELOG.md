@@ -1,5 +1,48 @@
 # Changelog
 
+## Unreleased — 2026-08-29
+
+- Финальный Gate 7 пройден: Gardenia, Alfea и крупный Domino выдержали mixed
+  project stress, повторные build/re-import дали одинаковые SHA-256, а native
+  release-матрица прошла 7/7 scene-ready. Итоговый Alfea после 1 000 правок
+  дополнительно прошёл DirectInput movement/camera probe.
+- Project texture replacement теперь сопоставляет `TextureData` с физическим
+  блоком по file offset и предлагает только доказанно записываемые fixed-size
+  slots. Неизвестные texture payload остаются read-only и byte-preserved.
+- Stress supervisor получил настраиваемый timeout. Реальные негативные тесты
+  memory/timeout и новая save-cancellation regression подтверждают отсутствие
+  частичного `.smo`, `.tmp` и ошибочного backup; Core-набор вырос до 1 872
+  assertions.
+- Gate 1 writer safety пройден: zero-edit Alfea project воспроизводит исходный
+  SHA-256 после archive/reopen/build, 1 864 Core assertions закрывают layout,
+  inline sizes, reachability/shared ownership и determinism, native writer-
+  матрица прошла 5/5 scene-ready. Общий SmoImporter dependency больше не
+  устанавливает непроверенные outputs обычным overwrite;
+- Gate 6 collision пройден: real-project gate вырос до 22 assertions, полный
+  Core-набор — до 1 864; add/move/link/unlink/regenerate/delete, registry,
+  inline removal, exact triangle order и непустой `wxFaceData` проверены.
+- Новая collision branch теперь явно получает production-default Group 2 и не
+  зависит от Group ближайшего spatial template; generated `spMeshBV` не
+  выдумывает per-face surface metadata.
+- Native collision matrix прошла 6/6, а DirectInput gameplay-probe подтвердил
+  движение по коридору, остановку стеной и camera collision на итоговом SMO.
+- Gate 3/5 rigid import подтверждён на production-путях OBJ, GLB и FBX:
+  31/46/57 project assertions, чистая структура всех SMO и native scene-ready
+  5/5 на Alfea02.
+- OBJ без normal-канала теперь получает детерминированные сглаженные нормали;
+  writer отдельно проверяет handedness/winding и сохраняет distinct UV0/UV1.
+- Меши больше 65 535 вершин детерминированно делятся по исходным частям без
+  потери material index, normals, UV0/UV1, vertex colors и порядка треугольников.
+- FBX alpha mode дополняется фактической прозрачностью текстуры; project gate
+  сравнивает записанный BGRA payload с исходным изображением побайтно.
+- `spStaticRenderObject.InvTransform` во всех project-путях переведён на
+  Sparkplug transpose-basis convention; scaled placement больше не получает
+  математический inverse.
+- Добавлена безопасная миграция старых `.smolvlproj` version 1 и обязательная
+  проверка пар `Transform/InvTransform` перед build.
+- Native Gate 2 подтверждает static/node XYZ TRS, LOCAL→WORLD composition,
+  shared placement без копии mesh, add/remove и повторное открытие результата.
+
 ## 0.1.0 — 2026-08-27
 
 - Создан модульный редактор SMO-уровней на общих parser, scene, renderer,
@@ -75,8 +118,8 @@
 - Ручные связи визуальных объектов с коллизиями перенесены из временного
   состояния окна в `.smolvlproj`: они переживают повторное открытие, участвуют
   в Undo/Redo и не добавляют неподтверждённых полей в игровой SMO.
-- Финальный stress с seed `82744` прошёл 1 000 операций, два промежуточных
+- Финальный stress с seed `82744` повторно прошёл 1 000 операций, два промежуточных
   archive/build/reopen checkpoint и детерминированные build/re-import. Итоговый
-  SHA-256 — `5F0966193AB44DC39B890EDAD2C8EA2CC73E60E586857EAF5725C6CA9853EB6D`,
-  пик worker working set — 363,9 МиБ. Этот же SMO принят настоящим загрузчиком
-  игры и пережил контрольное окно без падения.
+  SHA-256 — `2E95388BC62E29A29F7ADE974DF9C09EEE2AE12283E6185648FC59CB943B4884`,
+  пик worker working set — 356,9 МиБ. Этот же SMO достиг scene-ready level 28
+  в настоящей игре и прошёл movement/camera probe без падения.

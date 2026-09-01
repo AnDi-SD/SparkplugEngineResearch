@@ -4,16 +4,7 @@ using System.Numerics;
 
 internal static class MaterialGroupMatchingRegression
 {
-    public static void Run()
-    {
-        VerifyEqualCountFailureRequestsOneAtlasFallback();
-        VerifyConstrainedGroupWinsRigidBranchRegardlessOfDonorOrder();
-        VerifyRejectedFullPlanContinuesDeterministicSearch();
-        VerifySearchBudgetBlocksPathologicalInput();
-        VerifySearchHonorsCancellation();
-    }
-
-    public static void RunAtlasIntegration(
+    public static void RunNativeBranchIntegration(
         string targetPath,
         string donorPath,
         string outputPath)
@@ -57,17 +48,17 @@ internal static class MaterialGroupMatchingRegression
             .Select(texture => texture.Data.ToArray())
             .ToArray();
 
-        VerifyCompatibleTwoToTwoDoesNotAtlas(target, donor, outputPath);
+        VerifyCompatibleTwoToTwoRemainsSeparate(target, donor, outputPath);
 
         GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(target, donor);
         Require(plan.CanReplace,
-            "the equal-count integration donor must become writable after atlas fallback: " +
+            "the equal-count integration donor must become writable through native branches: " +
             string.Join(" | ", plan.Messages));
         Require(plan.Messages.Count(message => message.Contains(
-                    "Packed 2 donor texture groups", StringComparison.Ordinal)) == 1,
-            "analysis must build one two-source atlas after equal-count matching fails");
-        Require(plan.MaterialGroupCount == 1,
-            "the final writer plan must contain the rebuilt single atlas group");
+                    "independent native TextureData", StringComparison.Ordinal)) == 1,
+            "analysis must select independent native texture branches");
+        Require(plan.MaterialGroupCount == 2,
+            "the final writer plan must retain both donor texture groups");
 
         GlbSkinTransferResult result = SmoSkinnedGlbReplacer.Replace(
             target,
@@ -77,10 +68,15 @@ internal static class MaterialGroupMatchingRegression
             SkinnedGeometryTransferMode.PreservePreparedGeometry);
         SmoDocument output = SmoDocument.Load(outputPath);
         Require(!output.HasErrors,
-            "the atlas fallback output must pass the strict SMO parser");
+            "the native-branch fallback output must pass the strict SMO parser");
         Require(result.TriangleCount ==
                 source.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3),
-            "the atlas fallback writer must preserve every donor triangle");
+            "the native-branch writer must preserve every donor triangle");
+        int addedTextures = output.Objects.Count(entry =>
+            entry.TypeHash == SmoClassIds.TextureData &&
+            target.Objects.All(sourceEntry => sourceEntry.Id != entry.Id));
+        Require(addedTextures == 2,
+            "the fallback must append two independent TextureData objects");
         VerifyRigidPalettesUnchanged(target, output);
         Require(donor.Meshes.Select((mesh, index) =>
                     mesh.TextureCoordinates.SequenceEqual(uvBefore[index])).All(value => value),
@@ -93,7 +89,7 @@ internal static class MaterialGroupMatchingRegression
             "the integration run must leave both source files byte-identical");
     }
 
-    private static void VerifyCompatibleTwoToTwoDoesNotAtlas(
+    private static void VerifyCompatibleTwoToTwoRemainsSeparate(
         SmoDocument target,
         ImportedScene pelvisDonor,
         string requestedOutputPath)
@@ -108,7 +104,7 @@ internal static class MaterialGroupMatchingRegression
         Require(direct.MaterialGroupCount == 2 &&
                 !direct.Messages.Any(message => message.Contains(
                     "Packed 2 donor texture groups", StringComparison.Ordinal)),
-            "a compatible 2-to-2 assignment must retain both textures without atlas");
+            "a compatible 2-to-2 assignment must retain both textures separately");
 
         string directory = Path.GetDirectoryName(requestedOutputPath) ??
             throw new InvalidOperationException("Integration output directory is unavailable.");
@@ -134,132 +130,6 @@ internal static class MaterialGroupMatchingRegression
         {
             if (File.Exists(directOutput))
                 File.Delete(directOutput);
-        }
-    }
-
-    private static void VerifyEqualCountFailureRequestsOneAtlasFallback()
-    {
-        // Both donor groups can use the writable body branch, but neither can
-        // use the preserved rigid branch. Counts are equal, yet no full matching exists.
-        bool[,] directCapabilities =
-        {
-            { true, false },
-            { true, false }
-        };
-        int[]? direct = SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-            directCapabilities);
-        Require(direct is null,
-            "equal 2-to-2 counts must not masquerade as a complete assignment");
-
-        bool shouldAtlas = SmoVisualTransplanter.ShouldAttemptImportedMaterialAtlas(
-            directPairingIsSafe: direct is not null,
-            SkinnedTextureTransferMode.ImportDonor,
-            allowMaterialAtlas: true,
-            donorGroupCount: 2);
-        Require(shouldAtlas,
-            "an equal-count capability failure must request the atlas fallback");
-
-        int atlasBuildCount = 0;
-        int[]? atlasAssignment = null;
-        if (shouldAtlas)
-        {
-            atlasBuildCount++;
-            // Repacking collapses both source textures into one group pinned to
-            // the same body target for which the atlas dimensions were chosen.
-            bool[,] atlasCapabilities = { { true, false } };
-            atlasAssignment =
-                SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-                    atlasCapabilities);
-        }
-        Require(atlasBuildCount == 1,
-            "the fallback must build the atlas exactly once");
-        Require(atlasAssignment is not null &&
-                atlasAssignment.SequenceEqual([0]),
-            "the rebuilt single atlas group must pair with its pinned body target");
-    }
-
-    private static void VerifyConstrainedGroupWinsRigidBranchRegardlessOfDonorOrder()
-    {
-        // The smaller rigid-compatible group is deliberately first. A greedy
-        // first-fit would consume body target 0 and strand the body-only group.
-        bool[,] reversedDonorOrder =
-        {
-            { true, true },
-            { true, false }
-        };
-        int[]? assignment = SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-            reversedDonorOrder);
-        Require(assignment is not null && assignment.SequenceEqual([1, 0]),
-            "full matching must move the flexible donor to rigid target 1");
-        Require(!SmoVisualTransplanter.ShouldAttemptImportedMaterialAtlas(
-                directPairingIsSafe: true,
-                SkinnedTextureTransferMode.ImportDonor,
-                allowMaterialAtlas: true,
-                donorGroupCount: 2),
-            "a compatible 2-to-2 assignment must not build an atlas");
-    }
-
-    private static void VerifyRejectedFullPlanContinuesDeterministicSearch()
-    {
-        bool[,] capabilities =
-        {
-            { true, true },
-            { true, true }
-        };
-        int validations = 0;
-        int[]? assignment = SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-            capabilities,
-            candidate =>
-            {
-                validations++;
-                return candidate.SequenceEqual([1, 0]);
-            });
-        Require(validations == 2 &&
-                assignment is not null && assignment.SequenceEqual([1, 0]),
-            "a failed whole-plan dry-run must advance to the next deterministic matching");
-    }
-
-    private static void VerifySearchBudgetBlocksPathologicalInput()
-    {
-        var capabilities = new bool[8, 8];
-        for (int donor = 0; donor < 8; donor++)
-        for (int target = 0; target < 8; target++)
-            capabilities[donor, target] = true;
-
-        try
-        {
-            _ = SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-                capabilities,
-                _ => false);
-            throw new InvalidOperationException(
-                "pathological material matching was not blocked");
-        }
-        catch (InvalidOperationException exception) when (
-            exception.Message.Contains("safe limit", StringComparison.OrdinalIgnoreCase))
-        {
-        }
-    }
-
-    private static void VerifySearchHonorsCancellation()
-    {
-        var capabilities = new bool[8, 8];
-        for (int donor = 0; donor < 8; donor++)
-        for (int target = 0; target < 8; target++)
-            capabilities[donor, target] = true;
-
-        using var cancellation = new CancellationTokenSource();
-        cancellation.Cancel();
-        try
-        {
-            _ = SmoVisualTransplanter.FindDeterministicCapabilityMatching(
-                capabilities,
-                _ => false,
-                cancellation.Token);
-            throw new InvalidOperationException(
-                "cancelled material matching continued running");
-        }
-        catch (OperationCanceledException)
-        {
         }
     }
 

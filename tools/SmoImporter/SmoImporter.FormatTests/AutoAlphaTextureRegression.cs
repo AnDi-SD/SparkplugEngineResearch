@@ -18,6 +18,7 @@ internal static class AutoAlphaTextureRegression
         int alphaTriangles = 0;
         int opaqueTriangles = 0;
         int transparentTextures = 0;
+        int transparentMaterials = 0;
         foreach (IGrouping<int, (ImportedMesh Mesh, int Key)> group in donor.Meshes
                      .Select((mesh, key) => (Mesh: mesh, Key: key))
                      .Where(item => (uint)item.Mesh.MaterialIndex <
@@ -28,9 +29,17 @@ internal static class AutoAlphaTextureRegression
             if ((uint)group.Key >= (uint)donor.Textures.Count)
                 continue;
             ImportedTexture texture = donor.Textures[group.Key];
-            if (!ImportedTextureAtlasRepacker.TextureContainsTransparency(texture))
+            if (!ImportedTextureImageTools.TextureContainsTransparency(texture))
                 continue;
             transparentTextures++;
+            if (group.Select(item => item.Mesh.MaterialIndex)
+                .Distinct()
+                .Any(materialIndex =>
+                    donor.Materials[materialIndex].AlphaMode ==
+                    ImportedMaterialAlphaMode.Blend))
+            {
+                transparentMaterials++;
+            }
             SmoSkinnedBranchSourceMesh[] meshes = group.Select(item =>
             {
                 ImportedMesh mesh = item.Mesh;
@@ -56,17 +65,19 @@ internal static class AutoAlphaTextureRegression
             opaqueTriangles += opacity.OpaqueBodyTriangleCount;
         }
 
-        if (transparentTextures == 0 || alphaTriangles == 0)
+        if (transparentTextures == 0 ||
+            transparentMaterials != transparentTextures ||
+            alphaTriangles == 0)
         {
             throw new InvalidOperationException(
-                "Automatic Alpha classification did not find UV geometry sampling " +
-                "transparent texels in the FBX donor.");
+                "Automatic Alpha classification did not mark every transparent " +
+                "FBX texture material as Blend or find UV geometry sampling its texels.");
         }
         if (!File.ReadAllBytes(donorPath).SequenceEqual(donorBefore))
             throw new InvalidOperationException("Automatic Alpha regression modified the FBX.");
         Console.WriteLine(
             $"AUTO ALPHA FBX REGRESSION PASS: textures={donor.Textures.Count}; " +
             $"transparentTextures={transparentTextures}; alphaTriangles={alphaTriangles}; " +
-            $"opaqueTriangles={opaqueTriangles}");
+            $"opaqueTriangles={opaqueTriangles}; blendMaterials={transparentMaterials}");
     }
 }

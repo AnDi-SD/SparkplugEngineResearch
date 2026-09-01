@@ -33,8 +33,9 @@ SMO. Это производный артефакт в `local-data/results/smo-c
 PS2-only классов пока нет. Отсутствие класса не означает отсутствие функции:
 при разборе PC-only класса обязательно ищется альтернативное PS2-представление.
 
-После накопления анализов и миграции размер базы — 1 273 171 968 байт.
-`PRAGMA integrity_check` 28 августа 2026 года возвращает `ok`. Контрольный
+После накопления анализов, миграции и runtime evidence размер базы —
+1 273 339 904 байта.
+`PRAGMA integrity_check` 29 августа 2026 года возвращает `ok`. Контрольный
 повторный проход без изменений пропускает все
 ресурсы: около 2 секунд для каждого PC-корпуса и 2,7 секунды для всех PS2 PCK на
 текущей машине; это контрольные замеры, а не универсальный benchmark.
@@ -43,9 +44,10 @@ PS2-only классов пока нет. Отсутствие класса не 
 `integrity_check=ok` сохранена как
 `local-data/results/smo-corpus-v3-20260828-post-header.sqlite`, SHA-256
 `D35FFE3C33B6F288AA47AB8471E2FB8BC7A65F5D633A0074A72E14925EBDEE09`.
-Основная база затем получила первую отдельную runtime-evidence запись о точном
-PC lookup имени `spNode`; её SHA-256 после импорта —
-`7A021F93C1EBA0D82443EA303B678431F17989961619FDC79E7DD96BFA12A078`.
+Основная база затем получила runtime evidence о точном PC lookup имени `spNode`,
+missing/duplicate binding slots и all-target duplicate policy; её SHA-256 после
+импорта —
+`174F3F798180D76A526B591D9344D119AB1294D65C21DB76A02AB5EA4AB8C8B2`.
 Одинаковый размер файлов не означает одинаковое содержимое SQLite pages.
 
 ## Контейнеры и платформенные метки
@@ -119,8 +121,10 @@ scope, видом evidence, source path/hash, locator, observation и confidence
 `docs/research/evidence/smo-name-case-20260828.json`: подтверждённый PC
 case-sensitive lookup `R_Ankle/r_Ankle` с executable hash и locators двух JSONL
 прогонов; и `docs/research/evidence/smo-name-missing-duplicate-20260829.json` с
-подтверждённой loader-tolerance для missing parent/leaf и duplicate-key collapse
-в обоих порядках.
+подтверждёнными missing/duplicate binding slots: отдельным `0xD8` для новых
+имён, сохранённым `foot_right=0x46` и all-target duplicate policy в обоих
+порядках. Отрицательный `CP11`-результат явно отделяет binding от ещё не
+измеренных final PRS/world matrices.
 
 Инкрементальный directory scan использует нормализованный путь, размер, время
 изменения и ревизию scanner; SHA-256 пересчитывается для реально прочитанного

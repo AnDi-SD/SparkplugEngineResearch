@@ -40,6 +40,14 @@
 ```powershell
 dotnet run --project `
   tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
+  -c Release -- model-info donor.glb
+
+dotnet run --project `
+  tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
+  -c Release -- scene-mesh-info rebuilt.smo Model_
+
+dotnet run --project `
+  tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
   -c Release -- import source.smo level.smolvlproj
 
 dotnet run --project `
@@ -69,26 +77,58 @@ dotnet run --project `
 dotnet run --project `
   tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
   -c Release -- clone-reference level.smolvlproj 1373 125 0 0 Darch_A02_copy copied.smolvlproj
+
+dotnet run --project `
+  tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
+  -c Release -- remove-placement copied.smolvlproj 0x000010AB restored.smolvlproj
 ```
+
+Абсолютная placement-матрица в том же X/Y/Z Euler convention, что использует
+инспектор редактора (`Scale * Rotation * Translation`):
+
+```powershell
+dotnet run --project `
+  tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
+  -c Release -- set-placement-trs level.smolvlproj 1373 `
+  100 20 -50 15 30 45 1.25 0.75 1.5 transformed.smolvlproj
+
+dotnet run --project `
+  tools/SmoLVLcreator/SmoLVLcreator.ProjectTool/SmoLVLcreator.ProjectTool.csproj `
+  -c Release -- set-entity-trs source.smo vase09-000 `
+  -5400 95 -780 20 30 40 1.2 0.8 1.4 transformed-node.smo
+```
+
+Матрица `InvTransform` всегда создаётся по convention Sparkplug: транспонированный
+3x3 basis и `-T*A^T`. При открытии старого проекта version 1 математический
+inverse масштабированного placement автоматически исправляется, но только если
+он однозначно распознан; произвольная несовпадающая пара отклоняется.
 
 `roundtrip` не перезаписывает исходник и завершается ошибкой, если проект без
 правок не воспроизводит его точный SHA-256.
 
-## Подтверждённый gate 0.1.0
+`model-info` печатает геометрию, bounds, UInt32-index risk, normals/UV/colors,
+skinning, materials и textures до записи. `scene-mesh-info` показывает уже
+записанный physical mesh, его texture binding и итоговый material render state.
 
-- основной Core-набор: 1 676 assertions;
+## Подтверждённые gates
+
+- основной Core-набор: 1 864 assertions;
 - real external gate `Alfea02_old.smo` + `shrek.glb`: 25 assertions;
-- real collision gate `Alfea02_old.smo`: 12 assertions;
+- real collision gate `Alfea02_old.smo`: 22 assertions;
 - `data.bin` остаётся неизменным после transform, collision, model и texture
   операций;
 - archive/reopen/build, Undo/Redo, RGBA payload и stale-reference checks
   проходят;
 - project import worker возвращает forest plans/assets и не создаёт полный
   промежуточный SMO на диске.
+- Gate 3/5: полный Core-набор проходит 1 856 assertions; реальные GLB/OBJ/FBX
+  project gates проходят 31/46/57 assertions и native matrix 5/5 scene-ready.
+- Gate 6: explicit Group 2, exact triangle order, непустой `wxFaceData`,
+  registry/inline removal и gameplay collision; native matrix 6/6 scene-ready.
 
 Финальный stress с seed `82744` прошёл 1 000 операций, два промежуточных
 archive/build/reopen checkpoint и детерминированную повторную сборку/re-import.
 Итоговый SHA-256 —
-`5F0966193AB44DC39B890EDAD2C8EA2CC73E60E586857EAF5725C6CA9853EB6D`.
-Этот же SMO принят нативным загрузчиком игры и пережил контрольное окно без
-падения.
+`2E95388BC62E29A29F7ADE974DF9C09EEE2AE12283E6185648FC59CB943B4884`.
+Этот же SMO достиг scene-ready level 28 в нативной игре, прошёл DirectInput
+movement/camera probe и завершил контрольное окно без падения.

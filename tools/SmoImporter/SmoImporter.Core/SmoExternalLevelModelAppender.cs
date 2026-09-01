@@ -51,35 +51,7 @@ public static class SmoExternalLevelModelAppender
             "The level has no writable shared rigid model template.");
     }
 
-    public static SmoExternalLevelModelAppendResult Append(
-        SmoDocument document,
-        int templateMeshObjectIndex,
-        ImportedScene importedScene,
-        IReadOnlyList<Matrix4x4> worldTransforms,
-        string? modelName = null)
-        => AppendCore(
-            document,
-            templateMeshObjectIndex,
-            importedScene,
-            worldTransforms,
-            modelName,
-            enforceMemoryBudget: true);
-
-    internal static SmoExternalLevelModelAppendResult AppendWithoutMemoryGuard(
-        SmoDocument document,
-        int templateMeshObjectIndex,
-        ImportedScene importedScene,
-        IReadOnlyList<Matrix4x4> worldTransforms,
-        string? modelName = null)
-        => AppendCore(
-            document,
-            templateMeshObjectIndex,
-            importedScene,
-            worldTransforms,
-            modelName,
-            enforceMemoryBudget: false);
-
-    internal static SmoExternalLevelModelAppendResult AppendRangeWithoutMemoryGuard(
+    internal static SmoExternalLevelModelAppendResult AppendPartRange(
         SmoDocument document,
         int templateMeshObjectIndex,
         ImportedScene importedScene,
@@ -92,6 +64,7 @@ public static class SmoExternalLevelModelAppender
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(importedScene);
         ArgumentNullException.ThrowIfNull(worldTransforms);
+        importedScene = SmoLevelRigidImportPreparer.Prepare(importedScene);
         if (firstPartIndex < 0 || partCount <= 0 ||
             firstPartIndex > importedScene.Meshes.Count - partCount)
         {
@@ -101,7 +74,6 @@ public static class SmoExternalLevelModelAppender
         }
         if (worldTransforms.Count == 0)
             return new(document.Data.ToArray(), 0, [], 0);
-        importedScene = SmoLevelEmbeddedTextureBudget.Prepare(importedScene);
         uint templateMeshId = document.Objects[templateMeshObjectIndex].Id;
         string safeName = string.IsNullOrWhiteSpace(modelName)
             ? "ExternalModel"
@@ -138,77 +110,6 @@ public static class SmoExternalLevelModelAppender
         if (verified.HasErrors)
             throw new InvalidDataException(
                 "The external-model part batch failed structural verification.");
-        foreach (uint meshId in generatedMeshIds)
-            SmoMeshDecoder.Decode(verified, verified.Objects.Single(entry => entry.Id == meshId));
-        return new(
-            output!,
-            verified.Objects.Count - document.Objects.Count,
-            generatedMeshIds,
-            worldTransforms.Count)
-        {
-            ImportedTextureObjectIds = importedTextureObjectIds
-        };
-    }
-
-    private static SmoExternalLevelModelAppendResult AppendCore(
-        SmoDocument document,
-        int templateMeshObjectIndex,
-        ImportedScene importedScene,
-        IReadOnlyList<Matrix4x4> worldTransforms,
-        string? modelName,
-        bool enforceMemoryBudget)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(importedScene);
-        ArgumentNullException.ThrowIfNull(worldTransforms);
-        if (importedScene.Meshes.Count == 0)
-            throw new ArgumentException("Imported scene contains no meshes.", nameof(importedScene));
-        importedScene = SmoLevelEmbeddedTextureBudget.Prepare(importedScene);
-        if (worldTransforms.Count == 0)
-            return new(document.Data.ToArray(), 0, [], 0);
-        foreach (Matrix4x4 transform in worldTransforms)
-        {
-            if (!Matrix4x4.Invert(transform, out _))
-                throw new ArgumentException("Every placement transform must be invertible.", nameof(worldTransforms));
-        }
-
-        if (enforceMemoryBudget)
-            SmoLargeContainerMemory.PrepareRepeatedRewrite(document.Data.Length);
-
-        uint templateMeshId = document.Objects[templateMeshObjectIndex].Id;
-        byte[]? output = null;
-        var generatedMeshIds = new List<uint>(importedScene.Meshes.Count);
-        IReadOnlyDictionary<int, uint> importedTextureObjectIds =
-            new Dictionary<int, uint>();
-        string safeName = string.IsNullOrWhiteSpace(modelName)
-            ? "ExternalModel"
-            : modelName.Trim();
-
-        for (int partIndex = 0; partIndex < importedScene.Meshes.Count; partIndex++)
-        {
-            SmoDocument current = partIndex == 0
-                ? document
-                : SmoDocument.ParseOwned(output!, document.SourcePath);
-            PartAppendResult part = AppendPart(
-                current,
-                templateMeshId,
-                importedScene,
-                worldTransforms,
-                safeName,
-                partIndex,
-                importedTextureObjectIds);
-            output = part.Data;
-            generatedMeshIds.Add(part.MeshObjectId);
-            importedTextureObjectIds = part.ImportedTextureObjectIds;
-            part = null!;
-            SmoLargeContainerMemory.ReleaseIntermediates(
-                output.Length,
-                compact: true);
-        }
-
-        SmoDocument verified = SmoDocument.ParseOwned(output!, document.SourcePath);
-        if (verified.HasErrors)
-            throw new InvalidDataException("The appended external model failed structural verification.");
         foreach (uint meshId in generatedMeshIds)
             SmoMeshDecoder.Decode(verified, verified.Objects.Single(entry => entry.Id == meshId));
         return new(

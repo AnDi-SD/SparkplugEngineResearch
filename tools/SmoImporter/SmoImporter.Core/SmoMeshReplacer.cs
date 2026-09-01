@@ -27,11 +27,14 @@ public static class SmoMeshReplacer
         ImportedMesh replacement,
         ReplacementTransform transform,
         int boneSlot,
-        string outputPath)
+        string outputPath,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(meshEntry);
         ArgumentNullException.ThrowIfNull(replacement);
+        cancellationToken.ThrowIfCancellationRequested();
+        SmoProductionPlatformGuard.EnsurePcWritable(document);
         SmoMesh source = SmoMeshDecoder.Decode(document, meshEntry);
         if (!SmoVertexLayoutRegistry.TryGet(source.VertexFormat, out SmoVertexLayout? layout) ||
             layout is null || layout.SerializedStride != source.Stride)
@@ -63,6 +66,8 @@ public static class SmoMeshReplacer
 
         for (int vertex = 0; vertex < source.VertexCount; vertex++)
         {
+            if ((vertex & 0x0FFF) == 0)
+                cancellationToken.ThrowIfCancellationRequested();
             int offset = checked((int)source.VertexDataOffset + vertex * source.Stride);
             Vector3 gltf = Vector3.Transform(replacement.Positions[vertex], adjustment);
             Vector3 local = Vector3.Transform(new Vector3(gltf.X, gltf.Y, -gltf.Z), inverseWorld);
@@ -82,6 +87,16 @@ public static class SmoMeshReplacer
                 WriteSingle(output, offset + uvOffset, replacement.TextureCoordinates[vertex].X);
                 WriteSingle(output, offset + uvOffset + 4, replacement.TextureCoordinates[vertex].Y);
             }
+            if (layout.TextureCoordinate1Offset is int uv1Offset &&
+                replacement.TextureCoordinates.Length == source.VertexCount)
+            {
+                Vector2 uv1 = replacement.SecondaryTextureCoordinates.Length ==
+                              source.VertexCount
+                    ? replacement.SecondaryTextureCoordinates[vertex]
+                    : replacement.TextureCoordinates[vertex];
+                WriteSingle(output, offset + uv1Offset, uv1.X);
+                WriteSingle(output, offset + uv1Offset + 4, uv1.Y);
+            }
             if (layout.BlendWeightsOffset is int weightsOffset &&
                 layout.BlendIndicesOffset is int indicesOffset)
             {
@@ -96,16 +111,32 @@ public static class SmoMeshReplacer
             }
         }
 
-        string fullOutput = Path.GetFullPath(outputPath);
-        Directory.CreateDirectory(Path.GetDirectoryName(fullOutput)!);
-        File.WriteAllBytes(fullOutput, output);
-        SmoDocument verification = SmoDocument.Load(fullOutput);
-        SmoObjectEntry verifiedEntry = verification.Objects[meshEntry.Index];
-        SmoMesh verified = SmoMeshDecoder.Decode(verification, verifiedEntry);
-        if (verified.VertexCount != source.VertexCount || verified.TriangleCount != source.TriangleCount)
-            throw new InvalidDataException("Written SMO failed post-write mesh verification.");
+        cancellationToken.ThrowIfCancellationRequested();
+        SmoMesh? verified = null;
+        SmoVerifiedOutputInstallResult installed =
+            SmoVerifiedOutputInstaller.Install(
+                outputPath,
+                output,
+                temporaryPath =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    SmoDocument verification = SmoDocument.Load(temporaryPath);
+                    SmoObjectEntry verifiedEntry =
+                        verification.Objects[meshEntry.Index];
+                    verified = SmoMeshDecoder.Decode(verification, verifiedEntry);
+                    if (verification.HasErrors ||
+                        verified.VertexCount != source.VertexCount ||
+                        verified.TriangleCount != source.TriangleCount)
+                    {
+                        throw new InvalidDataException(
+                            "Written SMO failed post-write mesh verification.");
+                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                },
+                cancellationToken,
+                document.SourcePath);
         return new ReplacementResult(
-            fullOutput, verified.VertexCount, verified.TriangleCount,
+            installed.OutputPath, verified!.VertexCount, verified.TriangleCount,
             boneSlot, selectedBone?.Name ?? "not skinned");
     }
 

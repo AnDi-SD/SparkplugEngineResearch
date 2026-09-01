@@ -90,6 +90,9 @@ public static class GlbModelReader
                     ? ReadVector3(root, binary, normal.GetInt32()) : [];
                 Vector2[] uvs = attributes.TryGetProperty("TEXCOORD_0", out JsonElement uv)
                     ? ReadVector2(root, binary, uv.GetInt32()) : [];
+                Vector2[] secondaryUvs = attributes.TryGetProperty(
+                        "TEXCOORD_1", out JsonElement secondaryUv)
+                    ? ReadVector2(root, binary, secondaryUv.GetInt32()) : [];
                 uint[] colors = attributes.TryGetProperty("COLOR_0", out JsonElement color)
                     ? ReadColorsArgb(root, binary, color.GetInt32()) : [];
                 uint[] indices = primitive.TryGetProperty("indices", out JsonElement index)
@@ -161,7 +164,10 @@ public static class GlbModelReader
                     positions, normals, uvs, indices, colors,
                     primitive.TryGetProperty("material", out JsonElement material)
                         ? material.GetInt32() : -1,
-                    skinning));
+                    skinning)
+                {
+                    SecondaryTextureCoordinates = secondaryUvs
+                });
                 primitiveIndex++;
             }
         }
@@ -1324,8 +1330,9 @@ public static class ImportedModelReader
         ".glb" => GlbModelReader.Read(path, cancellationToken),
         ".fbx" => FbxModelReader.Read(path, nativeFbxBridgePath, cancellationToken),
         ".obj" => ObjModelReader.Read(path, cancellationToken),
+        ".smo" => SmoModelReader.Read(path, cancellationToken),
         _ => throw new NotSupportedException(
-            "Supported replacement formats: .fbx, .glb and .obj.")
+            "Supported replacement formats: .fbx, .glb, .obj and .smo.")
     };
 
     public static ImportedScene ReadGeometryOnly(
@@ -1337,7 +1344,8 @@ public static class ImportedModelReader
         ".fbx" => FbxModelReader.ReadGeometryOnly(
             path, nativeFbxBridgePath, cancellationToken),
         ".obj" => ObjModelReader.Read(path, cancellationToken),
+        ".smo" => SmoModelReader.ReadGeometryOnly(path, cancellationToken),
         _ => throw new NotSupportedException(
-            "Geometry-only fallback supports .fbx, .glb and .obj.")
+            "Geometry-only import supports .fbx, .glb, .obj and .smo.")
     };
 }

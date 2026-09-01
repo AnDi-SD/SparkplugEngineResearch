@@ -14,6 +14,13 @@ internal sealed record ImporterNativeValidationResult(
     ImporterNativeVerdict Verdict,
     string Message);
 
+internal sealed record ImporterNativeValidationPlan(
+    NativeValidationRoute Route,
+    int? StartLevel,
+    bool RequireSceneReady,
+    bool IncludeBloomCheckpoints,
+    bool IsFullContextValidation);
+
 /// <summary>
 /// Minimal Importer-facing adapter around the reusable native validator core.
 /// The Importer intentionally exposes no routing, debugger or log settings.
@@ -79,19 +86,28 @@ internal sealed class ImporterNativeValidator
         string logicalGameAssetPath,
         CancellationToken cancellationToken = default)
     {
+        ImporterNativeValidationPlan plan = ResolvePlan(logicalGameAssetPath);
         NativeValidationRequest request = new()
         {
             ExecutablePath = executablePath,
             AssetPath = assetPath,
             LogicalGameAssetPath = logicalGameAssetPath,
-            Route = NativeValidationRoute.FastGeneric,
+            Route = plan.Route,
+            StartLevel = plan.StartLevel,
             UseIsolatedLaunchWorkspace = true,
-            OverallTimeout = TimeSpan.FromSeconds(60),
-            NoProgressTimeout = TimeSpan.FromSeconds(15),
-            SurvivalWindow = TimeSpan.FromSeconds(2),
+            OverallTimeout = plan.IsFullContextValidation
+                ? TimeSpan.FromSeconds(90)
+                : TimeSpan.FromSeconds(60),
+            NoProgressTimeout = plan.IsFullContextValidation
+                ? TimeSpan.FromSeconds(30)
+                : TimeSpan.FromSeconds(15),
+            SurvivalWindow = plan.IsFullContextValidation
+                ? TimeSpan.FromSeconds(5)
+                : TimeSpan.FromSeconds(2),
+            RequireSceneReady = plan.RequireSceneReady,
+            IncludeBloomCheckpoints = plan.IncludeBloomCheckpoints,
             CollectFirstChanceExceptions = false,
-            StageAsset = true,
-            AllowFileNameOnlyLogicalPath = true
+            StageAsset = true
         };
 
         NativeValidationReport report = await _validator.ValidateAsync(
@@ -124,9 +140,19 @@ internal sealed class ImporterNativeValidator
 
         return report.Status switch
         {
-            NativeValidationStatus.Passed => new(
+            NativeValidationStatus.Passed when plan.IsFullContextValidation &&
+                                              report.SceneReadyReached => new(
                 ImporterNativeVerdict.Suitable,
-                "✓ Модель подходит для нативной загрузки — игра приняла созданный SMO."),
+                "✓ SMO загружен в штатном контексте персонажа; сцена достигла " +
+                "scene-ready без прямого сбоя модели."),
+            NativeValidationStatus.Passed when plan.IsFullContextValidation => new(
+                ImporterNativeVerdict.Indeterminate,
+                "Нативный загрузчик принял SMO, но scene-ready не подтверждён. " +
+                "Результат нельзя считать проверкой персонажа."),
+            NativeValidationStatus.Passed => new(
+                ImporterNativeVerdict.Indeterminate,
+                "SMO принят низкоуровневым загрузчиком, но для этого пути нет " +
+                "подтверждённого игрового контекста. Скелет и анимация не проверены."),
             NativeValidationStatus.Crash or NativeValidationStatus.EngineRejected => new(
                 ImporterNativeVerdict.Indeterminate,
                 "Совместимость не определена — сбой не удалось напрямую связать с моделью."),
@@ -142,10 +168,65 @@ internal sealed class ImporterNativeValidator
             NativeValidationStatus.PathError => new(
                 ImporterNativeVerdict.Indeterminate,
                 "Проверка не выполнена — не удалось подготовить модель для игры."),
+            NativeValidationStatus.TargetNotRequested => new(
+                ImporterNativeVerdict.Indeterminate,
+                "Игра не запросила целевой SMO в выбранном контексте."),
+            NativeValidationStatus.Timeout => new(
+                ImporterNativeVerdict.Indeterminate,
+                "Проверка остановлена по тайм-ауту до доказанного результата."),
             _ => new(
                 ImporterNativeVerdict.Indeterminate,
                 "Совместимость модели определить не удалось.")
         };
+    }
+
+    internal static ImporterNativeValidationPlan ResolvePlan(
+        string logicalGameAssetPath)
+    {
+        string logical = LogicalAssetMatcher.Normalize(logicalGameAssetPath)
+            .TrimStart('\\');
+        if (logical.StartsWith("Media\\", StringComparison.OrdinalIgnoreCase))
+            logical = logical["Media\\".Length..];
+
+        if (logical.Equals(
+                @"Characters\Bloom\bloom_jeans.smo",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return new ImporterNativeValidationPlan(
+                NativeValidationRoute.Contextual,
+                2,
+                RequireSceneReady: true,
+                IncludeBloomCheckpoints: true,
+                IsFullContextValidation: true);
+        }
+        if (logical.Equals(
+                @"Characters\Flora\Flora.smo",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return new ImporterNativeValidationPlan(
+                NativeValidationRoute.Contextual,
+                10,
+                RequireSceneReady: true,
+                IncludeBloomCheckpoints: false,
+                IsFullContextValidation: true);
+        }
+        if (WinxClubLevelCatalog.TryResolveStartLevelForLogicalSmo(
+                logical, out int startLevel))
+        {
+            return new ImporterNativeValidationPlan(
+                NativeValidationRoute.Contextual,
+                startLevel,
+                RequireSceneReady: true,
+                IncludeBloomCheckpoints: false,
+                IsFullContextValidation: true);
+        }
+
+        return new ImporterNativeValidationPlan(
+            NativeValidationRoute.FastGeneric,
+            StartLevel: null,
+            RequireSceneReady: false,
+            IncludeBloomCheckpoints: false,
+            IsFullContextValidation: false);
     }
 
     private static string? FindGameBesideModel(string? modelPath)

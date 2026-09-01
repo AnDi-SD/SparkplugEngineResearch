@@ -1,6 +1,6 @@
 # Открытые вопросы SMO
 
-Статус: актуализировано 28 августа 2026 года после завершения полного
+Статус: актуализировано 29 августа 2026 года после завершения полного
 структурного/read-only разбора 36/36 классов, наблюдаемых в корпусах
 `pc-pristine`, `pc-working` и `ps2-pristine`.
 
@@ -9,6 +9,11 @@
 [`../docs/research/smo-runtime-validation-plan.md`](../docs/research/smo-runtime-validation-plan.md).
 Долгие задачи, которые разумнее выполнять вместе с разработкой writer/importer,
 отделены от текущего runtime-этапа.
+
+Активный pre-release scope теперь содержит только вопросы, обязательные для
+SmoLVLcreator и production model import; его gate и критерии отказа записаны в
+[`../docs/research/smo-lvlcreator-import-mvp-plan.md`](../docs/research/smo-lvlcreator-import-mvp-plan.md).
+Остальные P0/P1-вопросы ниже не удалены, но считаются post-MVP backlog.
 
 ## Подтверждённая исходная точка
 
@@ -34,9 +39,11 @@
   ни cross-case равенства в нативном `char_traits<char>::compare`-дереве; pristine
   дал два точных совпадения. Импортированные case-insensitive comparators эту
   связь не обслуживают.
-- Missing parent/leaf и duplicate toes в обоих порядках не отвергают модель:
-  все четыре one-byte mutations прошли contextual load и окно стабильности.
-  Missing target локален; duplicate namespace сворачивается в один exact key.
+- Missing parent/leaf и duplicate toes в обоих порядках не отвергают модель.
+  Binding-write probe показал, что `Z_Ankle/Z_Toe` получают новый отдельный слот
+  `0xD8`, descendant `foot_right` сохраняет exact slot `0x46`, а два разных
+  evaluator одноимённых toes получают общий slot `0x3B` либо `0x3F`. Значит,
+  duplicate-политика на binding-слое — all-target; first/last исключены.
 - FFPS header теперь разделён без прежней путаницы: `0x04=0x26` — serializer
   version; `0x10` — platform mask (`1=common`, `2=PC`, `8=PS2`); `0x08`
   допускает ноль в fast и Bloom contextual runtime и является 15-битным
@@ -49,8 +56,7 @@
 
 | Вопрос | Быстрая проверка | Условие закрытия |
 |---|---|---|
-| Как разрешаются duplicate node names? | transform/frame probe уже проверенной пары toes | loader допускает дубликат и key collapse доказан; осталось first/last/all-target |
-| Как визуально наследуется отсутствующий parent target? | frame/transform probe `Z_Ankle` и descendant `foot_right` | loader/error path уже закрыт; осталось различить bind pose и descendant fallback |
+| Как визуально наследуется отсутствующий parent target? | активный animation tick для `Z_Ankle` и descendant `foot_right` | binding registry уже закрыт; осталось различить итоговый bind pose и world-transform inheritance |
 | Что означают collision groups `1/2`? | переключение Group у простого collider и игровые collision/debug проверки | роли групп воспроизводимо различаются либо доказано отсутствие различия в выбранных consumers |
 | Что означают `wxFaceData.flags` и `surfaceID`? | изменение одного metadata-поля на выбранной поверхности с движением/звуком/коллизией | найден хотя бы один runtime consumer или подтверждено отсутствие эффекта в проверенных системах |
 | Как применяются `ProjectionGroup`, `AlphaSortEnable` и `Priority`? | по одному fixed-size изменению на видимой паре перекрывающихся моделей | определены projection path и порядок сортировки без per-file предположений |

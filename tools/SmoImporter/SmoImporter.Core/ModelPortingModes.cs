@@ -3,15 +3,14 @@ using SmoViewer.Core;
 namespace SmoImporter.Core;
 
 /// <summary>
-/// Describes how donor geometry is prepared for the immutable game skeleton.
-/// The legacy single-bone rigid attachment path is intentionally separate from
-/// these character-rigging modes.
+/// Describes how donor geometry is prepared for the target visual graph.
 /// </summary>
 public enum ModelPortingMode
 {
     PreparedGameSkeleton = 0,
     AdaptDonorWeights = 1,
-    GenerateWeights = 2
+    GenerateWeights = 2,
+    StaticModel = 3
 }
 
 public sealed record ModelPortingModeRecommendation(
@@ -20,9 +19,9 @@ public sealed record ModelPortingModeRecommendation(
     GlbSkinTransferPlan? PreparedSkeletonPlan = null);
 
 /// <summary>
-/// Makes a conservative recommendation. It never treats a texture-resolution
-/// problem as a skeleton problem: the target textures are preserved while the
-/// strict prepared-skeleton path is probed.
+/// Makes a conservative recommendation. It never treats a texture problem as a
+/// skeleton problem; analysis is read-only and the writer later rebuilds the
+/// visual graph from donor resources.
 /// </summary>
 public static class ModelPortingModeAnalyzer
 {
@@ -36,6 +35,13 @@ public static class ModelPortingModeAnalyzer
         int skinnedMeshCount = donor.Meshes.Count(mesh => mesh.Skinning is not null);
         if (skinnedMeshCount == 0)
         {
+            if (!target.Objects.Any(entry => entry.TypeHash == SmoClassIds.Skin))
+            {
+                return new ModelPortingModeRecommendation(
+                    ModelPortingMode.StaticModel,
+                    "The target and donor are both unskinned, so geometry can be " +
+                    "written as a native static model without creating bones.");
+            }
             return new ModelPortingModeRecommendation(
                 ModelPortingMode.GenerateWeights,
                 "The donor has no usable skin weights.");
@@ -56,8 +62,7 @@ public static class ModelPortingModeAnalyzer
         {
             GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
                 target,
-                donor,
-                SkinnedTextureTransferMode.PreserveTarget);
+                donor);
             if (plan.CanReplace)
             {
                 return new ModelPortingModeRecommendation(

@@ -10,11 +10,15 @@ internal static class GeneratedSkinningSemanticRegionRegression
     private static readonly Vector3 DaphneTranslation = new(0, 12, -3);
     private const int BoundedHeadMaximumVertices = 112;
     private const int BoundedHeadMaximumTriangles = 170;
-    private const int BoundedHeadExpectedComponents = 6;
+    private const int BoundedHeadExpectedComponents = 7;
+    private const int MajorityCrossingHeadComponentIndex = 4;
+    private const int PropagatedLowerHairComponentIndex = 5;
 
     private sealed record BoundedHeadFixture(
         ImportedScene Donor,
         TargetRigBodySelection BodySelection,
+        TargetRigBodySelection AllComponentsBodySelection,
+        TargetRigBodySelection RearWingProvisionalAnchorSelection,
         int BodyMeshIndex,
         int DetailMeshIndex,
         IReadOnlyList<int> FaceTipVertices,
@@ -56,7 +60,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
             alignment,
             body);
         GeneratedSkinningRegionAnalysis analysis = automatic.Analysis.SemanticRegions;
-        AssertHandsAppliedAndUnsafeHeadRejected(
+        AssertHandsAndHeadPlaneApplied(
             analysis,
             "identifier-agnostic synthetic donor");
         GeneratedSkinningPreparationResult disabled = PrepareAllDisabled(
@@ -94,7 +98,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
 
         Console.WriteLine(
             "GENERATED SEMANTIC REGION PASS: identifier-free shuffled donor; " +
-            DescribeRegions(analysis) + "; unsafe unbounded Head rejected; " +
+            DescribeRegions(analysis) + "; hard Head plane applied; " +
             "outside weights bit-identical; hand cores/finger lanes and " +
             "proximal-only transitions valid; mirrored edits; exact seams.");
     }
@@ -106,7 +110,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
         SmoDocument target = SmoDocument.Load(targetPath);
         if (target.HasErrors)
             throw new InvalidDataException(
-                "Bounded head-topology target failed strict parsing.");
+                "Separation-plane target failed strict parsing.");
 
         TargetRigDefinition rig = TargetRigDefinition.FromSmoDocument(target);
         TargetRigFittingPose editablePose = rig.CreateFittingPose();
@@ -114,98 +118,324 @@ internal static class GeneratedSkinningSemanticRegionRegression
             "Neck",
             Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI / 18f));
         TargetRigFittingPoseSnapshot pose = editablePose.Capture();
-        if (pose.IsIdentityPose)
-            throw new InvalidOperationException(
-                "Bounded head-topology fixture did not create a fitting pose.");
-
         BoundedHeadFixture fixture = BuildBoundedHeadFixture(target, rig, pose);
-        AssertBoundedHeadFixtureBudget(fixture.Donor);
         string donorFingerprint = FingerprintDonor(fixture.Donor);
 
-        // The first Prepare exercises automatic head-lobe topology. A second
-        // bounded pass below verifies that an explicit pitched editor volume
-        // becomes the actual membership rule instead of being forced to retain
-        // the automatically proven back-of-head lobe.
-        GeneratedSkinningPreparationResult preparation =
+        GeneratedSkinningPreparationResult baseline =
             GeneratedSkinningPreparer.Prepare(
                 target,
                 fixture.Donor,
                 pose,
                 ReplacementTransform.Identity,
                 fixture.BodySelection);
-        if (preparation.Analysis.SemanticResolutionPassCount != 1 ||
-            preparation.Analysis.InternalPreparationPassCount is < 2 or > 4)
+        GeneratedSkinningRegionAnalysis analysis =
+            baseline.Analysis.SemanticRegions;
+        GeneratedSkinningSeparationPlaneResolution[] planes = analysis
+            .SeparationPlanes.OrderBy(value => value.Kind).ToArray();
+        if (planes.Length !=
+                Enum.GetValues<GeneratedSkinningSeparationPlaneKind>().Length ||
+            planes.Any(value => !value.IsAvailable || !value.IsEnabled))
         {
             throw new InvalidOperationException(
-                "One bounded Head Prepare must use one final semantic resolve " +
-                "after one to three legacy palette probes.");
+                "The humanoid fixture did not resolve all four enabled planes: " +
+                string.Join(" | ", planes.Select(value =>
+                    $"{value.Kind}:available={value.IsAvailable}:" +
+                    string.Join(";", value.Warnings))));
         }
-
-        AssertBoundedHeadTopology(preparation, fixture);
-        GeneratedSkinningRegionResolution editableHead = Region(
-            preparation.Analysis.SemanticRegions,
+        AssertHeadPlaneMembership(baseline, fixture, "automatic plane");
+        AssertSemanticWeightContract(baseline, analysis, "automatic plane");
+        GeneratedSkinningRegionResolution baselineHeadRegion = Region(
+            baseline.Analysis.SemanticRegions,
             GeneratedSkinningSemanticRegion.Head);
-        if (editableHead.AdjustmentLimits.MaximumAxialScale < 2.99f ||
-            editableHead.AdjustmentLimits.MaximumRadialScale < 2.99f)
+        if (baseline.Analysis.ShoulderWallAffectedVertexCount <= 0)
         {
             throw new InvalidOperationException(
-                "Head editor range regressed below the finite 3x modular-head " +
-                "override required when automatic topology starts from a small " +
-                "primary face lobe.");
+                "The bounded fixture did not exercise either shoulder wall. " +
+                $"Head owner={baselineHeadRegion.TopologyOwnerComponentIndex}; " +
+                $"companions={string.Join(",", baselineHeadRegion.RigidCompanionComponentIndices)}.");
         }
-        GeneratedSkinningRegionAdjustment[] tiltedAdjustments = preparation
-            .Analysis.SemanticRegions.Regions
-            .Select(region => region.Region == GeneratedSkinningSemanticRegion.Head
-                ? region.Adjustment with { ForwardTiltDegrees = 25 }
-                : region.Adjustment with { Enabled = false })
+        if (baseline.Analysis.Attachments.Any(value =>
+                value.RequiresManualPlaneAssignment &&
+                (value.PlaneAssignment is not null ||
+                 value.IntersectedPlanes.Count == 0)))
+        {
+            throw new InvalidOperationException(
+                "A plane-intersected component was split or automatically assigned.");
+        }
+        if (baselineHeadRegion.RigidCompanionComponentIndices.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "The Head plane did not classify any complete detached head component.");
+        }
+        GeneratedSkinningSeparationPlaneResolution baselineHead = planes.Single(
+            value => value.Kind == GeneratedSkinningSeparationPlaneKind.Head);
+        IReadOnlyList<int> majorityVertices =
+            fixture.DetailVerticesByComponent[MajorityCrossingHeadComponentIndex];
+        float[] majorityDistances = majorityVertices
+            .Select(vertex => Vector3.Dot(
+                baseline.FittingPreviewScene.Meshes[fixture.DetailMeshIndex]
+                    .Positions[vertex] - baselineHead.Point,
+                baselineHead.Normal))
             .ToArray();
-        GeneratedSkinningPreparationResult tilted =
+        if (majorityDistances.Count(value => value >= -0.000001f) != 3 ||
+            majorityDistances.Count(value => value < -0.000001f) != 1 ||
+            !baselineHeadRegion.RigidCompanionComponentIndices.Contains(
+                MajorityCrossingHeadComponentIndex))
+        {
+            throw new InvalidOperationException(
+                "A detached component with a strict 3/4 Head-side majority was " +
+                "not kept whole on the rigid Head path.");
+        }
+        AssertExactOneHot(
+            baseline.FittingPreviewScene,
+            fixture.DetailMeshIndex,
+            majorityVertices,
+            baselineHeadRegion.AnchorSkeletonJointIndex,
+            baselineHeadRegion.AnchorBoneName,
+            "whole Head-protected component fitting");
+        AssertExactOneHot(
+            baseline.PreparedScene,
+            fixture.DetailMeshIndex,
+            majorityVertices,
+            baselineHeadRegion.AnchorSkeletonJointIndex,
+            baselineHeadRegion.AnchorBoneName,
+            "whole Head-protected component canonical");
+        IReadOnlyList<int> propagatedLowerHairVertices =
+            fixture.DetailVerticesByComponent[PropagatedLowerHairComponentIndex];
+        if (!baselineHeadRegion.RigidCompanionComponentIndices.Contains(
+                PropagatedLowerHairComponentIndex))
+        {
+            throw new InvalidOperationException(
+                "A lower rear island of the same spatially coherent imported " +
+                "mesh did not inherit whole-assembly Head protection.");
+        }
+        AssertExactOneHot(
+            baseline.FittingPreviewScene,
+            fixture.DetailMeshIndex,
+            propagatedLowerHairVertices,
+            baselineHeadRegion.AnchorSkeletonJointIndex,
+            baselineHeadRegion.AnchorBoneName,
+            "propagated lower-hair island fitting");
+        AssertExactOneHot(
+            baseline.PreparedScene,
+            fixture.DetailMeshIndex,
+            propagatedLowerHairVertices,
+            baselineHeadRegion.AnchorSkeletonJointIndex,
+            baselineHeadRegion.AnchorBoneName,
+            "propagated lower-hair island canonical");
+
+        GeneratedSkinningPreparationResult compositeBody =
+            GeneratedSkinningPreparer.Prepare(
+                target,
+                fixture.Donor,
+                pose,
+                ReplacementTransform.Identity,
+                fixture.AllComponentsBodySelection);
+        GeneratedSkinningAttachment[] compositeAttachments = compositeBody.Analysis
+            .Attachments.ToArray();
+        if (compositeAttachments.Length != 1 ||
+            compositeAttachments[0].ComponentIndex != fixture.WingComponentIndex ||
+            compositeAttachments[0].PlaneAssignment !=
+                GeneratedSkinningComponentAttachmentTarget.UpperBack ||
+            compositeAttachments[0].TargetBoneName != "Spine_03")
+        {
+            throw new InvalidOperationException(
+                "Head protection did not retain the front-facing upper details " +
+                "inside a composite body or Back did not extract only the high " +
+                "rear wing.");
+        }
+        GeneratedSkinningPreparationResult provisionalRearAnchor =
+            GeneratedSkinningPreparer.Prepare(
+                target,
+                fixture.Donor,
+                pose,
+                ReplacementTransform.Identity,
+                fixture.RearWingProvisionalAnchorSelection);
+        GeneratedSkinningAttachment[] provisionalAttachments =
+            provisionalRearAnchor.Analysis.Attachments.ToArray();
+        if (provisionalAttachments.Length != 1 ||
+            provisionalAttachments[0].ComponentIndex != fixture.WingComponentIndex ||
+            provisionalAttachments[0].PlaneAssignment !=
+                GeneratedSkinningComponentAttachmentTarget.UpperBack)
+        {
+            throw new InvalidOperationException(
+                "A provisional WholeBody role incorrectly protected the high rear " +
+                "wing from the universal Back rule.");
+        }
+        AssertScenesBitIdentical(
+            provisionalRearAnchor.PreparedScene,
+            compositeBody.PreparedScene,
+            "provisional body-role independence");
+
+        GeneratedSkinningSeparationPlaneResolution automaticHead = planes.Single(
+            value => value.Kind == GeneratedSkinningSeparationPlaneKind.Head);
+        float headOffset = Math.Clamp(
+            automaticHead.Adjustment.Offset +
+                (automaticHead.Limits.MaximumOffset -
+                 automaticHead.Limits.MinimumOffset) * 0.02f,
+            automaticHead.Limits.MinimumOffset,
+            automaticHead.Limits.MaximumOffset);
+        GeneratedSkinningSeparationPlaneAdjustment[] editedPlanes = planes
+            .Select(value => value.Kind switch
+            {
+                GeneratedSkinningSeparationPlaneKind.Head =>
+                    value.Adjustment with
+                    {
+                        Offset = headOffset,
+                        AngleDegrees = 10
+                    },
+                GeneratedSkinningSeparationPlaneKind.LeftShoulder =>
+                    value.Adjustment with { AngleDegrees = 5 },
+                _ => value.Adjustment
+            })
+            .ToArray();
+        GeneratedSkinningRegionOverrides editedOverrides = analysis.CreateOverrides(
+            analysis.Regions.Select(value => value.Adjustment).ToArray(),
+            editedPlanes);
+        GeneratedSkinningPreparationResult edited =
             GeneratedSkinningPreparer.Prepare(
                 target,
                 fixture.Donor,
                 pose,
                 ReplacementTransform.Identity,
                 fixture.BodySelection,
-                preparation.Analysis.SemanticRegions.CreateOverrides(
-                    tiltedAdjustments));
-        GeneratedSkinningRegionResolution tiltedHead = Region(
-            tilted.Analysis.SemanticRegions,
-            GeneratedSkinningSemanticRegion.Head);
-        GeneratedSkinningRegionVolume automaticHead = tiltedHead.AutomaticVolume ??
-            throw new InvalidOperationException("Tilted Head lost its automatic volume.");
-        GeneratedSkinningRegionVolume resolvedHead = tiltedHead.ResolvedVolume ??
-            throw new InvalidOperationException("Tilted Head lost its resolved volume.");
-        Vector3 automaticLowerPole = automaticHead.Center -
-                                     automaticHead.AxialAxis * automaticHead.AxialRadius;
-        Vector3 resolvedLowerPole = resolvedHead.Center -
-                                    resolvedHead.AxialAxis * resolvedHead.AxialRadius;
-        if (!tiltedHead.IsApplied ||
-            MathF.Abs(Vector3.Dot(resolvedHead.AxialAxis,
-                automaticHead.AxialAxis)) > 0.999f ||
-            Vector3.Dot(resolvedLowerPole - automaticLowerPole,
-                automaticHead.ForwardAxis) <= 0 ||
-            tiltedHead.TransitionVerticesByMesh.Sum(value =>
-                value.VertexIndices.Count) != 0)
+                editedOverrides);
+        GeneratedSkinningSeparationPlaneResolution editedHead = edited.Analysis
+            .SemanticRegions.SeparationPlanes.Single(value =>
+                value.Kind == GeneratedSkinningSeparationPlaneKind.Head);
+        GeneratedSkinningSeparationPlaneResolution automaticLeft = planes.Single(
+            value => value.Kind ==
+                GeneratedSkinningSeparationPlaneKind.LeftShoulder);
+        GeneratedSkinningSeparationPlaneResolution automaticRight = planes.Single(
+            value => value.Kind ==
+                GeneratedSkinningSeparationPlaneKind.RightShoulder);
+        Vector3 leftBicep = Vector3.Transform(
+            Vector3.Zero,
+            pose.WorldMatrices[rig.GetJointIndex("L_Bicep")]);
+        Vector3 rightBicep = Vector3.Transform(
+            Vector3.Zero,
+            pose.WorldMatrices[rig.GetJointIndex("R_Bicep")]);
+        if (automaticLeft.AnchorBoneName != "L_Bicep" ||
+            automaticRight.AnchorBoneName != "R_Bicep" ||
+            automaticLeft.Adjustment.AngleDegrees != 7 ||
+            automaticRight.Adjustment.AngleDegrees != 7 ||
+            Vector3.Distance(automaticLeft.Point, leftBicep) > 0.000001f ||
+            Vector3.Distance(automaticRight.Point, rightBicep) > 0.000001f)
         {
             throw new InvalidOperationException(
-                "Explicit Head pitch did not produce a forward lower pole and " +
-                "fully rigid manual ellipsoid membership.");
+                "Shoulder planes are not anchored to the exact L/R_Bicep joints.");
         }
+        GeneratedSkinningSeparationPlaneResolution editedLeft = edited.Analysis
+            .SemanticRegions.SeparationPlanes.Single(value =>
+                value.Kind ==
+                GeneratedSkinningSeparationPlaneKind.LeftShoulder);
+        if (editedHead.Adjustment.Offset != headOffset ||
+            editedHead.Adjustment.AngleDegrees != 10 ||
+            Vector3.Dot(editedHead.Normal, automaticHead.Normal) > 0.999f ||
+            editedLeft.Point != automaticLeft.Point ||
+            editedLeft.Adjustment.Offset != 0 ||
+            editedLeft.Adjustment.AngleDegrees != 5 ||
+            Vector3.Dot(editedLeft.Normal, automaticLeft.Normal) > 0.9999f ||
+            Vector3.Distance(
+                automaticLeft.PreviewCenter -
+                    automaticLeft.AxisV * automaticLeft.PreviewHalfExtentV,
+                automaticLeft.Point) > 0.000001f ||
+            Vector3.Distance(
+                editedLeft.PreviewCenter -
+                    editedLeft.AxisV * editedLeft.PreviewHalfExtentV,
+                editedLeft.Point) > 0.000001f)
+        {
+            throw new InvalidOperationException(
+                "Edited Head/shoulder planes did not preserve their upper-edge " +
+                "anchor and shoulder-pivot angle contract.");
+        }
+        AssertHeadPlaneMembership(edited, fixture, "edited plane");
+        AssertSemanticWeightContract(
+            edited,
+            edited.Analysis.SemanticRegions,
+            "edited plane");
+
+        GeneratedSkinningSeparationPlaneAdjustment invalidShoulder =
+            automaticLeft.Adjustment with { Offset = 0.01f };
+        ExpectThrows<InvalidDataException>(
+            () => GeneratedSkinningPreparer.Prepare(
+                target,
+                fixture.Donor,
+                pose,
+                ReplacementTransform.Identity,
+                fixture.BodySelection,
+                analysis.CreateOverrides(
+                    analysis.Regions.Select(value => value.Adjustment).ToArray(),
+                    [invalidShoulder])),
+            "shoulder offset");
+        ExpectThrows<InvalidDataException>(
+            () => GeneratedSkinningPreparer.Prepare(
+                target,
+                fixture.Donor,
+                pose,
+                ReplacementTransform.Identity,
+                fixture.BodySelection,
+                analysis.CreateOverrides(
+                    analysis.Regions.Select(value => value.Adjustment).ToArray(),
+                    [automaticHead.Adjustment, automaticHead.Adjustment])),
+            "duplicate Head plane");
+
         if (!File.ReadAllBytes(targetPath).SequenceEqual(targetBytes) ||
             FingerprintDonor(fixture.Donor) != donorFingerprint)
         {
             throw new InvalidOperationException(
-                "Bounded head-topology regression mutated a target or donor input.");
+                "Separation-plane regression mutated a target or donor input.");
         }
-
         Console.WriteLine(
-            "BOUNDED HEAD TOPOLOGY PASS: one primary plus two symmetric " +
-            "same-owner protected face shells; " +
-            "every primary/secondary rigid boundary guarded by one disjoint " +
-            "external Neck collar; " +
-            "four semantic Head companions; unrelated long wing excluded; " +
-            "manual +25 degree face tilt uses rigid ellipsoid membership; " +
-            "<=112 vertices/<=170 triangles; two bounded Prepare calls.");
+            "GENERATED SEPARATION PLANES PASS: four target-anchored planes; exact " +
+            "L/R_Bicep shoulder anchors; " +
+            "rigid whole-component Head ownership; nearby lower islands of one " +
+            "imported mesh inherit Head while a distant rear wing stays Back; " +
+            "shoulder previews extend only down " +
+            "from their fixed rotation pivots; editable Head height/tilt; Head " +
+            "protects an upper component with >=1% in front of Back; only a " +
+            "strict >50% Back majority extracts a whole component; high rear " +
+            "wing preserved for manual processing; invalid edits rejected.");
+    }
+
+    private static void AssertHeadPlaneMembership(
+        GeneratedSkinningPreparationResult preparation,
+        BoundedHeadFixture fixture,
+        string context)
+    {
+        GeneratedSkinningRegionResolution head = Region(
+            preparation.Analysis.SemanticRegions,
+            GeneratedSkinningSemanticRegion.Head);
+        GeneratedSkinningSeparationPlaneResolution plane =
+            head.SeparationPlane ?? throw new InvalidOperationException(
+                $"{context}: Head has no separation plane.");
+        if (!head.IsApplied || head.AutomaticVolume is not null ||
+            head.ResolvedVolume is not null ||
+            Count(head.TransitionVerticesByMesh) != 0)
+        {
+            throw new InvalidOperationException(
+                $"{context}: Head still behaves as a deforming ellipsoid.");
+        }
+        HashSet<(int Mesh, int Vertex)> actual = head.CoreVerticesByMesh
+            .SelectMany(group => group.VertexIndices.Select(vertex =>
+                (Mesh: group.MeshIndex, Vertex: vertex)))
+            .ToHashSet();
+        HashSet<(int Mesh, int Vertex)> expected = fixture.BodySelection.Components
+            .SelectMany(component => component.VerticesByMesh)
+            .SelectMany(group => group.VertexIndices.Select(vertex =>
+                (Mesh: group.MeshIndex, Vertex: vertex)))
+            .Where(value => Vector3.Dot(
+                fixture.Donor.Meshes[value.Mesh].Positions[value.Vertex] -
+                    plane.Point,
+                plane.Normal) >= -0.000001f)
+            .ToHashSet();
+        if (!expected.IsSubsetOf(actual) || actual.Count < 4)
+        {
+            throw new InvalidOperationException(
+                $"{context}: topology-proved Head membership does not contain the " +
+                $"complete selected-body positive half-space " +
+                $"(actual={actual.Count}, minimum={expected.Count}).");
+        }
     }
 
     public static void RunHeadDonorAudit(
@@ -291,7 +521,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
         }
 
         // Deliberately the only Prepare call in this command. There is no pose
-        // optimizer, writer, atlas, animation decode or output-file creation.
+        // optimizer, writer, texture serialization, animation decode or output-file creation.
         GeneratedSkinningPreparationResult preparation =
             GeneratedSkinningPreparer.Prepare(
                 target,
@@ -523,14 +753,12 @@ internal static class GeneratedSkinningSemanticRegionRegression
         }
 
         // Reuse the established end-to-end Daphne oracle instead of duplicating
-        // atlas, opacity, eye-branch and strict-writer checks here. Its Prepare
-        // call intentionally uses the old overload, which now auto-enables safe
-        // semantic regions.
+        // opacity, eye-branch and strict-writer checks here.
         DaphneMode3Regression.Run(targetPath, donorPath, outputPath);
         Console.WriteLine(
             "DAPHNE SEMANTIC REGION PASS: " + DescribeRegions(analysis) +
             "; 1701 vertices/2158 triangles; Thigh/Spine/Bicep contamination " +
-            "removed; atlas/1979+0+179 opacity/eye branch preserved" +
+            "removed; 1979+0+179 opacity/eye branch preserved" +
             (string.IsNullOrWhiteSpace(animationDirectoryArgument)
                 ? "."
                 : "; blidme/blwalk/blru Head-core residual <1e-4."));
@@ -1030,16 +1258,40 @@ internal static class GeneratedSkinningSemanticRegionRegression
         AddTetrahedron(1, bodyPositions[faceGrid[1, 0]] + companionOffset);
         AddTetrahedron(2, bodyPositions[faceGrid[1, 2]] + companionOffset);
         AddTetrahedron(3, bodyPositions[faceGrid[0, 1]] + companionOffset);
-        AddTetrahedron(
-            4,
-            bodyPositions[faceGrid[2, 1]] + companionOffset +
-            axial * (referenceHeight * 0.004f));
+        int majorityStart = detailPositions.Count;
+        float majorityRadius = referenceHeight * 0.0024f;
+        detailPositions.Add(
+            neck + axial * (referenceHeight * 0.030f) +
+            lateral * majorityRadius +
+            forward * (referenceHeight * 0.10f));
+        detailPositions.Add(
+            neck + axial * (referenceHeight * 0.026f) +
+            forward * (referenceHeight * 0.10f + majorityRadius));
+        detailPositions.Add(
+            neck + axial * (referenceHeight * 0.022f) -
+            lateral * majorityRadius +
+            forward * (referenceHeight * 0.10f));
+        detailPositions.Add(
+            neck - axial * (referenceHeight * 0.010f) -
+            forward * (referenceHeight * 0.10f - majorityRadius));
+        AddDetailTriangle(majorityStart, majorityStart + 1, majorityStart + 2);
+        AddDetailTriangle(majorityStart, majorityStart + 3, majorityStart + 1);
+        AddDetailTriangle(majorityStart, majorityStart + 2, majorityStart + 3);
+        AddDetailTriangle(majorityStart + 1, majorityStart + 3, majorityStart + 2);
+        detailVerticesByComponent.Add(
+            MajorityCrossingHeadComponentIndex,
+            Array.AsReadOnly(Enumerable.Range(majorityStart, 4).ToArray()));
 
-        const int wingComponentIndex = 5;
+        AddTetrahedron(
+            PropagatedLowerHairComponentIndex,
+            neck - axial * (referenceHeight * 0.018f) -
+            forward * (referenceHeight * 0.101f));
+
+        const int wingComponentIndex = 6;
         int wingStart = detailPositions.Count;
-        Vector3 wingCenter = neck -
-                             axial * (referenceHeight * 0.10f) -
-                             forward * (referenceHeight * 0.04f);
+        Vector3 wingCenter = head +
+                             axial * (referenceHeight * 0.08f) -
+                             forward * (referenceHeight * 0.15f);
         detailPositions.Add(
             wingCenter - lateral * (referenceHeight * 0.23f) -
             axial * (referenceHeight * 0.018f));
@@ -1115,6 +1367,78 @@ internal static class GeneratedSkinningSemanticRegionRegression
             TargetRigDefinition.ComputeSourceFingerprint(target),
             TargetRigAutomaticPoseFitter.ComputeDonorGeometryFingerprint(donor),
             ReplacementTransform.Identity);
+        TargetRigSelectedBodyComponent[] allBodyComponents =
+            new[] { selectedBody }
+                .Concat(detailVerticesByComponent
+                    .OrderBy(pair => pair.Key)
+                    .Select(pair => CreateDetailDescriptor(pair.Key, pair.Value)))
+                .ToArray();
+        var allComponentsBodySelection = new TargetRigBodySelection(
+            Array.AsReadOnly(allBodyComponents),
+            BoundedHeadExpectedComponents,
+            0,
+            TargetRigDefinition.ComputeSourceFingerprint(target),
+            TargetRigAutomaticPoseFitter.ComputeDonorGeometryFingerprint(donor),
+            ReplacementTransform.Identity);
+        TargetRigSelectedBodyComponent[] rearWingAnchorComponents =
+            allBodyComponents
+                .Select(component => component with
+                {
+                    Role = component.ComponentIndex == wingComponentIndex
+                        ? TargetRigBodyComponentRole.WholeBody
+                        : TargetRigBodyComponentRole.SupplementalBody
+                })
+                .ToArray();
+        var rearWingProvisionalAnchorSelection = new TargetRigBodySelection(
+            Array.AsReadOnly(rearWingAnchorComponents),
+            BoundedHeadExpectedComponents,
+            0,
+            TargetRigDefinition.ComputeSourceFingerprint(target),
+            TargetRigAutomaticPoseFitter.ComputeDonorGeometryFingerprint(donor),
+            ReplacementTransform.Identity);
+
+        TargetRigSelectedBodyComponent CreateDetailDescriptor(
+            int componentIndex,
+            IReadOnlyList<int> vertexIndices)
+        {
+            HashSet<int> vertices = vertexIndices.ToHashSet();
+            Vector3[] positions = vertexIndices
+                .Select(index => detailPositions[index])
+                .ToArray();
+            int triangleCount = 0;
+            double area = 0;
+            for (int index = 0; index < detailTriangles.Count; index += 3)
+            {
+                int first = checked((int)detailTriangles[index]);
+                int second = checked((int)detailTriangles[index + 1]);
+                int third = checked((int)detailTriangles[index + 2]);
+                if (!vertices.Contains(first) ||
+                    !vertices.Contains(second) ||
+                    !vertices.Contains(third))
+                {
+                    continue;
+                }
+                triangleCount++;
+                area += Vector3.Cross(
+                    detailPositions[second] - detailPositions[first],
+                    detailPositions[third] - detailPositions[first]).Length() * 0.5;
+            }
+            return new TargetRigSelectedBodyComponent(
+                componentIndex,
+                TargetRigBodyComponentRole.SupplementalBody,
+                Array.AsReadOnly(new[]
+                {
+                    new TargetRigBodyVertexMembership(
+                        1,
+                        meshes[1].Name,
+                        Array.AsReadOnly(vertexIndices.ToArray()))
+                }),
+                positions.Distinct().Count(),
+                triangleCount,
+                checked((float)area),
+                positions.Aggregate(Vector3.Min),
+                positions.Aggregate(Vector3.Max));
+        }
 
         int[] protectedNeckBoundaryVertices = Enumerable.Range(
             ringStarts[4],
@@ -1142,6 +1466,8 @@ internal static class GeneratedSkinningSemanticRegionRegression
         return new BoundedHeadFixture(
             donor,
             bodySelection,
+            allComponentsBodySelection,
+            rearWingProvisionalAnchorSelection,
             0,
             1,
             Array.AsReadOnly(faceTipVertices.ToArray()),
@@ -1288,7 +1614,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
             Enum.GetValues<GeneratedSkinningSemanticRegion>()
                 .Select(region => new GeneratedSkinningRegionAdjustment(
                     region,
-                    Enabled: false,
+                    Enabled: region == GeneratedSkinningSemanticRegion.Head,
                     AxialOffset: 0,
                     AxialScale: 1,
                     RadialScale: 1))
@@ -1313,16 +1639,20 @@ internal static class GeneratedSkinningSemanticRegionRegression
         if (regions.Length != Enum.GetValues<GeneratedSkinningSemanticRegion>().Length ||
             regions.Any(region => region.Status != GeneratedSkinningRegionStatus.Applied ||
                                   !region.IsEnabled || !region.IsApplied ||
-                                  region.AutomaticVolume is null ||
-                                  region.ResolvedVolume is null ||
                                   Count(region.CoreVerticesByMesh) == 0 ||
                                   (region.Region == GeneratedSkinningSemanticRegion.Head &&
-                                   Count(region.TransitionVerticesByMesh) == 0) ||
+                                   (region.AutomaticVolume is not null ||
+                                    region.ResolvedVolume is not null ||
+                                    region.SeparationPlane is not
+                                        { IsEnabled: true, IsAvailable: true } ||
+                                    Count(region.TransitionVerticesByMesh) != 0)) ||
                                   (region.Region != GeneratedSkinningSemanticRegion.Head &&
-                                   Count(region.TransitionVerticesByMesh) == 0 &&
-                                   !region.Warnings.Any(message => message.Contains(
-                                       "hard boundary",
-                                       StringComparison.OrdinalIgnoreCase)))))
+                                   (region.AutomaticVolume is null ||
+                                    region.ResolvedVolume is null ||
+                                    Count(region.TransitionVerticesByMesh) == 0 &&
+                                    !region.Warnings.Any(message => message.Contains(
+                                        "hard boundary",
+                                        StringComparison.OrdinalIgnoreCase))))))
         {
             throw new InvalidOperationException(
                 $"{context}: semantic auto calibration did not apply all regions: " +
@@ -1341,7 +1671,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
         }
     }
 
-    private static void AssertHandsAppliedAndUnsafeHeadRejected(
+    private static void AssertHandsAndHeadPlaneApplied(
         GeneratedSkinningRegionAnalysis analysis,
         string context)
     {
@@ -1357,13 +1687,13 @@ internal static class GeneratedSkinningSemanticRegionRegression
                 GeneratedSkinningSemanticRegion.RightHand)
             .ToArray();
         if (regions.Length != Enum.GetValues<GeneratedSkinningSemanticRegion>().Length ||
-            head.Status != GeneratedSkinningRegionStatus.UnsafeCalibration ||
-            head.IsApplied ||
-            head.CoreVerticesByMesh.Count != 0 ||
+            head.Status != GeneratedSkinningRegionStatus.Applied ||
+            !head.IsApplied ||
+            Count(head.CoreVerticesByMesh) == 0 ||
             head.TransitionVerticesByMesh.Count != 0 ||
-            !head.Warnings.Any(message => message.Contains(
-                "bounded neck cut",
-                StringComparison.OrdinalIgnoreCase)) ||
+            head.AutomaticVolume is not null ||
+            head.ResolvedVolume is not null ||
+            head.SeparationPlane is not { IsEnabled: true, IsAvailable: true } ||
             hands.Length != 2 ||
             hands.Any(region =>
                 region.Status != GeneratedSkinningRegionStatus.Applied ||
@@ -1653,13 +1983,13 @@ internal static class GeneratedSkinningSemanticRegionRegression
                 fixture.WingComponentIndex,
                 out GeneratedSkinningAttachment? wing) ||
             wing.SemanticAssignment is not null ||
-            string.Equals(
-                wing.TargetBoneName,
-                head.AnchorBoneName,
-                StringComparison.Ordinal))
+            wing.PlaneAssignment !=
+                GeneratedSkinningComponentAttachmentTarget.UpperBack ||
+            wing.TargetBoneName != "Spine_03")
         {
             throw new InvalidOperationException(
-                "The unrelated long wing was swallowed by the semantic Head assembly.");
+                "The high rear wing was swallowed by the protective Head rule " +
+                "instead of being extracted by Back.");
         }
         AssertExactAttachmentMembership(
             wing,
@@ -1798,7 +2128,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
             {
                 throw new InvalidOperationException(
                     $"{context}: protected vertex {vertex} is not exact raw " +
-                    $"one-hot {expectedBone}; a transition or legacy capsule " +
+                    $"one-hot {expectedBone}; a transition or capsule " +
                     "influence leaked inside the rigid region.");
             }
         }
@@ -2017,8 +2347,9 @@ internal static class GeneratedSkinningSemanticRegionRegression
     {
         if (Count(region.TransitionVerticesByMesh) == 0)
         {
-            if (region.Region == GeneratedSkinningSemanticRegion.Head ||
-                !region.Warnings.Any(message => message.Contains(
+            if (region.Region == GeneratedSkinningSemanticRegion.Head)
+                return;
+            if (!region.Warnings.Any(message => message.Contains(
                     "hard boundary",
                     StringComparison.OrdinalIgnoreCase)))
             {
@@ -2183,8 +2514,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
         GeneratedSkinningRegionAdjustment[] adjustments = baseline.Regions.Select(region =>
         {
             if (region.Region == GeneratedSkinningSemanticRegion.Head)
-                return new GeneratedSkinningRegionAdjustment(
-                    region.Region, false, 0, 1, 1);
+                return region.Adjustment;
             float axialScale = Math.Clamp(
                 1.05f,
                 region.AdjustmentLimits.MinimumAxialScale,
@@ -2211,7 +2541,7 @@ internal static class GeneratedSkinningSemanticRegionRegression
             GeneratedSkinningSemanticRegion.RightHand);
         if (!left.IsApplied || !right.IsApplied ||
             Region(adjusted.Analysis.SemanticRegions, GeneratedSkinningSemanticRegion.Head)
-                .Status != GeneratedSkinningRegionStatus.Disabled)
+                .Status != GeneratedSkinningRegionStatus.Applied)
         {
             throw new InvalidOperationException(
                 "Mirrored hand edits did not remain independently applied.");

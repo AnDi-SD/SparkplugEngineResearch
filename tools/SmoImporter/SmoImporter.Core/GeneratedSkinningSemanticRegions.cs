@@ -24,9 +24,9 @@ public enum GeneratedSkinningRegionStatus
 }
 
 /// <summary>
-/// User-authored changes relative to the automatically calibrated bone-local
-/// volume. <see cref="AxialOffset"/> is expressed in target fitting-space
-/// distance units; both scales are positive multipliers.
+/// User-authored changes relative to an automatically calibrated Hand volume.
+/// Head is edited exclusively through
+/// <see cref="GeneratedSkinningSeparationPlaneAdjustment"/>.
 /// </summary>
 public sealed record GeneratedSkinningRegionAdjustment(
     GeneratedSkinningSemanticRegion Region,
@@ -35,14 +35,6 @@ public sealed record GeneratedSkinningRegionAdjustment(
     float AxialScale,
     float RadialScale)
 {
-    /// <summary>
-    /// Head-only pitch in degrees around the volume lateral axis. Positive
-    /// values move the proximal/lower pole toward the face and the distal/
-    /// upper pole toward the back of the head. Hand regions must leave this at
-    /// zero.
-    /// </summary>
-    public float ForwardTiltDegrees { get; init; }
-
     public static GeneratedSkinningRegionAdjustment Automatic(
         GeneratedSkinningSemanticRegion region) =>
         new(region, Enabled: true, AxialOffset: 0, AxialScale: 1, RadialScale: 1);
@@ -62,12 +54,10 @@ public sealed record GeneratedSkinningRegionAdjustmentLimits(
 
 /// <summary>
 /// Oriented finite superellipsoid in target fitting space. Axes are finite unit
-/// vectors; radii are positive half-extents. The default exponent 2 is an
-/// ellipsoid; hand regions use exponent 4 so the distal finger cap is not
-/// clipped by spherical taper. Hand transition membership occupies the proximal
-/// axial slab. For Head this volume is only a containment/editor guard: the
-/// complete topology-proved lobe stays rigid, and its Head/Neck blend lives in a
-/// separate disjoint geodesic collar on the external Neck side of the fixed cut.
+/// vectors; radii are positive half-extents. Hand regions use exponent 4 so the
+/// distal finger cap is not clipped by spherical taper; their transition
+/// membership occupies the proximal axial slab. Head resolutions no longer
+/// expose this volume and use a hard separation plane instead.
 /// </summary>
 public sealed record GeneratedSkinningRegionVolume(
     Vector3 Center,
@@ -105,6 +95,12 @@ public sealed record GeneratedSkinningRegionResolution(
     IReadOnlyList<string> Warnings)
 {
     /// <summary>
+    /// Head uses this hard cut instead of an editable containment ellipsoid.
+    /// Hand regions leave it null.
+    /// </summary>
+    public GeneratedSkinningSeparationPlaneResolution? SeparationPlane { get; init; }
+
+    /// <summary>
     /// Detached connected surfaces proven geometrically to move with this
     /// semantic region. These remain whole rigid components; no name or material
     /// participates in their classification.
@@ -113,14 +109,12 @@ public sealed record GeneratedSkinningRegionResolution(
         Array.Empty<int>();
 
     /// <summary>
-    /// Compatibility summary for older diagnostics: the central representative
-    /// of the target-derived finger branches. The actual core weights may use
-    /// every branch listed in <see cref="MotionBranchBoneNames"/> and its
-    /// descendants. Empty/-1 means that the hand safely fell back to rigid Hand.
+    /// Connected donor component which owns the articulated semantic region.
+    /// Head uses it to keep the actual body/head surface on the per-vertex
+    /// plane path while promoting only other protected components as whole
+    /// rigid companions.
     /// </summary>
-    public string MotionProxyBoneName { get; init; } = string.Empty;
-
-    public int MotionProxySkeletonJointIndex { get; init; } = -1;
+    public int TopologyOwnerComponentIndex { get; init; } = -1;
 
     /// <summary>
     /// Target-derived direct branches below Hand used as approximate finger
@@ -149,6 +143,14 @@ public sealed record GeneratedSkinningRegionAnalysis(
     string FittingPoseFingerprint)
 {
     /// <summary>
+    /// Resolved shoulder, Head and Back separation planes sharing this exact
+    /// target/donor/alignment/pose identity.
+    /// </summary>
+    public IReadOnlyList<GeneratedSkinningSeparationPlaneResolution>
+        SeparationPlanes { get; init; } =
+        Array.Empty<GeneratedSkinningSeparationPlaneResolution>();
+
+    /// <summary>
     /// Captures adjustments with this exact analysis identity. Core still
     /// validates all fingerprints and values when the overrides are consumed.
     /// </summary>
@@ -162,7 +164,31 @@ public sealed record GeneratedSkinningRegionAnalysis(
             TargetRigFingerprint,
             DonorGeometryFingerprint,
             AlignmentFingerprint,
-            FittingPoseFingerprint);
+            FittingPoseFingerprint)
+        {
+            SeparationPlanes = new ReadOnlyCollection<
+                GeneratedSkinningSeparationPlaneAdjustment>(
+                SeparationPlanes.Select(value => value.Adjustment).ToArray())
+        };
+    }
+
+    public GeneratedSkinningRegionOverrides CreateOverrides(
+        IReadOnlyList<GeneratedSkinningRegionAdjustment> adjustments,
+        IReadOnlyList<GeneratedSkinningSeparationPlaneAdjustment> planes)
+    {
+        ArgumentNullException.ThrowIfNull(adjustments);
+        ArgumentNullException.ThrowIfNull(planes);
+        return new GeneratedSkinningRegionOverrides(
+            new ReadOnlyCollection<GeneratedSkinningRegionAdjustment>(
+                adjustments.ToArray()),
+            TargetRigFingerprint,
+            DonorGeometryFingerprint,
+            AlignmentFingerprint,
+            FittingPoseFingerprint)
+        {
+            SeparationPlanes = new ReadOnlyCollection<
+                GeneratedSkinningSeparationPlaneAdjustment>(planes.ToArray())
+        };
     }
 }
 
@@ -177,4 +203,9 @@ public sealed record GeneratedSkinningRegionOverrides(
     string TargetRigFingerprint,
     string DonorGeometryFingerprint,
     string AlignmentFingerprint,
-    string FittingPoseFingerprint);
+    string FittingPoseFingerprint)
+{
+    public IReadOnlyList<GeneratedSkinningSeparationPlaneAdjustment>
+        SeparationPlanes { get; init; } =
+        Array.Empty<GeneratedSkinningSeparationPlaneAdjustment>();
+}

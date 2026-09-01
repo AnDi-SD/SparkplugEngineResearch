@@ -253,10 +253,9 @@ shader, SAN обновляет bone/model transforms на GPU, texture sequences
 effect UV1. GUI-сцены используют orthographic projection. Opaque и transparent
 passes, а также сетка пола используют общий depth buffer.
 
-Private triangle-atlas ниже описывает только аварийный WPF fallback при
-недоступном OpenGL context. Невидимая WPF geometry сохраняется для hit testing,
-но не участвует в видимом кадре. Это ограничение просмотрщика, не часть формата
-и не алгоритм игры. Контрольный pristine
+Невидимая WPF geometry сохраняется для hit testing, но не участвует в видимом
+кадре. Обычная 3D-модель требует OpenGL context; второго видимого renderer нет.
+Это ограничение просмотрщика, не часть формата и не алгоритм игры. Контрольный pristine
 `Alfea03.smo` использовал 509 unique mesh buffers, 63 textures и 1 263
 placements; подготовка сцены на локальной debug-сборке сократилась с 32,17 до
 0,20 с, working set — примерно с 934 до 281 МиБ.
@@ -297,92 +296,21 @@ Rigid book glow/spark meshes `[273]`, `[278]`, `[294]`, `[298]`, `[313]`,
 но это штатный материал уровня, а не ошибка загрузки.
 
 У `[2756] plaque02` правильная texture `[2755] sign_faragonda` имеет 128×64,
-а mesh сочетает её с девятью vertex RGB на общих UV. Прямой GPU-path сохраняет
-эти входы без преобразования. В WPF fallback требуется private triangle-atlas;
-его разрешение выбирается универсально, без проверки назначения
-объекта: максимальный UV-размах треугольника умножается на размеры исходной
-texture, затем добавляются крайний отсчёт и защитное поле. Несколько из 20
-треугольников адресуют почти все 128 texels по горизонтали, поэтому `[2756]`
-получает ячейку 133×133 вместо размытой 32×32.
-
-Единый WPF-бюджет ограничивает preview-atlas размером 2048 по стороне и
-1 048 576 пикселями. Это явно техническое ограничение просмотрщика, одинаковое
-для всех ресурсов, а не семантическое правило SMO и не признак достоверного
-разрешения исходной игры при срабатывании лимита. При выборе mesh журнал Viewer
-показывает отдельно требуемую и фактически выделенную ячейку atlas.
+а mesh сочетает её с девятью vertex RGB на общих UV. GPU-path сохраняет эти
+входы без преобразования и не создаёт промежуточный atlas.
 
 Однако ранние эксперименты при изменении длины pixel buffer обновляли общие `FileSize`/`DataSize`, но не все последующие записи каталога. Поэтому signature scan полезен как восстановительный инструмент, но не заменяет корректный object parser и catalog-safe repack.
 
-Практический writer находится в `SmoImporter`. Legacy single-texture путь переносит
-PNG/JPEG или embedded GLB/FBX base-color в BGRA-блок target. Если исходные размеры
-точно представимы полями SMO, они сохраняются без resize; это включает проверенный
-вариант `3000×3000`. Непредставимый размер никогда не уменьшается и поднимается до
-ближайшего совместимого POT-размера. При изменении длины блока writer пересчитывает
-FFPS catalog offsets/sizes, enclosing object sizes и вложенные размеры цепочки
-`spSkin → material → TextureData`, затем повторно запускает strict parser и проверку
-исходных skin palettes. Generated-skinning
-multi-material путь собирает один RGBA-atlas и сохраняет donor Alpha полностью.
-Opaque triangles остаются в существующих opaque consumers target, а alpha triangles
-получают добавленные `spSkin/material/mesh` branches с общей texture reference.
+Практический writer находится в `SmoImporter`. Он разбирает target и donor
+на сериализованные объекты, сохраняет подтверждённый skeleton/service graph цели
+и заново строит весь visual graph из ресурсов донора. Каждый материал использует
+собственный `spTextureData`; текстуры не объединяются в atlas и не записываются
+в прежние texture slots. Donor UV и Alpha сохраняются, а все старые target mesh,
+material и texture branches исключаются из результата.
 
-Повторный структурный разбор уточнил и нативный trace 2026-08-14. BGRA payload
-действительно начинается с `+0x3D` в наблюдаемой обёртке, но предыдущий байт —
-старший байт `mipHeight`, а не самостоятельный marker. Старый writer начинал на
-байт раньше и превращал height `0x00000100` в `0xFF000100`, поэтому игра читала
-неверное число строк. Исправленная BGRA-запись пережила нативное наблюдение; это
-подтверждает границу descriptor/pixels и загрузку Alpha, но не прежнюю гипотезу
-об отдельном marker и не визуальную семантику конкретного blend state.
-
-Игровой тест опроверг достаточность catalog-safe texture repack: вариант
-`Faragonda.smo → bloom_jeans.smo`, где две группы `64×64` были объединены в
-структурно корректный `128×64` leaf с пересчитанными catalog/object/reference
-sizes, проходил strict parser и оба format test, но вызывал crash игры. Значит,
-внутри runtime существуют дополнительные ограничения на texture object/layout,
-которые ещё не выражены в известных FFPS-полях.
-
-Следующий эксперимент — перенос полного donor render graph и отдельное добавление
-известной service-ветви target — также вызвал crash, включая ранее работавшие пары.
-Это доказывает, что выделенного набора collision/control objects недостаточно:
-неизвестные target bindings должны сохраняться вместе с исходными object IDs.
-
-Поэтому активный SMO → SMO writer сохраняет весь target graph и добавляет полные
-visual branches внутри него, не заменяя service/skeleton graph целиком. Отдельный
-generated-skinning multi-material path также сохраняет target graph, но использует
-один общий RGBA-atlas. PNG Alpha не задаёт native material однозначно: у контрольной
-Layla `mat3`/глаза и `mat4`/рот содержат полезный RGB под исходным `A = 0`, но должны
-рисоваться как opaque face decals. Им назначается явный source-bound профиль
-`OpaqueOverlay`: до premultiplied resize всей выбранной texture group ставится
-`A = 255`, а 124 triangles записываются двумя независимыми post-body branches с
-каноническим eye state `FinalBlendOp = 0`,
-`MaterialRenderStates = [0,0,1,0,1,1,3,0,4,0,6]`,
-`LayerTextureStates = [0,3,3,0,0,4278190080,2,0,0]`,
-`AlphaSortEnable = 0`, `Priority = 1` и vertex diffuse `0xFFFFFFFF`. Белый diffuse
-совпадает с generated retained body для OBJ без vertex colors. Нормали лицевых
-накладок не меняются и проходят существующий importer path. Оставшиеся `mat5:34`,
-`mat7:34`, `mat6:2` содержат 70 действительно прозрачных triangles и получают три
-независимые ветви с
-production-state `Minautor.smo`: `FinalBlendOp = 2`,
-`MaterialRenderStates = [0,0,1,0,1,1,3,0,4,0,6]`, те же `LayerTextureStates`,
-`AlphaSortEnable = 1`, `Priority = 1`, vertex diffuse `0xFF000000`; 2 714 opaque body
-triangles остаются на существующих opaque branches. Общая texture reference не
-разрешает объединять разные renderables в один `spSkin`; material-less skin допустим
-только как palette/ushort continuation того же renderable. Ветви используют текущие
-target weights/palettes.
-
-Без явного профиля безопасно вывести эту семантику нельзя: одинаковые PNG Alpha и
-геометрическая близость встречаются и у настоящих прозрачных поверхностей, и у
-непрозрачных накладок. Текущая `ImportedMaterial` хранит только имя и ссылку на
-base-color texture; OBJ-директивы `d`, `Tr`, `map_d` и эквивалентная opacity metadata
-в этот контракт не входят. Поэтому default `Auto` не изменён, а для контрольной Layla
-в GUI у `mat3`/`mat4` выбирается **Непрозрачная накладка**, тогда как
-`mat5`/`mat6`/`mat7` остаются в **Авто**.
-Прозрачная подвеска `mat6` остаётся alpha overlay
-из двух triangles поверх opaque body branch, а не превращает всё тело в прозрачный
-consumer. Strict/Viewer/native проверки подтверждают структуру и загрузку такого
-графа, но не native blend, lighting или depth/sort; OpenGL Viewer может скрыть ошибку
-объединённого alpha-run, а orbit камеры при фиксированном world-light — углозависимый
-дефект материала. Визуальный паритет нового контракта не подтверждён до
-пользовательского теста вновь созданного SMO непосредственно в игре.
+После записи запускаются strict parser, проверка ссылок, skin palettes, размеров
+объектов и FFPS-каталога. Writer не содержит SMO→SMO-подмены, fixed-slot режима
+или запасного пути с сохранением исходного visual graph.
 
 ## Результат полного `spMeshData` scan
 
@@ -543,10 +471,13 @@ pointer или регистронезависимым alias. Case-only совп�
 
 Отсутствующий exact target не делает SMO невалидным: one-byte parent и leaf
 renames прошли PC contextual load, вернули ненулевой resource и не вызвали crash.
-Duplicate names в обоих порядках также загружаются, но сворачиваются в один
-строковый key, а track противоположного имени становится missing. Визуальный
-bind-pose/descendant fallback и first/last/all-target выбор требуют отдельного
-transform/frame probe и пока не являются частью спецификации.
+Binding probe показал, что новые `Z_Ankle/Z_Toe` получают отдельный slot `0xD8`,
+а descendant `foot_right` сохраняет exact slot `0x46`. Duplicate names в обоих
+порядках также загружаются: два разных `spTransformTrackEval` получают один slot
+оставшегося имени (`L_Toe=0x3B` или `R_Toe=0x3F`), то есть binding policy —
+all-target, а track противоположного имени становится missing. Не измерены пока
+только final bind-pose/world transforms: contextual `startLevel=2` не запускает
+наблюдаемый evaluator tick.
 
 ## Реализации
 

@@ -123,12 +123,14 @@ internal static class Program
                 long baselinePrivate = process.PrivateMemorySize64;
                 var timer = Stopwatch.StartNew();
                 SmoExternalLevelModelAppendResult appended =
-                    SmoExternalLevelModelAppender.AppendWithoutMemoryGuard(
+                    SmoExternalLevelModelAppender.AppendPartRange(
                         workspace.Document,
                         templateIndex,
                         imported,
                         [Matrix4x4.Identity],
-                        "MemoryRegression");
+                        "MemoryRegression",
+                        firstPartIndex: 0,
+                        partCount: imported.Meshes.Count);
                 SmoDocument verified = SmoDocument.Parse(
                     appended.Data,
                     workspace.SourcePath);
@@ -182,7 +184,7 @@ internal static class Program
                     long baselineWorkingSet = process.WorkingSet64;
                     var timer = Stopwatch.StartNew();
                     SmoLevelSaveResult saved =
-                        SmoLevelSaveService.SaveWithoutMemoryGuard(level, output);
+                        SmoLevelSaveService.Save(level, output);
                     timer.Stop();
                     SmoDocument verified = SmoDocument.Load(output);
                     process.Refresh();
@@ -251,8 +253,13 @@ internal static class Program
             ValidateProjectAddedForest();
             ValidateProjectBranchRemoval(
                 Path.Combine(assets, "fish.smo"));
+            ValidateCancelledSavePreservesDestination(
+                Path.Combine(assets, "fish.smo"));
             foreach (string path in args)
+            {
+                ValidateCancelledSavePreservesDestination(path);
                 ValidateCollisionSave(path);
+            }
 
             Console.WriteLine($"PASS: {_assertions} assertions");
             return 0;
@@ -318,9 +325,9 @@ internal static class Program
             True(source.Objects.Count == reopened.Objects.Count &&
                  rebuilt.Objects.Count == source.Objects.Count,
                 $"project preserves the object catalog for {Path.GetFileName(sourcePath)}");
-            True(reopened.Manifest.Header.Unknown04 == source.Header.Unknown04 &&
+            True(reopened.Manifest.Header.SerializerVersion == source.Header.SerializerVersion &&
                  reopened.Manifest.Header.Unknown08 == source.Header.Unknown08 &&
-                 reopened.Manifest.Header.Variant == source.Header.Version,
+                 reopened.Manifest.Header.PlatformMask == source.Header.PlatformMask,
                 $"project preserves unknown FFPS header words for {Path.GetFileName(sourcePath)}");
             True(string.Equals(
                      reopened.Manifest.SourcePathHint,
@@ -574,6 +581,7 @@ internal static class Program
             string projectPath = Path.Combine(directory, "moved.smolvlproj");
             string outputPath = Path.Combine(directory, "moved.smo");
             Matrix4x4 originalWorld =
+                Matrix4x4.CreateScale(1.25f, 0.75f, 1.5f) *
                 Matrix4x4.CreateRotationY(0.4f) *
                 Matrix4x4.CreateTranslation(10, 20, 30);
             SmoDocument source = SmoDocument.Parse(
@@ -604,11 +612,11 @@ internal static class Program
                  moved.Data.Length == source.Data.Length &&
                  moved.Objects.Count == source.Objects.Count,
                 "fixed-size project edit preserves file and catalog layout");
-            True(SmoStaticRenderObjectTransformDecoder.TryDecode(
-                    moved,
-                    moved.Objects[0],
-                    out Matrix4x4 movedWorld) &&
-                 Vector3.Distance(
+            IReadOnlyList<SmoObjectField> movedFields =
+                SmoObjectFieldReader.Read(moved, moved.Objects[0]);
+            Matrix4x4 movedWorld = ReadMatrix(movedFields.Single(field =>
+                field.FieldType == 1 && field.PayloadSize == 64).Payload.Span);
+            True(Vector3.Distance(
                     Translation(movedWorld),
                     Translation(originalWorld) + delta) < 0.0001f,
                 "project translation changes the authored world matrix");
@@ -618,8 +626,16 @@ internal static class Program
                 SmoPropertyKeys.InverseWorldMatrix,
                 SmoPropertyValueKind.Matrix4x4);
             Matrix4x4 inverse = ReadMatrix(inverseBytes);
-            True(MatrixDistance(movedWorld * inverse, Matrix4x4.Identity) < 0.0001f,
-                "project translation regenerates the matching inverse matrix");
+            Matrix4x4 expectedEngineInverse =
+                SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(movedWorld);
+            True(MatrixDistance(inverse, expectedEngineInverse) < 0.0001f,
+                "project transform regenerates Sparkplug's transpose-basis inverse");
+            Matrix4x4 builtInverse = ReadMatrix(movedFields.Single(field =>
+                field.FieldType == 2 && field.PayloadSize == 64).Payload.Span);
+            True(MatrixDistance(builtInverse, expectedEngineInverse) < 0.0001f,
+                "built SMO stores the project transpose-basis inverse");
+            True(MatrixDistance(movedWorld * inverse, Matrix4x4.Identity) > 0.1f,
+                "scaled project placement deliberately avoids a mathematical inverse");
 
             SmoProjectObject objectMetadata = reopened.Objects[0];
             (int Start, int End)[] writableRanges = objectMetadata.Fields
@@ -712,7 +728,7 @@ internal static class Program
         SmoDocument rebuilt = SmoDocument.Parse(
             output.ToArray(),
             "synthetic-transaction-result.smo");
-        True(SmoStaticRenderObjectTransformDecoder.TryDecode(
+        True(TryReadSyntheticStaticWorld(
                 rebuilt,
                 rebuilt.Objects[0],
                 out Matrix4x4 moved) &&
@@ -994,7 +1010,7 @@ internal static class Program
             True(added.ParentIndex == original.ParentIndex &&
                  added.RawName.Span.SequenceEqual("placement-copy\0"u8),
                 "reference placement receives a new identity under the original owner");
-            True(SmoStaticRenderObjectTransformDecoder.TryDecode(
+            True(TryReadSyntheticStaticWorld(
                     rebuilt,
                     added,
                     out Matrix4x4 addedWorld) &&
@@ -1003,7 +1019,7 @@ internal static class Program
                     Translation(originalWorld) + delta) < 0.0001f,
                 "reference placement stores its independent world transform");
             SmoObjectEntry second = rebuilt.Objects.Single(item => item.Id == secondId);
-            True(SmoStaticRenderObjectTransformDecoder.TryDecode(
+            True(TryReadSyntheticStaticWorld(
                     rebuilt,
                     second,
                     out Matrix4x4 secondWorld) &&
@@ -1330,7 +1346,11 @@ internal static class Program
             SmoDocument source = SmoDocument.Load(sourcePath);
             SmoCollisionMesh template = SmoCollisionMeshDecoder.DecodeAll(source)
                 .First(collision => collision.Positions.Count >= 4 &&
-                                    collision.TriangleIndices.Count >= 12);
+                                    collision.TriangleIndices.Count >= 12 &&
+                                    DecodeMeshBoundingVolume(
+                                        source,
+                                        collision.MeshBoundingVolumeObjectIndex)
+                                        .FaceData is { Count: > 0 });
             Vector3[] worldPositions = template.Positions
                 .Select(position => Vector3.Transform(position, template.WorldTransform))
                 .ToArray();
@@ -1338,6 +1358,10 @@ internal static class Program
 
             uint importedCollisionId =
                 source.Objects[template.CollisionInfoObjectIndex].Id;
+            byte[]? importedFaceData = ReadOptionalFieldPayload(
+                source,
+                template.MeshBoundingVolumeObjectIndex,
+                fieldType: 1);
             SmoProject importedCollisionProject = SmoProject.Import(source);
             var importedCollisionSession = new SmoProjectSession(
                 importedCollisionProject);
@@ -1355,6 +1379,26 @@ internal static class Program
                             importedMovedWorld)
                     ])),
                 "an imported collision uses the same project transform operation");
+            string importedMovedPath = Path.Combine(
+                directory,
+                "imported-collision-moved.smo");
+            _ = SmoProjectSerializer.Build(
+                importedCollisionProject,
+                importedMovedPath);
+            SmoDocument importedMoved = SmoDocument.Load(importedMovedPath);
+            SmoCollisionMesh movedImportedCollision = SmoCollisionMeshDecoder
+                .DecodeAll(importedMoved)
+                .Single(candidate =>
+                    importedMoved.Objects[candidate.CollisionInfoObjectIndex].Id ==
+                    importedCollisionId);
+            byte[]? movedImportedFaceData = ReadOptionalFieldPayload(
+                importedMoved,
+                movedImportedCollision.MeshBoundingVolumeObjectIndex,
+                fieldType: 1);
+            True(movedImportedCollision.TriangleIndices.SequenceEqual(indices),
+                "moving an imported collision preserves exact triangle order");
+            True(OptionalBytesEqual(importedFaceData, movedImportedFaceData),
+                "moving an imported collision preserves wxFaceData byte-for-byte");
             True(importedCollisionSession.Execute(
                     "delete imported collision",
                     current => current.RemoveSceneBranches([importedCollisionId])) &&
@@ -1395,6 +1439,18 @@ internal static class Program
                 "collision importer emits two project assets without rewriting data.bin");
             SmoProjectCollisionAddition addedCollision = addition ??
                 throw new InvalidOperationException("Project collision addition was not captured.");
+            var sourceLevel = new SmoLevelDocument(SmoLevelWorkspace.Load(sourcePath));
+            SmoLevelEntity linkedVisual = sourceLevel.Entities.First(entity =>
+                entity.Kind == SmoLevelEntityKind.Visual);
+            uint linkedVisualObjectId = source.Objects[
+                linkedVisual.Id.SceneObjectIndex].Id;
+            True(session.Execute(
+                    "link planned collision",
+                    current => current.SetCollisionLinkOverride(
+                        linkedVisualObjectId,
+                        addedCollision.CollisionInfoObjectId,
+                        present: true)),
+                "project collision can be linked to a real visual transactionally");
 
             string projectPath = Path.Combine(directory, "collision.smolvlproj");
             string outputPath = Path.Combine(directory, "collision.smo");
@@ -1408,11 +1464,29 @@ internal static class Program
             SmoCollisionMesh generated = SmoCollisionMeshDecoder.DecodeAll(rebuilt)
                 .Single(collision =>
                     collision.CollisionInfoObjectIndex == collisionEntry.Index);
+            SmoCollisionInfoData generatedInfo = DecodeCollisionInfo(
+                rebuilt,
+                collisionEntry.Index);
+            SmoMeshBoundingVolumeData generatedMeshData = DecodeMeshBoundingVolume(
+                rebuilt,
+                generated.MeshBoundingVolumeObjectIndex);
             True(!rebuilt.HasErrors &&
                  rebuilt.Objects.Count == source.Objects.Count + 2 &&
                  generated.Positions.Count == worldPositions.Length &&
-                 generated.TriangleIndices.Count == indices.Length,
+                 generated.TriangleIndices.SequenceEqual(indices),
                 "project build contains the complete generated collision branch");
+            True(generatedInfo.CollisionGroup ==
+                    SmoCollisionBranchAppender.ProductionDefaultCollisionGroup,
+                "generated collision serializes the selected production Group 2 default");
+            True(generatedMeshData.FaceData is null,
+                "generated collision uses the native unspecified per-face default without invented wxFaceData");
+            True(reopened.Manifest.CollisionLinkOverrides.Single() is
+                    { Present: true,
+                      VisualObjectId: var reopenedVisualId,
+                      CollisionObjectId: var reopenedCollisionId } &&
+                 reopenedVisualId == linkedVisualObjectId &&
+                 reopenedCollisionId == addedCollision.CollisionInfoObjectId,
+                "real visual/collision link survives project archive reopen as editor metadata");
             True(!SmoCollisionBranchAppender
                     .FindUnregisteredCollisionInfoObjectIndices(rebuilt)
                     .Contains(collisionEntry.Index),
@@ -1456,6 +1530,25 @@ internal static class Program
             True(movedWorldPositions.Zip(worldPositions).All(pair =>
                     Vector3.Distance(pair.First, pair.Second + collisionDelta) < 0.001f),
                 "project collision transform persists by baking the shared writer output");
+            True(movedCollision.TriangleIndices.SequenceEqual(indices) &&
+                 DecodeCollisionInfo(
+                     movedDocument,
+                     movedCollision.CollisionInfoObjectIndex).CollisionGroup ==
+                    SmoCollisionBranchAppender.ProductionDefaultCollisionGroup,
+                "moving a generated project collision preserves triangle order and Group 2");
+            True(editSession.Execute(
+                    "unlink project collision",
+                    current => current.SetCollisionLinkOverride(
+                        linkedVisualObjectId,
+                        addedCollision.CollisionInfoObjectId,
+                        present: false)) &&
+                 reopened.Manifest.CollisionLinkOverrides.Single().Present == false,
+                "project collision can be unlinked transactionally");
+            True(editSession.Undo() &&
+                 reopened.Manifest.CollisionLinkOverrides.Single().Present &&
+                 editSession.Redo() &&
+                 reopened.Manifest.CollisionLinkOverrides.Single().Present == false,
+                "project collision unlink participates in Undo/Redo");
 
             True(editSession.Execute(
                     "delete project collision",
@@ -1472,13 +1565,18 @@ internal static class Program
                      entry.Id != addedCollision.CollisionInfoObjectId &&
                      entry.Id != addedCollision.MeshBoundingVolumeObjectId),
                 "deleting a newly added collision restores the imported SMO byte-for-byte");
-            True(editSession.Undo() && editSession.Undo() &&
-                 editSession.Redo() && editSession.Redo(),
-                "project collision move/delete both participate in Undo/Redo");
+            True(reopened.Manifest.CollisionLinkOverrides.Count == 0,
+                "deleting a collision also removes its editor link metadata");
+            True(editSession.Undo() && editSession.Undo() && editSession.Undo() &&
+                 editSession.Redo() && editSession.Redo() && editSession.Redo(),
+                "project collision move/unlink/delete all participate in Undo/Redo");
             if (retainedOutputDirectory is not null)
             {
                 Console.WriteLine($"PROJECT={projectPath}");
                 Console.WriteLine($"SMO={outputPath}");
+                Console.WriteLine($"IMPORTED_MOVED_SMO={importedMovedPath}");
+                Console.WriteLine($"MOVED_SMO={movedPath}");
+                Console.WriteLine($"DELETED_SMO={deletedPath}");
             }
         }
         finally
@@ -1500,21 +1598,10 @@ internal static class Program
         try
         {
             SmoDocument source = SmoDocument.Load(sourcePath);
-            ImportedScene imported = SmoLevelEmbeddedTextureBudget.Prepare(
+            ImportedScene imported = SmoLevelRigidImportPreparer.Prepare(
                 ImportedModelReader.Read(modelPath));
             Matrix4x4 transform = Matrix4x4.CreateScale(100f) *
                 Matrix4x4.CreateTranslation(-4300, 0, -600);
-            int templateIndex = SmoExternalLevelModelAppender.FindTemplateMeshObjectIndex(
-                source,
-                requireMaterial: imported.Textures.Count > 0);
-            SmoExternalLevelModelAppendResult immediate =
-                SmoExternalLevelModelAppender.AppendWithoutMemoryGuard(
-                    source,
-                    templateIndex,
-                    imported,
-                    [transform],
-                    Path.GetFileNameWithoutExtension(modelPath));
-
             SmoProject project = SmoProject.Import(source);
             byte[] immutableData = project.DataSection.ToArray();
             var session = new SmoProjectSession(project);
@@ -1545,16 +1632,13 @@ internal static class Program
 
             string projectPath = Path.Combine(directory, "external.smolvlproj");
             string outputPath = Path.Combine(directory, "external.smo");
-            string immediatePath = Path.Combine(directory, "external-immediate.smo");
-            if (retainedOutputDirectory is not null)
-                File.WriteAllBytes(immediatePath, immediate.Data);
             SmoProjectArchive.Save(project, projectPath);
             SmoProject reopened =
                 SmoProjectArchive.Load(projectPath);
             _ = SmoProjectSerializer.Build(reopened, outputPath);
             SmoDocument rebuilt = SmoDocument.Load(outputPath);
-            True(rebuilt.Data.Span.SequenceEqual(immediate.Data),
-                "project external-model build is byte-identical to the immediate importer writer");
+            True(!rebuilt.HasErrors,
+                "project external-model build remains structurally valid after archive reopen");
             True(addition!.MeshObjectIds.All(id =>
                     SmoMeshDecoder.Decode(
                         rebuilt,
@@ -1564,6 +1648,68 @@ internal static class Program
                     rebuilt.Objects.Any(entry =>
                         entry.Id == id && entry.TypeHash == SmoClassIds.TextureData)),
                 "project archive preserves every imported texture object");
+            SmoPreparedScene preparedScene =
+                SmoViewer.Scene.SmoSceneBuilder.Build(rebuilt);
+            for (int meshIndex = 0; meshIndex < imported.Meshes.Count; meshIndex++)
+            {
+                ImportedMesh sourceMesh = imported.Meshes[meshIndex];
+                int objectIndex = rebuilt.Objects.Single(entry =>
+                    entry.Id == addition.MeshObjectIds[meshIndex]).Index;
+                SmoSceneMesh occurrence = preparedScene.Meshes.Single(mesh =>
+                    mesh.Mesh.ObjectIndex == objectIndex &&
+                    mesh.SharedInstance is null);
+                bool expectsTextureAlpha = sourceMesh.MaterialIndex >= 0 &&
+                    sourceMesh.MaterialIndex < imported.Materials.Count &&
+                    imported.Materials[sourceMesh.MaterialIndex].UsesTextureAlpha;
+                SmoMaterialRenderStateInfo? state = occurrence.MaterialRenderState;
+                bool hasSerializedRigidAlphaContract =
+                    state?.HasRigidTextureAlphaSurfaceContext == true;
+                bool uvConfirmsPartialAlpha =
+                    state?.TextureUvAlphaCoverage.HasPartialAlpha == true;
+                True(expectsTextureAlpha
+                        ? hasSerializedRigidAlphaContract &&
+                          (!uvConfirmsPartialAlpha ||
+                           occurrence.UsesAlphaBlend &&
+                           occurrence.RequiresTransparentOrdering &&
+                           state?.BlendMode == SmoMaterialBlendMode
+                               .RigidTextureAlphaSurfaceFinalBlend2)
+                        : !occurrence.UsesAlphaBlend,
+                    $"mesh {meshIndex} retains its imported opaque/alpha material state " +
+                    $"(expectedAlpha={expectsTextureAlpha}; usesAlpha=" +
+                    $"{occurrence.UsesAlphaBlend}; transparentOrder=" +
+                    $"{occurrence.RequiresTransparentOrdering}; blendMode=" +
+                    $"{state?.BlendMode}; finalBlend={state?.FinalBlendOperation}; " +
+                    $"uvCoverage={state?.TextureUvAlphaCoverage})");
+            }
+            foreach ((int textureIndex, uint objectId) in
+                     addition.ImportedTextureObjectIds.OrderBy(pair => pair.Key))
+            {
+                ImportedTexture sourceTexture = imported.Textures[textureIndex];
+                SmoObjectEntry textureEntry = rebuilt.Objects.Single(entry =>
+                    entry.Id == objectId);
+                True(SmoTextureDecoder.TryDecode(
+                        rebuilt,
+                        textureEntry,
+                        out SmoTexture? decodedTexture,
+                        out _) &&
+                     decodedTexture.Width == sourceTexture.Width &&
+                     decodedTexture.Height == sourceTexture.Height,
+                    $"texture {textureIndex} retains its imported dimensions");
+                using Image<Rgba32> sourceImage = Image.Load<Rgba32>(sourceTexture.Data);
+                byte[] rgba = new byte[checked(sourceImage.Width * sourceImage.Height * 4)];
+                sourceImage.CopyPixelDataTo(rgba);
+                ReadOnlySpan<byte> bgra = decodedTexture!.Bgra32Pixels.Span;
+                bool pixelsEqual = bgra.Length == rgba.Length;
+                for (int offset = 0; pixelsEqual && offset < rgba.Length; offset += 4)
+                {
+                    pixelsEqual = bgra[offset] == rgba[offset + 2] &&
+                                  bgra[offset + 1] == rgba[offset + 1] &&
+                                  bgra[offset + 2] == rgba[offset] &&
+                                  bgra[offset + 3] == rgba[offset + 3];
+                }
+                True(pixelsEqual,
+                    $"texture {textureIndex} retains exact BGRA color and alpha bytes");
+            }
             True(addition.PlacementRootObjectIds.Count == imported.Meshes.Count,
                 "external import reports every editable initial placement root");
 
@@ -1775,7 +1921,6 @@ internal static class Program
             {
                 Console.WriteLine($"PROJECT={projectPath}");
                 Console.WriteLine($"SMO={outputPath}");
-                Console.WriteLine($"IMMEDIATE={immediatePath}");
                 Console.WriteLine($"COPY_PROJECT={copyProjectPath}");
                 Console.WriteLine($"COPY_SMO={copyOutputPath}");
                 Console.WriteLine($"MOVED_PROJECT={movedProjectPath}");
@@ -1793,8 +1938,10 @@ internal static class Program
 
     private static byte[] BuildStaticPlacementSample(Matrix4x4 world)
     {
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
         byte[] forwardField = SmoDataBlockWriter.BuildField(
             1,
             SmoPropertyValueCodec.Encode(world));
@@ -1945,8 +2092,10 @@ internal static class Program
 
     private static byte[] BuildReferencePlacementSample(Matrix4x4 world)
     {
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
         const uint ownerType = 0xA0020001;
         const uint ownerId = 1;
         const uint meshId = 2;
@@ -2060,8 +2209,10 @@ internal static class Program
         bool includeReferenceConsumer = false,
         bool duplicateReferenceConsumerField = false)
     {
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
         const uint ownerType = 0xA0021001;
         const uint ownerId = 1;
         const uint placementId = 2;
@@ -2231,6 +2382,25 @@ internal static class Program
             cells[4], cells[5], cells[6], cells[7],
             cells[8], cells[9], cells[10], cells[11],
             cells[12], cells[13], cells[14], cells[15]);
+    }
+
+    private static bool TryReadSyntheticStaticWorld(
+        SmoDocument document,
+        SmoObjectEntry entry,
+        out Matrix4x4 world)
+    {
+        world = Matrix4x4.Identity;
+        if (entry.TypeHash != SmoClassIds.StaticRenderObject ||
+            !SmoObjectFieldReader.TryRead(document, entry, out var fields, out _))
+        {
+            return false;
+        }
+        SmoObjectField? transform = fields.SingleOrDefault(field =>
+            field.FieldType == 1 && field.PayloadSize == 64);
+        if (transform is null)
+            return false;
+        world = ReadMatrix(transform.Payload.Span);
+        return true;
     }
 
     private static void ValidateImportContract()
@@ -2515,17 +2685,24 @@ internal static class Program
     {
         SmoLevelWorkspace workspace = SmoLevelWorkspace.Load(path);
         var document = new SmoLevelDocument(workspace);
-        SmoEditableCollision template = document.Collisions[0];
-        Vector3[] sourceWorld = template.Source.Positions
-            .Select(position => Vector3.Transform(position, template.WorldTransform))
-            .ToArray();
+        SmoLevelEntity visual = document.Entities.First(entity =>
+            entity.Kind == SmoLevelEntityKind.Visual && entity.Parts.Count > 0);
+        Vector3[] sourceWorld = visual.Parts.SelectMany(part =>
+        {
+            SmoSceneMesh sourceMesh = workspace.PreparedScene.Meshes.First(mesh =>
+                mesh.Mesh.ObjectIndex == part.Asset.ObjectIndex &&
+                mesh.SceneObjectIndex == part.Source.SceneObjectIndex);
+            return sourceMesh.Mesh.Positions.Select(position =>
+                Vector3.Transform(position, part.WorldTransform));
+        }).ToArray();
         SmoGeneratedCollisionMesh generated = SmoCollisionHullGenerator.Generate(
             sourceWorld,
             triangleBudget: 48);
         SmoLevelEntityId generatedId = document.AddGeneratedCollision(
             "Collision_GeneratedTest",
             generated.Positions,
-            generated.TriangleIndices);
+            generated.TriangleIndices,
+            visual.Id);
         True(document.GeneratedCollisions.ContainsKey(generatedId),
             "generated collision enters pending document state");
         True(document.Collisions.Count == workspace.Collisions.Count + 1,
@@ -2534,6 +2711,11 @@ internal static class Program
         True(document.Collisions.Count == workspace.Collisions.Count,
             "undo removes generated collision preview");
         True(document.Redo(), "generated collision creation can be redone");
+        True(document.RemoveGeneratedCollision(generatedId) &&
+             !document.GeneratedCollisions.ContainsKey(generatedId),
+            "generated collision can be deleted before serialization");
+        True(document.Undo() && document.GeneratedCollisions.ContainsKey(generatedId),
+            "generated collision deletion can be undone");
 
         SmoGeneratedCollisionMesh regenerated = SmoCollisionHullGenerator.Generate(
             sourceWorld,
@@ -2550,16 +2732,27 @@ internal static class Program
         True(document.Undo(), "collision regeneration can be undone");
         True(document.Redo(), "collision regeneration can be redone");
 
-        SmoLevelEntity visual = document.Entities.First(entity =>
-            entity.Kind == SmoLevelEntityKind.Visual);
-        True(document.SetCollisionLink(visual.Id, generatedId),
-            "manual visual/collision link can be created");
         True(document.GetCollisionLinks(visual.Id).Any(link =>
                 link.CollisionEntityId == generatedId),
-            "manual collision link is exposed by document lookup");
+            "generated collision records its source visual link");
         True(document.RemoveCollisionLink(visual.Id, generatedId),
             "manual visual/collision link can be removed");
-        True(document.Undo(), "manual unlink can be undone");
+        True(document.Undo() && document.GetCollisionLinks(visual.Id).Any(link =>
+                link.CollisionEntityId == generatedId),
+            "manual unlink can be undone");
+
+        var placementDelta = new Vector3(4.5f, -1.25f, 7.75f);
+        using (SmoTransformSession transform = document.BeginTransform(
+                   document.ExpandLinkedEntities([visual.Id])))
+        {
+            transform.PreviewTranslation(placementDelta);
+            True(transform.Commit("Move generated hull with source visual"),
+                "linked visual and generated hull move as one editor command");
+        }
+        True(Vector3.Distance(
+                Translation(document.GetEntity(generatedId).WorldTransform),
+                placementDelta) < 0.0001f,
+            "generated hull receives the exact linked placement delta");
 
         string directory = Path.Combine(
             Path.GetTempPath(),
@@ -2576,6 +2769,39 @@ internal static class Program
                 entry.Name.Equals(
                     "Collision_GeneratedTest",
                     StringComparison.Ordinal));
+            SmoCollisionMesh savedGenerated = SmoCollisionMeshDecoder.DecodeAll(
+                    saved.Document)
+                .Single(collision =>
+                    collision.CollisionInfoObjectIndex == savedCollision.Index);
+            Vector3[] savedGeneratedWorld = savedGenerated.Positions
+                .Select(position => Vector3.Transform(
+                    position,
+                    savedGenerated.WorldTransform))
+                .ToArray();
+            Vector3[] expectedGeneratedWorld = regenerated.Positions
+                .Select(position => position + placementDelta)
+                .ToArray();
+            True(savedGenerated.TriangleIndices.SequenceEqual(
+                    regenerated.TriangleIndices) &&
+                 savedGeneratedWorld.Zip(expectedGeneratedWorld).All(pair =>
+                    Vector3.Distance(pair.First, pair.Second) < 0.001f),
+                "saved generated hull preserves exact triangle order and linked placement");
+            (Vector3 SourceMin, Vector3 SourceMax) = CalculateBounds(
+                sourceWorld.Select(position => position + placementDelta));
+            (Vector3 HullMin, Vector3 HullMax) = CalculateBounds(savedGeneratedWorld);
+            True(HullMin.X <= SourceMin.X && HullMin.Y <= SourceMin.Y &&
+                 HullMin.Z <= SourceMin.Z && HullMax.X >= SourceMax.X &&
+                 HullMax.Y >= SourceMax.Y && HullMax.Z >= SourceMax.Z,
+                "rebuilt collision hull still encloses the moved visual geometry");
+            var reopenedDocument = new SmoLevelDocument(saved);
+            True(MatrixDistance(
+                    reopenedDocument.GetEntity(visual.Id).WorldTransform,
+                    visual.WorldTransform) < 0.002f,
+                "reopened visual keeps the placement used by its generated hull");
+            True(DecodeCollisionInfo(saved.Document, savedCollision.Index)
+                    .CollisionGroup ==
+                    SmoCollisionBranchAppender.ProductionDefaultCollisionGroup,
+                "direct save serializes generated collision with production Group 2");
             True(CountReferenceFields(saved.Document, savedCollision.Id, 7) == 1,
                 "generated collision is registered once in spPartitionSystem");
             SmoObjectEntry savedMesh = saved.Document.Objects.Single(entry =>
@@ -2586,6 +2812,9 @@ internal static class Program
                 checked((int)savedMesh.SerializedSize));
             True(savedMeshBytes[^1] == 0,
                 "generated spMeshBV has the native terminal empty field");
+            True(DecodeMeshBoundingVolume(saved.Document, savedMesh.Index)
+                    .FaceData is null,
+                "generated spMeshBV leaves wxFaceData absent instead of inventing surface metadata");
             True(File.ReadAllText(result.LogPath).Contains(
                     "COLLISION_ADD",
                     StringComparison.Ordinal),
@@ -2670,6 +2899,74 @@ internal static class Program
             }
         }
         return count;
+    }
+
+    private static SmoCollisionInfoData DecodeCollisionInfo(
+        SmoDocument document,
+        int objectIndex)
+    {
+        SmoObjectEntry entry = document.Objects[objectIndex];
+        if (!SmoCollisionInfoDecoder.TryDecode(
+                document,
+                entry,
+                out SmoCollisionInfoData? data,
+                out string error) ||
+            data is null)
+        {
+            throw new InvalidDataException(
+                $"Could not decode spCollisionInfo [{objectIndex}]: {error}");
+        }
+        return data;
+    }
+
+    private static SmoMeshBoundingVolumeData DecodeMeshBoundingVolume(
+        SmoDocument document,
+        int objectIndex)
+    {
+        SmoObjectEntry entry = document.Objects[objectIndex];
+        if (!SmoMeshBoundingVolumeDecoder.TryDecode(
+                document,
+                entry,
+                out SmoMeshBoundingVolumeData? data,
+                out string error) ||
+            data is null)
+        {
+            throw new InvalidDataException(
+                $"Could not decode spMeshBV [{objectIndex}]: {error}");
+        }
+        return data;
+    }
+
+    private static byte[]? ReadOptionalFieldPayload(
+        SmoDocument document,
+        int objectIndex,
+        int fieldType)
+    {
+        SmoObjectField? field = SmoObjectFieldReader.Read(document, document.Objects[objectIndex])
+            .FirstOrDefault(candidate =>
+                candidate.FieldType == fieldType && candidate.PayloadSize > 0);
+        return field?.Payload.ToArray();
+    }
+
+    private static bool OptionalBytesEqual(byte[]? left, byte[]? right) =>
+        left is null
+            ? right is null
+            : right is not null && left.AsSpan().SequenceEqual(right);
+
+    private static (Vector3 Minimum, Vector3 Maximum) CalculateBounds(
+        IEnumerable<Vector3> positions)
+    {
+        using IEnumerator<Vector3> iterator = positions.GetEnumerator();
+        if (!iterator.MoveNext())
+            throw new ArgumentException("Cannot calculate bounds of an empty point set.");
+        Vector3 minimum = iterator.Current;
+        Vector3 maximum = iterator.Current;
+        while (iterator.MoveNext())
+        {
+            minimum = Vector3.Min(minimum, iterator.Current);
+            maximum = Vector3.Max(maximum, iterator.Current);
+        }
+        return (minimum, maximum);
     }
 
     private static void ValidateAlfeaCompositeModels(SmoLevelDocument document)
@@ -2828,7 +3125,7 @@ internal static class Program
                 texture.ObjectIndex == sourceTexture.ObjectIndex);
             True(replaced.Width == sourceTexture.Width &&
                  replaced.Height == sourceTexture.Height,
-                "fixed-slot texture replacement preserves SMO dimensions");
+                "native texture replacement preserves SMO dimensions");
             True(!replaced.Bgra32Pixels.Span.SequenceEqual(sourcePixels),
                 "saved texture contains replacement RGB pixels");
             True(File.ReadAllText(result.LogPath).Contains(
@@ -2960,10 +3257,11 @@ internal static class Program
         SmoSharedMeshInstanceInfo template =
             SmoSharedMeshInstanceResolver.ResolveAll(source).First(instance =>
                 instance.SourceMeshObjectIndex == sourceMeshIndex);
-        Matrix4x4 desired = template.WorldTransform;
-        desired.M41 += 137;
-        desired.M42 += 19;
-        desired.M43 -= 43;
+        Matrix4x4 desired =
+            Matrix4x4.CreateScale(1.25f, 0.75f, 1.5f) *
+            Matrix4x4.CreateFromYawPitchRoll(0.31f, -0.17f, 0.43f) *
+            Matrix4x4.CreateTranslation(
+                template.WorldTransform.Translation + new Vector3(137, 19, -43));
         SmoSharedPlacementCloneResult result = SmoSharedPlacementCloner.Clone(
             source,
             sourceMeshIndex,
@@ -2981,7 +3279,19 @@ internal static class Program
         True(added.SourceMeshObjectIndex == sourceMeshIndex,
             "new placement references the original physical mesh resource");
         True(MatrixDistance(added.WorldTransform, desired) < 0.001f,
-            "new shared placement stores the requested world transform");
+            "new shared placement stores requested XYZ rotation and nonuniform scale");
+        SmoObjectEntry addedStatic = cloned.Objects[added.StaticObjectIndex];
+        True(SmoStaticRenderObjectDecoder.TryDecode(
+                 cloned,
+                 addedStatic,
+                 out SmoStaticRenderObjectData? addedStaticData,
+                 out _) &&
+             addedStaticData is not null &&
+             MatrixDistance(
+                 addedStaticData.EngineInverseTransform,
+                 SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(desired)) <
+             0.001f,
+            "new shared placement writes the scaled Sparkplug inverse convention");
         SmoSharedMeshInstanceInfo nearestTemplate =
             SmoSharedMeshInstanceResolver.ResolveAll(source)
                 .OrderBy(instance => Vector3.DistanceSquared(
@@ -3149,11 +3459,15 @@ internal static class Program
 
     private static void ValidateExternalModelAppend(SmoDocument source)
     {
-        ImportedMesh Part(string name, float offset, int materialIndex = -1) => new(
+        ImportedMesh Part(
+            string name,
+            float offset,
+            int materialIndex = -1,
+            bool includeNormals = true) => new(
             name,
             [new Vector3(offset, 0, 0), new Vector3(offset + 20, 0, 0),
              new Vector3(offset, 20, 0)],
-            [Vector3.UnitZ, Vector3.UnitZ, Vector3.UnitZ],
+            includeNormals ? [Vector3.UnitZ, Vector3.UnitZ, Vector3.UnitZ] : [],
             [Vector2.Zero, Vector2.UnitX, Vector2.UnitY],
             [0, 1, 2],
             [0xFFFF8040, 0xFF40FF80, 0xFF4080FF],
@@ -3166,31 +3480,124 @@ internal static class Program
             sharedPng = stream.ToArray();
         }
         var imported = new ImportedScene(
-            [Part("part_a", 0, 0), Part("part_b", 25, 0)],
+            [Part("part_a", 0, 0, includeNormals: false), Part("part_b", 25, 0)],
             [new ImportedTexture("shared", "image/png", 8, 8, sharedPng)],
             [new ImportedMaterial("shared", "shared", 0)]);
         int templateIndex = SmoExternalLevelModelAppender.FindTemplateMeshObjectIndex(
             source,
             requireMaterial: true);
+        SmoObjectEntry? uv1Template = source.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
+            .FirstOrDefault(entry =>
+            {
+                try
+                {
+                    SmoMesh mesh = SmoMeshDecoder.Decode(source, entry);
+                    return mesh.Marker == SmoMeshDecoder.E1Marker &&
+                           SmoVertexLayoutRegistry.TryGet(
+                               mesh.VertexFormat,
+                               out SmoVertexLayout? layout) &&
+                           layout?.TextureCoordinate1Offset is not null;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        True(uv1Template is not null,
+            "real Alfea fixture exposes a writable two-UV E1 layout");
+        var uv1Part = Part("uv1_writer", 0) with
+        {
+            SecondaryTextureCoordinates =
+                [new Vector2(0.2f, 0.3f), new Vector2(0.4f, 0.5f),
+                 new Vector2(0.6f, 0.7f)]
+        };
+        SmoMeshResourceReplacement uv1Replacement =
+            SmoMeshResourceReplacer.Replace(
+                source,
+                uv1Template!.Index,
+                new ImportedScene([uv1Part]),
+                ReplacementTransform.Identity);
+        SmoDocument uv1Document = SmoDocument.ParseOwned(
+            uv1Replacement.Data,
+            source.SourcePath);
+        SmoMesh uv1Decoded = SmoMeshDecoder.Decode(
+            uv1Document,
+            uv1Document.Objects[uv1Template.Index]);
+        True(uv1Decoded.TextureCoordinates.SequenceEqual(
+                 uv1Part.TextureCoordinates) &&
+             uv1Decoded.TextureCoordinates1.SequenceEqual(
+                 uv1Part.SecondaryTextureCoordinates),
+            "two-UV writer preserves distinct UV0 and UV1 channels");
+        const int oversizedVertexCount = 65_538;
+        var oversizedPositions = new Vector3[oversizedVertexCount];
+        var oversizedIndices = new uint[oversizedVertexCount];
+        for (int vertex = 0; vertex < oversizedVertexCount; vertex++)
+        {
+            oversizedPositions[vertex] = new Vector3(
+                vertex,
+                vertex % 5,
+                vertex % 7);
+            oversizedIndices[vertex] = checked((uint)vertex);
+        }
+        var oversizedScene = new ImportedScene([
+            new ImportedMesh(
+                "oversized_batch_range",
+                oversizedPositions,
+                [],
+                [],
+                oversizedIndices)
+        ]);
+        SmoExternalLevelModelAppendResult oversizedRange =
+            SmoExternalLevelModelAppender.AppendPartRange(
+                source,
+                templateIndex,
+                oversizedScene,
+                [Matrix4x4.Identity],
+                "oversized_batch_range",
+                firstPartIndex: 1,
+                partCount: 1);
+        SmoDocument oversizedDocument = SmoDocument.ParseOwned(
+            oversizedRange.Data,
+            source.SourcePath);
+        SmoMesh oversizedTail = SmoMeshDecoder.Decode(
+            oversizedDocument,
+            oversizedDocument.Objects.Single(entry =>
+                entry.Id == oversizedRange.MeshObjectIds.Single()));
+        True(oversizedTail.VertexCount == 3 && oversizedTail.TriangleCount == 1,
+            "batch range indices are validated after deterministic UInt16 splitting");
         Matrix4x4 transformA = Matrix4x4.CreateTranslation(100, 200, 300);
         Matrix4x4 transformB = Matrix4x4.CreateTranslation(400, 500, 600);
         SmoExternalLevelModelAppendResult result =
-            SmoExternalLevelModelAppender.Append(
+            SmoExternalLevelModelAppender.AppendPartRange(
                 source,
                 templateIndex,
                 imported,
                 [transformA, transformB],
-                "external_test");
+                "external_test",
+                firstPartIndex: 0,
+                partCount: imported.Meshes.Count);
         SmoDocument appended = SmoDocument.Parse(result.Data, source.SourcePath);
         True(!appended.HasErrors && result.MeshObjectIds.Count == 2,
             "external catalog model appends every mesh part as a valid resource");
         True(result.PlacementCount == 2 && result.AddedObjectCount > 0,
             "external model appender creates multiple placements in one resource pass");
         foreach (uint meshId in result.MeshObjectIds)
-            True(SmoMeshDecoder.Decode(
-                    appended,
-                    appended.Objects.Single(entry => entry.Id == meshId)).TriangleCount == 1,
+        {
+            SmoMesh decoded = SmoMeshDecoder.Decode(
+                appended,
+                appended.Objects.Single(entry => entry.Id == meshId));
+            True(decoded.TriangleCount == 1,
                 "external mesh resource remains decodable after packing");
+            True(decoded.TriangleIndices.SequenceEqual(new uint[] { 0, 2, 1 }),
+                "external mesh reflection reverses triangle winding for engine handedness");
+            True(decoded.HasNormals && decoded.Normals.All(normal =>
+                    float.IsFinite(normal.X) &&
+                    float.IsFinite(normal.Y) &&
+                    float.IsFinite(normal.Z) &&
+                    MathF.Abs(normal.Length() - 1f) < 0.001f),
+                "external mesh writer preserves or reconstructs finite unit normals");
+        }
         True(result.ImportedTextureObjectIds.Count == 1,
             "multi-part external model embeds one shared imported texture only once");
         HashSet<uint> appendedMeshIds = result.MeshObjectIds.ToHashSet();
@@ -3203,49 +3610,22 @@ internal static class Program
         True(textureObjectIndices.Length == 1 && textureObjectIndices[0] >= 0,
             "every part and placement reuses the same embedded texture resource");
 
-        SmoProject projectGraph = SmoProject.Import(source);
-        byte[] immutableData = projectGraph.DataSection.ToArray();
-        var projectGraphSession = new SmoProjectSession(projectGraph);
-        SmoProjectExternalModelAddition? projectGraphAddition = null;
-        True(projectGraphSession.Execute(
-                "Add external model",
-                project => projectGraphAddition =
-                    SmoProjectImporterBridge.AddExternalModel(
-                        project,
-                        imported,
-                        [transformA, transformB],
-                        "external_test")) &&
-             projectGraphAddition is not null &&
-             projectGraphAddition.MeshObjectIds.Count == 2 &&
-             projectGraphAddition.ImportedTextureObjectIds.Count == 1 &&
-             projectGraphAddition.AssetIds.Count > 0,
-            "project stores a complete textured external model as additive assets");
-        True(projectGraph.DataSection.Span.SequenceEqual(immutableData),
-            "project external-model import keeps data.bin immutable");
-        using (var stream = new MemoryStream())
-        {
-            SmoProjectSerializer.Write(projectGraph, stream);
-            True(stream.ToArray().AsSpan().SequenceEqual(result.Data),
-                "project external-model build is byte-identical to the production writer");
-        }
-        True(projectGraphSession.Undo() && projectGraph.Manifest.AddedForests.Count == 0 &&
-             projectGraphSession.Redo() && projectGraph.Manifest.AddedForests.Count > 0,
-            "external-model assets participate in one transactional Undo/Redo command");
-
         string glbPath = Path.GetFullPath(Path.Combine(
             "local-data", "Модели", "Текна", "Беливикс DS", "Текна изм.glb"));
         if (File.Exists(glbPath))
         {
             ImportedScene textured = ImportedModelReader.Read(glbPath);
             SmoExternalLevelModelAppendResult texturedResult =
-                SmoExternalLevelModelAppender.Append(
+                SmoExternalLevelModelAppender.AppendPartRange(
                     source,
                     SmoExternalLevelModelAppender.FindTemplateMeshObjectIndex(
                         source,
                         requireMaterial: true),
                     textured,
                     [transformA],
-                    "external_alpha_test");
+                    "external_alpha_test",
+                    firstPartIndex: 0,
+                    partCount: textured.Meshes.Count);
             SmoDocument texturedDocument = SmoDocument.Parse(
                 texturedResult.Data,
                 source.SourcePath);
@@ -4050,6 +4430,60 @@ internal static class Program
         _assertions++;
         if (!condition)
             throw new InvalidOperationException(message);
+    }
+
+    private static void ValidateCancelledSavePreservesDestination(
+        string sourcePath)
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"SmoLVLcreator-cancel-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        try
+        {
+            string output = Path.Combine(directory, "existing.smo");
+            File.Copy(sourcePath, output);
+            byte[] original = File.ReadAllBytes(output);
+            SmoLevelWorkspace workspace = SmoLevelWorkspace.Load(sourcePath);
+            var level = new SmoLevelDocument(workspace);
+            using var cancellation = new CancellationTokenSource();
+            var progress = new SynchronousProgress<SmoLevelSaveProgress>(item =>
+            {
+                if (item.Stage == SmoLevelSaveStage.RepairingCollisions)
+                    cancellation.Cancel();
+            });
+            bool cancelled = false;
+            try
+            {
+                SmoLevelSaveService.Save(
+                    level,
+                    output,
+                    progress,
+                    cancellation.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+
+            True(cancelled,
+                "cancelled save reports OperationCanceledException");
+            True(File.ReadAllBytes(output).AsSpan().SequenceEqual(original),
+                "cancelled save preserves the existing destination byte-for-byte");
+            True(!Directory.EnumerateFiles(directory, "*.tmp").Any(),
+                "cancelled save leaves no temporary output");
+            True(!Directory.EnumerateFiles(directory, "*.bak").Any(),
+                "cancelled save does not install a backup");
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
+    {
+        public void Report(T value) => handler(value);
     }
 
     private static Vector3 Translation(Matrix4x4 transform) =>

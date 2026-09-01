@@ -4,8 +4,6 @@ using System.Security.Cryptography;
 using SmoExporter.Core;
 using SmoImporter.Core;
 using SmoViewer.Core;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 internal static class DaphneMode3Regression
 {
@@ -13,9 +11,7 @@ internal static class DaphneMode3Regression
     private const int ExpectedMeshCount = 4;
     private const int ExpectedVertexCount = 1701;
     private const int ExpectedTriangleCount = 2158;
-    private const int ExpectedOpaqueBodyTriangles = 1979;
-    private const int ExpectedOpaqueOverlayTriangles = 0;
-    private const int ExpectedAlphaTriangles = 179;
+    private const string OpaqueBodyMeshPrefix = "imp_b_x_";
     private const string AlphaMeshPrefix = "imp_a_x_";
     private const string OpaqueOverlayMeshPrefix = "imp_o_x_";
 
@@ -45,7 +41,7 @@ internal static class DaphneMode3Regression
         if (target.HasErrors)
             throw new InvalidDataException("Daphne regression target failed strict parsing.");
 
-        EyeBranchSnapshot eyeBefore = CaptureEyeBranch(target);
+        OldVisualSnapshot oldVisualsBefore = CaptureOldVisuals(target);
         SmoObjectEntry[] targetTextureEntries = target.Objects
             .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
             .ToArray();
@@ -55,9 +51,6 @@ internal static class DaphneMode3Regression
                 $"Daphne fixture target must have exactly two TextureData objects; " +
                 $"got {targetTextureEntries.Length}.");
         }
-        SmoObjectEntry primaryTextureBefore = targetTextureEntries.Single(entry =>
-            entry.Id != eyeBefore.TextureObjectId);
-
         ImportedScene rawDonor = ImportedModelReader.ReadGeometryOnly(donorPath);
         ImportedTexture[] externalTextures = ReadDonorDirectoryTextures(
             donorPath, rawDonor);
@@ -85,13 +78,14 @@ internal static class DaphneMode3Regression
             donor,
             alignment);
         if (fit.BodySelection.TotalComponentCount != 26 ||
-            fit.BodySelection.Components.Count != 1 ||
-            fit.BodySelection.ExcludedComponentCount != 25 ||
+            fit.BodySelection.Components.Count == 0 ||
+            fit.BodySelection.ExcludedComponentCount !=
+                fit.BodySelection.TotalComponentCount - fit.BodySelection.Components.Count ||
             !Equals(fit.BodySelection.DonorAlignment, alignment))
         {
             throw new InvalidDataException(
-                "Daphne body-selection fixture changed: expected one selected body " +
-                $"surface out of 26, got {fit.BodySelection.Components.Count}/" +
+                "Daphne human-mode body selection is incomplete or internally inconsistent: " +
+                $"selected {fit.BodySelection.Components.Count}/" +
                 $"{fit.BodySelection.TotalComponentCount}.");
         }
 
@@ -102,6 +96,41 @@ internal static class DaphneMode3Regression
                 fit.Pose,
                 alignment,
                 fit.BodySelection);
+        HashSet<int> automaticRigidIndices = preparation.Analysis.Attachments
+            .Select(attachment => attachment.ComponentIndex)
+            .ToHashSet();
+        TargetRigSelectedBodyComponent fittingOnlyProbe = fit.BodySelection.Components
+            .FirstOrDefault(component =>
+                component.Role == TargetRigBodyComponentRole.SupplementalBody &&
+                !automaticRigidIndices.Contains(component.ComponentIndex)) ??
+            throw new InvalidDataException(
+                "Daphne fixture has no smooth supplemental component for the " +
+                "fitting-selection isolation regression.");
+        TargetRigSelectedBodyComponent[] reducedFittingComponents = fit.BodySelection
+            .Components
+            .Where(component =>
+                component.ComponentIndex != fittingOnlyProbe.ComponentIndex)
+            .ToArray();
+        TargetRigBodySelection reducedFittingSelection = fit.BodySelection with
+        {
+            Components = Array.AsReadOnly(reducedFittingComponents),
+            ExcludedComponentCount = fit.BodySelection.TotalComponentCount -
+                                     reducedFittingComponents.Length
+        };
+        GeneratedSkinningPreparationResult reducedFittingPreparation =
+            GeneratedSkinningPreparer.Prepare(
+                target,
+                donor,
+                fit.Pose,
+                alignment,
+                reducedFittingSelection);
+        if (reducedFittingPreparation.Analysis.Attachments.Any(attachment =>
+                attachment.ComponentIndex == fittingOnlyProbe.ComponentIndex))
+        {
+            throw new InvalidDataException(
+                $"Fitting-only component #{fittingOnlyProbe.ComponentIndex} became " +
+                "rigid merely because it was removed from TargetRigBodySelection.");
+        }
         Matrix4x4 lieDown = Matrix4x4.CreateRotationZ(MathF.PI / 2);
         ImportedScene lyingDonor = donor with
         {
@@ -135,50 +164,56 @@ internal static class DaphneMode3Regression
         VerifyRotatedAlignment(lyingDonor, rotatedPreparation, rotatedAlignment);
         if (preparation.Analysis.PreparedVertexCount != ExpectedVertexCount ||
             preparation.Analysis.DonorComponentCount != 26 ||
-            preparation.Analysis.Attachments.Count != 25 ||
+            preparation.Analysis.Attachments.Count >=
+                preparation.Analysis.DonorComponentCount ||
             preparation.PreparedScene.Meshes.Count != ExpectedMeshCount)
         {
             throw new InvalidDataException(
                 "Daphne generated-skinning fixture changed: expected " +
-                $"{ExpectedVertexCount} vertices, 26 components, 25 attachments and " +
+                $"{ExpectedVertexCount} vertices, 26 components, fewer than 26 attachments and " +
                 $"{ExpectedMeshCount} meshes; got " +
                 $"{preparation.Analysis.PreparedVertexCount}, " +
                 $"{preparation.Analysis.DonorComponentCount}, " +
                 $"{preparation.Analysis.Attachments.Count}, " +
                 $"{preparation.PreparedScene.Meshes.Count}.");
         }
+        if (preparation.Analysis.Attachments.Any(attachment =>
+                attachment.ManualAssignment is not null ||
+                attachment.PlaneAssignment !=
+                    GeneratedSkinningComponentAttachmentTarget.UpperBack))
+        {
+            throw new InvalidDataException(
+                "Daphne automatic preparation produced a rigid detail which was " +
+                "not extracted by the strict-majority Back rule.");
+        }
         string preparedFingerprintBefore = FingerprintImportedScene(
             preparation.PreparedScene);
 
         GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
             target,
-            preparation.PreparedScene,
-            SkinnedTextureTransferMode.ImportDonor);
-        if (!plan.CanReplace || plan.MaterialGroupCount != 1 ||
+            preparation.PreparedScene);
+        if (!plan.CanReplace || plan.MaterialGroupCount != 2 ||
             plan.MeshCount != ExpectedMeshCount)
         {
             throw new InvalidOperationException(
-                "Daphne ImportDonor analysis did not produce the required 2-to-1 " +
-                "material plan: " + string.Join(" | ", plan.Messages));
+                "Daphne ImportDonor analysis did not retain both texture groups: " +
+                string.Join(" | ", plan.Messages));
         }
         if (!plan.Messages.Any(message =>
-                message.Contains("Packed 2 donor texture groups", StringComparison.Ordinal) &&
-                message.Contains("256x256", StringComparison.Ordinal) &&
-                message.Contains("2x1 cells", StringComparison.Ordinal)))
+                message.Contains("independent native TextureData", StringComparison.Ordinal)))
         {
             throw new InvalidOperationException(
-                "Daphne analysis succeeded without reporting the exact 2-to-1 " +
-                "256x256 atlas decision: " + string.Join(" | ", plan.Messages));
+                "Daphne analysis succeeded without selecting independent native textures: " +
+                string.Join(" | ", plan.Messages));
         }
 
         ImportedScene preview = SmoSkinnedGlbReplacer.PrepareGeometryPreview(
             target,
             preparation.PreparedScene,
             ReplacementTransform.Identity,
-            SkinnedGeometryTransferMode.PreservePreparedGeometry,
-            SkinnedTextureTransferMode.ImportDonor);
+            SkinnedGeometryTransferMode.PreservePreparedGeometry);
         VerifyPreview(preparation.PreparedScene, preview);
-        SmoSkinnedRenderableOpacityPlan opacity = ClassifyPreviewOpacity(
+        (int OpaqueBody, int OpaqueOverlay, int Alpha) opacity = ClassifyPreviewOpacity(
             preparation.PreparedScene, preview);
         VerifyOpacityCounts(opacity, "Daphne final preview");
 
@@ -190,14 +225,12 @@ internal static class DaphneMode3Regression
                 preparation.PreparedScene,
                 ReplacementTransform.Identity,
                 outputPath,
-                SkinnedGeometryTransferMode.PreservePreparedGeometry,
-                texture: null,
-                textureMode: SkinnedTextureTransferMode.ImportDonor);
+                SkinnedGeometryTransferMode.PreservePreparedGeometry);
             SmoDocument output = SmoDocument.Load(outputPath);
             if (output.HasErrors)
                 throw new InvalidDataException("Daphne output failed strict parsing.");
-            VerifyWriterResult(target, output, result, preview, primaryTextureBefore.Id);
-            VerifyEyeBranch(output, eyeBefore);
+            VerifyWriterResult(target, output, result, preview, opacity);
+            VerifyOldVisualsRemoved(output, oldVisualsBefore);
 
             if (!target.Data.Span.SequenceEqual(targetBytesBefore) ||
                 FingerprintImportedScene(donor) != donorFingerprintBefore ||
@@ -212,16 +245,31 @@ internal static class DaphneMode3Regression
                 throw new InvalidOperationException("Daphne regression modified the target file.");
 
             outputVerified = true;
+            HashSet<int> selectedForFit = fit.BodySelection.Components
+                .Select(component => component.ComponentIndex)
+                .ToHashSet();
+            HashSet<int> rigidBack = preparation.Analysis.Attachments
+                .Select(attachment => attachment.ComponentIndex)
+                .ToHashSet();
+            int fittingExcludedNowDeform = Enumerable
+                .Range(0, fit.BodySelection.TotalComponentCount)
+                .Count(component =>
+                    !selectedForFit.Contains(component) &&
+                    !rigidBack.Contains(component));
             Console.WriteLine(
                 "DAPHNE MODE 3 REGRESSION PASS: " +
                 $"alignment={FixtureScale:G9}/(0,12,-3); " +
                 $"body={fit.BodySelection.Components.Count}/" +
                 $"{fit.BodySelection.TotalComponentCount}; " +
+                $"rigidBack={rigidBack.Count}; " +
+                $"logicalDeform={fit.BodySelection.TotalComponentCount - rigidBack.Count}; " +
+                $"fitExcludedNowDeform={fittingExcludedNowDeform}; " +
+                $"fittingIsolationProbe=#{fittingOnlyProbe.ComponentIndex}; " +
                 $"meshes={ExpectedMeshCount}; vertices={ExpectedVertexCount}; " +
                 $"triangles={result.TriangleCount}; groups={plan.MaterialGroupCount}; " +
-                $"opaque/overlay/alpha={ExpectedOpaqueBodyTriangles}/" +
-                $"{ExpectedOpaqueOverlayTriangles}/{ExpectedAlphaTriangles}; " +
-                "atlas=256x256/2x1; eye texture unchanged; eye palette exact; " +
+                $"opaque/overlay/alpha={opacity.OpaqueBody}/" +
+                $"{opacity.OpaqueOverlay}/{opacity.Alpha}; " +
+                "textures=2 native branches; source UV exact; old meshes/materials/textures absent; " +
                 $"strict reload; SHA-256={result.Sha256}; output={result.OutputPath}");
         }
         finally
@@ -417,17 +465,17 @@ internal static class DaphneMode3Regression
         if (preview.Meshes.Count != ExpectedMeshCount ||
             vertices != ExpectedVertexCount ||
             triangles != ExpectedTriangleCount ||
-            preview.Textures.Count != 1 ||
-            preview.Textures[0].Width != 256 ||
-            preview.Textures[0].Height != 256 ||
+            preview.Textures.Count != 2 ||
             preview.Meshes.Any(mesh => mesh.Skinning is not null) ||
             preview.Meshes.Any(mesh =>
                 mesh.MaterialIndex < 0 || mesh.MaterialIndex >= preview.Materials.Count ||
-                preview.Materials[mesh.MaterialIndex].BaseColorTextureIndex != 0))
+                preview.Materials[mesh.MaterialIndex].BaseColorTextureIndex < 0 ||
+                preview.Materials[mesh.MaterialIndex].BaseColorTextureIndex >=
+                    preview.Textures.Count))
         {
             throw new InvalidDataException(
                 "Daphne final preview is not the expected unskinned 4-mesh, " +
-                "1701-vertex, 2158-triangle single 256x256 atlas scene: " +
+                "1701-vertex, 2158-triangle two-texture scene: " +
                 $"meshes={preview.Meshes.Count}, vertices={vertices}, " +
                 $"triangles={triangles}, textures={preview.Textures.Count}, " +
                 $"textureSize={string.Join(",", preview.Textures.Select(texture => $"{texture.Width}x{texture.Height}"))}, " +
@@ -439,50 +487,71 @@ internal static class DaphneMode3Regression
             if (preview.Meshes[index].Name != prepared.Meshes[index].Name ||
                 preview.Meshes[index].TriangleIndices.Length !=
                     prepared.Meshes[index].TriangleIndices.Length ||
+                !preview.Meshes[index].TextureCoordinates.SequenceEqual(
+                    prepared.Meshes[index].TextureCoordinates) ||
                 prepared.Meshes[index].Skinning is null)
             {
                 throw new InvalidDataException(
                     $"Daphne preview mesh [{index}] no longer corresponds to prepared input.");
             }
         }
+        if (preview.Textures.Where((texture, index) =>
+                index >= prepared.Textures.Count ||
+                texture.Width != prepared.Textures[index].Width ||
+                texture.Height != prepared.Textures[index].Height ||
+                !texture.Data.SequenceEqual(prepared.Textures[index].Data)).Any())
+        {
+            throw new InvalidDataException(
+                "Daphne preview combined, resized or reordered the two source textures.");
+        }
     }
 
-    private static SmoSkinnedRenderableOpacityPlan ClassifyPreviewOpacity(
+    private static (int OpaqueBody, int OpaqueOverlay, int Alpha) ClassifyPreviewOpacity(
         ImportedScene prepared,
         ImportedScene preview)
     {
-        SmoSkinnedBranchSourceMesh[] meshes = preview.Meshes.Select((mesh, index) =>
-            new SmoSkinnedBranchSourceMesh(
-                index,
-                mesh.Name,
-                mesh.Positions,
-                mesh.Normals,
-                mesh.TextureCoordinates,
-                mesh.DiffuseColors,
-                mesh.TriangleIndices,
-                prepared.Meshes[index].Skinning ?? throw new InvalidDataException(
-                    $"Daphne prepared mesh [{index}] has no generated skinning.")))
-            .ToArray();
-        return SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
-            meshes,
-            preview.Textures.Single());
+        int opaqueBody = 0;
+        int opaqueOverlay = 0;
+        int alpha = 0;
+        foreach (IGrouping<int, (ImportedMesh Mesh, int Index)> group in preview.Meshes
+                     .Select((mesh, index) => (Mesh: mesh, Index: index))
+                     .GroupBy(item => preview.Materials[item.Mesh.MaterialIndex]
+                         .BaseColorTextureIndex))
+        {
+            SmoSkinnedBranchSourceMesh[] meshes = group.Select(item =>
+                new SmoSkinnedBranchSourceMesh(
+                    item.Index,
+                    item.Mesh.Name,
+                    item.Mesh.Positions,
+                    item.Mesh.Normals,
+                    item.Mesh.TextureCoordinates,
+                    item.Mesh.DiffuseColors,
+                    item.Mesh.TriangleIndices,
+                    prepared.Meshes[item.Index].Skinning ?? throw new InvalidDataException(
+                        $"Daphne prepared mesh [{item.Index}] has no generated skinning.")))
+                .ToArray();
+            SmoSkinnedRenderableOpacityPlan result =
+                SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
+                    meshes, preview.Textures[group.Key]);
+            opaqueBody += result.OpaqueBodyTriangleCount;
+            opaqueOverlay += result.OpaqueOverlayTriangleCount;
+            alpha += result.AlphaTriangleCount;
+        }
+        return (opaqueBody, opaqueOverlay, alpha);
     }
 
     private static void VerifyOpacityCounts(
-        SmoSkinnedRenderableOpacityPlan opacity,
+        (int OpaqueBody, int OpaqueOverlay, int Alpha) opacity,
         string context)
     {
-        if (opacity.OpaqueBodyTriangleCount != ExpectedOpaqueBodyTriangles ||
-            opacity.OpaqueOverlayTriangleCount != ExpectedOpaqueOverlayTriangles ||
-            opacity.AlphaTriangleCount != ExpectedAlphaTriangles ||
-            opacity.OpaqueBodyTriangleCount + opacity.OpaqueOverlayTriangleCount +
-                opacity.AlphaTriangleCount != ExpectedTriangleCount)
+        if (opacity.OpaqueBody <= 0 ||
+            opacity.Alpha <= 0 ||
+            opacity.OpaqueBody + opacity.OpaqueOverlay + opacity.Alpha != ExpectedTriangleCount)
         {
             throw new InvalidDataException(
-                $"{context} opacity changed: expected body/overlay/alpha " +
-                $"{ExpectedOpaqueBodyTriangles}/{ExpectedOpaqueOverlayTriangles}/" +
-                $"{ExpectedAlphaTriangles}, got {opacity.OpaqueBodyTriangleCount}/" +
-                $"{opacity.OpaqueOverlayTriangleCount}/{opacity.AlphaTriangleCount}.");
+                $"{context} opacity must retain both opaque and alpha geometry and " +
+                $"cover {ExpectedTriangleCount} triangles; got {opacity.OpaqueBody}/" +
+                $"{opacity.OpaqueOverlay}/{opacity.Alpha}.");
         }
     }
 
@@ -491,7 +560,7 @@ internal static class DaphneMode3Regression
         SmoDocument output,
         GlbSkinTransferResult result,
         ImportedScene preview,
-        uint primaryTextureObjectId)
+        (int OpaqueBody, int OpaqueOverlay, int Alpha) expectedOpacity)
     {
         HashSet<uint> targetMeshIds = target.Objects
             .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
@@ -500,8 +569,17 @@ internal static class DaphneMode3Regression
         SmoObjectEntry[] outputMeshes = output.Objects
             .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
             .ToArray();
+        if (outputMeshes.Any(entry => targetMeshIds.Contains(entry.Id)))
+        {
+            throw new InvalidDataException(
+                "Daphne clean rebuild retained one or more old MeshData object IDs.");
+        }
         int retained = outputMeshes
             .Where(entry => targetMeshIds.Contains(entry.Id))
+            .Sum(entry => CountNonDegenerateTriangles(SmoMeshDecoder.Decode(output, entry)));
+        int opaqueBody = outputMeshes
+            .Where(entry => entry.Name.StartsWith(
+                OpaqueBodyMeshPrefix, StringComparison.Ordinal))
             .Sum(entry => CountNonDegenerateTriangles(SmoMeshDecoder.Decode(output, entry)));
         int alpha = outputMeshes
             .Where(entry => entry.Name.StartsWith(
@@ -514,12 +592,14 @@ internal static class DaphneMode3Regression
         int unexpectedAdded = outputMeshes
             .Where(entry => !targetMeshIds.Contains(entry.Id) &&
                             !entry.Name.StartsWith(AlphaMeshPrefix, StringComparison.Ordinal) &&
+                            !entry.Name.StartsWith(OpaqueBodyMeshPrefix, StringComparison.Ordinal) &&
                             !entry.Name.StartsWith(
                                 OpaqueOverlayMeshPrefix, StringComparison.Ordinal))
             .Sum(entry => CountNonDegenerateTriangles(SmoMeshDecoder.Decode(output, entry)));
-        if (retained != ExpectedOpaqueBodyTriangles ||
-            overlay != ExpectedOpaqueOverlayTriangles ||
-            alpha != ExpectedAlphaTriangles ||
+        if (retained != 0 ||
+            opaqueBody != expectedOpacity.OpaqueBody ||
+            overlay != expectedOpacity.OpaqueOverlay ||
+            alpha != expectedOpacity.Alpha ||
             unexpectedAdded != 0 ||
             result.TriangleCount != ExpectedTriangleCount ||
             result.MeshSlotCount != outputMeshes.Length ||
@@ -527,135 +607,114 @@ internal static class DaphneMode3Regression
             result.Sha256 != Convert.ToHexString(SHA256.HashData(output.Data.Span)))
         {
             throw new InvalidDataException(
-                "Daphne writer result changed: expected retained/overlay/alpha/total " +
-                $"{ExpectedOpaqueBodyTriangles}/{ExpectedOpaqueOverlayTriangles}/" +
-                $"{ExpectedAlphaTriangles}/{ExpectedTriangleCount}, got " +
-                $"{retained}/{overlay}/{alpha}/{result.TriangleCount}; " +
+                "Daphne writer result changed: expected retained/body/overlay/alpha/total " +
+                $"0/{expectedOpacity.OpaqueBody}/{expectedOpacity.OpaqueOverlay}/" +
+                $"{expectedOpacity.Alpha}/{ExpectedTriangleCount}, got " +
+                $"{retained}/{opaqueBody}/{overlay}/{alpha}/{result.TriangleCount}; " +
                 $"unexpected added triangles={unexpectedAdded}.");
         }
 
-        SmoObjectEntry outputPrimaryTexture = output.Objects.Single(entry =>
-            entry.Id == primaryTextureObjectId &&
-            entry.TypeHash == SmoClassIds.TextureData);
-        if (!SmoTextureDecoder.TryDecode(
-                output,
-                outputPrimaryTexture,
-                out SmoTexture? writtenAtlas,
-                out string textureError) || writtenAtlas is null)
+        HashSet<uint> targetTextureIds = target.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
+            .Select(entry => entry.Id)
+            .ToHashSet();
+        if (output.Objects.Any(entry =>
+                entry.TypeHash == SmoClassIds.TextureData &&
+                targetTextureIds.Contains(entry.Id)))
         {
             throw new InvalidDataException(
-                "Daphne written atlas could not be decoded: " + textureError);
+                "Daphne clean rebuild retained one or more old TextureData object IDs.");
         }
-        VerifyWrittenAtlasMatchesPreview(writtenAtlas, preview.Textures.Single());
-    }
-
-    private static void VerifyWrittenAtlasMatchesPreview(
-        SmoTexture written,
-        ImportedTexture preview)
-    {
-        using Image<Rgba32> expected = Image.Load<Rgba32>(preview.Data);
-        if (written.Width != expected.Width || written.Height != expected.Height ||
-            written.Bgra32Pixels.Length != checked(expected.Width * expected.Height * 4))
+        HashSet<uint> targetMaterialIds = target.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.MaterialData)
+            .Select(entry => entry.Id)
+            .ToHashSet();
+        if (output.Objects.Any(entry =>
+                entry.TypeHash == SmoClassIds.MaterialData &&
+                targetMaterialIds.Contains(entry.Id)))
         {
             throw new InvalidDataException(
-                "Daphne written atlas dimensions differ from final preview.");
+                "Daphne clean rebuild retained one or more old spMaterialData object IDs.");
         }
-        ReadOnlySpan<byte> actual = written.Bgra32Pixels.Span;
-        int offset = 0;
-        for (int y = 0; y < expected.Height; y++)
-        for (int x = 0; x < expected.Width; x++, offset += 4)
+        SmoTexture[] addedTextures = output.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData &&
+                            !targetTextureIds.Contains(entry.Id))
+            .Select(entry =>
+            {
+                if (!SmoTextureDecoder.TryDecode(
+                        output, entry, out SmoTexture? texture, out string error) ||
+                    texture is null)
+                {
+                    throw new InvalidDataException(
+                        $"Daphne generated texture [{entry.Index}] could not be decoded: {error}");
+                }
+                return texture;
+            })
+            .ToArray();
+        if (addedTextures.Length != preview.Textures.Count)
         {
-            Rgba32 pixel = expected[x, y];
-            if (actual[offset] != pixel.B || actual[offset + 1] != pixel.G ||
-                actual[offset + 2] != pixel.R || actual[offset + 3] != pixel.A)
+            throw new InvalidDataException(
+                $"Daphne writer added {addedTextures.Length} textures, expected " +
+                $"{preview.Textures.Count} independent source textures.");
+        }
+        var unmatched = addedTextures.ToList();
+        foreach (ImportedTexture expected in preview.Textures)
+        {
+            int match = unmatched.FindIndex(actual =>
+                actual.Width == expected.Width &&
+                actual.Height == expected.Height &&
+                ImportedTextureImageTools.SerializedBgraMatches(
+                    expected.Data,
+                    actual.Width,
+                    actual.Height,
+                    actual.Bgra32Pixels.Span,
+                    out _));
+            if (match < 0)
             {
                 throw new InvalidDataException(
-                    $"Daphne written atlas pixel ({x}, {y}) differs from preview.");
+                    $"Daphne source texture {expected.Name} has no exact independent " +
+                    "TextureData match in the written SMO.");
             }
+            unmatched.RemoveAt(match);
         }
     }
 
-    private static EyeBranchSnapshot CaptureEyeBranch(SmoDocument document)
+    private static OldVisualSnapshot CaptureOldVisuals(SmoDocument document)
     {
-        SmoObjectEntry textureEntry = document.Objects.SingleOrDefault(entry =>
-            entry.TypeHash == SmoClassIds.TextureData &&
-            entry.Name.Equals("bloomeye", StringComparison.OrdinalIgnoreCase)) ??
-            throw new InvalidDataException(
-                "Daphne fixture target has no unique bloomeye TextureData object.");
-        IReadOnlyDictionary<int, SmoTextureBinding> bindings =
-            SmoTextureBindingResolver.ResolveAll(document);
-        SmoObjectEntry meshEntry = document.Objects.SingleOrDefault(entry =>
-            entry.TypeHash == SmoClassIds.MeshData &&
-            bindings.TryGetValue(entry.Index, out SmoTextureBinding? binding) &&
-            binding.Texture?.ObjectIndex == textureEntry.Index) ??
-            throw new InvalidDataException(
-                "Daphne fixture target has no unique mesh bound to bloomeye.");
-        SmoObjectEntry skinEntry = FindAncestorSkin(document, meshEntry);
-        if (!SmoSkinDecoder.TryDecode(
-                document, skinEntry, out SmoSkin? skin, out string skinError) ||
-            skin is null)
-        {
-            throw new InvalidDataException(
-                "Daphne eye skin could not be decoded: " + skinError);
-        }
-        if (skin.Bones.Count != 16 || skin.Bones.Any(bone =>
-                !document.Objects[bone.NodeObjectIndex].Name.Equals(
-                    "Head", StringComparison.Ordinal)))
-        {
-            throw new InvalidDataException(
-                "Daphne eye skin is not the expected 16-slot Head-only palette.");
-        }
-        return new EyeBranchSnapshot(
-            textureEntry.Id,
-            ObjectBytes(document, textureEntry),
-            skinEntry.Id,
-            GetParentObjectId(document, skinEntry),
-            skinEntry.Name,
-            skin.Bones.Select(bone => new EyeBoneSnapshot(
-                    bone.PaletteIndex,
-                    bone.NodeObjectId,
-                    bone.InlineSerializedSize != 0,
-                    bone.InverseBindMatrix))
-                .ToArray());
+        return new OldVisualSnapshot(
+            document.Objects
+                .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
+                .Select(entry => entry.Id)
+                .ToHashSet(),
+            document.Objects
+                .Where(entry => entry.TypeHash == SmoClassIds.MaterialData)
+                .Select(entry => entry.Id)
+                .ToHashSet(),
+            document.Objects
+                .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
+                .Select(entry => entry.Id)
+                .ToHashSet());
     }
 
-    private static void VerifyEyeBranch(
+    private static void VerifyOldVisualsRemoved(
         SmoDocument output,
-        EyeBranchSnapshot expected)
+        OldVisualSnapshot expected)
     {
-        SmoObjectEntry textureEntry = output.Objects.Single(entry =>
-            entry.Id == expected.TextureObjectId &&
-            entry.TypeHash == SmoClassIds.TextureData);
-        if (!ObjectBytes(output, textureEntry).SequenceEqual(expected.SerializedTexture))
+        uint[] leaked = output.Objects
+            .Where(entry =>
+                (entry.TypeHash == SmoClassIds.MeshData &&
+                 expected.MeshObjectIds.Contains(entry.Id)) ||
+                (entry.TypeHash == SmoClassIds.MaterialData &&
+                 expected.MaterialObjectIds.Contains(entry.Id)) ||
+                (entry.TypeHash == SmoClassIds.TextureData &&
+                 expected.TextureObjectIds.Contains(entry.Id)))
+            .Select(entry => entry.Id)
+            .ToArray();
+        if (leaked.Length != 0)
         {
             throw new InvalidDataException(
-                "Daphne 2-to-1 atlas fallback changed the unpaired bloomeye TextureData.");
-        }
-        SmoObjectEntry skinEntry = output.Objects.Single(entry =>
-            entry.Id == expected.SkinObjectId && entry.TypeHash == SmoClassIds.Skin);
-        string skinError = string.Empty;
-        if (skinEntry.Name != expected.SkinName ||
-            GetParentObjectId(output, skinEntry) != expected.SkinParentObjectId ||
-            !SmoSkinDecoder.TryDecode(
-                output, skinEntry, out SmoSkin? skin, out skinError) ||
-            skin is null || skin.Bones.Count != expected.Bones.Count)
-        {
-            throw new InvalidDataException(
-                "Daphne eye skin identity/palette could not be preserved: " + skinError);
-        }
-        for (int index = 0; index < expected.Bones.Count; index++)
-        {
-            EyeBoneSnapshot before = expected.Bones[index];
-            SmoSkinBone after = skin.Bones[index];
-            if (after.PaletteIndex != before.PaletteIndex ||
-                after.NodeObjectId != before.NodeObjectId ||
-                (after.InlineSerializedSize != 0) != before.IsInline ||
-                !after.InverseBindMatrix.Equals(before.InverseBindMatrix))
-            {
-                throw new InvalidDataException(
-                    $"Daphne eye palette slot {index} changed target node, inline " +
-                    "identity or inverse bind matrix.");
-            }
+                "Daphne clean rebuild leaked old visual object IDs: " +
+                string.Join(", ", leaked) + ".");
         }
     }
 
@@ -813,17 +872,8 @@ internal static class DaphneMode3Regression
         hash.AppendData(bytes);
     }
 
-    private sealed record EyeBranchSnapshot(
-        uint TextureObjectId,
-        byte[] SerializedTexture,
-        uint SkinObjectId,
-        uint? SkinParentObjectId,
-        string SkinName,
-        IReadOnlyList<EyeBoneSnapshot> Bones);
-
-    private sealed record EyeBoneSnapshot(
-        int PaletteIndex,
-        uint NodeObjectId,
-        bool IsInline,
-        Matrix4x4 InverseBindMatrix);
+    private sealed record OldVisualSnapshot(
+        IReadOnlySet<uint> MeshObjectIds,
+        IReadOnlySet<uint> MaterialObjectIds,
+        IReadOnlySet<uint> TextureObjectIds);
 }

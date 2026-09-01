@@ -26,7 +26,7 @@ public sealed record TargetRigJoint(
 /// Immutable, read-only definition of the target game's deformation rig. It is
 /// derived from confirmed skin palettes and uses the same parent convention as
 /// <c>SmoSceneBuilder</c>: one unambiguous logical <c>esfNodeChild</c> parent wins,
-/// otherwise the validated serializer parent is used as the compatibility fallback.
+/// otherwise the validated serializer parent supplies the confirmed parent relation.
 /// </summary>
 public sealed class TargetRigDefinition
 {

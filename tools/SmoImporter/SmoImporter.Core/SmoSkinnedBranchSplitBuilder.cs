@@ -15,7 +15,10 @@ internal sealed record SmoSkinnedBranchSourceMesh(
     Vector2[] TextureCoordinates,
     uint[] DiffuseColorsArgb,
     uint[] TriangleIndices,
-    ImportedSkinning Skinning);
+    ImportedSkinning Skinning)
+{
+    public Vector2[] SecondaryTextureCoordinates { get; init; } = [];
+}
 
 internal enum SmoSkinnedRenderableMaterialFamily
 {
@@ -102,15 +105,18 @@ internal sealed record SmoSurfaceOverlayNormalConformResult(
     int ConformedVertexCount);
 
 /// <summary>
-/// Builds independent post-body native Bloom material runs for opaque overlays
-/// and true-alpha surfaces. Each source renderable starts its own material/spSkin
-/// draw unit and may add palette/vertex continuations. Continuation skins inherit
-/// their run-start material exactly like shipped split spSkin sequences.
+/// Builds independent post-body native material runs for opaque overlays
+/// and true-alpha surfaces. Every generated spSkin owns an explicit material;
+/// palette/vertex continuations never depend on ambient renderer state. Shipped
+/// files may omit continuation materials inside one native run, but that rule is
+/// not safe after independently textured donor runs have been rebuilt.
 /// </summary>
 internal static class SmoSkinnedBranchSplitBuilder
 {
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
+    private const int SerializedTextureMarkerOffset = 0x3C;
+    private const int SerializedTexturePixelOffset = 0x3D;
     private const int PaletteCapacity = 16;
     private const float WeightEpsilon = 0.000001f;
     private const uint SharedFogClassId = SmoClassIds.Fog;
@@ -380,6 +386,7 @@ internal static class SmoSkinnedBranchSplitBuilder
 
         var classifications = new Dictionary<
             int, SmoSkinnedRenderableMaterialFamily[]>();
+        bool textureHasAlpha = prefix[image.Height, image.Width] > 0;
         int opaqueBodyCount = 0;
         int opaqueOverlayCount = 0;
         int alphaCount = 0;
@@ -403,16 +410,17 @@ internal static class SmoSkinnedBranchSplitBuilder
                 triangleVertices[index] = first;
                 triangleVertices[index + 1] = second;
                 triangleVertices[index + 2] = third;
-                triangleUsesAlpha[triangle] = TriangleCanSampleAlpha(
-                    mesh.TextureCoordinates[first],
-                    mesh.TextureCoordinates[second],
-                    mesh.TextureCoordinates[third],
-                    image.Width,
-                    image.Height,
-                    alpha,
-                    prefix,
-                    mesh.Name,
-                    triangle);
+                triangleUsesAlpha[triangle] = textureHasAlpha &&
+                    TriangleCanSampleAlpha(
+                        mesh.TextureCoordinates[first],
+                        mesh.TextureCoordinates[second],
+                        mesh.TextureCoordinates[third],
+                        image.Width,
+                        image.Height,
+                        alpha,
+                        prefix,
+                        mesh.Name,
+                        triangle);
             }
             SmoSkinnedRenderableMaterialFamily[] values =
                 materialProfile.GetMode(mesh.Key) switch
@@ -552,11 +560,14 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
         SmoSkinnedRenderableOpacityPlan opacity,
         IReadOnlyDictionary<string, string> boneRemap,
-        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
+        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
+        bool includeOpaqueBody = false)
     {
-        BuildContext context = BuildContext.Create(target, textureObjectId);
+        BuildContext context = BuildContext.Create(
+            target, textureObjectId, RequiresSecondaryUv(meshes));
+        EnsureSecondaryUvSupport(target, context.MeshTemplate, meshes);
         PalettePlan[] plans = BuildPalettePlans(
-            meshes, opacity, boneRemap, targetInverseBind);
+            meshes, opacity, boneRemap, targetInverseBind, includeOpaqueBody);
         int vertices = plans.Sum(plan => CountUniqueVertices(plan.Triangles));
         return new SmoSkinnedBranchSplitAnalysis(
             plans.Length,
@@ -571,11 +582,50 @@ internal static class SmoSkinnedBranchSplitBuilder
         SmoSkinnedRenderableOpacityPlan opacity,
         IReadOnlyDictionary<string, string> boneRemap,
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
+        => InjectCore(
+            target,
+            textureObjectId,
+            meshes,
+            opacity,
+            boneRemap,
+            targetInverseBind,
+            importedTexture: null,
+            includeOpaqueBody: false);
+
+    public static SmoSkinnedBranchSplitResult InjectImportedTexture(
+        SmoDocument target,
+        uint textureTemplateObjectId,
+        ImportedTexture importedTexture,
+        IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
+        SmoSkinnedRenderableOpacityPlan opacity,
+        IReadOnlyDictionary<string, string> boneRemap,
+        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
+        => InjectCore(
+            target,
+            textureTemplateObjectId,
+            meshes,
+            opacity,
+            boneRemap,
+            targetInverseBind,
+            importedTexture,
+            includeOpaqueBody: true);
+
+    private static SmoSkinnedBranchSplitResult InjectCore(
+        SmoDocument target,
+        uint textureObjectId,
+        IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
+        SmoSkinnedRenderableOpacityPlan opacity,
+        IReadOnlyDictionary<string, string> boneRemap,
+        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
+        ImportedTexture? importedTexture,
+        bool includeOpaqueBody)
     {
         ArgumentNullException.ThrowIfNull(target);
-        BuildContext context = BuildContext.Create(target, textureObjectId);
+        BuildContext context = BuildContext.Create(
+            target, textureObjectId, RequiresSecondaryUv(meshes));
+        EnsureSecondaryUvSupport(target, context.MeshTemplate, meshes);
         PalettePlan[] plans = BuildPalettePlans(
-            meshes, opacity, boneRemap, targetInverseBind);
+            meshes, opacity, boneRemap, targetInverseBind, includeOpaqueBody);
         if (plans.Length == 0)
         {
             return new SmoSkinnedBranchSplitResult(
@@ -591,6 +641,20 @@ internal static class SmoSkinnedBranchSplitBuilder
         var addedMeshIds = new HashSet<uint>();
         var addedObjectFamilies =
             new Dictionary<uint, SmoSkinnedRenderableMaterialFamily>();
+        BuiltObject? importedTextureObject = null;
+        uint materialTextureObjectId = textureObjectId;
+        if (importedTexture is not null)
+        {
+            uint importedTextureId = allocator.Take();
+            importedTextureObject = BuildTextureObject(
+                target,
+                context.Texture,
+                importedTextureId,
+                $"imp_t_{importedTextureId:X8}",
+                importedTexture);
+            materialTextureObjectId = importedTextureId;
+            addedIds.Add(importedTextureId);
+        }
         int vertexCount = 0;
         int triangleCount = 0;
         int materialRunIndex = 0;
@@ -599,7 +663,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         {
             PalettePlan plan = plans[branchIndex];
             bool expectedRunStart = branchIndex == 0 ||
-                plans[branchIndex - 1].SourceMeshKey != plan.SourceMeshKey;
+                plans[branchIndex - 1].SourceMeshKey != plan.SourceMeshKey ||
+                plans[branchIndex - 1].MaterialFamily != plan.MaterialFamily;
             if (plan.StartsRenderable != expectedRunStart)
             {
                 throw new InvalidDataException(
@@ -607,36 +672,39 @@ internal static class SmoSkinnedBranchSplitBuilder
             }
             uint skinId = allocator.Take();
             uint meshId = allocator.Take();
-            string prefix = plan.MaterialFamily ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
-                    ? "imp_o"
-                    : "imp_a";
-            BuiltObject? material = null;
-            if (plan.StartsRenderable)
+            string prefix = plan.MaterialFamily switch
             {
-                uint materialId = allocator.Take();
-                material = plan.MaterialFamily ==
-                    SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
-                        ? BuildOpaqueOverlayMaterial(
-                            target,
-                            context,
-                            materialId,
-                            $"{prefix}_m_{textureObjectId:X8}_{materialRunIndex:D2}")
-                        : BuildSkinnedTransparentSurfaceMaterial(
-                            target,
-                            context,
-                            materialId,
-                            $"{prefix}_m_{textureObjectId:X8}_{materialRunIndex:D2}");
-                addedIds.Add(materialId);
-                addedObjectFamilies.Add(materialId, plan.MaterialFamily);
-                materialRunIndex++;
-            }
+                SmoSkinnedRenderableMaterialFamily.OpaqueBody => "imp_b",
+                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay => "imp_o",
+                _ => "imp_a"
+            };
+            uint materialId = allocator.Take();
+            BuiltObject material = plan.MaterialFamily !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
+                    ? BuildOpaqueOverlayMaterial(
+                        target,
+                        context,
+                        materialId,
+                        $"{prefix}_m_{materialTextureObjectId:X8}_{materialRunIndex:D2}",
+                        materialTextureObjectId,
+                        importedTextureObject)
+                    : BuildSkinnedTransparentSurfaceMaterial(
+                        target,
+                        context,
+                        materialId,
+                        $"{prefix}_m_{materialTextureObjectId:X8}_{materialRunIndex:D2}",
+                        materialTextureObjectId,
+                        importedTextureObject);
+            importedTextureObject = null;
+            addedIds.Add(materialId);
+            addedObjectFamilies.Add(materialId, plan.MaterialFamily);
+            materialRunIndex++;
 
             BuiltObject mesh = BuildMesh(
                 target,
                 context.MeshTemplate,
                 meshId,
-                $"{prefix}_x_{textureObjectId:X8}_{branchIndex:D2}",
+                $"{prefix}_x_{materialTextureObjectId:X8}_{branchIndex:D2}",
                 plan,
                 boneRemap);
             SmoObjectEntry skinTemplate = plan.StartsRenderable
@@ -647,7 +715,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                 context,
                 skinTemplate,
                 skinId,
-                $"{prefix}_s_{textureObjectId:X8}_{branchIndex:D2}",
+                $"{prefix}_s_{materialTextureObjectId:X8}_{branchIndex:D2}",
                 plan.MaterialFamily,
                 material,
                 mesh,
@@ -681,6 +749,8 @@ internal static class SmoSkinnedBranchSplitBuilder
             target,
             result,
             textureObjectId,
+            materialTextureObjectId,
+            importedTexture,
             targetInverseBind,
             materialRunIndex);
         return result;
@@ -690,7 +760,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
         SmoSkinnedRenderableOpacityPlan opacity,
         IReadOnlyDictionary<string, string> boneRemap,
-        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
+        IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
+        bool includeOpaqueBody)
     {
         ArgumentNullException.ThrowIfNull(meshes);
         ArgumentNullException.ThrowIfNull(opacity);
@@ -703,7 +774,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         {
             TrianglePlan[] branchTriangles = Enumerable.Range(
                     0, mesh.TriangleIndices.Length / 3)
-                .Where(triangle => opacity.IsSeparateBranch(mesh.Key, triangle))
+                .Where(triangle => includeOpaqueBody ||
+                    opacity.IsSeparateBranch(mesh.Key, triangle))
                 .Select(triangle => new TrianglePlan(
                     mesh,
                     triangle,
@@ -746,13 +818,15 @@ internal static class SmoSkinnedBranchSplitBuilder
                 selected.Triangles.Add(triangle);
             }
 
-            int firstPlanForRenderable = split.Count;
             foreach (PalettePlan source in bins)
             {
+                bool startsMaterialRun = split.Count == 0 ||
+                    split[^1].SourceMeshKey != mesh.Key ||
+                    split[^1].MaterialFamily != source.MaterialFamily;
                 PalettePlan current = new(
                     split.Count,
                     mesh.Key,
-                    split.Count == firstPlanForRenderable,
+                    startsMaterialRun,
                     source.MaterialFamily,
                     source.Bones);
                 var vertices = new HashSet<(int Mesh, int Vertex)>();
@@ -779,7 +853,10 @@ internal static class SmoSkinnedBranchSplitBuilder
                     split.Add(current);
             }
         }
-        if (classifiedTriangleCount != opacity.SeparateBranchTriangleCount)
+        int expectedTriangleCount = includeOpaqueBody
+            ? meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)
+            : opacity.SeparateBranchTriangleCount;
+        if (classifiedTriangleCount != expectedTriangleCount)
             throw new InvalidDataException(
                 "Separate renderable classification count changed before branch planning.");
         return split.ToArray();
@@ -833,15 +910,130 @@ internal static class SmoSkinnedBranchSplitBuilder
         }
     }
 
+    private static BuiltObject BuildTextureObject(
+        SmoDocument document,
+        SmoObjectEntry templateEntry,
+        uint id,
+        string name,
+        ImportedTexture imported)
+    {
+        if (!SmoTextureDecoder.TryDecode(
+                document, templateEntry, out SmoTexture? template, out string textureError) ||
+            template is null)
+        {
+            throw new InvalidDataException(textureError);
+        }
+        if (template.FormatCode is not (0x32E3 or 0x43E3) ||
+            template.SourceLayout != SmoTextureLayout.Bgra)
+        {
+            throw new NotSupportedException(
+                $"Texture template [{templateEntry.Index}] must be BGRA 0x32E3/0x43E3.");
+        }
+        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
+                imported.Width, imported.Height) ||
+            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
+            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
+        {
+            throw new InvalidDataException(
+                $"Texture {imported.Name} has unsupported dimensions " +
+                $"{imported.Width}x{imported.Height}.");
+        }
+
+        using Image<Rgba32> image = Image.Load<Rgba32>(imported.Data);
+        if (image.Width != imported.Width || image.Height != imported.Height)
+        {
+            throw new InvalidDataException(
+                $"Texture {imported.Name} declares {imported.Width}x{imported.Height}, " +
+                $"but its image is {image.Width}x{image.Height}.");
+        }
+        byte[] pixels = EncodeBgra(image);
+        ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
+        int oldPixelSize = checked(template.Width * template.Height * 4);
+        if (source.Length < SerializedTexturePixelOffset + oldPixelSize ||
+            source[SerializedTextureMarkerOffset] != 0)
+        {
+            throw new InvalidDataException(
+                $"Texture template [{templateEntry.Index}] has an unsupported serialized layout.");
+        }
+        int oldPixelEnd = checked(SerializedTexturePixelOffset + oldPixelSize);
+        byte[] result = new byte[checked(source.Length - oldPixelSize + pixels.Length)];
+        source[..SerializedTexturePixelOffset].CopyTo(result);
+        pixels.CopyTo(result.AsSpan(SerializedTexturePixelOffset));
+        source[oldPixelEnd..].CopyTo(
+            result.AsSpan(SerializedTexturePixelOffset + pixels.Length));
+        PatchTextureHeader(
+            result,
+            oldPixelSize,
+            pixels.Length,
+            imported.Width,
+            imported.Height);
+        if (result[SerializedTextureMarkerOffset] != 0)
+            throw new InvalidDataException("Texture serializer marker was modified.");
+        return BuiltObject.CreateRoot(
+            id, RawName(name), SmoClassIds.TextureData, result);
+    }
+
+    private static byte[] EncodeBgra(Image<Rgba32> image)
+    {
+        byte[] result = new byte[checked(image.Width * image.Height * 4)];
+        int offset = 0;
+        image.ProcessPixelRows(accessor =>
+        {
+            for (int y = 0; y < image.Height; y++)
+            {
+                foreach (Rgba32 pixel in accessor.GetRowSpan(y))
+                {
+                    result[offset] = pixel.B;
+                    result[offset + 1] = pixel.G;
+                    result[offset + 2] = pixel.R;
+                    result[offset + 3] = pixel.A;
+                    offset += 4;
+                }
+            }
+        });
+        return result;
+    }
+
+    private static void PatchTextureHeader(
+        Span<byte> data,
+        int oldPixelSize,
+        int newPixelSize,
+        int width,
+        int height)
+    {
+        int delta = checked(newPixelSize - oldPixelSize);
+        AddUInt32(data, 0x09, delta);
+        AddUInt32(data, 0x1A, delta);
+        AddUInt32(data, 0x1F, delta);
+        WriteUInt32(data, 0x24, checked((uint)width));
+        WriteUInt32(data, 0x28, checked((uint)height));
+        WriteUInt32(data, 0x2C, 0);
+        WriteUInt32(data, 0x30, checked(((uint)width << 8) | 1));
+        WriteUInt32(data, 0x34, checked((uint)width << 10));
+        WriteUInt32(data, 0x38, checked((uint)height << 8));
+    }
+
+    private static void AddUInt32(Span<byte> data, int offset, int delta)
+    {
+        long value = checked(
+            (long)BinaryPrimitives.ReadUInt32LittleEndian(data[offset..]) + delta);
+        BinaryPrimitives.WriteUInt32LittleEndian(
+            data[offset..], checked((uint)value));
+    }
+
     private static BuiltObject BuildSkinnedTransparentSurfaceMaterial(
         SmoDocument document,
         BuildContext context,
         uint id,
-        string name) => BuildMaterial(
+        string name,
+        uint textureObjectId,
+        BuiltObject? inlineTexture) => BuildMaterial(
         document,
         context,
         id,
         name,
+        textureObjectId,
+        inlineTexture,
         SkinnedTransparentSurfaceFinalBlendOperation,
         SkinnedTransparentSurfaceMaterialRenderStates,
         SkinnedTransparentSurfaceLightingTextureStates);
@@ -850,11 +1042,15 @@ internal static class SmoSkinnedBranchSplitBuilder
         SmoDocument document,
         BuildContext context,
         uint id,
-        string name) => BuildMaterial(
+        string name,
+        uint textureObjectId,
+        BuiltObject? inlineTexture) => BuildMaterial(
         document,
         context,
         id,
         name,
+        textureObjectId,
+        inlineTexture,
         OpaqueOverlayFinalBlendOperation,
         OpaqueOverlayMaterialRenderStates,
         OpaqueOverlayLightingTextureStates);
@@ -864,6 +1060,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         BuildContext context,
         uint id,
         string name,
+        uint textureObjectId,
+        BuiltObject? inlineTexture,
         uint finalBlendOperation,
         IReadOnlyList<uint> materialRenderStates,
         IReadOnlyList<uint> lightingTextureStates)
@@ -873,13 +1071,20 @@ internal static class SmoSkinnedBranchSplitBuilder
             document, context.OpaqueMaterial, context.Texture);
         using var stream = new MemoryStream();
         stream.Write(source[..ObjectSignatureSize]);
+        var placements = new List<ObjectPlacement>
+        {
+            new(id, RawName(name), SmoClassIds.MaterialData, 0, 0)
+        };
         int offset = ObjectSignatureSize;
         while (offset < source.Length &&
                SmoDataBlockReader.TryReadHeader(source, offset, out SmoDataBlockHeader field))
         {
             if (field.Offset == textureField.Offset)
             {
-                WriteReferenceOnlyField(stream, source, field, context.Texture.Id);
+                if (inlineTexture is not null)
+                    WriteResizedInlineField(stream, source, field, inlineTexture, placements);
+                else
+                    WriteReferenceOnlyField(stream, source, field, textureObjectId);
             }
             else if (field.FieldType == 0 &&
                      field.PayloadSize == materialRenderStates.Count * sizeof(uint))
@@ -911,8 +1116,11 @@ internal static class SmoSkinnedBranchSplitBuilder
             throw new InvalidDataException(
                 $"Material template [{context.OpaqueMaterial.Index}] has an invalid field stream.");
         byte[] data = stream.ToArray();
-        return BuiltObject.CreateRoot(
-            id, RawName(name), SmoClassIds.MaterialData, data);
+        placements[0] = placements[0] with
+        {
+            SerializedSize = checked((uint)data.Length)
+        };
+        return new BuiltObject(data, placements, 0, 0);
     }
 
     private static BuiltObject BuildMesh(
@@ -1033,6 +1241,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         {
             uint diffuse = materialFamily switch
             {
+                SmoSkinnedRenderableMaterialFamily.OpaqueBody =>
+                    OpaqueOverlayVertexDiffuse,
                 SmoSkinnedRenderableMaterialFamily.OpaqueOverlay =>
                     OpaqueOverlayVertexDiffuse,
                 SmoSkinnedRenderableMaterialFamily.AlphaBlend =>
@@ -1043,10 +1253,15 @@ internal static class SmoSkinnedBranchSplitBuilder
             WriteUInt32(record, diffuseOffset, diffuse);
         }
         Vector2 uv = mesh.TextureCoordinates[vertex];
+        Vector2 uv1 = SmoSkinnedUvTransfer.SecondaryOrPrimary(
+            mesh.TextureCoordinates,
+            mesh.SecondaryTextureCoordinates,
+            vertex,
+            mesh.Positions.Length);
         if (layout.TextureCoordinate0Offset is int uv0Offset)
             WriteVector2(record, uv0Offset, uv);
         if (layout.TextureCoordinate1Offset is int uv1Offset)
-            WriteVector2(record, uv1Offset, uv);
+            WriteVector2(record, uv1Offset, uv1);
 
         var influences = new Dictionary<byte, float>();
         Vector4 sourceWeights = mesh.Skinning.Weights[vertex];
@@ -1110,15 +1325,25 @@ internal static class SmoSkinnedBranchSplitBuilder
             entry.TypeHash == SmoClassIds.MeshData);
         SmoDataBlockHeader meshField = FindInlineChildField(
             document, templateEntry, templateMesh);
-        SmoDataBlockHeader paletteField = FindPaletteField(source, PaletteCapacity);
+        if (!SmoSkinDecoder.TryDecode(
+                document, templateEntry, out SmoSkin? templatePalette,
+                out string templatePaletteError) || templatePalette is null)
+        {
+            throw new InvalidDataException(
+                $"Skin template [{templateEntry.Index}] palette cannot be decoded: " +
+                templatePaletteError);
+        }
+        SmoDataBlockHeader paletteField = FindPaletteField(
+            source, templatePalette.Bones.Count);
         SmoDataBlockHeader helperField = FindObjectReferenceField(
             source, context.Helper.Id);
-        SmoDataBlockHeader? materialField = null;
-        if (material is not null)
-        {
-            materialField = FindInlineChildField(
-                document, templateEntry, context.OpaqueMaterial);
-        }
+        // A shipped continuation may omit its material and inherit one ambient
+        // native run. Generated branches are self-contained and therefore add
+        // an inline material even when the continuation template has no field.
+        SmoDataBlockHeader? materialField =
+            templatePalette.Renderable.Material is { ObjectId: > 0 } relationship
+                ? FindObjectReferenceField(source, relationship.ObjectId)
+                : null;
         byte[] palette = BuildReferencePaletteField(
             source.Slice(paletteField.Offset, paletteField.HeaderSize),
             paletteField,
@@ -1132,13 +1357,32 @@ internal static class SmoSkinnedBranchSplitBuilder
         {
             new(id, RawName(name), SmoClassIds.Skin, 0, 0)
         };
+        if (material is not null && materialField is null)
+        {
+            ReadOnlySpan<byte> primarySource =
+                ObjectBytes(document, context.PrimarySkin);
+            SmoDataBlockHeader primaryMaterialField = FindInlineChildField(
+                document, context.PrimarySkin, context.OpaqueMaterial);
+            WriteResizedInlineField(
+                stream,
+                primarySource,
+                primaryMaterialField,
+                material,
+                placements);
+        }
         int offset = ObjectSignatureSize;
         while (offset < source.Length &&
                SmoDataBlockReader.TryReadHeader(source, offset, out SmoDataBlockHeader field))
         {
-            if (materialField.HasValue && field.Offset == materialField.Value.Offset)
+            if (materialField.HasValue && field.Offset == materialField.Value.Offset &&
+                material is not null)
             {
-                WriteResizedInlineField(stream, source, field, material!, placements);
+                WriteResizedInlineField(stream, source, field, material, placements);
+            }
+            else if (materialField.HasValue && field.Offset == materialField.Value.Offset)
+            {
+                // Retained only for callers that intentionally request a
+                // material-less copy of a material-bearing template.
             }
             else if (field.Offset == helperField.Offset)
             {
@@ -1157,6 +1401,8 @@ internal static class SmoSkinnedBranchSplitBuilder
                 stream.Write(source.Slice(field.Offset, field.HeaderSize));
                 uint alphaSortEnable = materialFamily switch
                 {
+                    SmoSkinnedRenderableMaterialFamily.OpaqueBody =>
+                        OpaqueOverlayAlphaSortEnable,
                     SmoSkinnedRenderableMaterialFamily.OpaqueOverlay =>
                         OpaqueOverlayAlphaSortEnable,
                     SmoSkinnedRenderableMaterialFamily.AlphaBlend =>
@@ -1258,7 +1504,9 @@ internal static class SmoSkinnedBranchSplitBuilder
     private static void Verify(
         SmoDocument target,
         SmoSkinnedBranchSplitResult result,
-        uint textureObjectId,
+        uint textureTemplateObjectId,
+        uint materialTextureObjectId,
+        ImportedTexture? importedTexture,
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
         int expectedMaterialRunCount)
     {
@@ -1327,16 +1575,16 @@ internal static class SmoSkinnedBranchSplitBuilder
                 errors.Add($"generated material ID {material.Id} has no planned family");
                 continue;
             }
-            uint expectedBlend = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            uint expectedBlend = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayFinalBlendOperation
                     : SkinnedTransparentSurfaceFinalBlendOperation;
-            IReadOnlyList<uint> expectedRenderStates = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            IReadOnlyList<uint> expectedRenderStates = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayMaterialRenderStates
                     : SkinnedTransparentSurfaceMaterialRenderStates;
-            IReadOnlyList<uint> expectedLightingStates = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            IReadOnlyList<uint> expectedLightingStates = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayLightingTextureStates
                     : SkinnedTransparentSurfaceLightingTextureStates;
             if (!SmoMaterialRenderState.TryDecode(
@@ -1362,11 +1610,42 @@ internal static class SmoSkinnedBranchSplitBuilder
         }
 
         SmoObjectEntry sourceTexture = target.Objects.Single(entry =>
-            entry.Id == textureObjectId &&
+            entry.Id == textureTemplateObjectId &&
             entry.TypeHash == SmoClassIds.TextureData);
         SmoObjectEntry sourceMaterial = target.Objects[sourceTexture.ParentIndex!.Value];
         SmoObjectEntry sourceSkin = target.Objects[sourceMaterial.ParentIndex!.Value];
         uint sourceRenderId = target.Objects[sourceSkin.ParentIndex!.Value].Id;
+
+        if (importedTexture is not null)
+        {
+            SmoObjectEntry? generatedTexture = output.Objects.SingleOrDefault(entry =>
+                entry.Id == materialTextureObjectId &&
+                entry.TypeHash == SmoClassIds.TextureData);
+            if (generatedTexture is null ||
+                !result.AddedObjectIds.Contains(materialTextureObjectId))
+            {
+                errors.Add("generated donor TextureData is absent");
+            }
+            else if (!SmoTextureDecoder.TryDecode(
+                         output,
+                         generatedTexture,
+                         out SmoTexture? decodedTexture,
+                         out string textureError) ||
+                     decodedTexture is null)
+            {
+                errors.Add("generated donor TextureData is invalid: " + textureError);
+            }
+            else if (!ImportedTextureImageTools.SerializedBgraMatches(
+                         importedTexture.Data,
+                         decodedTexture.Width,
+                         decodedTexture.Height,
+                         decodedTexture.Bgra32Pixels.Span,
+                         out string mismatch,
+                         resizeToExpected: false))
+            {
+                errors.Add("generated donor TextureData pixel mismatch: " + mismatch);
+            }
+        }
 
         IReadOnlyDictionary<int, SmoTextureBinding> bindings =
             SmoTextureBindingResolver.ResolveAll(output);
@@ -1388,8 +1667,8 @@ internal static class SmoSkinnedBranchSplitBuilder
                 errors.Add($"generated skin ID {skinId} is invalid: {skinError}");
                 continue;
             }
-            uint expectedAlphaSortEnable = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            uint expectedAlphaSortEnable = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayAlphaSortEnable
                     : SkinnedTransparentSurfaceAlphaSortEnable;
             if (skin.AlphaSortEnable != expectedAlphaSortEnable ||
@@ -1432,8 +1711,8 @@ internal static class SmoSkinnedBranchSplitBuilder
             }
             SmoMesh mesh = SmoMeshDecoder.Decode(output, meshEntry);
             triangles += mesh.TriangleCount;
-            uint expectedDiffuse = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            uint expectedDiffuse = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayVertexDiffuse
                     : SkinnedTransparentSurfaceVertexDiffuse;
             if (!mesh.HasDiffuseColors ||
@@ -1441,17 +1720,17 @@ internal static class SmoSkinnedBranchSplitBuilder
                 errors.Add(
                     $"generated mesh ID {meshId} changed {family} " +
                     $"vertex diffuse {expectedDiffuse:X8}");
-            uint expectedBlend = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            uint expectedBlend = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayFinalBlendOperation
                     : SkinnedTransparentSurfaceFinalBlendOperation;
-            IReadOnlyList<uint> expectedRenderStates = family ==
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay
+            IReadOnlyList<uint> expectedRenderStates = family !=
+                SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayMaterialRenderStates
                     : SkinnedTransparentSurfaceMaterialRenderStates;
             if (!bindings.TryGetValue(meshEntry.Index, out SmoTextureBinding? binding) ||
                 binding.Issue is not null || binding.Texture is null ||
-                output.Objects[binding.Texture.ObjectIndex].Id != textureObjectId ||
+                output.Objects[binding.Texture.ObjectIndex].Id != materialTextureObjectId ||
                 binding.MaterialRenderState?.FinalBlendOperation !=
                     expectedBlend ||
                 !binding.MaterialRenderState.MaterialRenderStates
@@ -1472,7 +1751,7 @@ internal static class SmoSkinnedBranchSplitBuilder
         if (errors.Count > 0)
         {
             throw new InvalidDataException(
-                "Native Bloom material branch verification failed: " +
+                "Native material branch verification failed: " +
                 string.Join("; ", errors.Distinct()) + ".");
         }
     }
@@ -1489,13 +1768,18 @@ internal static class SmoSkinnedBranchSplitBuilder
         int triangleOrdinal)
     {
         Vector2[] uv = [first, second, third];
-        if (uv.Any(value => !float.IsFinite(value.X) || !float.IsFinite(value.Y) ||
-                            value.X < 0 || value.X > 1 || value.Y < 0 || value.Y > 1))
+        if (uv.Any(value => !float.IsFinite(value.X) || !float.IsFinite(value.Y)))
         {
             throw new InvalidDataException(
-                $"Mesh {meshName} triangle {triangleOrdinal} has UV outside the " +
-                "verified atlas domain [0, 1].");
+                $"Mesh {meshName} triangle {triangleOrdinal} has a non-finite UV.");
         }
+        // Native per-texture branches preserve authored repeat/mirror UVs. A
+        // triangle outside the first tile may still hit any alpha texel after
+        // sampler wrapping, so classify it conservatively as alpha instead of
+        // rejecting or rewriting its UVs for an atlas.
+        if (uv.Any(value => value.X < 0 || value.X > 1 ||
+                            value.Y < 0 || value.Y > 1))
+            return true;
         Vector2 a = new(first.X * width - 0.5f, first.Y * height - 0.5f);
         Vector2 b = new(second.X * width - 0.5f, second.Y * height - 0.5f);
         Vector2 c = new(third.X * width - 0.5f, third.Y * height - 0.5f);
@@ -2274,6 +2558,38 @@ internal static class SmoSkinnedBranchSplitBuilder
         }
     }
 
+    private static void EnsureSecondaryUvSupport(
+        SmoDocument target,
+        SmoObjectEntry meshTemplate,
+        IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes)
+    {
+        SmoSkinnedBranchSourceMesh? distinct = meshes.FirstOrDefault(mesh =>
+            SmoSkinnedUvTransfer.HasDistinctSecondary(
+                mesh.TextureCoordinates,
+                mesh.SecondaryTextureCoordinates,
+                mesh.Positions.Length));
+        if (distinct is null)
+            return;
+
+        SmoMesh template = SmoMeshDecoder.Decode(target, meshTemplate);
+        if (!SmoVertexLayoutRegistry.TryGet(
+                template.VertexFormat, out SmoVertexLayout? layout) ||
+            layout?.TextureCoordinate1Offset is null)
+        {
+            throw new NotSupportedException(
+                $"Target alpha/overlay mesh template [{meshTemplate.Index}] has no " +
+                $"TEXCOORD_1 field, but donor mesh '{distinct.Name}' contains a " +
+                "distinct second UV channel.");
+        }
+    }
+
+    private static bool RequiresSecondaryUv(
+        IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes) => meshes.Any(mesh =>
+        SmoSkinnedUvTransfer.HasDistinctSecondary(
+            mesh.TextureCoordinates,
+            mesh.SecondaryTextureCoordinates,
+            mesh.Positions.Length));
+
     private sealed record BuildContext(
         SmoObjectEntry Render,
         SmoObjectEntry PrimarySkin,
@@ -2284,7 +2600,10 @@ internal static class SmoSkinnedBranchSplitBuilder
         SmoObjectEntry MeshTemplate,
         IReadOnlyDictionary<string, SmoObjectEntry> TargetNodes)
     {
-        public static BuildContext Create(SmoDocument target, uint textureObjectId)
+        public static BuildContext Create(
+            SmoDocument target,
+            uint textureObjectId,
+            bool requireSecondaryUv)
         {
             ArgumentNullException.ThrowIfNull(target);
             SmoObjectEntry texture = target.Objects.SingleOrDefault(entry =>
@@ -2310,13 +2629,15 @@ internal static class SmoSkinnedBranchSplitBuilder
                 entry.ParentIndex == primarySkin.Index &&
                 entry.TypeHash == SharedFogClassId) ??
                 throw new NotSupportedException(
-                    "Primary Bloom skin has no native shared visual helper template.");
-            SmoObjectEntry mesh = target.Objects.SingleOrDefault(entry =>
+                    "Primary skin has no inline shared spFog helper template.");
+            SmoObjectEntry primaryMesh = target.Objects.SingleOrDefault(entry =>
                 entry.ParentIndex == primarySkin.Index &&
                 entry.TypeHash == SmoClassIds.MeshData) ??
                 throw new NotSupportedException(
-                    "Primary Bloom skin has no unique mesh template.");
-            SmoObjectEntry continuation = target.Objects
+                    "Primary skin has no unique mesh template.");
+            SmoObjectEntry mesh = SelectWritableMeshTemplate(
+                target, render, primaryMesh, requireSecondaryUv);
+            SmoObjectEntry? continuation = target.Objects
                 .Where(entry => entry.ParentIndex == render.Index &&
                                 entry.TypeHash == SmoClassIds.Skin &&
                                 entry.Index != primarySkin.Index)
@@ -2327,30 +2648,34 @@ internal static class SmoSkinnedBranchSplitBuilder
                     child.ParentIndex == entry.Index &&
                     child.TypeHash == SmoClassIds.MaterialData))
                 .OrderBy(entry => entry.LogicalOffset)
-                .FirstOrDefault() ?? throw new NotSupportedException(
-                    "Target has no native material-less Bloom continuation spSkin template.");
+                .FirstOrDefault();
+            continuation ??= primarySkin;
 
             if (!SmoSkinDecoder.TryDecode(
                     target, primarySkin, out SmoSkin? primaryPalette, out string primaryError) ||
-                primaryPalette is null || primaryPalette.Bones.Count != PaletteCapacity)
+                primaryPalette is null || primaryPalette.Bones.Count is < 1 or > PaletteCapacity)
                 throw new NotSupportedException(
-                    $"Primary Bloom skin is not a 16-bone native template: {primaryError}");
+                    $"Primary skin has no writable 1..{PaletteCapacity}-bone palette: " +
+                    primaryError);
             if (!SmoSkinDecoder.TryDecode(
                     target, continuation, out SmoSkin? continuationPalette,
                     out string continuationError) ||
-                continuationPalette is null ||
-                continuationPalette.Bones.Count != PaletteCapacity)
+                    continuationPalette is null ||
+                    continuationPalette.Bones.Count is < 1 or > PaletteCapacity)
                 throw new NotSupportedException(
-                    $"Bloom continuation skin is not a 16-bone native template: " +
+                    $"Continuation skin has no writable 1..{PaletteCapacity}-bone palette: " +
                     continuationError);
 
             ValidateMaterialTemplate(target, material, texture);
-            ValidateSkinTemplate(target, primarySkin, material, helper, mesh);
-            SmoObjectEntry continuationMesh = target.Objects.Single(entry =>
-                entry.ParentIndex == continuation.Index &&
-                entry.TypeHash == SmoClassIds.MeshData);
-            ValidateSkinTemplate(
-                target, continuation, null, helper, continuationMesh);
+            ValidateSkinTemplate(target, primarySkin, material, helper, primaryMesh);
+            if (continuation.Index != primarySkin.Index)
+            {
+                SmoObjectEntry continuationMesh = target.Objects.Single(entry =>
+                    entry.ParentIndex == continuation.Index &&
+                    entry.TypeHash == SmoClassIds.MeshData);
+                ValidateSkinTemplate(
+                    target, continuation, null, helper, continuationMesh);
+            }
 
             Dictionary<string, SmoObjectEntry> nodes = target.Objects
                 .Where(entry => entry.TypeHash == SmoClassIds.Node &&
@@ -2405,7 +2730,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                 operationFieldCount != 1 || lightingTextureStateFieldCount != 1)
                 throw new NotSupportedException(
                     "Target material does not expose exactly one native writable " +
-                    "Bloom MRS, FinalBlendOp, and LTS field.");
+                    "MRS, FinalBlendOp, and LTS field.");
         }
 
         private static void ValidateSkinTemplate(
@@ -2420,7 +2745,15 @@ internal static class SmoSkinnedBranchSplitBuilder
                 _ = FindInlineChildField(target, skin, material);
             _ = FindInlineChildField(target, skin, mesh);
             _ = FindObjectReferenceField(source, helper.Id);
-            _ = FindPaletteField(source, PaletteCapacity);
+            if (!SmoSkinDecoder.TryDecode(
+                    target, skin, out SmoSkin? palette, out string paletteError) ||
+                palette is null || palette.Bones.Count is < 1 or > PaletteCapacity)
+            {
+                throw new NotSupportedException(
+                    $"Skin template [{skin.Index}] has no writable palette: " +
+                    paletteError);
+            }
+            _ = FindPaletteField(source, palette.Bones.Count);
             int sortFieldCount = 0;
             int priorityFieldCount = 0;
             int offset = ObjectSignatureSize;
@@ -2439,6 +2772,54 @@ internal static class SmoSkinnedBranchSplitBuilder
                 throw new NotSupportedException(
                     $"Skin template [{skin.Index}] does not expose exactly one " +
                     "writable sort and priority field.");
+        }
+
+        private static SmoObjectEntry SelectWritableMeshTemplate(
+            SmoDocument target,
+            SmoObjectEntry render,
+            SmoObjectEntry preferred,
+            bool requireSecondaryUv)
+        {
+            SmoObjectEntry? selected = target.Objects
+                .Where(entry => entry.TypeHash == SmoClassIds.MeshData &&
+                                render.PhysicalOffset <= entry.PhysicalOffset &&
+                                entry.PhysicalEnd <= render.PhysicalEnd)
+                .Select(entry => (Entry: entry, Mesh: TryDecode(entry)))
+                .Where(item => item.Mesh is not null &&
+                               SmoVertexLayoutRegistry.TryGet(
+                                   item.Mesh.VertexFormat, out SmoVertexLayout? layout) &&
+                               layout is not null &&
+                               layout.SerializedStride == item.Mesh.Stride &&
+                               layout.BlendWeightsOffset is not null &&
+                               layout.BlendIndicesOffset is not null &&
+                               (!requireSecondaryUv ||
+                                layout.TextureCoordinate1Offset is not null))
+                .OrderByDescending(item => item.Entry.Index == preferred.Index)
+                .ThenByDescending(item =>
+                    SmoVertexLayoutRegistry.TryGet(
+                        item.Mesh!.VertexFormat, out SmoVertexLayout? layout) &&
+                    layout?.TextureCoordinate1Offset is not null)
+                .ThenBy(item => item.Entry.Index)
+                .Select(item => item.Entry)
+                .FirstOrDefault();
+            return selected ?? throw new NotSupportedException(
+                requireSecondaryUv
+                    ? "Target render branch has no writable skinned mesh layout with TEXCOORD_1."
+                    : "Target render branch has no writable skinned mesh layout.");
+
+            SmoMesh? TryDecode(SmoObjectEntry entry)
+            {
+                try
+                {
+                    return SmoMeshDecoder.Decode(target, entry);
+                }
+                catch (Exception exception) when (exception is InvalidDataException or
+                                                  InvalidOperationException or
+                                                  NotSupportedException)
+                {
+                    return null;
+                }
+            }
         }
     }
 }

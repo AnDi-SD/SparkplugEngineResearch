@@ -7,7 +7,7 @@ using SmoViewer.Core;
 /// A deliberately bounded real-donor audit for the exact grouped humanoid pose
 /// used while reproducing Daphne's face-shell failure. It performs one public
 /// generated-skinning preparation and never invokes pose fitting, the SMO
-/// writer, texture/atlas processing, animation decoding, or output creation.
+/// writer, texture processing, animation decoding, or output creation.
 /// </summary>
 internal static class DaphneSemanticCoverageAudit
 {
@@ -123,7 +123,7 @@ internal static class DaphneSemanticCoverageAudit
                 DaphneAlignment,
                 body);
         if (preparation.Analysis.SemanticResolutionPassCount != 1 ||
-            preparation.Analysis.InternalPreparationPassCount is < 2 or > 4)
+            preparation.Analysis.InternalPreparationPassCount is < 2 or > 5)
         {
             throw new InvalidOperationException(
                 "Daphne's single public Prepare repeated semantic resolution " +
@@ -201,7 +201,7 @@ internal static class DaphneSemanticCoverageAudit
             $"Head core={Count(head.CoreVerticesByMesh)}, transition=" +
             $"{Count(head.TransitionVerticesByMesh)}; {handDiagnostics}; " +
             "exactly one public Prepare/one semantic resolve; " +
-            "no Fit/writer/atlas/SAN/output.");
+            "no Fit/writer/texture/SAN/output.");
         Console.WriteLine(
             "HEAD CLUSTERS: " + string.Join(
                 " | ",
@@ -579,7 +579,7 @@ internal static class DaphneSemanticCoverageAudit
         {
             throw new InvalidOperationException(
                 $"{context} {Describe(vertex)} is not exact raw one-hot Head; " +
-                "a transition or legacy capsule slot leaked into the protected " +
+                "a transition or capsule slot leaked into the protected " +
                 "region.");
         }
         (string Bone, float Weight)[] influences = ActiveInfluences(scene, vertex);

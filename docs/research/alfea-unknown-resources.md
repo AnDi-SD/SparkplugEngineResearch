@@ -120,17 +120,22 @@ exact, case-only и missing, где case-only означает проблему,
 
 ## Оставшиеся runtime-вопросы привязки
 
-- Применяется ли track к first, last или всем SMO nodes с одинаковым именем.
-  Loader принимает оба порядка, а строковый namespace сворачивает их в один key;
-  error/rejection и две независимые name-записи уже исключены.
 - Какой визуальный fallback используется для отсутствующего target и
-  распространяется ли bind pose на descendants. Loader уже подтверждённо
-  допускает missing parent и leaf без отказа или crash.
+  распространяется ли итоговый world transform на descendants. Loader уже
+  допускает missing parent и leaf; binding probe дал новому имени отдельный слот
+  `0xD8`, а `foot_right` сохранил exact lookup и слот `0x46`.
 - Являются ли 16 service/DCC-имён намеренными tracks для других вариантов
   модели либо обрабатываются отдельной runtime-системой.
 - Как выбирается ANM-таблица для героя/состояния и почему `AdvBloom.anm` не входит
   в найденный EXE-блок.
 - Что означают первые семь колонок ANM; последняя SAN-ссылка уже подтверждена.
+
+Вопрос first/last/all для duplicate names закрыт 29 августа 2026 года:
+binding-write probe перехватил два различных `spTransformTrackEval`, и оба
+получили один slot оставшегося имени (`L_Toe=0x3B` либо зеркально
+`R_Toe=0x3F`). Это all-target на слое привязки. Прямой evaluator probe также
+добавлен, но текущий `startLevel=2` не запускает для этих объектов активный
+animation tick, поэтому final PRS/world matrices пока не измерены.
 
 Проверки выполняются same-length переименованиями на отдельной копии персонажа,
 а не случайной заменой resource pointers. Порядок экспериментов:

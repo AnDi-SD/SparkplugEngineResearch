@@ -297,7 +297,7 @@ public sealed class SmoLevelSaveJob
         };
 
         cancellationToken.ThrowIfCancellationRequested();
-        return SmoLevelSaveService.SaveStateWithoutMemoryGuard(
+        return SmoLevelSaveService.SavePreparedState(
             state,
             OutputPath,
             progress,

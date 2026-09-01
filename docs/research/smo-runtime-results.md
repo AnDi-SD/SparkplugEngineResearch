@@ -112,10 +112,19 @@ tracks из exact в missing: pristine `11203/942`, mutation `11035/1110`, case-
 `R_Ankle` и 55 `Z_Ankle`, но ни одного равенства и ни одного R/Z cross-match:
 `local-data/validation-results/runtime-name-missing-20260829-exact-parent/run-20260829-000749-239`.
 
+Transform-binding probe на записи `spTransformTrackEval + 0x10` уточнил поведение:
+pristine `R_Toe` и `L_Toe` связываются соответственно со слотами `0x3F` и
+`0x3B`, тогда как оба новых имени `Z_Ankle` и `Z_Toe` получают новый отдельный
+слот `0xD8`; предыдущее значение поля evaluator равно `0xFFFFFFFF`.
+Контрольный descendant `foot_right` после переименования parent по-прежнему
+находится точным сравнением и получает прежний слот `0x46`.
+
 Вывод: отсутствующий target является локально допустимой ошибкой binding и не
-отвергает весь SMO/animation context. Точный визуальный fallback — остаётся ли
-parent/leaf в bind pose и как наследуют transform descendants — этим loader trace
-не измеряется и требует frame либо transform probe.
+отвергает весь SMO/animation context. Переименованный узел отделяется от прежнего
+name/transform slot, но registry его subtree остаётся целым. Окончательный
+bind-pose и наследование world transform ещё требуют активного animation tick:
+route `startLevel=2` загружает и связывает модель, но до завершения окна не
+вызывает наблюдаемый evaluator method `0x005FEBB0`.
 
 ## RT-SMO-NAME-DUPLICATE-001/002 — одинаковые имена в обоих порядках
 
@@ -134,13 +143,53 @@ parent/leaf в bind pose и как наследуют transform descendants — 
 `R_Toe == R_Toe` и ни одного `L_Toe` equality. В каждой паре возвращается один и
 тот же tree node/track slot (`L_Toe=0x3B`, `R_Toe=0x3F`), то есть namespace
 сворачивается до одного строкового ключа, а не хранит две независимо адресуемые
-записи. Value field `+0x2C` оказался binding-generation marker
-`0x80 -> 0x81`, поэтому он не доказывает first/last target selection.
+записи. Value field `+0x2C` оказался binding-generation marker `0x80 -> 0x81`,
+но новый probe перехватил уже саму запись binding: в варианте `R_Toe -> L_Toe`
+два разных `spTransformTrackEval` получают один слот `0x3B`; в зеркальном
+варианте два других evaluator получают один слот `0x3F`. До записи поле `+0x10`
+у каждого равно `0xFFFFFFFF`.
 
-Вывод: duplicate name допустим для loader, но создаёт неоднозначную привязку и
-убирает противоположный track. Выбор first/last/all среди двух одноимённых SMO
-nodes остаётся открыт до transform/frame probe; по одному string comparator его
-определять нельзя.
+Вывод: duplicate name допустим для loader, убирает противоположный track и на
+слое binding имеет политику **all-target**: оба одноимённых объекта получают
+одну name/transform-slot привязку. First-only и last-only этим наблюдением
+исключены. Итоговые PRS/world-матрицы двух объектов ещё не измерены, поскольку
+`startLevel=2` не дошёл до активного animation tick.
+
+## RT-SMO-NAME-BINDING-003 — transform-slot и evaluator probe
+
+| Поле | Значение |
+|---|---|
+| Статус | `confirmed / binding`; `inconclusive / final PRS` |
+| Платформа | PC |
+| Executable | `pc-pristine/WinxClub.exe`, SHA-256 `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F` |
+| Binding checkpoint | `0x00454628`, запись `mov [edi+0x10], eax` в `spTransformTrackEval` |
+| Evaluate checkpoint | `0x005FEBB0`, virtual transform-track evaluator method |
+| Binding evidence | `local-data/validation-results/runtime-transform-binding-20260829-full/run-20260829-121344-792` |
+| Duplicate calibration | `local-data/validation-results/runtime-transform-binding-20260829-calibration/run-20260829-121058-976` |
+| Descendant control | `local-data/validation-results/runtime-transform-binding-20260829-descendant/run-20260829-122234-682` |
+| Evaluate evidence | `local-data/validation-results/runtime-transform-evaluate-20260829/run-20260829-122618-722` |
+
+Статическая цепочка вызовов проходит recursive scene traversal
+`0x005A34D0 -> 0x005A33F0 -> 0x004545F0`; class ID `0x5DAF152D` и registration
+string связывают последний этап с `spTransformTrackEval`. Comparator trace
+сопоставляется с записью `+0x10`, поэтому для каждого evaluator одновременно
+известны exact lookup, строка и полученный name/transform slot.
+
+| Кейс | Наблюдение binding |
+|---|---|
+| pristine toes | `L_Toe -> 0x3B`, `R_Toe -> 0x3F` |
+| pristine descendant | `foot_right -> 0x46`, exact lookup |
+| missing parent | `Z_Ankle -> 0xD8`; `foot_right` остаётся `0x46` |
+| missing leaf | `Z_Toe -> 0xD8` |
+| duplicate `R_Toe -> L_Toe` | два разных evaluator, оба `L_Toe -> 0x3B` |
+| duplicate `L_Toe -> R_Toe` | два разных evaluator, оба `R_Toe -> 0x3F` |
+
+Все пять основных binding-кейсов и отдельный descendant control завершились
+`Passed`. Evaluate-probe был повторён для pristine, missing и duplicate: во всех
+трёх случаях binding наблюдался шесть раз, но tracked entry в `0x005FEBB0` —
+ноль раз. Это воспроизводимый отрицательный результат текущего маршрута, а не
+доказательство отсутствия анимации: для final PRS/world matrix нужен debug-menu
+или game-flow путь, который действительно запускает animation tick.
 
 ## RT-SMO-HEADER-004-001 — serializer version
 

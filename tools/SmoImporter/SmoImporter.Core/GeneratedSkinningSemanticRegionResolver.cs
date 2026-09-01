@@ -19,17 +19,9 @@ public static partial class GeneratedSkinningPreparer
     private const float DonorHandEnvelopeMargin = 1.02f;
     private const float MaximumDonorHandRadiusHeightRatio = 0.10f;
     private const float MaximumDonorToTargetHandRadiusRatio = 4f;
-    private const float DonorHeadEnvelopeMargin = 1.04f;
-    private const float MaximumDonorHeadSpanHeightRatio = 0.45f;
-    private const float MaximumDonorHeadRadiusHeightRatio = 0.30f;
-    private const float MinimumDonorToTargetHeadExtentRatio = 0.65f;
-    private const float MaximumDonorToTargetHeadExtentRatio = 4f;
-    private const float MaximumDonorNeckToTargetHeadRadiusRatio = 2f;
-    private const float HeadCompanionEnvelopeRatio = 1.25f;
-    private const float HeadCompanionMaximumSurfaceGapRatio = 0.35f;
-    private const float MaximumHeadForwardTiltDegrees = 45f;
+    private const float HeadAssemblyMaximumIslandGapRatio = 0.10f;
+    private const float HeadAssemblyMaximumProtectedVertexFraction = 0.70f;
     private const float MaximumProtectedRegionScale = 1.75f;
-    private const float MaximumHeadProtectedRegionScale = 3f;
 
     private enum SemanticVertexZone
     {
@@ -61,7 +53,8 @@ public static partial class GeneratedSkinningPreparer
         IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment> Assignments,
         IReadOnlyDictionary<int, SemanticComponentAssignment> ComponentAssignments,
         IReadOnlyDictionary<GeometryVertex, GeneratedVertexInfluences>
-            CapsuleInfluences);
+            CapsuleInfluences,
+        SeparationPlanePreparation SeparationPlanes);
 
     private sealed record SemanticComponentAssignment(
         GeneratedSkinningSemanticRegion Region,
@@ -72,29 +65,6 @@ public static partial class GeneratedSkinningPreparer
         Vector3 Position,
         IReadOnlyDictionary<int, float> WeightByRigJoint,
         float TotalWeight);
-
-    private sealed record SemanticHeadLobe(
-        int BodyComponentIndex,
-        GeometryVertex Seed,
-        IReadOnlySet<GeometryVertex> Vertices,
-        IReadOnlySet<GeometryVertex> PrimaryVertices,
-        IReadOnlySet<GeometryVertex> SecondaryVertices,
-        IReadOnlySet<GeometryVertex> SeedVertices,
-        IReadOnlySet<GeometryVertex> OwnerVertices,
-        IReadOnlySet<GeometryVertex> BoundaryVertices,
-        IReadOnlySet<GeometryVertex> NeckCollarVertices,
-        IReadOnlyDictionary<GeometryVertex, float> NeckCollarHeadWeights,
-        float CutPlaneProjection,
-        float MaximumCollarSurfaceDistance);
-
-    private sealed record SemanticHeadCluster(
-        int OwnerComponentIndex,
-        IReadOnlySet<GeometryVertex> Vertices,
-        IReadOnlySet<GeometryVertex> SeedVertices,
-        IReadOnlySet<GeometryVertex> BoundaryVertices,
-        int UniquePositionCount,
-        int UniqueBoundaryPositionCount,
-        float MaximumBoundaryRadius);
 
     /// <summary>
     /// Balanced deterministic k-d tree for exact nearest-position queries.
@@ -232,8 +202,6 @@ public static partial class GeneratedSkinningPreparer
         GeneratedSkinningRegionAdjustmentLimits AdjustmentLimits,
         int CalibrationSampleCount)
     {
-        public SemanticHeadLobe? DonorHeadLobe { get; init; }
-
         public SemanticHandLobe? DonorHandLobe { get; init; }
 
         public CoarseHandMotionProfile? HandMotionProfile { get; init; }
@@ -259,6 +227,7 @@ public static partial class GeneratedSkinningPreparer
         SideCalibration sideCalibration,
         IReadOnlyList<BoneCapsule> capsules,
         IReadOnlyDictionary<int, AnatomicalVolume> anatomicalVolumes,
+        SeparationPlanePreparation separationPlanes,
         int maximumInfluences,
         GeneratedSkinningAlignment alignment,
         TargetRigFittingPoseSnapshot? fittingPose,
@@ -279,7 +248,6 @@ public static partial class GeneratedSkinningPreparer
                 donorFingerprint,
                 alignmentFingerprint,
                 fittingPoseFingerprint);
-
         IReadOnlyList<DecodedTargetWeightSample> targetSamples =
             DecodeTargetWeightSamples(rig, targetScene, targetSkinnedMeshes);
         IReadOnlyDictionary<GeometryVertex, IReadOnlyList<GeometryVertex>> adjacency =
@@ -302,7 +270,8 @@ public static partial class GeneratedSkinningPreparer
                         anatomicalVolumes,
                         sideCalibration,
                         targetBounds.Size.Y,
-                        maximumInfluences)));
+                        maximumInfluences,
+                        separationPlanes)));
         var candidates = new Dictionary<GeneratedSkinningSemanticRegion,
             SemanticRegionCandidate>();
         foreach (GeneratedSkinningSemanticRegion region in
@@ -319,47 +288,133 @@ public static partial class GeneratedSkinningPreparer
                 fittingWorldMatrices,
                 messages);
             SemanticRegionCalibration? calibration = targetCalibration;
-            if (targetCalibration is not null)
+            if (targetCalibration is not null &&
+                region != GeneratedSkinningSemanticRegion.Head)
             {
-                calibration = region == GeneratedSkinningSemanticRegion.Head
-                    ? TryRefineHeadCalibrationFromDonorTopology(
-                        targetCalibration,
-                        donorBodyComponents,
-                        alignedPositionsByMesh,
-                        adjacency,
-                        targetBounds.Size.Y,
-                        messages)
-                    : TryRefineCompleteHandCalibrationFromDonorTopology(
-                        targetCalibration,
-                        donorBodyComponents,
-                        alignedPositionsByMesh,
-                        adjacency,
-                        sideCalibration,
-                        targetSkeleton.Skeleton,
-                        capsuleInfluences,
-                        targetBounds.Size.Y,
-                        messages);
-            }
-            bool manualFallback = calibration is null &&
-                                  targetCalibration is not null &&
-                                  overrides is not null &&
-                                  adjustment.Enabled;
-            if (manualFallback)
-            {
-                // Automatic donor-topology discovery is deliberately strict, but
-                // its failure must not make the editor useless.  An explicit
-                // user adjustment may start from the finite target-derived bone
-                // volume; the ordinary capture/overlap/seam checks below still
-                // decide whether that manually positioned volume is safe enough
-                // to commit.
-                calibration = targetCalibration;
-                messages.Add(
-                    $"Semantic {region} uses the manually enabled target-derived " +
-                    "fallback volume because automatic donor topology did not " +
-                    "resolve an unambiguous lobe.");
+                calibration = TryRefineCompleteHandCalibrationFromDonorTopology(
+                    targetCalibration,
+                    donorBodyComponents,
+                    alignedPositionsByMesh,
+                    adjacency,
+                    sideCalibration,
+                    targetSkeleton.Skeleton,
+                    capsuleInfluences,
+                    targetBounds.Size.Y,
+                    messages);
             }
             SemanticRegionCalibration? displayCalibration =
                 calibration ?? targetCalibration;
+            if (region == GeneratedSkinningSemanticRegion.Head)
+            {
+                separationPlanes.ByKind.TryGetValue(
+                    GeneratedSkinningSeparationPlaneKind.Head,
+                    out GeneratedSkinningSeparationPlaneResolution? headPlane);
+                bool enabled = headPlane is { IsEnabled: true };
+                if (!enabled ||
+                    calibration is null ||
+                    headPlane is not { IsAvailable: true })
+                {
+                    if (enabled && headPlane is not { IsAvailable: true })
+                    {
+                        messages.AddRange(
+                            headPlane?.Warnings ??
+                            ["The Head separation plane is unavailable."]);
+                    }
+                    GeneratedSkinningRegionStatus status = !enabled
+                        ? GeneratedSkinningRegionStatus.Disabled
+                        : GeneratedSkinningRegionStatus.UnsafeCalibration;
+                    GeneratedSkinningRegionResolution resolution =
+                        CreateSemanticRegionResolution(
+                            region,
+                            adjustment,
+                            displayCalibration,
+                            status,
+                            isApplied: false,
+                            resolvedVolume: null,
+                            coreVertices: [],
+                            transitionVertices: [],
+                            messages) with
+                        {
+                            IsEnabled = enabled,
+                            AutomaticVolume = null,
+                            SeparationPlane = headPlane
+                        };
+                    candidates.Add(region, new SemanticRegionCandidate(
+                        resolution,
+                        new ReadOnlyDictionary<GeometryVertex,
+                            SemanticVertexAssignment>(
+                            new Dictionary<GeometryVertex,
+                                SemanticVertexAssignment>())));
+                    continue;
+                }
+
+                if (!TryCaptureSemanticHeadPlane(
+                        calibration,
+                        headPlane,
+                        donorBodyComponents,
+                        donorSources,
+                        alignedPositionsByMesh,
+                        out IReadOnlyDictionary<GeometryVertex,
+                            SemanticVertexAssignment> headAssignments,
+                        out IReadOnlyList<TargetRigBodyVertexMembership>
+                            headCoreVertices,
+                        out string? headCaptureDiagnostic))
+                {
+                    if (!string.IsNullOrWhiteSpace(headCaptureDiagnostic))
+                        messages.Add(headCaptureDiagnostic);
+                    GeneratedSkinningRegionResolution resolution =
+                        CreateSemanticRegionResolution(
+                            region,
+                            adjustment,
+                            calibration,
+                            GeneratedSkinningRegionStatus.UnsafeCalibration,
+                            isApplied: false,
+                            resolvedVolume: null,
+                            coreVertices: [],
+                            transitionVertices: [],
+                            messages) with
+                        {
+                            IsEnabled = enabled,
+                            AutomaticVolume = null,
+                            SeparationPlane = headPlane
+                        };
+                    candidates.Add(region, new SemanticRegionCandidate(
+                        resolution,
+                        new ReadOnlyDictionary<GeometryVertex,
+                            SemanticVertexAssignment>(
+                            new Dictionary<GeometryVertex,
+                                SemanticVertexAssignment>())));
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(headCaptureDiagnostic))
+                    messages.Add(headCaptureDiagnostic);
+                messages.Add(
+                    $"Semantic Head hard plane captured " +
+                    $"{CountMembershipVertices(headCoreVertices)} selected-body " +
+                    "vertex/vertices as rigid one-hot Head weights; it has no " +
+                    "deforming Neck transition.");
+                GeneratedSkinningRegionResolution applied =
+                    CreateSemanticRegionResolution(
+                        region,
+                        adjustment,
+                        calibration,
+                        GeneratedSkinningRegionStatus.Applied,
+                        isApplied: true,
+                        resolvedVolume: null,
+                        headCoreVertices,
+                        transitionVertices: [],
+                        messages) with
+                    {
+                        IsEnabled = enabled,
+                        AutomaticVolume = null,
+                        SeparationPlane = headPlane
+                    };
+                candidates.Add(region, new SemanticRegionCandidate(
+                    applied,
+                    headAssignments));
+                continue;
+            }
             if (!adjustment.Enabled)
             {
                 candidates.Add(region, new SemanticRegionCandidate(
@@ -399,19 +454,11 @@ public static partial class GeneratedSkinningPreparer
             GeneratedSkinningRegionVolume resolvedVolume = ApplySemanticAdjustment(
                 calibration.AutomaticVolume,
                 adjustment);
-            bool useManualVolumeMembership =
-                region == GeneratedSkinningSemanticRegion.Head &&
-                overrides is not null &&
-                IsManualSemanticVolumeAdjustment(adjustment);
-            if (!TryCaptureSemanticRegion(
+            if (!TryCaptureCompleteSemanticHandLobe(
                     calibration,
                     resolvedVolume,
-                    donorBodyComponents,
                     donorSources,
                     alignedPositionsByMesh,
-                    adjacency,
-                    sideCalibration,
-                    useManualVolumeMembership,
                     out IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>
                         assignments,
                     out IReadOnlyList<TargetRigBodyVertexMembership> coreVertices,
@@ -523,13 +570,13 @@ public static partial class GeneratedSkinningPreparer
         }
 
         IReadOnlyDictionary<int, SemanticComponentAssignment> componentAssignments =
-            ResolveHeadCompanionComponents(
+            ResolveHeadPlaneCompanionComponents(
                 candidates,
                 donorBodyComponents,
-                donorSources,
                 donorTopology,
                 alignedPositionsByMesh,
-                manuallyAssignedComponentIndices);
+                manuallyAssignedComponentIndices,
+                separationPlanes);
         var analysis = new GeneratedSkinningRegionAnalysis(
             new ReadOnlyCollection<GeneratedSkinningRegionResolution>(
                 candidates.OrderBy(pair => pair.Key)
@@ -538,13 +585,17 @@ public static partial class GeneratedSkinningPreparer
             targetFingerprint,
             donorFingerprint,
             alignmentFingerprint,
-            fittingPoseFingerprint);
+            fittingPoseFingerprint)
+        {
+            SeparationPlanes = separationPlanes.Resolutions
+        };
         return new SemanticRegionPreparation(
             analysis,
             new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
                 finalAssignments),
             componentAssignments,
-            capsuleInfluences);
+            capsuleInfluences,
+            separationPlanes);
     }
 
     private static Dictionary<GeneratedSkinningSemanticRegion,
@@ -588,28 +639,11 @@ public static partial class GeneratedSkinningPreparer
             if (!float.IsFinite(adjustment.AxialOffset) ||
                 !float.IsFinite(adjustment.AxialScale) ||
                 !float.IsFinite(adjustment.RadialScale) ||
-                !float.IsFinite(adjustment.ForwardTiltDegrees) ||
                 adjustment.AxialScale <= 0 || adjustment.RadialScale <= 0)
             {
                 throw new InvalidDataException(
                     $"Semantic {adjustment.Region} adjustment must contain a finite " +
                     "axial offset and positive finite scales.");
-            }
-            if (adjustment.Region == GeneratedSkinningSemanticRegion.Head)
-            {
-                if (MathF.Abs(adjustment.ForwardTiltDegrees) >
-                    MaximumHeadForwardTiltDegrees)
-                {
-                    throw new InvalidDataException(
-                        $"Semantic Head forward tilt must be between " +
-                        $"{-MaximumHeadForwardTiltDegrees:G6} and " +
-                        $"{MaximumHeadForwardTiltDegrees:G6} degrees.");
-                }
-            }
-            else if (MathF.Abs(adjustment.ForwardTiltDegrees) > PositionEpsilon)
-            {
-                throw new InvalidDataException(
-                    $"Semantic {adjustment.Region} does not support head tilt.");
             }
             if (!result.TryAdd(adjustment.Region, adjustment))
             {
@@ -765,6 +799,56 @@ public static partial class GeneratedSkinningPreparer
                 $"Semantic {region} anchor or proximal joint is absent from the " +
                 "generated target skeleton.");
             return null;
+        }
+
+        if (region == GeneratedSkinningSemanticRegion.Head)
+        {
+            Vector3 headPosedProximal = Translation(GetFittingWorldMatrix(
+                proximal,
+                fittingWorldMatrices));
+            Matrix4x4 headPosedAnchorMatrix = GetFittingWorldMatrix(
+                anchor,
+                fittingWorldMatrices);
+            Vector3 headPosedAnchor = Translation(headPosedAnchorMatrix);
+            SideCalibration headPosedSides = CalibrateSides(
+                layout.DeformJoints,
+                targetBounds,
+                fittingWorldMatrices);
+            BuildSemanticFrame(
+                headPosedProximal,
+                headPosedAnchor,
+                headPosedAnchorMatrix,
+                GetCalibratedLateralAxis(headPosedSides),
+                out Vector3 axial,
+                out Vector3 lateral,
+                out Vector3 forward);
+            float diagnosticRadius = MathF.Max(
+                targetBounds.Size.Y * MinimumSemanticRadiusHeightRatio,
+                PositionEpsilon * 16);
+            var diagnosticVolume = new GeneratedSkinningRegionVolume(
+                headPosedAnchor,
+                axial,
+                lateral,
+                forward,
+                diagnosticRadius,
+                diagnosticRadius,
+                diagnosticRadius,
+                0);
+            messages.Add(
+                "Semantic Head calibration uses exact Head/Neck joints and the " +
+                "hard Head plane; target transition samples are not required.");
+            return new SemanticRegionCalibration(
+                region,
+                anchorName,
+                anchor.JointIndex,
+                anchorSkeletonIndex,
+                proximal.Name,
+                proximalRigJoint,
+                proximalSkeletonIndex,
+                headPosedAnchor,
+                diagnosticVolume,
+                new GeneratedSkinningRegionAdjustmentLimits(0, 0, 1, 1, 1, 1),
+                CalibrationSampleCount: 0);
         }
 
         HashSet<int> subtree = CollectDeformSubtree(rig, layout, anchor.JointIndex);
@@ -957,30 +1041,15 @@ public static partial class GeneratedSkinningPreparer
             forwardRadius,
             transitionLength)
         {
-            ShapeExponent = region == GeneratedSkinningSemanticRegion.Head
-                ? 2
-                : 4
+            ShapeExponent = 4
         };
-        // A modular character head is commonly split into a face, scalp, hair
-        // cap, eyes and mouth shells.  Automatic topology proof intentionally
-        // stays conservative and may use only the compact connected head lobe
-        // as its base.  Giving Head the same 1.75x editor ceiling as a hand can
-        // therefore leave the largest user-authored ellipsoid visibly inside
-        // the assembled head.  The larger Head-only range remains finite and
-        // explicit; exact membership, semantic-overlap and seam validation are
-        // still performed when the user presses Apply.  Hands retain their
-        // tighter range so they cannot expand into forearms or the torso.
-        float maximumEditorScale =
-            region == GeneratedSkinningSemanticRegion.Head
-                ? MaximumHeadProtectedRegionScale
-                : MaximumProtectedRegionScale;
         var limits = new GeneratedSkinningRegionAdjustmentLimits(
             -axialRadius * 0.35f,
             axialRadius * 0.35f,
             0.5f,
-            maximumEditorScale,
+            MaximumProtectedRegionScale,
             0.5f,
-            maximumEditorScale);
+            MaximumProtectedRegionScale);
         messages.Add(
             $"Semantic {region} target calibration used {coreSamples.Length} strict " +
             $"subtree core and {transitionSamples.Length} {anchorName}+" +
@@ -1185,929 +1254,15 @@ public static partial class GeneratedSkinningPreparer
         Vector3 center = automaticProximal +
                          automatic.AxialAxis * axialRadius +
                          automatic.AxialAxis * adjustment.AxialOffset;
-        float angle = adjustment.ForwardTiltDegrees * (MathF.PI / 180f);
-        float cosine = MathF.Cos(angle);
-        float sine = MathF.Sin(angle);
-        Vector3 axialAxis = Vector3.Normalize(
-            automatic.AxialAxis * cosine - automatic.ForwardAxis * sine);
-        Vector3 forwardAxis = Vector3.Normalize(
-            automatic.ForwardAxis * cosine + automatic.AxialAxis * sine);
         return automatic with
         {
             Center = center,
-            AxialAxis = axialAxis,
-            ForwardAxis = forwardAxis,
             AxialRadius = axialRadius,
             LateralRadius = automatic.LateralRadius * adjustment.RadialScale,
             ForwardRadius = automatic.ForwardRadius * adjustment.RadialScale,
             ProximalTransitionLength = MathF.Min(
                 automatic.ProximalTransitionLength * adjustment.AxialScale,
                 axialRadius * 1.5f)
-        };
-    }
-
-    private static SemanticRegionCalibration?
-        TryRefineHeadCalibrationFromDonorTopology(
-            SemanticRegionCalibration calibration,
-            IReadOnlyList<GeometryComponent> bodyComponents,
-            IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-            IReadOnlyDictionary<GeometryVertex, IReadOnlyList<GeometryVertex>> adjacency,
-            float targetHeight,
-            ICollection<string> messages)
-    {
-        if (calibration.Region != GeneratedSkinningSemanticRegion.Head)
-            return calibration;
-
-        GeneratedSkinningRegionVolume targetVolume = calibration.AutomaticVolume;
-        float targetProximal = -targetVolume.AxialRadius;
-        float targetTransitionEnd = targetProximal +
-                                    targetVolume.ProximalTransitionLength;
-        float targetCutProjection =
-            Vector3.Dot(targetVolume.Center, targetVolume.AxialAxis) +
-            targetProximal;
-        Vector3 neckPlaneCenter = calibration.PosedAnchor +
-            targetVolume.AxialAxis *
-            (targetCutProjection -
-             Vector3.Dot(calibration.PosedAnchor, targetVolume.AxialAxis));
-        float maximumSpan = MathF.Min(
-            targetHeight * MaximumDonorHeadSpanHeightRatio,
-            targetVolume.AxialRadius * 2 *
-            MaximumDonorToTargetHeadExtentRatio);
-        if (!float.IsFinite(maximumSpan) || maximumSpan <= PositionEpsilon)
-        {
-            messages.Add(
-                "Semantic Head donor-topology calibration has no finite anatomical span.");
-            return null;
-        }
-
-        GeometryVertex[] bodyVertices = bodyComponents
-            .SelectMany(component => component.Vertices)
-            .Distinct()
-            .ToArray();
-        IReadOnlyDictionary<GeometryVertex, int> componentByVertex = bodyComponents
-            .SelectMany(component => component.Vertices.Select(vertex =>
-                (Vertex: vertex, component.ComponentIndex)))
-            .ToDictionary(pair => pair.Vertex, pair => pair.ComponentIndex);
-        float safetyDistal = targetProximal + maximumSpan;
-        var headHalfSpace = new HashSet<GeometryVertex>(bodyVertices.Where(vertex =>
-        {
-            Vector3 position = alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex];
-            float axial = Vector3.Dot(
-                position - targetVolume.Center,
-                targetVolume.AxialAxis);
-            return float.IsFinite(axial) &&
-                   axial >= targetProximal - PositionEpsilon &&
-                   axial <= safetyDistal + PositionEpsilon;
-        }));
-        GeometryVertex[] seedCandidates = headHalfSpace
-            .Where(vertex =>
-            {
-                Vector3 position =
-                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex];
-                float axial = Vector3.Dot(
-                    position - targetVolume.Center,
-                    targetVolume.AxialAxis);
-                return axial > targetTransitionEnd &&
-                       DistanceToSemanticVolume(position, targetVolume) <= 1;
-            })
-            .OrderBy(vertex => Vector3.DistanceSquared(
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-                calibration.PosedAnchor))
-            .ThenBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (seedCandidates.Length == 0)
-        {
-            messages.Add(
-                "Semantic Head donor-topology calibration could not prove a head " +
-                "seed inside the target-derived volume and distal to its neck plane.");
-            return null;
-        }
-
-        int[] seedOwnerComponents = seedCandidates
-            .Select(vertex => componentByVertex[vertex])
-            .Distinct()
-            .Order()
-            .ToArray();
-        var seedSet = seedCandidates.ToHashSet();
-        var seededClusters = new List<SemanticHeadCluster>();
-        foreach (int seedOwnerComponent in seedOwnerComponents)
-        {
-            HashSet<GeometryVertex> candidateOwnerVertices = bodyComponents
-                .Single(component =>
-                    component.ComponentIndex == seedOwnerComponent)
-                .Vertices
-                .ToHashSet();
-            GeometryVertex[] deterministicClusterStarts = candidateOwnerVertices
-                .Where(headHalfSpace.Contains)
-                .OrderBy(vertex => vertex.MeshIndex)
-                .ThenBy(vertex => vertex.VertexIndex)
-                .ToArray();
-            var remaining = deterministicClusterStarts.ToHashSet();
-            foreach (GeometryVertex start in deterministicClusterStarts)
-            {
-                // A single deterministic sort per owner keeps fragmented/clipped
-                // modular surfaces O(V log V + E).
-                if (!remaining.Remove(start))
-                    continue;
-                var cluster = new HashSet<GeometryVertex> { start };
-                var pending = new Queue<GeometryVertex>();
-                pending.Enqueue(start);
-                while (pending.Count > 0)
-                {
-                    GeometryVertex current = pending.Dequeue();
-                    if (!adjacency.TryGetValue(
-                            current,
-                            out IReadOnlyList<GeometryVertex>? neighbours))
-                        continue;
-                    foreach (GeometryVertex neighbour in neighbours)
-                    {
-                        if (remaining.Remove(neighbour))
-                        {
-                            cluster.Add(neighbour);
-                            pending.Enqueue(neighbour);
-                        }
-                    }
-                }
-
-                HashSet<GeometryVertex> clusterSeeds = cluster
-                    .Where(seedSet.Contains)
-                    .ToHashSet();
-                if (clusterSeeds.Count == 0)
-                    continue;
-
-                var clusterBoundary = new HashSet<GeometryVertex>();
-                float clusterMaximumBoundaryRadius = 0;
-                bool invalidBoundary = false;
-                foreach (GeometryVertex vertex in cluster)
-                {
-                    if (!adjacency.TryGetValue(
-                            vertex,
-                            out IReadOnlyList<GeometryVertex>? neighbours))
-                        continue;
-                    foreach (GeometryVertex neighbour in neighbours)
-                    {
-                        if (!candidateOwnerVertices.Contains(neighbour) ||
-                            cluster.Contains(neighbour))
-                            continue;
-                        Vector3 neighbourPosition = alignedPositionsByMesh
-                            [neighbour.MeshIndex][neighbour.VertexIndex];
-                        float neighbourAxial = Vector3.Dot(
-                            neighbourPosition - targetVolume.Center,
-                            targetVolume.AxialAxis);
-                        if (neighbourAxial > safetyDistal + PositionEpsilon ||
-                            neighbourAxial >= targetProximal - PositionEpsilon)
-                        {
-                            invalidBoundary = true;
-                            break;
-                        }
-
-                        clusterBoundary.Add(vertex);
-                        Vector3 position = alignedPositionsByMesh
-                            [vertex.MeshIndex][vertex.VertexIndex];
-                        float boundaryLateral = MathF.Max(
-                            MathF.Abs(Vector3.Dot(
-                                position - neckPlaneCenter,
-                                targetVolume.LateralAxis) /
-                                targetVolume.LateralRadius),
-                            MathF.Abs(Vector3.Dot(
-                                neighbourPosition - neckPlaneCenter,
-                                targetVolume.LateralAxis) /
-                                targetVolume.LateralRadius));
-                        float boundaryForward = MathF.Max(
-                            MathF.Abs(Vector3.Dot(
-                                position - neckPlaneCenter,
-                                targetVolume.ForwardAxis) /
-                                targetVolume.ForwardRadius),
-                            MathF.Abs(Vector3.Dot(
-                                neighbourPosition - neckPlaneCenter,
-                                targetVolume.ForwardAxis) /
-                                targetVolume.ForwardRadius));
-                        float boundaryRadius = MathF.Sqrt(
-                            boundaryLateral * boundaryLateral +
-                            boundaryForward * boundaryForward);
-                        if (!float.IsFinite(boundaryLateral) ||
-                            !float.IsFinite(boundaryForward) ||
-                            !float.IsFinite(boundaryRadius) ||
-                            boundaryRadius >
-                                MaximumDonorNeckToTargetHeadRadiusRatio)
-                        {
-                            invalidBoundary = true;
-                            break;
-                        }
-                        clusterMaximumBoundaryRadius = MathF.Max(
-                            clusterMaximumBoundaryRadius,
-                            boundaryRadius);
-                    }
-                    if (invalidBoundary)
-                        break;
-                }
-                if (invalidBoundary)
-                {
-                    messages.Add(
-                        $"Semantic Head ignored unsafe seeded shell from body " +
-                        $"component #{seedOwnerComponent}: its topology boundary " +
-                        "does not form a bounded neck cut.");
-                    continue;
-                }
-
-                HashSet<Vector3> provedBoundaryPositions = clusterBoundary
-                    .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                        [vertex.VertexIndex])
-                    .ToHashSet();
-                clusterBoundary.UnionWith(cluster.Where(vertex =>
-                    provedBoundaryPositions.Contains(
-                        alignedPositionsByMesh[vertex.MeshIndex]
-                            [vertex.VertexIndex])));
-
-                int uniquePositionCount = cluster
-                    .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                        [vertex.VertexIndex])
-                    .Distinct()
-                    .Count();
-                int uniqueBoundaryPositionCount = clusterBoundary
-                    .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                        [vertex.VertexIndex])
-                    .Distinct()
-                    .Count();
-                seededClusters.Add(new SemanticHeadCluster(
-                    seedOwnerComponent,
-                    cluster,
-                    clusterSeeds,
-                    clusterBoundary,
-                    uniquePositionCount,
-                    uniqueBoundaryPositionCount,
-                    clusterMaximumBoundaryRadius));
-            }
-        }
-        if (seededClusters.Count == 0)
-        {
-            messages.Add(
-                "Semantic Head donor-topology calibration found no complete " +
-                "seeded cluster inside its selected owner surface.");
-            return null;
-        }
-
-        SemanticHeadCluster[] primaryOrder = seededClusters
-            .Where(cluster => cluster.UniqueBoundaryPositionCount > 0)
-            .OrderByDescending(cluster => cluster.UniqueBoundaryPositionCount)
-            .ThenByDescending(cluster => cluster.UniquePositionCount)
-            .ToArray();
-        if (primaryOrder.Length == 0)
-        {
-            messages.Add(
-                "Semantic Head found detached distal shells but no selected body " +
-                "component with a proved external neck boundary.");
-            return null;
-        }
-        if (primaryOrder.Length > 1 &&
-            primaryOrder[0].UniqueBoundaryPositionCount ==
-            primaryOrder[1].UniqueBoundaryPositionCount &&
-            primaryOrder[0].UniquePositionCount ==
-            primaryOrder[1].UniquePositionCount)
-        {
-            messages.Add(
-                "Semantic Head donor-topology calibration found two equally " +
-                "supported seeded clusters; one unambiguous primary neck lobe " +
-                "is required.");
-            return null;
-        }
-        SemanticHeadCluster primary = primaryOrder[0];
-        int ownerComponentIndex = primary.OwnerComponentIndex;
-        HashSet<GeometryVertex> ownerVertices = bodyComponents
-            .Single(component => component.ComponentIndex == ownerComponentIndex)
-            .Vertices
-            .ToHashSet();
-        Vector3[] primaryPositions = primary.Vertices
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .ToArray();
-        if (primaryPositions.Length < MinimumCapturedSemanticCorePositions)
-        {
-            messages.Add(
-                "Semantic Head primary donor cluster contains too few unique " +
-                "surface positions.");
-            return null;
-        }
-
-        HashSet<GeometryVertex> allSeededClusterVertices = seededClusters
-            .SelectMany(cluster => cluster.Vertices)
-            .ToHashSet();
-        Vector3[] nonHeadBodyPositions = bodyVertices
-            .Where(vertex => !allSeededClusterVertices.Contains(vertex))
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .ToArray();
-        var primarySurfaceIndex = new ExactVector3NearestIndex(primaryPositions);
-        ExactVector3NearestIndex? nonHeadBodyIndex =
-            nonHeadBodyPositions.Length == 0
-                ? null
-                : new ExactVector3NearestIndex(nonHeadBodyPositions);
-        float maximumSecondarySurfaceGap = MathF.Max(
-            MathF.Min(targetVolume.LateralRadius, targetVolume.ForwardRadius) *
-            HeadCompanionMaximumSurfaceGapRatio,
-            PositionEpsilon * 16);
-        var secondaryVertices = new HashSet<GeometryVertex>();
-        var secondaryBoundaryVertices = new HashSet<GeometryVertex>();
-        int acceptedSecondaryCount = 0;
-        foreach (SemanticHeadCluster secondary in seededClusters
-                     .Where(cluster => !ReferenceEquals(cluster, primary))
-                     .OrderByDescending(cluster => cluster.UniquePositionCount)
-                     .ThenBy(cluster => cluster.OwnerComponentIndex))
-        {
-            Vector3[] secondaryPositions = secondary.Vertices
-                .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                    [vertex.VertexIndex])
-                .Distinct()
-                .ToArray();
-            float[] secondaryAxial = Project(
-                secondaryPositions, targetVolume.Center, targetVolume.AxialAxis);
-            float[] secondaryLateral = Project(
-                secondaryPositions, targetVolume.Center, targetVolume.LateralAxis);
-            float[] secondaryForward = Project(
-                secondaryPositions, targetVolume.Center, targetVolume.ForwardAxis);
-            bool compactAndFullyEnclosed =
-                secondaryPositions.Length >= MinimumCapturedSemanticCorePositions &&
-                secondaryAxial[0] > targetTransitionEnd + PositionEpsilon &&
-                secondaryAxial[^1] - secondaryAxial[0] <=
-                    targetVolume.AxialRadius * 1.5f &&
-                secondaryLateral[^1] - secondaryLateral[0] <=
-                    targetVolume.LateralRadius * 2 &&
-                secondaryForward[^1] - secondaryForward[0] <=
-                    targetVolume.ForwardRadius * 2 &&
-                secondaryPositions.All(position =>
-                    DistanceToSemanticVolume(position, targetVolume) <=
-                    HeadCompanionEnvelopeRatio + PositionEpsilon * 16);
-            if (!compactAndFullyEnclosed)
-            {
-                messages.Add(
-                    $"Semantic Head ignored body component " +
-                    $"#{secondary.OwnerComponentIndex}: its seeded shell is not a " +
-                    "compact, fully enclosed distal face layer.");
-                continue;
-            }
-
-            var primarySurfaceDistances = new float[secondaryPositions.Length];
-            int primaryPreferred = 0;
-            bool hasFiniteDistances = true;
-            for (int index = 0; index < secondaryPositions.Length; index++)
-            {
-                float primarySquared =
-                    primarySurfaceIndex.FindNearestDistanceSquared(
-                        secondaryPositions[index]);
-                if (!float.IsFinite(primarySquared))
-                {
-                    messages.Add(
-                        "Semantic Head secondary seeded cluster has no finite " +
-                        "distance to its primary head surface.");
-                    hasFiniteDistances = false;
-                    break;
-                }
-                primarySurfaceDistances[index] = MathF.Sqrt(primarySquared);
-                if (nonHeadBodyIndex is null)
-                {
-                    primaryPreferred++;
-                    continue;
-                }
-                float otherSquared =
-                    nonHeadBodyIndex.FindNearestDistanceSquared(
-                        secondaryPositions[index]);
-                if (!float.IsFinite(otherSquared))
-                {
-                    messages.Add(
-                        "Semantic Head secondary seeded cluster has a non-finite " +
-                        "distance to the remaining body surface.");
-                    hasFiniteDistances = false;
-                    break;
-                }
-                if (primarySquared <= otherSquared + PositionEpsilon * 16)
-                    primaryPreferred++;
-            }
-            if (!hasFiniteDistances)
-                continue;
-            Array.Sort(primarySurfaceDistances);
-            if (primaryPreferred != secondaryPositions.Length ||
-                Quantile(primarySurfaceDistances, RobustUpperQuantile) >
-                maximumSecondarySurfaceGap + PositionEpsilon)
-            {
-                messages.Add(
-                    $"Semantic Head ignored body component " +
-                    $"#{secondary.OwnerComponentIndex}: its distal shell is not " +
-                    "uniformly nearest to the primary head surface within the " +
-                    "conservative face-shell gap.");
-                continue;
-            }
-            secondaryVertices.UnionWith(secondary.Vertices);
-            secondaryBoundaryVertices.UnionWith(secondary.BoundaryVertices);
-            acceptedSecondaryCount++;
-        }
-
-        var captured = primary.Vertices.ToHashSet();
-        captured.UnionWith(secondaryVertices);
-        HashSet<GeometryVertex> primaryBoundaryVertices =
-            primary.BoundaryVertices.ToHashSet();
-        HashSet<GeometryVertex> boundaryVertices =
-            primaryBoundaryVertices.ToHashSet();
-        boundaryVertices.UnionWith(secondaryBoundaryVertices);
-        float maximumBoundaryRadius = primary.MaximumBoundaryRadius;
-        GeometryVertex seed = primary.SeedVertices
-            .OrderBy(vertex => Vector3.DistanceSquared(
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-                calibration.PosedAnchor))
-            .ThenBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .First();
-
-        // The immutable anatomical cut is defined by the primary neck lobe.
-        // Accepted secondary face shells contribute their topology boundaries to
-        // collar coverage, but cannot move the cut into the face.
-        float[] boundaryProjections = primaryBoundaryVertices
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .Select(position => Vector3.Dot(
-                position, targetVolume.AxialAxis))
-            .Order()
-            .ToArray();
-        float donorCutProjection = Quantile(boundaryProjections, 0.5f);
-        float targetTransitionSpan = targetVolume.ProximalTransitionLength;
-        if (!float.IsFinite(donorCutProjection) ||
-            !float.IsFinite(targetTransitionSpan) ||
-            targetTransitionSpan <= PositionEpsilon)
-        {
-            messages.Add(
-                "Semantic Head donor neck boundary produced a non-finite " +
-                "external Neck collar length.");
-            return null;
-        }
-
-        float transitionEnvelopeRadius = MathF.Max(
-            maximumBoundaryRadius * 1.15f,
-            PositionEpsilon * 16);
-        bool IsExternalCollarPosition(GeometryVertex vertex)
-        {
-            if (captured.Contains(vertex))
-                return false;
-            Vector3 position =
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex];
-            float axialProjection = Vector3.Dot(
-                position,
-                targetVolume.AxialAxis);
-            float lateral = Vector3.Dot(
-                position - neckPlaneCenter,
-                targetVolume.LateralAxis) / targetVolume.LateralRadius;
-            float forward = Vector3.Dot(
-                position - neckPlaneCenter,
-                targetVolume.ForwardAxis) / targetVolume.ForwardRadius;
-            float radius = MathF.Sqrt(lateral * lateral + forward * forward);
-            return float.IsFinite(axialProjection) && float.IsFinite(radius) &&
-                   radius <= transitionEnvelopeRadius + PositionEpsilon &&
-                   axialProjection < donorCutProjection - PositionEpsilon;
-        }
-
-        var collarSeeds = new HashSet<GeometryVertex>();
-        var boundaryPositionsWithExternalSeed = new HashSet<Vector3>();
-        foreach (GeometryVertex boundary in boundaryVertices)
-        {
-            if (!adjacency.TryGetValue(
-                    boundary, out IReadOnlyList<GeometryVertex>? neighbours))
-                continue;
-            bool connected = false;
-            foreach (GeometryVertex neighbour in neighbours)
-            {
-                if (!ownerVertices.Contains(neighbour) ||
-                    !IsExternalCollarPosition(neighbour))
-                {
-                    continue;
-                }
-                collarSeeds.Add(neighbour);
-                connected = true;
-            }
-            if (connected)
-            {
-                boundaryPositionsWithExternalSeed.Add(
-                    alignedPositionsByMesh[boundary.MeshIndex]
-                        [boundary.VertexIndex]);
-            }
-        }
-        Vector3[] uncoveredBoundaryPositions = boundaryVertices
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .Where(position => !boundaryPositionsWithExternalSeed.Contains(position))
-            .ToArray();
-        if (collarSeeds.Count == 0 || uncoveredBoundaryPositions.Length > 0)
-        {
-            messages.Add(
-                $"Semantic Head external Neck collar could not cover every " +
-                $"proved primary/secondary rigid-boundary position " +
-                $"({uncoveredBoundaryPositions.Length} uncovered); refusing an " +
-                "asymmetric or partial collar.");
-            return null;
-        }
-
-        float localCollarStep = float.PositiveInfinity;
-        foreach (GeometryVertex seedVertex in collarSeeds)
-        {
-            if (!adjacency.TryGetValue(
-                    seedVertex, out IReadOnlyList<GeometryVertex>? neighbours))
-                continue;
-            Vector3 seedPosition = alignedPositionsByMesh[seedVertex.MeshIndex]
-                [seedVertex.VertexIndex];
-            float seedProjection = Vector3.Dot(
-                seedPosition, targetVolume.AxialAxis);
-            foreach (GeometryVertex neighbour in neighbours)
-            {
-                if (!ownerVertices.Contains(neighbour) ||
-                    !IsExternalCollarPosition(neighbour))
-                    continue;
-                Vector3 neighbourPosition = alignedPositionsByMesh
-                    [neighbour.MeshIndex][neighbour.VertexIndex];
-                float neighbourProjection = Vector3.Dot(
-                    neighbourPosition, targetVolume.AxialAxis);
-                float edgeLength = Vector3.Distance(
-                    seedPosition, neighbourPosition);
-                if (float.IsFinite(neighbourProjection) &&
-                    neighbourProjection < seedProjection - PositionEpsilon &&
-                    float.IsFinite(edgeLength) && edgeLength > PositionEpsilon)
-                {
-                    localCollarStep = MathF.Min(localCollarStep, edgeLength);
-                }
-            }
-        }
-        float maximumCollarSurfaceDistance = targetTransitionSpan;
-        if (float.IsFinite(localCollarStep))
-        {
-            maximumCollarSurfaceDistance = MathF.Max(
-                maximumCollarSurfaceDistance,
-                localCollarStep * 1.25f);
-        }
-        maximumCollarSurfaceDistance = MathF.Min(
-            maximumCollarSurfaceDistance,
-            targetVolume.AxialRadius);
-        if (!float.IsFinite(maximumCollarSurfaceDistance) ||
-            maximumCollarSurfaceDistance <= PositionEpsilon)
-        {
-            messages.Add(
-                "Semantic Head external Neck collar has no finite bounded " +
-                "surface distance.");
-            return null;
-        }
-
-        float maximumSeedProjection = collarSeeds.Max(vertex => Vector3.Dot(
-            alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-            targetVolume.AxialAxis));
-        float minimumSeedProjection = collarSeeds.Min(vertex => Vector3.Dot(
-            alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-            targetVolume.AxialAxis));
-        var transitionEligible = new HashSet<GeometryVertex>(ownerVertices.Where(vertex =>
-        {
-            if (!IsExternalCollarPosition(vertex))
-                return false;
-            float axialProjection = Vector3.Dot(
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-                targetVolume.AxialAxis);
-            return axialProjection <= maximumSeedProjection + PositionEpsilon &&
-                   axialProjection >= minimumSeedProjection -
-                    maximumCollarSurfaceDistance - PositionEpsilon;
-        }));
-        var transitionDistance = collarSeeds.ToDictionary(
-            vertex => vertex,
-            _ => 0f);
-        var transitionPending = new PriorityQueue<GeometryVertex, float>();
-        foreach (GeometryVertex seedVertex in collarSeeds)
-            transitionPending.Enqueue(seedVertex, 0);
-        while (transitionPending.TryDequeue(
-                   out GeometryVertex current,
-                   out float queuedDistance))
-        {
-            if (!transitionDistance.TryGetValue(
-                    current, out float currentDistance) ||
-                queuedDistance > currentDistance + PositionEpsilon)
-            {
-                continue;
-            }
-            if (!adjacency.TryGetValue(
-                    current, out IReadOnlyList<GeometryVertex>? neighbours))
-                continue;
-            foreach (GeometryVertex neighbour in neighbours)
-            {
-                if (transitionEligible.Contains(neighbour))
-                {
-                    Vector3 currentPosition = alignedPositionsByMesh
-                        [current.MeshIndex][current.VertexIndex];
-                    Vector3 neighbourPosition = alignedPositionsByMesh
-                        [neighbour.MeshIndex][neighbour.VertexIndex];
-                    float candidateDistance = currentDistance +
-                        Vector3.Distance(currentPosition, neighbourPosition);
-                    if (!float.IsFinite(candidateDistance) ||
-                        candidateDistance >
-                        maximumCollarSurfaceDistance + PositionEpsilon ||
-                        transitionDistance.TryGetValue(
-                            neighbour, out float knownDistance) &&
-                        knownDistance <= candidateDistance + PositionEpsilon)
-                    {
-                        continue;
-                    }
-                    transitionDistance[neighbour] = candidateDistance;
-                    transitionPending.Enqueue(neighbour, candidateDistance);
-                }
-            }
-        }
-        HashSet<GeometryVertex> donorNeckCollar = transitionDistance.Keys.ToHashSet();
-
-        GeometryVertex[] unguardedRigidBoundaryNeighbours = captured
-            .SelectMany(vertex => adjacency.TryGetValue(
-                    vertex, out IReadOnlyList<GeometryVertex>? neighbours)
-                ? neighbours
-                : [])
-            .Where(ownerVertices.Contains)
-            .Where(vertex => !captured.Contains(vertex))
-            .Where(vertex => !donorNeckCollar.Contains(vertex))
-            .Distinct()
-            .OrderBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (unguardedRigidBoundaryNeighbours.Length > 0)
-        {
-            messages.Add(
-                $"Semantic Head external Neck collar leaves " +
-                $"{unguardedRigidBoundaryNeighbours.Length} same-owner topology " +
-                "neighbour(s) directly adjacent to the complete rigid " +
-                "primary/secondary assembly; refusing an unguarded Head-to-capsule " +
-                "edge.");
-            return null;
-        }
-
-        // Exact attribute-seam copies are one rendered position. Closure over
-        // positions is required before assigning the collar so that no OBJ/glTF
-        // duplicate can retain legacy weights beside an otherwise identical
-        // Head+Neck blend. The topology traversal above already bridges these
-        // copies with zero-length edges; this explicit postcondition keeps that
-        // invariant fail-closed if topology construction ever changes.
-        HashSet<Vector3> donorNeckCollarPositions = donorNeckCollar
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .ToHashSet();
-        GeometryVertex[] missingCollarSeamCopies = ownerVertices
-            .Where(vertex => !captured.Contains(vertex))
-            .Where(vertex => donorNeckCollarPositions.Contains(
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex]))
-            .Where(vertex => !donorNeckCollar.Contains(vertex))
-            .OrderBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (missingCollarSeamCopies.Length > 0)
-        {
-            messages.Add(
-                $"Semantic Head external Neck collar left " +
-                $"{missingCollarSeamCopies.Length} exact owner-surface seam " +
-                "copy/copies outside its topology/geodesic proof.");
-            return null;
-        }
-
-        var collarDistanceByPosition = transitionDistance
-            .GroupBy(pair => alignedPositionsByMesh[pair.Key.MeshIndex]
-                [pair.Key.VertexIndex])
-            .ToDictionary(
-                group => group.Key,
-                group => group.Min(pair => pair.Value));
-        var donorNeckCollarWeights = new ReadOnlyDictionary<GeometryVertex, float>(
-            donorNeckCollar.ToDictionary(
-                vertex => vertex,
-                vertex =>
-                {
-                    Vector3 position = alignedPositionsByMesh[vertex.MeshIndex]
-                        [vertex.VertexIndex];
-                    float distance = collarDistanceByPosition[position];
-                    float amount = Math.Clamp(
-                        1 - distance / maximumCollarSurfaceDistance,
-                        0,
-                        1);
-                    return amount * amount * (3 - 2 * amount);
-                }));
-        if (!donorNeckCollarWeights.Values.Any(weight =>
-                weight > WeightEpsilon && weight < 1 - WeightEpsilon))
-        {
-            messages.Add(
-                "Semantic Head external Neck collar contains no genuine bounded " +
-                "Head+Neck blend below the rigid lobe.");
-            return null;
-        }
-
-        Vector3[] positions = captured
-            .Select(vertex =>
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex])
-            .Distinct()
-            .ToArray();
-        float[] axialValues = Project(
-            positions, targetVolume.Center, targetVolume.AxialAxis);
-        int transitionPositionCount = donorNeckCollar
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .Count();
-        int corePositionCount = captured
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .Count();
-        if (corePositionCount < MinimumCapturedSemanticCorePositions ||
-            transitionPositionCount == 0)
-        {
-            messages.Add(
-                $"Semantic Head donor-topology cluster contains " +
-                $"{corePositionCount} unique core and {transitionPositionCount} " +
-                "external Neck-collar position(s); both zones are required.");
-            return null;
-        }
-
-        float observedSpan = axialValues[^1] - axialValues[0];
-        float axialMargin = MathF.Max(
-            targetHeight * MinimumSemanticRadiusHeightRatio,
-            observedSpan * 0.04f);
-        float resolvedProximal = MathF.Min(
-            targetProximal,
-            axialValues[0] - axialMargin);
-        float resolvedDistal = MathF.Max(
-            targetVolume.AxialRadius,
-            axialValues[^1] + axialMargin);
-        float resolvedSpan = resolvedDistal - resolvedProximal;
-        if (!float.IsFinite(resolvedSpan) || resolvedSpan <= PositionEpsilon ||
-            resolvedSpan > maximumSpan)
-        {
-            messages.Add(
-                $"Semantic Head donor topology requires axial span " +
-                $"{resolvedSpan:G6}, beyond the conservative target/height bound " +
-                $"{maximumSpan:G6}.");
-            return null;
-        }
-
-        float[] lateral = Project(
-            positions, targetVolume.Center, targetVolume.LateralAxis);
-        float[] forward = Project(
-            positions, targetVolume.Center, targetVolume.ForwardAxis);
-        float lateralOffset = (lateral[0] + lateral[^1]) * 0.5f;
-        float forwardOffset = (forward[0] + forward[^1]) * 0.5f;
-        float minimumRadius = MathF.Max(
-            targetHeight * MinimumSemanticRadiusHeightRatio,
-            PositionEpsilon * 16);
-        float lateralRadius = MathF.Max(
-            (lateral[^1] - lateral[0]) * 0.5f,
-            MathF.Max(targetVolume.LateralRadius * 0.5f, minimumRadius));
-        float forwardRadius = MathF.Max(
-            (forward[^1] - forward[0]) * 0.5f,
-            MathF.Max(targetVolume.ForwardRadius * 0.5f, minimumRadius));
-        float axialCenter = (resolvedProximal + resolvedDistal) * 0.5f;
-        float axialRadius = resolvedSpan * 0.5f;
-        Vector3 center = targetVolume.Center +
-                         targetVolume.AxialAxis * axialCenter +
-                         targetVolume.LateralAxis * lateralOffset +
-                         targetVolume.ForwardAxis * forwardOffset;
-
-        float requiredRadialScale = 1;
-        foreach (Vector3 position in positions)
-        {
-            Vector3 relative = position - center;
-            float axialNormalized = MathF.Abs(Vector3.Dot(
-                relative, targetVolume.AxialAxis) / axialRadius);
-            if (!float.IsFinite(axialNormalized) ||
-                axialNormalized >= 1 - PositionEpsilon)
-            {
-                messages.Add(
-                    "Semantic Head donor cluster reaches its finite axial safety boundary.");
-                return null;
-            }
-            float lateralNormalized = MathF.Abs(Vector3.Dot(
-                relative, targetVolume.LateralAxis) / lateralRadius);
-            float forwardNormalized = MathF.Abs(Vector3.Dot(
-                relative, targetVolume.ForwardAxis) / forwardRadius);
-            float radialSquared = lateralNormalized * lateralNormalized +
-                                  forwardNormalized * forwardNormalized;
-            float radialRemainder = 1 - axialNormalized * axialNormalized;
-            float scale = MathF.Sqrt(
-                radialSquared / MathF.Max(radialRemainder, PositionEpsilon));
-            if (!float.IsFinite(scale))
-            {
-                messages.Add(
-                    "Semantic Head donor envelope requires a non-finite radial scale.");
-                return null;
-            }
-            requiredRadialScale = MathF.Max(requiredRadialScale, scale);
-        }
-        lateralRadius *= requiredRadialScale * DonorHeadEnvelopeMargin;
-        forwardRadius *= requiredRadialScale * DonorHeadEnvelopeMargin;
-        if (lateralRadius <
-                targetVolume.LateralRadius *
-                MinimumDonorToTargetHeadExtentRatio ||
-            forwardRadius <
-                targetVolume.ForwardRadius *
-                MinimumDonorToTargetHeadExtentRatio)
-        {
-            messages.Add(
-                $"Semantic Head donor lobe is too narrow to represent the target " +
-                $"head volume: radii ({lateralRadius:G6}, {forwardRadius:G6}); " +
-                $"minimum target-relative ratio is " +
-                $"{MinimumDonorToTargetHeadExtentRatio:G6}.");
-            return null;
-        }
-        float maximumAnatomicalRadius = MathF.Min(
-            targetHeight * MaximumDonorHeadRadiusHeightRatio,
-            MathF.Max(targetVolume.LateralRadius, targetVolume.ForwardRadius) *
-            MaximumDonorToTargetHeadExtentRatio);
-        if (!float.IsFinite(lateralRadius) || !float.IsFinite(forwardRadius) ||
-            lateralRadius > maximumAnatomicalRadius ||
-            forwardRadius > maximumAnatomicalRadius)
-        {
-            messages.Add(
-                $"Semantic Head donor lobe requires radii " +
-                $"({lateralRadius:G6}, {forwardRadius:G6}), beyond the conservative " +
-                $"target/height bound {maximumAnatomicalRadius:G6}.");
-            return null;
-        }
-
-        float transitionLength = targetTransitionEnd - resolvedProximal;
-        if (!float.IsFinite(transitionLength) ||
-            transitionLength <= PositionEpsilon ||
-            transitionLength >= resolvedSpan)
-        {
-            messages.Add(
-                "Semantic Head donor refinement produced an invalid neck transition.");
-            return null;
-        }
-        GeneratedSkinningRegionVolume donorVolume = targetVolume with
-        {
-            Center = center,
-            AxialRadius = axialRadius,
-            LateralRadius = lateralRadius,
-            ForwardRadius = forwardRadius,
-            ProximalTransitionLength = transitionLength,
-            ShapeExponent = 2
-        };
-
-        GeometryVertex[] uncapturedAutomaticSeeds = bodyVertices
-            .Where(vertex => !captured.Contains(vertex))
-            .Where(vertex =>
-            {
-                Vector3 position = alignedPositionsByMesh
-                    [vertex.MeshIndex][vertex.VertexIndex];
-                float targetAxial = Vector3.Dot(
-                    position - targetVolume.Center,
-                    targetVolume.AxialAxis);
-                return float.IsFinite(targetAxial) &&
-                       targetAxial > targetTransitionEnd + PositionEpsilon &&
-                       DistanceToSemanticVolume(position, donorVolume) <=
-                       1 + PositionEpsilon * 16;
-            })
-            .OrderBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (uncapturedAutomaticSeeds.Length > 0)
-        {
-            messages.Add(
-                $"Semantic Head refined automatic volume still contains " +
-                $"{uncapturedAutomaticSeeds.Length} uncaptured distal " +
-                "selected-body vertex/vertices from unproved modular shells; " +
-                "they retain ordinary bounded capsule weights instead of " +
-                "invalidating the topology-proved primary head lobe.");
-        }
-
-        HashSet<GeometryVertex> allSeedVertices = seededClusters
-            .SelectMany(cluster => cluster.SeedVertices)
-            .Where(captured.Contains)
-            .ToHashSet();
-        messages.Add(
-            $"Semantic Head donor-topology calibration followed one primary " +
-            $"neck lobe plus {acceptedSecondaryCount} compact secondary " +
-            $"face-shell cluster(s) across {positions.Length} unique position(s), " +
-            "preserving the complete lobe as rigid Head and placing the " +
-            "target-derived Head+Neck blend in an external Neck collar; " +
-            "resolved radii are " +
-            $"({axialRadius:G6}, {lateralRadius:G6}, {forwardRadius:G6}) without " +
-            $"donor mesh/material/name conditions. Relative to Head along the " +
-            $"target axis, the donor-boundary cut/collar surface bound are " +
-            $"{(donorCutProjection - Vector3.Dot(
-                calibration.PosedAnchor, targetVolume.AxialAxis)) / targetHeight:G6}/" +
-            $"{maximumCollarSurfaceDistance / targetHeight:G6} target-height " +
-            "units (cut projection / maximum collar surface distance).");
-        return calibration with
-        {
-            AutomaticVolume = donorVolume,
-            DonorHeadLobe = new SemanticHeadLobe(
-                ownerComponentIndex,
-                seed,
-                captured.ToHashSet(),
-                primary.Vertices.ToHashSet(),
-                secondaryVertices.ToHashSet(),
-                allSeedVertices,
-                ownerVertices,
-                boundaryVertices,
-                donorNeckCollar,
-                donorNeckCollarWeights,
-                donorCutProjection,
-                maximumCollarSurfaceDistance)
         };
     }
 
@@ -2300,479 +1455,59 @@ public static partial class GeneratedSkinningPreparer
         }
     }
 
-    private static bool IsManualSemanticVolumeAdjustment(
-        GeneratedSkinningRegionAdjustment adjustment) =>
-        MathF.Abs(adjustment.AxialOffset) > PositionEpsilon ||
-        MathF.Abs(adjustment.AxialScale - 1) > PositionEpsilon ||
-        MathF.Abs(adjustment.RadialScale - 1) > PositionEpsilon ||
-        MathF.Abs(adjustment.ForwardTiltDegrees) > PositionEpsilon;
-
-    private static bool TryCaptureSemanticRegion(
+    private static bool TryCaptureSemanticHeadPlane(
         SemanticRegionCalibration calibration,
-        GeneratedSkinningRegionVolume volume,
+        GeneratedSkinningSeparationPlaneResolution plane,
         IReadOnlyList<GeometryComponent> bodyComponents,
         IReadOnlyList<GeometrySource> donorSources,
         IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-        IReadOnlyDictionary<GeometryVertex, IReadOnlyList<GeometryVertex>> adjacency,
-        SideCalibration sideCalibration,
-        bool useManualVolumeMembership,
         out IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment> assignments,
         out IReadOnlyList<TargetRigBodyVertexMembership> coreVertices,
-        out IReadOnlyList<TargetRigBodyVertexMembership> transitionVertices,
         out string? failure)
     {
-        if (calibration.Region == GeneratedSkinningSemanticRegion.Head)
-        {
-            if (calibration.DonorHeadLobe is null || useManualVolumeMembership)
-            {
-                return TryCaptureManualSemanticVolume(
-                    calibration,
-                    volume,
-                    bodyComponents,
-                    donorSources,
-                    alignedPositionsByMesh,
-                    sideCalibration,
-                    out assignments,
-                    out coreVertices,
-                    out transitionVertices,
-                    out failure);
-            }
-            return TryCaptureSemanticHeadLobe(
-                calibration,
-                volume,
-                donorSources,
-                alignedPositionsByMesh,
-                adjacency,
-                out assignments,
-                out coreVertices,
-                out transitionVertices,
-                out failure);
-        }
-
-        return TryCaptureCompleteSemanticHandLobe(
-            calibration,
-            volume,
-            bodyComponents,
-            donorSources,
-            alignedPositionsByMesh,
-            sideCalibration,
-            out assignments,
-            out coreVertices,
-            out transitionVertices,
-            out failure);
-    }
-
-    private static bool TryCaptureManualSemanticVolume(
-        SemanticRegionCalibration calibration,
-        GeneratedSkinningRegionVolume volume,
-        IReadOnlyList<GeometryComponent> bodyComponents,
-        IReadOnlyList<GeometrySource> donorSources,
-        IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-        SideCalibration sideCalibration,
-        out IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment> assignments,
-        out IReadOnlyList<TargetRigBodyVertexMembership> coreVertices,
-        out IReadOnlyList<TargetRigBodyVertexMembership> transitionVertices,
-        out string? failure)
-    {
-        BodySide requiredSide = calibration.Region switch
-        {
-            GeneratedSkinningSemanticRegion.LeftHand => BodySide.Left,
-            GeneratedSkinningSemanticRegion.RightHand => BodySide.Right,
-            _ => BodySide.Center
-        };
         GeometryVertex[] captured = bodyComponents
             .SelectMany(component => component.Vertices)
             .Distinct()
             .Where(vertex =>
-            {
-                Vector3 position = alignedPositionsByMesh[vertex.MeshIndex]
-                    [vertex.VertexIndex];
-                return (requiredSide == BodySide.Center ||
-                        !IsOpposite(
-                            requiredSide,
-                            ClassifyPositionSide(position, sideCalibration))) &&
-                       DistanceToSemanticVolume(position, volume) <=
-                       1 + PositionEpsilon * 16;
-            })
+                GeneratedSkinningSeparationPlaneMath.SignedDistance(
+                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
+                    plane) >= -PositionEpsilon)
             .OrderBy(vertex => vertex.MeshIndex)
             .ThenBy(vertex => vertex.VertexIndex)
             .ToArray();
-        int uniquePositions = captured
+        int uniquePositionCount = captured
             .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
                 [vertex.VertexIndex])
             .Distinct()
             .Count();
-        if (uniquePositions < MinimumCapturedSemanticCorePositions)
+        if (uniquePositionCount < MinimumCapturedSemanticCorePositions)
         {
             assignments = new ReadOnlyDictionary<GeometryVertex,
                 SemanticVertexAssignment>(
                 new Dictionary<GeometryVertex, SemanticVertexAssignment>());
             coreVertices = [];
-            transitionVertices = [];
             failure =
-                $"Semantic {calibration.Region} manual ellipsoid contains only " +
-                $"{uniquePositions} unique selected-body position(s); move or " +
-                "expand it before applying.";
+                $"Semantic Head plane contains only {uniquePositionCount} unique " +
+                "selected-body position(s) on its Head side; adjust its height " +
+                "or angle before applying.";
             return false;
         }
 
-        float transitionLength = Math.Clamp(
-            volume.ProximalTransitionLength,
-            PositionEpsilon,
-            MathF.Max(PositionEpsilon, volume.AxialRadius * 0.5f));
-        var mutable = new Dictionary<GeometryVertex, SemanticVertexAssignment>();
-        var core = new List<GeometryVertex>();
-        var transition = new List<GeometryVertex>();
-        float[] handLateral = calibration.Region ==
-                              GeneratedSkinningSemanticRegion.Head
-            ? []
-            : captured.Select(vertex => Vector3.Dot(
-                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex] -
-                    volume.Center,
-                    volume.LateralAxis))
-                .Order()
-                .ToArray();
-        float handLateralMinimum = handLateral.Length == 0
-            ? -1
-            : Quantile(handLateral, RobustLowerQuantile);
-        float handLateralMaximum = handLateral.Length == 0
-            ? 1
-            : Quantile(handLateral, RobustUpperQuantile);
+        var mutable = new Dictionary<GeometryVertex,
+            SemanticVertexAssignment>(captured.Length);
         foreach (GeometryVertex vertex in captured)
         {
-            Vector3 position = alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex];
-            float axial = Vector3.Dot(position - volume.Center, volume.AxialAxis);
-            float distanceFromProximalPole = MathF.Max(0, axial + volume.AxialRadius);
-            if (calibration.Region != GeneratedSkinningSemanticRegion.Head &&
-                distanceFromProximalPole < transitionLength)
-            {
-                float amount = Math.Clamp(
-                    distanceFromProximalPole / transitionLength,
-                    0,
-                    1);
-                amount = amount * amount * (3 - 2 * amount);
-                transition.Add(vertex);
-                mutable.Add(vertex, new SemanticVertexAssignment(
-                    calibration.Region,
-                    SemanticVertexZone.ProximalTransition,
-                    calibration.AnchorSkeletonJointIndex,
-                    calibration.ProximalSkeletonJointIndex,
-                    amount));
-            }
-            else
-            {
-                core.Add(vertex);
-                PackedInfluence[] motionInfluences = [];
-                if (calibration.Region != GeneratedSkinningSemanticRegion.Head &&
-                    calibration.HandMotionProfile is { } motionProfile)
-                {
-                    ApproximateFingerBranch branch = motionProfile.SelectBranch(
-                        position,
-                        volume,
-                        handLateralMinimum,
-                        handLateralMaximum);
-                    float motionStart = -volume.AxialRadius + transitionLength;
-                    float motionSpan = MathF.Max(
-                        PositionEpsilon,
-                        volume.AxialRadius - motionStart);
-                    float progress = Math.Clamp(
-                        (axial - motionStart) / motionSpan,
-                        0,
-                        1);
-                    motionInfluences = BuildApproximateFingerInfluences(
-                        calibration.AnchorSkeletonJointIndex,
-                        branch.SkeletonJointIndices,
-                        motionProfile.EvaluateArticulation(progress));
-                }
-                mutable.Add(vertex, new SemanticVertexAssignment(
-                    calibration.Region,
-                    SemanticVertexZone.Core,
-                    calibration.AnchorSkeletonJointIndex,
-                    calibration.ProximalSkeletonJointIndex,
-                    1)
-                {
-                    CoreMotionInfluences = motionInfluences
-                });
-            }
-        }
-        if (core.Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex]).Distinct().Count() <
-            MinimumCapturedSemanticCorePositions)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex,
-                SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                $"Semantic {calibration.Region} manual ellipsoid leaves too few " +
-                "vertices outside its proximal transition; increase its length " +
-                "or move it distally.";
-            return false;
-        }
-
-        assignments = new ReadOnlyDictionary<GeometryVertex,
-            SemanticVertexAssignment>(mutable);
-        coreVertices = BuildSemanticMembership(core, donorSources);
-        transitionVertices = BuildSemanticMembership(transition, donorSources);
-        int articulated = mutable.Values.Count(value =>
-            value.MotionProxyWeight > WeightEpsilon);
-        failure =
-            $"Semantic {calibration.Region} used the explicitly applied manual " +
-            $"ellipsoid membership: {core.Count} rigid core and " +
-            $"{transition.Count} proximal-transition vertex/vertices" +
-            (articulated > 0
-                ? $", including {articulated} approximate finger-motion vertex/vertices"
-                : string.Empty) +
-            ". The user-authored finite volume, rather than automatic topology " +
-            "lobe containment, defined this protected region.";
-        return true;
-    }
-
-    private static bool TryCaptureSemanticHeadLobe(
-        SemanticRegionCalibration calibration,
-        GeneratedSkinningRegionVolume volume,
-        IReadOnlyList<GeometrySource> donorSources,
-        IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-        IReadOnlyDictionary<GeometryVertex, IReadOnlyList<GeometryVertex>> adjacency,
-        out IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment> assignments,
-        out IReadOnlyList<TargetRigBodyVertexMembership> coreVertices,
-        out IReadOnlyList<TargetRigBodyVertexMembership> transitionVertices,
-        out string? failure)
-    {
-        SemanticHeadLobe? lobe = calibration.DonorHeadLobe;
-        if (lobe is null || lobe.Vertices.Count == 0)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                "Semantic Head has no validated donor-topology lobe to capture.";
-            return false;
-        }
-
-        GeometryVertex[] outside = lobe.Vertices
-            .Where(vertex => DistanceToSemanticVolume(
-                alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex],
-                volume) > 1 + PositionEpsilon * 16)
-            .OrderBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (outside.Length > 0)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                $"Semantic Head adjusted ellipsoid would cut through its validated " +
-                $"connected donor head lobe at {outside.Length} vertex/vertices; " +
-                "expand or reset the protected volume instead of partially deforming a face.";
-            return false;
-        }
-
-        // The ellipsoid is a finite containment guard, not the semantic cut.
-        // The immutable donor-topology membership and neck plane above remain the
-        // source of truth even though the ellipsoid needs a pole below a neck ring
-        // with non-zero radius. A manual expansion may not silently make additional
-        // owner-surface vertices newly eligible inside that guard.
-        GeometryVertex[] newlyEnclosedOwnerVertices = lobe.OwnerVertices
-            .Where(vertex => !lobe.Vertices.Contains(vertex))
-            .Where(vertex =>
-            {
-                Vector3 position =
-                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex];
-                return DistanceToSemanticVolume(position, volume) <=
-                           1 + PositionEpsilon * 16 &&
-                       DistanceToSemanticVolume(
-                           position, calibration.AutomaticVolume) >
-                           1 + PositionEpsilon * 16;
-            })
-            .OrderBy(vertex => vertex.MeshIndex)
-            .ThenBy(vertex => vertex.VertexIndex)
-            .ToArray();
-        if (newlyEnclosedOwnerVertices.Length > 0)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                $"Semantic Head adjusted ellipsoid newly encloses " +
-                $"{newlyEnclosedOwnerVertices.Length} owner-surface vertex/vertices " +
-                "outside the immutable donor neck cut; reset or contract the " +
-                "protected volume instead of changing membership implicitly.";
-            return false;
-        }
-
-        float transitionSpan = lobe.MaximumCollarSurfaceDistance;
-        if (!float.IsFinite(transitionSpan) ||
-            transitionSpan <= PositionEpsilon)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure = "Semantic Head has an invalid immutable external Neck collar.";
-            return false;
-        }
-
-        var provedAssembly = lobe.PrimaryVertices.ToHashSet();
-        provedAssembly.UnionWith(lobe.SecondaryVertices);
-        bool hasUnguardedRigidBoundaryEdge = lobe.Vertices.Any(vertex =>
-            adjacency.TryGetValue(
-                vertex, out IReadOnlyList<GeometryVertex>? neighbours) &&
-            neighbours.Any(neighbour =>
-                lobe.OwnerVertices.Contains(neighbour) &&
-                !lobe.Vertices.Contains(neighbour) &&
-                !lobe.NeckCollarVertices.Contains(neighbour)));
-        bool invalidClusterProof =
-            calibration.Region != GeneratedSkinningSemanticRegion.Head ||
-            !provedAssembly.SetEquals(lobe.Vertices) ||
-            lobe.PrimaryVertices.Overlaps(lobe.SecondaryVertices) ||
-            !lobe.SeedVertices.IsSubsetOf(lobe.Vertices) ||
-            lobe.BoundaryVertices.Count == 0 ||
-            !lobe.BoundaryVertices.IsSubsetOf(lobe.Vertices) ||
-            lobe.NeckCollarVertices.Count == 0 ||
-            !lobe.NeckCollarVertices.IsSubsetOf(lobe.OwnerVertices) ||
-            lobe.Vertices.Overlaps(lobe.NeckCollarVertices) ||
-            hasUnguardedRigidBoundaryEdge ||
-            lobe.NeckCollarHeadWeights.Count != lobe.NeckCollarVertices.Count ||
-            !lobe.NeckCollarHeadWeights.Keys.ToHashSet()
-                .SetEquals(lobe.NeckCollarVertices);
-        if (invalidClusterProof)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex,
-                SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                "Semantic Head donor-cluster proof is internally inconsistent; " +
-                "refusing to emit weights outside one proved rigid Head assembly " +
-                "and its external same-owner Neck collar.";
-            return false;
-        }
-
-        var mutableAssignments = new Dictionary<GeometryVertex,
-            SemanticVertexAssignment>();
-        var core = new List<GeometryVertex>();
-        var transition = new List<GeometryVertex>();
-        foreach (GeometryVertex vertex in lobe.Vertices
-                     .OrderBy(vertex => vertex.MeshIndex)
-                     .ThenBy(vertex => vertex.VertexIndex))
-        {
-            core.Add(vertex);
-            mutableAssignments.Add(vertex, new SemanticVertexAssignment(
-                calibration.Region,
+            mutable.Add(vertex, new SemanticVertexAssignment(
+                GeneratedSkinningSemanticRegion.Head,
                 SemanticVertexZone.Core,
                 calibration.AnchorSkeletonJointIndex,
                 calibration.ProximalSkeletonJointIndex,
-                1));
+                AnchorWeight: 1));
         }
-        foreach (GeometryVertex vertex in lobe.NeckCollarVertices
-                     .OrderBy(vertex => vertex.MeshIndex)
-                     .ThenBy(vertex => vertex.VertexIndex))
-        {
-            float anchorWeight = lobe.NeckCollarHeadWeights[vertex];
-            transition.Add(vertex);
-            mutableAssignments.Add(vertex, new SemanticVertexAssignment(
-                calibration.Region,
-                SemanticVertexZone.ProximalTransition,
-                calibration.AnchorSkeletonJointIndex,
-                calibration.ProximalSkeletonJointIndex,
-                anchorWeight));
-        }
-
-        bool invalidAssignmentPostcondition =
-            mutableAssignments.Count !=
-                lobe.Vertices.Count + lobe.NeckCollarVertices.Count ||
-            !mutableAssignments.Keys.ToHashSet().SetEquals(
-                lobe.Vertices.Concat(lobe.NeckCollarVertices)) ||
-            mutableAssignments.Any(pair =>
-            {
-                bool isTransition = lobe.NeckCollarVertices.Contains(pair.Key);
-                SemanticVertexAssignment assignment = pair.Value;
-                return assignment.Region != GeneratedSkinningSemanticRegion.Head ||
-                       assignment.AnchorSkeletonJointIndex !=
-                       calibration.AnchorSkeletonJointIndex ||
-                       assignment.ProximalSkeletonJointIndex !=
-                       calibration.ProximalSkeletonJointIndex ||
-                       !float.IsFinite(assignment.AnchorWeight) ||
-                       assignment.AnchorWeight < 0 ||
-                       assignment.AnchorWeight > 1 ||
-                       isTransition !=
-                       (assignment.Zone ==
-                        SemanticVertexZone.ProximalTransition) ||
-                       !isTransition &&
-                       (assignment.Zone != SemanticVertexZone.Core ||
-                        assignment.AnchorWeight != 1);
-            }) ||
-            lobe.Vertices.Any(vertex =>
-                !mutableAssignments.TryGetValue(
-                    vertex, out SemanticVertexAssignment? headAssignment) ||
-                headAssignment is null ||
-                headAssignment.Zone != SemanticVertexZone.Core ||
-                headAssignment.AnchorWeight != 1) ||
-            lobe.NeckCollarVertices.Any(vertex =>
-            {
-                Vector3 position = alignedPositionsByMesh[vertex.MeshIndex]
-                    [vertex.VertexIndex];
-                float axialProjection = Vector3.Dot(position, volume.AxialAxis);
-                return !float.IsFinite(axialProjection) ||
-                       axialProjection >=
-                        lobe.CutPlaneProjection - PositionEpsilon;
-            });
-        if (invalidAssignmentPostcondition)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex,
-                SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                "Semantic Head assignment postcondition failed: every proved " +
-                "primary/secondary Head vertex must be one-hot Head, while every " +
-                "transition vertex must remain in the external Neck collar.";
-            return false;
-        }
-
-        int uniqueCorePositions = core
-            .Select(vertex => donorSources[vertex.MeshIndex].Positions[vertex.VertexIndex])
-            .Distinct()
-            .Count();
-        int uniqueTransitionPositions = transition
-            .Select(vertex => donorSources[vertex.MeshIndex].Positions[vertex.VertexIndex])
-            .Distinct()
-            .Count();
-        if (uniqueCorePositions < MinimumCapturedSemanticCorePositions ||
-            uniqueTransitionPositions == 0)
-        {
-            assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-                new Dictionary<GeometryVertex, SemanticVertexAssignment>());
-            coreVertices = [];
-            transitionVertices = [];
-            failure =
-                $"Semantic Head donor lobe contains {uniqueCorePositions} unique core " +
-                $"and {uniqueTransitionPositions} external Neck-collar position(s) after " +
-                "the requested adjustment.";
-            return false;
-        }
-
-        assignments = new ReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>(
-            mutableAssignments);
-        coreVertices = BuildSemanticMembership(core, donorSources);
-        transitionVertices = BuildSemanticMembership(transition, donorSources);
-        failure =
-            $"Semantic Head rigidly captured the complete validated donor assembly from " +
-            $"body component #{lobe.BodyComponentIndex}: " +
-            $"{lobe.PrimaryVertices.Count} primary and " +
-            $"{lobe.SecondaryVertices.Count} secondary face-shell vertices, plus " +
-            $"{lobe.NeckCollarVertices.Count} external same-owner Neck-collar " +
-            "vertices; every proved face vertex is one-hot Head and none remains " +
-            "on the legacy capsule path.";
+        assignments = new ReadOnlyDictionary<GeometryVertex,
+            SemanticVertexAssignment>(mutable);
+        coreVertices = BuildSemanticMembership(captured, donorSources);
+        failure = null;
         return true;
     }
 
@@ -2887,242 +1622,335 @@ public static partial class GeneratedSkinningPreparer
     }
 
     private static IReadOnlyDictionary<int, SemanticComponentAssignment>
-        ResolveHeadCompanionComponents(
+        ResolveHeadPlaneCompanionComponents(
             IDictionary<GeneratedSkinningSemanticRegion, SemanticRegionCandidate> candidates,
             IReadOnlyList<GeometryComponent> bodyComponents,
-            IReadOnlyList<GeometrySource> donorSources,
             SceneTopology topology,
             IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-            IReadOnlySet<int> manuallyAssignedComponentIndices)
+            IReadOnlySet<int> manuallyAssignedComponentIndices,
+            SeparationPlanePreparation separationPlanes)
     {
         var result = new Dictionary<int, SemanticComponentAssignment>();
         if (!candidates.TryGetValue(
                 GeneratedSkinningSemanticRegion.Head,
                 out SemanticRegionCandidate? headCandidate) ||
             !headCandidate.Resolution.IsApplied ||
-            headCandidate.Resolution.ResolvedVolume is not { } volume ||
-            IsManualSemanticVolumeAdjustment(headCandidate.Resolution.Adjustment))
+            headCandidate.Resolution.SeparationPlane is not
+                { IsEnabled: true, IsAvailable: true } plane)
         {
             return new ReadOnlyDictionary<int, SemanticComponentAssignment>(result);
         }
 
-        HashSet<GeometryVertex> coreVertices = headCandidate.Assignments
-            .Where(pair => pair.Value.Zone == SemanticVertexZone.Core)
-            .Select(pair => pair.Key)
-            .ToHashSet();
-        Vector3[] corePositions = coreVertices
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .ToArray();
-        if (corePositions.Length < MinimumCapturedSemanticCorePositions)
+        if (!separationPlanes.ByKind.TryGetValue(
+                GeneratedSkinningSeparationPlaneKind.Back,
+                out GeneratedSkinningSeparationPlaneResolution? backPlane) ||
+            !backPlane.IsEnabled ||
+            !backPlane.IsAvailable)
+        {
             return new ReadOnlyDictionary<int, SemanticComponentAssignment>(result);
-        var corePositionIndex = new ExactVector3NearestIndex(corePositions);
+        }
 
-        Vector3[] nonHeadBodyPositions = bodyComponents
-            .SelectMany(component => component.Vertices)
-            .Distinct()
-            .Where(vertex => !coreVertices.Contains(vertex))
-            .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
-                [vertex.VertexIndex])
-            .Distinct()
-            .ToArray();
-        ExactVector3NearestIndex? nonHeadBodyIndex =
-            nonHeadBodyPositions.Length == 0
-                ? null
-                : new ExactVector3NearestIndex(nonHeadBodyPositions);
-
-        HashSet<int> bodyComponentIndices = bodyComponents
+        HashSet<int> knownBodyComponentIndices = bodyComponents
             .Select(component => component.ComponentIndex)
             .ToHashSet();
-        IReadOnlyDictionary<Vector3, GeometryVertex[]> bodyVerticesByPosition =
-            bodyComponents
-                .SelectMany(component => component.Vertices)
-                .Distinct()
-                .GroupBy(vertex =>
-                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex])
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.OrderBy(vertex => vertex.MeshIndex)
-                        .ThenBy(vertex => vertex.VertexIndex)
-                        .ToArray());
-        float maximumSurfaceGap = MathF.Max(
-            MathF.Min(volume.LateralRadius, volume.ForwardRadius) *
-            HeadCompanionMaximumSurfaceGapRatio,
-            PositionEpsilon * 16);
-        var strictCompanionPositions = new Dictionary<int, Vector3[]>();
-        var clusteredCandidates = new List<(
-            GeometryComponent Component,
-            Vector3[] Positions,
-            int HeadPreferredPositionCount)>();
+        HashSet<GeometryVertex> headAssignedVertices = headCandidate.Assignments.Keys
+            .ToHashSet();
+        int headOwnerComponentIndex =
+            headCandidate.Resolution.TopologyOwnerComponentIndex;
+        if (headOwnerComponentIndex < 0)
+        {
+            headOwnerComponentIndex = topology.Components
+                .Select(component => new
+                {
+                    component.ComponentIndex,
+                    Captured = component.Vertices.Count(
+                        headAssignedVertices.Contains),
+                    component.TriangleCount
+                })
+                .Where(value => value.Captured > 0)
+                .OrderByDescending(value => value.Captured)
+                .ThenByDescending(value => value.TriangleCount)
+                .ThenBy(value => value.ComponentIndex)
+                .Select(value => value.ComponentIndex)
+                .DefaultIfEmpty(-1)
+                .First();
+        }
+
+        var headAssemblyProtectedComponentIndices = new HashSet<int>();
+        var propagatedHeadComponentIndices = new HashSet<int>();
+        var headAssemblyProtection = new List<(
+            int MeshIndex,
+            int SeedCount,
+            int ProtectedCount,
+            float MaximumGap)>();
+        var rejectedHeadAssemblyProtection = new List<(
+            int MeshIndex,
+            int SeedCount,
+            int ProposedCount,
+            int ProposedVertexCount,
+            int SurfaceVertexCount)>();
+        int surfaceVertexCount = topology.Components.Sum(component =>
+            component.Vertices.Length);
+
+        // An imported mesh can contain many disconnected triangle islands.
+        // Hair commonly does, so classifying and weighting each island alone
+        // splits one authored assembly between Head and Back. Start from the
+        // components that independently prove the strict Head rule, then add
+        // only islands which directly neighbour one of those proved seeds and
+        // remain inside the finite vicinity of the Head cut. Never flood-fill
+        // through newly inherited islands: a whole character exported as one
+        // technical OBJ mesh can contain a chain of nearby disconnected body,
+        // clothing and hair surfaces, and transitive growth would eventually
+        // classify almost the entire character as rigid Head.
+        // A distant rear object (for example a wing packed into the same
+        // technical mesh) cannot inherit Head merely through that container.
+        // The semantic anatomical owner component and manual assignments are
+        // never eligible. Names, materials and textures never participate.
+        foreach (IGrouping<int, GeometryComponent> meshGroup in
+                 topology.Components
+                     .SelectMany(component => component.Vertices
+                         .Select(vertex => vertex.MeshIndex)
+                         .Distinct()
+                         .Select(meshIndex => (meshIndex, component)))
+                     .GroupBy(value => value.meshIndex, value => value.component)
+                     .OrderBy(group => group.Key))
+        {
+            int meshIndex = meshGroup.Key;
+            GeometryComponent[] meshComponents = meshGroup
+                .DistinctBy(component => component.ComponentIndex)
+                .OrderBy(component => component.ComponentIndex)
+                .ToArray();
+            GeometryComponent[] eligibleComponents = meshComponents
+                .Where(component =>
+                    component.ComponentIndex != headOwnerComponentIndex &&
+                    !manuallyAssignedComponentIndices.Contains(
+                        component.ComponentIndex))
+                .ToArray();
+            if (eligibleComponents.Length == 0)
+                continue;
+
+            GeometryComponent[] seeds = eligibleComponents
+                .Where(component =>
+                {
+                    ComponentPlaneCoverage headCoverage =
+                        MeasureComponentPlaneCoverage(
+                            component,
+                            alignedPositionsByMesh,
+                            plane);
+                    ComponentPlaneCoverage backCoverage =
+                        MeasureComponentPlaneCoverage(
+                            component,
+                            alignedPositionsByMesh,
+                            backPlane);
+                    return headCoverage.PositionCount > 0 &&
+                           backCoverage.PositionCount > 0 &&
+                           IsProtectedHeadComponent(
+                               headCoverage,
+                               backCoverage);
+                })
+                .ToArray();
+            if (seeds.Length == 0)
+                continue;
+
+            var geometryByComponent = eligibleComponents.ToDictionary(
+                component => component.ComponentIndex,
+                component =>
+                {
+                    Vector3[] positions = component.Vertices
+                        .Select(vertex => alignedPositionsByMesh[vertex.MeshIndex]
+                            [vertex.VertexIndex])
+                        .Distinct()
+                        .ToArray();
+                    return (
+                        Minimum: positions.Aggregate(Vector3.Min),
+                        Maximum: positions.Aggregate(Vector3.Max),
+                        MaximumHeadDistance: positions.Max(position =>
+                            GeneratedSkinningSeparationPlaneMath.SignedDistance(
+                                position,
+                                plane)));
+                });
+            var seedIndices = seeds
+                .Select(component => component.ComponentIndex)
+                .ToHashSet();
+            var protectedInMesh = seedIndices.ToHashSet();
+            float maximumGap = MathF.Max(
+                PositionEpsilon * 16,
+                MathF.Min(
+                    plane.PreviewHalfExtentU,
+                    backPlane.PreviewHalfExtentV) *
+                HeadAssemblyMaximumIslandGapRatio);
+            foreach (GeometryComponent candidate in eligibleComponents)
+            {
+                if (protectedInMesh.Contains(candidate.ComponentIndex))
+                    continue;
+                (Vector3 candidateMinimum, Vector3 candidateMaximum,
+                    float candidateMaximumHeadDistance) =
+                    geometryByComponent[candidate.ComponentIndex];
+                if (candidateMaximumHeadDistance < -maximumGap)
+                    continue;
+                bool neighboursDirectSeed = seedIndices.Any(seedIndex =>
+                {
+                    (Vector3 seedMinimum, Vector3 seedMaximum, _) =
+                        geometryByComponent[seedIndex];
+                    float dx = MathF.Max(
+                        0,
+                        MathF.Max(
+                            candidateMinimum.X - seedMaximum.X,
+                            seedMinimum.X - candidateMaximum.X));
+                    float dy = MathF.Max(
+                        0,
+                        MathF.Max(
+                            candidateMinimum.Y - seedMaximum.Y,
+                            seedMinimum.Y - candidateMaximum.Y));
+                    float dz = MathF.Max(
+                        0,
+                        MathF.Max(
+                            candidateMinimum.Z - seedMaximum.Z,
+                            seedMinimum.Z - candidateMaximum.Z));
+                    return dx * dx + dy * dy + dz * dz <=
+                           maximumGap * maximumGap;
+                });
+                if (neighboursDirectSeed)
+                    protectedInMesh.Add(candidate.ComponentIndex);
+            }
+
+            int protectedVertexCount = meshComponents
+                .Where(component => protectedInMesh.Contains(
+                    component.ComponentIndex))
+                .Sum(component => component.Vertices.Length);
+            if (protectedInMesh.Count > seedIndices.Count &&
+                surfaceVertexCount > 0 &&
+                (double)protectedVertexCount / surfaceVertexCount >
+                    HeadAssemblyMaximumProtectedVertexFraction)
+            {
+                rejectedHeadAssemblyProtection.Add((
+                    meshIndex,
+                    seeds.Length,
+                    protectedInMesh.Count,
+                    protectedVertexCount,
+                    surfaceVertexCount));
+                protectedInMesh = seedIndices;
+            }
+
+            headAssemblyProtectedComponentIndices.UnionWith(protectedInMesh);
+            propagatedHeadComponentIndices.UnionWith(
+                protectedInMesh.Except(
+                    seeds.Select(component => component.ComponentIndex)));
+            if (protectedInMesh.Count > seeds.Length)
+            {
+                headAssemblyProtection.Add((
+                    meshIndex,
+                    seeds.Length,
+                    protectedInMesh.Count,
+                    maximumGap));
+            }
+        }
+
         foreach (GeometryComponent component in topology.Components
                      .Where(component =>
-                         !bodyComponentIndices.Contains(component.ComponentIndex) &&
+                         component.ComponentIndex != headOwnerComponentIndex &&
                          !manuallyAssignedComponentIndices.Contains(
                              component.ComponentIndex))
                      .OrderBy(component => component.ComponentIndex))
         {
-            Vector3[] positions = component.Vertices
-                .Select(vertex =>
-                    alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex])
-                .Distinct()
-                .ToArray();
-            if (positions.Length < 3)
-                continue;
-
-            float[] axial = Project(positions, volume.Center, volume.AxialAxis);
-            float[] lateral = Project(positions, volume.Center, volume.LateralAxis);
-            float[] forward = Project(positions, volume.Center, volume.ForwardAxis);
-            float axialSpan = axial[^1] - axial[0];
-            float lateralSpan = lateral[^1] - lateral[0];
-            float forwardSpan = forward[^1] - forward[0];
-            if (axialSpan > volume.AxialRadius * 1.5f ||
-                lateralSpan > volume.LateralRadius * 2 ||
-                forwardSpan > volume.ForwardRadius * 2)
+            bool isProtected = headAssemblyProtectedComponentIndices.Contains(
+                component.ComponentIndex);
+            if (!isProtected)
             {
-                continue;
-            }
-
-            float[] envelopeDistances = positions
-                .Select(position => DistanceToSemanticVolume(position, volume))
-                .Order()
-                .ToArray();
-            if (Quantile(envelopeDistances, RobustUpperQuantile) >
-                HeadCompanionEnvelopeRatio)
-            {
-                continue;
-            }
-
-            bool coincidentWithNonCore = positions.Any(position =>
-                bodyVerticesByPosition.TryGetValue(
-                    position, out GeometryVertex[]? bodyAtPosition) &&
-                bodyAtPosition.Any(vertex =>
-                    !headCandidate.Assignments.TryGetValue(
-                        vertex, out SemanticVertexAssignment? assignment) ||
-                    assignment.Zone != SemanticVertexZone.Core));
-            if (coincidentWithNonCore)
-                continue;
-
-            var surfaceDistances = new float[positions.Length];
-            bool invalidSurfaceDistance = false;
-            int headPreferredPositionCount = nonHeadBodyIndex is null
-                ? positions.Length
-                : 0;
-            for (int positionIndex = 0;
-                 positionIndex < positions.Length;
-                 positionIndex++)
-            {
-                float minimumSquared =
-                    corePositionIndex.FindNearestDistanceSquared(
-                        positions[positionIndex]);
-                if (!float.IsFinite(minimumSquared))
-                {
-                    invalidSurfaceDistance = true;
-                    break;
-                }
-                float headDistance = MathF.Sqrt(minimumSquared);
-                surfaceDistances[positionIndex] = headDistance;
-
-                if (nonHeadBodyIndex is not null)
-                {
-                    float nonHeadMinimumSquared =
-                        nonHeadBodyIndex.FindNearestDistanceSquared(
-                            positions[positionIndex]);
-                    if (!float.IsFinite(nonHeadMinimumSquared) ||
-                        !float.IsFinite(MathF.Sqrt(nonHeadMinimumSquared)))
-                    {
-                        invalidSurfaceDistance = true;
-                        break;
-                    }
-                    if (headDistance <= MathF.Sqrt(nonHeadMinimumSquared) +
-                        PositionEpsilon * 16)
-                    {
-                        headPreferredPositionCount++;
-                    }
-                }
-            }
-            if (invalidSurfaceDistance)
-                continue;
-            Array.Sort(surfaceDistances);
-            if (Quantile(surfaceDistances, RobustUpperQuantile) >
-                maximumSurfaceGap)
-            {
-                continue;
-            }
-
-            if (headPreferredPositionCount == positions.Length)
-            {
-                result.Add(
-                    component.ComponentIndex,
-                    new SemanticComponentAssignment(
-                        GeneratedSkinningSemanticRegion.Head,
-                        headCandidate.Resolution.AnchorBoneName,
-                        headCandidate.Resolution.AnchorSkeletonJointIndex));
-                strictCompanionPositions.Add(component.ComponentIndex, positions);
-            }
-            else if (headPreferredPositionCount > 0)
-            {
-                // Preserve an ambiguous compact candidate only for the bounded
-                // one-hop assembly proof below. It cannot seed or recursively
-                // extend a Head cluster on its own.
-                clusteredCandidates.Add((
+                ComponentPlaneCoverage coverage = MeasureComponentPlaneCoverage(
                     component,
-                    positions,
-                    headPreferredPositionCount));
+                    alignedPositionsByMesh,
+                    plane);
+                ComponentPlaneCoverage backCoverage = MeasureComponentPlaneCoverage(
+                    component,
+                    alignedPositionsByMesh,
+                    backPlane);
+                isProtected =
+                    coverage.PositionCount > 0 &&
+                    backCoverage.PositionCount > 0 &&
+                    IsProtectedHeadComponent(coverage, backCoverage);
             }
+            if (!isProtected)
+                continue;
+
+            result.Add(
+                component.ComponentIndex,
+                new SemanticComponentAssignment(
+                    GeneratedSkinningSemanticRegion.Head,
+                    headCandidate.Resolution.AnchorBoneName,
+                    headCandidate.Resolution.AnchorSkeletonJointIndex));
         }
 
-        if (strictCompanionPositions.Count > 0)
+        int[] companionIndices = result.Keys.Order().ToArray();
+        var diagnostics = headCandidate.Resolution.Warnings.ToList();
+        if (companionIndices.Length > 0)
         {
-            Vector3[] strictPositions = strictCompanionPositions.Values
-                .SelectMany(value => value)
-                .Distinct()
-                .ToArray();
-            var strictPositionIndex =
-                new ExactVector3NearestIndex(strictPositions);
-            float maximumAssemblyGap = maximumSurfaceGap * 0.25f;
-            foreach ((GeometryComponent component,
-                         Vector3[] positions,
-                         int headPreferredPositionCount) in clusteredCandidates
-                         .OrderBy(value => value.Component.ComponentIndex))
-            {
-                if (headPreferredPositionCount * 4 < positions.Length)
-                    continue;
-                float minimumAssemblySquared = positions.Min(position =>
-                    strictPositionIndex.FindNearestDistanceSquared(position));
-                if (!float.IsFinite(minimumAssemblySquared) ||
-                    MathF.Sqrt(minimumAssemblySquared) >
-                    maximumAssemblyGap + PositionEpsilon)
-                {
-                    continue;
-                }
-                result.Add(
-                    component.ComponentIndex,
-                    new SemanticComponentAssignment(
-                        GeneratedSkinningSemanticRegion.Head,
-                        headCandidate.Resolution.AnchorBoneName,
-                        headCandidate.Resolution.AnchorSkeletonJointIndex));
-            }
+            int selectedBodyCount = companionIndices.Count(
+                knownBodyComponentIndices.Contains);
+            int propagatedCount = companionIndices.Count(
+                propagatedHeadComponentIndices.Contains);
+            diagnostics.Add(
+                $"The Head plane placed {companionIndices.Length} whole " +
+                $"component(s) on rigid one-hot Head: " +
+                $"{string.Join(", ", companionIndices.Select(index => $"#{index}"))}. " +
+                $"{companionIndices.Length - propagatedCount} directly passed a " +
+                $"strict majority above Head with at least one percent in front " +
+                $"of Back; {propagatedCount} neighbouring island(s) inherited the " +
+                $"same whole-mesh assembly ownership. " +
+                $"{selectedBodyCount} remained inside the logical deform body and " +
+                "all are rigid one-hot Head components; their geometry is not split.");
         }
-
-        if (result.Count > 0)
+        if (headAssemblyProtection.Count > 0)
         {
-            int[] companionIndices = result.Keys.Order().ToArray();
+            diagnostics.Add(
+                $"Before Back extraction, Head protection expanded through " +
+                $"{headAssemblyProtection.Count} spatially coherent imported-mesh " +
+                $"assembly/assemblies: " +
+                string.Join(", ", headAssemblyProtection.Select(value =>
+                    $"mesh #{value.MeshIndex} ({value.SeedCount} direct seed(s) -> " +
+                    $"{value.ProtectedCount} protected components; maximum island " +
+                    $"gap {value.MaximumGap:G6})")) +
+                ". Distant rear components, the anatomical owner component and " +
+                "manual assignments are excluded; no names were used.");
+        }
+        if (rejectedHeadAssemblyProtection.Count > 0)
+        {
+            diagnostics.Add(
+                "Head whole-assembly propagation was rejected as pathological: " +
+                string.Join(", ", rejectedHeadAssemblyProtection.Select(value =>
+                    $"mesh #{value.MeshIndex} ({value.SeedCount} direct seed(s) " +
+                    $"would expand to {value.ProposedCount} components and " +
+                    $"{value.ProposedVertexCount}/{value.SurfaceVertexCount} " +
+                    "surface vertices)")) +
+                ". Only independently proved Head components were retained.");
+        }
+        if (companionIndices.Length > 0)
+        {
             GeneratedSkinningRegionResolution resolution =
                 headCandidate.Resolution with
                 {
                     RigidCompanionComponentIndices =
                         Array.AsReadOnly(companionIndices),
+                    TopologyOwnerComponentIndex = headOwnerComponentIndex,
                     Warnings = new ReadOnlyCollection<string>(
-                        headCandidate.Resolution.Warnings.Append(
-                            $"Semantic Head assembly proved {companionIndices.Length} " +
-                            $"compact detached companion component(s): " +
-                            $"{string.Join(", ", companionIndices.Select(index => $"#{index}"))}. " +
-                            "Manual component assignments retain precedence.")
-                            .ToArray())
+                        diagnostics.ToArray())
                 };
             candidates[GeneratedSkinningSemanticRegion.Head] =
                 headCandidate with { Resolution = resolution };
+        }
+
+        else if (headOwnerComponentIndex >= 0 &&
+                 headCandidate.Resolution.TopologyOwnerComponentIndex !=
+                    headOwnerComponentIndex)
+        {
+            candidates[GeneratedSkinningSemanticRegion.Head] =
+                headCandidate with
+                {
+                    Resolution = headCandidate.Resolution with
+                    {
+                        TopologyOwnerComponentIndex = headOwnerComponentIndex
+                    }
+                };
         }
 
         return new ReadOnlyDictionary<int, SemanticComponentAssignment>(result);
@@ -3159,15 +1987,12 @@ public static partial class GeneratedSkinningPreparer
             transitionVertices,
             new ReadOnlyCollection<string>(messages.ToArray()))
         {
-            MotionProxyBoneName =
-                calibration?.HandMotionProfile?.ProxyBoneName ?? string.Empty,
-            MotionProxySkeletonJointIndex =
-                calibration?.HandMotionProfile?.ProxySkeletonJointIndex ?? -1,
             MotionBranchBoneNames = calibration?.HandMotionProfile?.Branches
                 .Select(branch => branch.RootBoneName)
                 .ToArray() ?? [],
             MaximumMotionProxyWeight =
-                calibration?.HandMotionProfile is null ? 0 : 1
+                calibration?.HandMotionProfile is null ? 0 : 1,
+            TopologyOwnerComponentIndex = -1
         };
     }
 

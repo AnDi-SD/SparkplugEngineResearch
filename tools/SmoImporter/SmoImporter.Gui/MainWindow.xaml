@@ -39,12 +39,8 @@
             BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4">
      <StackPanel>
       <TextBlock Text="Текстуры для импорта" FontSize="15" FontWeight="SemiBold"/>
-      <CheckBox x:Name="PreserveOriginalTexturesCheckBox" Margin="0,8,0,0"
-                Content="Оставить текстуры исходного SMO"
-                Checked="PreserveOriginalTextures_Changed"
-                Unchecked="PreserveOriginalTextures_Changed"/>
-      <TextBlock Margin="22,4,0,0" Foreground="#52606D" TextWrapping="Wrap"
-                 Text="Диагностический режим: геометрия импортируется, но TextureData исходного SMO не изменяются. Для многоматериальной rigid-модели геометрия будет объединена в один исходный material-slot."/>
+      <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
+                 Text="Старые меши, материалы и текстуры исходного SMO никогда не переносятся. Результат полностью собирается из ресурсов модели-донора."/>
       <StackPanel x:Name="TextureImportSourcesPanel">
        <ListBox x:Name="TextureList" Height="200" Margin="0,7,0,0"
                 SelectionMode="Extended" HorizontalContentAlignment="Stretch"
@@ -101,10 +97,6 @@
        <TextBlock x:Name="TextureSummaryText" Margin="0,1,0,0"
                   Text="Доступные текстуры появятся после выбора модели."
                   TextWrapping="Wrap"/>
-       <TextBlock x:Name="Mode3TextureFolderWarningText"
-                  Margin="0,5,0,0" Foreground="#9A3412"
-                  Visibility="Collapsed" TextWrapping="Wrap"
-                  Text="В режиме 3 папки matN не поддерживаются: создаваемые веса всегда используют полную геометрию исходного файла. Добавляйте однозначно сопоставимые изображения кнопкой «Добавить файлы…»."/>
        <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
                   Text="В импорт идут все текстуры, привязанные к материалам. Встроенные добавляются автоматически, внешние можно выбрать группой или папкой. Выделение в списке используется для удаления добавленного источника и, в режиме 3, для явного режима материала."/>
       </StackPanel>
@@ -122,7 +114,7 @@
        <ComboBoxItem Content="1. Подготовленная модель"/>
        <ComboBoxItem Content="2. Адаптировать существующий скелет"/>
        <ComboBoxItem Content="3. Создать веса с нуля"/>
-       <ComboBoxItem Content="Дополнительно: rigid-объект на одной кости"/>
+       <ComboBoxItem Content="4. Статическая модель (без костей)"/>
       </ComboBox>
       <TextBlock x:Name="PortingModeRecommendationText" Margin="0,6,0,0"
                  FontWeight="SemiBold" TextWrapping="Wrap"/>
@@ -246,7 +238,7 @@
 
        <Border Margin="0,8,0,0" Padding="9" Background="White"
                BorderBrush="#BAE6FD" BorderThickness="1" CornerRadius="4">
-        <Grid>
+        <StackPanel x:Name="PoseEditorContentPanel">
          <StackPanel x:Name="HumanPoseEditorPanel" Visibility="Collapsed">
           <TextBlock Text="Человек" FontWeight="SemiBold"/>
           <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
@@ -255,7 +247,7 @@
           <Button x:Name="AutoFitBodyPoseButton" Margin="0,8,0,0" Height="34"
                   Content="Автоматически подогнать позу тела"
                   Click="AutoFitBodyPose_Click"/>
-          <Grid Margin="0,7,0,0">
+          <Grid x:Name="BodyPoseControlsGrid" Margin="0,7,0,0">
            <Grid.ColumnDefinitions>
             <ColumnDefinition Width="132"/>
             <ColumnDefinition Width="*"/>
@@ -347,26 +339,80 @@
            <Button x:Name="ResetBodyPoseButton" Grid.Column="1" Margin="3,0,0,0"
                    Height="32" Content="Нейтральная поза" Click="ResetBodyPose_Click"/>
           </Grid>
-          <TextBlock x:Name="BodyPoseStatusText" Margin="0,5,0,0"
-                     Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+           <TextBlock x:Name="BodyPoseStatusText" Margin="0,5,0,0"
+                      Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
+          </StackPanel>
 
-          <Expander x:Name="ProtectedRegionEditorExpander" Margin="0,12,0,0"
-                    Header="Защищённые области" IsExpanded="False"
-                    Expanded="ProtectedRegionEditor_Expanded"
-                    Collapsed="ProtectedRegionEditor_Collapsed">
+          <Border x:Name="ProtectedRegionEditorPanel" Margin="0,12,0,0">
            <Border Margin="0,5,0,0" Padding="9" Background="#F8FAFC"
                    BorderBrush="#93C5FD" BorderThickness="1" CornerRadius="4">
-            <StackPanel>
-             <TextBlock Text="Голова и кисти" FontWeight="SemiBold"/>
-             <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
-                        Text="Автоматически найденная голова получает строго 100% Head, а её Head↔Neck переход строится снаружи, на шее. После ручного изменения именно эллипс задаёт жёсткую область Head; всё снаружи сохраняет обычные веса. Кисть сохраняет общий силуэт и, если скелет позволяет, получает приблизительный сгиб пальцев. Голубой контур — защитный объём, синие точки — защищённое ядро, жёлтые — переход."
-                        TextWrapping="Wrap"/>
-             <TextBlock Margin="0,8,0,0" Text="Область" FontSize="12"
-                        FontWeight="SemiBold"/>
-             <ComboBox x:Name="ProtectedRegionCombo" Margin="0,4,0,0"
-                       SelectedIndex="0"
-                       SelectionChanged="ProtectedRegion_SelectionChanged">
-              <ComboBoxItem Content="Голова"/>
+             <StackPanel>
+              <TextBlock Text="Защитные части и границы" FontWeight="SemiBold"/>
+              <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                         Text="Выберите плечевую границу, Head или кисти в одном списке. Автоматической плоскости Back больше нет: исключения для спины и головы задаются вручную в списке компонентов ниже. Геометрия никогда не разрезается."
+                         TextWrapping="Wrap"/>
+              <ComboBox x:Name="SeparationPlaneCombo" Margin="0,8,0,0"
+                        SelectedIndex="0"
+                        SelectionChanged="SeparationPlane_SelectionChanged">
+               <ComboBoxItem Content="Плоскость · левая рука"/>
+               <ComboBoxItem Content="Плоскость · правая рука"/>
+               <ComboBoxItem Content="Плоскость · голова / шея"/>
+               <ComboBoxItem Content="Область · обе кисти"/>
+               <ComboBoxItem Content="Область · левая кисть"/>
+               <ComboBoxItem Content="Область · правая кисть"/>
+              </ComboBox>
+              <StackPanel x:Name="SeparationPlaneControlsPanel">
+              <CheckBox x:Name="SeparationPlaneEnabledCheckBox" Margin="0,7,0,0"
+                       Content="Использовать выбранную плоскость"
+                       Checked="SeparationPlaneEnabled_Changed"
+                       Unchecked="SeparationPlaneEnabled_Changed"/>
+             <Grid Margin="0,7,0,0">
+              <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="112"/>
+               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="50"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock x:Name="SeparationPlaneOffsetLabel" Grid.Row="0"
+                         Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Высота / сдвиг"/>
+              <Slider x:Name="SeparationPlaneOffsetSlider" Grid.Row="0" Grid.Column="1"
+                      Margin="0,4" Minimum="-1" Maximum="1" Value="0"
+                      VerticalAlignment="Center"
+                      ValueChanged="SeparationPlaneSlider_ValueChanged"/>
+              <TextBlock x:Name="SeparationPlaneOffsetValueText" Grid.Row="0" Grid.Column="2"
+                         Margin="6,4,0,4" HorizontalAlignment="Right"
+                         VerticalAlignment="Center" FontSize="12"
+                         Text="{Binding ElementName=SeparationPlaneOffsetSlider, Path=Value, StringFormat={}{0:F3}}"/>
+              <TextBlock Grid.Row="1" Margin="0,4,6,4" VerticalAlignment="Center"
+                         FontSize="12" Text="Угол"/>
+              <Slider x:Name="SeparationPlaneAngleSlider" Grid.Row="1" Grid.Column="1"
+                      Margin="0,4" Minimum="-60" Maximum="60" Value="0"
+                      SmallChange="1" LargeChange="5" TickFrequency="5"
+                      VerticalAlignment="Center"
+                      ValueChanged="SeparationPlaneSlider_ValueChanged"/>
+              <TextBlock Grid.Row="1" Grid.Column="2" Margin="6,4,0,4"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         FontSize="12"
+                         Text="{Binding ElementName=SeparationPlaneAngleSlider, Path=Value, StringFormat={}{0:F1}°}"/>
+             </Grid>
+             <Button x:Name="AutoSeparationPlaneButton" Margin="0,7,0,0"
+                     Height="30" Content="Сбросить выбранную плоскость в авто"
+                     Click="AutoSeparationPlane_Click"/>
+              <TextBlock x:Name="SeparationPlaneSelectionText" Margin="0,5,0,0"
+                         Foreground="#52606D" FontSize="11" TextWrapping="Wrap"/>
+              </StackPanel>
+
+              <StackPanel x:Name="ProtectedHandControlsPanel" Visibility="Collapsed">
+              <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
+                         Text="Кисть сохраняет общий силуэт и, если скелет позволяет, получает приблизительный сгиб пальцев. Голубой контур — защитный объём, синие точки — защищённое ядро, жёлтые — переход."
+                         TextWrapping="Wrap"/>
+              <ComboBox x:Name="ProtectedRegionCombo" Visibility="Collapsed"
+                        SelectedIndex="0"
+                        SelectionChanged="ProtectedRegion_SelectionChanged">
               <ComboBoxItem Content="Обе кисти"/>
               <ComboBoxItem Content="Левая кисть"/>
               <ComboBoxItem Content="Правая кисть"/>
@@ -426,102 +472,138 @@
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          FontSize="12"
                          Text="{Binding ElementName=ProtectedRegionThicknessSlider, Path=Value, StringFormat={}{0:F2}×}"/>
-
-              <TextBlock x:Name="ProtectedRegionTiltLabel" Grid.Row="3"
-                         Margin="0,4,6,4" VerticalAlignment="Center"
-                         FontSize="12" Text="Наклон к лицу"
-                         ToolTip="Положительное значение наклоняет нижнюю часть эллипса к лицу и подбородку"/>
-              <Slider x:Name="ProtectedRegionTiltSlider" Grid.Row="3" Grid.Column="1"
-                      Margin="0,4" Minimum="-45" Maximum="45" Value="0"
-                      SmallChange="1" LargeChange="5" TickFrequency="5"
-                      VerticalAlignment="Center"
-                      ToolTip="Положительное значение наклоняет нижнюю часть эллипса к лицу и подбородку"
-                      ValueChanged="ProtectedRegionSlider_ValueChanged"/>
-              <TextBlock x:Name="ProtectedRegionTiltValueText" Grid.Row="3" Grid.Column="2"
-                         Margin="6,4,0,4" HorizontalAlignment="Right"
-                         VerticalAlignment="Center" FontSize="12"
-                         Text="{Binding ElementName=ProtectedRegionTiltSlider, Path=Value, StringFormat={}{0:F1}°}"/>
              </Grid>
 
-             <TextBlock x:Name="ProtectedRegionSelectionText" Margin="0,5,0,0"
-                        Foreground="#52606D" FontSize="11" TextWrapping="Wrap"/>
-             <Grid Margin="0,8,0,0">
-              <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="*"/>
-               <ColumnDefinition Width="*"/>
-               <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Button x:Name="AutoProtectedRegionButton" Grid.Column="0"
-                      Margin="0,0,3,0" Height="30" Content="Авто"
+              <TextBlock x:Name="ProtectedRegionSelectionText" Margin="0,5,0,0"
+                         Foreground="#52606D" FontSize="11" TextWrapping="Wrap"/>
+              <Button x:Name="AutoProtectedRegionButton" Margin="0,7,0,0"
+                      Height="30" Content="Вернуть выбранные кисти в авто"
                       Click="AutoProtectedRegion_Click"/>
-              <Button x:Name="ResetProtectedRegionButton" Grid.Column="1"
-                      Margin="3,0" Height="30" Content="Сброс"
-                      Click="ResetProtectedRegion_Click"/>
-              <Button x:Name="ApplyProtectedRegionButton" Grid.Column="2"
-                      Margin="3,0,0,0" Height="30" Content="Применить"
+              </StackPanel>
+              <Grid Margin="0,8,0,0">
+               <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+               </Grid.ColumnDefinitions>
+               <Button x:Name="ResetProtectedRegionButton" Grid.Column="0"
+                       Margin="0,0,3,0" Height="30" Content="Сбросить всё"
+                       Click="ResetProtectedRegion_Click"/>
+               <Button x:Name="ApplyProtectedRegionButton" Grid.Column="1"
+                       Margin="3,0,0,0" Height="30" Content="Применить"
                       Click="ApplyProtectedRegion_Click"/>
              </Grid>
              <TextBlock x:Name="ProtectedRegionStatusText" Margin="0,6,0,0"
                         Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
             </StackPanel>
            </Border>
-          </Expander>
+          </Border>
 
           <Border x:Name="GeneratedAttachmentEditorPanel" Margin="0,12,0,0"
                   Padding="9" Background="#F8FAFC" BorderBrush="#CBD5E1"
                   BorderThickness="1" CornerRadius="4">
            <StackPanel>
-            <TextBlock Text="Жёсткие детали" FontWeight="SemiBold"/>
+            <TextBlock Text="Исключения и ручная привязка" FontWeight="SemiBold"/>
             <TextBlock Margin="0,4,0,0" Foreground="#52606D" FontSize="12"
-                       Text="Выберите одну или несколько отделённых деталей модели и закрепите их за верхней частью спины или головой. Такое назначение не зависит от остальных настроек позы."
+                       Text="Здесь показаны все связные компоненты модели. Серые получают обычные автоматические веса; синие привязаны к голове автоматически или вручную; фиолетовые — к верхней части спины."
                        TextWrapping="Wrap"/>
+            <WrapPanel Margin="0,6,0,0">
+             <Border Margin="0,0,5,4" Padding="6,2" Background="#E2E8F0" CornerRadius="3">
+              <TextBlock Text="АВТО" Foreground="#334155" FontSize="10" FontWeight="Bold"/>
+             </Border>
+             <Border Margin="0,0,5,4" Padding="6,2" Background="#2563EB" CornerRadius="3">
+              <TextBlock Text="ГОЛОВА" Foreground="White" FontSize="10" FontWeight="Bold"/>
+             </Border>
+             <Border Margin="0,0,0,4" Padding="6,2" Background="#7C3AED" CornerRadius="3">
+              <TextBlock Text="СПИНА" Foreground="White" FontSize="10" FontWeight="Bold"/>
+             </Border>
+            </WrapPanel>
             <TextBlock Margin="0,5,0,0" Foreground="#52606D" FontSize="11"
-                       Text="Щёлкните по детали в окне просмотра или выберите её в списке. Ctrl добавляет и убирает отдельные детали, Shift выбирает диапазон."
+                       Text="Щёлкните по компоненту или протяните рамку мышью в окне просмотра. Ctrl добавляет или убирает компоненты; Shift выбирает диапазон строк."
                        TextWrapping="Wrap"/>
-            <CheckBox x:Name="HideGeneratedMainBodyCheckBox" Margin="0,7,0,0"
-                      Content="Скрыть основное тело модели-донора"
-                      Checked="HideGeneratedMainBody_Changed"
-                      Unchecked="HideGeneratedMainBody_Changed"/>
+            <TextBlock Margin="0,7,0,0" FontSize="11" FontWeight="SemiBold"
+                       Text="Показывать в 3D (назначения не изменяются)"/>
+            <WrapPanel Margin="0,3,0,0">
+             <CheckBox x:Name="ShowAutomaticComponentsCheckBox" Margin="0,0,10,4"
+                       IsChecked="True" Content="Авто"
+                       Checked="GeneratedComponentVisibility_Changed"
+                       Unchecked="GeneratedComponentVisibility_Changed"/>
+             <CheckBox x:Name="ShowHeadComponentsCheckBox" Margin="0,0,10,4"
+                       IsChecked="True" Content="Голова"
+                       Checked="GeneratedComponentVisibility_Changed"
+                       Unchecked="GeneratedComponentVisibility_Changed"/>
+             <CheckBox x:Name="ShowBackComponentsCheckBox" Margin="0,0,0,4"
+                       IsChecked="True" Content="Спина"
+                       Checked="GeneratedComponentVisibility_Changed"
+                       Unchecked="GeneratedComponentVisibility_Changed"/>
+            </WrapPanel>
             <TextBlock x:Name="GeneratedAttachmentSummaryText" Margin="0,7,0,0"
                        Foreground="#52606D" FontSize="12"
-                       Text="Отдельные детали ещё не рассчитаны."
+                       Text="Компоненты ещё не рассчитаны."
                        TextWrapping="Wrap"/>
             <ListBox x:Name="GeneratedAttachmentList" Margin="0,6,0,0"
                      MinHeight="96" MaxHeight="220"
                      SelectionMode="Extended"
                      SelectionChanged="GeneratedAttachmentList_SelectionChanged"
+                     HorizontalContentAlignment="Stretch"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+             <ListBox.ItemTemplate>
+              <DataTemplate>
+               <Border Margin="2" Padding="6" CornerRadius="4"
+                       Background="{Binding BackgroundBrush}"
+                       BorderBrush="{Binding AccentBrush}" BorderThickness="1">
+                <Grid>
+                 <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="58"/>
+                  <ColumnDefinition Width="*"/>
+                 </Grid.ColumnDefinitions>
+                 <Border Margin="0,0,7,0" Padding="4,2" CornerRadius="3"
+                         Background="{Binding AccentBrush}"
+                         VerticalAlignment="Top">
+                  <TextBlock Text="{Binding Badge}" Foreground="White"
+                             FontSize="9" FontWeight="Bold"
+                             HorizontalAlignment="Center"/>
+                 </Border>
+                 <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Margin="0,2,0,0" Text="{Binding Details}"
+                             Foreground="#52606D" FontSize="11"
+                             TextWrapping="Wrap"/>
+                  <TextBlock Margin="0,2,0,0" Text="{Binding AssignmentText}"
+                             Foreground="{Binding AccentBrush}" FontSize="11"
+                             FontWeight="SemiBold" TextWrapping="Wrap"/>
+                 </StackPanel>
+                </Grid>
+               </Border>
+              </DataTemplate>
+             </ListBox.ItemTemplate>
+            </ListBox>
             <Button x:Name="SelectSameMesh" Margin="0,7,0,0" Height="30"
-                    Content="Выбрать все детали того же mesh"
+                    Content="Выбрать все компоненты того же mesh"
                     IsEnabled="False" Click="SelectSameMesh_Click"/>
             <Grid Margin="0,6,0,0">
              <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*"/>
               <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="*"/>
              </Grid.ColumnDefinitions>
-             <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-             </Grid.RowDefinitions>
-             <Button x:Name="PinUpperBack" Grid.Row="0" Grid.Column="0"
-                     Margin="0,0,3,0" Height="30"
-                     Content="К спине" IsEnabled="False"
-                     Click="PinUpperBack_Click"/>
-             <Button x:Name="PinHead" Grid.Row="0" Grid.Column="1"
-                     Margin="3,0,0,0" Height="30"
-                     Content="К голове" IsEnabled="False"
-                     Click="PinHead_Click"/>
-             <Button x:Name="ResetAutomatic" Grid.Row="1" Grid.ColumnSpan="2"
-                     Margin="0,6,0,0" Height="30"
-                     Content="Вернуть автоматическое назначение"
+             <Button x:Name="ResetAutomatic" Grid.Column="0"
+                     Margin="0,0,3,0" Height="30" Content="Авто"
                      IsEnabled="False" Click="ResetAutomatic_Click"/>
+             <Button x:Name="PinHead" Grid.Column="1"
+                     Margin="3,0" Height="30" Content="Голова"
+                     Background="#DBEAFE" IsEnabled="False"
+                     Click="PinHead_Click"/>
+             <Button x:Name="PinUpperBack" Grid.Column="2"
+                     Margin="3,0,0,0" Height="30" Content="Спина"
+                     Background="#EDE9FE" IsEnabled="False"
+                     Click="PinUpperBack_Click"/>
             </Grid>
             <TextBlock x:Name="GeneratedAttachmentStatusText" Margin="0,6,0,0"
                        Foreground="#B45309" FontSize="12" TextWrapping="Wrap"/>
            </StackPanel>
           </Border>
-         </StackPanel>
 
          <StackPanel x:Name="RigFittingEditorPanel">
           <TextBlock Text="Суставы" FontWeight="SemiBold"/>
@@ -614,12 +696,16 @@
            </StackPanel>
           </Expander>
          </StackPanel>
-        </Grid>
+        </StackPanel>
        </Border>
        <CheckBox x:Name="ShowFittingPoseCheckBox" Margin="0,7,0,0" IsChecked="True"
                  Content="Показывать результат подгонки в окне просмотра"
                  Checked="ShowFittingPose_Changed"
                  Unchecked="ShowFittingPose_Changed"/>
+       <CheckBox x:Name="ShowTargetSmoCheckBox" Margin="0,5,0,0" IsChecked="True"
+                 Content="Показывать исходную SMO-модель"
+                 Checked="ShowTargetSmo_Changed"
+                 Unchecked="ShowTargetSmo_Changed"/>
        <TextBlock Margin="0,5,0,0" Foreground="#52606D" FontSize="12"
                   Text="Оба режима редактируют одну временную позу. Длины костей и связи между ними остаются прежними; поза не записывается в итоговый SMO."
                   TextWrapping="Wrap"/>
@@ -646,9 +732,9 @@
         <Button x:Name="ShowGeneratedPreparedSceneButton" Margin="0,9,0,0"
                 Height="35" Content="Показать итог и разрешить подтверждение"
                 IsEnabled="False" Click="ShowGeneratedPreparedScene_Click"/>
-        <CheckBox x:Name="GeneratedSkinningConfirmationCheckBox"
+         <CheckBox x:Name="GeneratedSkinningConfirmationCheckBox"
                   Margin="0,9,0,0" IsEnabled="False"
-                  Content="Я проверил итоговую модель, веса и rigid attachments"
+                  Content="Я проверил итоговую модель, веса и ручные исключения"
                   Checked="GeneratedSkinningConfirmation_Changed"
                   Unchecked="GeneratedSkinningConfirmation_Changed"/>
         <TextBlock x:Name="GeneratedSkinningConfirmationHintText"
@@ -666,7 +752,7 @@
             <TextBlock x:Name="GeneratedSkinningWarningsText" Margin="0,2,0,0"
                        FontSize="12" Foreground="#9A3412" Text="—"
                        TextWrapping="Wrap"/>
-            <TextBlock Margin="0,9,0,0" Text="Rigid attachments"
+            <TextBlock Margin="0,9,0,0" Text="Ручные исключения"
                        FontSize="12" FontWeight="SemiBold"/>
             <TextBlock x:Name="GeneratedSkinningAttachmentsText" Margin="0,2,0,0"
                        FontSize="12" Foreground="#52606D" Text="—"
@@ -689,13 +775,6 @@
       </StackPanel>
      </GroupBox>
 
-     <StackPanel x:Name="RigidBonePanel">
-      <TextBlock Margin="0,16,0,0" Text="Rigid bone" FontSize="15" FontWeight="SemiBold"/>
-      <ComboBox x:Name="BoneCombo" Margin="0,6,0,0" DisplayMemberPath="Display"
-                SelectionChanged="BoneCombo_Changed"/>
-      <TextBlock Margin="0,4,0,0" Foreground="#52606D" Text="Одна выбранная palette bone применяется ко всей видимой модели." TextWrapping="Wrap"/>
-     </StackPanel>
-
      <Border x:Name="SkinnedGlbOptionsPanel" Margin="0,14,0,0" Padding="10"
              Background="#E0F2FE" CornerRadius="4" Visibility="Collapsed">
       <StackPanel>
@@ -710,27 +789,31 @@
 
     </StackPanel>
 
-    <TextBlock Margin="0,18,0,0" Text="WinxClub.exe" FontSize="15" FontWeight="SemiBold"/>
-    <Grid Margin="0,6,0,0">
-     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
-     <TextBox x:Name="GameExecutablePathBox" Height="34" Padding="7,5"
-              VerticalContentAlignment="Center" TextChanged="GameExecutablePathBox_TextChanged"
-              LostKeyboardFocus="GameExecutablePathBox_LostKeyboardFocus"/>
-     <Button x:Name="ChooseGameExecutableButton" Grid.Column="1" Height="34" Margin="6,0,0,0"
-             Content="…" ToolTip="Выбрать WinxClub.exe" Click="ChooseGameExecutable_Click"/>
-    </Grid>
-
     <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
      <Button x:Name="SaveButton" Width="225" Height="42" Content="4. Создать новый SMO" IsEnabled="False" Click="Save_Click"/>
      <Button x:Name="ResetButton" Width="105" Height="42" Margin="8,0,0,0" Content="Сброс" Click="Reset_Click"/>
     </StackPanel>
-    <Border x:Name="NativeValidationResultBorder" Margin="0,10,0,0" Padding="10"
-            CornerRadius="4" Visibility="Collapsed">
-     <TextBlock x:Name="NativeValidationResultText" FontWeight="SemiBold" TextWrapping="Wrap"/>
-    </Border>
     <Border Margin="0,10,0,0" Padding="9" Background="#EEF2F6" CornerRadius="4">
      <StackPanel>
-      <TextBlock Text="Диагностический лог текущего запуска" FontWeight="SemiBold"/>
+      <TextBlock Text="Проверка в игре и диагностика" FontWeight="SemiBold"/>
+      <TextBlock Margin="0,8,0,0" Text="WinxClub.exe" FontWeight="SemiBold"/>
+      <Grid Margin="0,5,0,0">
+       <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions>
+       <TextBox x:Name="GameExecutablePathBox" Height="34" Padding="7,5"
+                VerticalContentAlignment="Center" TextChanged="GameExecutablePathBox_TextChanged"
+                LostKeyboardFocus="GameExecutablePathBox_LostKeyboardFocus"/>
+       <Button x:Name="ChooseGameExecutableButton" Grid.Column="1" Height="34" Margin="6,0,0,0"
+               Content="…" ToolTip="Выбрать WinxClub.exe" Click="ChooseGameExecutable_Click"/>
+      </Grid>
+      <Button x:Name="ValidateInGameButton" Margin="0,7,0,0" Height="32"
+              Content="Проверить в игре" IsEnabled="False"
+              Click="ValidateInGame_Click"/>
+      <Border x:Name="NativeValidationResultBorder" Margin="0,7,0,0" Padding="10"
+              CornerRadius="4" Visibility="Collapsed">
+       <TextBlock x:Name="NativeValidationResultText" FontWeight="SemiBold" TextWrapping="Wrap"/>
+      </Border>
+      <TextBlock Margin="0,9,0,0" Text="Диагностический лог текущего запуска"
+                 FontWeight="SemiBold"/>
       <TextBlock x:Name="DiagnosticLogPathText" Margin="0,4,0,0"
                  Foreground="#52606D" TextWrapping="Wrap"/>
       <Button Margin="0,7,0,0" Height="30" Content="Открыть папку лога"
@@ -753,10 +836,9 @@
     <ModelVisual3D x:Name="SceneVisual"/>
    </Viewport3D>
    <Canvas x:Name="RigOverlayCanvas" IsHitTestVisible="False" ClipToBounds="True">
-    <Grid x:Name="BoneMarker" Width="22" Height="22" Visibility="Collapsed">
-     <Ellipse Fill="#E6FF2D2D" Stroke="White" StrokeThickness="2"/>
-     <Ellipse Width="6" Height="6" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Grid>
+    <Rectangle x:Name="GeneratedComponentSelectionRectangle"
+               Stroke="#7DD3FC" StrokeThickness="1.5" StrokeDashArray="4,2"
+               Fill="#337DD3FC" Visibility="Collapsed"/>
    </Canvas>
    <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Padding="8" Background="#AA000000">
     <StackPanel>
@@ -792,5 +874,20 @@
     </Grid>
    </Border>
   </Grid>
+  <Border x:Name="SaveOperationOverlay" Grid.ColumnSpan="2" Panel.ZIndex="100"
+          Background="#B3101720" Visibility="Collapsed">
+   <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+           Width="440" Padding="22" Background="#F51F2937"
+           BorderBrush="#64748B" BorderThickness="1" CornerRadius="7">
+    <StackPanel>
+     <TextBlock x:Name="SaveOperationStatusText" Foreground="White"
+                FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
+                Text="Собирается и проверяется новый SMO…"/>
+     <ProgressBar Height="18" Margin="0,14,0,0" IsIndeterminate="True"/>
+     <Button x:Name="CancelSaveOperationButton" Height="34" Margin="0,14,0,0"
+             Content="Остановить безопасно" Click="CancelSaveOperation_Click"/>
+    </StackPanel>
+   </Border>
+  </Border>
  </Grid>
 </Window>

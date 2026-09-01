@@ -30,12 +30,45 @@ public sealed record SmoLevelModelGraphReplacementResult(
         new Dictionary<int, uint>();
 }
 
+public sealed record SmoLevelModelGraphWriteOptions(
+    bool RequireReferenceOnlyPlacements = true,
+    bool ExpandSingleComponentTemplate = false,
+    bool RequireUnskinnedModel = false,
+    bool PrepareRigidImport = false)
+{
+    public static SmoLevelModelGraphWriteOptions StandaloneStatic { get; } = new(
+        RequireReferenceOnlyPlacements: false,
+        ExpandSingleComponentTemplate: true,
+        RequireUnskinnedModel: true,
+        PrepareRigidImport: true);
+}
+
+public sealed record SmoLevelModelGraphReplacementAnalysis(
+    bool CanReplace,
+    int TargetMeshCount,
+    int ImportedMeshCount,
+    int ImportedTextureCount,
+    int VertexCount,
+    int TriangleCount,
+    IReadOnlyList<string> Messages);
+
+public sealed record SmoLevelModelGraphFileResult(
+    string OutputPath,
+    int MeshCount,
+    int TextureCount,
+    int VertexCount,
+    int TriangleCount,
+    long FileSize,
+    string Sha256,
+    string? BackupPath);
+
 /// <summary>
-/// Adds a complete rigid level model as new mesh/texture resources and redirects
-/// the selected authoring model plus every reference-only placement to them.
-/// The original scene graph stays in place. Replaced leaf resources are omitted
-/// from the saved container once no reference uses them; shared textures are
-/// retained under one of their remaining consumers.
+/// Replaces a complete rigid model graph with new mesh/texture resources. The
+/// default level profile redirects the selected authoring model plus every
+/// reference-only placement. The standalone static profile reuses existing
+/// inline model branches or expands one native branch to the donor part count.
+/// Replaced leaf resources are omitted once no reference uses them; shared donor
+/// textures are serialized once and referenced by every matching consumer.
 /// </summary>
 public static class SmoLevelModelGraphReplacer
 {
@@ -181,33 +214,136 @@ public static class SmoLevelModelGraphReplacer
         };
     }
 
+    public static SmoLevelModelGraphReplacementAnalysis Analyze(
+        SmoDocument document,
+        int selectedMeshObjectIndex,
+        ImportedScene replacement,
+        SmoLevelModelGraphWriteOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(replacement);
+        options ??= new SmoLevelModelGraphWriteOptions();
+        try
+        {
+            PreparedGraphReplacement prepared = PrepareGraphReplacement(
+                document,
+                selectedMeshObjectIndex,
+                replacement,
+                options);
+            ValidatePreparedGraphReplacement(prepared, options);
+            var messages = new List<string>
+            {
+                $"Ready: {prepared.Replacement.Meshes.Count} model-graph part(s), " +
+                $"{prepared.Replacement.Meshes.Sum(mesh => mesh.Positions.Length):N0} " +
+                "vertices and " +
+                $"{prepared.Replacement.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} " +
+                "triangles.",
+                "The shared model-graph writer will replace mesh/material/texture " +
+                "resources and verify their native ownership and references."
+            };
+            messages.Add(prepared.ExpandedSingleTemplate
+                ? "One native model branch will be expanded to the donor part count " +
+                  "before the shared replacement pass."
+                : "Existing native model branches will be replaced one-to-one.");
+            if (options.RequireUnskinnedModel)
+            {
+                messages.Add(
+                    "The selected graph and donor are unskinned; no spSkin or bone " +
+                    "palette data will be created.");
+            }
+            return CreateAnalysis(prepared, true, messages);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          InvalidOperationException or
+                                          NotSupportedException or
+                                          OverflowException or
+                                          ArgumentException)
+        {
+            return new SmoLevelModelGraphReplacementAnalysis(
+                false,
+                CountSelectedGraphMeshes(document, selectedMeshObjectIndex),
+                replacement.Meshes.Count,
+                CountImportedTextures(replacement),
+                replacement.Meshes.Sum(mesh => mesh.Positions.Length),
+                replacement.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3),
+                [exception.Message]);
+        }
+    }
+
+    public static SmoLevelModelGraphFileResult ReplaceFile(
+        SmoDocument document,
+        int selectedMeshObjectIndex,
+        ImportedScene replacement,
+        ReplacementTransform transform,
+        string outputPath,
+        SmoLevelModelGraphWriteOptions? options = null,
+        CancellationToken cancellationToken = default,
+        params string?[] protectedInputPaths)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+        options ??= new SmoLevelModelGraphWriteOptions();
+        SmoLevelModelGraphReplacementResult result = Replace(
+            document,
+            selectedMeshObjectIndex,
+            replacement,
+            transform,
+            options: options,
+            cancellationToken: cancellationToken);
+        string?[] protectedPaths = [document.SourcePath, .. protectedInputPaths];
+        SmoVerifiedOutputInstallResult installed =
+            SmoVerifiedOutputInstaller.Install(
+                outputPath,
+                result.Data,
+                temporary => VerifyInstalledGraph(
+                    SmoDocument.Load(temporary),
+                    result,
+                    options),
+                cancellationToken,
+                protectedPaths);
+        return new SmoLevelModelGraphFileResult(
+            installed.OutputPath,
+            result.MeshObjectIds.Count,
+            result.ImportedTextureObjectIds.Count,
+            result.VertexCount,
+            result.TriangleCount,
+            result.Data.LongLength,
+            installed.Sha256,
+            installed.BackupPath);
+    }
+
     public static SmoLevelModelGraphReplacementResult Replace(
         SmoDocument document,
         int selectedMeshObjectIndex,
         ImportedScene replacement,
         ReplacementTransform transform,
         Matrix4x4? referenceWorldTransform = null,
-        IReadOnlyDictionary<int, uint>? reusableImportedTextureObjectIds = null)
+        IReadOnlyDictionary<int, uint>? reusableImportedTextureObjectIds = null,
+        SmoLevelModelGraphWriteOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(replacement);
         ArgumentNullException.ThrowIfNull(transform);
-        SmoLevelModelGraphPlan plan = ResolveWritablePlan(
+        cancellationToken.ThrowIfCancellationRequested();
+        options ??= new SmoLevelModelGraphWriteOptions();
+        PreparedGraphReplacement prepared = PrepareGraphReplacement(
             document,
-            selectedMeshObjectIndex);
-        if (replacement.Meshes.Count != plan.Components.Count)
-        {
-            throw new InvalidOperationException(
-                $"The complete SMO model contains {plan.Components.Count} mesh parts, " +
-                $"but the imported model contains {replacement.Meshes.Count}. " +
-                "Replacement was cancelled without changing the level.");
-        }
-        replacement = SmoLevelEmbeddedTextureBudget.Prepare(replacement);
+            selectedMeshObjectIndex,
+            replacement,
+            options);
+        ValidatePreparedGraphReplacement(
+            prepared,
+            options,
+            reusableImportedTextureObjectIds);
+        document = prepared.Document;
+        replacement = prepared.Replacement;
+        SmoLevelModelGraphPlan plan = prepared.Plan;
         var reusableTextureIds = reusableImportedTextureObjectIds is null
             ? new Dictionary<int, uint>()
             : new Dictionary<int, uint>(reusableImportedTextureObjectIds);
         foreach ((int textureIndex, uint objectId) in reusableTextureIds)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if ((uint)textureIndex >= (uint)replacement.Textures.Count ||
                 !document.Objects.Any(entry =>
                     entry.Id == objectId &&
@@ -247,16 +383,20 @@ public static class SmoLevelModelGraphReplacer
         var serializedImportedTextures = new Dictionary<int, byte[]>();
         if (texturesToInject.Length > 0)
         {
-            SmoObjectEntry textureTemplate = FindTextureTemplate(
-                document, oldTextureIdsByMaterial);
+            SmoObjectEntry? textureTemplate = options.RequireUnskinnedModel
+                ? null
+                : FindTextureTemplate(document, oldTextureIdsByMaterial);
             foreach (int textureIndex in texturesToInject)
             {
                 serializedImportedTextures.Add(
                     textureIndex,
-                    BuildTextureObject(
-                        document,
-                        textureTemplate,
-                        replacement.Textures[textureIndex]));
+                    textureTemplate is null
+                        ? BuildCanonicalTextureObject(
+                            replacement.Textures[textureIndex])
+                        : BuildTextureObject(
+                            document,
+                            textureTemplate,
+                            replacement.Textures[textureIndex]));
             }
         }
         byte[] output = document.Data.ToArray();
@@ -284,6 +424,7 @@ public static class SmoLevelModelGraphReplacer
         var retainedOldTextureIds = new HashSet<uint>();
         foreach (uint oldTextureId in replacedOldTextureIds)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             SmoObjectEntry oldTexture = document.Objects.Single(entry =>
                 entry.Id == oldTextureId);
             if (oldTexture.ParentIndex is not int ownerIndex)
@@ -358,6 +499,7 @@ public static class SmoLevelModelGraphReplacer
         var oldToNewTextureIds = new Dictionary<uint, uint>();
         foreach (int textureIndex in importedTextureIndices)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (reusableTextureIds.TryGetValue(textureIndex, out uint reusedId))
             {
                 newTextureIds.Add(textureIndex, reusedId);
@@ -381,7 +523,16 @@ public static class SmoLevelModelGraphReplacer
                 SmoClassIds.TextureData,
                 requireCatalogEntry: false);
             uint newId = nextId++;
-            output = hostTextureReferences.Length switch
+            output = options.RequireUnskinnedModel
+                ? InjectInlineObject(
+                    current,
+                    hostMaterialId,
+                    10,
+                    newId,
+                    $"{importedTexture.Name}_lvl",
+                    SmoClassIds.TextureData,
+                    textureObject)
+                : hostTextureReferences.Length switch
             {
                 0 => InjectInlineObject(
                     current,
@@ -429,6 +580,7 @@ public static class SmoLevelModelGraphReplacer
              componentIndex < plan.Components.Count;
              componentIndex++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             SmoLevelModelGraphComponent component = plan.Components[componentIndex];
             if (component.MaterialObjectId is null)
                 continue;
@@ -491,6 +643,7 @@ public static class SmoLevelModelGraphReplacer
         var oldToNewMeshIds = new Dictionary<uint, uint>();
         for (int index = 0; index < plan.Components.Count; index++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             SmoLevelModelGraphComponent component = plan.Components[index];
             SmoDocument current = SmoDocument.ParseOwned(output, document.SourcePath);
             SmoObjectEntry target = current.Objects.Single(entry =>
@@ -544,6 +697,7 @@ public static class SmoLevelModelGraphReplacer
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         SmoDocument verified = SmoDocument.ParseOwned(output, document.SourcePath);
         int removedTextureCount = replacedOldTextureIds.Count(id =>
             !retainedOldTextureIds.Contains(id));
@@ -622,7 +776,7 @@ public static class SmoLevelModelGraphReplacer
 
         return new SmoLevelModelGraphReplacementResult(
             output,
-            verified.Objects.Count - document.Objects.Count,
+            verified.Objects.Count - prepared.OriginalObjectCount,
             plan.Components.ToDictionary(
                 component => component.ModelObjectId,
                 component => component.ModelObjectId),
@@ -634,6 +788,518 @@ public static class SmoLevelModelGraphReplacer
             ImportedTextureObjectIds = reusableTextureIds
         };
     }
+
+    private static PreparedGraphReplacement PrepareGraphReplacement(
+        SmoDocument document,
+        int selectedMeshObjectIndex,
+        ImportedScene replacement,
+        SmoLevelModelGraphWriteOptions options)
+    {
+        if (document.HasErrors)
+            throw new InvalidDataException("Target SMO has parser errors.");
+        if (options.RequireUnskinnedModel)
+            SmoProductionPlatformGuard.EnsurePcWritable(document);
+        if (replacement.Meshes.Count == 0)
+            throw new InvalidDataException("The imported model contains no meshes.");
+
+        replacement = options.PrepareRigidImport
+            ? SmoLevelRigidImportPreparer.Prepare(replacement)
+            : SmoLevelEmbeddedTextureBudget.Prepare(replacement);
+        if (replacement.Meshes.Count == 0)
+            throw new InvalidDataException(
+                "Model preparation produced no writable mesh parts.");
+
+        int originalObjectCount = document.Objects.Count;
+        int originalTargetMeshCount = document.Objects.Count(entry =>
+            entry.TypeHash == SmoClassIds.MeshData);
+        SmoLevelModelGraphPlan plan;
+        if (options.RequireUnskinnedModel)
+        {
+            StandaloneTemplateNormalization normalized =
+                NormalizeStandaloneVisualForest(
+                    document,
+                    selectedMeshObjectIndex,
+                    replacement);
+            document = normalized.Document;
+            plan = normalized.Plan;
+            selectedMeshObjectIndex = plan.Components[0].MeshObjectIndex;
+        }
+        else
+        {
+            plan = ResolveGraphPlan(
+                document,
+                selectedMeshObjectIndex,
+                options);
+            originalTargetMeshCount = plan.Components.Count;
+        }
+        uint selectedMeshId = plan.Components[0].MeshObjectId;
+        bool expanded = false;
+        if (replacement.Meshes.Count != plan.Components.Count &&
+            options.ExpandSingleComponentTemplate &&
+            plan.Components.Count == 1 &&
+            replacement.Meshes.Count > 1)
+        {
+            document = ExpandSingleComponentTemplate(
+                document,
+                plan,
+                replacement.Meshes.Count);
+            selectedMeshObjectIndex = document.Objects.Single(entry =>
+                entry.Id == selectedMeshId).Index;
+            plan = ResolveGraphPlan(document, selectedMeshObjectIndex, options);
+            expanded = true;
+        }
+        if (replacement.Meshes.Count != plan.Components.Count)
+        {
+            throw new InvalidOperationException(
+                $"The complete SMO model contains {plan.Components.Count} mesh " +
+                $"parts, but the imported model contains " +
+                $"{replacement.Meshes.Count}. Replacement was cancelled without " +
+                "changing the source file.");
+        }
+        return new PreparedGraphReplacement(
+            document,
+            plan,
+            replacement,
+            originalObjectCount,
+            originalTargetMeshCount,
+            expanded);
+    }
+
+    private static StandaloneTemplateNormalization NormalizeStandaloneVisualForest(
+        SmoDocument document,
+        int selectedMeshObjectIndex,
+        ImportedScene replacement)
+    {
+        bool requireMaterial = replacement.Meshes.Any(mesh =>
+            ResolveImportedTextureIndex(replacement, mesh) >= 0);
+        SmoObjectEntry[] candidates = document.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
+            .OrderBy(entry => entry.Index == selectedMeshObjectIndex ? 0 : 1)
+            .ThenBy(entry => entry.LogicalOffset)
+            .ToArray();
+        SmoLevelModelGraphPlan? templatePlan = null;
+        SmoLevelModelGraphComponent? templateComponent = null;
+        foreach (SmoObjectEntry candidate in candidates)
+        {
+            try
+            {
+                SmoLevelModelGraphPlan candidatePlan = ResolvePlan(
+                    document,
+                    candidate.Index);
+                SmoLevelModelGraphComponent component = candidatePlan.Components
+                    .Single(item => item.MeshObjectId == candidate.Id);
+                if (candidatePlan.Components.Count(item =>
+                        item.ModelObjectId == component.ModelObjectId) != 1 ||
+                    requireMaterial && component.MaterialObjectId is null)
+                {
+                    continue;
+                }
+                SmoObjectEntry root = document.Objects.Single(entry =>
+                    entry.Id == candidatePlan.RootObjectId);
+                SmoObjectEntry model = document.Objects.Single(entry =>
+                    entry.Id == component.ModelObjectId);
+                if (root.TypeHash != SmoClassIds.RenderNode ||
+                    model.ParentIndex != root.Index)
+                {
+                    continue;
+                }
+                SmoMesh mesh = SmoMeshDecoder.Decode(document, candidate);
+                SmoVertexLayout layout =
+                    SmoMeshResourceReplacer.ValidateWritableLayout(candidate, mesh);
+                if (layout.BlendWeightsOffset.HasValue ||
+                    layout.BlendIndicesOffset.HasValue)
+                {
+                    continue;
+                }
+                _ = ExtractInlineBranch(document, root, model);
+                templatePlan = new SmoLevelModelGraphPlan(
+                    candidatePlan.RootObjectId,
+                    [component]);
+                templateComponent = component;
+                break;
+            }
+            catch (Exception exception) when (exception is InvalidDataException or
+                                              InvalidOperationException or
+                                              NotSupportedException or
+                                              SmoFormatException)
+            {
+                // Try another native rigid model branch. The standalone path
+                // needs one safe branch only; every other visual branch is
+                // removed before the shared graph writer expands this template.
+            }
+        }
+        if (templatePlan is null || templateComponent is null)
+        {
+            throw new NotSupportedException(
+                "The target SMO has no standalone rigid model branch that can " +
+                "serve as the universal import template.");
+        }
+
+        uint templateModelId = templateComponent.ModelObjectId;
+        uint templateMeshId = templateComponent.MeshObjectId;
+        uint[] otherModelIds = document.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.MeshData &&
+                            entry.Id != templateMeshId)
+            .Select(entry => FindAncestor(
+                document.Objects,
+                entry,
+                SmoClassIds.Model)?.Id)
+            .Where(id => id.HasValue && id.Value != templateModelId)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToArray();
+        byte[] output = document.Data.ToArray();
+        foreach (uint modelId in otherModelIds)
+        {
+            SmoDocument current = SmoDocument.ParseOwned(
+                output,
+                document.SourcePath);
+            SmoObjectEntry? model = current.Objects.FirstOrDefault(entry =>
+                entry.Id == modelId && entry.TypeHash == SmoClassIds.Model);
+            if (model is null)
+                continue;
+            if (model.ParentIndex is not int ownerIndex)
+                throw new InvalidDataException(
+                    $"Standalone model branch {modelId} has no inline owner.");
+            uint ownerId = current.Objects[ownerIndex].Id;
+            output = SmoVisualForestInjector.RemoveInlineBranch(
+                current,
+                ownerId,
+                modelId);
+            SmoLargeContainerMemory.ReleaseIntermediates(output.Length);
+        }
+
+        SmoDocument normalized = SmoDocument.ParseOwned(output, document.SourcePath);
+        int templateIndex = normalized.Objects.Single(entry =>
+            entry.Id == templateMeshId).Index;
+        SmoLevelModelGraphPlan normalizedPlan = ResolvePlan(
+            normalized,
+            templateIndex);
+        SmoLevelModelGraphComponent[] retained = normalizedPlan.Components
+            .Where(component => component.ModelObjectId == templateModelId &&
+                                component.MeshObjectId == templateMeshId)
+            .ToArray();
+        if (retained.Length != 1 ||
+            normalized.Objects.Count(entry =>
+                entry.TypeHash == SmoClassIds.MeshData) != 1)
+        {
+            throw new InvalidDataException(
+                "Standalone visual normalization did not leave exactly one " +
+                "native rigid template mesh.");
+        }
+        return new StandaloneTemplateNormalization(
+            normalized,
+            new SmoLevelModelGraphPlan(normalizedPlan.RootObjectId, retained));
+    }
+
+    private static SmoLevelModelGraphPlan ResolveGraphPlan(
+        SmoDocument document,
+        int selectedMeshObjectIndex,
+        SmoLevelModelGraphWriteOptions options) =>
+        options.RequireReferenceOnlyPlacements
+            ? ResolveWritablePlan(document, selectedMeshObjectIndex)
+            : ResolvePlan(document, selectedMeshObjectIndex);
+
+    private static void ValidatePreparedGraphReplacement(
+        PreparedGraphReplacement prepared,
+        SmoLevelModelGraphWriteOptions options,
+        IReadOnlyDictionary<int, uint>? reusableImportedTextureObjectIds = null)
+    {
+        SmoDocument document = prepared.Document;
+        ImportedScene replacement = prepared.Replacement;
+        if (options.RequireUnskinnedModel &&
+            document.Objects.Any(entry => entry.TypeHash == SmoClassIds.Skin))
+        {
+            throw new InvalidOperationException(
+                "Standalone static replacement requires a target without spSkin " +
+                "objects.");
+        }
+        if (options.RequireUnskinnedModel &&
+            replacement.Meshes.Any(mesh => mesh.Skinning is not null))
+        {
+            throw new InvalidOperationException(
+                "Standalone static replacement accepts only donor meshes without " +
+                "skin weights.");
+        }
+
+        for (int index = 0; index < replacement.Meshes.Count; index++)
+        {
+            ImportedMesh imported = replacement.Meshes[index];
+            if (imported.Positions.Length == 0 ||
+                imported.TriangleIndices.Length == 0)
+            {
+                throw new InvalidDataException(
+                    $"Imported mesh [{index}] '{imported.Name}' is empty.");
+            }
+            if (imported.MaterialIndex < -1 ||
+                imported.MaterialIndex >= replacement.Materials.Count)
+            {
+                throw new InvalidDataException(
+                    $"Imported mesh [{index}] references missing material " +
+                    $"{imported.MaterialIndex}.");
+            }
+            SmoLevelModelGraphComponent component = prepared.Plan.Components[index];
+            SmoObjectEntry targetMesh = document.Objects.Single(entry =>
+                entry.Id == component.MeshObjectId);
+            SmoMesh decoded = SmoMeshDecoder.Decode(document, targetMesh);
+            SmoVertexLayout layout = SmoMeshResourceReplacer.ValidateWritableLayout(
+                targetMesh,
+                decoded);
+            if (options.RequireUnskinnedModel &&
+                (layout.BlendWeightsOffset.HasValue ||
+                 layout.BlendIndicesOffset.HasValue))
+            {
+                throw new InvalidOperationException(
+                    $"Target mesh [{targetMesh.Index}] uses a skinned layout; " +
+                    "the static graph path never writes bone data.");
+            }
+            if (ResolveImportedTextureIndex(replacement, imported) >= 0 &&
+                component.MaterialObjectId is null)
+            {
+                throw new InvalidOperationException(
+                    $"Model component {component.ModelObjectId} has no native " +
+                    "material that can own its imported texture.");
+            }
+        }
+
+        int[] importedTextureIndices = replacement.Meshes
+            .Select(mesh => ResolveImportedTextureIndex(replacement, mesh))
+            .Where(index => index >= 0)
+            .Distinct()
+            .Where(index =>
+                reusableImportedTextureObjectIds?.ContainsKey(index) != true)
+            .ToArray();
+        if (importedTextureIndices.Length > 0)
+        {
+            Dictionary<uint, uint[]> oldTextureIdsByMaterial = prepared.Plan.Components
+                .Where(component => component.MaterialObjectId is not null)
+                .GroupBy(component => component.MaterialObjectId!.Value)
+                .ToDictionary(
+                    group => group.Key,
+                    group => ResolveTextureIds(
+                        document,
+                        document.Objects.Single(entry => entry.Id == group.Key)));
+            SmoObjectEntry? textureTemplate = options.RequireUnskinnedModel
+                ? null
+                : FindTextureTemplate(document, oldTextureIdsByMaterial);
+            foreach (int textureIndex in importedTextureIndices)
+            {
+                _ = textureTemplate is null
+                    ? BuildCanonicalTextureObject(
+                        replacement.Textures[textureIndex])
+                    : BuildTextureObject(
+                        document,
+                        textureTemplate,
+                        replacement.Textures[textureIndex]);
+            }
+        }
+
+        uint[] alphaMaterialIds = prepared.Plan.Components
+            .SelectMany((component, index) =>
+                RequiresTextureAlpha(replacement, replacement.Meshes[index]) &&
+                component.MaterialObjectId is uint materialId
+                    ? [materialId]
+                    : Array.Empty<uint>())
+            .Distinct()
+            .ToArray();
+        if (alphaMaterialIds.Length > 0)
+            _ = PatchRigidTextureAlphaMaterials(document, alphaMaterialIds);
+    }
+
+    private static SmoDocument ExpandSingleComponentTemplate(
+        SmoDocument document,
+        SmoLevelModelGraphPlan plan,
+        int requiredPartCount)
+    {
+        if (plan.Components.Count != 1 || requiredPartCount <= 1)
+            return document;
+        SmoObjectEntry root = document.Objects.Single(entry =>
+            entry.Id == plan.RootObjectId);
+        SmoLevelModelGraphComponent component = plan.Components[0];
+        SmoObjectEntry model = document.Objects.Single(entry =>
+            entry.Id == component.ModelObjectId);
+        if (root.TypeHash != SmoClassIds.RenderNode ||
+            model.ParentIndex != root.Index)
+        {
+            throw new NotSupportedException(
+                "Expanding a single model template requires a direct " +
+                "spRenderNode -> spModel branch.");
+        }
+        SmoAdditiveForestPlan template = ExtractInlineBranch(
+            document,
+            root,
+            model);
+        uint nextId = document.Objects.Max(entry => entry.Id);
+        var attachments = new List<SmoVisualForestAttachment>(requiredPartCount - 1);
+        for (int index = 1; index < requiredPartCount; index++)
+        {
+            var idMap = new Dictionary<uint, uint>(
+                template.GeneratedObjectIds.Count);
+            foreach (uint id in template.GeneratedObjectIds)
+                idMap.Add(id, checked(++nextId));
+            SmoAdditiveForestPlan clone =
+                SmoAdditiveForestPlanner.RemapObjectIds(template, idMap);
+            if (clone.Operations.Count != 1)
+            {
+                throw new InvalidDataException(
+                    "The native model template did not produce one inline branch.");
+            }
+            attachments.Add(clone.Operations[0].Attachment);
+        }
+        return SmoDocument.ParseOwned(
+            SmoVisualForestInjector.Inject(document, root.Id, attachments),
+            document.SourcePath);
+    }
+
+    private static SmoAdditiveForestPlan ExtractInlineBranch(
+        SmoDocument document,
+        SmoObjectEntry owner,
+        SmoObjectEntry root)
+    {
+        SmoDataBlockHeader field = FindInlineField(document, owner, root);
+        int fieldPhysical = checked((int)owner.PhysicalOffset + field.Offset);
+        int fieldLength = checked(field.HeaderSize + (int)field.PayloadSize);
+        byte[] fieldData = document.Data.Span
+            .Slice(fieldPhysical, fieldLength)
+            .ToArray();
+        SmoObjectEntry[] entries = document.Objects.Where(entry =>
+                entry.PhysicalOffset >= root.PhysicalOffset &&
+                entry.PhysicalEnd <= root.PhysicalEnd)
+            .OrderBy(entry => entry.PhysicalOffset)
+            .ThenByDescending(entry => entry.SerializedSize)
+            .ToArray();
+        if (entries.Length == 0 || entries[0].Id != root.Id)
+            throw new InvalidDataException("The native model template is incomplete.");
+        var attachment = new SmoVisualForestAttachment(
+            owner.Id,
+            fieldData,
+            entries.Select(entry => new SmoVisualForestEntry(
+                entry.Id,
+                entry.RawName.ToArray(),
+                entry.TypeHash,
+                checked((int)entry.PhysicalOffset - fieldPhysical),
+                entry.SerializedSize)).ToArray());
+        return new SmoAdditiveForestPlan(
+            [new SmoVisualForestOperation(
+                attachment,
+                SmoVisualForestInsertionKind.BeforeTerminal)],
+            entries.Select(entry => entry.Id).ToArray());
+    }
+
+    private static SmoDataBlockHeader FindInlineField(
+        SmoDocument document,
+        SmoObjectEntry owner,
+        SmoObjectEntry child)
+    {
+        ReadOnlySpan<byte> bytes = ObjectBytes(document, owner);
+        foreach (SmoDataBlockHeader field in Fields(document, owner))
+        {
+            long payloadPhysical = owner.PhysicalOffset + field.PayloadOffset;
+            if (field.PayloadSize == child.SerializedSize + ObjectReferenceSize &&
+                payloadPhysical == child.PhysicalOffset - ObjectReferenceSize &&
+                BinaryPrimitives.ReadUInt32LittleEndian(
+                    bytes[field.PayloadOffset..]) == child.Id &&
+                BinaryPrimitives.ReadUInt32LittleEndian(
+                    bytes[(field.PayloadOffset + sizeof(uint))..]) ==
+                    child.SerializedSize)
+            {
+                return field;
+            }
+        }
+        throw new InvalidDataException(
+            $"Object {child.Id} is not an inline child of {owner.Id}.");
+    }
+
+    private static SmoLevelModelGraphReplacementAnalysis CreateAnalysis(
+        PreparedGraphReplacement prepared,
+        bool canReplace,
+        IReadOnlyList<string> messages) => new(
+            canReplace,
+            prepared.OriginalTargetMeshCount,
+            prepared.Replacement.Meshes.Count,
+            CountImportedTextures(prepared.Replacement),
+            prepared.Replacement.Meshes.Sum(mesh => mesh.Positions.Length),
+            prepared.Replacement.Meshes.Sum(mesh =>
+                mesh.TriangleIndices.Length / 3),
+            messages);
+
+    private static int CountSelectedGraphMeshes(
+        SmoDocument document,
+        int selectedMeshObjectIndex)
+    {
+        try
+        {
+            return ResolvePlan(document, selectedMeshObjectIndex).Components.Count;
+        }
+        catch
+        {
+            return document.Objects.Count(entry =>
+                entry.TypeHash == SmoClassIds.MeshData);
+        }
+    }
+
+    private static int CountImportedTextures(ImportedScene scene) =>
+        scene.Meshes
+            .Select(mesh => ResolveImportedTextureIndex(scene, mesh))
+            .Where(index => index >= 0)
+            .Distinct()
+            .Count();
+
+    private static void VerifyInstalledGraph(
+        SmoDocument document,
+        SmoLevelModelGraphReplacementResult result,
+        SmoLevelModelGraphWriteOptions options)
+    {
+        if (document.HasErrors)
+            throw new InvalidDataException(
+                "Installed model graph has parser errors.");
+        SmoMesh[] meshes = result.MeshObjectIds.Values
+            .Select(id => document.Objects.Single(entry =>
+                entry.Id == id && entry.TypeHash == SmoClassIds.MeshData))
+            .Select(entry => SmoMeshDecoder.Decode(document, entry))
+            .ToArray();
+        if (meshes.Sum(mesh => mesh.VertexCount) != result.VertexCount ||
+            meshes.Sum(mesh => mesh.TriangleCount) != result.TriangleCount)
+        {
+            throw new InvalidDataException(
+                "Installed model graph geometry counts changed.");
+        }
+        if (options.RequireUnskinnedModel &&
+            (document.Objects.Any(entry => entry.TypeHash == SmoClassIds.Skin) ||
+             meshes.Any(mesh => mesh.HasSkinningData)))
+        {
+            throw new InvalidDataException(
+                "Installed static model graph contains skinning data.");
+        }
+        foreach (uint textureId in result.ImportedTextureObjectIds.Values.Distinct())
+        {
+            SmoObjectEntry textureEntry = document.Objects.Single(entry =>
+                entry.Id == textureId &&
+                entry.TypeHash == SmoClassIds.TextureData);
+            if (!SmoTextureDecoder.TryDecode(
+                    document,
+                    textureEntry,
+                    out SmoTexture? texture,
+                    out string error) ||
+                texture is null)
+            {
+                throw new InvalidDataException(
+                    $"Installed texture {textureId} is invalid: {error}");
+            }
+        }
+    }
+
+    private sealed record PreparedGraphReplacement(
+        SmoDocument Document,
+        SmoLevelModelGraphPlan Plan,
+        ImportedScene Replacement,
+        int OriginalObjectCount,
+        int OriginalTargetMeshCount,
+        bool ExpandedSingleTemplate);
+
+    private sealed record StandaloneTemplateNormalization(
+        SmoDocument Document,
+        SmoLevelModelGraphPlan Plan);
 
     private static int ResolveImportedTextureIndex(
         ImportedScene scene,
@@ -650,7 +1316,7 @@ public static class SmoLevelModelGraphReplacer
         return index;
     }
 
-    private static byte[] PatchRigidTextureAlphaMaterials(
+    internal static byte[] PatchRigidTextureAlphaMaterials(
         SmoDocument document,
         IReadOnlyCollection<uint> materialIds)
     {
@@ -759,9 +1425,10 @@ public static class SmoLevelModelGraphReplacer
         return result.ToArray();
     }
 
-    private static SmoObjectEntry FindTextureTemplate(
+    private static SmoObjectEntry? FindTextureTemplate(
         SmoDocument document,
-        IReadOnlyDictionary<uint, uint[]> oldTextureIdsByMaterial)
+        IReadOnlyDictionary<uint, uint[]> oldTextureIdsByMaterial,
+        bool allowMissing = false)
     {
         HashSet<uint> preferred = oldTextureIdsByMaterial.Values
             .SelectMany(ids => ids).ToHashSet();
@@ -769,6 +1436,17 @@ public static class SmoLevelModelGraphReplacer
                      .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
                      .OrderByDescending(entry => preferred.Contains(entry.Id)))
         {
+            if (SmoTextureDataDecoder.TryDecode(
+                    document, entry, out SmoTextureDataInfo? data, out _) &&
+                data is
+                {
+                    SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
+                    CrossPlatform.Kind:
+                        SmoTextureRepresentationKind.CrossPlatformBgra32
+                })
+            {
+                return entry;
+            }
             if (SmoTextureDecoder.TryDecode(
                     document, entry, out SmoTexture? texture, out _) &&
                 texture is not null &&
@@ -778,11 +1456,35 @@ public static class SmoLevelModelGraphReplacer
                 return entry;
             }
         }
+        if (allowMissing)
+            return null;
         throw new NotSupportedException(
             "The level has no confirmed BGRA texture template for a new resource.");
     }
 
-    private static byte[] BuildTextureObject(
+    private static byte[] BuildCanonicalTextureObject(ImportedTexture imported)
+    {
+        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
+                imported.Width, imported.Height) ||
+            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
+            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
+        {
+            throw new InvalidDataException(
+                $"Texture {imported.Name} has unsupported dimensions " +
+                $"{imported.Width}x{imported.Height}.");
+        }
+        using Image<Rgba32> image = Image.Load<Rgba32>(imported.Data);
+        if (image.Width != imported.Width || image.Height != imported.Height)
+            throw new InvalidDataException(
+                $"Texture {imported.Name} dimensions do not match its image payload.");
+        return BuildLegacyCrossPlatformTextureObject(
+            imported,
+            EncodeBgra(image),
+            auxiliaryValue: 0,
+            platformType: null);
+    }
+
+    internal static byte[] BuildTextureObject(
         SmoDocument document,
         SmoObjectEntry templateEntry,
         ImportedTexture imported)
@@ -791,10 +1493,10 @@ public static class SmoLevelModelGraphReplacer
                 document, templateEntry, out SmoTexture? template, out string error) ||
             template is null)
             throw new InvalidDataException(error);
-        if (!RigidGlbTextureBundleReader.IsSerializedTextureSizeRepresentable(
+        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
                 imported.Width, imported.Height) ||
-            imported.Width is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension ||
-            imported.Height is < 1 or > RigidGlbTextureBundleReader.AbsoluteMaximumTextureDimension)
+            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
+            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
         {
             throw new InvalidDataException(
                 $"Texture {imported.Name} has unsupported dimensions " +
@@ -805,6 +1507,27 @@ public static class SmoLevelModelGraphReplacer
             throw new InvalidDataException(
                 $"Texture {imported.Name} dimensions do not match its image payload.");
         byte[] pixels = EncodeBgra(image);
+
+        if (SmoTextureDataDecoder.TryDecode(
+                document,
+                templateEntry,
+                out SmoTextureDataInfo? data,
+                out string dataError) &&
+            data is
+            {
+                SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
+                CrossPlatform.Kind:
+                    SmoTextureRepresentationKind.CrossPlatformBgra32
+            })
+        {
+            return BuildLegacyCrossPlatformTextureObject(
+                imported,
+                pixels,
+                data.CrossPlatform.AuxiliaryValue,
+                data.PlatformType);
+        }
+        if (data is null)
+            throw new InvalidDataException(dataError);
 
         ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
         int oldPixelSize = checked(template.Width * template.Height * 4);
@@ -827,6 +1550,58 @@ public static class SmoLevelModelGraphReplacer
         WriteUInt32(result, 0x30, checked(((uint)image.Width << 8) | 1));
         WriteUInt32(result, 0x34, checked((uint)image.Width << 10));
         WriteUInt32(result, 0x38, checked((uint)image.Height << 8));
+        return result;
+    }
+
+    private static byte[] BuildLegacyCrossPlatformTextureObject(
+        ImportedTexture imported,
+        byte[] pixels,
+        uint auxiliaryValue,
+        uint? platformType)
+    {
+        const int objectSignatureSize = 8;
+        const int sizedFieldHeaderSize = 5;
+        const int compactUInt32FieldSize = 5;
+        const int representationHeaderSize = 16;
+        const int sectionTerminatorSize = 1;
+        int representationSize = checked(representationHeaderSize + pixels.Length);
+        int sourcePayloadSize = checked(
+            sizedFieldHeaderSize + representationSize + sectionTerminatorSize);
+        int platformFieldSize = platformType.HasValue
+            ? compactUInt32FieldSize
+            : 0;
+        byte[] result = new byte[checked(
+            objectSignatureSize + platformFieldSize +
+            sizedFieldHeaderSize + sourcePayloadSize + sectionTerminatorSize)];
+        WriteUInt32(result, 0, SmoClassIds.TextureData);
+        "SBOO"u8.CopyTo(result.AsSpan(4));
+
+        int cursor = objectSignatureSize;
+        if (platformType.HasValue)
+        {
+            result[cursor] = 0x66;
+            WriteUInt32(result, cursor + 1, platformType.Value);
+            cursor += compactUInt32FieldSize;
+        }
+
+        result[cursor] = 0xE0;
+        WriteUInt32(result, cursor + 1, checked((uint)sourcePayloadSize));
+        cursor += sizedFieldHeaderSize;
+        result[cursor] = 0xE5;
+        WriteUInt32(result, cursor + 1, checked((uint)representationSize));
+        cursor += sizedFieldHeaderSize;
+        WriteUInt32(result, cursor, checked((uint)imported.Width));
+        WriteUInt32(result, cursor + 4, checked((uint)imported.Height));
+        WriteUInt32(result, cursor + 8, auxiliaryValue);
+        WriteUInt32(result, cursor + 12, 4);
+        cursor += representationHeaderSize;
+        pixels.CopyTo(result.AsSpan(cursor));
+        cursor += pixels.Length;
+        result[cursor++] = 0;
+        result[cursor++] = 0;
+        if (cursor != result.Length)
+            throw new InvalidDataException(
+                "Legacy cross-platform texture size calculation is inconsistent.");
         return result;
     }
 

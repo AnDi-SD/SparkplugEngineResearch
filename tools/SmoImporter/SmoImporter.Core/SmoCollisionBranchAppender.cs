@@ -34,6 +34,14 @@ public static class SmoCollisionBranchAppender
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
 
+    /// <summary>
+    /// Production default used for newly generated level collision. Group 2 is
+    /// the dominant authored PC/PS2 value and is serialized explicitly so the
+    /// result does not depend on which nearby branch supplied the transform and
+    /// relationship layout.
+    /// </summary>
+    public const uint ProductionDefaultCollisionGroup = 2;
+
     public static SmoCollisionBranchAppendResult Append(
         SmoDocument document,
         IReadOnlyList<Vector3> worldPositions,
@@ -66,11 +74,23 @@ public static class SmoCollisionBranchAppender
         SmoCollisionMesh generated = SmoCollisionMeshDecoder.DecodeAll(verified)
             .Single(candidate =>
                 candidate.CollisionInfoObjectIndex == verifiedCollision.Index);
+        if (!SmoCollisionInfoDecoder.TryDecode(
+                verified,
+                verifiedCollision,
+                out SmoCollisionInfoData? verifiedInfo,
+                out string collisionInfoError) ||
+            verifiedInfo?.CollisionGroup != ProductionDefaultCollisionGroup)
+        {
+            throw new InvalidDataException(
+                "Generated collision failed Group 2 verification: " +
+                collisionInfoError);
+        }
         if (generated.TriangleIndices.Count != triangleIndices.Count ||
+            !generated.TriangleIndices.SequenceEqual(triangleIndices) ||
             generated.Positions.Count != worldPositions.Count)
         {
             throw new InvalidDataException(
-                "Generated collision failed geometry verification.");
+                "Generated collision failed geometry or triangle-order verification.");
         }
         for (int index = 0; index < worldPositions.Count; index++)
         {
@@ -134,6 +154,7 @@ public static class SmoCollisionBranchAppender
                 document,
                 candidate,
                 generatedMeshSize) &&
+                HasSerializedCollisionGroup(document, candidate) &&
                 TryFindRegistration(
                     document,
                     document.Objects[candidate.CollisionInfoObjectIndex],
@@ -185,6 +206,14 @@ public static class SmoCollisionBranchAppender
             collisionOffset + meshField.Offset,
             meshField,
             checked((uint)((int)meshField.PayloadSize + delta)));
+        SmoObjectField groupField = SmoObjectFieldReader.Read(document, collisionInfo)
+            .Single(field => field.FieldType == 1);
+        int groupPayloadOffset = checked(
+            groupField.AbsolutePayloadOffset - outerPhysical + delta);
+        WriteUInt32(
+            fieldData,
+            groupPayloadOffset,
+            ProductionDefaultCollisionGroup);
 
         string safeName = string.IsNullOrWhiteSpace(name)
             ? "GeneratedCollision"
@@ -698,6 +727,20 @@ public static class SmoCollisionBranchAppender
         {
             return false;
         }
+    }
+
+    private static bool HasSerializedCollisionGroup(
+        SmoDocument document,
+        SmoCollisionMesh template)
+    {
+        SmoObjectEntry collision =
+            document.Objects[template.CollisionInfoObjectIndex];
+        return SmoCollisionInfoDecoder.TryDecode(
+                   document,
+                   collision,
+                   out SmoCollisionInfoData? data,
+                   out _) &&
+               data?.CollisionGroup is not null;
     }
 
     private static bool CanStoreSize(SmoDataBlockSizeCode kind, int value) =>

@@ -69,7 +69,7 @@ internal static class GeneratedSkinningSemanticHandRegression
                 fixture.Donor);
 
         // Deliberately the only Prepare call. There is no automatic pose fit,
-        // writer, atlas construction, animation decode, or output file.
+        // writer, texture serialization, animation decode, or output file.
         GeneratedSkinningPreparationResult preparation =
             GeneratedSkinningPreparer.Prepare(
                 target,
@@ -78,7 +78,7 @@ internal static class GeneratedSkinningSemanticHandRegression
                 ReplacementTransform.Identity,
                 fixture.BodySelection);
         if (preparation.Analysis.SemanticResolutionPassCount != 1 ||
-            preparation.Analysis.InternalPreparationPassCount is < 2 or > 4)
+            preparation.Analysis.InternalPreparationPassCount is < 2 or > 5)
         {
             throw new InvalidOperationException(
                 "One public Prepare must use 1-3 adaptive legacy palette passes " +

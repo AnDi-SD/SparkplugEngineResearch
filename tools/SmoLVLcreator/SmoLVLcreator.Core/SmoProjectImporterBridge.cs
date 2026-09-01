@@ -22,57 +22,6 @@ public sealed record SmoProjectExternalModelAddition(
 /// </summary>
 public static class SmoProjectImporterBridge
 {
-    // Compatibility oracle for synthetic parity tests. Production callers must
-    // use AddExternalModelBatched: the legacy importer materializes rolling
-    // full-container copies and is intentionally not part of the public API.
-    internal static SmoProjectExternalModelAddition AddExternalModel(
-        SmoProject project,
-        ImportedScene importedScene,
-        IReadOnlyList<Matrix4x4> worldTransforms,
-        string? modelName = null)
-    {
-        SmoDocument importedSource =
-            SmoProjectSerializer.CreateImportedSourceDocument(project);
-        return AddExternalModel(
-            project,
-            importedSource,
-            importedScene,
-            worldTransforms,
-            modelName);
-    }
-
-    internal static SmoProjectExternalModelAddition AddExternalModel(
-        SmoProject project,
-        SmoDocument importedSource,
-        ImportedScene importedScene,
-        IReadOnlyList<Matrix4x4> worldTransforms,
-        string? modelName = null)
-    {
-        ArgumentNullException.ThrowIfNull(project);
-        ArgumentNullException.ThrowIfNull(importedSource);
-        ArgumentNullException.ThrowIfNull(importedScene);
-        ArgumentNullException.ThrowIfNull(worldTransforms);
-        EnsureMatchingImportedSource(project, importedSource);
-        if (worldTransforms.Count == 0)
-        {
-            throw new ArgumentException(
-                "An project external model needs at least one placement.",
-                nameof(worldTransforms));
-        }
-
-        int templateIndex = SmoExternalLevelModelAppender.FindTemplateMeshObjectIndex(
-            importedSource,
-            requireMaterial: importedScene.Textures.Count > 0);
-        SmoExternalLevelModelAppendResult appended =
-            SmoExternalLevelModelAppender.AppendWithoutMemoryGuard(
-                importedSource,
-                templateIndex,
-                importedScene,
-                worldTransforms,
-                modelName);
-        return AddExternalModelResult(project, importedSource, appended);
-    }
-
     public static SmoProjectExternalModelAddition AddExternalModelBatched(
         SmoProject project,
         ImportedScene importedScene,
@@ -147,43 +96,6 @@ public static class SmoProjectImporterBridge
                 .Select(entry => entry.Id)
                 .ToArray(),
             planned.PlacementCount,
-            assets);
-    }
-
-    private static SmoProjectExternalModelAddition AddExternalModelResult(
-        SmoProject project,
-        SmoDocument importedSource,
-        SmoExternalLevelModelAppendResult appended)
-    {
-        SmoDocument result = SmoDocument.ParseOwned(
-            appended.Data,
-            importedSource.SourcePath);
-        SmoAdditiveForestPlan plan = SmoAdditiveForestPlanner.Create(
-            importedSource,
-            result);
-        uint[] allocated = project.AreObjectIdsAvailable(plan.GeneratedObjectIds)
-            ? plan.GeneratedObjectIds.ToArray()
-            : project.AllocateObjectIds(plan.GeneratedObjectIds.Count);
-        Dictionary<uint, uint> idMap = plan.GeneratedObjectIds
-            .Select((id, index) => (id, NewId: allocated[index]))
-            .ToDictionary(item => item.id, item => item.NewId);
-        SmoAdditiveForestPlan remapped = plan.GeneratedObjectIds
-            .Where((id, index) => id != allocated[index])
-            .Any()
-                ? SmoAdditiveForestPlanner.RemapObjectIds(plan, idMap)
-                : plan;
-        IReadOnlyList<Guid> assets = AddOperations(project, remapped.Operations);
-        return new SmoProjectExternalModelAddition(
-            appended.MeshObjectIds.Select(id => idMap[id]).ToArray(),
-            appended.ImportedTextureObjectIds.ToDictionary(
-                pair => pair.Key,
-                pair => idMap[pair.Value]),
-            remapped.Operations
-                .SelectMany(operation => operation.Attachment.Entries)
-                .Where(entry => entry.TypeHash == SmoClassIds.StaticRenderObject)
-                .Select(entry => entry.Id)
-                .ToArray(),
-            appended.PlacementCount,
             assets);
     }
 

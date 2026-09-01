@@ -190,7 +190,7 @@ internal static class SmoLevelRandomStressRunner
         // watchdog. Bypass the production system-wide preflight here so the
         // stress run measures the pipeline itself instead of ambient desktop
         // memory pressure.
-        SmoLevelSaveResult result = SmoLevelSaveService.SaveWithoutMemoryGuard(
+        SmoLevelSaveResult result = SmoLevelSaveService.Save(
             document,
             outputPath,
             progress,

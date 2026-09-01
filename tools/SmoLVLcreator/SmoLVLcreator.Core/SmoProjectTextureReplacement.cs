@@ -11,12 +11,30 @@ public sealed record SmoProjectTextureReplacementResult(
     Guid AssetId);
 
 /// <summary>
-/// Converts the existing verified fixed-slot texture writer into a compact
+/// Converts the verified native texture writer into a compact
 /// project operation. Only the target TextureData SBOO is retained in the
 /// journal; the temporary materialized SMO is released before returning.
 /// </summary>
 public static class SmoProjectTextureReplacement
 {
+    public static IReadOnlyList<uint> GetWritableTextureObjectIds(
+        SmoProject project)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        SmoDocument current = SmoProjectSerializer.CreateCurrentDocument(project);
+        SMOTextureTool.Core.SmoDocument textureDocument =
+            SMOTextureTool.Core.SmoDocument.Parse(current.Data.Span);
+        HashSet<int> writableOffsets = textureDocument.Textures
+            .Select(texture => texture.BlockOffset)
+            .ToHashSet();
+        return current.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData &&
+                entry.PhysicalOffset is >= 0 and <= int.MaxValue &&
+                writableOffsets.Contains(checked((int)entry.PhysicalOffset)))
+            .Select(entry => entry.Id)
+            .ToArray();
+    }
+
     public static SmoProjectTextureReplacementResult Replace(
         SmoProject project,
         uint textureObjectId,
@@ -39,17 +57,24 @@ public static class SmoProjectTextureReplacement
                 entry.Id == textureObjectId && entry.TypeHash == SmoClassIds.TextureData)
             ?? throw new KeyNotFoundException(
                 $"TextureData object ID {textureObjectId} is missing from the current project.");
-        int textureOrdinal = current.Objects
-            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
-            .OrderBy(entry => entry.Index)
-            .Select((entry, ordinal) => (entry.Id, ToolIndex: ordinal + 1))
-            .Single(item => item.Id == textureObjectId)
-            .ToolIndex;
+        if (before.PhysicalOffset is < 0 or > int.MaxValue)
+        {
+            throw new InvalidDataException(
+                $"TextureData object ID {textureObjectId} has an unsupported physical offset.");
+        }
+        SMOTextureTool.Core.SmoDocument textureDocument =
+            SMOTextureTool.Core.SmoDocument.Parse(current.Data.Span);
+        SMOTextureTool.Core.TextureInfo texture = textureDocument.Textures
+            .SingleOrDefault(item =>
+                item.BlockOffset == checked((int)before.PhysicalOffset))
+            ?? throw new InvalidOperationException(
+                $"TextureData object ID {textureObjectId} is not a decoded writable " +
+                "fixed-size texture slot.");
         byte[] rewritten = replaceAlpha
             ? FixedSizeTextureWriter.ReplaceRgba(
-                current.Data.ToArray(), textureOrdinal, encodedImage)
+                current.Data.ToArray(), texture.Index, encodedImage)
             : FixedSizeTextureWriter.ReplaceRgb(
-                current.Data.ToArray(), textureOrdinal, encodedImage);
+                current.Data.ToArray(), texture.Index, encodedImage);
         SmoDocument verified = SmoDocument.ParseOwned(rewritten, current.SourcePath);
         if (verified.HasErrors)
             throw new InvalidDataException("Texture replacement produced an invalid SMO graph.");

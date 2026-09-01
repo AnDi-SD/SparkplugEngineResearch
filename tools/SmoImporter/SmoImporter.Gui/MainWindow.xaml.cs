@@ -40,21 +40,26 @@ public partial class MainWindow : Window
     private const int MaximumPreviewTextureSide = 1024;
     private const long AssumedGameMemoryBudgetBytes = 3_972_844_749;
     private const long TextureMemoryWarningMinimumBytes = 256L * 1024 * 1024;
+    private const long MinimumSaveMemoryHeadroomBytes = 512L * 1024 * 1024;
+    private const long MaximumSaveMemoryGrowthBytes = 2L * 1024 * 1024 * 1024;
     private const double TextureMemoryWarningMinimumBudgetFraction = 0.10;
     private static readonly TimeSpan MaximumGeneratedSkinningCalculationTime =
         TimeSpan.FromSeconds(90);
+    private static readonly TimeSpan MaximumSaveOperationTime =
+        TimeSpan.FromMinutes(5);
 
     private readonly ImporterNativeValidator _nativeValidator = new();
     private CancellationTokenSource? _nativeValidationCancellation;
     private CancellationTokenSource? _replacementLoadCancellation;
     private CancellationTokenSource? _protectedRegionPreviewCancellation;
     private CancellationTokenSource? _generatedSkinningCalculationCancellation;
+    private CancellationTokenSource? _saveCancellation;
     private Task? _protectedRegionPreviewOperation;
     private bool _nativeValidationRunning;
     private bool _replacementLoadRunning;
     private bool _generatedSkinningCalculationRunning;
+    private bool _saveRunning;
     private bool _settingNativeExecutablePath;
-    private bool _settingPreserveOriginalTextures;
     private bool _settingPortingMode;
     private bool _settingGeneratedSkinningConfirmation;
     private bool _settingManualAdaptWeights;
@@ -62,6 +67,7 @@ public partial class MainWindow : Window
     private bool _settingBodyPoseControls;
     private bool _settingGeneratedAttachmentSelection;
     private bool _settingProtectedRegionControls;
+    private bool _settingPreviewVisibility;
     private bool _settingModelTransform;
     private bool _isClosing;
     private bool _forceProcessExitOnClosed;
@@ -70,22 +76,21 @@ public partial class MainWindow : Window
     private readonly StartupPreset? _startupPreset;
 
     private string? _sourcePath;
+    private string? _lastSavedOutputPath;
+    private string? _lastSavedSourcePath;
     private SmoDocument? _document;
     private SmoExportScene? _sourceScene;
     private string? _replacementPath;
     private ImportedScene? _baseReplacementScene;
     private ImportedScene? _replacementScene;
-    private RigidGlbTextureBundle? _replacementRigidTextureBundle;
     private ImportedTextureCatalogResult? _textureCatalogResult;
     private readonly List<ImportedTexture> _externalTextures = [];
     private readonly HashSet<int> _opaqueOverlaySourceMeshKeys = [];
     private readonly HashSet<int> _transparentSurfaceSourceMeshKeys = [];
-    private SmoRigidMultiMaterialPackAnalysis? _rigidMultiMaterialAnalysis;
     private MeshSplitPlan? _plan;
-    private SmoDocument? _replacementSmoDocument;
-    private SmoExportScene? _replacementSmoScene;
-    private SmoToSmoReplacementPlan? _smoReplacementPlan;
     private GlbSkinTransferPlan? _glbSkinTransferPlan;
+    private SmoNativeVisualGraphPlan? _nativeSmoVisualPlan;
+    private SmoLevelModelGraphReplacementAnalysis? _staticModelReplacementPlan;
     private SkinnedModelPortingPreparation? _adaptedPortingPreparation;
     private string? _adaptedPortingPreparationIssue;
     private ImportedScene? _generatedSkinningBaseScene;
@@ -121,6 +126,9 @@ public partial class MainWindow : Window
     private bool _protectedRegionPreviewRunning;
     private readonly Dictionary<GeneratedSkinningSemanticRegion,
         GeneratedSkinningRegionAdjustment> _protectedRegionDraftAdjustments = [];
+    private readonly Dictionary<GeneratedSkinningSeparationPlaneKind,
+        GeneratedSkinningSeparationPlaneAdjustment>
+        _separationPlaneDraftAdjustments = [];
     private readonly DispatcherTimer _protectedRegionPreviewTimer;
     private BodyPoseControlValues _committedBodyPoseControls;
     private BodyPoseControlValues _draftBodyPoseControls;
@@ -130,15 +138,18 @@ public partial class MainWindow : Window
     private string? _rigFittingIssue;
     private ModelPortingModeRecommendation? _portingModeRecommendation;
     private string? _blenderPath;
-    private string? _multiTextureDirectory;
-    private string? _rigidTextureBindingIssue;
-    private string? _geometryOnlyFallbackIssue;
     private readonly List<Point3D> _previewBounds = new();
     private readonly Dictionary<GeometryModel3D, int> _generatedAttachmentMeshByModel = new();
     private readonly Dictionary<int, Dictionary<int, int>> _generatedAttachmentComponentByMeshVertex = new();
     private readonly Dictionary<int, Point3D> _generatedAttachmentPreviewCenters = new();
+    private readonly Dictionary<int, (Point3D Minimum, Point3D Maximum)>
+        _generatedComponentPreviewBounds = new();
     private readonly HashSet<int> _selectedGeneratedAttachmentComponents = [];
     private readonly List<UIElement> _generatedAttachmentOverlayElements = new();
+    private Point? _generatedComponentSelectionStart;
+    private int? _generatedComponentPressedIndex;
+    private bool _generatedComponentSelectionDragging;
+    private bool _generatedComponentSelectionToggle;
     private readonly List<UIElement> _rigOverlayElements = new();
     private readonly List<UIElement> _modelTransformGizmoElements = new();
     private readonly List<RigJointScreenPoint> _rigJointScreenPoints = new();
@@ -146,7 +157,6 @@ public partial class MainWindow : Window
     private ModelTransformGizmoDrag? _modelTransformGizmoDrag;
     private bool _generatedAlignmentAccepted;
     private bool _generatedRigPoseAccepted;
-    private Point3D? _selectedBonePosition;
     private Point _lastMousePosition;
     private Point3D _cameraTarget;
     private double _cameraYaw;
@@ -168,10 +178,8 @@ public partial class MainWindow : Window
         DiagnosticLogPathText.ToolTip = SessionLog.FilePath;
         AttachDiagnosticEventLogging();
         SessionLog.Info("WINDOW", "Main window constructed.");
-        // Kept only as a cancellation-compatible sentinel for sessions opened
-        // by older builds. Protected-region sliders must never start a Core
-        // preparation: they now redraw the ellipsoid locally, and only the
-        // explicit Apply button performs the expensive recalculation.
+        // Protected-region sliders redraw the Hand volume locally. Only the
+        // explicit Apply button starts the expensive Core recalculation.
         _protectedRegionPreviewTimer = new DispatcherTimer(
             DispatcherPriority.Background,
             Dispatcher)
@@ -424,8 +432,8 @@ public partial class MainWindow : Window
         {
             var state = new StringBuilder();
             state.Append($"source={_sourcePath ?? "<none>"}; donor={_replacementPath ?? "<none>"}; ");
+            state.Append($"lastSaved={_lastSavedOutputPath ?? "<none>"}; ");
             state.Append($"modeIndex={PortingModeCombo.SelectedIndex}; mode={DiagnosticSelectedValue(PortingModeCombo)}; ");
-            state.Append($"preserveTextures={PreserveOriginalTexturesCheckBox.IsChecked}; ");
             state.Append($"transform=scale:{ScaleBox.Text}, rotate:({RotXBox.Text},{RotYBox.Text},{RotZBox.Text}), ");
             state.Append($"move:({MoveXBox.Text},{MoveYBox.Text},{MoveZBox.Text}); ");
             state.Append($"alignmentAccepted={_generatedAlignmentAccepted}; alignmentDirty={_generatedAlignmentEditorDirty}; ");
@@ -442,13 +450,12 @@ public partial class MainWindow : Window
             state.Append($"protectedRegion={DiagnosticSelectedValue(ProtectedRegionCombo)}; enabled={ProtectedRegionEnabledCheckBox.IsChecked}; ");
             state.Append($"mirrorHands={MirrorProtectedHandsCheckBox.IsChecked}; protectedValues=" +
                          $"({ProtectedRegionPositionSlider.Value:G6},{ProtectedRegionLengthSlider.Value:G6}," +
-                         $"{ProtectedRegionThicknessSlider.Value:G6},tilt={ProtectedRegionTiltSlider.Value:G6}); " +
+                         $"{ProtectedRegionThicknessSlider.Value:G6}); " +
                          $"protectedDirty={_protectedRegionEditorDirty}; ");
             state.Append($"protectedOverrides=[{string.Join(",", _protectedRegionDraftAdjustments
                 .OrderBy(pair => pair.Key)
                 .Select(pair => $"{pair.Key}:on={pair.Value.Enabled}:offset={pair.Value.AxialOffset:G6}:" +
-                                $"length={pair.Value.AxialScale:G6}:radius={pair.Value.RadialScale:G6}:" +
-                                $"tilt={pair.Value.ForwardTiltDegrees:G6}"))}]; ");
+                                $"length={pair.Value.AxialScale:G6}:radius={pair.Value.RadialScale:G6}"))}]; ");
             state.Append($"selectedAttachments=[{string.Join(",", _selectedGeneratedAttachmentComponents.Order())}]; ");
             state.Append($"generatedCurrent={GeneratedSkinningPreparationIsCurrent}; generatedReady={GeneratedSkinningIsReady}; ");
             state.Append($"planCanReplace={_glbSkinTransferPlan?.CanReplace}; confirmation={GeneratedSkinningConfirmationCheckBox.IsChecked}; ");
@@ -472,16 +479,13 @@ public partial class MainWindow : Window
             ? item.Content
             : selector.SelectedItem;
 
-    private bool PreserveOriginalTextures =>
-        PreserveOriginalTexturesCheckBox.IsChecked == true;
-
     private PortingModeUiChoice SelectedPortingModeChoice =>
         PortingModeCombo?.SelectedIndex switch
         {
             1 => PortingModeUiChoice.PreparedModel,
             2 => PortingModeUiChoice.AdaptSkeleton,
             3 => PortingModeUiChoice.GenerateWeights,
-            4 => PortingModeUiChoice.LegacyRigid,
+            4 => PortingModeUiChoice.StaticModel,
             _ => PortingModeUiChoice.Auto
         };
 
@@ -494,31 +498,42 @@ public partial class MainWindow : Window
                 ModelPortingMode.AdaptDonorWeights,
             PortingModeUiChoice.GenerateWeights =>
                 ModelPortingMode.GenerateWeights,
+            PortingModeUiChoice.StaticModel =>
+                ModelPortingMode.StaticModel,
             PortingModeUiChoice.Auto => _portingModeRecommendation?.Mode,
             _ => null
         };
 
     private bool HasExternalReplacement =>
-        _replacementSmoDocument is null && _replacementScene is not null;
+        _replacementScene is not null;
+
+    private bool ReplacementIsSmo =>
+        _replacementPath is not null &&
+        Path.GetExtension(_replacementPath).Equals(
+            ".smo", StringComparison.OrdinalIgnoreCase);
 
     private bool UsesPreparedModelPortingMode =>
         HasExternalReplacement &&
-        SelectedPortingModeChoice != PortingModeUiChoice.LegacyRigid &&
-        EffectivePortingMode == ModelPortingMode.PreparedGameSkeleton;
-
-    private bool UsesLegacyRigidPortingMode =>
-        HasExternalReplacement &&
-        SelectedPortingModeChoice == PortingModeUiChoice.LegacyRigid;
+        (ReplacementIsSmo ||
+         EffectivePortingMode == ModelPortingMode.PreparedGameSkeleton);
 
     private bool UsesAdaptDonorWeightsPortingMode =>
         HasExternalReplacement &&
-        SelectedPortingModeChoice != PortingModeUiChoice.LegacyRigid &&
+        !ReplacementIsSmo &&
         EffectivePortingMode == ModelPortingMode.AdaptDonorWeights;
 
     private bool UsesGeneratedWeightsPortingMode =>
         HasExternalReplacement &&
-        SelectedPortingModeChoice != PortingModeUiChoice.LegacyRigid &&
+        !ReplacementIsSmo &&
         EffectivePortingMode == ModelPortingMode.GenerateWeights;
+
+    private bool UsesStaticModelPortingMode =>
+        HasExternalReplacement &&
+        !ReplacementIsSmo &&
+        EffectivePortingMode == ModelPortingMode.StaticModel;
+
+    private bool UsesModelTransformGizmo =>
+        UsesGeneratedWeightsPortingMode || UsesStaticModelPortingMode;
 
     private bool AllReplacementMeshesAreSkinned =>
         _replacementScene is { Meshes.Count: > 0 } &&
@@ -558,19 +573,15 @@ public partial class MainWindow : Window
 
     private bool CanSelectGeneratedAttachments =>
         UsesGeneratedWeightsPortingMode &&
-        !IsJointPoseEditorMode &&
-        !ProtectedRegionEditorActive &&
         GeneratedSkinningPreparationIsCurrent &&
         !_nativeValidationRunning;
 
     private bool ProtectedRegionEditorActive =>
-        ProtectedRegionEditorExpander?.IsExpanded == true &&
         UsesGeneratedWeightsPortingMode &&
-        !IsJointPoseEditorMode;
+        ShowFittingPoseCheckBox?.IsChecked == true;
 
     private bool CanEditProtectedRegions =>
         UsesGeneratedWeightsPortingMode &&
-        !IsJointPoseEditorMode &&
         GeneratedSkinningPreparationIsCurrent &&
         !_nativeValidationRunning &&
         !_generatedAlignmentEditorDirty &&
@@ -579,13 +590,11 @@ public partial class MainWindow : Window
 
     private bool CanShowFinalTexturedPreview =>
         !_nativeValidationRunning &&
-        !PreserveOriginalTextures &&
-        !UseRigidMultiTextureMode &&
+        !ReplacementIsSmo &&
         !RigFittingEditorHasPendingChanges &&
         _document is not null &&
         _replacementScene is { Textures.Count: > 0 } &&
-        (UsesLegacyRigidPortingMode ||
-         (UsesPreparedModelPortingMode && _glbSkinTransferPlan?.CanReplace == true) ||
+        ((UsesPreparedModelPortingMode && _glbSkinTransferPlan?.CanReplace == true) ||
          (UsesAdaptDonorWeightsPortingMode && AdaptedPortingPreparationIsCurrent &&
           _glbSkinTransferPlan?.CanReplace == true) ||
          (UsesGeneratedWeightsPortingMode && GeneratedSkinningPreparationIsCurrent &&
@@ -601,24 +610,20 @@ public partial class MainWindow : Window
           _manualAlignmentEditorDirty));
 
     private bool CanRunSelectedPortingPipeline =>
-        UsesLegacyRigidPortingMode ||
-        ((UsesPreparedModelPortingMode || UsesAdaptDonorWeightsPortingMode) &&
+        (ReplacementIsSmo &&
+         _document is not null &&
+         _nativeSmoVisualPlan?.CanReplace == true) ||
+        (!ReplacementIsSmo &&
+         (UsesPreparedModelPortingMode || UsesAdaptDonorWeightsPortingMode) &&
          AllReplacementMeshesAreSkinned) ||
+        (UsesStaticModelPortingMode &&
+         _document is not null &&
+         AllReplacementMeshesAreUnskinned &&
+         _staticModelReplacementPlan?.CanReplace == true) ||
         (UsesGeneratedWeightsPortingMode &&
          _baseReplacementScene is { Meshes.Count: > 0 } &&
          !string.IsNullOrWhiteSpace(_replacementPath) &&
          GeneratedSkinningPreparationIsCurrent);
-
-    private bool UseRigidMultiTextureMode =>
-        _replacementSmoDocument is null &&
-        _replacementRigidTextureBundle is not null &&
-        UsesLegacyRigidPortingMode &&
-        !PreserveOriginalTextures;
-
-    private SkinnedTextureTransferMode SelectedSkinnedTextureTransferMode =>
-        PreserveOriginalTextures
-            ? SkinnedTextureTransferMode.PreserveTarget
-            : SkinnedTextureTransferMode.ImportDonor;
 
     private ImportedScene? SkinnedMaterialOverrideCatalogScene
     {
@@ -638,22 +643,7 @@ public partial class MainWindow : Window
     private bool CanEditSkinnedMaterialOverrides =>
         !_nativeValidationRunning &&
         UsesGeneratedWeightsPortingMode &&
-        SelectedSkinnedTextureTransferMode ==
-            SkinnedTextureTransferMode.ImportDonor &&
         SkinnedMaterialOverrideCatalogScene is { Meshes.Count: > 0 };
-
-    private void SetPreserveOriginalTextures(bool value)
-    {
-        _settingPreserveOriginalTextures = true;
-        try
-        {
-            PreserveOriginalTexturesCheckBox.IsChecked = value;
-        }
-        finally
-        {
-            _settingPreserveOriginalTextures = false;
-        }
-    }
 
     private void SetPortingModeChoice(PortingModeUiChoice choice)
     {
@@ -846,11 +836,9 @@ public partial class MainWindow : Window
     }
 
     private SkinnedRenderableMaterialProfile ResolveSkinnedMaterialProfile(
-        ImportedScene donor,
-        SkinnedTextureTransferMode textureMode)
+        ImportedScene donor)
     {
         if (!UsesGeneratedWeightsPortingMode ||
-            textureMode != SkinnedTextureTransferMode.ImportDonor ||
             _opaqueOverlaySourceMeshKeys.Count == 0 &&
             _transparentSurfaceSourceMeshKeys.Count == 0)
         {
@@ -966,7 +954,22 @@ public partial class MainWindow : Window
         _generatedAttachmentComponentByMeshVertex.Clear();
         _generatedAttachmentMeshByModel.Clear();
         _generatedAttachmentPreviewCenters.Clear();
+        _generatedComponentPreviewBounds.Clear();
+        EndGeneratedComponentRectangleSelection();
+        _generatedComponentPreviewBounds.Clear();
         ClearGeneratedAttachmentScreenOverlay();
+        _settingPreviewVisibility = true;
+        try
+        {
+            ShowAutomaticComponentsCheckBox.IsChecked = true;
+            ShowHeadComponentsCheckBox.IsChecked = true;
+            ShowBackComponentsCheckBox.IsChecked = true;
+            ShowTargetSmoCheckBox.IsChecked = true;
+        }
+        finally
+        {
+            _settingPreviewVisibility = false;
+        }
         if (GeneratedAttachmentList is not null)
         {
             _settingGeneratedAttachmentSelection = true;
@@ -1051,24 +1054,54 @@ public partial class MainWindow : Window
         if (!HasExternalReplacement)
         {
             _portingModeRecommendation = null;
+            _staticModelReplacementPlan = null;
             return;
         }
 
         if (_document is not null)
         {
+            if (ReplacementIsSmo)
+            {
+                _staticModelReplacementPlan = null;
+                _nativeSmoVisualPlan = AnalyzeNativeSmoVisualTransfer();
+                _glbSkinTransferPlan = ToSkinnedCompatibilityPlan(
+                    _nativeSmoVisualPlan);
+                _portingModeRecommendation = new ModelPortingModeRecommendation(
+                    ModelPortingMode.PreparedGameSkeleton,
+                    _nativeSmoVisualPlan.CanReplace
+                        ? "SMO render forest can be copied natively without " +
+                          "geometry, material or texture conversion."
+                        : "Native SMO render-forest validation failed: " +
+                          string.Join(" | ", _nativeSmoVisualPlan.Errors),
+                    _glbSkinTransferPlan);
+                return;
+            }
+            _staticModelReplacementPlan = AllReplacementMeshesAreUnskinned
+                ? SmoLevelModelGraphReplacer.Analyze(
+                    _document,
+                    GetFirstMeshObjectIndex(_document),
+                    _replacementScene!,
+                    SmoLevelModelGraphWriteOptions.StandaloneStatic)
+                : null;
             _portingModeRecommendation = ModelPortingModeAnalyzer.Recommend(
                 _document,
                 _replacementScene!);
             return;
         }
 
+        _staticModelReplacementPlan = null;
         bool hasSkinning = _replacementScene!.HasSkinning;
         _portingModeRecommendation = new ModelPortingModeRecommendation(
             hasSkinning
-                ? ModelPortingMode.AdaptDonorWeights
+                ? ReplacementIsSmo
+                    ? ModelPortingMode.PreparedGameSkeleton
+                    : ModelPortingMode.AdaptDonorWeights
                 : ModelPortingMode.GenerateWeights,
             hasSkinning
-                ? "Select the target SMO to verify the donor skeleton."
+                ? ReplacementIsSmo
+                    ? "SMO donor already uses a game skeleton; select the target " +
+                      "SMO to verify the exact bone mapping."
+                    : "Select the target SMO to verify the donor skeleton."
                 : "The donor has no usable skin weights.");
     }
 
@@ -1083,7 +1116,8 @@ public partial class MainWindow : Window
         if (!HasExternalReplacement)
             return;
 
-        PortingModeCombo.IsEnabled = !_nativeValidationRunning;
+        PortingModeCombo.IsEnabled = !_nativeValidationRunning &&
+            !ReplacementIsSmo;
         ModelPortingMode recommended = _portingModeRecommendation?.Mode ??
             (_replacementScene!.HasSkinning
                 ? ModelPortingMode.AdaptDonorWeights
@@ -1108,20 +1142,14 @@ public partial class MainWindow : Window
                 "можно поправить вручную. Только после применения положения веса " +
                 "рассчитываются по игровому скелету. Модель должна быть вертикальной, " +
                 "Y-up, не зеркальной и смотреть в ту же сторону, что оригинал.",
-            PortingModeUiChoice.LegacyRigid =>
-                "Прежний режим для статических объектов: вся геометрия привязывается к одной " +
-                "выбранной palette bone. Автоматические веса не создаются.",
+            PortingModeUiChoice.StaticModel =>
+                "Геометрия записывается как обычная статическая spModel без spSkin, " +
+                "палитр костей и искусственных весов. Материальный шаблон берётся из " +
+                "целевого SMO, а отдельные части и текстуры донора сохраняются.",
             _ => string.Empty
         };
-        if (!string.IsNullOrWhiteSpace(_geometryOnlyFallbackIssue))
-        {
-            PortingModeDescriptionText.Text +=
-                "\nRig донора не удалось прочитать, поэтому его кости и веса " +
-                "игнорируются, а модель загружена только как геометрия. " +
-                "Автовыбор рекомендует режим 3. Причина: " +
-                _geometryOnlyFallbackIssue;
-        }
-
+        if (UsesStaticModelPortingMode)
+            UpdateStaticModelCompatibilityPresentation();
         string? blocked = GetPortingModeBlockMessage();
         if (blocked is not null)
         {
@@ -1130,27 +1158,37 @@ public partial class MainWindow : Window
                 ? $"{GetPortingModeDisplayName(mode)} — недоступен"
                 : "Выбранный режим недоступен";
             CompatibilityText.Text =
-                "Модель и её текстуры загружены, но геометрия не передаётся в старый " +
-                "rigid-путь автоматически. " + blocked;
+                "Модель и её текстуры загружены, но выбранный путь записи пока " +
+                "не прошёл строгую проверку. " + blocked;
             SplitModeText.Text = blocked;
             ReplacementModePanel.Background = new SolidColorBrush(
                 Color.FromRgb(255, 243, 205));
         }
-        else if (UsesLegacyRigidPortingMode &&
-                 _replacementRigidTextureBundle is null)
+    }
+
+    private void UpdateStaticModelCompatibilityPresentation()
+    {
+        ReplacementModeText.Text = "4. Статическая замена модели без костей";
+        SplitModeText.Text =
+            "Каждая часть донора получает нативную spModel/material-ветвь; " +
+            "spSkin, bone palettes и искусственные weights не создаются.";
+        if (_staticModelReplacementPlan is null)
         {
-            ReplacementModeText.Text = "Дополнительный режим rigid-объекта";
             CompatibilityText.Text =
-                "Вся геометрия будет привязана к одной выбранной palette bone. " +
-                "Skin weights модели не используются и не создаются.";
-            SplitModeText.Text =
-                "Вся модель помещается в один основной body-slot; остальные slots " +
-                "получают невидимый вырожденный triangle.";
+                "Для строгой проверки статической замены выберите целевой SMO.";
             ReplacementModePanel.Background = new SolidColorBrush(
                 Color.FromRgb(255, 243, 205));
-            BoneMappingTree.Items.Clear();
-            BoneMappingPanel.Visibility = Visibility.Collapsed;
+            return;
         }
+
+        CompatibilityText.Text = string.Join(
+            "\n",
+            _staticModelReplacementPlan.Messages.Select(
+                message => "• " + message));
+        ReplacementModePanel.Background = new SolidColorBrush(
+            _staticModelReplacementPlan.CanReplace
+                ? Color.FromRgb(220, 252, 231)
+                : Color.FromRgb(254, 226, 226));
     }
 
     private static string GetPortingModeDisplayName(ModelPortingMode mode) => mode switch
@@ -1158,6 +1196,7 @@ public partial class MainWindow : Window
         ModelPortingMode.PreparedGameSkeleton => "1. Подготовленная модель",
         ModelPortingMode.AdaptDonorWeights => "2. Адаптировать существующий скелет",
         ModelPortingMode.GenerateWeights => "3. Создать веса с нуля",
+        ModelPortingMode.StaticModel => "4. Статическая модель (без костей)",
         _ => mode.ToString()
     };
 
@@ -1173,6 +1212,8 @@ public partial class MainWindow : Window
                 "Веса присутствуют, но строгая привязка к игровому скелету не прошла.",
             ModelPortingMode.GenerateWeights =>
                 "У модели нет пригодных skin weights.",
+            ModelPortingMode.StaticModel =>
+                "Целевой SMO и модель-донор не используют skinning.",
             _ => string.Empty
         };
     }
@@ -1185,11 +1226,24 @@ public partial class MainWindow : Window
             "Доступна строгая адаптация donor weights; результат будет показан до сохранения.",
         ModelPortingMode.GenerateWeights =>
             "Автоматические веса и alignment будут сразу показаны; перед планом нужно подтверждение.",
+        ModelPortingMode.StaticModel =>
+            "Доступна нативная статическая замена без создания костей и skin weights.",
         _ => string.Empty
     };
 
     private string? GetPortingModeBlockMessage()
     {
+        if (ReplacementIsSmo)
+        {
+            if (_document is null)
+                return "Для нативной замены сначала выберите целевой SMO.";
+            if (_nativeSmoVisualPlan is null)
+                return "Нативный SMO-донор ещё не проверен.";
+            return _nativeSmoVisualPlan.CanReplace
+                ? null
+                : "Нативная замена SMO заблокирована: " +
+                  string.Join(" | ", _nativeSmoVisualPlan.Errors);
+        }
         if (ReplacementMeshesMixSkinning &&
             (UsesPreparedModelPortingMode ||
              UsesAdaptDonorWeightsPortingMode))
@@ -1198,16 +1252,30 @@ public partial class MainWindow : Window
                    "перепривязывать или игнорировать часть геометрии небезопасно. " +
                    "Подготовьте все meshes одним способом либо импортируйте их отдельно.";
         }
+        if (UsesStaticModelPortingMode)
+        {
+            if (_document is null)
+                return "Для статической замены сначала выберите целевой SMO.";
+            if (!AllReplacementMeshesAreUnskinned)
+                return "Статический режим принимает только модель, у которой все meshes не имеют skin weights.";
+            if (_staticModelReplacementPlan is null)
+                return "Статическая модель ещё не проверена.";
+            if (!_staticModelReplacementPlan.CanReplace)
+            {
+                return "Статическая замена заблокирована: " +
+                       string.Join(" | ", _staticModelReplacementPlan.Messages);
+            }
+        }
         if (UsesPreparedModelPortingMode && _replacementScene?.HasSkinning != true)
         {
             return "Подготовленный режим требует модель с пригодными skin weights. " +
-                   "Выберите режим 3 или дополнительный rigid-режим.";
+                   "Выберите режим 3 для персонажа или режим 4 для статической цели.";
         }
         if (UsesAdaptDonorWeightsPortingMode &&
             _replacementScene?.HasSkinning != true)
         {
             return "Адаптация требует исходные skin weights. " +
-                   "Для модели без весов выберите режим 3 или rigid-режим.";
+                   "Для модели без весов выберите режим 3 или статический режим 4.";
         }
         if (UsesGeneratedWeightsPortingMode &&
             _baseReplacementScene is not { Meshes.Count: > 0 })
@@ -1276,13 +1344,13 @@ public partial class MainWindow : Window
         }
 
         _plan = null;
-        _rigidMultiMaterialAnalysis = null;
         InvalidateAdaptedPortingPreparation();
         InvalidateGeneratedSkinningPreparation();
         PlanSummaryText.Text = "План ещё не построен.";
 
         if (UsesPreparedModelPortingMode &&
-            _document is not null && _replacementScene?.HasSkinning == true)
+            _document is not null &&
+            (ReplacementIsSmo || _replacementScene?.HasSkinning == true))
         {
             UpdateGlbSkinTransferPlan();
         }
@@ -1294,12 +1362,6 @@ public partial class MainWindow : Window
         {
             InitializeGeneratedSkinningForManualApply();
         }
-        else if (UsesLegacyRigidPortingMode &&
-                 _replacementRigidTextureBundle is not null)
-        {
-            UpdateRigidTextureModeDescription();
-        }
-
         RefreshTextureList();
         RefreshState();
         string? blocked = GetPortingModeBlockMessage();
@@ -1307,11 +1369,7 @@ public partial class MainWindow : Window
             StatusText.Text = blocked;
         else if (!UsesAdaptDonorWeightsPortingMode &&
                  !UsesGeneratedWeightsPortingMode)
-        {
-            StatusText.Text = UsesLegacyRigidPortingMode
-                ? "Выбран дополнительный rigid-режим. Постройте план заново."
-                : "Режим портирования изменён. Постройте план заново.";
-        }
+            StatusText.Text = "Режим портирования изменён. Постройте план заново.";
     }
 
     private void SelectSource_Click(object sender, RoutedEventArgs e)
@@ -1330,53 +1388,24 @@ public partial class MainWindow : Window
             ValidateSafeSmoFile(sourcePath);
             SmoDocument document = SmoDocument.Load(sourcePath);
             SmoExportScene sourceScene = SmoSceneBuilder.Build(document);
-            BoneItem[] boneItems = SmoWholeModelReplacer.GetRigidBoneChoices(document)
-                .Select(bone => new BoneItem(
-                    bone.Slot, bone.ObjectId, $"[{bone.Slot}] {bone.Name}"))
-                .ToArray();
-            BoneItem? preferredHead = _replacementRigidTextureBundle is null
-                ? null
-                : FindPreferredHeadBone(boneItems);
-
             _sourcePath = sourcePath;
             _document = document;
             _sourceScene = sourceScene;
             _plan = null;
-            _rigidMultiMaterialAnalysis = null;
             ResetRigFittingState();
             InvalidateAdaptedPortingPreparation();
             InvalidateGeneratedSkinningPreparation();
             SourcePathText.Text = _sourcePath;
             SourceSummaryText.Text = $"{_sourceScene.Meshes.Count} mesh slots; {_sourceScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; {_sourceScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles.";
-            BoneCombo.ItemsSource = boneItems;
-            BoneCombo.SelectedIndex = BoneCombo.Items.Count > 0 ? 0 : -1;
-            if (preferredHead is not null)
-                BoneCombo.SelectedItem = preferredHead;
             UpdatePortingModeRecommendation();
-            if (_replacementSmoDocument is not null)
-                UpdateSmoReplacementPlan();
-            else if (UsesPreparedModelPortingMode &&
-                     _replacementScene?.HasSkinning == true)
+            if (UsesPreparedModelPortingMode &&
+                (ReplacementIsSmo || _replacementScene?.HasSkinning == true))
                 UpdateGlbSkinTransferPlan();
             else if (UsesAdaptDonorWeightsPortingMode &&
                      _replacementScene?.HasSkinning == true)
                 UpdateAdaptedPortingPreparation();
             else if (UsesGeneratedWeightsPortingMode)
                 InitializeGeneratedSkinningForManualApply();
-            else if (UseRigidMultiTextureMode)
-            {
-                ApplyAutoFit();
-                PlanSummaryText.Text = "Проверка multi-texture структуры ещё не выполнена.";
-                StatusText.Text = "Целевой SMO изменён. Повторите проверку multi-texture структуры.";
-            }
-            else if (UsesLegacyRigidPortingMode &&
-                     _replacementRigidTextureBundle is not null &&
-                     PreserveOriginalTextures)
-            {
-                ApplyAutoFit();
-                PlanSummaryText.Text = "Диагностический план с текстурами исходного SMO ещё не построен.";
-                StatusText.Text = "Целевой SMO изменён. Повторите проверку диагностического плана.";
-            }
             else
                 StatusText.Text = "Шаблон SMO загружен.";
             _framePreviewOnRefresh = true;
@@ -1411,16 +1440,10 @@ public partial class MainWindow : Window
         try
         {
             if (Path.GetExtension(dialog.FileName).Equals(
-                    ".smo", StringComparison.OrdinalIgnoreCase))
-                await LoadSmoReplacementAsync(dialog.FileName);
-            else
-            {
-                if (Path.GetExtension(dialog.FileName).Equals(
-                        ".fbx", StringComparison.OrdinalIgnoreCase) &&
-                    !EnsureBlenderForFbx())
-                    return;
-                await LoadExternalReplacementAsync(dialog.FileName);
-            }
+                    ".fbx", StringComparison.OrdinalIgnoreCase) &&
+                !EnsureBlenderForFbx())
+                return;
+            await LoadExternalReplacementAsync(dialog.FileName);
             _framePreviewOnRefresh = true;
             if (!_replacementLoadRunning)
                 RefreshState();
@@ -1439,67 +1462,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task LoadSmoReplacementAsync(string path)
-    {
-        SessionLog.Info("DONOR_LOAD", $"Requested donor SMO: {Path.GetFullPath(path)}");
-        _replacementLoadRunning = true;
-        ControlsScrollViewer.IsEnabled = false;
-        var runCancellation = new CancellationTokenSource();
-        _replacementLoadCancellation = runCancellation;
-        try
-        {
-            StatusText.Text = "Отменяется предыдущий фоновый расчёт…";
-            await CancelProtectedRegionPreviewAndWaitAsync();
-            runCancellation.Token.ThrowIfCancellationRequested();
-            bool reclaimOldModel = HasLoadedReplacementResources();
-            BeginReplacementLoad();
-            StatusText.Text = reclaimOldModel
-                ? "Освобождается предыдущая модель…"
-                : "SMO проверяется и загружается…";
-            await Dispatcher.Yield(DispatcherPriority.Render);
-            if (reclaimOldModel)
-                await Task.Run(ReclaimReleasedReplacementMemory);
-            runCancellation.Token.ThrowIfCancellationRequested();
-            StatusText.Text = "SMO проверяется и загружается…";
-
-            SmoReplacementLoadResult loaded = await Task.Run(
-                () => ReadSmoReplacement(path, runCancellation.Token),
-                runCancellation.Token);
-            runCancellation.Token.ThrowIfCancellationRequested();
-            if (_isClosing)
-                return;
-            ApplySmoReplacement(loaded);
-            SessionLog.Info(
-                "DONOR_LOAD",
-                $"Loaded donor SMO {loaded.FullPath}; meshes={loaded.Scene.Meshes.Count}; " +
-                $"vertices={loaded.Scene.Meshes.Sum(mesh => mesh.Positions.Length)}; " +
-                $"triangles={loaded.Scene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)}");
-        }
-        finally
-        {
-            if (ReferenceEquals(_replacementLoadCancellation, runCancellation))
-                _replacementLoadCancellation = null;
-            runCancellation.Dispose();
-            _replacementLoadRunning = false;
-            if (!_isClosing)
-                ControlsScrollViewer.IsEnabled = !_protectedRegionPreviewRunning;
-        }
-    }
-
-    private static SmoReplacementLoadResult ReadSmoReplacement(
-        string path,
-        CancellationToken cancellationToken)
-    {
-        string fullPath = Path.GetFullPath(path);
-        ValidateSafeSmoFile(fullPath);
-        cancellationToken.ThrowIfCancellationRequested();
-        SmoDocument donor = SmoDocument.Load(fullPath);
-        cancellationToken.ThrowIfCancellationRequested();
-        SmoExportScene donorScene = SmoSceneBuilder.Build(donor);
-        cancellationToken.ThrowIfCancellationRequested();
-        return new SmoReplacementLoadResult(fullPath, donor, donorScene);
-    }
-
     private static void ValidateSafeSmoFile(string fullPath)
     {
         var file = new FileInfo(fullPath);
@@ -1514,50 +1476,6 @@ public partial class MainWindow : Window
             $"{MaximumSafeSmoFileBytes / (1024 * 1024)} MiB. " +
             "The action was blocked to prevent the computer from running out " +
             "of memory. Reduce or split the model first.");
-    }
-
-    private void ApplySmoReplacement(SmoReplacementLoadResult loaded)
-    {
-        string fullPath = loaded.FullPath;
-        SmoDocument donor = loaded.Document;
-        SmoExportScene donorScene = loaded.Scene;
-        SetPreserveOriginalTextures(false);
-        SetPortingModeChoice(PortingModeUiChoice.Auto);
-        _portingModeRecommendation = null;
-
-        _replacementPath = fullPath;
-        _baseReplacementScene = null;
-        _replacementSmoDocument = donor;
-        _replacementSmoScene = donorScene;
-        _replacementScene = null;
-        _replacementRigidTextureBundle = null;
-        _textureCatalogResult = null;
-        _externalTextures.Clear();
-        ResetSkinnedMaterialOverrides();
-        _multiTextureDirectory = null;
-        _rigidTextureBindingIssue = null;
-        _geometryOnlyFallbackIssue = null;
-        _rigidMultiMaterialAnalysis = null;
-        ResetRigFittingState();
-        InvalidateAdaptedPortingPreparation();
-        InvalidateGeneratedSkinningPreparation(clearGeometryBase: true);
-        _plan = null;
-        ReplacementPathText.Text = fullPath;
-        int textures = donor.Objects.Count(entry =>
-            entry.TypeHash == SmoClassIds.TextureData);
-        ReplacementSummaryText.Text =
-            $"{donorScene.Meshes.Count} готовых mesh slots; " +
-            $"{donorScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
-            $"{donorScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
-            $"{textures} textures.";
-        HideTextureMemoryWarning();
-        PlanSummaryText.Text =
-            "Service/skeleton graph target сохраняется. Donor meshes, materials и " +
-            "textures добавляются отдельными visual branches со своими palettes; " +
-            "старые target meshes становятся невидимыми anchors.";
-        ReplacementModeText.Text = "Режим SMO → SMO";
-        RefreshTextureList();
-        UpdateSmoReplacementPlan();
     }
 
     private async Task LoadExternalReplacementAsync(string path)
@@ -1595,12 +1513,8 @@ public partial class MainWindow : Window
                 loaded.FullPath,
                 loaded.SourceScene,
                 loaded.EffectiveScene,
-                loaded.RigidTextureBundle,
                 loaded.Catalog,
-                loaded.TextureDirectory,
-                resetTransform: true,
-                textureBindingIssue: loaded.TextureBindingIssue,
-                geometryOnlyFallbackIssue: loaded.GeometryOnlyFallbackIssue);
+                resetTransform: true);
             SessionLog.Info(
                 "DONOR_LOAD",
                 $"Loaded external donor {loaded.FullPath}; meshes={loaded.EffectiveScene.Meshes.Count}; " +
@@ -1654,17 +1568,11 @@ public partial class MainWindow : Window
         _replacementPath = null;
         _baseReplacementScene = null;
         _replacementScene = null;
-        _replacementRigidTextureBundle = null;
         _textureCatalogResult = null;
-        _replacementSmoDocument = null;
-        _replacementSmoScene = null;
-        _smoReplacementPlan = null;
         _externalTextures.Clear();
-        _multiTextureDirectory = null;
-        _rigidTextureBindingIssue = null;
-        _geometryOnlyFallbackIssue = null;
-        _rigidMultiMaterialAnalysis = null;
         _glbSkinTransferPlan = null;
+        _nativeSmoVisualPlan = null;
+        _staticModelReplacementPlan = null;
         _plan = null;
         ResetSkinnedMaterialOverrides();
         ResetRigFittingState();
@@ -1679,7 +1587,6 @@ public partial class MainWindow : Window
         _replacementPath is not null ||
         _baseReplacementScene is not null ||
         _replacementScene is not null ||
-        _replacementSmoDocument is not null ||
         _finalTexturedPreviewVisual is not null;
 
     private static void ReclaimReleasedReplacementMemory()
@@ -1726,83 +1633,18 @@ public partial class MainWindow : Window
         CancellationToken cancellationToken)
     {
         string fullPath = Path.GetFullPath(path);
-        string extension = Path.GetExtension(fullPath);
-        bool canReadGeometryOnly =
-            extension.Equals(".glb", StringComparison.OrdinalIgnoreCase) ||
-            extension.Equals(".fbx", StringComparison.OrdinalIgnoreCase);
-        ImportedScene sourceScene;
-        string? geometryOnlyFallbackIssue = null;
-        try
-        {
-            sourceScene = ImportedModelReader.Read(
-                fullPath, _blenderPath, cancellationToken);
-        }
-        catch (InvalidDataException exception) when (canReadGeometryOnly)
-        {
-            sourceScene = ImportedModelReader.ReadGeometryOnly(
-                fullPath,
-                _blenderPath,
-                cancellationToken);
-            geometryOnlyFallbackIssue = exception.Message;
-        }
+        ImportedScene sourceScene = ImportedModelReader.Read(
+            fullPath, _blenderPath, cancellationToken);
         ImportedTextureCatalogResult catalog =
             ImportedTextureCatalog.ResolveExternalOverrides(sourceScene, []);
-        RigidGlbTextureBundle? rigidTextureBundle = null;
-        string? textureDirectory = null;
-        string? textureBindingIssue = null;
         ImportedScene effectiveScene = catalog.EffectiveScene;
-        bool sourceIsFbx = Path.GetExtension(fullPath).Equals(
-            ".fbx", StringComparison.OrdinalIgnoreCase);
-        if (rigidTextureBundle is null && (!sourceScene.HasSkinning || sourceIsFbx) &&
-            RigidGlbTextureBundleReader.HasCandidateTextureFiles(fullPath))
-        {
-            try
-            {
-                rigidTextureBundle = sourceIsFbx
-                        ? RigidGlbTextureBundleReader.ReadModel(
-                            fullPath,
-                            nativeFbxBridgePath: _blenderPath,
-                            cancellationToken: cancellationToken)
-                        : RigidGlbTextureBundleReader.Bind(fullPath, sourceScene);
-                effectiveScene = rigidTextureBundle.Scene;
-                textureDirectory = rigidTextureBundle.TextureDirectory;
-            }
-            catch (Exception exception) when (
-                exception is InvalidDataException or
-                RigidTextureBundleContainsSkinnedMeshesException)
-            {
-                // A stray matN file next to an otherwise valid model must not hijack
-                // ordinary loading. Explicit "Папка…" keeps the strict diagnostics.
-            }
-        }
-        if (rigidTextureBundle is null)
-        {
-            try
-            {
-                RigidGlbTextureBundleReader.TryBindSceneTextures(
-                    fullPath,
-                    catalog.EffectiveScene,
-                    out rigidTextureBundle);
-            }
-            catch (InvalidDataException exception)
-            {
-                // Keep the donor available for the diagnostic mode that preserves
-                // every target TextureData. Normal texture import remains blocked
-                // later by the stored binding issue.
-                textureBindingIssue = exception.Message;
-            }
-        }
 
         cancellationToken.ThrowIfCancellationRequested();
         return new ExternalReplacementLoadResult(
             fullPath,
             sourceScene,
             effectiveScene,
-            rigidTextureBundle,
-            catalog,
-            textureDirectory,
-            textureBindingIssue,
-            geometryOnlyFallbackIssue);
+            catalog);
     }
 
     private void ApplyTextureOverrides(IReadOnlyList<ImportedTexture> externalTextures)
@@ -1814,22 +1656,6 @@ public partial class MainWindow : Window
             ImportedTextureCatalog.ResolveExternalOverrides(
                 _baseReplacementScene,
                 externalTextures);
-        RigidGlbTextureBundle? rigidTextureBundle = null;
-        string? textureBindingIssue = null;
-        try
-        {
-            RigidGlbTextureBundleReader.TryBindSceneTextures(
-                _replacementPath,
-                catalog.EffectiveScene,
-                out rigidTextureBundle);
-        }
-        catch (InvalidDataException exception)
-        {
-            // Commit the partial catalog so more files can be added or removed.
-            // Normal import remains blocked until the mapping is complete, while
-            // the diagnostic texture-preserving mode can still inspect geometry.
-            textureBindingIssue = exception.Message;
-        }
 
         _externalTextures.Clear();
         _externalTextures.AddRange(externalTextures);
@@ -1837,63 +1663,37 @@ public partial class MainWindow : Window
             _replacementPath,
             _baseReplacementScene,
             catalog.EffectiveScene,
-            rigidTextureBundle,
             catalog,
-            textureDirectory: null,
-            resetTransform: false,
-            textureBindingIssue: textureBindingIssue);
+            resetTransform: false);
     }
 
     private void ApplyExternalReplacementState(
         string fullPath,
         ImportedScene sourceScene,
         ImportedScene effectiveScene,
-        RigidGlbTextureBundle? rigidTextureBundle,
         ImportedTextureCatalogResult? catalog,
-        string? textureDirectory,
-        bool resetTransform,
-        string? textureBindingIssue = null,
-        string? geometryOnlyFallbackIssue = null)
+        bool resetTransform)
     {
         if (resetTransform)
         {
             ResetSkinnedMaterialOverrides();
-            SetPreserveOriginalTextures(false);
             SetPortingModeChoice(PortingModeUiChoice.Auto);
             _portingModeRecommendation = null;
-            _geometryOnlyFallbackIssue = geometryOnlyFallbackIssue;
             ResetRigFittingState();
         }
 
-        BoneItem? preferredHead = rigidTextureBundle is not null && _document is not null
-            ? FindPreferredHeadBone(BoneCombo.Items.OfType<BoneItem>())
-            : null;
-        IEnumerable<Vector3> replacementFitPositions = rigidTextureBundle is null
-            ? effectiveScene.Meshes.SelectMany(mesh => mesh.Positions)
-            : rigidTextureBundle.MaterialGroups
-                .SelectMany(group => group.Meshes)
-                .SelectMany(mesh => mesh.Positions);
-        ReplacementTransform? automaticFit = resetTransform && rigidTextureBundle is not null &&
-            _sourceScene is not null
-                ? ReplacementTransformFitter.FitByHeightAndCenter(
-                    _sourceScene.Meshes.SelectMany(mesh => mesh.Positions),
-                    replacementFitPositions)
-                : null;
         bool convertedFbx = Path.GetExtension(fullPath).Equals(
             ".fbx", StringComparison.OrdinalIgnoreCase);
+        bool importedSmo = Path.GetExtension(fullPath).Equals(
+            ".smo", StringComparison.OrdinalIgnoreCase);
 
         _replacementPath = fullPath;
         _baseReplacementScene = sourceScene;
         _replacementScene = effectiveScene;
-        _replacementRigidTextureBundle = rigidTextureBundle;
         _textureCatalogResult = catalog;
-        _multiTextureDirectory = textureDirectory;
-        _rigidTextureBindingIssue = textureBindingIssue;
-        _rigidMultiMaterialAnalysis = null;
-        _replacementSmoDocument = null;
-        _replacementSmoScene = null;
-        _smoReplacementPlan = null;
         _glbSkinTransferPlan = null;
+        _nativeSmoVisualPlan = null;
+        _staticModelReplacementPlan = null;
         InvalidateAdaptedPortingPreparation();
         InvalidateGeneratedSkinningPreparation(
             clearGeometryBase: resetTransform);
@@ -1903,80 +1703,36 @@ public partial class MainWindow : Window
         ReplacementPathText.Text = fullPath;
         int jointCount = effectiveScene.Meshes.Select(mesh => mesh.Skinning?.Skeleton)
             .FirstOrDefault(skeleton => skeleton is not null)?.JointNames.Count ?? 0;
-        ReplacementSummaryText.Text = rigidTextureBundle is null
-            ? $"{effectiveScene.Meshes.Count} source meshes; " +
-              $"{effectiveScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
-              $"{effectiveScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles" +
-              (effectiveScene.HasSkinning ? $"; {jointCount} skin joints." : ".") +
-              (string.IsNullOrWhiteSpace(_geometryOnlyFallbackIssue)
-                  ? string.Empty
-                  : "\nRig файла проигнорирован; загружена только геометрия.")
-            : $"{effectiveScene.Meshes.Count} meshes; " +
-              $"{effectiveScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
-              $"{effectiveScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles; " +
-              $"{rigidTextureBundle.MaterialGroups.Count} materials; " +
-              $"{rigidTextureBundle.MaterialGroups.Sum(group => group.Frames.Count)} textures." +
-              (string.IsNullOrWhiteSpace(_geometryOnlyFallbackIssue)
-                  ? string.Empty
-                  : "\nRig файла проигнорирован; загружена только геометрия.");
+        ReplacementSummaryText.Text =
+            $"{effectiveScene.Meshes.Count} source meshes; " +
+            $"{effectiveScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} vertices; " +
+            $"{effectiveScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} triangles" +
+            (effectiveScene.HasSkinning ? $"; {jointCount} skin joints." : ".");
         UpdateTextureMemoryWarning(effectiveScene);
         RefreshTextureList();
-        AppendRigidTextureBindingStatus();
-
-        if (rigidTextureBundle is null && !effectiveScene.HasSkinning && BoneCombo.Items.Count > 0)
-            BoneCombo.SelectedIndex = 0;
-        if (rigidTextureBundle is not null)
+        if (importedSmo || effectiveScene.HasSkinning)
         {
-            string ignoredMeshWarning = rigidTextureBundle.IgnoredMeshes.Count == 0
-                ? string.Empty
-                : "\nИгнорируются служебные meshes: " +
-                  string.Join(", ", rigidTextureBundle.IgnoredMeshes) + ".";
-            string ignoredTextureWarning = rigidTextureBundle.IgnoredTextureFiles.Count == 0
-                ? string.Empty
-                : "\nНе используются текстуры: " +
-                  string.Join(", ", rigidTextureBundle.IgnoredTextureFiles) + ".";
-            string modelKind = Path.GetExtension(fullPath).TrimStart('.').ToUpperInvariant();
-            ReplacementModeText.Text = $"Multi-texture rigid {modelKind} → SMO";
-            CompatibilityText.Text =
-                "Каждая текстурная группа сохраняется отдельной material/mesh-веткой; " +
-                "вся модель rigid-привязана к Head." +
-                ignoredMeshWarning + ignoredTextureWarning;
-            ReplacementModePanel.Background = new SolidColorBrush(
-                Color.FromRgb(220, 252, 231));
-            BoneMappingTree.Items.Clear();
-            BoneMappingPanel.Visibility = Visibility.Collapsed;
-            SplitModeText.Text = textureDirectory is null
-                ? "Геометрия не объединяется: встроенные и добавленные изображения " +
-                  "остаются отдельными material-группами."
-                : "Геометрия не объединяется: material-группы и PNG остаются раздельными; " +
-                  "дополнительные matN.frame PNG используются как последовательности кадров.";
-            PlanButton.Content = "Проверить multi-texture структуру";
-            StatusText.Text =
-                "Набор текстур загружен. Проверьте multi-texture структуру.";
-            if (preferredHead is not null)
-                BoneCombo.SelectedItem = preferredHead;
-            if (automaticFit is not null)
-                ApplyTransform(automaticFit);
-            if (UsesGeneratedWeightsPortingMode)
-            {
-                if (resetTransform)
-                    InitializeGeneratedSkinningForManualApply();
-                else
-                    QueueGeneratedSkinningRecalculationAfterRigChange();
-            }
-        }
-        else if (effectiveScene.HasSkinning)
-        {
-            RebaseBindPoseCheckBox.IsChecked = true;
+            RebaseBindPoseCheckBox.IsChecked = !importedSmo;
+            RebaseBindPoseCheckBox.IsEnabled = !importedSmo;
+            RebaseBindPoseCheckBox.ToolTip = importedSmo
+                ? "SMO уже находится в координатах bind pose игры; преобразование отключено."
+                : null;
             if (resetTransform)
                 ApplyTransform(ReplacementTransform.Identity);
-            ReplacementModeText.Text = convertedFbx
-                ? "Экспериментальный режим Skinned FBX → GLB → SMO"
-                : "Экспериментальный режим Skinned GLB → SMO";
-            SplitModeText.Text =
-                "Triangles автоматически распределяются по существующим 16-bone palettes target; " +
-                "object graph и IDs исходного SMO сохраняются.";
-            PlanButton.Content = "Проверить кости и построить palettes";
+            ReplacementModeText.Text = importedSmo
+                ? "SMO-донор → нативная замена render forest"
+                : convertedFbx
+                    ? "Экспериментальный режим Skinned FBX → GLB → SMO"
+                    : "Экспериментальный режим Skinned GLB → SMO";
+            SplitModeText.Text = importedSmo
+                ? "Render forest донора копируется целиком: spSkin, MeshData, " +
+                  "материалы, UV и TextureData не преобразуются. Старая render-ветвь " +
+                  "target удаляется."
+                : "Меши, материалы и текстуры донора записываются новыми нативными ветками; " +
+                  "старый visual graph шаблона не переносится.";
+            PlanButton.Content = importedSmo
+                ? "Проверить нативную замену"
+                : "Проверить кости и построить palettes";
             if (UsesPreparedModelPortingMode)
                 UpdateGlbSkinTransferPlan();
             else if (UsesAdaptDonorWeightsPortingMode)
@@ -1991,16 +1747,18 @@ public partial class MainWindow : Window
         }
         else
         {
+            RebaseBindPoseCheckBox.IsEnabled = true;
+            RebaseBindPoseCheckBox.ToolTip = null;
             ReplacementModeText.Text = "Экспериментальный режим OBJ/FBX/GLB → SMO";
             CompatibilityText.Text =
-                "Требуются подгонка, выбор rigid bone и проверка плана нарезки.";
+                "Требуются подгонка, создание весов и проверка нового visual graph.";
             ReplacementModePanel.Background = new SolidColorBrush(
                 Color.FromRgb(255, 243, 205));
             BoneMappingTree.Items.Clear();
             BoneMappingPanel.Visibility = Visibility.Collapsed;
             SplitModeText.Text =
-                "Вся модель помещается в один основной body-slot; остальные slots получают " +
-                "невидимый вырожденный triangle.";
+                "Меши, материалы и текстуры донора записываются отдельными нативными " +
+                "ветками; старые визуальные ветки шаблона не переносятся.";
             PlanButton.Content = "Построить план и проверить";
             StatusText.Text = "Модель замены загружена. Постройте план нарезки.";
             if (UsesGeneratedWeightsPortingMode)
@@ -2013,67 +1771,6 @@ public partial class MainWindow : Window
         }
         if (GetPortingModeBlockMessage() is string blocked)
             StatusText.Text = blocked;
-    }
-
-    private void UpdateRigidTextureModeDescription()
-    {
-        if (_replacementRigidTextureBundle is null || _replacementPath is null)
-            return;
-
-        string modelKind = Path.GetExtension(_replacementPath)
-            .TrimStart('.')
-            .ToUpperInvariant();
-        if (PreserveOriginalTextures)
-        {
-            ReplacementModeText.Text =
-                $"Диагностический rigid {modelKind} → SMO с исходной текстурой";
-            CompatibilityText.Text =
-                "TextureData исходного SMO останутся побайтно неизменными. " +
-                "Material-группы донора объединяются и используют основной " +
-                "material-slot исходной модели.";
-            SplitModeText.Text =
-                "Вся геометрия помещается в один основной body-slot; действует " +
-                "лимит 65 535 уникальных вершин.";
-            ReplacementModePanel.Background = new SolidColorBrush(
-                Color.FromRgb(255, 243, 205));
-            StatusText.Text =
-                "Текстуры донора отключены. Постройте диагностический план геометрии.";
-            return;
-        }
-
-        string ignoredMeshWarning = _replacementRigidTextureBundle.IgnoredMeshes.Count == 0
-            ? string.Empty
-            : "\nИгнорируются служебные meshes: " +
-              string.Join(", ", _replacementRigidTextureBundle.IgnoredMeshes) + ".";
-        string ignoredTextureWarning =
-            _replacementRigidTextureBundle.IgnoredTextureFiles.Count == 0
-                ? string.Empty
-                : "\nНе используются текстуры: " +
-                  string.Join(", ", _replacementRigidTextureBundle.IgnoredTextureFiles) + ".";
-        ReplacementModeText.Text = $"Multi-texture rigid {modelKind} → SMO";
-        CompatibilityText.Text =
-            "Каждая текстурная группа сохраняется отдельной material/mesh-веткой; " +
-            "вся модель rigid-привязана к Head." +
-            ignoredMeshWarning + ignoredTextureWarning;
-        SplitModeText.Text = _multiTextureDirectory is null
-            ? "Геометрия не объединяется: встроенные и добавленные изображения " +
-              "остаются отдельными material-группами."
-            : "Геометрия не объединяется: material-группы и PNG остаются раздельными; " +
-              "дополнительные matN.frame PNG используются как последовательности кадров.";
-        ReplacementModePanel.Background = new SolidColorBrush(
-            Color.FromRgb(220, 252, 231));
-        StatusText.Text =
-            "Текстуры донора включены. Проверьте multi-texture структуру.";
-    }
-
-    private void AppendRigidTextureBindingStatus()
-    {
-        if (string.IsNullOrWhiteSpace(_rigidTextureBindingIssue))
-            return;
-        TextureSummaryText.Text += PreserveOriginalTextures
-            ? " Ошибка сопоставления не мешает диагностическому режиму: " +
-              _rigidTextureBindingIssue
-            : " Обычный импорт заблокирован: " + _rigidTextureBindingIssue;
     }
 
     private bool EnsureBlenderForFbx()
@@ -2103,20 +1800,99 @@ public partial class MainWindow : Window
         }
     }
 
+    private SmoNativeVisualGraphPlan AnalyzeNativeSmoVisualTransfer()
+    {
+        if (_document is null || !ReplacementIsSmo ||
+            string.IsNullOrWhiteSpace(_replacementPath))
+        {
+            throw new InvalidOperationException(
+                "Для нативной замены нужны target SMO и SMO-донор.");
+        }
+        SmoDocument donor = SmoDocument.Load(_replacementPath);
+        return SmoNativeVisualGraphReplacer.Analyze(_document, donor);
+    }
+
+    private static int GetFirstMeshObjectIndex(SmoDocument document) =>
+        document.Objects.FirstOrDefault(entry =>
+            entry.TypeHash == SmoClassIds.MeshData)?.Index ??
+        throw new InvalidDataException(
+            "Целевой SMO не содержит MeshData для общей замены model graph.");
+
+    private static GlbSkinTransferPlan ToSkinnedCompatibilityPlan(
+        SmoNativeVisualGraphPlan nativePlan)
+    {
+        IReadOnlyList<string> messages = nativePlan.Errors
+            .Concat(nativePlan.Warnings)
+            .ToArray();
+        return new GlbSkinTransferPlan(
+            nativePlan.CanReplace
+                ? SmoSkeletonCompatibility.Exact
+                : SmoSkeletonCompatibility.Incompatible,
+            nativePlan.MeshCount,
+            nativePlan.MaterialCount,
+            nativePlan.MatchedBoneNames.Count,
+            nativePlan.MatchedBoneNames.Count,
+            0,
+            nativePlan.MatchedBoneNames,
+            [],
+            [],
+            [],
+            messages);
+    }
+
     private void UpdateGlbSkinTransferPlan()
     {
         _plan = null;
+        if (ReplacementIsSmo)
+        {
+            if (_document is null)
+            {
+                _nativeSmoVisualPlan = null;
+                _glbSkinTransferPlan = null;
+                CompatibilityText.Text = "Сначала выберите целевой SMO.";
+                StatusText.Text = "SMO-донор загружен; требуется целевой SMO.";
+                return;
+            }
+            _nativeSmoVisualPlan = AnalyzeNativeSmoVisualTransfer();
+            _glbSkinTransferPlan = ToSkinnedCompatibilityPlan(
+                _nativeSmoVisualPlan);
+            PopulateGlbBoneMappingTree(_glbSkinTransferPlan);
+            string nativeDetails = _nativeSmoVisualPlan.Errors.Count == 0 &&
+                                   _nativeSmoVisualPlan.Warnings.Count == 0
+                ? string.Empty
+                : "\n" + string.Join("\n",
+                    _nativeSmoVisualPlan.Errors
+                        .Concat(_nativeSmoVisualPlan.Warnings)
+                        .Select(message => "• " + message));
+            CompatibilityText.Text =
+                $"Native SMO: roots {_nativeSmoVisualPlan.VisualRootCount}; " +
+                $"meshes {_nativeSmoVisualPlan.MeshCount}; materials " +
+                $"{_nativeSmoVisualPlan.MaterialCount}; textures " +
+                $"{_nativeSmoVisualPlan.TextureCount}; donor skin bones covered " +
+                $"{_nativeSmoVisualPlan.MatchedBoneNames.Count}; preserved target " +
+                $"animation leaves {_nativeSmoVisualPlan.PreservedTargetNodeCount}; " +
+                $"discarded donor-only bones " +
+                $"{_nativeSmoVisualPlan.IgnoredDonorBoneNames.Count}." +
+                nativeDetails;
+            ReplacementModePanel.Background = new SolidColorBrush(
+                _nativeSmoVisualPlan.CanReplace
+                    ? Color.FromRgb(255, 243, 205)
+                    : Color.FromRgb(254, 226, 226));
+            StatusText.Text = _nativeSmoVisualPlan.CanReplace
+                ? "SMO совместим: render forest будет скопирован без преобразования ресурсов."
+                : "Нативная замена SMO заблокирована: проверьте сообщение плана.";
+            return;
+        }
         if (_document is null || _replacementScene?.HasSkinning != true)
         {
             _glbSkinTransferPlan = null;
             CompatibilityText.Text = "Сначала выберите целевой SMO.";
-            StatusText.Text = "Skinned GLB загружен; требуется целевой SMO.";
+            StatusText.Text = "Skinned-модель загружена; требуется целевой SMO.";
             return;
         }
         _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
             _document,
-            _replacementScene,
-            SelectedSkinnedTextureTransferMode);
+            _replacementScene);
         PopulateGlbBoneMappingTree(_glbSkinTransferPlan);
         string details = _glbSkinTransferPlan.Messages.Count == 0
             ? string.Empty
@@ -2333,8 +2109,7 @@ public partial class MainWindow : Window
             _adaptedPortingPreparationRevision = _rigFittingRevision;
             _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
                 _document,
-                _adaptedPortingPreparation.PreparedScene,
-                SelectedSkinnedTextureTransferMode);
+                _adaptedPortingPreparation.PreparedScene);
             AppendGlbSkinTransferPlanMessages(_glbSkinTransferPlan);
             ReplacementModePanel.Background = new SolidColorBrush(
                 _glbSkinTransferPlan.CanReplace
@@ -2392,8 +2167,7 @@ public partial class MainWindow : Window
             PopulateAdaptedBoneMappingTree(analysis);
             _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
                 _document,
-                _adaptedPortingPreparation.PreparedScene,
-                SelectedSkinnedTextureTransferMode);
+                _adaptedPortingPreparation.PreparedScene);
             string details = analysis.Messages.Count == 0
                 ? string.Empty
                 : "\n" + string.Join(
@@ -2497,6 +2271,7 @@ public partial class MainWindow : Window
         }
         _plan = null;
         _glbSkinTransferPlan = null;
+        _nativeSmoVisualPlan = null;
         InvalidateGeneratedSkinningPreparation();
         ReplacementModeText.Text = "3. Автоматическое создание весов";
         SplitModeText.Text =
@@ -2571,16 +2346,14 @@ public partial class MainWindow : Window
             _generatedSkinningComponentOverrides;
         GeneratedSkinningRegionOverrides? regionOverrides =
             _generatedSkinningRegionOverrides;
-        SkinnedTextureTransferMode textureMode =
-            SelectedSkinnedTextureTransferMode;
         SkinnedRenderableMaterialProfile materialProfile =
-            ResolveSkinnedMaterialProfile(inputScene, textureMode);
+            ResolveSkinnedMaterialProfile(inputScene);
         long revision = _rigFittingRevision;
         _lastLoggedProgressPercent = -1;
         _lastLoggedProgressStage = null;
         SessionLog.Info(
             "GENERATED_CALCULATION",
-            $"Started; revision={revision}; textureMode={textureMode}; " +
+            $"Started; revision={revision}; cleanVisualRebuild=true; " +
             $"materialProfile={materialProfile}; alignment={alignment}; " +
             $"componentOverrides={componentOverrides}; regionOverrides={regionOverrides}");
         LogFittingPoseSnapshot(fittingPose);
@@ -2627,7 +2400,6 @@ public partial class MainWindow : Window
                         rig,
                         componentOverrides,
                         regionOverrides,
-                        textureMode,
                         materialProfile,
                         cancellationToken,
                         uiProgress);
@@ -2682,9 +2454,23 @@ public partial class MainWindow : Window
             $"preparedVertices={result.Preparation.Analysis.PreparedVertexCount}; " +
             $"components={result.Preparation.Analysis.DonorComponentCount}; " +
             $"attachments={result.Preparation.Analysis.Attachments.Count}; " +
-            $"activeJoints={result.Plan.ActiveJointCount}; materialGroups={result.Plan.MaterialGroupCount}; " +
-            $"warnings={string.Join(" | ", result.Preparation.Analysis.Warnings)}; " +
-            $"planMessages={string.Join(" | ", result.Plan.Messages)}");
+            $"activeJoints={result.Plan.ActiveJointCount}; " +
+            $"headProtectedVertices=" +
+            $"{result.Preparation.Analysis.HeadProtectedComponentVertexCount}; " +
+            $"materialGroups={result.Plan.MaterialGroupCount}");
+        foreach (string warning in result.Preparation.Analysis.Warnings)
+        {
+            SessionLog.Warning(
+                "GENERATED_CALCULATION_WARNING",
+                warning);
+        }
+        foreach (string message in result.Plan.Messages)
+        {
+            if (result.Plan.CanReplace)
+                SessionLog.Info("GENERATED_PLAN_MESSAGE", message);
+            else
+                SessionLog.Warning("GENERATED_PLAN_BLOCKER", message);
+        }
     }
 
     private static GeneratedSkinningCalculationResult ComputeGeneratedSkinning(
@@ -2695,7 +2481,6 @@ public partial class MainWindow : Window
         TargetRigDefinition rig,
         GeneratedSkinningComponentOverrides? componentOverrides,
         GeneratedSkinningRegionOverrides? regionOverrides,
-        SkinnedTextureTransferMode textureMode,
         SkinnedRenderableMaterialProfile materialProfile,
         CancellationToken cancellationToken,
         IProgress<GeneratedSkinningProgress> progress)
@@ -2733,9 +2518,11 @@ public partial class MainWindow : Window
         GlbSkinTransferPlan plan = AnalyzeGlbSkinTransferCore(
             target,
             preparation.PreparedScene,
-            textureMode,
             materialProfile,
             cancellationToken);
+        plan = GeneratedSkinningQualityGuard.Apply(
+            preparation.Analysis,
+            plan);
         cancellationToken.ThrowIfCancellationRequested();
         progress.Report(new GeneratedSkinningProgress(
             1, "Расчёт и проверка завершены"));
@@ -2791,7 +2578,8 @@ public partial class MainWindow : Window
                         GeneratedSkinningPreparer.Prepare(
                         _document,
                         inputScene,
-                        fittingPose);
+                        fittingPose,
+                        enableAutomaticBackExtraction: false);
                     GeneratedSkinningAlignment automaticAlignment =
                         alignmentDiscovery.Analysis.Alignment;
                     SetGeneratedDonorAlignmentState(
@@ -2800,7 +2588,7 @@ public partial class MainWindow : Window
                             Vector3.Zero,
                             automaticAlignment.Translation),
                         updateEditor: true);
-                    // The legacy preparation above is used only to discover a
+                    // The initial preparation above is used only to discover a
                     // robust alignment. Body-surface selection is a separate
                     // prerequisite for manual fitting: otherwise a successful
                     // single-surface preparation would make the pose controls
@@ -2831,7 +2619,7 @@ public partial class MainWindow : Window
                                           NotSupportedException)
                 {
                     // A fragmented character can be perfectly usable even when
-                    // the legacy single-dominant-surface heuristic rejects it.
+                    // automatic dominant-surface discovery rejects it.
                     // Select the humanoid lower/upper surfaces independently,
                     // but keep the canonical/manual pose instead of accepting
                     // any automatically optimized joint rotations.
@@ -2865,14 +2653,16 @@ public partial class MainWindow : Window
             _generatedSkinningPreparationRevision = _rigFittingRevision;
             _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
                 _document,
-                _generatedSkinningPreparation.PreparedScene,
-                SelectedSkinnedTextureTransferMode);
+                _generatedSkinningPreparation.PreparedScene);
+            _glbSkinTransferPlan = GeneratedSkinningQualityGuard.Apply(
+                _generatedSkinningPreparation.Analysis,
+                _glbSkinTransferPlan);
             PopulateGeneratedSkinningDiagnostics(
                 _generatedSkinningPreparation.Analysis);
             UpdateGeneratedSkinningCompatibilityPresentation();
             StatusText.Text = _glbSkinTransferPlan.CanReplace
                 ? "Автоматические веса построены и показаны. Проверьте позу, предупреждения " +
-                  "и attachments, затем подтвердите результат."
+                  "и ручные исключения, затем подтвердите результат."
                 : "Веса построены и показаны, но итоговый skinned-план пока несовместим. " +
                   "Проверьте сообщения и текстуры.";
         }
@@ -2951,7 +2741,7 @@ public partial class MainWindow : Window
         CompatibilityText.Text =
             $"Generated weights: {_generatedSkinningPreparation.Analysis.PreparedVertexCount:N0} vertices; " +
             $"target deform joints: {_generatedSkinningPreparation.Analysis.TargetDeformJointCount}; " +
-            $"rigid attachments: {_generatedSkinningPreparation.Analysis.Attachments.Count}." +
+            $"manual exceptions: {_generatedSkinningPreparation.Analysis.Attachments.Count}." +
             planDetails;
         ReplacementModePanel.Background = new SolidColorBrush(
             _glbSkinTransferPlan.CanReplace
@@ -3011,22 +2801,6 @@ public partial class MainWindow : Window
             }
             if (componentOverrides is not null)
             {
-                HashSet<int> explicitlyRigidComponents = componentOverrides.Components
-                    .Select(component => component.ComponentIndex)
-                    .ToHashSet();
-                TargetRigSelectedBodyComponent[] filteredBody = bodySelection!.Components
-                    .Where(component => !explicitlyRigidComponents.Contains(
-                        component.ComponentIndex))
-                    .ToArray();
-                if (filteredBody.Length != bodySelection.Components.Count)
-                {
-                    bodySelection = bodySelection with
-                    {
-                        Components = Array.AsReadOnly(filteredBody),
-                        ExcludedComponentCount =
-                            bodySelection.TotalComponentCount - filteredBody.Length
-                    };
-                }
                 return GeneratedSkinningPreparer.PrepareCancellable(
                     target,
                     inputScene,
@@ -3036,7 +2810,8 @@ public partial class MainWindow : Window
                     componentOverrides,
                     regionOverrides,
                     cancellationToken,
-                    progress);
+                    progress,
+                    enableAutomaticBackExtraction: false);
             }
             return GeneratedSkinningPreparer.PrepareCancellable(
                 target,
@@ -3047,34 +2822,11 @@ public partial class MainWindow : Window
                 componentOverrides: null,
                 regionOverrides,
                 cancellationToken,
-                progress);
+                progress,
+                enableAutomaticBackExtraction: false);
         }
         if (componentOverrides is not null)
         {
-            if (bodySelectionIsCurrent)
-            {
-                HashSet<int> explicitlyRigidComponents = componentOverrides
-                    .Components
-                    .Select(component => component.ComponentIndex)
-                    .ToHashSet();
-                TargetRigSelectedBodyComponent[] filteredBody = bodySelection!
-                    .Components
-                    .Where(component => !explicitlyRigidComponents.Contains(
-                        component.ComponentIndex))
-                    .ToArray();
-                if (filteredBody.Length != bodySelection.Components.Count)
-                {
-                    // An explicit rigid pin is the user's final decision. Keep
-                    // it out of a later automatic body selection instead of
-                    // allowing a pose/alignment rerun to silently override it.
-                    bodySelection = bodySelection with
-                    {
-                        Components = Array.AsReadOnly(filteredBody),
-                        ExcludedComponentCount =
-                            bodySelection.TotalComponentCount - filteredBody.Length
-                    };
-                }
-            }
             return GeneratedSkinningPreparer.PrepareCancellable(
                 target,
                 inputScene,
@@ -3084,7 +2836,8 @@ public partial class MainWindow : Window
                 componentOverrides,
                 regionOverrides: null,
                 cancellationToken,
-                progress);
+                progress,
+                enableAutomaticBackExtraction: false);
         }
 
         return GeneratedSkinningPreparer.PrepareCancellable(
@@ -3096,7 +2849,8 @@ public partial class MainWindow : Window
             componentOverrides: null,
             regionOverrides: null,
             cancellationToken,
-            progress);
+            progress,
+            enableAutomaticBackExtraction: false);
     }
 
     private ImportedScene ResolveGeneratedSkinningInputScene()
@@ -3108,9 +2862,6 @@ public partial class MainWindow : Window
 
         if (_baseReplacementScene.Meshes.All(mesh => mesh.Skinning is null))
         {
-            // Mode 3 must start from the complete imported scene. The legacy
-            // rigid matN bundle may intentionally omit meshes and therefore is
-            // never a safe source for generated weights.
             _generatedSkinningBaseScene = _baseReplacementScene;
             _generatedSkinningTextureCatalog =
                 ImportedTextureCatalog.ResolveExternalOverrides(
@@ -3196,7 +2947,8 @@ public partial class MainWindow : Window
             $"{analysis.DonorMainComponentVertexCount:N0} / " +
             $"{analysis.DonorMainComponentTriangleCount:N0}. Prepared: " +
             $"{analysis.PreparedVertexCount:N0} vertices, " +
-            $"{analysis.TargetDeformJointCount} deform bones. Отдельные детали: " +
+            $"{analysis.TargetDeformJointCount} deform bones. Компонентов: " +
+            $"{analysis.Components.Count}; ручных исключений: " +
             $"{analysis.Attachments.Count}; назначено костей: {attachmentBoneCount}.";
         string[] distinctWarnings = analysis.Warnings
             .Where(warning => !IsGeneratedAttachmentEchoWarning(warning))
@@ -3206,7 +2958,7 @@ public partial class MainWindow : Window
             ? "Нет."
             : string.Join("\n", distinctWarnings.Select(warning => "• " + warning));
         GeneratedSkinningAttachmentsText.Text = analysis.Attachments.Count == 0
-            ? "Нет: отдельных rigid-компонентов не найдено."
+            ? "Нет: все компоненты используют автоматическое назначение."
             : string.Join(
                 "\n",
                 analysis.Attachments.Select(attachment =>
@@ -3218,12 +2970,17 @@ public partial class MainWindow : Window
                     $"distance {attachment.DistanceToBone:G5})" +
                     (attachment.ManualAssignment is not null
                         ? $" [manual {attachment.ManualAssignment}]"
+                        : attachment.RequiresManualPlaneAssignment
+                            ? $" [manual required: intersects " +
+                              $"{string.Join("/", attachment.IntersectedPlanes)}]"
+                        : attachment.PlaneAssignment is not null
+                            ? $" [plane {attachment.PlaneAssignment}]"
                         : attachment.SemanticAssignment is not null
                             ? $" [semantic {attachment.SemanticAssignment}]"
                             : string.Empty)));
         GeneratedSkinningDetailsExpander.Header =
             $"Технические детали: предупреждений {distinctWarnings.Length}, " +
-            $"rigid attachments {analysis.Attachments.Count}";
+            $"ручных исключений {analysis.Attachments.Count}";
         PopulateProtectedRegionEditor(analysis.SemanticRegions);
         PopulateGeneratedAttachmentEditor(analysis);
         UpdateGeneratedSkinningConfirmationAvailability();
@@ -3247,12 +3004,19 @@ public partial class MainWindow : Window
                         ? region.Adjustment with { Enabled = false }
                         : region.Adjustment;
             }
+            _separationPlaneDraftAdjustments.Clear();
+            foreach (GeneratedSkinningSeparationPlaneResolution plane in
+                     analysis.SeparationPlanes)
+            {
+                _separationPlaneDraftAdjustments[plane.Kind] = plane.Adjustment;
+            }
             _protectedRegionDraftOverrides = null;
             _protectedRegionDraftPreparation = null;
             _protectedRegionDraftTransferPlan = null;
             _protectedRegionDraftRequest = null;
             _protectedRegionDraftRevision = -1;
         }
+        LoadSeparationPlaneControlsFromDraft();
         LoadProtectedRegionControlsFromDraft();
         UpdateProtectedRegionEditorAvailability();
     }
@@ -3267,29 +3031,33 @@ public partial class MainWindow : Window
     private GeneratedSkinningSemanticRegion[] SelectedProtectedRegions(
         bool includeMirroredHand)
     {
-        int selection = ProtectedRegionCombo?.SelectedIndex ?? 0;
+        int selection = Math.Clamp(
+            (SeparationPlaneCombo?.SelectedIndex ?? 3) - 3,
+            0,
+            2);
         return selection switch
         {
-            1 =>
+            0 =>
             [
                 GeneratedSkinningSemanticRegion.LeftHand,
                 GeneratedSkinningSemanticRegion.RightHand
             ],
-            2 when includeMirroredHand &&
+            1 when includeMirroredHand &&
                        MirrorProtectedHandsCheckBox?.IsChecked == true =>
             [
                 GeneratedSkinningSemanticRegion.LeftHand,
                 GeneratedSkinningSemanticRegion.RightHand
             ],
-            2 => [GeneratedSkinningSemanticRegion.LeftHand],
-            3 when includeMirroredHand &&
+            1 => [GeneratedSkinningSemanticRegion.LeftHand],
+            2 when includeMirroredHand &&
                        MirrorProtectedHandsCheckBox?.IsChecked == true =>
             [
                 GeneratedSkinningSemanticRegion.RightHand,
                 GeneratedSkinningSemanticRegion.LeftHand
             ],
-            3 => [GeneratedSkinningSemanticRegion.RightHand],
-            _ => [GeneratedSkinningSemanticRegion.Head]
+            2 => [GeneratedSkinningSemanticRegion.RightHand],
+            _ => [GeneratedSkinningSemanticRegion.LeftHand,
+                  GeneratedSkinningSemanticRegion.RightHand]
         };
     }
 
@@ -3317,6 +3085,221 @@ public partial class MainWindow : Window
             RadialScale: 1);
         _protectedRegionDraftAdjustments[region] = adjustment;
         return adjustment;
+    }
+
+    private GeneratedSkinningSeparationPlaneKind SelectedSeparationPlane() =>
+        SeparationPlaneCombo?.SelectedIndex switch
+        {
+            1 => GeneratedSkinningSeparationPlaneKind.RightShoulder,
+            2 => GeneratedSkinningSeparationPlaneKind.Head,
+            _ => GeneratedSkinningSeparationPlaneKind.LeftShoulder
+        };
+
+    private bool SelectedProtectionEditorIsHand =>
+        (SeparationPlaneCombo?.SelectedIndex ?? 0) >= 3;
+
+    private GeneratedSkinningSeparationPlaneAdjustment
+        ResolveSeparationPlaneDraft(GeneratedSkinningSeparationPlaneKind kind)
+    {
+        if (_separationPlaneDraftAdjustments.TryGetValue(
+                kind,
+                out GeneratedSkinningSeparationPlaneAdjustment? adjustment))
+        {
+            return adjustment;
+        }
+        GeneratedSkinningSeparationPlaneResolution? resolved =
+            _generatedSkinningPreparation?.Analysis.SemanticRegions
+                .SeparationPlanes.FirstOrDefault(value => value.Kind == kind);
+        adjustment = resolved?.Adjustment ??
+            GeneratedSkinningSeparationPlaneAdjustment.Automatic(kind);
+        _separationPlaneDraftAdjustments[kind] = adjustment;
+        return adjustment;
+    }
+
+    private void LoadSeparationPlaneControlsFromDraft()
+    {
+        if (SeparationPlaneCombo is null)
+            return;
+        GeneratedSkinningSeparationPlaneKind kind = SelectedSeparationPlane();
+        GeneratedSkinningSeparationPlaneAdjustment adjustment =
+            ResolveSeparationPlaneDraft(kind);
+        GeneratedSkinningSeparationPlaneResolution? resolution =
+            DisplayedProtectedRegionAnalysis?.SeparationPlanes
+                .FirstOrDefault(value => value.Kind == kind);
+        GeneratedSkinningSeparationPlaneLimits limits = resolution?.Limits ??
+            new GeneratedSkinningSeparationPlaneLimits(
+                kind is GeneratedSkinningSeparationPlaneKind.LeftShoulder or
+                    GeneratedSkinningSeparationPlaneKind.RightShoulder ? 0 : -1,
+                kind is GeneratedSkinningSeparationPlaneKind.LeftShoulder or
+                    GeneratedSkinningSeparationPlaneKind.RightShoulder ? 0 : 1,
+                -45,
+                45);
+
+        _settingProtectedRegionControls = true;
+        try
+        {
+            SeparationPlaneOffsetSlider.Minimum = limits.MinimumOffset;
+            SeparationPlaneOffsetSlider.Maximum = limits.MaximumOffset;
+            double offsetSpan = Math.Max(
+                limits.MaximumOffset - limits.MinimumOffset,
+                0.001);
+            SeparationPlaneOffsetSlider.SmallChange = offsetSpan / 100;
+            SeparationPlaneOffsetSlider.LargeChange = offsetSpan / 10;
+            SeparationPlaneOffsetSlider.Value = Math.Clamp(
+                adjustment.Offset,
+                limits.MinimumOffset,
+                limits.MaximumOffset);
+            SeparationPlaneAngleSlider.Minimum = limits.MinimumAngleDegrees;
+            SeparationPlaneAngleSlider.Maximum = limits.MaximumAngleDegrees;
+            SeparationPlaneAngleSlider.Value = Math.Clamp(
+                adjustment.AngleDegrees,
+                limits.MinimumAngleDegrees,
+                limits.MaximumAngleDegrees);
+            SeparationPlaneEnabledCheckBox.IsChecked =
+                resolution is { IsAvailable: true } && adjustment.Enabled;
+            bool hasOffset = kind == GeneratedSkinningSeparationPlaneKind.Head;
+            Visibility offsetVisibility = hasOffset
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            SeparationPlaneOffsetLabel.Visibility = offsetVisibility;
+            SeparationPlaneOffsetSlider.Visibility = offsetVisibility;
+            SeparationPlaneOffsetValueText.Visibility = offsetVisibility;
+            SeparationPlaneOffsetLabel.Text = kind ==
+                GeneratedSkinningSeparationPlaneKind.Head
+                    ? "Высота"
+                    : "Сдвиг вперёд";
+        }
+        finally
+        {
+            _settingProtectedRegionControls = false;
+        }
+        UpdateSeparationPlaneSelectionText();
+    }
+
+    private void UpdateSeparationPlaneSelectionText()
+    {
+        if (SeparationPlaneSelectionText is null)
+            return;
+        GeneratedSkinningSeparationPlaneKind kind = SelectedSeparationPlane();
+        GeneratedSkinningSeparationPlaneResolution? resolution =
+            DisplayedProtectedRegionAnalysis?.SeparationPlanes
+                .FirstOrDefault(value => value.Kind == kind);
+        if (resolution is null)
+        {
+            SeparationPlaneSelectionText.Text =
+                "Плоскость появится после расчёта скелета и весов.";
+            return;
+        }
+        if (!resolution.IsAvailable)
+        {
+            SeparationPlaneSelectionText.Text =
+                "Плоскость недоступна: " +
+                string.Join(" | ", resolution.Warnings);
+            return;
+        }
+        SeparationPlaneSelectionText.Text = kind switch
+        {
+            GeneratedSkinningSeparationPlaneKind.LeftShoulder or
+                GeneratedSkinningSeparationPlaneKind.RightShoulder =>
+                $"Якорь {resolution.AnchorBoneName}. Плечо — верхний край; " +
+                "стена идёт только вниз и вращается вокруг якоря.",
+            GeneratedSkinningSeparationPlaneKind.Head =>
+                $"Якорь {resolution.AnchorBoneName}. Всё выше плоскости получает " +
+                "строго 100% Head. Для целых деталей это защита: нужно большинство " +
+                "точек выше; привязка к спине теперь задаётся только вручную.",
+            _ => string.Empty
+        };
+    }
+
+    private void CaptureSeparationPlaneControlsIntoDraft()
+    {
+        if (!CanEditProtectedRegions)
+            return;
+        GeneratedSkinningSeparationPlaneKind kind = SelectedSeparationPlane();
+        GeneratedSkinningSeparationPlaneAdjustment current =
+            ResolveSeparationPlaneDraft(kind);
+        bool enabled = SeparationPlaneEnabledCheckBox.IsChecked == true;
+        _separationPlaneDraftAdjustments[kind] = current with
+        {
+            Enabled = enabled,
+            Offset = kind is GeneratedSkinningSeparationPlaneKind.LeftShoulder or
+                GeneratedSkinningSeparationPlaneKind.RightShoulder
+                    ? 0
+                    : checked((float)SeparationPlaneOffsetSlider.Value),
+            AngleDegrees = checked((float)SeparationPlaneAngleSlider.Value)
+        };
+        MarkProtectedRegionDraftDirty();
+        UpdateSeparationPlaneSelectionText();
+    }
+
+    private void SeparationPlane_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        ShowProtectedRegionFittingPreview();
+        bool handSelected = SelectedProtectionEditorIsHand;
+        _settingProtectedRegionControls = true;
+        try
+        {
+            if (ProtectedRegionCombo is not null)
+            {
+                ProtectedRegionCombo.SelectedIndex = Math.Clamp(
+                    SeparationPlaneCombo.SelectedIndex - 3,
+                    0,
+                    2);
+            }
+            if (SeparationPlaneControlsPanel is not null)
+            {
+                SeparationPlaneControlsPanel.Visibility = handSelected
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+            }
+            if (ProtectedHandControlsPanel is not null)
+            {
+                ProtectedHandControlsPanel.Visibility = handSelected
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+        }
+        finally
+        {
+            _settingProtectedRegionControls = false;
+        }
+        if (handSelected)
+            LoadProtectedRegionControlsFromDraft();
+        else
+            LoadSeparationPlaneControlsFromDraft();
+        UpdateProtectedRegionEditorAvailability();
+        RefreshPreview();
+    }
+
+    private void SeparationPlaneEnabled_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        CaptureSeparationPlaneControlsIntoDraft();
+    }
+
+    private void SeparationPlaneSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_settingProtectedRegionControls || !IsLoaded)
+            return;
+        CaptureSeparationPlaneControlsIntoDraft();
+    }
+
+    private void AutoSeparationPlane_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditProtectedRegions)
+            return;
+        GeneratedSkinningSeparationPlaneKind kind = SelectedSeparationPlane();
+        _separationPlaneDraftAdjustments[kind] =
+            GeneratedSkinningSeparationPlaneAdjustment.Automatic(kind);
+        LoadSeparationPlaneControlsFromDraft();
+        MarkProtectedRegionDraftDirty();
     }
 
     private void LoadProtectedRegionControlsFromDraft()
@@ -3352,7 +3335,7 @@ public partial class MainWindow : Window
             : selectedResolutions.Max(value =>
                 (double)value.AdjustmentLimits.MinimumAxialScale);
         double maximumLength = selectedResolutions.Length == 0
-            ? primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75
+            ? 1.75
             : selectedResolutions.Min(value =>
                 (double)value.AdjustmentLimits.MaximumAxialScale);
         double minimumThickness = selectedResolutions.Length == 0
@@ -3360,17 +3343,17 @@ public partial class MainWindow : Window
             : selectedResolutions.Max(value =>
                 (double)value.AdjustmentLimits.MinimumRadialScale);
         double maximumThickness = selectedResolutions.Length == 0
-            ? primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75
+            ? 1.75
             : selectedResolutions.Min(value =>
                 (double)value.AdjustmentLimits.MaximumRadialScale);
         if (minimumOffset > maximumOffset)
             (minimumOffset, maximumOffset) = (-fallbackOffsetExtent, fallbackOffsetExtent);
         if (minimumLength > maximumLength)
             (minimumLength, maximumLength) =
-                (0.5, primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75);
+                (0.5, 1.75);
         if (minimumThickness > maximumThickness)
             (minimumThickness, maximumThickness) =
-                (0.5, primary == GeneratedSkinningSemanticRegion.Head ? 3 : 1.75);
+                (0.5, 1.75);
         bool selectedVolumeIsAvailable =
             selectedResolutions.Length == selected.Length &&
             selectedResolutions.All(value =>
@@ -3400,25 +3383,12 @@ public partial class MainWindow : Window
                 adjustment.RadialScale,
                 ProtectedRegionThicknessSlider.Minimum,
                 ProtectedRegionThicknessSlider.Maximum);
-            ProtectedRegionTiltSlider.Value = Math.Clamp(
-                adjustment.ForwardTiltDegrees,
-                ProtectedRegionTiltSlider.Minimum,
-                ProtectedRegionTiltSlider.Maximum);
             ProtectedRegionEnabledCheckBox.IsChecked =
                 selectedVolumeIsAvailable &&
                 selected.All(region => ResolveProtectedRegionDraft(region).Enabled);
-            bool handSelection = primary != GeneratedSkinningSemanticRegion.Head;
-            Visibility tiltVisibility = handSelection
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            ProtectedRegionTiltLabel.Visibility = tiltVisibility;
-            ProtectedRegionTiltSlider.Visibility = tiltVisibility;
-            ProtectedRegionTiltValueText.Visibility = tiltVisibility;
-            MirrorProtectedHandsCheckBox.Visibility = handSelection
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            MirrorProtectedHandsCheckBox.IsEnabled = handSelection &&
-                ProtectedRegionCombo.SelectedIndex is 2 or 3 &&
+            MirrorProtectedHandsCheckBox.Visibility = Visibility.Visible;
+            MirrorProtectedHandsCheckBox.IsEnabled =
+                ProtectedRegionCombo.SelectedIndex is 1 or 2 &&
                 CanEditProtectedRegions;
         }
         finally
@@ -3531,30 +3501,50 @@ public partial class MainWindow : Window
 
     private void UpdateProtectedRegionEditorAvailability()
     {
-        if (ProtectedRegionEditorExpander is null)
+        if (ProtectedRegionEditorPanel is null)
             return;
 
-        bool visible = UsesGeneratedWeightsPortingMode && !IsJointPoseEditorMode;
-        ProtectedRegionEditorExpander.Visibility = visible
+        bool visible = UsesGeneratedWeightsPortingMode;
+        ProtectedRegionEditorPanel.Visibility = visible
             ? Visibility.Visible
             : Visibility.Collapsed;
         bool canEdit = CanEditProtectedRegions && !_protectedRegionPreviewRunning;
-        GeneratedSkinningSemanticRegion[] selected =
-            SelectedProtectedRegions(includeMirroredHand: true);
+        bool handSelected = SelectedProtectionEditorIsHand;
+        GeneratedSkinningSemanticRegion[] selected = handSelected
+            ? SelectedProtectedRegions(includeMirroredHand: true)
+            : [];
         GeneratedSkinningRegionResolution[] resolutions =
             DisplayedProtectedRegionAnalysis?.Regions
                 .Where(region => selected.Contains(region.Region))
                 .ToArray() ?? [];
         bool parametersAvailable = resolutions.Length == selected.Length &&
             resolutions.All(region => region.AutomaticVolume is not null);
-        ProtectedRegionCombo.IsEnabled = canEdit;
-        ProtectedRegionEnabledCheckBox.IsEnabled = canEdit && parametersAvailable;
-        ProtectedRegionPositionSlider.IsEnabled = canEdit && parametersAvailable;
-        ProtectedRegionLengthSlider.IsEnabled = canEdit && parametersAvailable;
-        ProtectedRegionThicknessSlider.IsEnabled = canEdit && parametersAvailable;
-        ProtectedRegionTiltSlider.IsEnabled = canEdit && parametersAvailable &&
-            PrimaryProtectedRegion() == GeneratedSkinningSemanticRegion.Head;
-        AutoProtectedRegionButton.IsEnabled = canEdit && parametersAvailable;
+        GeneratedSkinningSeparationPlaneResolution? selectedPlane = handSelected
+            ? null
+            : DisplayedProtectedRegionAnalysis?.SeparationPlanes.FirstOrDefault(
+                value => value.Kind == SelectedSeparationPlane());
+        bool planeAvailable = selectedPlane is { IsAvailable: true };
+        SeparationPlaneCombo.IsEnabled = canEdit;
+        SeparationPlaneEnabledCheckBox.IsEnabled =
+            canEdit && !handSelected && planeAvailable;
+        SeparationPlaneOffsetSlider.IsEnabled = canEdit && !handSelected &&
+            planeAvailable &&
+            SelectedSeparationPlane() == GeneratedSkinningSeparationPlaneKind.Head;
+        SeparationPlaneAngleSlider.IsEnabled =
+            canEdit && !handSelected && planeAvailable;
+        AutoSeparationPlaneButton.IsEnabled =
+            canEdit && !handSelected && planeAvailable;
+        ProtectedRegionCombo.IsEnabled = canEdit && handSelected;
+        ProtectedRegionEnabledCheckBox.IsEnabled =
+            canEdit && handSelected && parametersAvailable;
+        ProtectedRegionPositionSlider.IsEnabled =
+            canEdit && handSelected && parametersAvailable;
+        ProtectedRegionLengthSlider.IsEnabled =
+            canEdit && handSelected && parametersAvailable;
+        ProtectedRegionThicknessSlider.IsEnabled =
+            canEdit && handSelected && parametersAvailable;
+        AutoProtectedRegionButton.IsEnabled =
+            canEdit && handSelected && parametersAvailable;
         ResetProtectedRegionButton.IsEnabled = canEdit &&
             _protectedRegionEditorDirty;
         ApplyProtectedRegionButton.IsEnabled = canEdit &&
@@ -3566,33 +3556,11 @@ public partial class MainWindow : Window
                 ? "Применить"
                 : "Применено";
         MirrorProtectedHandsCheckBox.IsEnabled = canEdit &&
-            ProtectedRegionCombo.SelectedIndex is 2 or 3;
-        ProtectedRegionEditorExpander.Opacity =
+            handSelected && ProtectedRegionCombo.SelectedIndex is 1 or 2;
+        ProtectedRegionEditorPanel.Opacity =
             GeneratedSkinningPreparationIsCurrent ? 1 : 0.6;
+        UpdateSeparationPlaneSelectionText();
         UpdateProtectedRegionSelectionText();
-    }
-
-    private void ProtectedRegionEditor_Expanded(object sender, RoutedEventArgs e)
-    {
-        if (!IsLoaded)
-            return;
-        ClearFinalTexturedPreview();
-        if (ShowFittingPoseCheckBox.IsChecked != true)
-            ShowFittingPoseCheckBox.IsChecked = true;
-        LoadProtectedRegionControlsFromDraft();
-        UpdateProtectedRegionEditorAvailability();
-        UpdateGeneratedAttachmentEditorAvailability();
-        RefreshPreview();
-    }
-
-    private void ProtectedRegionEditor_Collapsed(object sender, RoutedEventArgs e)
-    {
-        if (!IsLoaded)
-            return;
-        _protectedRegionPreviewTimer.Stop();
-        UpdateProtectedRegionEditorAvailability();
-        UpdateGeneratedAttachmentEditorAvailability();
-        RefreshPreview();
     }
 
     private void ProtectedRegion_SelectionChanged(
@@ -3601,6 +3569,7 @@ public partial class MainWindow : Window
     {
         if (_settingProtectedRegionControls || !IsLoaded)
             return;
+        ShowProtectedRegionFittingPreview();
         LoadProtectedRegionControlsFromDraft();
         UpdateProtectedRegionEditorAvailability();
         RefreshPreview();
@@ -3617,8 +3586,7 @@ public partial class MainWindow : Window
     {
         if (_settingProtectedRegionControls || !IsLoaded)
             return;
-        if (PrimaryProtectedRegion() != GeneratedSkinningSemanticRegion.Head &&
-            MirrorProtectedHandsCheckBox.IsChecked == true)
+        if (MirrorProtectedHandsCheckBox.IsChecked == true)
         {
             CaptureProtectedRegionControlsIntoDraft();
         }
@@ -3651,10 +3619,7 @@ public partial class MainWindow : Window
                 Enabled = enabled,
                 AxialOffset = checked((float)ProtectedRegionPositionSlider.Value),
                 AxialScale = checked((float)ProtectedRegionLengthSlider.Value),
-                RadialScale = checked((float)ProtectedRegionThicknessSlider.Value),
-                ForwardTiltDegrees = region == GeneratedSkinningSemanticRegion.Head
-                    ? checked((float)ProtectedRegionTiltSlider.Value)
-                    : 0
+                RadialScale = checked((float)ProtectedRegionThicknessSlider.Value)
             };
         }
 
@@ -3675,14 +3640,27 @@ public partial class MainWindow : Window
         _protectedRegionDraftRevision = -1;
         ClearFinalTexturedPreview();
         ProtectedRegionStatusText.Text =
-            "Показан лёгкий черновой эллипс без пересчёта весов. " +
+            "Показан лёгкий черновик плоскостей/объёмов без пересчёта весов. " +
             "Последний применённый результат сохранён; тяжёлый расчёт начнётся " +
             "только после нажатия «Применить».";
         _protectedRegionPreviewTimer.Stop();
         UpdateProtectedRegionEditorAvailability();
         UpdateGeneratedAttachmentEditorAvailability();
         UpdateGeneratedSkinningConfirmationAvailability();
-        RefreshPreview();
+        bool switchedToFittingPreview =
+            ShowFittingPoseCheckBox.IsChecked != true;
+        ShowProtectedRegionFittingPreview();
+        if (!switchedToFittingPreview || !IsLoaded)
+            RefreshPreview();
+    }
+
+    private void ShowProtectedRegionFittingPreview()
+    {
+        if (UsesGeneratedWeightsPortingMode &&
+            ShowFittingPoseCheckBox.IsChecked != true)
+        {
+            ShowFittingPoseCheckBox.IsChecked = true;
+        }
     }
 
     private async void ProtectedRegionPreviewTimer_Tick(object? sender, EventArgs e)
@@ -3821,12 +3799,20 @@ public partial class MainWindow : Window
                 .Select(ResolveProtectedRegionDraft)
                 .OrderBy(value => value.Region)
                 .ToArray();
+        GeneratedSkinningSeparationPlaneAdjustment[] planes =
+            Enum.GetValues<GeneratedSkinningSeparationPlaneKind>()
+                .Select(ResolveSeparationPlaneDraft)
+                .OrderBy(value => value.Kind)
+                .ToArray();
         return new GeneratedSkinningRegionOverrides(
             Array.AsReadOnly(adjustments),
             identity.TargetRigFingerprint,
             identity.DonorGeometryFingerprint,
             identity.AlignmentFingerprint,
-            identity.FittingPoseFingerprint);
+            identity.FittingPoseFingerprint)
+        {
+            SeparationPlanes = Array.AsReadOnly(planes)
+        };
     }
 
     private sealed record ProtectedRegionPreparationRequest(
@@ -3842,7 +3828,6 @@ public partial class MainWindow : Window
         TargetRigBodySelection BodySelection,
         GeneratedSkinningComponentOverrides? ComponentOverrides,
         GeneratedSkinningRegionOverrides RegionOverrides,
-        SkinnedTextureTransferMode TextureMode,
         IReadOnlyList<int> OpaqueOverlaySourceMeshKeys,
         IReadOnlyList<int> TransparentSurfaceSourceMeshKeys);
 
@@ -3862,14 +3847,10 @@ public partial class MainWindow : Window
         TargetRigBodySelection bodySelection = ResolveGeneratedBodySelection(
             inputScene,
             _generatedDonorAlignment);
-        SkinnedTextureTransferMode textureMode =
-            SelectedSkinnedTextureTransferMode;
-        int[] overlayKeys = UsesGeneratedWeightsPortingMode &&
-                            textureMode == SkinnedTextureTransferMode.ImportDonor
+        int[] overlayKeys = UsesGeneratedWeightsPortingMode
             ? _opaqueOverlaySourceMeshKeys.Order().ToArray()
             : [];
-        int[] transparentKeys = UsesGeneratedWeightsPortingMode &&
-                                textureMode == SkinnedTextureTransferMode.ImportDonor
+        int[] transparentKeys = UsesGeneratedWeightsPortingMode
             ? _transparentSurfaceSourceMeshKeys.Order().ToArray()
             : [];
         if (overlayKeys.Length > 0 || transparentKeys.Length > 0)
@@ -3894,7 +3875,6 @@ public partial class MainWindow : Window
             bodySelection,
             _generatedSkinningComponentOverrides,
             overrides,
-            textureMode,
             Array.AsReadOnly(overlayKeys),
             Array.AsReadOnly(transparentKeys));
     }
@@ -3921,8 +3901,7 @@ public partial class MainWindow : Window
             !Equals(_generatedDonorAlignment, request.Alignment) ||
             !ReferenceEquals(
                 _generatedSkinningComponentOverrides,
-                request.ComponentOverrides) ||
-            SelectedSkinnedTextureTransferMode != request.TextureMode)
+                request.ComponentOverrides))
         {
             return false;
         }
@@ -3939,14 +3918,10 @@ public partial class MainWindow : Window
             }
         }
 
-        int[] currentOverlayKeys = UsesGeneratedWeightsPortingMode &&
-                                   request.TextureMode ==
-                                   SkinnedTextureTransferMode.ImportDonor
+        int[] currentOverlayKeys = UsesGeneratedWeightsPortingMode
             ? _opaqueOverlaySourceMeshKeys.Order().ToArray()
             : [];
-        int[] currentTransparentKeys = UsesGeneratedWeightsPortingMode &&
-                                       request.TextureMode ==
-                                       SkinnedTextureTransferMode.ImportDonor
+        int[] currentTransparentKeys = UsesGeneratedWeightsPortingMode
             ? _transparentSurfaceSourceMeshKeys.Order().ToArray()
             : [];
         return currentOverlayKeys.AsSpan().SequenceEqual(
@@ -3972,7 +3947,6 @@ public partial class MainWindow : Window
                 cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         SkinnedRenderableMaterialProfile materialProfile =
-            request.TextureMode == SkinnedTextureTransferMode.ImportDonor &&
             (request.OpaqueOverlaySourceMeshKeys.Count > 0 ||
              request.TransparentSurfaceSourceMeshKeys.Count > 0)
                 ? CreateSkinnedMaterialProfile(
@@ -3983,8 +3957,10 @@ public partial class MainWindow : Window
         GlbSkinTransferPlan plan = AnalyzeGlbSkinTransferCore(
             request.Target,
             preparation.PreparedScene,
-            request.TextureMode,
             materialProfile);
+        plan = GeneratedSkinningQualityGuard.Apply(
+            preparation.Analysis,
+            plan);
         cancellationToken.ThrowIfCancellationRequested();
         return (preparation, plan);
     }
@@ -4069,12 +4045,6 @@ public partial class MainWindow : Window
                     "Настройки защищённой области изменились во время расчёта.",
                     runCancellation.Token);
             }
-            if (!candidatePlan.CanReplace)
-            {
-                throw new InvalidOperationException(
-                    "Точный writer plan отклонил область: " +
-                    string.Join(" | ", candidatePlan.Messages));
-            }
             GeneratedSkinningRegionResolution[] rejectedEnabled =
                 candidatePreparation.Analysis.SemanticRegions.Regions
                     .Where(region => selectedRegions.Contains(region.Region))
@@ -4093,8 +4063,12 @@ public partial class MainWindow : Window
                         .TakeLast(4)));
             }
 
-            // Commit only after both generated-skinning preparation and the
-            // exact writer analysis have accepted the same immutable override.
+            // The generated geometry, weights and attachment classification are
+            // valid independently of writer/material compatibility. Commit them
+            // after preparation succeeds so the viewport and rigid-detail list
+            // always describe the visible planes. An incompatible exact writer
+            // plan remains attached to this same revision and blocks only SMO
+            // creation through its CanReplace flag.
             ClearFinalTexturedPreview();
             _generatedSkinningRegionOverrides = candidateOverrides;
             _generatedSkinningPreparation = candidatePreparation;
@@ -4117,9 +4091,13 @@ public partial class MainWindow : Window
             PopulateGeneratedSkinningDiagnostics(candidatePreparation.Analysis);
             UpdateGeneratedSkinningCompatibilityPresentation();
             RefreshTextureList();
-            ProtectedRegionStatusText.Text =
-                "Защищённые области применены. Настройки остаются доступными: " +
-                "их можно уточнить и применить повторно.";
+            ProtectedRegionStatusText.Text = candidatePlan.CanReplace
+                ? "Разделяющие плоскости и защищённые кисти применены. " +
+                  "Список жёстких деталей и веса обновлены."
+                : "Разделяющие плоскости и защищённые кисти применены; " +
+                  "список жёстких деталей и веса обновлены. Создание SMO " +
+                  "пока блокирует отдельная проверка материалов/writer: " +
+                  string.Join(" | ", candidatePlan.Messages);
             SessionLog.Info(
                 "PROTECTED_REGION",
                 $"Explicit apply completed; canReplace={candidatePlan.CanReplace}; " +
@@ -4131,7 +4109,7 @@ public partial class MainWindow : Window
             if (!_isClosing)
             {
                 ProtectedRegionStatusText.Text =
-                    "Применение защищённой области отменено; черновой эллипс сохранён.";
+                    "Применение отменено; черновые плоскости и объёмы сохранены.";
             }
             SessionLog.Warning("PROTECTED_REGION", "Explicit apply cancelled.");
         }
@@ -4181,6 +4159,7 @@ public partial class MainWindow : Window
         _protectedRegionDraftRevision = -1;
         _protectedRegionEditorDirty = false;
         _protectedRegionDraftAdjustments.Clear();
+        _separationPlaneDraftAdjustments.Clear();
         if (!clearCommitted && _generatedSkinningPreparation is not null)
         {
             foreach (GeneratedSkinningRegionResolution region in
@@ -4188,19 +4167,28 @@ public partial class MainWindow : Window
             {
                 _protectedRegionDraftAdjustments[region.Region] = region.Adjustment;
             }
+            foreach (GeneratedSkinningSeparationPlaneResolution plane in
+                     _generatedSkinningPreparation.Analysis.SemanticRegions
+                         .SeparationPlanes)
+            {
+                _separationPlaneDraftAdjustments[plane.Kind] = plane.Adjustment;
+            }
         }
         if (ProtectedRegionStatusText is not null)
             ProtectedRegionStatusText.Text = string.Empty;
         if (updateControls && ProtectedRegionCombo is not null)
+        {
+            LoadSeparationPlaneControlsFromDraft();
             LoadProtectedRegionControlsFromDraft();
+        }
     }
 
     private void PopulateGeneratedAttachmentEditor(
         GeneratedSkinningAnalysis analysis)
     {
-        GeneratedAttachmentListItem[] items = analysis.Attachments
-            .OrderBy(attachment => attachment.ComponentIndex)
-            .Select(attachment => new GeneratedAttachmentListItem(attachment))
+        GeneratedAttachmentListItem[] items = analysis.Components
+            .OrderBy(component => component.ComponentIndex)
+            .Select(component => new GeneratedAttachmentListItem(component))
             .ToArray();
         HashSet<int> available = items
             .Select(item => item.ComponentIndex)
@@ -4209,9 +4197,9 @@ public partial class MainWindow : Window
             componentIndex => !available.Contains(componentIndex));
 
         _generatedAttachmentComponentByMeshVertex.Clear();
-        foreach (GeneratedSkinningAttachment attachment in analysis.Attachments)
+        foreach (GeneratedSkinningComponentInfo component in analysis.Components)
         {
-            foreach (TargetRigBodyVertexMembership membership in attachment.VerticesByMesh)
+            foreach (TargetRigBodyVertexMembership membership in component.VerticesByMesh)
             {
                 if (!_generatedAttachmentComponentByMeshVertex.TryGetValue(
                         membership.MeshIndex,
@@ -4223,7 +4211,7 @@ public partial class MainWindow : Window
                         componentsByVertex);
                 }
                 foreach (int vertexIndex in membership.VertexIndices)
-                    componentsByVertex[vertexIndex] = attachment.ComponentIndex;
+                    componentsByVertex[vertexIndex] = component.ComponentIndex;
             }
         }
 
@@ -4245,12 +4233,17 @@ public partial class MainWindow : Window
             _settingGeneratedAttachmentSelection = false;
         }
 
-        int manualCount = analysis.Attachments.Count(attachment =>
-            attachment.ManualAssignment is not null);
-        GeneratedAttachmentSummaryText.Text = analysis.Attachments.Count == 0
-            ? "Отдельных жёстких деталей не найдено."
-            : $"Деталей: {analysis.Attachments.Count}; вручную закреплено: " +
-              $"{manualCount}. Можно выбирать несколько строк или щёлкать по модели.";
+        int headCount = analysis.Components.Count(component =>
+            GetGeneratedComponentDisplayBinding(component) ==
+                GeneratedComponentDisplayBinding.Head);
+        int backCount = analysis.Components.Count(component =>
+            GetGeneratedComponentDisplayBinding(component) ==
+                GeneratedComponentDisplayBinding.UpperBack);
+        int automaticCount = analysis.Components.Count - headCount - backCount;
+        GeneratedAttachmentSummaryText.Text = analysis.Components.Count == 0
+            ? "Связных компонентов не найдено."
+            : $"Всего: {analysis.Components.Count}; авто: {automaticCount}; " +
+              $"голова: {headCount}; спина: {backCount}.";
         UpdateGeneratedAttachmentEditorAvailability();
     }
 
@@ -4260,15 +4253,15 @@ public partial class MainWindow : Window
             return;
 
         bool selectionAvailable = UsesGeneratedWeightsPortingMode &&
-            !IsJointPoseEditorMode &&
-            !ProtectedRegionEditorActive &&
             GeneratedSkinningPreparationIsCurrent &&
             !_nativeValidationRunning;
         bool assignmentAvailable = selectionAvailable &&
             !RigFittingEditorHasPendingChanges;
         GeneratedAttachmentEditorPanel.Opacity = selectionAvailable ? 1 : 0.65;
         GeneratedAttachmentList.IsEnabled = selectionAvailable;
-        HideGeneratedMainBodyCheckBox.IsEnabled = selectionAvailable;
+        ShowAutomaticComponentsCheckBox.IsEnabled = selectionAvailable;
+        ShowHeadComponentsCheckBox.IsEnabled = selectionAvailable;
+        ShowBackComponentsCheckBox.IsEnabled = selectionAvailable;
 
         GeneratedAttachmentListItem[] selected = GeneratedAttachmentList
             .SelectedItems
@@ -4278,22 +4271,12 @@ public partial class MainWindow : Window
         PinUpperBack.IsEnabled = assignmentAvailable && selected.Length > 0;
         PinHead.IsEnabled = assignmentAvailable && selected.Length > 0;
         ResetAutomatic.IsEnabled = assignmentAvailable && selected.Any(item =>
-            item.Attachment.ManualAssignment is not null);
+            item.Component.ManualAssignment is not null);
 
         if (!GeneratedSkinningPreparationIsCurrent)
         {
             GeneratedAttachmentStatusText.Text =
                 "Сначала дождитесь успешного расчёта автоматических весов.";
-        }
-        else if (IsJointPoseEditorMode)
-        {
-            GeneratedAttachmentStatusText.Text =
-                "Переключитесь в режим «Человек», чтобы выбирать жёсткие детали.";
-        }
-        else if (ProtectedRegionEditorActive)
-        {
-            GeneratedAttachmentStatusText.Text =
-                "Сверните «Защищённые области», чтобы выбирать жёсткие детали.";
         }
         else if (RigFittingEditorHasPendingChanges)
         {
@@ -4303,7 +4286,7 @@ public partial class MainWindow : Window
         else if (selected.Length == 0)
         {
             GeneratedAttachmentStatusText.Text =
-                "Выберите детали в списке или щёлкните по ним в окне просмотра.";
+                "Выберите компоненты в списке, щёлкните по модели или протяните рамку.";
         }
         else
         {
@@ -4344,7 +4327,7 @@ public partial class MainWindow : Window
             return;
 
         HashSet<int> meshIndices = selected
-            .SelectMany(item => item.Attachment.MeshIndices)
+            .SelectMany(item => item.Component.MeshIndices)
             .ToHashSet();
         _settingGeneratedAttachmentSelection = true;
         try
@@ -4352,7 +4335,7 @@ public partial class MainWindow : Window
             GeneratedAttachmentList.SelectedItems.Clear();
             foreach (GeneratedAttachmentListItem item in GeneratedAttachmentList.Items)
             {
-                if (item.Attachment.MeshIndices.Any(meshIndices.Contains))
+                if (item.Component.MeshIndices.Any(meshIndices.Contains))
                     GeneratedAttachmentList.SelectedItems.Add(item);
             }
         }
@@ -4433,9 +4416,9 @@ public partial class MainWindow : Window
 
             GeneratedSkinningAnalysis currentAnalysis =
                 previousPreparation.Analysis;
-            Dictionary<int, GeneratedSkinningAttachment> attachmentsByComponent =
-                currentAnalysis.Attachments.ToDictionary(
-                    attachment => attachment.ComponentIndex);
+            Dictionary<int, GeneratedSkinningComponentInfo> componentsByIndex =
+                currentAnalysis.Components.ToDictionary(
+                    component => component.ComponentIndex);
             GeneratedSkinningComponentOverrides? candidateOverrides = null;
             if (targetsByComponent.Count > 0)
             {
@@ -4444,9 +4427,9 @@ public partial class MainWindow : Window
                         .OrderBy(pair => pair.Key)
                         .Select(pair =>
                         {
-                            if (!attachmentsByComponent.TryGetValue(
+                            if (!componentsByIndex.TryGetValue(
                                     pair.Key,
-                                    out GeneratedSkinningAttachment? attachment))
+                                    out GeneratedSkinningComponentInfo? component))
                             {
                                 throw new InvalidOperationException(
                                     $"Компонент #{pair.Key} больше не существует " +
@@ -4455,7 +4438,7 @@ public partial class MainWindow : Window
                             return new GeneratedSkinningComponentOverride(
                                 pair.Key,
                                 pair.Value,
-                                attachment.VerticesByMesh);
+                                component.VerticesByMesh);
                         })
                         .ToArray();
                 candidateOverrides = new GeneratedSkinningComponentOverrides(
@@ -4480,8 +4463,10 @@ public partial class MainWindow : Window
                     _generatedSkinningRegionOverrides);
             GlbSkinTransferPlan candidateTransferPlan = AnalyzeGlbSkinTransfer(
                 _document,
-                candidatePreparation.PreparedScene,
-                SelectedSkinnedTextureTransferMode);
+                candidatePreparation.PreparedScene);
+            candidateTransferPlan = GeneratedSkinningQualityGuard.Apply(
+                candidatePreparation.Analysis,
+                candidateTransferPlan);
 
             // Commit only after both Core preparation and the exact writer plan
             // have completed. A rejected/stale identity leaves the visible and
@@ -4508,7 +4493,7 @@ public partial class MainWindow : Window
                 _ => "в автоматический режим"
             };
             StatusText.Text =
-                $"Деталей {assignment}: {selected.Length}. Веса и план пересчитаны.";
+                $"Компонентов {assignment}: {selected.Length}. Веса и план пересчитаны.";
         }
         catch (Exception exception) when (exception is InvalidDataException or
                                           InvalidOperationException or
@@ -4565,7 +4550,6 @@ public partial class MainWindow : Window
     private GlbSkinTransferPlan AnalyzeGlbSkinTransfer(
         SmoDocument target,
         ImportedScene donor,
-        SkinnedTextureTransferMode textureMode,
         SkinnedRenderableMaterialProfile? materialProfile = null)
     {
         if (_protectedRegionPreviewRunning)
@@ -4574,29 +4558,24 @@ public partial class MainWindow : Window
                 "Дождитесь фонового расчёта защищённых областей перед новым " +
                 "writer Analyze.");
         }
-        materialProfile ??= ResolveSkinnedMaterialProfile(donor, textureMode);
+        materialProfile ??= ResolveSkinnedMaterialProfile(donor);
         return AnalyzeGlbSkinTransferCore(
             target,
             donor,
-            textureMode,
             materialProfile);
     }
 
     private static GlbSkinTransferPlan AnalyzeGlbSkinTransferCore(
         SmoDocument target,
         ImportedScene donor,
-        SkinnedTextureTransferMode textureMode,
         SkinnedRenderableMaterialProfile materialProfile,
         CancellationToken cancellationToken = default)
     {
         GlbSkinTransferPlan plan = SmoSkinnedGlbReplacer.Analyze(
             target,
             donor,
-            textureMode,
             materialProfile,
             cancellationToken);
-        if (textureMode == SkinnedTextureTransferMode.PreserveTarget)
-            return plan;
 
         string[] unresolvedMaterials = GetUnresolvedTextureMaterialDescriptions(donor);
         if (unresolvedMaterials.Length == 0)
@@ -4642,7 +4621,7 @@ public partial class MainWindow : Window
         BoneMappingPanel.Visibility = Visibility.Visible;
         var matched = new TreeViewItem
         {
-            Header = $"Точное совпадение: {plan.MatchedBoneNames.Count}"
+            Header = $"Совпадающие имена костей: {plan.MatchedBoneNames.Count}"
         };
         foreach (string name in plan.MatchedBoneNames)
             matched.Items.Add(new TreeViewItem { Header = name });
@@ -4680,126 +4659,6 @@ public partial class MainWindow : Window
         BoneMappingTree.Items.Add(targetUnused);
     }
 
-    private void UpdateSmoReplacementPlan()
-    {
-        if (_document is null || _replacementSmoDocument is null)
-        {
-            _smoReplacementPlan = null;
-            CompatibilityText.Text = "Сначала выберите целевой SMO.";
-            StatusText.Text = "SMO-донор загружен; требуется целевой SMO.";
-            return;
-        }
-
-        _smoReplacementPlan = SmoToSmoReplacer.Analyze(
-            _document, _replacementSmoDocument);
-        PopulateBoneMappingTree(_smoReplacementPlan);
-        string summary =
-            $"Скелет: {_smoReplacementPlan.TargetBoneCount} → " +
-            $"{_smoReplacementPlan.DonorBoneCount} костей; meshes: " +
-            $"{_smoReplacementPlan.TargetMeshCount} → {_smoReplacementPlan.DonorMeshCount}; " +
-            $"textures: {_smoReplacementPlan.TargetTextureCount} → " +
-            $"{_smoReplacementPlan.DonorTextureCount}.";
-        string details = _smoReplacementPlan.Messages.Count == 0
-            ? string.Empty
-            : "\n" + string.Join("\n", _smoReplacementPlan.Messages.Select(
-                message => "• " + message));
-        CompatibilityText.Text = summary + details;
-
-        switch (_smoReplacementPlan.Compatibility)
-        {
-            case SmoSkeletonCompatibility.Exact:
-                ReplacementModePanel.Background = new SolidColorBrush(
-                    Color.FromRgb(220, 252, 231));
-                StatusText.Text =
-                    "Скелет SMO-донора совпадает. Можно упаковать его visual branches в target-контейнер.";
-                break;
-            case SmoSkeletonCompatibility.CompatibleWithWarnings:
-                ReplacementModePanel.Background = new SolidColorBrush(
-                    Color.FromRgb(255, 243, 205));
-                StatusText.Text =
-                    "SMO-донор совместим с предупреждениями; проверьте список изменений.";
-                break;
-            default:
-                ReplacementModePanel.Background = new SolidColorBrush(
-                    Color.FromRgb(254, 226, 226));
-                StatusText.Text =
-                    "Подмена заблокирована: скелеты SMO несовместимы.";
-                break;
-        }
-    }
-
-    private void PopulateBoneMappingTree(SmoToSmoReplacementPlan plan)
-    {
-        BoneMappingTree.Items.Clear();
-        BoneMappingPanel.Visibility = Visibility.Visible;
-
-        var matched = new TreeViewItem
-        {
-            Header = $"Совпали по имени: {plan.MatchedBoneNames.Count}",
-            IsExpanded = false
-        };
-        foreach (string name in plan.MatchedBoneNames)
-            matched.Items.Add(new TreeViewItem { Header = name });
-        BoneMappingTree.Items.Add(matched);
-
-        var ignored = new TreeViewItem
-        {
-            Header = $"Дополнительные кости донора: {plan.IgnoredDonorBones.Count}",
-            Foreground = new SolidColorBrush(Color.FromRgb(180, 83, 9)),
-            IsExpanded = plan.IgnoredDonorBones.Count > 0
-        };
-        foreach (SmoIgnoredDonorBone mapping in plan.IgnoredDonorBones)
-        {
-            ignored.Items.Add(new TreeViewItem
-            {
-                Header = $"{mapping.DonorBoneName} → {mapping.TargetBoneName} — отдельная локальная анимация теряется"
-            });
-        }
-        if (plan.IgnoredDonorBones.Count == 0)
-            ignored.Items.Add(new TreeViewItem { Header = "Нет" });
-        BoneMappingTree.Items.Add(ignored);
-
-        var unbound = new TreeViewItem
-        {
-            Header = $"Нет весов у донора: {plan.UnboundTargetBones.Count}",
-            Foreground = new SolidColorBrush(Color.FromRgb(185, 28, 28)),
-            IsExpanded = plan.UnboundTargetBones.Count > 0
-        };
-        foreach (string name in plan.UnboundTargetBones)
-        {
-            unbound.Items.Add(new TreeViewItem
-            {
-                Header = $"{name} — останется без новой привязки"
-            });
-        }
-        if (plan.UnboundTargetBones.Count == 0)
-            unbound.Items.Add(new TreeViewItem { Header = "Нет" });
-        BoneMappingTree.Items.Add(unbound);
-
-        var hierarchy = new TreeViewItem
-        {
-            Header = $"Обойдены helper/control nodes: {plan.HierarchyAdaptations.Count}",
-            Foreground = new SolidColorBrush(Color.FromRgb(3, 105, 161)),
-            IsExpanded = plan.HierarchyAdaptations.Count > 0
-        };
-        foreach (SmoHierarchyAdaptation adaptation in plan.HierarchyAdaptations)
-        {
-            var bone = new TreeViewItem { Header = adaptation.BoneName };
-            bone.Items.Add(new TreeViewItem
-            {
-                Header = $"Target: {adaptation.TargetPath}"
-            });
-            bone.Items.Add(new TreeViewItem
-            {
-                Header = $"Donor: {adaptation.DonorPath}"
-            });
-            hierarchy.Items.Add(bone);
-        }
-        if (plan.HierarchyAdaptations.Count == 0)
-            hierarchy.Items.Add(new TreeViewItem { Header = "Нет" });
-        BoneMappingTree.Items.Add(hierarchy);
-    }
-
     private void Plan_Click(object sender, RoutedEventArgs e)
     {
         if (_document is null || _replacementScene is null) return;
@@ -4816,7 +4675,6 @@ public partial class MainWindow : Window
         if (!CanRunSelectedPortingPipeline)
         {
             _plan = null;
-            _rigidMultiMaterialAnalysis = null;
             string message = GetPortingModeBlockMessage() ??
                 "Выбранный режим нельзя применить к этой модели.";
             PlanSummaryText.Text = message;
@@ -4849,69 +4707,88 @@ public partial class MainWindow : Window
         }
         try
         {
-            bool preserveOriginalTextures = PreserveOriginalTextures;
-            bool multiTextureMode = UseRigidMultiTextureMode;
-            if (!preserveOriginalTextures &&
-                !string.IsNullOrWhiteSpace(_rigidTextureBindingIssue))
+            if (ReplacementIsSmo)
             {
-                throw new InvalidOperationException(
-                    "Текстуры модели нельзя безопасно сопоставить: " +
-                    _rigidTextureBindingIssue +
-                    " Добавьте недостающие изображения либо включите " +
-                    "«Оставить текстуры исходного SMO».");
-            }
-            if (!preserveOriginalTextures &&
-                (_replacementRigidTextureBundle is null ||
-                 UsesGeneratedWeightsPortingMode))
-            {
-                ImportedScene textureSourceScene = UsesGeneratedWeightsPortingMode
-                    ? _generatedSkinningEffectiveScene ??
-                      (GeneratedSkinningPreparationIsCurrent
-                          ? _generatedSkinningPreparation!.PreparedScene
-                          : null) ??
-                      _replacementScene
-                    : _replacementScene;
-                string[] unresolvedTextures =
-                    GetUnresolvedTextureMaterialDescriptions(textureSourceScene);
-                if (unresolvedTextures.Length > 0)
+                _nativeSmoVisualPlan = AnalyzeNativeSmoVisualTransfer();
+                _glbSkinTransferPlan = ToSkinnedCompatibilityPlan(
+                    _nativeSmoVisualPlan);
+                PopulateGlbBoneMappingTree(_glbSkinTransferPlan);
+                if (!_nativeSmoVisualPlan.CanReplace)
                 {
                     throw new InvalidOperationException(
-                        "Добавьте изображения для material references: " +
-                        string.Join(", ", unresolvedTextures) + ".");
+                        "Нативная замена SMO несовместима:\n" +
+                        string.Join("\n", _nativeSmoVisualPlan.Errors.Select(
+                            message => "• " + message)));
                 }
-            }
-            if (multiTextureMode)
-            {
-                _plan = null;
-                _rigidMultiMaterialAnalysis = SmoRigidMultiMaterialPacker.Analyze(
-                    _document, _replacementRigidTextureBundle!);
-                string details = string.Join(
-                    "\n",
-                    _rigidMultiMaterialAnalysis.Messages.Select(message => "• " + message));
-                if (!_rigidMultiMaterialAnalysis.CanPack)
-                {
-                    PlanSummaryText.Text = "Проверка multi-texture структуры не пройдена." +
-                        (details.Length == 0 ? string.Empty : "\n" + details);
-                    StatusText.Text =
-                        "Multi-texture SMO создать нельзя: исправьте указанную несовместимость.";
-                    RefreshState();
-                    return;
-                }
-
-                BoneItem? head = BoneCombo.Items.OfType<BoneItem>()
-                    .FirstOrDefault(item => item.Slot == _rigidMultiMaterialAnalysis.RigidBoneSlot);
-                if (head is not null)
-                    BoneCombo.SelectedItem = head;
+                // The split plan is UI state only for native SMO replacement.
+                // The writer consumes the donor container directly.
+                _plan = MeshSplitter.Split(_replacementScene);
                 PlanSummaryText.Text =
-                    $"{_rigidMultiMaterialAnalysis.MaterialGroupCount} material branches; " +
-                    $"{_rigidMultiMaterialAnalysis.MeshCount} meshes; " +
-                    $"{_rigidMultiMaterialAnalysis.TextureCount} texture frames; " +
-                    $"{_rigidMultiMaterialAnalysis.SequenceCount} sequences; " +
-                    $"rigid palette slot {_rigidMultiMaterialAnalysis.RigidBoneSlot} → " +
-                    $"{_rigidMultiMaterialAnalysis.RigidBoneName}." +
-                    (details.Length == 0 ? string.Empty : "\n" + details);
+                    $"Нативный план проверен: {_nativeSmoVisualPlan.VisualRootCount} " +
+                    $"render roots, {_nativeSmoVisualPlan.MeshCount} meshes, " +
+                    $"{_nativeSmoVisualPlan.MaterialCount} materials, " +
+                    $"{_nativeSmoVisualPlan.TextureCount} textures; сохранено " +
+                    $"анимационных leaf-узлов цели: " +
+                    $"{_nativeSmoVisualPlan.PreservedTargetNodeCount}; отброшено " +
+                    $"лишних костей донора: " +
+                    $"{_nativeSmoVisualPlan.IgnoredDonorBoneNames.Count}. Ресурсы донора " +
+                    "будут скопированы без преобразования.";
                 StatusText.Text =
-                    "Multi-texture структура проверена writer-ом. Можно создать новый SMO.";
+                    "Нативный SMO-план проверен. Можно создавать файл.";
+                RefreshState();
+                return;
+            }
+            ImportedScene textureSourceScene = UsesGeneratedWeightsPortingMode
+                ? _generatedSkinningEffectiveScene ??
+                  (GeneratedSkinningPreparationIsCurrent
+                      ? _generatedSkinningPreparation!.PreparedScene
+                      : null) ??
+                  _replacementScene
+                : _replacementScene;
+            string[] unresolvedTextures =
+                GetUnresolvedTextureMaterialDescriptions(textureSourceScene);
+            if (unresolvedTextures.Length > 0)
+            {
+                throw new InvalidOperationException(
+                    "Добавьте изображения для material references: " +
+                    string.Join(", ", unresolvedTextures) + ".");
+            }
+            if (UsesStaticModelPortingMode)
+            {
+                _ = ReadTransform();
+                _staticModelReplacementPlan = SmoLevelModelGraphReplacer.Analyze(
+                    _document,
+                    GetFirstMeshObjectIndex(_document),
+                    _replacementScene,
+                    SmoLevelModelGraphWriteOptions.StandaloneStatic);
+                if (!_staticModelReplacementPlan.CanReplace)
+                {
+                    throw new InvalidOperationException(
+                        "Статическая замена несовместима:\n" +
+                        string.Join("\n", _staticModelReplacementPlan.Messages.Select(
+                            message => "• " + message)));
+                }
+                ImportedScene preparedStaticScene =
+                    SmoLevelRigidImportPreparer.Prepare(_replacementScene);
+                _plan = MeshSplitter.Split(preparedStaticScene);
+                PlanSummaryText.Text =
+                    $"Статический план проверен: " +
+                    $"{_staticModelReplacementPlan.ImportedMeshCount} mesh parts, " +
+                    $"{_staticModelReplacementPlan.VertexCount:N0} vertices, " +
+                    $"{_staticModelReplacementPlan.TriangleCount:N0} triangles, " +
+                    $"{_staticModelReplacementPlan.ImportedTextureCount} textures. " +
+                    "Будет использован нативный spModel/material-шаблон цели; " +
+                    "spSkin и кости не создаются.";
+                CompatibilityText.Text = string.Join(
+                    "\n",
+                    _staticModelReplacementPlan.Messages.Select(
+                        message => "• " + message));
+                ReplacementModeText.Text =
+                    "4. Статическая замена модели без костей";
+                ReplacementModePanel.Background = new SolidColorBrush(
+                    Color.FromRgb(220, 252, 231));
+                StatusText.Text =
+                    "Статический план проверен. Можно создавать файл.";
                 RefreshState();
                 return;
             }
@@ -4950,8 +4827,7 @@ public partial class MainWindow : Window
                 }
                 _glbSkinTransferPlan = AnalyzeGlbSkinTransfer(
                     _document,
-                    skinnedScene,
-                    SelectedSkinnedTextureTransferMode);
+                    skinnedScene);
                 if (UsesAdaptDonorWeightsPortingMode)
                     PopulateAdaptedBoneMappingTree(
                         _adaptedPortingPreparation!.Analysis);
@@ -4973,32 +4849,18 @@ public partial class MainWindow : Window
                         : UsesGeneratedWeightsPortingMode
                             ? "Geometry выровнена, веса созданы и явно подтверждены; prepared geometry используется без повторной трансформации. "
                         : string.Empty) +
-                    "16-bone palettes построены без изменения target graph." +
-                    (preserveOriginalTextures
-                        ? " Все TextureData исходного SMO останутся без изменений."
-                        : string.Empty);
+                    "16-bone palettes и новый visual graph построены из данных донора.";
                 StatusText.Text =
                     $"Skinned-план проверен ({geometryMode}). Можно создать экспериментальный SMO.";
                 RefreshState();
                 return;
             }
-            int slots = _document.Objects.Count(entry => entry.TypeHash == SmoClassIds.MeshData);
-            ImportedMesh combined = ImportedMeshCombiner.Combine(_replacementScene);
-            _plan = MeshSplitter.Split(_replacementScene);
-            if (_plan.Chunks.Count != 1)
-                throw new InvalidOperationException("Модель превышает 65 535 уникальных вершин и пока требует умного пространственного разбиения.");
-            PlanSummaryText.Text = $"{combined.Positions.Length:N0} vertices и {combined.TriangleIndices.Length / 3:N0} triangles → " +
-                $"1 цельный rigid body-slot; ещё {slots - 1} slots получат невидимый degenerate triangle." +
-                (preserveOriginalTextures
-                    ? " Текстура исходного body-slot останется без изменений."
-                    : string.Empty);
-            StatusText.Text = "План проверен. Можно создать экспериментальный SMO.";
-            RefreshState();
+            throw new InvalidOperationException(
+                "Для модели не выбран поддерживаемый режим построения весов.");
         }
         catch (Exception exception)
         {
             _plan = null;
-            _rigidMultiMaterialAnalysis = null;
             RefreshState();
             ShowError(exception);
         }
@@ -5006,30 +4868,29 @@ public partial class MainWindow : Window
 
     private async void Save_Click(object sender, RoutedEventArgs e)
     {
-        if (_nativeValidationRunning || _document is null || _sourcePath is null)
+        if (_saveRunning || _nativeValidationRunning ||
+            _document is null || _sourcePath is null)
             return;
-        bool smoMode = _replacementSmoDocument is not null;
-        bool preserveOriginalTextures = !smoMode && PreserveOriginalTextures;
-        bool multiTextureMode = !smoMode && UseRigidMultiTextureMode;
-        bool skinnedGlbMode = !smoMode &&
+        bool skinnedGlbMode =
             (((UsesPreparedModelPortingMode || UsesAdaptDonorWeightsPortingMode) &&
               AllReplacementMeshesAreSkinned) ||
              (UsesGeneratedWeightsPortingMode &&
               GeneratedSkinningPreparationIsCurrent));
-        if (smoMode && _smoReplacementPlan?.CanReplace != true) return;
-        if (!smoMode && !CanRunSelectedPortingPipeline)
+        bool staticModelMode =
+            UsesStaticModelPortingMode && AllReplacementMeshesAreUnskinned;
+        if (!CanRunSelectedPortingPipeline)
         {
             StatusText.Text = GetPortingModeBlockMessage() ??
                 "Выбранный режим нельзя применить к этой модели.";
             return;
         }
-        if (!smoMode && RigFittingEditorHasPendingChanges)
+        if (RigFittingEditorHasPendingChanges)
         {
             StatusText.Text =
                 "Сначала нажмите «Применить» в редакторе подгонки.";
             return;
         }
-        if (!smoMode && UsesGeneratedWeightsPortingMode &&
+        if (UsesGeneratedWeightsPortingMode &&
             !GeneratedSkinningIsReady)
         {
             StatusText.Text = !GeneratedSkinningPreparationIsCurrent
@@ -5038,60 +4899,74 @@ public partial class MainWindow : Window
                 : "Сначала проверьте предпросмотр и явно подтвердите созданные веса.";
             return;
         }
-        if (!smoMode && UsesAdaptDonorWeightsPortingMode &&
+        if (UsesAdaptDonorWeightsPortingMode &&
             !AdaptedPortingPreparationIsCurrent)
         {
             StatusText.Text = _adaptedPortingPreparationIssue ??
                 "Адаптация весов ещё не подготовлена.";
             return;
         }
-        if (multiTextureMode && _rigidMultiMaterialAnalysis?.CanPack != true) return;
-        if (!smoMode && !multiTextureMode &&
-            (_replacementScene is null || _plan is null)) return;
+        if (_replacementScene is null || _plan is null) return;
         string donorStem = _replacementPath is null
             ? "replacement"
             : Path.GetFileNameWithoutExtension(_replacementPath);
         var dialog = new SaveFileDialog
         {
             Filter = "Sparkplug model (*.smo)|*.smo",
-            FileName = smoMode
-                ? Path.GetFileNameWithoutExtension(_sourcePath) + "_from_" + donorStem + ".smo"
-                : multiTextureMode
-                    ? Path.GetFileNameWithoutExtension(_sourcePath) + "_multitexture_" + donorStem + ".smo"
+            FileName = ReplacementIsSmo
+                    ? Path.GetFileNameWithoutExtension(_sourcePath) + "_native_" + donorStem + ".smo"
                 : skinnedGlbMode
                     ? Path.GetFileNameWithoutExtension(_sourcePath) + "_skinned_" + donorStem + ".smo"
+                : staticModelMode
+                    ? Path.GetFileNameWithoutExtension(_sourcePath) + "_static_" + donorStem + ".smo"
                     : Path.GetFileNameWithoutExtension(_sourcePath) + "_whole_replaced.smo",
             InitialDirectory = Path.GetDirectoryName(_sourcePath)
         };
         if (dialog.ShowDialog(this) != true) return;
         NativeValidationResultBorder.Visibility = Visibility.Collapsed;
+        string? outputPath = null;
+        var runCancellation = new CancellationTokenSource();
+        _saveCancellation = runCancellation;
+        _saveRunning = true;
+        ControlsScrollViewer.IsEnabled = false;
+        SaveOperationStatusText.Text = "Собирается и проверяется новый SMO…";
+        CancelSaveOperationButton.IsEnabled = true;
+        SaveOperationOverlay.Visibility = Visibility.Visible;
         try
         {
             string fullOutputPath = Path.GetFullPath(dialog.FileName);
             SessionLog.Info(
                 "SAVE",
-                $"Requested output={fullOutputPath}; smoMode={smoMode}; " +
-                $"multiTextureMode={multiTextureMode}; skinnedMode={skinnedGlbMode}; " +
-                $"preserveOriginalTextures={preserveOriginalTextures}");
+                $"Requested output={fullOutputPath}; nativeSmo={ReplacementIsSmo}; " +
+                $"skinnedMode={skinnedGlbMode}; staticMode={staticModelMode}");
             LogDiagnosticState("SAVE_INPUT_STATE");
             EnsureSeparateOutput(fullOutputPath, _sourcePath, "исходный SMO");
             EnsureSeparateOutput(fullOutputPath, _replacementPath, "файл-донор");
-            string outputPath;
-            if (smoMode)
+            SmoDocument targetDocument = _document;
+            Func<CancellationToken, string> saveOperation;
+            if (ReplacementIsSmo)
             {
-                SmoToSmoReplacementResult smoResult = SmoToSmoReplacer.Replace(
-                    _document, _replacementSmoDocument!, fullOutputPath);
-                outputPath = smoResult.OutputPath;
+                string donorPath = _replacementPath!;
+                saveOperation = cancellationToken =>
+                    SmoNativeVisualGraphReplacer.Replace(
+                        targetDocument,
+                        SmoDocument.Load(donorPath),
+                        fullOutputPath,
+                        cancellationToken).OutputPath;
             }
-            else if (multiTextureMode)
+            else if (staticModelMode)
             {
-                SmoRigidMultiMaterialPackResult packed =
-                    SmoRigidMultiMaterialPacker.Pack(
-                        _document,
-                        _replacementRigidTextureBundle!,
-                        ReadTransform(),
-                        fullOutputPath);
-                outputPath = packed.OutputPath;
+                ReplacementTransform transform = ReadTransform();
+                saveOperation = cancellationToken =>
+                    SmoLevelModelGraphReplacer.ReplaceFile(
+                        targetDocument,
+                        GetFirstMeshObjectIndex(targetDocument),
+                        _replacementScene!,
+                        transform,
+                        fullOutputPath,
+                        SmoLevelModelGraphWriteOptions.StandaloneStatic,
+                        cancellationToken,
+                        _replacementPath).OutputPath;
             }
             else if (skinnedGlbMode)
             {
@@ -5125,47 +5000,164 @@ public partial class MainWindow : Window
                         : SkinnedGeometryTransferMode.PreservePreparedGeometry;
                 }
                 SkinnedRenderableMaterialProfile materialProfile =
-                    ResolveSkinnedMaterialProfile(
+                    ResolveSkinnedMaterialProfile(skinnedScene);
+                saveOperation = cancellationToken =>
+                    SmoSkinnedGlbReplacer.Replace(
+                        targetDocument,
                         skinnedScene,
-                        SelectedSkinnedTextureTransferMode);
-                ImportedTexture? legacyTexture = preserveOriginalTextures
-                    ? null
-                    : ResolveLegacySkinnedTextureOverride(
-                        skinnedScene,
-                        UsesGeneratedWeightsPortingMode
-                            ? _generatedSkinningTextureCatalog
-                            : _textureCatalogResult);
-                if (materialProfile.HasExplicitOverrides)
-                    legacyTexture = null;
-                GlbSkinTransferResult skinResult = SmoSkinnedGlbReplacer.Replace(
-                    _document,
-                    skinnedScene,
-                    ReplacementTransform.Identity,
-                    fullOutputPath,
-                    geometryMode,
-                    texture: legacyTexture,
-                    textureMode: SelectedSkinnedTextureTransferMode,
-                    materialProfile: materialProfile);
-                outputPath = skinResult.OutputPath;
+                        ReplacementTransform.Identity,
+                        fullOutputPath,
+                        geometryMode,
+                        materialProfile: materialProfile,
+                        cancellationToken: cancellationToken).OutputPath;
             }
             else
             {
-                WholeModelReplacementResult result = SmoWholeModelReplacer.Replace(
-                    _document, _replacementScene!, ReadTransform(), fullOutputPath,
-                    BoneCombo.SelectedItem is BoneItem bone ? bone.Slot : 0,
-                    texturePath: null,
-                    embeddedTexture: preserveOriginalTextures
-                        ? null
-                        : ResolveRigidSingleTexture());
-                outputPath = result.OutputPath;
+                throw new InvalidOperationException(
+                    "Для модели не выбран поддерживаемый режим записи.");
             }
 
-            await ValidateSavedModelAsync(outputPath, _sourcePath);
-            SessionLog.Info(
-                "SAVE",
-                $"Completed output={outputPath}; bytes={new FileInfo(outputPath).Length}");
+            await Dispatcher.Yield(DispatcherPriority.Render);
+            outputPath = await RunSaveOperationAsync(
+                saveOperation,
+                runCancellation.Token);
         }
-        catch (Exception exception) { ShowError(exception); }
+        catch (OperationCanceledException)
+        {
+            SessionLog.Warning(
+                "SAVE",
+                $"Save cancelled; closing={_isClosing}; " +
+                $"userCancellation={runCancellation.IsCancellationRequested}");
+            if (!_isClosing)
+                StatusText.Text = "Создание SMO отменено; выходной файл не устанавливался.";
+        }
+        catch (Exception exception)
+        {
+            SessionLog.Error("SAVE", exception);
+            if (!_isClosing)
+                ShowError(exception);
+        }
+        finally
+        {
+            if (ReferenceEquals(_saveCancellation, runCancellation))
+                _saveCancellation = null;
+            runCancellation.Dispose();
+            _saveRunning = false;
+            if (!_isClosing)
+            {
+                SaveOperationOverlay.Visibility = Visibility.Collapsed;
+                ControlsScrollViewer.IsEnabled = !_nativeValidationRunning &&
+                    !_replacementLoadRunning && !_protectedRegionPreviewRunning;
+                RefreshState();
+            }
+        }
+
+        if (outputPath is null || _isClosing)
+            return;
+        _lastSavedOutputPath = outputPath;
+        _lastSavedSourcePath = _sourcePath;
+        StatusText.Text = $"SMO сохранён: {outputPath}";
+        SessionLog.Info(
+            "SAVE",
+            $"Completed output={outputPath}; bytes={new FileInfo(outputPath).Length}");
+        RefreshState();
+    }
+
+    private async Task<string> RunSaveOperationAsync(
+        Func<CancellationToken, string> operation,
+        CancellationToken userCancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        userCancellationToken.ThrowIfCancellationRequested();
+        using var operationCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(userCancellationToken);
+        using Process process = Process.GetCurrentProcess();
+        process.Refresh();
+        long initialPrivateBytes = process.PrivateMemorySize64;
+        long totalAvailableBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        long availableMemoryLimit = totalAvailableBytes > 0
+            ? (long)(totalAvailableBytes * 0.80)
+            : long.MaxValue;
+        long memoryLimit = Math.Min(
+            initialPrivateBytes + MaximumSaveMemoryGrowthBytes,
+            availableMemoryLimit);
+        memoryLimit = Math.Max(
+            memoryLimit,
+            initialPrivateBytes + MinimumSaveMemoryHeadroomBytes);
+        var stopwatch = Stopwatch.StartNew();
+        string? limitMessage = null;
+        Task<string> operationTask = Task.Run(
+            () => operation(operationCancellation.Token),
+            CancellationToken.None);
+        SessionLog.Info(
+            "SAVE",
+            $"Background writer started; timeout={MaximumSaveOperationTime}; " +
+            $"privateBytes={initialPrivateBytes}; privateLimit={memoryLimit}");
+
+        while (!operationTask.IsCompleted)
+        {
+            await Task.WhenAny(operationTask, Task.Delay(400));
+            if (operationTask.IsCompleted)
+                break;
+            if (userCancellationToken.IsCancellationRequested)
+            {
+                operationCancellation.Cancel();
+                continue;
+            }
+            if (limitMessage is not null)
+                continue;
+            if (stopwatch.Elapsed >= MaximumSaveOperationTime)
+            {
+                limitMessage =
+                    $"Создание SMO остановлено после безопасного лимита " +
+                    $"{MaximumSaveOperationTime.TotalMinutes:N0} минут.";
+            }
+            else
+            {
+                process.Refresh();
+                long privateBytes = process.PrivateMemorySize64;
+                if (privateBytes > memoryLimit)
+                {
+                    limitMessage =
+                        "Создание SMO остановлено из-за превышения безопасного " +
+                        $"лимита памяти ({privateBytes / (1024 * 1024):N0} МиБ).";
+                }
+            }
+            if (limitMessage is not null)
+            {
+                SessionLog.Warning("SAVE", limitMessage);
+                SaveOperationStatusText.Text =
+                    limitMessage + " Завершается текущая атомарная операция…";
+                CancelSaveOperationButton.IsEnabled = false;
+                operationCancellation.Cancel();
+            }
+        }
+
+        try
+        {
+            return await operationTask;
+        }
+        catch (OperationCanceledException) when (limitMessage is not null)
+        {
+            throw new InvalidOperationException(limitMessage);
+        }
+    }
+
+    private void CancelSaveOperation_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_saveRunning)
+            return;
+        SessionLog.Warning("SAVE", "User requested safe writer cancellation.");
+        CancelSaveOperationButton.IsEnabled = false;
+        SaveOperationStatusText.Text =
+            "Запрошена остановка. Незавершённый файл не будет установлен…";
+        try
+        {
+            _saveCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     private static void EnsureSeparateOutput(
@@ -5241,10 +5233,12 @@ public partial class MainWindow : Window
             "WINDOW",
             $"Closing requested; replacementLoad={_replacementLoadRunning}; " +
             $"generatedCalculation={_generatedSkinningCalculationRunning}; " +
-            $"protectedPreview={_protectedRegionPreviewRunning}; nativeValidation={_nativeValidationRunning}");
+            $"protectedPreview={_protectedRegionPreviewRunning}; " +
+            $"save={_saveRunning}; nativeValidation={_nativeValidationRunning}");
         LogDiagnosticState("FINAL_STATE");
         _isClosing = true;
-        _forceProcessExitOnClosed = _generatedSkinningCalculationRunning;
+        _forceProcessExitOnClosed =
+            _generatedSkinningCalculationRunning || _saveRunning;
         CancelProtectedRegionPreview();
         try
         {
@@ -5256,6 +5250,13 @@ public partial class MainWindow : Window
         try
         {
             _generatedSkinningCalculationCancellation?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        try
+        {
+            _saveCancellation?.Cancel();
         }
         catch (ObjectDisposedException)
         {
@@ -5526,17 +5527,6 @@ public partial class MainWindow : Window
     private void RefreshTextureList()
     {
         var items = new List<TextureResourceItem>();
-        if (_replacementSmoDocument is not null)
-        {
-            int textureCount = _replacementSmoDocument.Objects.Count(entry =>
-                entry.TypeHash == SmoClassIds.TextureData);
-            TextureList.ItemsSource = items;
-            TextureSummaryText.Text =
-                $"SMO-донор содержит {textureCount} texture slots; они переносятся автоматически.";
-            UpdateRemoveTexturesAvailability();
-            UpdateMaterialOverrideAvailability();
-            return;
-        }
         bool generatedWeightsMode = UsesGeneratedWeightsPortingMode;
         ImportedScene? textureScene = generatedWeightsMode
             ? _generatedSkinningEffectiveScene ??
@@ -5551,37 +5541,6 @@ public partial class MainWindow : Window
             TextureList.ItemsSource = items;
             TextureSummaryText.Text =
                 "Доступные текстуры появятся после выбора модели.";
-            UpdateRemoveTexturesAvailability();
-            UpdateMaterialOverrideAvailability();
-            return;
-        }
-
-        if (_multiTextureDirectory is not null &&
-            _replacementRigidTextureBundle is not null &&
-            !generatedWeightsMode)
-        {
-            foreach (RigidMaterialGroup group in
-                     _replacementRigidTextureBundle.MaterialGroups)
-            {
-                foreach (RigidTextureFrame frame in group.Frames)
-                {
-                    items.Add(new TextureResourceItem(
-                        $"{group.Name} · кадр {frame.FrameNumber}",
-                        $"{frame.Texture.Width}×{frame.Texture.Height} · " +
-                        $"{Path.GetFileName(frame.SourcePath)}",
-                        ExternalPath: null,
-                        CanRemove: true,
-                        RemovesFolder: true));
-                }
-            }
-            TextureList.ItemsSource = items;
-            TextureSummaryText.Text =
-                $"Папка: {_multiTextureDirectory}. Материалов: " +
-                $"{_replacementRigidTextureBundle.MaterialGroups.Count}; кадров: " +
-                $"{items.Count}." + (_externalTextures.Count == 0
-                    ? string.Empty
-                    : $" Ранее добавленных файлов временно не используется: " +
-                      $"{_externalTextures.Count}.");
             UpdateRemoveTexturesAvailability();
             UpdateMaterialOverrideAvailability();
             return;
@@ -5701,10 +5660,7 @@ public partial class MainWindow : Window
             $"{referencedTextureIndices.Count}; добавлено извне: {_externalTextures.Count}; " +
             $"ожидается файлов: {unresolvedGroups.Length}; не привязано: {unusedCount}; " +
             $"непрозрачных накладок: {opaqueOverlayGroupCount}; " +
-            $"прозрачных поверхностей: {transparentSurfaceGroupCount}." +
-            (generatedWeightsMode && _replacementRigidTextureBundle is not null
-                ? " Rigid matN bundle здесь проигнорирован; показаны ресурсы полной исходной geometry."
-                : string.Empty);
+            $"прозрачных поверхностей: {transparentSurfaceGroupCount}.";
         UpdateRemoveTexturesAvailability();
         UpdateMaterialOverrideAvailability();
     }
@@ -5780,9 +5736,6 @@ public partial class MainWindow : Window
 
         MaterialOverrideStatusText.Text = !UsesGeneratedWeightsPortingMode
             ? "Доступно только в режиме 3 «Создать веса с нуля»."
-            : SelectedSkinnedTextureTransferMode !=
-              SkinnedTextureTransferMode.ImportDonor
-                ? "Включите импорт текстур донора. С текстурами исходного SMO этот режим неприменим."
             : SkinnedMaterialOverrideCatalogScene is null
                 ? "Точный каталог geometry-only ещё не подготовлен. Завершите подготовку режима 3."
             : selectedMeshKeys.Length == 0
@@ -5880,7 +5833,6 @@ public partial class MainWindow : Window
                 GlbSkinTransferPlan validationPlan = AnalyzeGlbSkinTransfer(
                     _document,
                     profileSource,
-                    SkinnedTextureTransferMode.ImportDonor,
                     candidateProfile);
                 string? materialProfileIssue = validationPlan.Messages
                     .FirstOrDefault(message => message.StartsWith(
@@ -5953,8 +5905,7 @@ public partial class MainWindow : Window
     {
         if (RemoveTexturesButton is null || TextureList is null)
             return;
-        RemoveTexturesButton.IsEnabled = !PreserveOriginalTextures &&
-            TextureList.SelectedItems
+        RemoveTexturesButton.IsEnabled = TextureList.SelectedItems
             .OfType<TextureResourceItem>()
             .Any(item => item.CanRemove);
     }
@@ -6053,55 +6004,18 @@ public partial class MainWindow : Window
             : $"{bytes / (1024d * 1024):N1} МиБ";
     }
 
-    private ImportedTexture? ResolveRigidSingleTexture()
-    {
-        if (_replacementScene is null)
-            return null;
-        int[] referenced = GetReferencedTextureIndices(_replacementScene).ToArray();
-        if (referenced.Length == 1)
-            return _replacementScene.Textures[referenced[0]];
-        if (referenced.Length > 1)
-            return null;
-        if (_textureCatalogResult?.UnusedExternalTextures.Count == 1)
-            return _textureCatalogResult.UnusedExternalTextures[0];
-        return _replacementScene.Textures.Count == 1
-            ? _replacementScene.Textures[0]
-            : null;
-    }
-
-    private ImportedTexture? ResolveLegacySkinnedTextureOverride(
-        ImportedScene? scene = null,
-        ImportedTextureCatalogResult? textureCatalog = null)
-    {
-        scene ??= _replacementScene;
-        textureCatalog ??= _textureCatalogResult;
-        if (scene is null || GetReferencedTextureIndices(scene).Count > 0)
-            return null;
-        return textureCatalog?.UnusedExternalTextures.Count == 1
-            ? textureCatalog.UnusedExternalTextures[0]
-            : null;
-    }
-
     private void SelectTextureFolder_Click(object sender, RoutedEventArgs e)
     {
-        if (UsesGeneratedWeightsPortingMode)
-        {
-            StatusText.Text =
-                "Папка matN в режиме 3 не применяется: используйте «Добавить файлы…» для однозначно сопоставимых текстур.";
-            return;
-        }
-        if (_nativeValidationRunning || PreserveOriginalTextures ||
-            _replacementPath is null || _baseReplacementScene is null ||
-            _replacementSmoDocument is not null)
+        if (_nativeValidationRunning ||
+            _replacementPath is null || _baseReplacementScene is null)
             return;
 
         var dialog = new OpenFolderDialog
         {
-            Title = "Выберите папку с текстурами (matN-последовательности поддерживаются)",
+            Title = "Выберите папку с текстурами",
             Multiselect = false
         };
-        string? initialDirectory = _multiTextureDirectory ??
-            Path.GetDirectoryName(_replacementPath);
+        string? initialDirectory = Path.GetDirectoryName(_replacementPath);
         if (initialDirectory is not null && Directory.Exists(initialDirectory))
             dialog.InitialDirectory = initialDirectory;
         if (dialog.ShowDialog(this) != true)
@@ -6110,52 +6024,8 @@ public partial class MainWindow : Window
         try
         {
             string fullTextureDirectory = Path.GetFullPath(dialog.FolderName);
-            bool replacementIsFbx = Path.GetExtension(_replacementPath).Equals(
-                ".fbx", StringComparison.OrdinalIgnoreCase);
-            bool strictMatBundle =
-                (replacementIsFbx || !_baseReplacementScene.HasSkinning) &&
-                RigidGlbTextureBundleReader.HasCandidateTextureFiles(
-                    _replacementPath, fullTextureDirectory);
-            if (strictMatBundle)
-            {
-                try
-                {
-                    // FBX needs the dedicated rigid conversion: the ordinary reader
-                    // may intentionally retain only its skinned meshes.
-                    RigidGlbTextureBundle bundle = replacementIsFbx
-                            ? RigidGlbTextureBundleReader.ReadModel(
-                                _replacementPath,
-                                fullTextureDirectory,
-                                _blenderPath)
-                            : RigidGlbTextureBundleReader.Bind(
-                                _replacementPath,
-                                _baseReplacementScene,
-                                fullTextureDirectory);
-                    ApplyExternalReplacementState(
-                        _replacementPath,
-                        _baseReplacementScene,
-                        bundle.Scene,
-                        bundle,
-                        catalog: null,
-                        textureDirectory: fullTextureDirectory,
-                        resetTransform: false);
-                    StatusText.Text =
-                        "Папка matN подключена как набор материалов и кадров. " +
-                        "Ранее добавленные файлы сохранены и вернутся после отключения папки. " +
-                        "Проверьте multi-texture структуру заново.";
-                }
-                catch (RigidTextureBundleContainsSkinnedMeshesException)
-                    when (replacementIsFbx && _baseReplacementScene.HasSkinning)
-                {
-                    int addedCount = ApplyTextureFilesFromFolder(fullTextureDirectory);
-                    SetTextureFolderImportStatus(addedCount);
-                }
-            }
-            else
-            {
-                int addedCount = ApplyTextureFilesFromFolder(fullTextureDirectory);
-                SetTextureFolderImportStatus(addedCount);
-            }
+            int addedCount = ApplyTextureFilesFromFolder(fullTextureDirectory);
+            SetTextureFolderImportStatus(addedCount);
             _framePreviewOnRefresh = true;
             RefreshState();
         }
@@ -6197,9 +6067,8 @@ public partial class MainWindow : Window
 
     private void AddTextureFiles_Click(object sender, RoutedEventArgs e)
     {
-        if (_nativeValidationRunning || PreserveOriginalTextures ||
-            _replacementPath is null || _baseReplacementScene is null ||
-            _replacementSmoDocument is not null)
+        if (_nativeValidationRunning ||
+            _replacementPath is null || _baseReplacementScene is null)
             return;
         var dialog = new OpenFileDialog
         {
@@ -6259,28 +6128,13 @@ public partial class MainWindow : Window
 
     private void RemoveTextures_Click(object sender, RoutedEventArgs e)
     {
-        if (_nativeValidationRunning || PreserveOriginalTextures)
+        if (_nativeValidationRunning)
             return;
 
         TextureResourceItem[] selected = TextureList.SelectedItems
             .OfType<TextureResourceItem>()
             .Where(item => item.CanRemove)
             .ToArray();
-        if (selected.Any(item => item.RemovesFolder))
-        {
-            try
-            {
-                ApplyTextureOverrides(_externalTextures.ToArray());
-                RefreshState();
-                StatusText.Text = "Папка matN отключена; восстановлены текстуры модели.";
-            }
-            catch (Exception exception)
-            {
-                ShowError(exception);
-            }
-            return;
-        }
-
         string[] paths = selected
             .Where(item => item.CanRemove && !string.IsNullOrWhiteSpace(item.ExternalPath))
             .Select(item => Path.GetFullPath(item.ExternalPath!))
@@ -6312,47 +6166,6 @@ public partial class MainWindow : Window
     {
         UpdateRemoveTexturesAvailability();
         UpdateMaterialOverrideAvailability();
-    }
-
-    private void PreserveOriginalTextures_Changed(
-        object sender,
-        RoutedEventArgs e)
-    {
-        if (_settingPreserveOriginalTextures || _nativeValidationRunning)
-            return;
-
-        _plan = null;
-        _rigidMultiMaterialAnalysis = null;
-        _glbSkinTransferPlan = null;
-        InvalidateAdaptedPortingPreparation();
-        InvalidateGeneratedSkinningPreparation();
-        PlanSummaryText.Text = PreserveOriginalTextures
-            ? "Диагностический план с текстурами исходного SMO ещё не построен."
-            : "План ещё не построен.";
-
-        if (UsesAdaptDonorWeightsPortingMode &&
-            _replacementScene?.HasSkinning == true)
-            UpdateAdaptedPortingPreparation();
-        else if (UsesGeneratedWeightsPortingMode)
-            QueueGeneratedSkinningRecalculationAfterRigChange();
-        else if (UsesPreparedModelPortingMode &&
-            _replacementScene?.HasSkinning == true)
-            UpdateGlbSkinTransferPlan();
-        else if (UsesLegacyRigidPortingMode &&
-                 _replacementRigidTextureBundle is not null)
-            UpdateRigidTextureModeDescription();
-        else if (_replacementScene is not null)
-            StatusText.Text = PreserveOriginalTextures
-                ? "Текстуры донора отключены. Постройте диагностический план геометрии."
-                : "Текстуры донора включены. Постройте план импорта.";
-
-        if (!string.IsNullOrWhiteSpace(_rigidTextureBindingIssue))
-        {
-            RefreshTextureList();
-            AppendRigidTextureBindingStatus();
-        }
-
-        RefreshState();
     }
 
     private void GeneratedSkinningConfirmation_Changed(
@@ -6407,9 +6220,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        // This is the explicit review transition. The old workflow required the
-        // user to discover that the fitting-pose checkbox had to be cleared.
-        // Keep that view switch internal and render the exact writer scene now.
+        // The review transition switches to the exact writer scene.
         if (ShowFittingPoseCheckBox.IsChecked == true)
             ShowFittingPoseCheckBox.IsChecked = false;
 
@@ -6435,9 +6246,7 @@ public partial class MainWindow : Window
     {
         if (!CanShowFinalTexturedPreview)
         {
-            StatusText.Text = PreserveOriginalTextures
-                ? "Для текстурированного итогового просмотра включите импорт текстур модели-донора."
-                : RigFittingEditorHasPendingChanges
+            StatusText.Text = RigFittingEditorHasPendingChanges
                     ? "Сначала примените изменения размера или позы."
                     : "Окончательный текстурированный результат пока не подготовлен.";
             RefreshState();
@@ -6450,11 +6259,8 @@ public partial class MainWindow : Window
                 out Matrix4x4 transform);
             ValidateFinalTexturedPreviewScene(scene);
 
-            // These controls are authoring views. The final preview always
-            // shows the complete canonical writer input without gray target,
-            // skeleton or attachment isolation.
-            if (HideGeneratedMainBodyCheckBox.IsChecked == true)
-                HideGeneratedMainBodyCheckBox.IsChecked = false;
+            // The final preview always shows the complete canonical writer
+            // input without gray target, skeleton or component visibility filters.
             if (ShowFittingPoseCheckBox.IsChecked == true)
                 ShowFittingPoseCheckBox.IsChecked = false;
 
@@ -6496,12 +6302,6 @@ public partial class MainWindow : Window
                 "Сначала выберите целевой SMO и модель-донор.");
 
         transform = Matrix4x4.Identity;
-        if (UsesLegacyRigidPortingMode)
-        {
-            transform = ReadTransform().Matrix;
-            return _replacementScene;
-        }
-
         ImportedScene writerInput;
         SkinnedGeometryTransferMode geometryMode;
         if (UsesGeneratedWeightsPortingMode)
@@ -6533,18 +6333,15 @@ public partial class MainWindow : Window
                 "Выбранный режим не имеет текстурированного итогового просмотра.");
         }
 
-        // This follows the same BuildGlbPlan path as Replace, including the
-        // verified multi-material atlas and its UV remap. The returned scene is
-        // therefore the visual writer input, not merely the raw donor.
+        // This follows the same BuildGlbPlan path as Replace, including native
+        // per-texture material branches. The returned scene is therefore the
+        // visual writer input, not merely the raw donor.
         return SmoSkinnedGlbReplacer.PrepareGeometryPreview(
             _document,
             writerInput,
             ReplacementTransform.Identity,
             geometryMode,
-            SkinnedTextureTransferMode.ImportDonor,
-            ResolveSkinnedMaterialProfile(
-                writerInput,
-                SkinnedTextureTransferMode.ImportDonor));
+            ResolveSkinnedMaterialProfile(writerInput));
     }
 
     private static void ValidateFinalTexturedPreviewScene(ImportedScene scene)
@@ -6571,11 +6368,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HideGeneratedMainBody_Changed(
+    private void GeneratedComponentVisibility_Changed(
         object sender,
         RoutedEventArgs e)
     {
-        if (!IsLoaded)
+        if (_settingPreviewVisibility || !IsLoaded)
             return;
         ClearFinalTexturedPreview();
         RefreshPreview();
@@ -6660,8 +6457,9 @@ public partial class MainWindow : Window
         HumanPoseEditorPanel.Visibility = jointsMode
             ? Visibility.Collapsed
             : Visibility.Visible;
+        PutActivePoseEditorFirst(jointsMode);
         GeneratedAttachmentEditorPanel.Visibility =
-            UsesGeneratedWeightsPortingMode && !jointsMode
+            UsesGeneratedWeightsPortingMode
             ? Visibility.Visible
             : Visibility.Collapsed;
         if (jointsMode)
@@ -6680,6 +6478,20 @@ public partial class MainWindow : Window
         }
         RefreshRigFittingState();
         RefreshPreview();
+    }
+
+    private void PutActivePoseEditorFirst(bool jointsMode)
+    {
+        if (PoseEditorContentPanel is null)
+            return;
+        UIElement activeEditor = jointsMode
+            ? RigFittingEditorPanel
+            : HumanPoseEditorPanel;
+        int currentIndex = PoseEditorContentPanel.Children.IndexOf(activeEditor);
+        if (currentIndex <= 0)
+            return;
+        PoseEditorContentPanel.Children.RemoveAt(currentIndex);
+        PoseEditorContentPanel.Children.Insert(0, activeEditor);
     }
 
     private bool IsJointPoseEditorMode =>
@@ -6919,14 +6731,15 @@ public partial class MainWindow : Window
             BodyPoseStatusText.ToolTip = null;
             LoadRigFittingEditorValues();
             CommitRigFittingChange("Групповая поза тела применена.");
+            HideTargetSmoAfterPoseApplied();
             BodyPoseStatusText.Text = UsesGeneratedWeightsPortingMode &&
                                       !GeneratedSkinningPreparationIsCurrent
-                ? "Поза применена и видна на серой игровой модели. " +
+                ? "Поза применена; исходная SMO-модель скрыта. " +
                   "Веса и итоговый план пересчитываются в фоне; расчёт можно остановить."
                 : GeneratedSkinningPreparationIsCurrent ||
                   AdaptedPortingPreparationIsCurrent
-                ? "Поза применена; окно просмотра и подготовка модели используют одну ревизию."
-                : "Поза применена и видна на серой игровой модели. Подготовка весов всё ещё " +
+                ? "Поза применена; исходная SMO-модель скрыта, а подготовка использует ту же ревизию."
+                : "Поза применена; исходная SMO-модель скрыта. Подготовка весов всё ещё " +
                   "заблокирована: " +
                   (_generatedSkinningPreparationIssue ??
                    _adaptedPortingPreparationIssue ??
@@ -7136,8 +6949,7 @@ public partial class MainWindow : Window
                 GlbSkinTransferPlan candidateTransferPlan =
                     AnalyzeGlbSkinTransfer(
                         _document,
-                        candidatePreparation.PreparedScene,
-                        SelectedSkinnedTextureTransferMode);
+                        candidatePreparation.PreparedScene);
                 CommitManualAdaptCandidate(
                     candidate,
                     candidateEuler,
@@ -7145,6 +6957,7 @@ public partial class MainWindow : Window
                     donorAlignment,
                     candidatePreparation,
                     candidateTransferPlan);
+                HideTargetSmoAfterPoseApplied();
                 return;
             }
 
@@ -7157,8 +6970,10 @@ public partial class MainWindow : Window
             _rigPoseEditorDirty = false;
             _manualAlignmentEditorDirty = false;
             CommitRigFittingChange("Поза и donor alignment применены.");
+            HideTargetSmoAfterPoseApplied();
             BodyPoseStatusText.Text =
-                "Общая поза применена. Оба режима редактора показывают те же вращения.";
+                "Общая поза применена. Исходная SMO-модель скрыта; оба режима " +
+                "редактора показывают те же вращения.";
         }
         catch (Exception exception) when (exception is InvalidDataException or
                                           InvalidOperationException or
@@ -7288,16 +7103,22 @@ public partial class MainWindow : Window
     {
         if (!IsLoaded)
             return;
-        if (ProtectedRegionEditorActive &&
-            ShowFittingPoseCheckBox.IsChecked != true)
-        {
-            // Region volumes and exact captured memberships are expressed in
-            // fitting space. Keep that space visible while the editor is open.
-            ShowFittingPoseCheckBox.IsChecked = true;
-            return;
-        }
         ClearFinalTexturedPreview();
         RefreshPreview();
+    }
+
+    private void ShowTargetSmo_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_settingPreviewVisibility || !IsLoaded)
+            return;
+        ClearFinalTexturedPreview();
+        RefreshPreview();
+    }
+
+    private void HideTargetSmoAfterPoseApplied()
+    {
+        if (ShowTargetSmoCheckBox.IsChecked == true)
+            ShowTargetSmoCheckBox.IsChecked = false;
     }
 
     private void CommitRigFittingChange(string status)
@@ -7307,9 +7128,8 @@ public partial class MainWindow : Window
              _protectedRegionEditorDirty);
         if (resetProtectedRegions)
         {
-            // Exact memberships are fitting-pose fingerprinted. Reusing the
-            // old token would either be rejected by Core or describe a
-            // different set of donor vertices after this pose change.
+            // Exact memberships are fitting-pose fingerprinted and cannot
+            // describe a different set of donor vertices after a pose change.
             ResetProtectedRegionEditor(
                 clearCommitted: true,
                 updateControls: false);
@@ -7485,14 +7305,6 @@ public partial class MainWindow : Window
         RefreshState();
     }
 
-    private void BoneCombo_Changed(object sender, SelectionChangedEventArgs e) =>
-        RefreshPreview();
-
-    private static BoneItem? FindPreferredHeadBone(IEnumerable<BoneItem> items) =>
-        items.FirstOrDefault(item =>
-            item.Slot == 8 && item.Display.EndsWith(
-                " Head", StringComparison.OrdinalIgnoreCase));
-
     private void AutoFit_Click(object sender, RoutedEventArgs e)
     {
         if (_sourceScene is null || _replacementScene is null) return;
@@ -7544,20 +7356,21 @@ public partial class MainWindow : Window
         if (_sourceScene is null || _replacementScene is null)
             throw new InvalidOperationException(
                 "Для автоподгонки нужны исходная модель и модель замены.");
-        IEnumerable<Vector3> replacementPositions = _replacementRigidTextureBundle is null
-            ? _replacementScene.Meshes.SelectMany(mesh => mesh.Positions)
-            : _replacementRigidTextureBundle.MaterialGroups
-                .SelectMany(group => group.Meshes)
-                .SelectMany(mesh => mesh.Positions);
         ReplacementTransform fit = ReplacementTransformFitter.FitByHeightAndCenter(
             _sourceScene.Meshes.SelectMany(mesh => mesh.Positions),
-            replacementPositions);
+            _replacementScene.Meshes.SelectMany(mesh => mesh.Positions));
         ApplyTransform(fit);
     }
 
     private void ApplyTransform(ReplacementTransform fit)
     {
         WriteTransformEditor(fit);
+        if (UsesStaticModelPortingMode)
+        {
+            _plan = null;
+            PlanSummaryText.Text =
+                "Автоподгонка применена; проверьте статический план заново.";
+        }
         StatusText.Text = $"Автоподгонка: scale {fit.Scale:G5}; центры моделей совмещены.";
         _framePreviewOnRefresh = true;
         RefreshPreview();
@@ -7604,6 +7417,32 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ValidateInGame_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_nativeValidationRunning || _saveRunning)
+            return;
+        if (string.IsNullOrWhiteSpace(_lastSavedOutputPath) ||
+            string.IsNullOrWhiteSpace(_lastSavedSourcePath) ||
+            !File.Exists(_lastSavedOutputPath))
+        {
+            SetNativeValidationResult(
+                ImporterNativeVerdict.Indeterminate,
+                "Сначала успешно создайте новый SMO в текущем запуске импортёра.");
+            RefreshState();
+            return;
+        }
+
+        SessionLog.Info(
+            "NATIVE_VALIDATION",
+            $"Manual validation requested; output={_lastSavedOutputPath}; " +
+            $"source={_lastSavedSourcePath}");
+        await ValidateSavedModelAsync(
+            _lastSavedOutputPath,
+            _lastSavedSourcePath);
+    }
+
     private void QueueGeneratedSkinningRecalculationAfterRigChange()
     {
         if (!_generatedRigPoseAccepted)
@@ -7614,13 +7453,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Rig edits used to enter UpdateGeneratedSkinningPreparation here.  That
-        // is the old synchronous compatibility path: it runs palette packing on
-        // the dispatcher thread and does not use the same material profile as
-        // the cancellable calculation started by the alignment button.  Apart
-        // from freezing the whole window, the two paths could therefore accept
-        // the same model before a pose edit and reject it immediately after.
-        // Queue the one authoritative asynchronous calculation after the click
+        // Queue the authoritative asynchronous calculation after the click
         // handler has returned so WPF can paint the progress/cancel overlay.
         Dispatcher.BeginInvoke(
             DispatcherPriority.Background,
@@ -7878,7 +7711,14 @@ public partial class MainWindow : Window
                     ? alignment
                     : null);
         }
-        else if (_replacementSmoDocument is null)
+        else if (UsesStaticModelPortingMode)
+        {
+            _plan = null;
+            PlanSummaryText.Text =
+                "Положение статической модели изменено; проверьте план заново.";
+            RefreshState();
+        }
+        else
             RefreshPreview();
     }
 
@@ -7889,32 +7729,27 @@ public partial class MainWindow : Window
         SessionLog.Info("RESET", "Full UI/model state reset requested.");
 
         _sourcePath = null; _document = null; _sourceScene = null;
+        _lastSavedOutputPath = null;
+        _lastSavedSourcePath = null;
         _replacementPath = null; _baseReplacementScene = null;
         _replacementScene = null; _plan = null;
-        _replacementRigidTextureBundle = null;
         _textureCatalogResult = null;
         _externalTextures.Clear();
         ResetSkinnedMaterialOverrides();
-        _multiTextureDirectory = null;
-        _rigidTextureBindingIssue = null;
-        _geometryOnlyFallbackIssue = null;
-        _rigidMultiMaterialAnalysis = null;
-        _replacementSmoDocument = null; _replacementSmoScene = null;
-        _smoReplacementPlan = null; _glbSkinTransferPlan = null;
+        _glbSkinTransferPlan = null;
+        _nativeSmoVisualPlan = null;
+        _staticModelReplacementPlan = null;
         ResetRigFittingState();
         InvalidateAdaptedPortingPreparation();
         InvalidateGeneratedSkinningPreparation(clearGeometryBase: true);
         _portingModeRecommendation = null;
-        SetPreserveOriginalTextures(false);
         SetPortingModeChoice(PortingModeUiChoice.Auto);
         SourcePathText.Text = "Не выбран"; SourceSummaryText.Text = "—";
         ReplacementPathText.Text = "Не выбрана"; ReplacementSummaryText.Text = "—";
         HideTextureMemoryWarning();
-        BoneCombo.ItemsSource = null;
         PlanSummaryText.Text = "План ещё не построен.";
         SplitModeText.Text =
-            "Вся модель помещается в один основной body-slot; остальные slots получают " +
-            "невидимый вырожденный triangle.";
+            "Новый visual graph будет построен из ресурсов модели-донора.";
         PlanButton.Content = "Построить план и проверить";
         ReplacementModeText.Text = "Режим ещё не определён";
         CompatibilityText.Text = "Выберите модель-донор.";
@@ -7936,17 +7771,14 @@ public partial class MainWindow : Window
 
     private void RefreshState()
     {
-        bool smoMode = _replacementSmoDocument is not null;
-        bool preserveOriginalTextures = !smoMode && PreserveOriginalTextures;
-        bool multiTextureMode = !smoMode && UseRigidMultiTextureMode;
-        bool generatedWeightsMode = !smoMode && UsesGeneratedWeightsPortingMode;
-        bool skinnedGlbMode = !smoMode &&
+        bool generatedWeightsMode = UsesGeneratedWeightsPortingMode;
+        bool staticModelMode = UsesStaticModelPortingMode;
+        bool skinnedGlbMode =
             (((UsesPreparedModelPortingMode || UsesAdaptDonorWeightsPortingMode) &&
               AllReplacementMeshesAreSkinned) ||
              (generatedWeightsMode &&
               GeneratedSkinningPreparationIsCurrent));
-        bool canRunExternalPipeline = !smoMode && CanRunSelectedPortingPipeline;
-        bool legacyRigidMode = !smoMode && UsesLegacyRigidPortingMode;
+        bool canRunExternalPipeline = CanRunSelectedPortingPipeline;
         string? generatedTransferBlocker = generatedWeightsMode
             ? GetGeneratedSkinningTransferBlocker()
             : null;
@@ -7956,34 +7788,35 @@ public partial class MainWindow : Window
              AdaptedPortingPreparationIsCurrent) &&
             (!generatedWeightsMode || GeneratedSkinningIsReady) &&
             !RigFittingEditorHasPendingChanges;
-        ExternalModelOptionsPanel.IsEnabled = !smoMode;
-        ExternalModelOptionsPanel.Opacity = smoMode ? 0.5 : 1;
-        PlanButton.IsEnabled = !_nativeValidationRunning && !smoMode &&
+        ExternalModelOptionsPanel.IsEnabled = true;
+        ExternalModelOptionsPanel.Opacity = 1;
+        PlanButton.IsEnabled = !_nativeValidationRunning &&
             _document is not null && _replacementScene is not null &&
             canRunExternalPipeline && preparationReady &&
             generatedTransferCompatible;
         bool manualDonorAlignmentMode =
             UsesAdaptDonorWeightsPortingMode && ManualAdaptWeights;
+        bool modelTransformGizmoMode = UsesModelTransformGizmo;
         bool modelAlignmentMode =
-            legacyRigidMode || manualDonorAlignmentMode || generatedWeightsMode;
+            manualDonorAlignmentMode || generatedWeightsMode || staticModelMode;
         AutoFitButton.IsEnabled = !_nativeValidationRunning &&
-            (legacyRigidMode || generatedWeightsMode) &&
+            (generatedWeightsMode || staticModelMode) &&
             _sourceScene is not null && _replacementScene is not null;
         TransformEditorGrid.IsEnabled =
             !_nativeValidationRunning && modelAlignmentMode;
         TransformEditorGrid.Opacity = TransformEditorGrid.IsEnabled ? 1 : 0.55;
         bool rotationAvailable = !_nativeValidationRunning &&
-            (legacyRigidMode || manualDonorAlignmentMode || generatedWeightsMode);
+            (manualDonorAlignmentMode || generatedWeightsMode || staticModelMode);
         RotXBox.IsEnabled = RotYBox.IsEnabled = RotZBox.IsEnabled = rotationAvailable;
         RotationLabelText.Opacity = rotationAvailable ? 1 : 0.55;
         RotXBox.Opacity = RotYBox.Opacity = RotZBox.Opacity =
             rotationAvailable ? 1 : 0.55;
         RotationUnavailableHintText.Visibility = Visibility.Collapsed;
-        ModelTransformGizmoPanel.Visibility = generatedWeightsMode
+        ModelTransformGizmoPanel.Visibility = modelTransformGizmoMode
             ? Visibility.Visible
             : Visibility.Collapsed;
         ModelTransformGizmoPanel.IsEnabled = !_nativeValidationRunning &&
-            generatedWeightsMode;
+            modelTransformGizmoMode;
         ApplyModelAlignmentButton.Visibility = generatedWeightsMode
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -7999,10 +7832,8 @@ public partial class MainWindow : Window
         ModelTransformHeadingText.Text = manualDonorAlignmentMode
             ? "3. Coherent donor alignment для ручной подгонки"
             : "3. Положение, поворот и масштаб";
-        ModelTransformPanel.Opacity = smoMode ? 0.65 : 1;
-        ModelTransformHintText.Text = smoMode
-            ? "Для SMO → SMO положение и масштаб берутся из готовой donor-модели."
-            : !HasExternalReplacement
+        ModelTransformPanel.Opacity = 1;
+        ModelTransformHintText.Text = !HasExternalReplacement
                 ? "Выберите внешнюю модель-донор и режим портирования."
                 : UsesPreparedModelPortingMode
                     ? "Режим 1 требует модель, уже подготовленную точно под игровой " +
@@ -8014,35 +7845,37 @@ public partial class MainWindow : Window
                       "настраивайте игровой скелет. Автоподгонка использует полные " +
                       "bounds, поэтому " +
                       "крылья и отдельные аксессуары могут потребовать ручной коррекции."
+                : staticModelMode
+                    ? "Размер, поворот и положение применяются непосредственно к " +
+                      "статической геометрии при записи. Автоподгонка использует " +
+                      "полные bounds модели; после изменения снова проверьте план."
                 : manualDonorAlignmentMode
                     ? "Размер, поворот и положение задают единый weights-only donor alignment. " +
                       "Применение выполняется общей кнопкой редактора скелета ниже."
                 : UsesAdaptDonorWeightsPortingMode
                     ? "Автоматический режим 2 использует donor bind. Включите ручную " +
                       "weights-only подгонку, чтобы изменить положение модели."
-                : legacyRigidMode
-                    ? "Подгоните rigid-модель по росту и положению перед построением плана."
-                    : "Выбранный режим не использует ручную подгонку модели.";
-        SaveButton.IsEnabled = !_nativeValidationRunning && (smoMode
-            ? _smoReplacementPlan?.CanReplace == true
-            : !canRunExternalPipeline || !preparationReady
+                : "Выбранный режим не использует ручную подгонку модели.";
+        SaveButton.IsEnabled = !_saveRunning && !_nativeValidationRunning &&
+            (!canRunExternalPipeline || !preparationReady
                 ? false
-                : multiTextureMode
-                ? _rigidMultiMaterialAnalysis?.CanPack == true
                 : _plan is not null && (!skinnedGlbMode ||
                     _glbSkinTransferPlan?.CanReplace == true));
-        SaveButton.Content = smoMode
-            ? "Создать SMO-подмену"
-            : !canRunExternalPipeline && HasExternalReplacement
+        SaveButton.Content = !canRunExternalPipeline && HasExternalReplacement
                 ? "4. Создание SMO пока недоступно"
-                : multiTextureMode
-                ? "4. Создать multi-texture SMO"
+            : ReplacementIsSmo
+                ? "4. Нативно заменить модель в SMO"
             : skinnedGlbMode
                 ? "4. Создать skinned SMO"
+            : staticModelMode
+                ? "4. Создать статический SMO"
                 : "4. Создать новый SMO";
-        if (!smoMode)
-        {
-            PlanButton.Content = !canRunExternalPipeline && HasExternalReplacement
+        ValidateInGameButton.IsEnabled = !_saveRunning &&
+            !_nativeValidationRunning &&
+            !string.IsNullOrWhiteSpace(_lastSavedOutputPath) &&
+            !string.IsNullOrWhiteSpace(_lastSavedSourcePath) &&
+            File.Exists(_lastSavedOutputPath);
+        PlanButton.Content = !canRunExternalPipeline && HasExternalReplacement
                     ? "План недоступен для выбранного режима"
                 : RigFittingEditorHasPendingChanges
                     ? "Сначала примените значения подгонки"
@@ -8059,19 +7892,13 @@ public partial class MainWindow : Window
                 : UsesAdaptDonorWeightsPortingMode &&
                   !AdaptedPortingPreparationIsCurrent
                     ? "Адаптация весов не завершена"
-                : legacyRigidMode && preserveOriginalTextures &&
-                  _replacementRigidTextureBundle is not null
-                ? "Проверить геометрию с исходной текстурой"
-                : multiTextureMode
-                    ? "Проверить multi-texture структуру"
-                    : generatedWeightsMode
+                : generatedWeightsMode
                         ? "Проверить созданные веса и построить palettes"
                     : skinnedGlbMode
                         ? "Проверить кости и построить palettes"
+                    : staticModelMode
+                        ? "Проверить статическую модель без костей"
                         : "Построить план и проверить";
-        }
-        RigidBonePanel.Visibility = legacyRigidMode
-            ? Visibility.Visible : Visibility.Collapsed;
         SkinnedGlbOptionsPanel.Visibility = UsesPreparedModelPortingMode &&
                                             skinnedGlbMode
             ? Visibility.Visible : Visibility.Collapsed;
@@ -8101,23 +7928,12 @@ public partial class MainWindow : Window
                             ? "Снова показать итоговую модель"
                             : "Показать итог и разрешить подтверждение";
         UpdateGeneratedSkinningPrimaryStatus();
-        BoneHighlightText.Visibility = legacyRigidMode
-            ? Visibility.Visible : Visibility.Collapsed;
-        BoneCombo.IsEnabled = legacyRigidMode && !multiTextureMode;
-        TextureResourcesPanel.IsEnabled = !smoMode && _baseReplacementScene is not null;
+        BoneHighlightText.Visibility = Visibility.Collapsed;
+        TextureResourcesPanel.IsEnabled = _baseReplacementScene is not null;
         TextureResourcesPanel.Opacity = TextureResourcesPanel.IsEnabled ? 1 : 0.65;
-        TextureImportSourcesPanel.IsEnabled = TextureResourcesPanel.IsEnabled &&
-            !preserveOriginalTextures;
+        TextureImportSourcesPanel.IsEnabled = TextureResourcesPanel.IsEnabled;
         TextureImportSourcesPanel.Opacity = TextureImportSourcesPanel.IsEnabled ? 1 : 0.55;
-        SelectTextureFolderButton.IsEnabled = TextureImportSourcesPanel.IsEnabled &&
-            !generatedWeightsMode;
-        Mode3TextureFolderWarningText.Visibility = generatedWeightsMode
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        Mode3TextureFolderWarningText.Text = generatedWeightsMode &&
-            _replacementRigidTextureBundle is not null
-                ? "Обнаруженный rigid matN bundle здесь полностью игнорируется. Режим 3 использует всю геометрию исходного файла; добавляйте однозначно сопоставимые изображения кнопкой «Добавить файлы…»."
-                : "В режиме 3 папки matN не поддерживаются: создаваемые веса всегда используют полную геометрию исходного файла. Добавляйте однозначно сопоставимые изображения кнопкой «Добавить файлы…».";
+        SelectTextureFolderButton.IsEnabled = TextureImportSourcesPanel.IsEnabled;
         if (_showFinalTexturedPreview && !CanShowFinalTexturedPreview)
             ClearFinalTexturedPreview();
         bool finalTexturedPreviewAvailable = CanShowFinalTexturedPreview;
@@ -8125,9 +7941,7 @@ public partial class MainWindow : Window
             finalTexturedPreviewAvailable && !_showFinalTexturedPreview;
         ShowFinalTexturedPreviewButton.Content = _showFinalTexturedPreview
             ? "Окончательный результат с текстурами показан"
-            : PreserveOriginalTextures
-                ? "Для итогового preview включите текстуры донора"
-                : RigFittingEditorHasPendingChanges
+            : RigFittingEditorHasPendingChanges
                     ? "Сначала примените размер или позу"
                     : _replacementScene is not { Textures.Count: > 0 }
                         ? "Сначала добавьте и привяжите текстуры"
@@ -8160,7 +7974,8 @@ public partial class MainWindow : Window
         HumanPoseEditorPanel.Visibility = jointsMode
             ? Visibility.Collapsed
             : Visibility.Visible;
-        GeneratedAttachmentEditorPanel.Visibility = mode3 && !jointsMode
+        PutActivePoseEditorFirst(jointsMode);
+        GeneratedAttachmentEditorPanel.Visibility = mode3
             ? Visibility.Visible
             : Visibility.Collapsed;
         ManualAdaptWeightsCheckBox.Visibility = mode2
@@ -8217,6 +8032,8 @@ public partial class MainWindow : Window
             jointsMode && editorEnabled && mode2 && ManualAdaptWeights;
         RigRootTransformPanel.Opacity = RigRootTransformPanel.IsEnabled ? 1 : 0.5;
         ShowFittingPoseCheckBox.IsEnabled = hasRig && !_nativeValidationRunning;
+        ShowTargetSmoCheckBox.IsEnabled = _sourceScene is not null &&
+            !_nativeValidationRunning;
         RigFittingModeHintText.Text = mode3
             ? jointsMode
                 ? "Выбирайте сустав в списке или прямо в окне просмотра и задавайте " +
@@ -8236,9 +8053,9 @@ public partial class MainWindow : Window
         BoneHighlightText.Text = jointsMode
             ? "Красный — выбранная deform-кость · голубой — deform · жёлтый — service ancestor"
             : mode3 && ProtectedRegionEditorActive
-                ? "Голубой контур — объём · синий — rigid-ядро · жёлтый — внешний переход (у Head на шее) · фиолетовый — внешняя деталь"
+                ? "Зелёная/оранжевая — плечевые границы · бирюзовая — защита Head · рамка мышью — выбор компонентов"
             : mode3
-                ? "Фиолетовый — выбранная жёсткая деталь · голубой — deform · жёлтый — service ancestor"
+                ? "Фиолетовый — выбранный компонент · голубой — deform · жёлтый — service ancestor"
                 : "Голубой — deform · жёлтый — service ancestor";
         UpdateProtectedRegionEditorAvailability();
         UpdateGeneratedAttachmentEditorAvailability();
@@ -8277,17 +8094,16 @@ public partial class MainWindow : Window
                 Frame(_finalTexturedPreviewBounds);
                 _framePreviewOnRefresh = false;
             }
-            UpdateBoneMarkerOverlay();
             UpdateRigSkeletonScreenOverlay();
             UpdateGeneratedAttachmentScreenOverlay();
             UpdateModelTransformGizmoOverlay();
             return;
         }
         bool showFittingPose = !showFinalTexturedPreview &&
-            (ShowFittingPoseCheckBox.IsChecked == true ||
-             ProtectedRegionEditorActive);
+            ShowFittingPoseCheckBox.IsChecked == true;
         GeneratedSkinningAnalysis? protectedRegionOverlayAnalysis = null;
-        SmoExportScene? sourcePreviewScene = showFinalTexturedPreview
+        SmoExportScene? sourcePreviewScene = showFinalTexturedPreview ||
+                                             ShowTargetSmoCheckBox.IsChecked != true
             ? null
             : _sourceScene;
         bool showTargetFittingPose =
@@ -8332,9 +8148,7 @@ public partial class MainWindow : Window
                 : _replacementScene;
             Matrix4x4 transform = showFinalTexturedPreview
                 ? _finalTexturedPreviewTransform
-                : UsesLegacyRigidPortingMode
-                    ? ReadTransform(false).Matrix
-                    : Matrix4x4.Identity;
+                : Matrix4x4.Identity;
             SetPortingPreviewStatus(null);
             if (showFinalTexturedPreview)
             {
@@ -8344,6 +8158,22 @@ public partial class MainWindow : Window
                 SetPortingPreviewStatus(
                     "Показан полный окончательный writer-вход с импортируемыми текстурами. " +
                     "Серая target-модель, скелет и изоляция деталей временно скрыты.");
+            }
+            else if (UsesStaticModelPortingMode)
+            {
+                if (TryReadTransform(out ReplacementTransform staticTransform))
+                {
+                    transform = staticTransform.Matrix;
+                    SetPortingPreviewStatus(
+                        "Показана статическая модель с текущими размером, поворотом " +
+                        "и положением. При записи эти значения применяются к геометрии " +
+                        "без создания skinning.");
+                }
+                else
+                {
+                    SetPortingPreviewStatus(
+                        "В transform-полях есть ошибка; показана исходная статическая модель.");
+                }
             }
             else if (UsesGeneratedWeightsPortingMode)
             {
@@ -8433,7 +8263,14 @@ public partial class MainWindow : Window
             }
             else if (UsesPreparedModelPortingMode)
             {
-                if (_document is not null && _glbSkinTransferPlan?.CanReplace == true)
+                if (ReplacementIsSmo)
+                {
+                    transform = Matrix4x4.Identity;
+                    SetPortingPreviewStatus(
+                        "Показана декодированная копия SMO-донора. При записи " +
+                        "render forest копируется нативно и не проходит через preview-конвертер.");
+                }
+                else if (_document is not null && _glbSkinTransferPlan?.CanReplace == true)
                 {
                     try
                     {
@@ -8444,10 +8281,7 @@ public partial class MainWindow : Window
                             RebaseBindPoseCheckBox.IsChecked == true
                                 ? SkinnedGeometryTransferMode.RetargetToGameBindPose
                                 : SkinnedGeometryTransferMode.PreservePreparedGeometry,
-                            SelectedSkinnedTextureTransferMode,
-                            ResolveSkinnedMaterialProfile(
-                                _replacementScene,
-                                SelectedSkinnedTextureTransferMode));
+                            ResolveSkinnedMaterialProfile(_replacementScene));
                         // PrepareGeometryPreview already applies the exact writer
                         // geometry path. Applying the editor transform again would
                         // make preview and saved SMO disagree.
@@ -8469,8 +8303,6 @@ public partial class MainWindow : Window
             }
             bool showAttachmentSelection = !showFinalTexturedPreview &&
                 CanSelectGeneratedAttachments;
-            bool hideGeneratedMainBody = showAttachmentSelection &&
-                HideGeneratedMainBodyCheckBox.IsChecked == true;
             if (showAttachmentSelection)
                 UpdateGeneratedAttachmentPreviewCenters(previewScene, transform);
             Dictionary<int, Material>? textureMaterials =
@@ -8478,8 +8310,8 @@ public partial class MainWindow : Window
             for (int meshIndex = 0; meshIndex < previewScene.Meshes.Count; meshIndex++)
             {
                 ImportedMesh mesh = previewScene.Meshes[meshIndex];
-                uint[] renderedIndices = hideGeneratedMainBody
-                    ? RemoveGeneratedMainBodyTriangles(
+                uint[] renderedIndices = showAttachmentSelection
+                    ? FilterGeneratedComponentTriangles(
                         meshIndex,
                         mesh.TriangleIndices)
                     : mesh.TriangleIndices;
@@ -8504,7 +8336,7 @@ public partial class MainWindow : Window
                         renderedIndices,
                         Color.FromArgb(190, 255, 125, 35),
                         all,
-                        boundsFromIndices: hideGeneratedMainBody);
+                        boundsFromIndices: showAttachmentSelection);
                 if (showAttachmentSelection)
                 {
                     _generatedAttachmentMeshByModel[model] = meshIndex;
@@ -8524,13 +8356,6 @@ public partial class MainWindow : Window
                     protectedRegionOverlayAnalysis);
             }
         }
-        else if (_replacementSmoScene is not null)
-        {
-            foreach (SmoExportMesh mesh in _replacementSmoScene.Meshes)
-                AddModel(group, mesh.Positions, mesh.TriangleIndices,
-                    Color.FromArgb(190, 255, 125, 35), all);
-        }
-        ResolveSelectedBonePosition();
         SceneVisual.Content = group;
         if (showFinalTexturedPreview)
         {
@@ -8558,7 +8383,6 @@ public partial class MainWindow : Window
             Frame(all);
             _framePreviewOnRefresh = false;
         }
-        UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
         UpdateModelTransformGizmoOverlay();
@@ -8596,8 +8420,16 @@ public partial class MainWindow : Window
         Matrix4x4 transform,
         GeneratedSkinningAnalysis analysis)
     {
+        AddSeparationPlaneVisualization(
+            group,
+            previewScene,
+            transform,
+            analysis);
         HashSet<GeneratedSkinningSemanticRegion> selected =
-            SelectedProtectedRegions(includeMirroredHand: true).ToHashSet();
+            SelectedProtectionEditorIsHand
+                ? SelectedProtectedRegions(
+                    includeMirroredHand: true).ToHashSet()
+                : [];
         foreach (GeneratedSkinningRegionResolution region in
                  analysis.SemanticRegions.Regions
                      .Where(value => selected.Contains(value.Region))
@@ -8675,6 +8507,199 @@ public partial class MainWindow : Window
         }
     }
 
+    private void AddSeparationPlaneVisualization(
+        Model3DGroup group,
+        ImportedScene previewScene,
+        Matrix4x4 transform,
+        GeneratedSkinningAnalysis analysis)
+    {
+        if (!ProtectedRegionEditorActive)
+            return;
+        if (SelectedProtectionEditorIsHand)
+            return;
+        GeneratedSkinningSeparationPlaneKind selected =
+            SelectedSeparationPlane();
+        foreach (GeneratedSkinningSeparationPlaneResolution stored in
+                 analysis.SemanticRegions.SeparationPlanes
+                     .Where(value => value.Kind !=
+                         GeneratedSkinningSeparationPlaneKind.Back)
+                     .OrderBy(value => value.Kind))
+        {
+            if (!stored.IsAvailable)
+                continue;
+            _separationPlaneDraftAdjustments.TryGetValue(
+                stored.Kind,
+                out GeneratedSkinningSeparationPlaneAdjustment? draft);
+            GeneratedSkinningSeparationPlaneResolution plane =
+                _protectedRegionEditorDirty && draft is not null
+                    ? ApplySeparationPlaneDraft(stored, draft)
+                    : stored;
+            bool isSelected = plane.Kind == selected;
+            Color baseColor = plane.IsEnabled
+                ? plane.Kind switch
+                {
+                    GeneratedSkinningSeparationPlaneKind.LeftShoulder =>
+                        Color.FromArgb(255, 34, 197, 94),
+                    GeneratedSkinningSeparationPlaneKind.RightShoulder =>
+                        Color.FromArgb(255, 249, 115, 22),
+                    GeneratedSkinningSeparationPlaneKind.Head =>
+                        Color.FromArgb(255, 6, 182, 212),
+                    GeneratedSkinningSeparationPlaneKind.Back =>
+                        Color.FromArgb(255, 168, 85, 247),
+                    _ => Color.FromArgb(255, 148, 163, 184)
+                }
+                : Color.FromArgb(220, 148, 163, 184);
+            AddSeparationPlaneModel(
+                group,
+                plane,
+                transform,
+                baseColor,
+                isSelected);
+        }
+
+        GeneratedSkinningSeparationPlaneResolution? selectedPlane = analysis
+            .SemanticRegions.SeparationPlanes.FirstOrDefault(
+                value => value.Kind == selected);
+        if (selectedPlane is null)
+            return;
+        float markerRadius = MathF.Max(
+            MathF.Max(
+                selectedPlane.PreviewHalfExtentU,
+                selectedPlane.PreviewHalfExtentV) * 0.01f,
+            0.00001f);
+        if (selected == GeneratedSkinningSeparationPlaneKind.Head)
+        {
+            GeneratedSkinningRegionResolution? head = analysis.SemanticRegions
+                .Regions.FirstOrDefault(value =>
+                    value.Region == GeneratedSkinningSemanticRegion.Head);
+            if (head is not null)
+            {
+                AddProtectedRegionVertexMarkers(
+                    group,
+                    ResolveProtectedRegionVertices(
+                        previewScene,
+                        head.CoreVerticesByMesh,
+                        transform),
+                    markerRadius,
+                    Color.FromArgb(235, 20, 110, 255));
+            }
+        }
+        AddProtectedRegionVertexMarkers(
+            group,
+            ResolveProtectedRegionVertices(
+                previewScene,
+                analysis.Attachments
+                    .Where(attachment =>
+                        attachment.IntersectedPlanes.Contains(selected))
+                    .SelectMany(attachment => attachment.VerticesByMesh)
+                    .ToArray(),
+                transform),
+            markerRadius,
+            Color.FromArgb(245, 239, 68, 68));
+    }
+
+    private static GeneratedSkinningSeparationPlaneResolution
+        ApplySeparationPlaneDraft(
+            GeneratedSkinningSeparationPlaneResolution automatic,
+            GeneratedSkinningSeparationPlaneAdjustment adjustment)
+    {
+        Vector3 normal = RotateSeparationPlaneAxis(
+            automatic.AutomaticNormal,
+            automatic.RotationSecondaryAxis,
+            adjustment.AngleDegrees);
+        Vector3 axisV = automatic.Kind switch
+        {
+            GeneratedSkinningSeparationPlaneKind.LeftShoulder or
+                GeneratedSkinningSeparationPlaneKind.RightShoulder =>
+                RotateSeparationPlaneAxis(
+                    -automatic.RotationSecondaryAxis,
+                    automatic.AutomaticNormal,
+                    adjustment.AngleDegrees),
+            GeneratedSkinningSeparationPlaneKind.Head => Vector3.Normalize(
+                Vector3.Cross(normal, automatic.AxisU)),
+            GeneratedSkinningSeparationPlaneKind.Back => Vector3.Normalize(
+                Vector3.Cross(automatic.AxisU, normal)),
+            _ => automatic.AxisV
+        };
+        return automatic with
+        {
+            IsEnabled = adjustment.Enabled,
+            Point = automatic.AutomaticPoint +
+                    automatic.OffsetAxis * adjustment.Offset,
+            Normal = normal,
+            AxisV = axisV,
+            Adjustment = adjustment
+        };
+    }
+
+    private static Vector3 RotateSeparationPlaneAxis(
+        Vector3 primary,
+        Vector3 secondary,
+        float angleDegrees)
+    {
+        float radians = angleDegrees * MathF.PI / 180f;
+        return Vector3.Normalize(
+            primary * MathF.Cos(radians) + secondary * MathF.Sin(radians));
+    }
+
+    private static void AddSeparationPlaneModel(
+        Model3DGroup group,
+        GeneratedSkinningSeparationPlaneResolution plane,
+        Matrix4x4 transform,
+        Color color,
+        bool selected)
+    {
+        Vector3 previewCenter = plane.PreviewCenter;
+        Vector3[] corners =
+        [
+            previewCenter - plane.AxisU * plane.PreviewHalfExtentU -
+            plane.AxisV * plane.PreviewHalfExtentV,
+            previewCenter + plane.AxisU * plane.PreviewHalfExtentU -
+            plane.AxisV * plane.PreviewHalfExtentV,
+            previewCenter + plane.AxisU * plane.PreviewHalfExtentU +
+            plane.AxisV * plane.PreviewHalfExtentV,
+            previewCenter - plane.AxisU * plane.PreviewHalfExtentU +
+            plane.AxisV * plane.PreviewHalfExtentV
+        ];
+        Vector3[] transformed = corners
+            .Select(value => Vector3.Transform(value, transform))
+            .ToArray();
+        Color fill = Color.FromArgb(
+            selected ? (byte)72 : (byte)32,
+            color.R,
+            color.G,
+            color.B);
+        AddProtectedRegionOverlayModel(
+            group,
+            transformed,
+            [0, 1, 2, 0, 2, 3],
+            fill);
+        float scale = MathF.Max(
+            Vector3.TransformNormal(plane.AxisU, transform).Length(),
+            Vector3.TransformNormal(plane.AxisV, transform).Length());
+        float radius = MathF.Max(
+            MathF.Max(plane.PreviewHalfExtentU, plane.PreviewHalfExtentV) *
+            scale * (selected ? 0.009f : 0.005f),
+            0.000005f);
+        AddProtectedRegionPolyline(
+            group,
+            transformed,
+            close: true,
+            radius,
+            color);
+        Vector3 normalEnd = plane.Point + plane.Normal *
+            MathF.Min(plane.PreviewHalfExtentU, plane.PreviewHalfExtentV) * 0.3f;
+        AddProtectedRegionPolyline(
+            group,
+            [
+                Vector3.Transform(plane.Point, transform),
+                Vector3.Transform(normalEnd, transform)
+            ],
+            close: false,
+            radius,
+            color);
+    }
+
     private static GeneratedSkinningRegionVolume ApplyProtectedRegionDraftVolume(
         GeneratedSkinningRegionVolume automatic,
         GeneratedSkinningRegionAdjustment adjustment)
@@ -8685,18 +8710,9 @@ public partial class MainWindow : Window
         Vector3 center = automaticProximal +
                          automatic.AxialAxis * axialRadius +
                          automatic.AxialAxis * adjustment.AxialOffset;
-        float angle = adjustment.ForwardTiltDegrees * (MathF.PI / 180f);
-        float cosine = MathF.Cos(angle);
-        float sine = MathF.Sin(angle);
-        Vector3 axialAxis = Vector3.Normalize(
-            automatic.AxialAxis * cosine - automatic.ForwardAxis * sine);
-        Vector3 forwardAxis = Vector3.Normalize(
-            automatic.ForwardAxis * cosine + automatic.AxialAxis * sine);
         return automatic with
         {
             Center = center,
-            AxialAxis = axialAxis,
-            ForwardAxis = forwardAxis,
             AxialRadius = axialRadius,
             LateralRadius = automatic.LateralRadius * adjustment.RadialScale,
             ForwardRadius = automatic.ForwardRadius * adjustment.RadialScale,
@@ -9015,17 +9031,17 @@ public partial class MainWindow : Window
         if (_generatedSkinningPreparation is null)
             return;
 
-        foreach (GeneratedSkinningAttachment attachment in
-                 _generatedSkinningPreparation.Analysis.Attachments)
+        foreach (GeneratedSkinningComponentInfo component in
+                 _generatedSkinningPreparation.Analysis.Components)
         {
-            if (!_selectedGeneratedAttachmentComponents.Contains(
-                    attachment.ComponentIndex))
+            if (!IsGeneratedComponentVisible(component))
                 continue;
-
             Vector3 sum = Vector3.Zero;
+            Vector3 minimum = new(float.PositiveInfinity);
+            Vector3 maximum = new(float.NegativeInfinity);
             int count = 0;
             foreach (TargetRigBodyVertexMembership membership in
-                     attachment.VerticesByMesh)
+                     component.VerticesByMesh)
             {
                 if ((uint)membership.MeshIndex >= (uint)previewScene.Meshes.Count)
                     continue;
@@ -9034,7 +9050,12 @@ public partial class MainWindow : Window
                 {
                     if ((uint)vertexIndex >= (uint)positions.Length)
                         continue;
-                    sum += Vector3.Transform(positions[vertexIndex], transform);
+                    Vector3 transformed = Vector3.Transform(
+                        positions[vertexIndex],
+                        transform);
+                    sum += transformed;
+                    minimum = Vector3.Min(minimum, transformed);
+                    maximum = Vector3.Max(maximum, transformed);
                     count++;
                 }
             }
@@ -9042,8 +9063,11 @@ public partial class MainWindow : Window
             if (count > 0)
             {
                 Vector3 center = sum / count;
-                _generatedAttachmentPreviewCenters[attachment.ComponentIndex] =
+                _generatedAttachmentPreviewCenters[component.ComponentIndex] =
                     new Point3D(center.X, center.Y, center.Z);
+                _generatedComponentPreviewBounds[component.ComponentIndex] = (
+                    new Point3D(minimum.X, minimum.Y, minimum.Z),
+                    new Point3D(maximum.X, maximum.Y, maximum.Z));
             }
         }
     }
@@ -9058,13 +9082,13 @@ public partial class MainWindow : Window
             _selectedGeneratedAttachmentComponents.Count == 0)
             return;
 
-        foreach (GeneratedSkinningAttachment attachment in
-                 _generatedSkinningPreparation.Analysis.Attachments)
+        foreach (GeneratedSkinningComponentInfo component in
+                 _generatedSkinningPreparation.Analysis.Components)
         {
             if (!_selectedGeneratedAttachmentComponents.Contains(
-                    attachment.ComponentIndex))
+                    component.ComponentIndex))
                 continue;
-            TargetRigBodyVertexMembership? membership = attachment.VerticesByMesh
+            TargetRigBodyVertexMembership? membership = component.VerticesByMesh
                 .FirstOrDefault(value => value.MeshIndex == meshIndex);
             if (membership is null || membership.VertexIndices.Count == 0)
                 continue;
@@ -9088,13 +9112,13 @@ public partial class MainWindow : Window
                 continue;
 
             Point3D centerPoint = _generatedAttachmentPreviewCenters.TryGetValue(
-                attachment.ComponentIndex,
+                component.ComponentIndex,
                 out Point3D storedCenter)
                     ? storedCenter
                     : new Point3D(
-                        attachment.AlignedCenter.X,
-                        attachment.AlignedCenter.Y,
-                        attachment.AlignedCenter.Z);
+                        component.AlignedCenter.X,
+                        component.AlignedCenter.Y,
+                        component.AlignedCenter.Z);
             var center = new Vector3(
                 checked((float)centerPoint.X),
                 checked((float)centerPoint.Y),
@@ -9146,11 +9170,21 @@ public partial class MainWindow : Window
         foreach ((int componentIndex, Point3D center) in
                  _generatedAttachmentPreviewCenters.OrderBy(pair => pair.Key))
         {
+            if (!_selectedGeneratedAttachmentComponents.Contains(componentIndex))
+                continue;
             if (!TryProjectToPreview(center, out Point screen, out _))
                 continue;
+            GeneratedSkinningComponentInfo? component =
+                _generatedSkinningPreparation?.Analysis.Components
+                    .FirstOrDefault(value => value.ComponentIndex == componentIndex);
+            Color accent = GetGeneratedComponentAccentColor(component);
             var label = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(225, 150, 20, 180)),
+                Background = new SolidColorBrush(Color.FromArgb(
+                    225,
+                    accent.R,
+                    accent.G,
+                    accent.B)),
                 BorderBrush = Brushes.White,
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
@@ -9170,30 +9204,51 @@ public partial class MainWindow : Window
         }
     }
 
-    private uint[] RemoveGeneratedMainBodyTriangles(
+    private uint[] FilterGeneratedComponentTriangles(
         int meshIndex,
         uint[] triangleIndices)
     {
-        if (_generatedBodySelection is null)
+        if (_generatedSkinningPreparation is not { } preparation ||
+            !_generatedAttachmentComponentByMeshVertex.TryGetValue(
+                meshIndex,
+                out Dictionary<int, int>? componentByVertex))
+        {
+            return triangleIndices;
+        }
+
+        bool showAutomatic = ShowAutomaticComponentsCheckBox.IsChecked == true;
+        bool showHead = ShowHeadComponentsCheckBox.IsChecked == true;
+        bool showBack = ShowBackComponentsCheckBox.IsChecked == true;
+        if (showAutomatic && showHead && showBack)
             return triangleIndices;
 
-        HashSet<int> bodyVertices = _generatedBodySelection.Components
-            .SelectMany(component => component.VerticesByMesh)
-            .Where(membership => membership.MeshIndex == meshIndex)
-            .SelectMany(membership => membership.VertexIndices)
-            .ToHashSet();
-        if (bodyVertices.Count == 0)
-            return triangleIndices;
-
+        Dictionary<int, GeneratedSkinningComponentInfo> componentsByIndex =
+            preparation.Analysis.Components.ToDictionary(
+                component => component.ComponentIndex);
         var visible = new List<uint>(triangleIndices.Length);
         for (int index = 0; index + 2 < triangleIndices.Length; index += 3)
         {
             uint first = triangleIndices[index];
             uint second = triangleIndices[index + 1];
             uint third = triangleIndices[index + 2];
-            if (bodyVertices.Contains(checked((int)first)) &&
-                bodyVertices.Contains(checked((int)second)) &&
-                bodyVertices.Contains(checked((int)third)))
+            GeneratedSkinningComponentInfo? component = null;
+            bool resolved = componentByVertex.TryGetValue(
+                    checked((int)first), out int componentIndex) &&
+                componentByVertex.TryGetValue(
+                    checked((int)second), out int secondComponentIndex) &&
+                componentByVertex.TryGetValue(
+                    checked((int)third), out int thirdComponentIndex) &&
+                componentIndex == secondComponentIndex &&
+                componentIndex == thirdComponentIndex &&
+                componentsByIndex.TryGetValue(
+                    componentIndex,
+                    out component);
+            if (resolved && component is not null &&
+                !IsGeneratedComponentVisible(
+                    component,
+                    showAutomatic,
+                    showHead,
+                    showBack))
             {
                 continue;
             }
@@ -9203,6 +9258,25 @@ public partial class MainWindow : Window
         }
         return visible.ToArray();
     }
+
+    private bool IsGeneratedComponentVisible(
+        GeneratedSkinningComponentInfo component) =>
+        IsGeneratedComponentVisible(
+            component,
+            ShowAutomaticComponentsCheckBox.IsChecked == true,
+            ShowHeadComponentsCheckBox.IsChecked == true,
+            ShowBackComponentsCheckBox.IsChecked == true);
+
+    private static bool IsGeneratedComponentVisible(
+        GeneratedSkinningComponentInfo component,
+        bool showAutomatic,
+        bool showHead,
+        bool showBack) => GetGeneratedComponentDisplayBinding(component) switch
+        {
+            GeneratedComponentDisplayBinding.Head => showHead,
+            GeneratedComponentDisplayBinding.UpperBack => showBack,
+            _ => showAutomatic
+        };
 
     private static GeometryModel3D AddTexturedModel(
         Model3DGroup group,
@@ -9349,6 +9423,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private static Color GetGeneratedComponentAccentColor(
+        GeneratedSkinningComponentInfo? component) => component is null
+        ? Color.FromRgb(100, 116, 139)
+        : GetGeneratedComponentDisplayBinding(component) switch
+        {
+            GeneratedComponentDisplayBinding.Head =>
+                Color.FromRgb(37, 99, 235),
+            GeneratedComponentDisplayBinding.UpperBack =>
+                Color.FromRgb(124, 58, 237),
+            _ => Color.FromRgb(100, 116, 139)
+        };
+
     private ModelTransformGizmoMode SelectedModelTransformGizmoMode =>
         ModelTransformGizmoModeCombo?.SelectedIndex switch
         {
@@ -9378,16 +9464,18 @@ public partial class MainWindow : Window
         pivotScreen = default;
         depth = 0;
         if (_nativeValidationRunning ||
-            _showFinalTexturedPreview || !UsesGeneratedWeightsPortingMode ||
+            _showFinalTexturedPreview || !UsesModelTransformGizmo ||
             _replacementScene is null ||
-            !TryReadGeneratedDonorAlignment(out transform))
+            !TryReadTransform(out transform))
         {
             return false;
         }
 
-        ImportedScene scene = _generatedSkinningEffectiveScene ??
-            _generatedSkinningBaseScene ??
-            _replacementScene;
+        ImportedScene scene = UsesGeneratedWeightsPortingMode
+            ? _generatedSkinningEffectiveScene ??
+              _generatedSkinningBaseScene ??
+              _replacementScene
+            : _replacementScene;
         Vector3[] positions = scene.Meshes
             .SelectMany(mesh => mesh.Positions)
             .ToArray();
@@ -9601,7 +9689,7 @@ public partial class MainWindow : Window
                 out ModelTransformAxis axis,
                 out System.Windows.Vector screenDirection,
                 out double worldUnitsPerPixel) ||
-            !TryReadGeneratedDonorAlignment(out ReplacementTransform transform))
+            !TryReadTransform(out ReplacementTransform transform))
         {
             return false;
         }
@@ -9752,7 +9840,17 @@ public partial class MainWindow : Window
             updated = updated with { Scale = scale };
         }
         WriteTransformEditor(updated);
-        MarkGeneratedAlignmentDraft(updated);
+        if (UsesGeneratedWeightsPortingMode)
+        {
+            MarkGeneratedAlignmentDraft(updated);
+        }
+        else if (UsesStaticModelPortingMode)
+        {
+            _plan = null;
+            PlanSummaryText.Text =
+                "Положение статической модели изменено; проверьте план заново.";
+            RefreshState();
+        }
     }
 
     private static float NormalizeDegrees(float value)
@@ -10023,55 +10121,6 @@ public partial class MainWindow : Window
         2, 0, 5, 1, 2, 5, 3, 1, 5, 0, 3, 5
     ];
 
-    private void ResolveSelectedBonePosition()
-    {
-        _selectedBonePosition = null;
-        if (_replacementSmoDocument is not null || UsesPreparedModelPortingMode ||
-            UsesAdaptDonorWeightsPortingMode || UsesGeneratedWeightsPortingMode)
-            return;
-        if (_document is null || BoneCombo.SelectedItem is not BoneItem selected)
-        {
-            if (BoneHighlightText is not null)
-                BoneHighlightText.Text = "Красный — выбранная palette bone";
-            return;
-        }
-
-        SmoObjectEntry? node = _document.Objects.FirstOrDefault(entry =>
-            entry.Id == selected.ObjectId);
-        IReadOnlyDictionary<int, Matrix4x4> bindMatrices =
-            SmoSkinBindingResolver.ResolveBindWorldMatrices(_document);
-        if (node is null || !bindMatrices.TryGetValue(node.Index, out Matrix4x4 bindWorld))
-        {
-            BoneHighlightText.Text = $"Palette bone: {selected.Display} — позиция недоступна";
-            return;
-        }
-
-        _selectedBonePosition = new Point3D(bindWorld.M41, bindWorld.M42, bindWorld.M43);
-        BoneHighlightText.Text = $"Красный — palette bone {selected.Display}";
-    }
-
-    private void UpdateBoneMarkerOverlay()
-    {
-        if (BoneMarker is null)
-            return;
-        if (_selectedBonePosition is not Point3D bone ||
-            PreviewViewport.ActualWidth <= 0 || PreviewViewport.ActualHeight <= 0)
-        {
-            BoneMarker.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        if (!TryProjectToPreview(bone, out Point screen, out _))
-        {
-            BoneMarker.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        Canvas.SetLeft(BoneMarker, screen.X - BoneMarker.Width * 0.5);
-        Canvas.SetTop(BoneMarker, screen.Y - BoneMarker.Height * 0.5);
-        BoneMarker.Visibility = Visibility.Visible;
-    }
-
     private bool TryProjectToPreview(
         Point3D world,
         out Point screen,
@@ -10110,7 +10159,6 @@ public partial class MainWindow : Window
 
     private void Preview_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
         UpdateModelTransformGizmoOverlay();
@@ -10142,11 +10190,14 @@ public partial class MainWindow : Window
         }
         if (e.ChangedButton == MouseButton.Left && CanSelectGeneratedAttachments)
         {
-            int? componentIndex = FindGeneratedAttachmentComponentAt(
+            _generatedComponentSelectionStart = e.GetPosition(PreviewSurface);
+            _generatedComponentPressedIndex = FindGeneratedAttachmentComponentAt(
                 e.GetPosition(PreviewViewport));
-            SelectGeneratedAttachmentFromPreview(
-                componentIndex,
-                Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+            _generatedComponentSelectionDragging = false;
+            _generatedComponentSelectionToggle =
+                Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            GeneratedComponentSelectionRectangle.Visibility = Visibility.Collapsed;
+            PreviewSurface.CaptureMouse();
             PreviewSurface.Focus();
             e.Handled = true;
             return;
@@ -10181,6 +10232,26 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        if (e.ChangedButton == MouseButton.Left &&
+            _generatedComponentSelectionStart is Point start)
+        {
+            Point current = e.GetPosition(PreviewSurface);
+            if (_generatedComponentSelectionDragging)
+            {
+                SelectGeneratedAttachmentsFromRectangle(
+                    NormalizeSelectionRectangle(start, current),
+                    _generatedComponentSelectionToggle);
+            }
+            else
+            {
+                SelectGeneratedAttachmentFromPreview(
+                    _generatedComponentPressedIndex,
+                    _generatedComponentSelectionToggle);
+            }
+            EndGeneratedComponentRectangleSelection();
+            e.Handled = true;
+            return;
+        }
         if (e.ChangedButton != MouseButton.Middle)
             return;
         EndCameraNavigation();
@@ -10191,11 +10262,41 @@ public partial class MainWindow : Window
     {
         _modelTransformGizmoDrag = null;
         _cameraNavigationMode = CameraNavigationMode.None;
+        EndGeneratedComponentRectangleSelection(releaseCapture: false);
         PreviewSurface.Cursor = null;
     }
 
     private void Preview_MouseMove(object sender, MouseEventArgs e)
     {
+        if (_generatedComponentSelectionStart is Point selectionStart)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                EndGeneratedComponentRectangleSelection();
+                return;
+            }
+            Point current = e.GetPosition(PreviewSurface);
+            System.Windows.Vector selectionDelta = current - selectionStart;
+            if (!_generatedComponentSelectionDragging &&
+                selectionDelta.LengthSquared >= 25)
+            {
+                _generatedComponentSelectionDragging = true;
+            }
+            if (_generatedComponentSelectionDragging)
+            {
+                Rect rectangle = NormalizeSelectionRectangle(
+                    selectionStart,
+                    current);
+                Canvas.SetLeft(GeneratedComponentSelectionRectangle, rectangle.Left);
+                Canvas.SetTop(GeneratedComponentSelectionRectangle, rectangle.Top);
+                GeneratedComponentSelectionRectangle.Width = rectangle.Width;
+                GeneratedComponentSelectionRectangle.Height = rectangle.Height;
+                GeneratedComponentSelectionRectangle.Visibility = Visibility.Visible;
+                PreviewSurface.Cursor = Cursors.Cross;
+            }
+            e.Handled = true;
+            return;
+        }
         if (_modelTransformGizmoDrag is not null)
         {
             if (e.LeftButton != MouseButtonState.Pressed)
@@ -10327,7 +10428,6 @@ public partial class MainWindow : Window
             : new Vector3D(0, 1, 0);
         Camera.NearPlaneDistance = Math.Max(_cameraDistance / 10000.0, 0.001);
         Camera.FarPlaneDistance = Math.Max(_cameraDistance * 100.0, 100.0);
-        UpdateBoneMarkerOverlay();
         UpdateRigSkeletonScreenOverlay();
         UpdateGeneratedAttachmentScreenOverlay();
         UpdateModelTransformGizmoOverlay();
@@ -10402,6 +10502,124 @@ public partial class MainWindow : Window
             componentIndex = candidate;
         }
         return componentIndex;
+    }
+
+    private static Rect NormalizeSelectionRectangle(Point first, Point second) =>
+        new(
+            Math.Min(first.X, second.X),
+            Math.Min(first.Y, second.Y),
+            Math.Abs(second.X - first.X),
+            Math.Abs(second.Y - first.Y));
+
+    private void SelectGeneratedAttachmentsFromRectangle(
+        Rect rectangle,
+        bool toggle)
+    {
+        var captured = new HashSet<int>();
+        foreach (int componentIndex in _generatedComponentPreviewBounds.Keys)
+        {
+            if (TryGetGeneratedComponentScreenBounds(
+                    componentIndex,
+                    out Rect componentBounds) &&
+                rectangle.IntersectsWith(componentBounds))
+            {
+                captured.Add(componentIndex);
+            }
+        }
+        if (_generatedComponentPressedIndex is int pressed)
+            captured.Add(pressed);
+
+        _settingGeneratedAttachmentSelection = true;
+        try
+        {
+            if (!toggle)
+                GeneratedAttachmentList.SelectedItems.Clear();
+            foreach (GeneratedAttachmentListItem item in GeneratedAttachmentList.Items)
+            {
+                if (!captured.Contains(item.ComponentIndex))
+                    continue;
+                if (toggle && GeneratedAttachmentList.SelectedItems.Contains(item))
+                    GeneratedAttachmentList.SelectedItems.Remove(item);
+                else
+                    GeneratedAttachmentList.SelectedItems.Add(item);
+            }
+            if (GeneratedAttachmentList.SelectedItems.Count > 0)
+            {
+                GeneratedAttachmentList.ScrollIntoView(
+                    GeneratedAttachmentList.SelectedItems[0]);
+            }
+        }
+        finally
+        {
+            _settingGeneratedAttachmentSelection = false;
+        }
+        SynchronizeGeneratedAttachmentSelectionFromList();
+    }
+
+    private bool TryGetGeneratedComponentScreenBounds(
+        int componentIndex,
+        out Rect screenBounds)
+    {
+        screenBounds = Rect.Empty;
+        if (!_generatedComponentPreviewBounds.TryGetValue(
+                componentIndex,
+                out (Point3D Minimum, Point3D Maximum) bounds))
+        {
+            return false;
+        }
+
+        Point3D min = bounds.Minimum;
+        Point3D max = bounds.Maximum;
+        Point3D[] corners =
+        [
+            new(min.X, min.Y, min.Z),
+            new(max.X, min.Y, min.Z),
+            new(min.X, max.Y, min.Z),
+            new(max.X, max.Y, min.Z),
+            new(min.X, min.Y, max.Z),
+            new(max.X, min.Y, max.Z),
+            new(min.X, max.Y, max.Z),
+            new(max.X, max.Y, max.Z)
+        ];
+        bool found = false;
+        foreach (Point3D corner in corners)
+        {
+            if (!TryProjectToPreview(corner, out Point screen, out _))
+                continue;
+            if (!found)
+            {
+                screenBounds = new Rect(screen, screen);
+                found = true;
+            }
+            else
+            {
+                screenBounds.Union(screen);
+            }
+        }
+        if (!found &&
+            _generatedAttachmentPreviewCenters.TryGetValue(
+                componentIndex,
+                out Point3D center) &&
+            TryProjectToPreview(center, out Point centerScreen, out _))
+        {
+            screenBounds = new Rect(centerScreen, centerScreen);
+            found = true;
+        }
+        return found;
+    }
+
+    private void EndGeneratedComponentRectangleSelection(
+        bool releaseCapture = true)
+    {
+        _generatedComponentSelectionStart = null;
+        _generatedComponentPressedIndex = null;
+        _generatedComponentSelectionDragging = false;
+        _generatedComponentSelectionToggle = false;
+        if (GeneratedComponentSelectionRectangle is not null)
+            GeneratedComponentSelectionRectangle.Visibility = Visibility.Collapsed;
+        PreviewSurface.Cursor = null;
+        if (releaseCapture && PreviewSurface.IsMouseCaptured)
+            PreviewSurface.ReleaseMouseCapture();
     }
 
     private void SelectGeneratedAttachmentFromPreview(
@@ -10591,11 +10809,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private sealed record BoneItem(int Slot, uint ObjectId, string Display);
-    private sealed record SmoReplacementLoadResult(
-        string FullPath,
-        SmoDocument Document,
-        SmoExportScene Scene);
     private sealed record GeneratedSkinningCalculationResult(
         ReplacementTransform Alignment,
         TargetRigBodySelection BodySelection,
@@ -10616,31 +10829,90 @@ public partial class MainWindow : Window
         string FullPath,
         ImportedScene SourceScene,
         ImportedScene EffectiveScene,
-        RigidGlbTextureBundle? RigidTextureBundle,
-        ImportedTextureCatalogResult Catalog,
-        string? TextureDirectory,
-        string? TextureBindingIssue,
-        string? GeometryOnlyFallbackIssue);
+        ImportedTextureCatalogResult Catalog);
     private sealed record TargetRigJointItem(int JointIndex, string Display);
-    private sealed record GeneratedAttachmentListItem(
-        GeneratedSkinningAttachment Attachment)
+    private static GeneratedComponentDisplayBinding GetGeneratedComponentDisplayBinding(
+        GeneratedSkinningComponentInfo component)
     {
-        public int ComponentIndex => Attachment.ComponentIndex;
-
-        public override string ToString()
+        if (component.ManualAssignment ==
+            GeneratedSkinningComponentAttachmentTarget.Head)
         {
-            string meshes = string.Join(", ", Attachment.MeshNames);
-            string assignment = Attachment.ManualAssignment switch
-            {
-                GeneratedSkinningComponentAttachmentTarget.UpperBack =>
-                    "вручную → спина",
-                GeneratedSkinningComponentAttachmentTarget.Head =>
-                    "вручную → голова",
-                _ => $"авто → {Attachment.TargetBoneName}"
-            };
-            return $"#{ComponentIndex} · {meshes} · " +
-                   $"{Attachment.VertexCount:N0} вершин · {assignment}";
+            return GeneratedComponentDisplayBinding.Head;
         }
+        if (component.ManualAssignment ==
+            GeneratedSkinningComponentAttachmentTarget.UpperBack)
+        {
+            return GeneratedComponentDisplayBinding.UpperBack;
+        }
+        return component.AutomaticBinding switch
+        {
+            GeneratedSkinningAutomaticComponentBinding.Head =>
+                GeneratedComponentDisplayBinding.Head,
+            GeneratedSkinningAutomaticComponentBinding.UpperBack =>
+                GeneratedComponentDisplayBinding.UpperBack,
+            _ => GeneratedComponentDisplayBinding.Automatic
+        };
+    }
+
+    private sealed record GeneratedAttachmentListItem(
+        GeneratedSkinningComponentInfo Component)
+    {
+        public int ComponentIndex => Component.ComponentIndex;
+
+        public string Badge => GetGeneratedComponentDisplayBinding(Component) switch
+        {
+            GeneratedComponentDisplayBinding.Head => "ГОЛОВА",
+            GeneratedComponentDisplayBinding.UpperBack => "СПИНА",
+            _ => "АВТО"
+        };
+
+        public string Title =>
+            $"#{ComponentIndex} · {string.Join(", ", Component.MeshNames)}";
+
+        public string Details =>
+            $"{Component.VertexCount:N0} вершин · " +
+            $"{Component.TriangleCount:N0} треугольников";
+
+        public string AssignmentText => Component.ManualAssignment switch
+        {
+            GeneratedSkinningComponentAttachmentTarget.Head =>
+                "Ручное исключение → Head",
+            GeneratedSkinningComponentAttachmentTarget.UpperBack =>
+                "Ручное исключение → Spine_03",
+            _ => Component.AutomaticBinding switch
+            {
+                GeneratedSkinningAutomaticComponentBinding.Head =>
+                    "Автоматическая привязка → Head",
+                GeneratedSkinningAutomaticComponentBinding.UpperBack =>
+                    "Автоматическая привязка → Spine_03",
+                _ => "Авто: создаваемые деформируемые веса"
+            }
+        };
+
+        public Brush AccentBrush => GetGeneratedComponentDisplayBinding(Component) switch
+        {
+            GeneratedComponentDisplayBinding.Head =>
+                new SolidColorBrush(Color.FromRgb(37, 99, 235)),
+            GeneratedComponentDisplayBinding.UpperBack =>
+                new SolidColorBrush(Color.FromRgb(124, 58, 237)),
+            _ => new SolidColorBrush(Color.FromRgb(100, 116, 139))
+        };
+
+        public Brush BackgroundBrush => GetGeneratedComponentDisplayBinding(Component) switch
+        {
+            GeneratedComponentDisplayBinding.Head =>
+                new SolidColorBrush(Color.FromRgb(239, 246, 255)),
+            GeneratedComponentDisplayBinding.UpperBack =>
+                new SolidColorBrush(Color.FromRgb(245, 243, 255)),
+            _ => new SolidColorBrush(Color.FromRgb(248, 250, 252))
+        };
+    }
+
+    private enum GeneratedComponentDisplayBinding
+    {
+        Automatic,
+        Head,
+        UpperBack
     }
     private readonly record struct RigJointScreenPoint(
         int JointIndex,
@@ -10673,7 +10945,7 @@ public partial class MainWindow : Window
         PreparedModel = 1,
         AdaptSkeleton = 2,
         GenerateWeights = 3,
-        LegacyRigid = 4
+        StaticModel = 4
     }
 
     private enum CameraNavigationMode

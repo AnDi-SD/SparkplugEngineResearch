@@ -172,32 +172,31 @@ dotnet run --project `
   250 260830
 ```
 
-Optional arguments select an output root and the child private-memory limit in
-MiB. A fixed seed reproduces the same authoring commands and makes a failing
-pipeline stage diagnosable from its JSON report.
+Optional arguments select an output root, the child private-memory limit in MiB
+and the supervisor timeout in seconds. A fixed seed reproduces the same authoring
+commands and makes a failing pipeline stage diagnosable from its JSON report.
 
-The final 2026-08-27 regression with seed `82744` completed 1,000 mixed edits:
+The final 2026-08-29 regression with seed `82744` completed 1,000 mixed edits:
 602 transforms, 238 shared placements, one external import, one complete model
 replacement, 53 texture replacements, 67 removals and 38 collision operations.
 Both archive checkpoints built and reopened successfully. The final
 7,190,186-byte result contains 4,781 parsed objects; peak worker working set was
-363.9 MiB under a 1,024 MiB hard limit and the final build took 17.2 seconds.
+356.9 MiB and the final build took 17.1 seconds.
 Repeated build and project re-import produced the same SHA-256
-`5F0966193AB44DC39B890EDAD2C8EA2CC73E60E586857EAF5725C6CA9853EB6D`.
-That exact candidate was then accepted by the native game loader, returned a
-non-null resource and survived the contextual observation window without a
-crash. A separate 31-part/13-texture 4K GLB regression produced a
+`2E95388BC62E29A29F7ADE974DF9C09EEE2AE12283E6185648FC59CB943B4884`.
+That exact candidate was then accepted by the native game loader, reached
+scene-ready level 28, passed a DirectInput movement/camera probe and completed
+without a crash. A separate 31-part/13-texture 4K GLB regression produced a
 134,376,352-byte level with all 729 meshes decodable and a 1,412.3 MiB aggregate
 worker peak.
 
 ## Import and diagnostics
 
-Model addition, legacy single-resource replacement and complete replacement pass
+Model addition and complete replacement pass
 through one `SmoLevelImportValidator` contract in both the GUI and
 `SmoLVLcreator.Core`. It rejects malformed topology, inconsistent optional
 channels, broken material/texture references, non-finite positions, skinned
-level resources and, only for the legacy in-place writer, incompatible
-mesh-part counts before editor history changes. Project-backed complete
+level resources before editor history changes. Project-backed complete
 replacement may change the number of parts because it adds a new resource graph
 and removes the old scene branches instead of forcing bytes into old mesh slots.
 Non-fatal decoder repairs and the MASK-to-engine-alpha compatibility decision are
@@ -246,7 +245,7 @@ target; mesh parts, shared materials, textures and alpha state are retained as
 separate immutable project assets and enter the output stream only when preview
 or SMO output is built. One isolated worker serializes the complete model and
 returns only new forest plans, blobs and catalog metadata to the editor; no
-rolling full SMO is written to disk. The strict additive adapter rejects a legacy importer
+rolling full SMO is written to disk. The strict additive adapter rejects a serializer
 result if it changes, moves or removes an imported object instead of adding
 complete inline forests.
 The resulting mesh cards support the same `Place` button and viewport

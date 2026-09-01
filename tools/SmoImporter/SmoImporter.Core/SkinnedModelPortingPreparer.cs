@@ -37,9 +37,8 @@ public sealed record SkinnedModelPortingPreparation(
     ImportedScene PreparedScene)
 {
     /// <summary>
-    /// Static geometry arranged around the temporary fitting pose. Legacy
-    /// preparations have no separate fitting phase, so this defaults to the
-    /// canonical prepared scene.
+    /// Static geometry arranged around the temporary fitting pose. Modes with
+    /// no separate fitting phase use the canonical prepared scene.
     /// </summary>
     public ImportedScene FittingPreviewScene { get; init; } = PreparedScene;
 }

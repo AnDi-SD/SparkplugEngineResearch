@@ -85,18 +85,6 @@ public static class FixedSizeTextureWriter
     }
 
     /// <summary>
-    /// Compatibility alias for the original diagnostic API. The corrected BGRA
-    /// path is now used by the verified atlas writer through <see cref="ReplaceRgba"/>;
-    /// ordinary single-texture replacement still uses <see cref="ReplaceRgb"/>
-    /// unless its caller explicitly opts into complete alpha transfer.
-    /// </summary>
-    public static byte[] ReplaceRgbaDiagnosticUnsafe(
-        byte[] smoData,
-        int textureIndex,
-        ReadOnlySpan<byte> imageData)
-        => ReplaceRgba(smoData, textureIndex, imageData);
-
-    /// <summary>
     /// Replaces RGB and keeps the encoded source image dimensions. Existing host
     /// alpha is resized to the new dimensions and preserved.
     /// </summary>

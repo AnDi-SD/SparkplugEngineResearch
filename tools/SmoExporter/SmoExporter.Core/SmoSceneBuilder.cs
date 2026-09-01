@@ -318,7 +318,7 @@ public static class SmoSceneBuilder
         string sourcePath = document.SourcePath ?? "memory.smo";
         string hash = Convert.ToHexString(SHA256.HashData(document.Data.Span));
         return new SmoExportScene(
-            sourcePath, hash, document.Header.Version, resources, options.SceneMode,
+            sourcePath, hash, document.Header.PlatformMask, resources, options.SceneMode,
             meshes, meshPlacements, nodes, skins, animations, warnings);
     }
 

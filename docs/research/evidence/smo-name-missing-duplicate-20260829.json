@@ -6,10 +6,10 @@
     "EvidenceKind": "runtime:name_missing_target_tolerance",
     "SourcePath": "docs/research/evidence/smo-name-missing-duplicate-20260829.json",
     "Locator": "bloom_jeans.smo parent object[14] R_Ankle->Z_Ankle name@0x1B0 and leaf object[13] R_Toe->Z_Toe name@0x198; load run-20260829-000650-409; exact parent run-20260829-000749-239",
-    "Observation": "PC native loader tolerates a missing animation-name target locally. Both one-byte same-length mutations returned non-null native resources, reached CP08, survived three seconds, and produced no engine rejection or crash. Static audit moved exactly 168 tracks from exact to missing for each name. After target load the parent trace had no exact R_Ankle or Z_Ankle equality and no R_Ankle/Z_Ankle cross-match. This confirms loader/error-path tolerance, but does not yet prove the visual bind-pose or descendant-transform fallback.",
+    "Observation": "PC native loader tolerates a missing animation-name target locally. CP10 at 0x00454628 observed Z_Ankle and Z_Toe receiving a new name/transform slot 0xD8 with previous spTransformTrackEval field +0x10 equal to 0xFFFFFFFF, rather than reusing the original R_Ankle or R_Toe slot. In the missing-parent case descendant foot_right still had an exact lookup and its pristine slot 0x46, so the subtree registry remains intact. Evidence: binding run-20260829-121344-792 and descendant run-20260829-122234-682. CP11 at transform evaluator method 0x005FEBB0 had zero tracked calls under startLevel=2 in evaluate run-20260829-122618-722; final bind-pose and world-transform inheritance remain unmeasured.",
     "Confidence": "confirmed",
     "SourceSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
-    "CreatedUtc": "2026-08-28T21:30:00Z"
+    "CreatedUtc": "2026-08-29T09:35:00Z"
   },
   {
     "TypeIdentifier": "spNode",
@@ -18,9 +18,9 @@
     "EvidenceKind": "runtime:duplicate_name_key_collapse",
     "SourcePath": "docs/research/evidence/smo-name-missing-duplicate-20260829.json",
     "Locator": "bloom_jeans.smo object[13] R_Toe->L_Toe name@0x198 and object[8] L_Toe->R_Toe name@0x117; load run-20260829-001037-136; exact runs run-20260829-001130-431, run-20260829-001835-835, run-20260829-002040-762, run-20260829-002259-938",
-    "Observation": "PC native loader accepts duplicate spNode names in both object-order directions. R_Toe->L_Toe leaves exact hits only for the single L_Toe key and makes R_Toe missing; the mirror mutation leaves exact hits only for R_Toe and makes L_Toe missing. Both duplicated lookups return the same exact tree node and track slot (L_Toe 0x3B, R_Toe 0x3F), so the namespace collapses to one name key rather than preserving two independently addressable targets. Whether the resulting track is applied to the first, last, or both same-name SMO nodes still requires a transform/frame probe.",
+    "Observation": "PC native loader accepts duplicate spNode names in both object-order directions. CP10 at 0x00454628 observed two distinct spTransformTrackEval instances for each duplicate pair, each initially unbound at field +0x10 = 0xFFFFFFFF, then both assigned the same remaining name/transform slot: L_Toe 0x3B after R_Toe->L_Toe and R_Toe 0x3F after L_Toe->R_Toe. This proves all-target binding and excludes first-only or last-only behavior at the binding layer. Evidence: calibration run-20260829-121058-976 and full binding run-20260829-121344-792. CP11 had zero tracked evaluator calls under startLevel=2 in evaluate run-20260829-122618-722, so final PRS/world matrices were not sampled.",
     "Confidence": "confirmed",
     "SourceSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
-    "CreatedUtc": "2026-08-28T21:30:00Z"
+    "CreatedUtc": "2026-08-29T09:35:00Z"
   }
 ]

@@ -90,7 +90,50 @@ public sealed record GeneratedSkinningAttachment(
     /// of an applied semantic region. Explicit manual assignments take precedence.
     /// </summary>
     public GeneratedSkinningSemanticRegion? SemanticAssignment { get; init; }
+
+    /// <summary>
+    /// Non-null when a whole detached component was classified by the enabled
+    /// protective Head rule or the strict-majority Back rule. This is still
+    /// covered by the global confirmation gate; explicit manual assignments
+    /// always take precedence.
+    /// </summary>
+    public GeneratedSkinningComponentAttachmentTarget? PlaneAssignment { get; init; }
+
+    /// <summary>
+    /// Planes crossing this connected surface without placing a strict majority
+    /// on the attachment side. Such a component is never split and requires a
+    /// whole-component manual choice.
+    /// </summary>
+    public IReadOnlyList<GeneratedSkinningSeparationPlaneKind> IntersectedPlanes
+        { get; init; } = Array.Empty<GeneratedSkinningSeparationPlaneKind>();
+
+    public bool RequiresManualPlaneAssignment =>
+        ManualAssignment is null && IntersectedPlanes.Count > 0;
 }
+
+public enum GeneratedSkinningAutomaticComponentBinding
+{
+    GeneratedWeights,
+    Head,
+    UpperBack
+}
+
+/// <summary>
+/// One complete connected donor surface exposed to the manual exception UI.
+/// Unlike <see cref="GeneratedSkinningAttachment"/>, this list contains every
+/// renderable component, including surfaces which currently use generated
+/// deform weights.
+/// </summary>
+public sealed record GeneratedSkinningComponentInfo(
+    int ComponentIndex,
+    IReadOnlyList<int> MeshIndices,
+    IReadOnlyList<string> MeshNames,
+    int VertexCount,
+    int TriangleCount,
+    Vector3 AlignedCenter,
+    IReadOnlyList<TargetRigBodyVertexMembership> VerticesByMesh,
+    GeneratedSkinningAutomaticComponentBinding AutomaticBinding,
+    GeneratedSkinningComponentAttachmentTarget? ManualAssignment);
 
 public sealed record GeneratedSkinningAnalysis(
     GeneratedSkinningAlignment Alignment,
@@ -121,18 +164,26 @@ public sealed record GeneratedSkinningAnalysis(
     /// <summary>Total connected surfaces in the donor topology.</summary>
     public int DonorComponentCount { get; init; }
 
-    /// <summary>Smooth vertices whose capsule score was reduced by a torso/head field.</summary>
+    /// <summary>Every renderable connected donor surface and its current binding.</summary>
+    public IReadOnlyList<GeneratedSkinningComponentInfo> Components { get; init; } =
+        Array.Empty<GeneratedSkinningComponentInfo>();
+
+    /// <summary>Smooth vertices whose capsule score was reduced by a torso field.</summary>
     public int AnatomicalVolumeAffectedVertexCount { get; init; }
 
     /// <summary>
-    /// Smooth vertices for which every anatomical-field contribution was zero
-    /// or could not improve the legacy capsule score; their score path remains
-    /// bit-identical to the legacy implementation.
+    /// Smooth vertices which use only the target-bone capsule field.
     /// </summary>
-    public int AnatomicalVolumeLegacyVertexCount { get; init; }
+    public int CapsuleOnlyVertexCount { get; init; }
 
     /// <summary>Selected-body vertices handled by a semantic core/transition.</summary>
     public int SemanticRegionAppliedVertexCount { get; init; }
+
+    /// <summary>
+    /// Renderable donor vertices promoted from complete disconnected components
+    /// to rigid one-hot Head ownership before smooth capsule weighting.
+    /// </summary>
+    public int HeadProtectedComponentVertexCount { get; init; }
 
     /// <summary>
     /// Smooth lower-body vertices for which the sagittal wall removed every
@@ -141,7 +192,13 @@ public sealed record GeneratedSkinningAnalysis(
     public int LowerBodyWallAffectedVertexCount { get; init; }
 
     /// <summary>
-    /// Target-calibrated semantic head/hand volumes and their exact captured
+    /// Smooth vertices for which at least one enabled shoulder wall removed
+    /// arm or central-body capsules before weight ranking.
+    /// </summary>
+    public int ShoulderWallAffectedVertexCount { get; init; }
+
+    /// <summary>
+    /// Target-calibrated Hand volumes, hard Head plane and their exact captured
     /// original-donor vertex memberships.
     /// </summary>
     public GeneratedSkinningRegionAnalysis SemanticRegions { get; init; } =
@@ -153,8 +210,9 @@ public sealed record GeneratedSkinningAnalysis(
             string.Empty);
 
     /// <summary>
-    /// Bounded internal instrumentation for proving that adaptive legacy
-    /// palette probes do not repeat semantic-region resolution.
+    /// Bounded internal instrumentation for proving that adaptive palette
+    /// probes do not repeat the heavy semantic-region resolution. Lightweight
+    /// separation-plane filtering is intentionally repeated in every probe.
     /// </summary>
     internal int InternalPreparationPassCount { get; init; }
 
@@ -191,10 +249,11 @@ public static partial class GeneratedSkinningPreparer
 {
     // Start with the full nearest-four result and reduce it only when the exact
     // target palette plan proves that result cannot fit. Three is the highest
-    // compatible limit observed for Bloom/Layla; two remains a conservative
-    // final retry for targets with fewer writable hardware palettes.
+    // compatible limit observed for Bloom/Layla; two remains the preferred
+    // conservative retry. One is an emergency, palette-proven fallback for an
+    // otherwise unwritable pose and is selected only after 4/3/2 all fail.
     private const int TopFourComparisonInfluences = 4;
-    private const int MinimumGeneratedInfluences = 2;
+    private const int MinimumGeneratedInfluences = 1;
     private const float PositionEpsilon = 0.000001f;
     private const float WeightEpsilon = 0.000001f;
     private const float MainComponentAmbiguityRatio = 0.85f;
@@ -236,7 +295,7 @@ public static partial class GeneratedSkinningPreparer
             }
             Report(
                 0.06 + (PreparationPassCount - 1) * 0.22,
-                $"Расчёт весов: проход {PreparationPassCount} из максимум 4");
+                $"Расчёт весов: проход {PreparationPassCount} из максимум 5");
         }
 
         public void RecordSemanticResolution()
@@ -356,6 +415,25 @@ public static partial class GeneratedSkinningPreparer
         string BoneName,
         int SkeletonJointIndex);
 
+    private sealed record ComponentPlaneClassification(
+        GeneratedSkinningComponentAttachmentTarget? Assignment,
+        IReadOnlyList<GeneratedSkinningSeparationPlaneKind> IntersectedPlanes);
+
+    private readonly record struct ComponentPlaneCoverage(
+        int PositionCount,
+        int PositivePositionCount,
+        int NegativePositionCount)
+    {
+        public bool CrossesPlane =>
+            PositivePositionCount > 0 && NegativePositionCount > 0;
+
+        public bool HasPositiveMajority =>
+            (long)PositivePositionCount * 2 > PositionCount;
+
+        public bool HasNegativeMajority =>
+            (long)NegativePositionCount * 2 > PositionCount;
+    }
+
     private sealed record SideCalibration(
         float CenterX,
         float LeftDirection,
@@ -381,6 +459,8 @@ public static partial class GeneratedSkinningPreparer
         bool AnatomicalVolumeAffected)
     {
         public bool LowerBodyWallAffected { get; init; }
+
+        public bool ShoulderWallAffected { get; init; }
     }
 
     private sealed record FittingDeformationComparison(
@@ -418,8 +498,8 @@ public static partial class GeneratedSkinningPreparer
             componentOverrides: null);
 
     /// <summary>
-    /// Applies validated detached-component assignments while retaining the
-    /// legacy single dominant donor-body selection.
+    /// Applies validated whole-component rigid assignments after using the
+    /// automatically selected dominant surface only as an alignment hint.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -438,11 +518,11 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Generates weights for an explicitly selected multi-component donor body.
-    /// The selection must have been produced for the exact target rig, donor
-    /// scene, and alignment supplied here. Every selected connected component
-    /// receives smooth generated weights; all remaining components retain the
-    /// conservative rigid-attachment path.
+    /// Uses an explicitly selected multi-component donor body for robust
+    /// alignment and pose fitting. The selection must have been produced for
+    /// the exact target rig, donor scene, and alignment supplied here. It does
+    /// not classify rigid details: after fitting, every donor component joins
+    /// one logical deform body unless Back or a manual assignment extracts it.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -461,10 +541,10 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Generates smooth weights for the exact selected body and applies
-    /// validated one-hot assignments to explicitly selected detached surfaces.
-    /// Manual assignments cannot target body components and are independent of
-    /// the donor alignment identity.
+    /// Uses the exact selected body as a fitting hint, then generates smooth
+    /// weights for the logical body and applies validated one-hot assignments
+    /// to explicitly extracted whole components. Manual assignments take
+    /// precedence over automatic Back classification.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -495,7 +575,18 @@ public static partial class GeneratedSkinningPreparer
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
         ImportedScene donor,
-        TargetRigFittingPoseSnapshot fittingPose)
+        TargetRigFittingPoseSnapshot fittingPose) =>
+        Prepare(
+            target,
+            donor,
+            fittingPose,
+            enableAutomaticBackExtraction: true);
+
+    public static GeneratedSkinningPreparationResult Prepare(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        bool enableAutomaticBackExtraction)
     {
         ArgumentNullException.ThrowIfNull(fittingPose);
         fittingPose.ValidateForTarget(target);
@@ -513,7 +604,8 @@ public static partial class GeneratedSkinningPreparer
             fittingPose,
             alignmentOverride: null,
             bodySelection: null,
-            componentOverrides: null);
+            componentOverrides: null,
+            enableAutomaticBackExtraction: enableAutomaticBackExtraction);
     }
 
     /// <summary>
@@ -549,8 +641,8 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Fitting-pose counterpart of the manual detached-component overload,
-    /// retaining the legacy single dominant donor-body selection.
+    /// Fitting-pose counterpart of the manual whole-component overload. The
+    /// automatic dominant surface remains a fitting hint, not a rigid filter.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -580,16 +672,31 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Applies a validated multi-component donor body selection before smooth
-    /// generated weights and fitting-pose baking. This overload is deliberately
-    /// explicit: legacy calls keep their single-dominant-surface safety policy.
+    /// Applies a validated multi-component donor body selection to alignment
+    /// and fitting-pose calibration. Smooth/rigid eligibility is evaluated only
+    /// afterwards across all meshes by the universal Head/Back/manual rules.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
         ImportedScene donor,
         TargetRigFittingPoseSnapshot fittingPose,
         ReplacementTransform donorAlignment,
-        TargetRigBodySelection bodySelection)
+        TargetRigBodySelection bodySelection) =>
+        Prepare(
+            target,
+            donor,
+            fittingPose,
+            donorAlignment,
+            bodySelection,
+            enableAutomaticBackExtraction: true);
+
+    public static GeneratedSkinningPreparationResult Prepare(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform donorAlignment,
+        TargetRigBodySelection bodySelection,
+        bool enableAutomaticBackExtraction)
     {
         ArgumentNullException.ThrowIfNull(fittingPose);
         ArgumentNullException.ThrowIfNull(bodySelection);
@@ -608,7 +715,8 @@ public static partial class GeneratedSkinningPreparer
             fittingPose,
             ValidateExplicitAlignment(donorAlignment),
             bodySelection,
-            componentOverrides: null);
+            componentOverrides: null,
+            enableAutomaticBackExtraction: enableAutomaticBackExtraction);
     }
 
     /// <summary>
@@ -646,9 +754,9 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Applies validated semantic head/hand adjustments to an explicitly
-    /// selected smooth body before fitting-pose geometry is baked back to the
-    /// canonical target bind pose.
+    /// Applies validated semantic head/hand adjustments to the logical deform
+    /// body before fitting-pose geometry is baked back to the canonical target
+    /// bind pose. The explicit body selection is only the fitting hint.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -674,9 +782,9 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Full generated-skinning preparation contract: explicit body selection,
-    /// detached-component assignments, and semantic vertex-region edits are
-    /// all independently revalidated against their immutable source state.
+    /// Full generated-skinning preparation contract: explicit fitting-body
+    /// selection, whole-component assignments, and semantic vertex-region edits
+    /// are independently revalidated against their immutable source state.
     /// </summary>
     public static GeneratedSkinningPreparationResult Prepare(
         SmoDocument target,
@@ -717,7 +825,30 @@ public static partial class GeneratedSkinningPreparer
         GeneratedSkinningComponentOverrides? componentOverrides,
         GeneratedSkinningRegionOverrides? regionOverrides,
         CancellationToken cancellationToken,
-        IProgress<GeneratedSkinningProgress>? progress = null)
+        IProgress<GeneratedSkinningProgress>? progress = null) =>
+        PrepareCancellable(
+            target,
+            donor,
+            fittingPose,
+            donorAlignment,
+            bodySelection,
+            componentOverrides,
+            regionOverrides,
+            cancellationToken,
+            progress,
+            enableAutomaticBackExtraction: true);
+
+    public static GeneratedSkinningPreparationResult PrepareCancellable(
+        SmoDocument target,
+        ImportedScene donor,
+        TargetRigFittingPoseSnapshot fittingPose,
+        ReplacementTransform donorAlignment,
+        TargetRigBodySelection? bodySelection,
+        GeneratedSkinningComponentOverrides? componentOverrides,
+        GeneratedSkinningRegionOverrides? regionOverrides,
+        CancellationToken cancellationToken,
+        IProgress<GeneratedSkinningProgress>? progress,
+        bool enableAutomaticBackExtraction)
     {
         ArgumentNullException.ThrowIfNull(fittingPose);
         fittingPose.ValidateForTarget(target);
@@ -732,7 +863,8 @@ public static partial class GeneratedSkinningPreparer
             componentOverrides,
             regionOverrides,
             cancellationToken,
-            progress);
+            progress,
+            enableAutomaticBackExtraction);
     }
 
     public static GeneratedSkinningPreparationResult PrepareCancellable(
@@ -767,15 +899,16 @@ public static partial class GeneratedSkinningPreparer
         GeneratedSkinningComponentOverrides? componentOverrides,
         GeneratedSkinningRegionOverrides? regionOverrides = null,
         CancellationToken cancellationToken = default,
-        IProgress<GeneratedSkinningProgress>? progress = null)
+        IProgress<GeneratedSkinningProgress>? progress = null,
+        bool enableAutomaticBackExtraction = true)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
         ValidatePreparationResourceBudget(target, donor);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Select the palette-compatible influence limit from the exact legacy
-        // capsule result with semantic replacement disabled. Semantic cores can
+        // Select the palette-compatible influence limit from a baseline result
+        // with semantic replacement disabled. Semantic cores can
         // remove palette pressure; allowing that to raise the global limit would
         // silently change weights on vertices outside every captured region.
         // Once selected, the same limit is used for the semantic result.
@@ -784,12 +917,12 @@ public static partial class GeneratedSkinningPreparer
         var passState = new PreparationPassState(cancellationToken, progress);
         var paletteFailures = new List<string>();
         int selectedInfluenceLimit = MinimumGeneratedInfluences;
-        bool legacyPlanFits = false;
+        bool palettePlanFits = false;
         for (int maximumInfluences = TopFourComparisonInfluences;
              maximumInfluences >= MinimumGeneratedInfluences;
              maximumInfluences--)
         {
-            GeneratedSkinningPreparationResult legacyCandidate =
+            GeneratedSkinningPreparationResult baselineCandidate =
                 PrepareWithInfluenceLimit(
                     target,
                     donor,
@@ -800,7 +933,8 @@ public static partial class GeneratedSkinningPreparer
                     regionOverrides,
                     maximumInfluences,
                     applySemanticRegions: false,
-                    passState: passState);
+                    passState: passState,
+                    enableAutomaticBackExtraction);
             cancellationToken.ThrowIfCancellationRequested();
             passState.Report(
                 0.17 + (passState.PreparationPassCount - 1) * 0.22,
@@ -811,8 +945,7 @@ public static partial class GeneratedSkinningPreparer
             {
                 plan = SmoSkinnedGlbReplacer.Analyze(
                     target,
-                    legacyCandidate.PreparedScene,
-                    SkinnedTextureTransferMode.PreserveTarget,
+                    baselineCandidate.PreparedScene,
                     cancellationToken: passState.CancellationToken);
             }
             catch (PaletteSearchLimitException exception)
@@ -831,7 +964,7 @@ public static partial class GeneratedSkinningPreparer
             if (capacityFailures.Length == 0)
             {
                 selectedInfluenceLimit = maximumInfluences;
-                legacyPlanFits = true;
+                palettePlanFits = true;
                 break;
             }
 
@@ -849,22 +982,22 @@ public static partial class GeneratedSkinningPreparer
             regionOverrides,
             selectedInfluenceLimit,
             applySemanticRegions: true,
-            passState: passState);
+            passState: passState,
+            enableAutomaticBackExtraction);
         cancellationToken.ThrowIfCancellationRequested();
         passState.Report(0.88, "Финальная проверка semantic regions и palettes");
-        if (!legacyPlanFits)
+        if (!palettePlanFits)
         {
-            candidate = AppendAnalysisWarning(
-                candidate,
-                "Even the minimum generated influence limit remains incompatible " +
-                "with the exact PreserveTarget palette plan. " +
+            throw new InvalidOperationException(
+                "Even the minimum generated influence limit is incompatible " +
+                "with the clean visual-graph palette plan. " +
                 string.Join(" | ", paletteFailures));
         }
         else if (selectedInfluenceLimit < TopFourComparisonInfluences)
         {
             candidate = AppendAnalysisWarning(
                 candidate,
-                $"The exact PreserveTarget palette plan rejected higher legacy " +
+                $"The clean visual-graph palette plan rejected higher " +
                 $"influence limits and selected {selectedInfluenceLimit} as the " +
                 "highest compatible mode-3 limit. Semantic regions retain that " +
                 "same limit so every outside vertex stays bit-identical. " +
@@ -877,7 +1010,6 @@ public static partial class GeneratedSkinningPreparer
             GlbSkinTransferPlan semanticPlan = SmoSkinnedGlbReplacer.Analyze(
                 target,
                 candidate.PreparedScene,
-                SkinnedTextureTransferMode.PreserveTarget,
                 cancellationToken: passState.CancellationToken);
             semanticCapacityFailures = semanticPlan.Messages
                 .Where(IsPaletteCapacityFailure)
@@ -889,16 +1021,14 @@ public static partial class GeneratedSkinningPreparer
         }
         if (semanticCapacityFailures.Length > 0)
         {
-            candidate = AppendAnalysisWarning(
-                candidate,
-                "Semantic rigid regions cannot fit the exact PreserveTarget palette " +
-                $"plan at the legacy-stable {selectedInfluenceLimit}-influence limit. " +
-                "The limit was not reduced because that would alter outside-region " +
-                "weights; disable or adjust the reported semantic regions before " +
-                "writing. " + string.Join(" | ", semanticCapacityFailures));
+            throw new InvalidOperationException(
+                "Semantic rigid regions cannot fit the clean visual-graph " +
+                $"palette plan at the stable {selectedInfluenceLimit}-influence " +
+                "limit. Adjust the reported regions before writing. " +
+                string.Join(" | ", semanticCapacityFailures));
         }
         if (passState.SemanticResolutionCount != 1 ||
-            passState.PreparationPassCount is < 2 or > 4)
+            passState.PreparationPassCount is < 2 or > 5)
         {
             throw new InvalidOperationException(
                 "Generated-skinning adaptive preparation violated its bounded " +
@@ -944,7 +1074,8 @@ public static partial class GeneratedSkinningPreparer
         GeneratedSkinningRegionOverrides? regionOverrides,
         int maximumInfluences,
         bool applySemanticRegions,
-        PreparationPassState passState)
+        PreparationPassState passState,
+        bool enableAutomaticBackExtraction)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
@@ -1036,19 +1167,6 @@ public static partial class GeneratedSkinningPreparer
                 bodySelection,
                 alignmentOverride);
         }
-        HashSet<int> donorBodyComponentIndices = donorBodyComponents
-            .Select(component => component.ComponentIndex)
-            .ToHashSet();
-        IReadOnlyDictionary<int, ManualComponentAssignment> manualAssignments =
-            ValidateComponentOverrides(
-                target,
-                donor,
-                donorTopology,
-                donorSources,
-                donorBodyComponentIndices,
-                targetSkeleton,
-                componentOverrides);
-
         Vector3[] targetMainPositions = GetComponentPositions(
             targetSources, targetMain);
         Vector3[] donorMainPositions = donorBodyComponents
@@ -1117,15 +1235,94 @@ public static partial class GeneratedSkinningPreparer
                 targetBounds,
                 fittingWorldMatrices,
                 out IReadOnlyList<string> envelopeDiagnostics);
+        SeparationPlanePreparation separationPlanePreparation =
+            ResolveSeparationPlanes(
+                rig,
+                targetSkeleton,
+                targetBounds,
+                fittingWorldMatrices,
+                sideCalibration,
+                anatomicalVolumes,
+                regionOverrides);
+
+        Vector3[][] alignedPositionsByMesh = donor.Meshes
+            .Select(mesh => mesh.Positions
+                .Select(position => ApplyAlignment(position, alignment))
+                .ToArray())
+            .ToArray();
+        passState.ThrowIfCancellationRequested();
+
+        // Body selection is an alignment/pose-fitting hint only. It must never
+        // decide which disconnected donor meshes receive deform weights. Treat
+        // every renderable component from every source mesh as one logical body,
+        // then apply the planes in their declared order. Shoulder and Head are
+        // protective weight boundaries; only a strict whole-component majority
+        // behind Back (or an explicit manual pin) extracts a rigid detail.
+        int fittingBodyComponentCount = donorBodyComponents.Length;
+        IReadOnlyList<GeneratedSkinningComponentOverride>? requestedOverrides =
+            componentOverrides?.Components;
+        HashSet<int> explicitlyPinnedIndices = requestedOverrides is null
+            ? []
+            : requestedOverrides
+                .Where(component => component is not null)
+                .Select(component => component.ComponentIndex)
+                .ToHashSet();
+        Dictionary<int, ComponentPlaneClassification> planeClassificationByComponent =
+            donorTopology.Components.ToDictionary(
+                component => component.ComponentIndex,
+                component => ClassifyDetachedComponentAgainstPlanes(
+                    component,
+                    alignedPositionsByMesh,
+                    separationPlanePreparation));
+        int[] backSeparatedComponentIndices = enableAutomaticBackExtraction
+            ? donorTopology.Components
+                .Where(component =>
+                    !explicitlyPinnedIndices.Contains(component.ComponentIndex) &&
+                    planeClassificationByComponent[component.ComponentIndex].Assignment ==
+                        GeneratedSkinningComponentAttachmentTarget.UpperBack)
+                .Select(component => component.ComponentIndex)
+                .Order()
+                .ToArray()
+            : [];
+        HashSet<int> rigidDetailComponentIndices = backSeparatedComponentIndices
+            .Concat(explicitlyPinnedIndices)
+            .ToHashSet();
+        donorBodyComponents = donorTopology.Components
+            .Where(component =>
+                !rigidDetailComponentIndices.Contains(component.ComponentIndex))
+            .OrderBy(component => component.ComponentIndex)
+            .ToArray();
+        if (donorBodyComponents.Length == 0)
+        {
+            throw new InvalidDataException(
+                "Rigid component assignments extracted every donor component. " +
+                "The logical deform body would be empty; return at least one " +
+                "component to automatic weights.");
+        }
+
+        HashSet<int> donorBodyComponentIndices = donorBodyComponents
+            .Select(component => component.ComponentIndex)
+            .ToHashSet();
+        IReadOnlyDictionary<int, ManualComponentAssignment> manualAssignments =
+            ValidateComponentOverrides(
+                target,
+                donor,
+                donorTopology,
+                donorSources,
+                donorBodyComponentIndices,
+                targetSkeleton,
+                componentOverrides);
 
         var attachments = new List<GeneratedSkinningAttachment>();
+        var components = new List<GeneratedSkinningComponentInfo>(
+            donorTopology.Components.Count);
         var warnings = new List<string>
         {
             "Generated-skinning input must be upright and Y-up after explicit donor " +
             "alignment, unmirrored, and facing the same direction as the target; an " +
             "unskinned surface cannot prove mirror or facing automatically.",
-            "Weights were generated heuristically from target bind-pose bone capsules " +
-            "plus finite target-weight-calibrated torso/head fields; extreme animation " +
+            "Weights were generated heuristically from target bind-pose bone capsules, " +
+            "finite target-weight-calibrated torso fields and hard separation planes; extreme animation " +
             "poses still require visual inspection."
         };
         foreach (string warning in donor.ImportWarnings)
@@ -1147,13 +1344,21 @@ public static partial class GeneratedSkinningPreparer
                 $"Robust alignment ignored {ignoredTargetComponents} disconnected target " +
                 "surface component(s); only the largest target body component affected fit.");
         }
-        if (bodySelection is not null)
+        warnings.Add(enableAutomaticBackExtraction
+            ? $"Pose fitting used {fittingBodyComponentCount} provisional component(s), " +
+              $"and the preliminary Back pass retained {donorBodyComponents.Length} " +
+              "component(s). Semantic Head mesh protection is resolved next and may " +
+              "return protected source-mesh components to the logical deform body."
+            : $"Pose fitting used {fittingBodyComponentCount} provisional component(s). " +
+              "Automatic Back extraction is disabled; every component remains on " +
+              "generated weights unless Head protection or an explicit manual " +
+              "Head/UpperBack exception owns it.");
+        if (explicitlyPinnedIndices.Count > 0)
         {
             warnings.Add(
-                $"Explicit body selection combined {donorBodyComponents.Length} validated " +
-                $"connected donor surface component(s) for smooth weights; the remaining " +
-                $"{donorTopology.Components.Count - donorBodyComponents.Length} component(s) " +
-                "stay on the rigid-attachment path.");
+                $"Manual assignments extracted {explicitlyPinnedIndices.Count} whole " +
+                "component(s) from the logical deform body: " +
+                $"{string.Join(", ", explicitlyPinnedIndices.Order().Select(index => $"#{index}"))}.");
         }
         if (donorTopology.UnreferencedVertices.Count > 0 ||
             donorTopology.RemovedDegenerateTriangleCount > 0)
@@ -1178,12 +1383,6 @@ public static partial class GeneratedSkinningPreparer
                 "and cannot affect rendered geometry.");
         }
 
-        Vector3[][] alignedPositionsByMesh = donor.Meshes
-            .Select(mesh => mesh.Positions
-                .Select(position => ApplyAlignment(position, alignment))
-                .ToArray())
-            .ToArray();
-        passState.ThrowIfCancellationRequested();
         SemanticRegionPreparation? semanticRegionPreparation = null;
         if (applySemanticRegions)
         {
@@ -1204,10 +1403,11 @@ public static partial class GeneratedSkinningPreparer
                 sideCalibration,
                 capsules,
                 anatomicalVolumes,
+                separationPlanePreparation,
                 maximumInfluences,
                 alignment,
                 fittingPose,
-                manualAssignments.Keys.ToHashSet(),
+                explicitlyPinnedIndices,
                 regionOverrides);
             passState.ThrowIfCancellationRequested();
             foreach (GeneratedSkinningRegionResolution resolution in
@@ -1216,6 +1416,37 @@ public static partial class GeneratedSkinningPreparer
                 foreach (string diagnostic in resolution.Warnings)
                     warnings.Add(diagnostic);
             }
+        }
+
+        HashSet<int> semanticHeadComponentIndices = semanticRegionPreparation is null
+            ? []
+            : semanticRegionPreparation.ComponentAssignments
+                .Where(pair => pair.Value.Region ==
+                    GeneratedSkinningSemanticRegion.Head)
+                .Select(pair => pair.Key)
+                .ToHashSet();
+        donorBodyComponentIndices.UnionWith(semanticHeadComponentIndices);
+        donorBodyComponents = donorTopology.Components
+            .Where(component => donorBodyComponentIndices.Contains(
+                component.ComponentIndex))
+            .OrderBy(component => component.ComponentIndex)
+            .ToArray();
+        int[] effectiveBackSeparatedComponentIndices =
+            backSeparatedComponentIndices
+                .Where(index => !semanticHeadComponentIndices.Contains(index))
+                .ToArray();
+        warnings.Add(
+            $"Final generated weights treat {donorBodyComponents.Length} component(s) " +
+            "from all donor meshes as one logical deform body. Imported mesh " +
+            "boundaries only propagate protective Head ownership; they never create " +
+            "a rigid detail by themselves.");
+        if (effectiveBackSeparatedComponentIndices.Length > 0)
+        {
+            warnings.Add(
+                $"After whole-mesh Head protection, the Back separation plane " +
+                $"extracted {effectiveBackSeparatedComponentIndices.Length} whole " +
+                $"component(s) by strict majority: " +
+                $"{string.Join(", ", effectiveBackSeparatedComponentIndices.Select(index => $"#{index}"))}.");
         }
         ImportedJointIndices[][] jointsByMesh = donor.Meshes
             .Select(mesh => new ImportedJointIndices[mesh.Positions.Length])
@@ -1238,7 +1469,10 @@ public static partial class GeneratedSkinningPreparer
         int smoothVertexCount = 0;
         int anatomicalVolumeAffectedVertexCount = 0;
         int lowerBodyWallAffectedVertexCount = 0;
+        int shoulderWallAffectedVertexCount = 0;
         int semanticRegionAppliedVertexCount = 0;
+        int smoothSemanticRegionAppliedVertexCount = 0;
+        int headProtectedComponentVertexCount = 0;
         double discardedTopFourWeightMassSum = 0;
         double topFourToFinalWeightL1DistanceSum = 0;
         float maximumDiscardedTopFourWeightMass = 0;
@@ -1248,6 +1482,81 @@ public static partial class GeneratedSkinningPreparer
         {
             passState.ThrowIfCancellationRequested();
             bool isMain = donorBodyComponentIndices.Contains(component.ComponentIndex);
+            ComponentPlaneClassification planeClassification =
+                planeClassificationByComponent[component.ComponentIndex];
+            ManualComponentAssignment? manualAssignment = manualAssignments
+                .GetValueOrDefault(component.ComponentIndex);
+            SemanticComponentAssignment? semanticComponentAssignment = null;
+            bool isWholeHeadComponent =
+                semanticRegionPreparation?.ComponentAssignments.TryGetValue(
+                        component.ComponentIndex,
+                        out semanticComponentAssignment) == true &&
+                semanticComponentAssignment.Region ==
+                    GeneratedSkinningSemanticRegion.Head;
+            int[] componentMeshIndices = component.Vertices
+                .Select(vertex => vertex.MeshIndex)
+                .Distinct()
+                .Order()
+                .ToArray();
+            string[] componentMeshNames = componentMeshIndices
+                .Select(index => donorSources[index].Name)
+                .ToArray();
+            IReadOnlyList<TargetRigBodyVertexMembership> componentMembership =
+                BuildComponentMembership(component, donorSources);
+            GeneratedSkinningAutomaticComponentBinding automaticBinding =
+                isWholeHeadComponent
+                    ? GeneratedSkinningAutomaticComponentBinding.Head
+                    : !isMain && manualAssignment is null
+                        ? GeneratedSkinningAutomaticComponentBinding.UpperBack
+                        : GeneratedSkinningAutomaticComponentBinding.GeneratedWeights;
+            components.Add(new GeneratedSkinningComponentInfo(
+                component.ComponentIndex,
+                Array.AsReadOnly(componentMeshIndices),
+                Array.AsReadOnly(componentMeshNames),
+                component.Vertices.Length,
+                component.TriangleCount,
+                ApplyAlignment(component.Center, alignment),
+                componentMembership,
+                automaticBinding,
+                manualAssignment?.Target));
+            if (isWholeHeadComponent)
+            {
+                int headJoint = semanticComponentAssignment?
+                    .AnchorSkeletonJointIndex ??
+                    separationPlanePreparation.HeadSkeletonJointIndex;
+                if (headJoint < 0 ||
+                    (uint)headJoint >=
+                    (uint)targetSkeleton.Skeleton.JointNames.Count)
+                {
+                    throw new InvalidDataException(
+                        $"Head protection classified whole component " +
+                        $"#{component.ComponentIndex}, but the exact target " +
+                        "Head joint is unavailable.");
+                }
+                var rigidHeadIndices = new ImportedJointIndices(
+                    checked((ushort)headJoint), 0, 0, 0);
+                foreach (GeometryVertex vertex in component.Vertices)
+                {
+                    if ((headProtectedComponentVertexCount & 0xFFF) == 0)
+                        passState.ThrowIfCancellationRequested();
+                    jointsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
+                        rigidHeadIndices;
+                    weightsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
+                        Vector4.UnitX;
+                    topFourJointsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
+                        rigidHeadIndices;
+                    topFourWeightsByMesh[vertex.MeshIndex][vertex.VertexIndex] =
+                        Vector4.UnitX;
+                    assignedByMesh[vertex.MeshIndex][vertex.VertexIndex] = true;
+                    if (applySemanticRegions &&
+                        semanticRegionPreparation!.Assignments.ContainsKey(vertex))
+                    {
+                        semanticRegionAppliedVertexCount++;
+                    }
+                    headProtectedComponentVertexCount++;
+                }
+                continue;
+            }
             if (isMain)
             {
                 foreach (GeometryVertex vertex in component.Vertices)
@@ -1280,7 +1589,8 @@ public static partial class GeneratedSkinningPreparer
                             anatomicalVolumes,
                             sideCalibration,
                             targetBounds.Size.Y,
-                            maximumInfluences);
+                            maximumInfluences,
+                            separationPlanePreparation);
                     }
                     WriteInfluences(
                         generated.Influences,
@@ -1297,8 +1607,13 @@ public static partial class GeneratedSkinningPreparer
                         anatomicalVolumeAffectedVertexCount++;
                     if (generated.LowerBodyWallAffected)
                         lowerBodyWallAffectedVertexCount++;
+                    if (generated.ShoulderWallAffected)
+                        shoulderWallAffectedVertexCount++;
                     if (usesSemanticRegion)
+                    {
                         semanticRegionAppliedVertexCount++;
+                        smoothSemanticRegionAppliedVertexCount++;
+                    }
                     discardedTopFourWeightMassSum +=
                         generated.DiscardedTopFourWeightMass;
                     topFourToFinalWeightL1DistanceSum +=
@@ -1315,15 +1630,7 @@ public static partial class GeneratedSkinningPreparer
 
             Vector3 alignedCenter = ApplyAlignment(component.Center, alignment);
             string componentLabel = DescribeComponent(component, donorSources);
-            ManualComponentAssignment? manualAssignment = manualAssignments
-                .GetValueOrDefault(component.ComponentIndex);
-            SemanticComponentAssignment? semanticComponentAssignment =
-                applySemanticRegions
-                    ? semanticRegionPreparation!.ComponentAssignments
-                        .GetValueOrDefault(component.ComponentIndex)
-                    : null;
             BoneCapsule attachmentBone;
-            bool usesAutomaticRootAssignment = false;
             if (manualAssignment is not null)
             {
                 attachmentBone = capsules
@@ -1335,41 +1642,27 @@ public static partial class GeneratedSkinningPreparer
                         $"Manual target joint '{manualAssignment.BoneName}' has no " +
                         "generated capsule.");
             }
-            else if (semanticComponentAssignment is not null)
+            else if (planeClassification.Assignment ==
+                     GeneratedSkinningComponentAttachmentTarget.UpperBack)
             {
                 attachmentBone = capsules
-                    .Where(capsule => capsule.SkeletonJointIndex ==
-                                      semanticComponentAssignment.AnchorSkeletonJointIndex)
+                    .Where(capsule => string.Equals(
+                        capsule.BoneName,
+                        "Spine_03",
+                        StringComparison.Ordinal))
                     .OrderBy(capsule => DistanceToCapsuleCenterline(
                         alignedCenter, capsule.Start, capsule.End))
                     .FirstOrDefault() ?? throw new InvalidDataException(
-                        $"Semantic {semanticComponentAssignment.Region} anchor joint " +
-                        $"'{semanticComponentAssignment.AnchorBoneName}' has no " +
-                        "generated capsule.");
+                        "The Back plane classified a component, but exact target " +
+                        "joint Spine_03 has no generated capsule.");
             }
             else
             {
-                if (TrySelectElongatedHeadRoot(
-                        component,
-                        alignedPositionsByMesh,
-                        capsules,
-                        targetBounds.Size.Y,
-                        out BoneCapsule? rootedBone))
-                {
-                    attachmentBone = rootedBone;
-                    usesAutomaticRootAssignment = true;
-                }
-                else
-                {
-                    attachmentBone = SelectAttachmentBone(
-                        alignedCenter,
-                        capsules,
-                        sideCalibration,
-                        targetBounds.Size.Y,
-                        warnings,
-                        componentLabel,
-                        component.ComponentIndex);
-                }
+                throw new InvalidDataException(
+                    $"Internal logical-body invariant failed for component " +
+                    $"#{component.ComponentIndex}: a component may leave the deform " +
+                    "body only through an explicit manual assignment or a strict " +
+                    "whole-component Back majority.");
             }
             foreach (GeometryVertex vertex in component.Vertices)
             {
@@ -1386,20 +1679,10 @@ public static partial class GeneratedSkinningPreparer
             }
             float distance = DistanceToCapsuleCenterline(
                 alignedCenter, attachmentBone.Start, attachmentBone.End);
-            int[] meshIndices = component.Vertices
-                .Select(vertex => vertex.MeshIndex)
-                .Distinct()
-                .Order()
-                .ToArray();
-            string[] meshNames = meshIndices
-                .Select(index => donorSources[index].Name)
-                .ToArray();
-            IReadOnlyList<TargetRigBodyVertexMembership> membership =
-                BuildComponentMembership(component, donorSources);
             attachments.Add(new GeneratedSkinningAttachment(
                 component.ComponentIndex,
-                Array.AsReadOnly(meshIndices),
-                Array.AsReadOnly(meshNames),
+                Array.AsReadOnly(componentMeshIndices),
+                Array.AsReadOnly(componentMeshNames),
                 component.Vertices.Length,
                 component.TriangleCount,
                 attachmentBone.BoneName,
@@ -1407,28 +1690,23 @@ public static partial class GeneratedSkinningPreparer
                 distance,
                 alignedCenter)
             {
-                VerticesByMesh = membership,
+                VerticesByMesh = componentMembership,
                 ManualAssignment = manualAssignment?.Target,
-                SemanticAssignment = manualAssignment is null
-                    ? semanticComponentAssignment?.Region
-                    : null
+                SemanticAssignment = null,
+                PlaneAssignment = manualAssignment is null
+                    ? planeClassification.Assignment
+                    : null,
+                IntersectedPlanes = planeClassification.IntersectedPlanes
             });
             warnings.Add(manualAssignment is not null
                 ? $"Detached component {componentLabel}#{component.ComponentIndex} uses the " +
                   $"validated manual {manualAssignment.Target} assignment and is rigidly " +
                   $"one-hot weighted to exact joint {attachmentBone.BoneName}."
-                : semanticComponentAssignment is not null
-                    ? $"Detached component {componentLabel}#{component.ComponentIndex} was " +
-                      $"proven to be a compact {semanticComponentAssignment.Region} companion " +
-                      $"and is rigidly one-hot weighted to exact joint " +
-                      $"{attachmentBone.BoneName}."
-                    : usesAutomaticRootAssignment
-                        ? $"Detached elongated component {componentLabel}" +
-                          $"#{component.ComponentIndex} has a bounded distal root " +
-                          $"inside the target Head envelope and is rigidly one-hot " +
-                          $"weighted to Head instead of its misleading geometric center."
-                    : $"Detached component {componentLabel}#{component.ComponentIndex} was kept " +
-                      $"rigid on {attachmentBone.BoneName}; confirm this attachment before writing SMO.");
+                : $"Detached whole component {componentLabel}" +
+                  $"#{component.ComponentIndex} has a strict majority behind Back " +
+                  $"after Head protection and is rigidly one-hot weighted to exact " +
+                  $"joint {attachmentBone.BoneName}; confirm or change its whole-component " +
+                  "assignment before writing SMO.");
         }
 
         // ImportedSkinning remains indexed exactly like every source vertex
@@ -1468,6 +1746,23 @@ public static partial class GeneratedSkinningPreparer
             weightsByMesh,
             targetSkeleton.Skeleton,
             sideCalibration);
+        if (semanticRegionPreparation is not null)
+        {
+            ValidateShoulderWallWeights(
+                alignedPositionsByMesh,
+                smoothByMesh,
+                jointsByMesh,
+                weightsByMesh,
+                targetSkeleton.Skeleton,
+                semanticRegionPreparation.SeparationPlanes);
+            ValidateHeadPlaneWeights(
+                alignedPositionsByMesh,
+                smoothByMesh,
+                jointsByMesh,
+                weightsByMesh,
+                semanticRegionPreparation.SeparationPlanes,
+                semanticRegionPreparation.Analysis);
+        }
 
         var preparedMeshes = new ImportedMesh[donor.Meshes.Count];
         int preparedVertices = 0;
@@ -1519,18 +1814,37 @@ public static partial class GeneratedSkinningPreparer
             $"{meanDiscardedTopFourWeightMass:G6}; weight L1 distance is max " +
             $"{maximumTopFourToFinalWeightL1Distance:G6}, mean " +
             $"{meanTopFourToFinalWeightL1Distance:G6}.");
+        int capsuleOnlyVertexCount = smoothVertexCount -
+                                     anatomicalVolumeAffectedVertexCount -
+                                     smoothSemanticRegionAppliedVertexCount;
+        if (capsuleOnlyVertexCount < 0)
+        {
+            throw new InvalidDataException(
+                "Generated-skinning accounting produced a negative capsule-only " +
+                "vertex count.");
+        }
         warnings.Add(
-            $"Finite torso/head anatomical fields changed capsule scores for " +
+            $"Finite torso anatomical fields changed capsule scores for " +
             $"{anatomicalVolumeAffectedVertexCount} of {smoothVertexCount} smooth " +
             $"vertices; semantic rigid regions replaced weights for " +
             $"{semanticRegionAppliedVertexCount}; " +
-            $"{smoothVertexCount - anatomicalVolumeAffectedVertexCount - semanticRegionAppliedVertexCount} " +
-            "vertices retained the bit-identical legacy capsule score path.");
+            $"{capsuleOnlyVertexCount} smooth vertices used only the target-bone " +
+            "capsule field.");
         warnings.Add(
             $"The target-rig sagittal lower-body wall excluded opposite-leg " +
             $"capsules for {lowerBodyWallAffectedVertexCount} smooth " +
             "vertex/vertices below Pelvis/Spine_01; close or crossed donor legs " +
             "therefore cannot exchange left/right leg weights across the wall.");
+        warnings.Add(
+            $"The two target-shoulder walls filtered arm/body capsule candidates " +
+            $"for {shoulderWallAffectedVertexCount} smooth vertex/vertices below " +
+            "their shoulder anchors; weights cannot cross either enabled wall.");
+        warnings.Add(
+            $"Head protection assigned {headProtectedComponentVertexCount} vertex/vertices " +
+            "as whole one-hot Head components before any per-vertex capsule " +
+            "weighting. Spatially coherent islands from the same imported mesh " +
+            "share that ownership, so their lower portions cannot fall through " +
+            "to Back/Spine; distant rear islands remain independent.");
 
         // Imported scenes are immutable by contract.  Reusing encoded texture
         // resources avoids cloning every PNG on each of the bounded adaptive
@@ -1589,12 +1903,15 @@ public static partial class GeneratedSkinningPreparer
             TargetRigFingerprint = targetRigFingerprint,
             DonorGeometryFingerprint = donorGeometryFingerprint,
             DonorComponentCount = donorTopology.Components.Count,
+            Components = new ReadOnlyCollection<GeneratedSkinningComponentInfo>(
+                components),
             AnatomicalVolumeAffectedVertexCount = anatomicalVolumeAffectedVertexCount,
-            AnatomicalVolumeLegacyVertexCount =
-                smoothVertexCount - anatomicalVolumeAffectedVertexCount -
-                semanticRegionAppliedVertexCount,
+            CapsuleOnlyVertexCount = capsuleOnlyVertexCount,
             SemanticRegionAppliedVertexCount = semanticRegionAppliedVertexCount,
+            HeadProtectedComponentVertexCount =
+                headProtectedComponentVertexCount,
             LowerBodyWallAffectedVertexCount = lowerBodyWallAffectedVertexCount,
+            ShoulderWallAffectedVertexCount = shoulderWallAffectedVertexCount,
             InternalPreparationPassCount = passState.PreparationPassCount,
             SemanticResolutionPassCount = passState.SemanticResolutionCount
         };
@@ -2060,104 +2377,6 @@ public static partial class GeneratedSkinningPreparer
                 "touches the posed spine line.");
         }
 
-        if (jointsByName.TryGetValue("Neck", out TargetRigJoint? neck) &&
-            jointsByName.TryGetValue("Head", out TargetRigJoint? head) &&
-            layout.SkeletonIndexByRigJoint.TryGetValue(
-                head.JointIndex,
-                out int headSkeletonIndex) &&
-            samplesBySkeleton.TryGetValue(
-                headSkeletonIndex,
-                out List<Vector3>? headSamples) &&
-            headSamples.Distinct().Count() >= MinimumEnvelopeSamples)
-        {
-            Vector3 bindNeck = Translation(neck.BindWorldMatrix);
-            Vector3 bindHead = Translation(head.BindWorldMatrix);
-            BuildVolumeFrame(
-                bindNeck,
-                bindHead,
-                bindLateral,
-                out Vector3 bindUp,
-                out Vector3 bindFrameLateral,
-                out Vector3 bindForward);
-            Vector3[] uniqueHeadSamples = headSamples.Distinct().ToArray();
-            float[] initialForward = uniqueHeadSamples
-                .Select(position => Vector3.Dot(position - bindHead, bindForward))
-                .Order()
-                .ToArray();
-            float forwardSign = Quantile(initialForward, RobustUpperQuantile) >=
-                                -Quantile(initialForward, RobustLowerQuantile)
-                ? 1f
-                : -1f;
-            bindForward *= forwardSign;
-            float[] lateral = uniqueHeadSamples
-                .Select(position => MathF.Abs(Vector3.Dot(
-                    position - bindHead, bindFrameLateral)))
-                .Order()
-                .ToArray();
-            float[] forward = uniqueHeadSamples
-                .Select(position => MathF.Max(0, Vector3.Dot(
-                    position - bindHead, bindForward)))
-                .Order()
-                .ToArray();
-            float[] axial = uniqueHeadSamples
-                .Select(position => Vector3.Dot(position - bindHead, bindUp))
-                .Order()
-                .ToArray();
-            float axialLower = Quantile(axial, RobustLowerQuantile);
-            float axialUpper = Quantile(axial, RobustUpperQuantile);
-            float axialCenter = (axialLower + axialUpper) * 0.5f;
-            float lateralRadius = MathF.Max(
-                Quantile(lateral, RobustUpperQuantile),
-                minimumRadius);
-            float forwardRadius = MathF.Max(
-                Quantile(forward, RobustUpperQuantile) * 0.5f,
-                minimumRadius);
-            float axialRadius = MathF.Max(
-                (axialUpper - axialLower) * 0.5f,
-                minimumRadius);
-
-            Vector3 posedNeck = Translation(GetFittingWorldMatrix(
-                neck,
-                fittingWorldMatrices));
-            Vector3 posedHead = Translation(GetFittingWorldMatrix(
-                head,
-                fittingWorldMatrices));
-            BuildVolumeFrame(
-                posedNeck,
-                posedHead,
-                fittingLateral,
-                out Vector3 posedUp,
-                out Vector3 posedFrameLateral,
-                out Vector3 posedForward);
-            posedForward *= forwardSign;
-            Vector3 center = posedHead +
-                             posedUp * axialCenter +
-                             posedForward * forwardRadius;
-            result[headSkeletonIndex] = new AnatomicalVolume(
-                headSkeletonIndex,
-                "Head",
-                center,
-                center + posedUp * axialRadius,
-                posedFrameLateral,
-                posedForward,
-                lateralRadius,
-                forwardRadius,
-                axialRadius,
-                IsHead: true,
-                uniqueHeadSamples.Length);
-            messages.Add(
-                $"Target-weight shifted Head ellipsoid: {uniqueHeadSamples.Length} samples, " +
-                $"radii ({lateralRadius:G6}, {axialRadius:G6}, " +
-                $"{forwardRadius:G6}); its posterior surface exactly touches the posed " +
-                "head axis.");
-        }
-        else
-        {
-            messages.Add(
-                "Target-weight Head ellipsoid was skipped: exact Neck/Head deform joints " +
-                $"and at least {MinimumEnvelopeSamples} Head-weighted vertices are required.");
-        }
-
         diagnostics = new ReadOnlyCollection<string>(messages);
         return new ReadOnlyDictionary<int, AnatomicalVolume>(result);
     }
@@ -2282,7 +2501,8 @@ public static partial class GeneratedSkinningPreparer
         IReadOnlyDictionary<int, AnatomicalVolume> anatomicalVolumes,
         SideCalibration calibration,
         float targetHeight,
-        int maximumInfluences)
+        int maximumInfluences,
+        SeparationPlanePreparation? separationPlanes = null)
     {
         BodySide vertexSide = ClassifyPositionSide(position, calibration);
         BodySide lowerBodyWallSide = ClassifyLowerBodyWallSide(
@@ -2293,38 +2513,75 @@ public static partial class GeneratedSkinningPreparer
             : lowerBodyWallSide;
         bool lowerBodyWallAffected = lowerBodyWallSide != BodySide.Center &&
                                      lowerBodyWallSide != vertexSide;
+        if (TryGetRigidHeadPlaneJoint(
+                position,
+                separationPlanes,
+                out int rigidHeadJoint))
+        {
+            PackedInfluence[] rigidHead =
+            [new PackedInfluence(checked((ushort)rigidHeadJoint), 1)];
+            return new GeneratedVertexInfluences(
+                rigidHead,
+                rigidHead.ToArray(),
+                DiscardedTopFourWeightMass: 0,
+                TopFourToFinalWeightL1Distance: 0,
+                AnatomicalVolumeAffected: false)
+            {
+                LowerBodyWallAffected = lowerBodyWallAffected,
+                ShoulderWallAffected = false
+            };
+        }
         bool anatomicalVolumeAffected = false;
-        float headFieldAlpha = anatomicalVolumes.Values
-            .Where(volume => volume.IsHead)
-            .Select(volume => AnatomicalVolumeAlpha(
-                DistanceToAnatomicalVolume(position, volume)))
-            .DefaultIfEmpty(0)
-            .Max();
         float torsoFieldAlpha = anatomicalVolumes.Values
             .Where(volume => IsTorsoFieldBone(volume.BoneName))
             .Select(volume => AnatomicalVolumeAlpha(
                 DistanceToAnatomicalVolume(position, volume)))
             .DefaultIfEmpty(0)
-            .Max() * (1 - headFieldAlpha);
-        var distances = capsules
+            .Max();
+        float nearestAutomaticCapsuleDistance = capsules
+            .Where(capsule => capsule.SafeForAutomaticWeights)
+            .Select(capsule => DistanceToCapsuleCenterline(
+                position,
+                capsule.Start,
+                capsule.End))
+            .DefaultIfEmpty(float.PositiveInfinity)
+            .Min();
+        BoneCapsule[] sideCompatibleCapsules = capsules
             .Where(capsule => capsule.SafeForAutomaticWeights &&
                               !IsOpposite(compatibilitySide, capsule.Side))
+            .ToArray();
+        ShoulderPlaneClassification shoulderClassification =
+            ClassifyShoulderPlanes(position, separationPlanes);
+        BoneCapsule[] shoulderCompatibleCapsules = sideCompatibleCapsules
+            .Where(capsule => IsShoulderCapsuleCompatible(
+                capsule.SkeletonJointIndex,
+                shoulderClassification,
+                separationPlanes))
+            .ToArray();
+        bool shoulderWallAffected =
+            shoulderCompatibleCapsules.Length != sideCompatibleCapsules.Length;
+        BoneCapsule[] planeCompatibleCapsules = shoulderCompatibleCapsules
+            .Where(capsule => IsHeadPlaneCapsuleCompatible(
+                position,
+                capsule.SkeletonJointIndex,
+                separationPlanes))
+            .ToArray();
+        var distances = planeCompatibleCapsules
             .GroupBy(capsule => capsule.SkeletonJointIndex)
             .Select(group =>
             {
                 BoneCapsule representative = group.First();
-                float legacyNormalizedDistance = group.Min(capsule =>
+                float capsuleNormalizedDistance = group.Min(capsule =>
                     DistanceToCapsuleCenterline(position, capsule.Start, capsule.End) /
                     capsule.Radius);
-                float normalizedDistance = legacyNormalizedDistance;
+                float normalizedDistance = capsuleNormalizedDistance;
                 if (anatomicalVolumes.TryGetValue(
                         representative.SkeletonJointIndex,
-                        out AnatomicalVolume? volume))
+                        out AnatomicalVolume? volume) &&
+                    !volume.IsHead)
                 {
                     float shapeDistance = DistanceToAnatomicalVolume(position, volume);
                     float alpha = AnatomicalVolumeAlpha(shapeDistance);
-                    if (!volume.IsHead)
-                        alpha *= 1 - headFieldAlpha;
                     // The calibrated primitive is a solid anatomical volume,
                     // not another centreline. Every point inside it has zero
                     // distance to the volume; only the exterior shell grows a
@@ -2333,16 +2590,14 @@ public static partial class GeneratedSkinningPreparer
                     float volumeDistance = MathF.Max(
                         0,
                         shapeDistance - EnvelopeCoreRatio);
-                    if (alpha > 0 && volumeDistance < legacyNormalizedDistance)
+                    if (alpha > 0 && volumeDistance < capsuleNormalizedDistance)
                     {
                         // Do not evaluate a lerp at alpha zero. This explicit
-                        // branch makes the score bit-identical to the old capsule
-                        // path for every vertex outside the finite field.
-                        normalizedDistance = legacyNormalizedDistance +
-                            (volumeDistance - legacyNormalizedDistance) * alpha;
+                        normalizedDistance = capsuleNormalizedDistance +
+                            (volumeDistance - capsuleNormalizedDistance) * alpha;
                         anatomicalVolumeAffected |=
                             BitConverter.SingleToInt32Bits(normalizedDistance) !=
-                            BitConverter.SingleToInt32Bits(legacyNormalizedDistance);
+                            BitConverter.SingleToInt32Bits(capsuleNormalizedDistance);
                     }
                 }
                 if (torsoFieldAlpha > 0 &&
@@ -2357,7 +2612,7 @@ public static partial class GeneratedSkinningPreparer
                     float penalized = normalizedDistance + 16 * torsoFieldAlpha;
                     anatomicalVolumeAffected |=
                         BitConverter.SingleToInt32Bits(penalized) !=
-                        BitConverter.SingleToInt32Bits(legacyNormalizedDistance);
+                        BitConverter.SingleToInt32Bits(capsuleNormalizedDistance);
                     normalizedDistance = penalized;
                 }
                 float absoluteDistance = group.Min(capsule =>
@@ -2373,9 +2628,16 @@ public static partial class GeneratedSkinningPreparer
                                    !float.IsFinite(value.absoluteDistance)))
         {
             throw new InvalidDataException(
-                "A donor body vertex has no finite side-compatible target bone capsule.");
+                "A donor body vertex has no finite target bone capsule compatible " +
+                "with the side and shoulder separation walls.");
         }
-        if (distances[0].absoluteDistance > targetHeight * 0.75f)
+        // This guard diagnoses a bad donor-to-target alignment. Separation
+        // planes deliberately remove nearby but anatomically incompatible
+        // capsules, so using the first surviving candidate here would reject
+        // otherwise valid vertices near a wall. Measure against the complete
+        // safe target skeleton while keeping the filtered list for weights.
+        if (!float.IsFinite(nearestAutomaticCapsuleDistance) ||
+            nearestAutomaticCapsuleDistance > targetHeight * 0.75f)
         {
             throw new InvalidDataException(
                 "The aligned donor body extends too far from the target skeleton for " +
@@ -2423,7 +2685,8 @@ public static partial class GeneratedSkinningPreparer
             l1Distance,
             anatomicalVolumeAffected)
         {
-            LowerBodyWallAffected = lowerBodyWallAffected
+            LowerBodyWallAffected = lowerBodyWallAffected,
+            ShoulderWallAffected = shoulderWallAffected
         };
     }
 
@@ -2465,7 +2728,7 @@ public static partial class GeneratedSkinningPreparer
         {
             // Hard lower torso boundary: the new field contributes exactly
             // zero below Spine_01, keeping pelvis/thigh/leg capsule scores on
-            // their legacy bit path.
+            // their capsule-only path.
             return EnvelopeFadeRatio;
         }
         if (string.Equals(volume.BoneName, "Spine_03", StringComparison.Ordinal) &&
@@ -2715,6 +2978,132 @@ public static partial class GeneratedSkinningPreparer
         }
     }
 
+    private static void ValidateShoulderWallWeights(
+        IReadOnlyList<Vector3[]> positionsByMesh,
+        IReadOnlyList<bool[]> smoothByMesh,
+        IReadOnlyList<ImportedJointIndices[]> jointsByMesh,
+        IReadOnlyList<Vector4[]> weightsByMesh,
+        ImportedSkeleton skeleton,
+        SeparationPlanePreparation preparation)
+    {
+        for (int meshIndex = 0; meshIndex < positionsByMesh.Count; meshIndex++)
+        {
+            for (int vertexIndex = 0;
+                 vertexIndex < positionsByMesh[meshIndex].Length;
+                 vertexIndex++)
+            {
+                if (!smoothByMesh[meshIndex][vertexIndex])
+                    continue;
+                ShoulderPlaneClassification classification =
+                    ClassifyShoulderPlanes(
+                        positionsByMesh[meshIndex][vertexIndex],
+                        preparation);
+                if (!classification.LeftActive &&
+                    !classification.RightActive)
+                {
+                    continue;
+                }
+
+                ImportedJointIndices joints = jointsByMesh[meshIndex][vertexIndex];
+                Vector4 weights = weightsByMesh[meshIndex][vertexIndex];
+                ushort[] indices = [joints.X, joints.Y, joints.Z, joints.W];
+                for (int influence = 0; influence < indices.Length; influence++)
+                {
+                    float weight = VectorComponent(weights, influence);
+                    if (weight <= WeightEpsilon)
+                        continue;
+                    int jointIndex = indices[influence];
+                    bool compatible = IsShoulderCapsuleCompatible(
+                        jointIndex,
+                        classification,
+                        preparation);
+                    if (compatible)
+                        continue;
+                    string jointName = (uint)jointIndex <
+                        (uint)skeleton.JointNames.Count
+                            ? skeleton.JointNames[jointIndex]
+                            : $"joint#{jointIndex}";
+                    throw new InvalidDataException(
+                        $"Shoulder-wall validation found a crossing influence " +
+                        $"on mesh {meshIndex}, vertex {vertexIndex}: " +
+                        $"{jointName}={weight:G6}.");
+                }
+            }
+        }
+    }
+
+    private static void ValidateHeadPlaneWeights(
+        IReadOnlyList<Vector3[]> positionsByMesh,
+        IReadOnlyList<bool[]> smoothByMesh,
+        IReadOnlyList<ImportedJointIndices[]> jointsByMesh,
+        IReadOnlyList<Vector4[]> weightsByMesh,
+        SeparationPlanePreparation preparation,
+        GeneratedSkinningRegionAnalysis analysis)
+    {
+        if (!preparation.ByKind.TryGetValue(
+                GeneratedSkinningSeparationPlaneKind.Head,
+                out GeneratedSkinningSeparationPlaneResolution? plane) ||
+            !plane.IsEnabled ||
+            !plane.IsAvailable)
+        {
+            return;
+        }
+        GeneratedSkinningRegionResolution head = analysis.Regions.Single(
+            value => value.Region == GeneratedSkinningSemanticRegion.Head);
+        if (!head.IsApplied || head.AnchorSkeletonJointIndex < 0)
+        {
+            throw new InvalidDataException(
+                "The enabled Head plane did not produce a validated rigid Head " +
+                "region; adjust or disable the plane before writing SMO. " +
+                $"Status={head.Status}; diagnostics=" +
+                string.Join(" | ", head.Warnings));
+        }
+
+        for (int meshIndex = 0; meshIndex < positionsByMesh.Count; meshIndex++)
+        {
+            for (int vertexIndex = 0;
+                 vertexIndex < positionsByMesh[meshIndex].Length;
+                 vertexIndex++)
+            {
+                if (!smoothByMesh[meshIndex][vertexIndex])
+                    continue;
+                bool headSide = GeneratedSkinningSeparationPlaneMath.SignedDistance(
+                    positionsByMesh[meshIndex][vertexIndex],
+                    plane) >= -PositionEpsilon;
+                ImportedJointIndices joints = jointsByMesh[meshIndex][vertexIndex];
+                Vector4 weights = weightsByMesh[meshIndex][vertexIndex];
+                ushort[] indices = [joints.X, joints.Y, joints.Z, joints.W];
+                if (headSide)
+                {
+                    if (indices[0] != head.AnchorSkeletonJointIndex ||
+                        MathF.Abs(weights.X - 1) > WeightEpsilon ||
+                        weights.Y > WeightEpsilon ||
+                        weights.Z > WeightEpsilon ||
+                        weights.W > WeightEpsilon)
+                    {
+                        throw new InvalidDataException(
+                            $"Head-plane validation found a deforming Head-side " +
+                            $"vertex on mesh {meshIndex}, vertex {vertexIndex}.");
+                    }
+                    continue;
+                }
+
+                for (int influence = 0; influence < indices.Length; influence++)
+                {
+                    if (VectorComponent(weights, influence) > WeightEpsilon &&
+                        preparation.HeadSkeletonJointIndices.Contains(
+                            indices[influence]))
+                    {
+                        throw new InvalidDataException(
+                            $"Head-plane validation found a Head-branch influence " +
+                            $"below the plane on mesh {meshIndex}, vertex " +
+                            $"{vertexIndex}.");
+                    }
+                }
+            }
+        }
+    }
+
     private static GeneratedSkinningAlignment BuildAlignment(
         RobustBounds target,
         RobustBounds donor)
@@ -2832,28 +3221,28 @@ public static partial class GeneratedSkinningPreparer
         }
         if (fittingWorldMatrices is null)
         {
-            float[] legacyLeft = deformJoints
+            float[] bindLeft = deformJoints
                 .Where(joint => ClassifyBoneSide(joint.Name) == BodySide.Left)
                 .Select(joint => Translation(joint.BindWorldMatrix).X)
                 .ToArray();
-            float[] legacyRight = deformJoints
+            float[] bindRight = deformJoints
                 .Where(joint => ClassifyBoneSide(joint.Name) == BodySide.Right)
                 .Select(joint => Translation(joint.BindWorldMatrix).X)
                 .ToArray();
-            if (legacyLeft.Length == 0 || legacyRight.Length == 0)
+            if (bindLeft.Length == 0 || bindRight.Length == 0)
             {
                 throw new InvalidDataException(
                     "Target skeleton has no unambiguous named left/right " +
                     "deform-joint pairs.");
             }
-            float legacyLeftAverage = legacyLeft.Average();
-            float legacyRightAverage = legacyRight.Average();
-            float legacySeparation = legacyLeftAverage - legacyRightAverage;
-            float legacyMinimumSeparation = MathF.Max(
+            float bindLeftAverage = bindLeft.Average();
+            float bindRightAverage = bindRight.Average();
+            float bindSeparation = bindLeftAverage - bindRightAverage;
+            float bindMinimumSeparation = MathF.Max(
                 targetBounds.Size.X * 0.05f,
                 targetBounds.Size.Y * 0.01f);
-            if (!float.IsFinite(legacySeparation) ||
-                MathF.Abs(legacySeparation) <= legacyMinimumSeparation)
+            if (!float.IsFinite(bindSeparation) ||
+                MathF.Abs(bindSeparation) <= bindMinimumSeparation)
             {
                 throw new InvalidDataException(
                     "Target left/right bone positions do not define a stable " +
@@ -2861,10 +3250,10 @@ public static partial class GeneratedSkinningPreparer
             }
             return new SideCalibration(
                 targetBounds.Center.X,
-                MathF.Sign(legacySeparation),
+                MathF.Sign(bindSeparation),
                 Vector3.Zero,
                 Vector3.Zero,
-                legacyMinimumSeparation * 0.5f,
+                bindMinimumSeparation * 0.5f,
                 UseVectorAxis: false)
             {
                 LowerBodyWallOrigin = lowerBodyWallOrigin,

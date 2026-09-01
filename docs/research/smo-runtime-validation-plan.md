@@ -2,6 +2,12 @@
 
 Статус: рабочий план; точка возобновления зафиксирована 29 августа 2026 года.
 
+> С 29 августа 2026 года активная работа ограничена обязательными gate для
+> SmoLVLcreator и production model import. Сокращённая граница, порядок и
+> критерии выпуска находятся в
+> [`smo-lvlcreator-import-mvp-plan.md`](smo-lvlcreator-import-mvp-plan.md).
+> Остальные разделы этого документа сохранены как post-MVP backlog.
+
 ## Точка возобновления — 29 августа 2026 года
 
 Уже закрыты грубые loader-риски заголовка и базовая семантика имён:
@@ -9,24 +15,24 @@
 - `RT-SMO-HEADER`: версия сериализатора, platform mask и безопасные границы поля
   `0x08` проверены нативным загрузчиком;
 - `RT-SMO-NAME-CASE`: PC runtime выполняет регистрозависимый exact lookup;
-- `RT-SMO-NAME-MISSING`: отсутствующие parent и leaf target не отвергают весь SMO,
-  а оставляют соответствующие SAN tracks непривязанными;
-- `RT-SMO-NAME-DUPLICATE`: дубликаты имён загружаются, но namespace сворачивается
-  в один exact key. Какой из объектов фактически получает track, строковый trace
-  определить не может.
+- `RT-SMO-NAME-MISSING`: отсутствующие parent и leaf target не отвергают весь SMO;
+  новый key получает отдельный binding slot, а descendant registry сохраняется;
+- `RT-SMO-NAME-DUPLICATE`: дубликаты имён загружаются и на binding-слое работают
+  как all-target: два разных evaluator получают один exact name/transform slot.
 
 Полные hashes, locators, запуски и отрицательные результаты находятся в
 [`smo-runtime-results.md`](smo-runtime-results.md), а машинные карточки — в
 [`evidence/`](evidence/). Локальная основная база `smo-corpus-v2.sqlite` после
 импорта этих карточек имеет SHA-256
-`7A021F93C1EBA0D82443EA303B678431F17989961619FDC79E7DD96BFA12A078` и проходит
+`174F3F798180D76A526B591D9344D119AB1294D65C21DB76A02AB5EA4AB8C8B2` и проходит
 `PRAGMA integrity_check`.
 
 Продолжать в следующем порядке:
 
-1. Сделать frame/transform probe уже подготовленных mutations missing parent,
-   missing leaf и duplicate toes. Закрыть bind-pose/descendant fallback и
-   first/last/all-target поведение без новых строковых гипотез.
+1. Через debug menu или обычный game flow довести Bloom до активного animation
+   tick и снять PRS/world transforms pristine и missing parent. Binding и
+   duplicate all-target уже закрыты; осталось только итоговое bind-pose/world
+   inheritance, которое маршрут `startLevel=2` не активирует.
 2. Выполнить `RT-SMO-ANM-SAN`: подмена только на существующий SAN, проверка
    пересечения track names, длительности и `AdvBloom.anm` через реальный game
    flow/debug path.
@@ -239,20 +245,24 @@ Pristine trace дал два точных `R_Ankle == R_Ankle`, mutation — н�
 
 ### RT-SMO-NAME-MISSING
 
-Статус loader/error path: завершено 29 августа 2026 года. One-byte mutations
+Статус loader и binding: завершено 29 августа 2026 года. One-byte mutations
 parent `[14] R_Ankle -> Z_Ankle` и leaf `[13] R_Toe -> Z_Toe` обе прошли
 contextual load, `CP08`, ненулевой return и окно стабильности. Каждая переводит
 ровно 168 tracks из exact в missing; parent trace не имеет ни exact, ни
-cross-match. Остался только визуальный/transform fallback: bind pose и влияние
-на descendant `foot_right`.
+cross-match. Transform-binding probe записал для новых имён отдельный слот
+`0xD8` вместо прежних `R_Ankle/R_Toe`, а descendant `foot_right` сохранил exact
+lookup и слот `0x46`. Остался только итоговый визуальный fallback: bind pose и
+world-transform inheritance в активном animation tick.
 
 ### RT-SMO-NAME-DUPLICATE
 
-Статус loader/key namespace: завершено 29 августа 2026 года. Зеркальные
+Статус loader/key namespace/binding: завершено 29 августа 2026 года. Зеркальные
 `R_Toe -> L_Toe` и `L_Toe -> R_Toe` mutations прошли load. Trace в обоих
 порядках сворачивает дубликаты в один exact key и делает противоположный SAN
-track missing. First/last/all-target behavior не выдаётся string lookup: для его
-закрытия нужен transform/frame probe двух toes.
+track missing. Binding-write probe показал два разных `spTransformTrackEval` с
+одним слотом (`L_Toe=0x3B` или зеркально `R_Toe=0x3F`), поэтому на этом слое
+политика all-target подтверждена, а first-only/last-only исключены. Final PRS
+probe сохранён, но `startLevel=2` не вызывает evaluator до окончания окна.
 
 ### RT-SMO-ANM-SAN
 

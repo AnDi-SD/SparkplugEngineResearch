@@ -12,8 +12,8 @@ public sealed record SmoAdditiveForestPlan(
     IReadOnlyList<uint> GeneratedObjectIds);
 
 /// <summary>
-/// Adapts a legacy additive writer to the shared forest-operation contract.
-/// The adapter accepts only results which preserve every existing object and
+/// Converts an isolated serializer result to the shared forest-operation contract.
+/// It accepts only results which preserve every existing object and
 /// add complete inline branches immediately before an existing owner's
 /// terminal field. Any other mutation is rejected.
 /// </summary>

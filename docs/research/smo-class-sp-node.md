@@ -106,6 +106,25 @@ PS2 `SLES_532.19` независимо подтверждает тот же ко
 - xrefs строк полей находятся около `0x00196F1C..0x00197450`;
 - функция `0x001974C0` возвращает class hash `0x695C0F65`.
 
+PC runtime дополнительно подтвердил слой привязки имени к transform evaluator.
+Class registration связывает ID `0x5DAF152D` с `spTransformTrackEval`, а запись
+по `0x00454628` устанавливает его поле `+0x10` после exact name lookup:
+
+- pristine: `L_Toe -> 0x3B`, `R_Toe -> 0x3F`, `foot_right -> 0x46`; до binding
+  поле evaluator равно `0xFFFFFFFF`;
+- same-length missing mutations `Z_Ankle` и `Z_Toe` получают новый отдельный
+  slot `0xD8`, не прежний slot исходного имени; descendant `foot_right` при этом
+  остаётся точным ключом со slot `0x46`;
+- в обоих duplicate-порядках два разных evaluator получают один slot оставшегося
+  имени (`0x3B` или `0x3F`). Это подтверждает all-target binding и исключает
+  first-only/last-only на этом слое.
+
+Virtual method `0x005FEBB0` распознан как transform-track evaluator и включён в
+probe для PRS, однако contextual route `startLevel=2` только загружает и связывает
+Bloom: в трёх контрольных запусках tracked evaluator не вошёл в активный tick.
+Поэтому binding slots подтверждены, а final local/world matrices остаются
+отдельным runtime-вопросом.
+
 ## Сопоставление корпусов
 
 Сравнение нормализует object ID, inline-размер и платформенное тело вложенного

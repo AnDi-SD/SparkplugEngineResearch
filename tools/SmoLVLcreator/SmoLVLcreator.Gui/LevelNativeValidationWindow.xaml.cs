@@ -205,11 +205,30 @@ public partial class LevelNativeValidationWindow : Window
                 AddEvent($"BUILD LOG · {saved.LogPath}");
             }
             candidateBuilt = true;
-            AddEvent($"WAIT · откройте в игре уровень, который запрашивает {logicalPath}");
-            ResultTitleText.Text = "Игра запускается — затем откройте уровень";
-            ResultDetailText.Text =
-                $"В меню игры загрузите сохранение или перейдите в нужную комнату. " +
-                $"Проверка ждёт запрос {logicalPath}.";
+            int? automaticStartLevel =
+                WinxClubLevelCatalog.TryResolveStartLevelForLogicalSmo(
+                    logicalPath,
+                    out int inferredStartLevel)
+                    ? inferredStartLevel
+                    : null;
+            bool requireSceneReady = automaticStartLevel is not null;
+            if (automaticStartLevel is int startLevel)
+            {
+                AddEvent(
+                    $"ROUTE · startLevel={startLevel} · игра автоматически откроет {logicalPath}");
+                ResultTitleText.Text = "Игра запускает проверяемый уровень";
+                ResultDetailText.Text =
+                    $"Для {logicalPath} найден нативный startLevel={startLevel}. " +
+                    "Тест завершится только после выхода из загрузочного состояния и возврата управления игре.";
+            }
+            else
+            {
+                AddEvent($"WAIT · откройте в игре уровень, который запрашивает {logicalPath}");
+                ResultTitleText.Text = "Игра запускается — затем откройте уровень";
+                ResultDetailText.Text =
+                    $"Автоматический маршрут для {logicalPath} неизвестен. " +
+                    "В меню игры загрузите сохранение или перейдите в нужную комнату.";
+            }
 
             var request = new NativeValidationRequest
             {
@@ -217,7 +236,8 @@ public partial class LevelNativeValidationWindow : Window
                 AssetPath = candidatePath,
                 LogicalGameAssetPath = logicalPath,
                 Route = NativeValidationRoute.Contextual,
-                StartLevel = _settings.ContextualStartLevel,
+                StartLevel = automaticStartLevel,
+                RequireSceneReady = requireSceneReady,
                 UseIsolatedLaunchWorkspace = true,
                 OverallTimeout = TimeSpan.FromSeconds(
                     Math.Clamp(Math.Max(_settings.OverallTimeoutSeconds, 300), 300, 900)),
@@ -228,8 +248,7 @@ public partial class LevelNativeValidationWindow : Window
                 CollectFirstChanceExceptions = true,
                 IncludeBloomCheckpoints = logicalPath.Contains(
                     "Bloom", StringComparison.OrdinalIgnoreCase),
-                StageAsset = true,
-                AllowFileNameOnlyLogicalPath = false
+                StageAsset = true
             };
             var progress = new Progress<NativeValidationEvent>(HandleValidationEvent);
             NativeValidationReport report = await _validator.ValidateAsync(
@@ -298,11 +317,15 @@ public partial class LevelNativeValidationWindow : Window
             ValidationProgress.Value = 100;
         ProgressText.Text = $"{ValidationProgress.Value:N0}%";
 
+        string passedDetail = report.SceneReadyReached
+            ? "Игра приняла временный SMO, завершила загрузку сцены, вернула управление игровому состоянию и пережила контрольное окно."
+            : "Игра приняла временный SMO и пережила контрольное окно после загрузки.";
+
         (string title, string detail, Color color) = report.Status switch
         {
             NativeValidationStatus.Passed => (
                 "✓ ТЕСТ ПРОЙДЕН",
-                "Игра приняла временный SMO и пережила контрольное окно после загрузки.",
+                passedDetail,
                 Color.FromRgb(113, 190, 132)),
             NativeValidationStatus.Crash => (
                 "✕ ИГРА УПАЛА",

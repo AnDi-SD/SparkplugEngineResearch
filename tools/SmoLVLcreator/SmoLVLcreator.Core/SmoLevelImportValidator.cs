@@ -70,6 +70,8 @@ public static class SmoLevelImportValidator
                 name, "нормали", errors);
             ValidateOptionalChannel(mesh.TextureCoordinates.Length, mesh.Positions.Length,
                 name, "UV0", errors);
+            ValidateOptionalChannel(mesh.SecondaryTextureCoordinates.Length, mesh.Positions.Length,
+                name, "UV1", errors);
             ValidateOptionalChannel(mesh.DiffuseColors.Length, mesh.Positions.Length,
                 name, "vertex colors", errors);
             if (mesh.MaterialIndex < -1 || mesh.MaterialIndex >= scene.Materials.Count)

@@ -124,10 +124,41 @@ public static class FbxModelReader
                 $"Native FBX texture '{texture.Name}'");
         }
         ValidateMaterialReferences(meshes, materials, textures);
+        bool[] textureHasTransparency = textures
+            .Select(TextureContainsTransparencyIfDecodable)
+            .ToArray();
+        materials = materials.Select(material =>
+        {
+            int textureIndex = material.BaseColorTextureIndex;
+            return textureIndex >= 0 &&
+                   textureHasTransparency[textureIndex] &&
+                   material.AlphaMode == ImportedMaterialAlphaMode.Opaque
+                ? material with { AlphaMode = ImportedMaterialAlphaMode.Blend }
+                : material;
+        }).ToArray();
         return new ImportedScene(
             Array.AsReadOnly(meshes),
             Array.AsReadOnly(textures),
             Array.AsReadOnly(materials));
+    }
+
+    private static bool TextureContainsTransparencyIfDecodable(
+        ImportedTexture texture)
+    {
+        try
+        {
+            return ImportedTextureImageTools.TextureContainsTransparency(texture);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or
+                                          UnknownImageFormatException or
+                                          InvalidImageContentException or
+                                          NotSupportedException)
+        {
+            // The native protocol deliberately preserves unsupported image
+            // payloads for a later external override. Such a payload carries
+            // no trustworthy alpha evidence and therefore stays opaque.
+            return false;
+        }
     }
 
     private static ImportedTexture ReadTexture(BinaryReader reader)

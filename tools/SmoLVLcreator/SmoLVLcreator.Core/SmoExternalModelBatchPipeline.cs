@@ -55,7 +55,7 @@ internal static class SmoExternalModelBatchPipeline
     }
 
     /// <summary>
-    /// Runs the compatibility importer in isolated one-part workers, but
+    /// Runs the serializer in isolated one-part workers and
     /// returns only additive forests to the editor. The large rolling SMO is
     /// kept on disk between workers and never materialized in the GUI process.
     /// </summary>
@@ -110,7 +110,10 @@ internal static class SmoExternalModelBatchPipeline
     {
         ArgumentNullException.ThrowIfNull(current);
         ArgumentNullException.ThrowIfNull(importedScene);
-        importedScene = SmoLevelEmbeddedTextureBudget.Prepare(importedScene);
+        // The worker re-reads the source model, so split it here and again in
+        // the worker through the same deterministic preparer. This keeps part
+        // indices and progress counts identical across the process boundary.
+        importedScene = SmoLevelRigidImportPreparer.Prepare(importedScene);
         string root = Path.Combine(
             Path.GetTempPath(),
             "SmoLVLcreator",
@@ -431,7 +434,7 @@ public sealed class SmoExternalModelBatchJob
             int templateIndex = document.Objects.Single(entry =>
                 entry.Id == job.TemplateMeshObjectId).Index;
             SmoExternalLevelModelAppendResult appended =
-                SmoExternalLevelModelAppender.AppendRangeWithoutMemoryGuard(
+                SmoExternalLevelModelAppender.AppendPartRange(
                     document,
                     templateIndex,
                     imported,

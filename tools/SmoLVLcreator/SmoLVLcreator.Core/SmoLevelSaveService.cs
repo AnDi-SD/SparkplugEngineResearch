@@ -79,32 +79,10 @@ public static class SmoLevelSaveService
         => SaveCore(
             SmoLevelSaveState.FromDocument(level),
             outputPath,
-            enforceMemoryBudget: true,
             progress,
             cancellationToken);
 
-    internal static SmoLevelSaveResult SaveWithoutMemoryGuard(
-        SmoLevelDocument level,
-        string outputPath)
-        => SaveWithoutMemoryGuard(
-            level,
-            outputPath,
-            progress: null,
-            CancellationToken.None);
-
-    internal static SmoLevelSaveResult SaveWithoutMemoryGuard(
-        SmoLevelDocument level,
-        string outputPath,
-        IProgress<SmoLevelSaveProgress>? progress,
-        CancellationToken cancellationToken = default)
-        => SaveCore(
-            SmoLevelSaveState.FromDocument(level),
-            outputPath,
-            enforceMemoryBudget: false,
-            progress,
-            cancellationToken);
-
-    internal static SmoLevelSaveResult SaveStateWithoutMemoryGuard(
+    internal static SmoLevelSaveResult SavePreparedState(
         SmoLevelSaveState state,
         string outputPath,
         IProgress<SmoLevelSaveProgress>? progress,
@@ -112,14 +90,12 @@ public static class SmoLevelSaveService
         => SaveCore(
             state,
             outputPath,
-            enforceMemoryBudget: false,
             progress,
             cancellationToken);
 
     private static SmoLevelSaveResult SaveCore(
         SmoLevelSaveState state,
         string outputPath,
-        bool enforceMemoryBudget,
         IProgress<SmoLevelSaveProgress>? progress,
         CancellationToken cancellationToken)
     {
@@ -396,10 +372,13 @@ public static class SmoLevelSaveService
                 Matrix4x4[] placementTransforms = group
                     .Select(item => item.WorldTransform)
                     .ToArray();
-                SmoExternalLevelModelAppendResult appended;
-                if (!string.IsNullOrWhiteSpace(state.BatchWorkerExecutable))
+                if (string.IsNullOrWhiteSpace(state.BatchWorkerExecutable))
                 {
-                    appended = SmoExternalModelBatchPipeline.Append(
+                    throw new InvalidOperationException(
+                        "External models can only be saved by the isolated batch worker.");
+                }
+                SmoExternalLevelModelAppendResult appended =
+                    SmoExternalModelBatchPipeline.Append(
                         current,
                         currentTemplateIndex,
                         model.ImportedScene,
@@ -414,23 +393,6 @@ public static class SmoLevelSaveService
                             $"Упаковка {model.Name}: детали " +
                             $"{completedParts:N0}/{totalParts:N0}"),
                         cancellationToken);
-                }
-                else
-                {
-                    appended = enforceMemoryBudget
-                        ? SmoExternalLevelModelAppender.Append(
-                            current,
-                            currentTemplateIndex,
-                            model.ImportedScene,
-                            placementTransforms,
-                            model.Name)
-                        : SmoExternalLevelModelAppender.AppendWithoutMemoryGuard(
-                            current,
-                            currentTemplateIndex,
-                            model.ImportedScene,
-                            placementTransforms,
-                            model.Name);
-                }
                 outputData = appended.Data;
                 addedObjectCount += appended.AddedObjectCount;
                 log.Info(

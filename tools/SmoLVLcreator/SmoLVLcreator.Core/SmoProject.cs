@@ -173,9 +173,9 @@ public sealed class SmoProject
             DataLength = dataSection.LongLength,
             Header = new SmoProjectHeader
             {
-                Unknown04 = document.Header.Unknown04,
+                SerializerVersion = document.Header.SerializerVersion,
                 Unknown08 = document.Header.Unknown08,
-                Variant = document.Header.Version
+                PlatformMask = document.Header.PlatformMask
             },
             Objects = document.Objects.Select(entry =>
             {
@@ -692,8 +692,10 @@ public sealed class SmoProject
         world.M41 += delta.X;
         world.M42 += delta.Y;
         world.M43 += delta.Z;
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Translated placement matrix is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
         SetProperty(entry, SmoPropertyKeys.WorldMatrix, SmoPropertyValueKind.Matrix4x4,
             SmoPropertyValueCodec.Encode(world));
         SetProperty(entry, SmoPropertyKeys.InverseWorldMatrix,
@@ -1288,8 +1290,10 @@ public sealed class SmoProject
             : CanAddReferencePlacement(templateObjectIndex, out reason);
         if (!validShell)
             throw new InvalidOperationException(reason);
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("New placement matrix is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
 
         IReadOnlyList<SmoProjectObject> branch = GetReferencePlacementShellObjects(
             template,
@@ -1331,8 +1335,10 @@ public sealed class SmoProject
     public void SetPlacementTransform(uint objectId, Matrix4x4 world)
     {
         byte[] worldBytes = SmoPropertyValueCodec.Encode(world);
-        if (!Matrix4x4.Invert(world, out Matrix4x4 inverse))
+        if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Placement matrix is singular.");
+        Matrix4x4 inverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
         byte[] inverseBytes = SmoPropertyValueCodec.Encode(inverse);
 
         SmoProjectObject? imported = Manifest.Objects.SingleOrDefault(item =>
@@ -1883,6 +1889,7 @@ public sealed class SmoProject
 
         ValidateIntervalsAndParents();
         ValidateEdits();
+        ValidatePlacementEditPairs();
         ValidateResourceRelocations();
         ValidateResourceRedirects();
         ValidateBranchRemovals();
@@ -2315,6 +2322,61 @@ public sealed class SmoProject
                 throw new InvalidDataException(
                     $"Added-object property edit {entry.Id}:{edit.PropertyKey} has an invalid size.");
             }
+        }
+        ValidateAddedPlacementEditPairs();
+    }
+
+    private void ValidatePlacementEditPairs()
+    {
+        foreach (IGrouping<uint, SmoProjectPropertyEdit> group in
+                 Manifest.PropertyEdits.GroupBy(item => item.ObjectId))
+        {
+            SmoProjectObject entry = Manifest.Objects.Single(item =>
+                item.Id == group.Key);
+            if (entry.TypeHash != SmoClassIds.StaticRenderObject)
+                continue;
+            SmoProjectPropertyEdit? world = group.SingleOrDefault(item =>
+                item.PropertyKey == SmoPropertyKeys.WorldMatrix);
+            SmoProjectPropertyEdit? inverse = group.SingleOrDefault(item =>
+                item.PropertyKey == SmoPropertyKeys.InverseWorldMatrix);
+            if (world is null && inverse is null)
+                continue;
+            if (world is null || inverse is null)
+            {
+                throw new InvalidDataException(
+                    $"Static placement {entry.Id} must edit world and inverse " +
+                    "matrices as one pair.");
+            }
+            ValidatePlacementMatrixPair(world.Value, inverse.Value, entry.Id);
+        }
+    }
+
+    private void ValidateAddedPlacementEditPairs()
+    {
+        foreach (IGrouping<(Guid BlobId, uint ObjectId),
+                     SmoProjectAddedObjectPropertyEdit> group in
+                 Manifest.AddedObjectPropertyEdits.GroupBy(item =>
+                     (item.BlobId, item.ObjectId)))
+        {
+            SmoProjectAddedForest forest = Manifest.AddedForests.Single(item =>
+                item.BlobId == group.Key.BlobId);
+            SmoProjectAddedObject entry = forest.Objects.Single(item =>
+                item.Id == group.Key.ObjectId);
+            if (entry.TypeHash != SmoClassIds.StaticRenderObject)
+                continue;
+            SmoProjectAddedObjectPropertyEdit? world = group.SingleOrDefault(item =>
+                item.PropertyKey == SmoPropertyKeys.WorldMatrix);
+            SmoProjectAddedObjectPropertyEdit? inverse = group.SingleOrDefault(item =>
+                item.PropertyKey == SmoPropertyKeys.InverseWorldMatrix);
+            if (world is null && inverse is null)
+                continue;
+            if (world is null || inverse is null)
+            {
+                throw new InvalidDataException(
+                    $"Added static placement {entry.Id} must edit world and inverse " +
+                    "matrices as one pair.");
+            }
+            ValidatePlacementMatrixPair(world.Value, inverse.Value, entry.Id);
         }
     }
 
@@ -2784,6 +2846,7 @@ public sealed class SmoProject
     internal SmoProjectLayoutPlan BuildLayoutPlan()
     {
         ValidateEdits();
+        ValidatePlacementEditPairs();
         ValidateResourceRelocations();
         ValidateResourceRedirects();
         ValidateBranchRemovals();
@@ -3929,7 +3992,9 @@ public sealed class SmoProject
         Matrix4x4 inverse = DecodeMatrix(
             inverseBytes,
             $"placement {objectId} inverse matrix");
-        if (!Matrix4x4.Invert(world, out Matrix4x4 expectedInverse) ||
+        Matrix4x4 expectedInverse =
+            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+        if (!Matrix4x4.Invert(world, out _) ||
             !MatrixNearlyEquals(expectedInverse, inverse, 0.001f))
         {
             throw new InvalidDataException(
@@ -4398,9 +4463,9 @@ public sealed class SmoProjectObjectDataReplacement
 
 public sealed class SmoProjectHeader
 {
-    public uint Unknown04 { get; init; }
+    public uint SerializerVersion { get; init; }
     public uint Unknown08 { get; init; }
-    public uint Variant { get; init; }
+    public uint PlatformMask { get; init; }
 }
 
 public sealed class SmoProjectObject
@@ -4460,7 +4525,7 @@ public sealed class SmoProjectPropertyEdit
     public uint ObjectId { get; init; }
     public required string PropertyKey { get; init; }
     public SmoPropertyValueKind ValueKind { get; init; }
-    public byte[] Value { get; init; } = [];
+    public byte[] Value { get; set; } = [];
 }
 
 public sealed class SmoProjectAddedObjectPropertyEdit
@@ -4469,7 +4534,7 @@ public sealed class SmoProjectAddedObjectPropertyEdit
     public uint ObjectId { get; init; }
     public required string PropertyKey { get; init; }
     public SmoPropertyValueKind ValueKind { get; init; }
-    public byte[] Value { get; init; } = [];
+    public byte[] Value { get; set; } = [];
 }
 
 public sealed class SmoProjectBranchRemoval
@@ -4946,10 +5011,10 @@ public static class SmoProjectSerializer
 
         Span<byte> header = stackalloc byte[SmoHeader.Size];
         "FFPS"u8.CopyTo(header);
-        WriteUInt32(header, 0x04, project.Manifest.Header.Unknown04);
+        WriteUInt32(header, 0x04, project.Manifest.Header.SerializerVersion);
         WriteUInt32(header, 0x08, project.Manifest.Header.Unknown08);
         WriteUInt32(header, 0x0C, fileSize);
-        WriteUInt32(header, 0x10, project.Manifest.Header.Variant);
+        WriteUInt32(header, 0x10, project.Manifest.Header.PlatformMask);
         WriteUInt32(header, 0x14, dataStart);
         WriteUInt32(header, 0x18, dataSize);
         WriteUInt32(header, 0x1C, checked((uint)plan.Entries.Count));

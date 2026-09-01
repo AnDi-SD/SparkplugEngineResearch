@@ -39,8 +39,8 @@ internal static class TargetRigFittingSkinBaker
                 "A fitting-pose bake requires skinning on every prepared mesh.");
         }
 
-        // Preserve the exact legacy/generated output for a reset pose. The
-        // validation above still proves that the scene uses this target rig.
+        // A reset pose needs no geometry bake. The validation above still
+        // proves that the scene uses this target rig.
         if (fittingPose.IsIdentityPose)
             return fittingScene;
 

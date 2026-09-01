@@ -40,6 +40,9 @@ internal static class SmoProjectRandomStressRunner
         int memoryLimitMb = args.Length >= 7
             ? ParsePositive(args[6], "memory limit")
             : DefaultMemoryLimitMb;
+        TimeSpan timeout = args.Length >= 8
+            ? TimeSpan.FromSeconds(ParsePositive(args[7], "timeout seconds"))
+            : DefaultTimeout;
         if (!File.Exists(sourcePath))
             throw new FileNotFoundException("Stress source level was not found.", sourcePath);
         if (!Directory.Exists(modelsDirectory))
@@ -72,7 +75,8 @@ internal static class SmoProjectRandomStressRunner
             throw new InvalidOperationException("Could not start project stress child.");
         Console.WriteLine(
             $"PROJECT STRESS: pid={child.Id}; changes={changeCount}; seed={seed}; " +
-            $"memory-limit={memoryLimitMb} MiB; sandbox={runDirectory}");
+            $"memory-limit={memoryLimitMb} MiB; timeout={timeout}; " +
+            $"sandbox={runDirectory}");
         var timer = Stopwatch.StartNew();
         long peakPrivateBytes = 0;
         while (!child.WaitForExit(250))
@@ -94,21 +98,21 @@ internal static class SmoProjectRandomStressRunner
                 child.WaitForExit();
                 WriteSupervisorFailure(
                     reportPath, sourcePath, changeCount, seed, memoryLimitMb,
-                    peakPrivateBytes, timer.Elapsed,
+                    timeout, peakPrivateBytes, timer.Elapsed,
                     "Private-memory watchdog limit exceeded.");
                 Console.Error.WriteLine(
                     $"FAIL: project stress exceeded {memoryLimitMb} MiB and was stopped. " +
                     $"Report: {reportPath}");
                 return 2;
             }
-            if (timer.Elapsed > DefaultTimeout)
+            if (timer.Elapsed > timeout)
             {
                 child.Kill(entireProcessTree: true);
                 child.WaitForExit();
                 WriteSupervisorFailure(
                     reportPath, sourcePath, changeCount, seed, memoryLimitMb,
-                    peakPrivateBytes, timer.Elapsed,
-                    $"Timeout after {DefaultTimeout}.");
+                    timeout, peakPrivateBytes, timer.Elapsed,
+                    $"Timeout after {timeout}.");
                 Console.Error.WriteLine(
                     $"FAIL: project stress timed out and was stopped. Report: {reportPath}");
                 return 3;
@@ -170,9 +174,8 @@ internal static class SmoProjectRandomStressRunner
             .Where(id => project.CanAddReferencePlacementForResource(id, out _))
             .Distinct()
             .ToArray();
-        uint[] textureIds = source.Objects
-            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
-            .Select(entry => entry.Id)
+        uint[] textureIds = SmoProjectTextureReplacement
+            .GetWritableTextureObjectIds(project)
             .ToArray();
         SmoCollisionMesh? collisionTemplate = SmoCollisionMeshDecoder.DecodeAll(source)
             .FirstOrDefault(collision => collision.Positions.Count >= 4 &&
@@ -640,6 +643,7 @@ internal static class SmoProjectRandomStressRunner
         int changeCount,
         int seed,
         int memoryLimitMb,
+        TimeSpan timeout,
         long peakPrivateBytes,
         TimeSpan elapsed,
         string reason)
@@ -655,6 +659,7 @@ internal static class SmoProjectRandomStressRunner
                     RequestedChanges = changeCount,
                     Seed = seed,
                     MemoryLimitMb = memoryLimitMb,
+                    TimeoutSeconds = timeout.TotalSeconds,
                     PeakPrivateBytes = peakPrivateBytes,
                     ElapsedSeconds = elapsed.TotalSeconds,
                     CompletedUtc = DateTimeOffset.UtcNow

@@ -386,6 +386,49 @@ internal static class SmoVisualForestInjector
             removedObjectIds: removedIds);
     }
 
+    internal static byte[] ReplaceDirectFieldPayloadAndRelocateInlineObjects(
+        SmoDocument current,
+        uint ownerId,
+        SmoFieldSelector selector,
+        ReadOnlySpan<byte> payload,
+        IReadOnlySet<uint> removedObjectIds,
+        IReadOnlyDictionary<uint, int> objectPayloadOffsets)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(removedObjectIds);
+        ArgumentNullException.ThrowIfNull(objectPayloadOffsets);
+        SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
+        SmoObjectField field = SmoObjectFieldReader.Read(current, owner)
+            .Single(candidate => selector.Matches(candidate));
+        var preferred = new SmoDataBlockHeader(
+            field.RelativeHeaderOffset,
+            field.RawHeader,
+            field.FieldType,
+            (byte)field.SizeKind,
+            field.HeaderSize,
+            field.PayloadSize);
+        byte[] header = SmoDataBlockWriter.BuildHeader(
+            field.FieldType,
+            checked((uint)payload.Length),
+            preferred);
+        byte[] replacement = new byte[checked(header.Length + payload.Length)];
+        header.CopyTo(replacement, 0);
+        payload.CopyTo(replacement.AsSpan(header.Length));
+        int fieldLogicalOffset = checked(
+            (int)owner.LogicalOffset + field.RelativeHeaderOffset);
+        Dictionary<uint, uint> relocated = objectPayloadOffsets.ToDictionary(
+            pair => pair.Key,
+            pair => checked((uint)(fieldLogicalOffset + header.Length + pair.Value)));
+        return ReplaceReferenceField(
+            current,
+            fieldLogicalOffset,
+            field.EncodedSize,
+            replacement,
+            addedEntry: null,
+            removedObjectIds: removedObjectIds,
+            relocatedObjectOffsets: relocated);
+    }
+
     /// <summary>
     /// Converts one inline leaf definition into an ordinary reference and
     /// removes its catalog entry. The preserved serialized object bytes can
@@ -585,7 +628,8 @@ internal static class SmoVisualForestInjector
         ReadOnlySpan<byte> replacement,
         DirectoryEntry? addedEntry,
         uint? removedObjectId = null,
-        IReadOnlySet<uint>? removedObjectIds = null)
+        IReadOnlySet<uint>? removedObjectIds = null,
+        IReadOnlyDictionary<uint, uint>? relocatedObjectOffsets = null)
     {
         int fieldEnd = checked(fieldStart + oldLength);
         int delta = checked(replacement.Length - oldLength);
@@ -598,9 +642,25 @@ internal static class SmoVisualForestInjector
         {
             bool contains = (ulong)entry.LogicalOffset <= (ulong)fieldStart &&
                             (ulong)fieldEnd <= entry.LogicalEnd;
-            uint mappedOffset = entry.LogicalOffset >= fieldEnd
-                ? checked((uint)(entry.LogicalOffset + delta))
-                : entry.LogicalOffset;
+            bool insideReplacedRange =
+                entry.LogicalOffset >= fieldStart && entry.LogicalEnd <= (ulong)fieldEnd;
+            uint mappedOffset;
+            if (relocatedObjectOffsets?.TryGetValue(
+                    entry.Id, out uint relocatedOffset) == true)
+            {
+                mappedOffset = relocatedOffset;
+            }
+            else if (insideReplacedRange && relocatedObjectOffsets is not null)
+            {
+                throw new InvalidDataException(
+                    $"Retained inline object {entry.Id} has no relocated offset.");
+            }
+            else
+            {
+                mappedOffset = entry.LogicalOffset >= fieldEnd
+                    ? checked((uint)(entry.LogicalOffset + delta))
+                    : entry.LogicalOffset;
+            }
             return new DirectoryEntry(
                 entry.Id,
                 entry.RawName.ToArray(),

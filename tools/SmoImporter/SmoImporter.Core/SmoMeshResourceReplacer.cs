@@ -63,6 +63,7 @@ public static class SmoMeshResourceReplacer
             prepared.Positions,
             prepared.Normals,
             prepared.TextureCoordinates,
+            prepared.SecondaryTextureCoordinates,
             prepared.DiffuseColorsArgb,
             prepared.BlendWeights,
             prepared.BlendIndices,
@@ -131,14 +132,15 @@ public static class SmoMeshResourceReplacer
         SmoObjectEntry target,
         SmoMesh template)
     {
-        if (template.Marker != SmoMeshDecoder.E1Marker ||
+        if (template.Marker is not (
+                SmoMeshDecoder.E0Marker or SmoMeshDecoder.E1Marker) ||
             !SmoVertexLayoutRegistry.TryGet(
                 template.VertexFormat,
                 out SmoVertexLayout? layout) ||
             layout is null || layout.SerializedStride != template.Stride)
         {
             throw new InvalidOperationException(
-                $"Mesh [{target.Index}] is not a confirmed writable E1 layout.");
+                $"Mesh [{target.Index}] is not a confirmed writable E0/E1 layout.");
         }
 
         return layout;
@@ -201,6 +203,9 @@ public static class SmoMeshResourceReplacer
             boneSlot,
             referenceWorldTransform);
 
+        if (template.Marker == SmoMeshDecoder.E0Marker)
+            return BuildE0MeshObject(template, layout, prepared);
+
         int indexBytes = checked(indexCount * sizeof(ushort));
         int vertexBytes = checked(vertexCount * template.Stride);
         const int preambleSize = 17;
@@ -249,9 +254,71 @@ public static class SmoMeshResourceReplacer
         WriteUInt32(result, vertexHeader + 8, 0);
         int vertices = vertexHeader + vertexHeaderSize;
 
+        WritePreparedVertices(
+            result,
+            vertices,
+            template.Stride,
+            layout,
+            prepared);
+        return result;
+    }
+
+    private static byte[] BuildE0MeshObject(
+        SmoMesh template,
+        SmoVertexLayout layout,
+        SmoPreparedReplacementGeometry prepared)
+    {
+        int vertexCount = prepared.Positions.Length;
+        int indexCount = prepared.TriangleIndices.Length;
+        int indexBytes = checked(indexCount * sizeof(ushort));
+        int vertexBytes = checked(vertexCount * template.Stride);
+        const int primitiveHeaderSize = 12;
+        const int vertexHeaderSize = 12;
+        int payloadSize = checked(
+            primitiveHeaderSize + indexBytes + vertexHeaderSize + vertexBytes);
+        byte[] result = new byte[checked(8 + 5 + payloadSize + 1)];
+        WriteUInt32(result, 0, SmoClassIds.MeshData);
+        "SBOO"u8.CopyTo(result.AsSpan(4));
+        result[8] = SmoMeshDecoder.E0Marker;
+        WriteUInt32(result, 9, (uint)payloadSize);
+
+        int payload = 13;
+        WriteUInt32(result, payload, SmoMeshDecoder.TriangleListPrimitive);
+        WriteUInt32(result, payload + 4, checked((uint)(indexCount / 3)));
+        WriteUInt32(result, payload + 8, 0);
+        int indices = payload + primitiveHeaderSize;
+        for (int index = 0; index < indexCount; index++)
+        {
+            WriteUInt16(
+                result,
+                indices + index * sizeof(ushort),
+                checked((ushort)prepared.TriangleIndices[index]));
+        }
+
+        int vertexHeader = indices + indexBytes;
+        WriteUInt32(result, vertexHeader, template.VertexFormat);
+        WriteUInt32(result, vertexHeader + 4, (uint)vertexCount);
+        WriteUInt32(result, vertexHeader + 8, 0);
+        WritePreparedVertices(
+            result,
+            vertexHeader + vertexHeaderSize,
+            template.Stride,
+            layout,
+            prepared);
+        return result;
+    }
+
+    private static void WritePreparedVertices(
+        byte[] result,
+        int vertices,
+        int stride,
+        SmoVertexLayout layout,
+        SmoPreparedReplacementGeometry prepared)
+    {
+        int vertexCount = prepared.Positions.Length;
         for (int vertex = 0; vertex < vertexCount; vertex++)
         {
-            int offset = vertices + vertex * template.Stride;
+            int offset = vertices + vertex * stride;
             WriteVector3(result, offset, prepared.Positions[vertex]);
             if (layout.NormalOffset is int normalOffset &&
                 prepared.Normals.Length == vertexCount)
@@ -272,6 +339,18 @@ public static class SmoMeshResourceReplacer
                     result,
                     offset + uvOffset + 4,
                     prepared.TextureCoordinates[vertex].Y);
+            }
+            if (layout.TextureCoordinate1Offset is int uv1Offset &&
+                prepared.SecondaryTextureCoordinates.Length == vertexCount)
+            {
+                WriteSingle(
+                    result,
+                    offset + uv1Offset,
+                    prepared.SecondaryTextureCoordinates[vertex].X);
+                WriteSingle(
+                    result,
+                    offset + uv1Offset + 4,
+                    prepared.SecondaryTextureCoordinates[vertex].Y);
             }
             if (layout.DiffuseArgbOffset is int colorOffset)
             {
@@ -295,7 +374,6 @@ public static class SmoMeshResourceReplacer
                 result[offset + bonesOffset + 3] = bones.W;
             }
         }
-        return result;
     }
 
     private static SmoPreparedReplacementGeometry PrepareGeometry(
@@ -329,13 +407,29 @@ public static class SmoMeshResourceReplacer
         Matrix4x4 worldToLocalNormal = Matrix4x4.Transpose(world);
 
         var positions = new Vector3[vertexCount];
-        Vector3[] normals = layout.NormalOffset.HasValue &&
-                            mesh.Normals.Length == vertexCount
+        Vector3[] sourceNormals = layout.NormalOffset.HasValue
+            ? GlbModelReader.RepairInvalidNormals(
+                mesh.Positions,
+                mesh.Normals.Length == vertexCount
+                    ? mesh.Normals
+                    : new Vector3[vertexCount],
+                mesh.TriangleIndices,
+                out _,
+                out _)
+            : [];
+        Vector3[] normals = layout.NormalOffset.HasValue
             ? new Vector3[vertexCount]
             : [];
         Vector2[] textureCoordinates = layout.TextureCoordinate0Offset.HasValue &&
                                        mesh.TextureCoordinates.Length == vertexCount
             ? mesh.TextureCoordinates.ToArray()
+            : [];
+        Vector2[] secondaryTextureCoordinates = layout.TextureCoordinate1Offset.HasValue
+            ? mesh.SecondaryTextureCoordinates.Length == vertexCount
+                ? mesh.SecondaryTextureCoordinates.ToArray()
+                : mesh.TextureCoordinates.Length == vertexCount
+                    ? mesh.TextureCoordinates.ToArray()
+                    : []
             : [];
         uint[] diffuseColors = layout.DiffuseArgbOffset.HasValue
             ? new uint[vertexCount]
@@ -356,7 +450,7 @@ public static class SmoMeshResourceReplacer
             if (normals.Length == vertexCount)
             {
                 Vector3 normal = Vector3.TransformNormal(
-                    mesh.Normals[vertex], adjustmentNormal);
+                    sourceNormals[vertex], adjustmentNormal);
                 normal.Z = -normal.Z;
                 normal = Vector3.TransformNormal(normal, worldToLocalNormal);
                 normals[vertex] = normal.LengthSquared() > 0.000001f
@@ -388,6 +482,7 @@ public static class SmoMeshResourceReplacer
             positions,
             normals,
             textureCoordinates,
+            secondaryTextureCoordinates,
             diffuseColors,
             blendWeights,
             blendIndices,
@@ -518,6 +613,7 @@ internal sealed record SmoPreparedReplacementGeometry(
     Vector3[] Positions,
     Vector3[] Normals,
     Vector2[] TextureCoordinates,
+    Vector2[] SecondaryTextureCoordinates,
     uint[] DiffuseColorsArgb,
     Vector4[] BlendWeights,
     SmoBlendIndices[] BlendIndices,

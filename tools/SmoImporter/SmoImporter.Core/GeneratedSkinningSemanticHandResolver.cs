@@ -34,9 +34,6 @@ public static partial class GeneratedSkinningPreparer
         float ForwardCenterShift);
 
     private sealed record CoarseHandMotionProfile(
-        string ProxyBoneName,
-        int ProxyRigJointIndex,
-        int ProxySkeletonJointIndex,
         IReadOnlyList<ApproximateFingerBranch> Branches,
         IReadOnlyList<float> ProgressKnots,
         IReadOnlyList<float> WeightKnots,
@@ -217,31 +214,6 @@ public static partial class GeneratedSkinningPreparer
             return null;
         }
 
-        float totalBranchMass = branchEvidence.Sum(value => value.Mass);
-        Vector3 collectiveCenter = branchEvidence.Aggregate(
-            Vector3.Zero,
-            (sum, value) => sum + value.Center * (value.Mass / totalBranchMass));
-        TargetRigJoint proxy = branchEvidence
-            .OrderBy(value =>
-            {
-                Vector3 delta = value.Center - collectiveCenter;
-                float lateral = Vector3.Dot(delta, bindLateral);
-                float forward = Vector3.Dot(delta, bindForward);
-                return lateral * lateral + forward * forward;
-            })
-            .ThenByDescending(value => value.Mass)
-            .ThenBy(value => value.Root.JointIndex)
-            .Select(value => value.Root)
-            .First();
-        if (!layout.SkeletonIndexByRigJoint.TryGetValue(
-                proxy.JointIndex, out int proxySkeletonIndex))
-        {
-            messages.Add(
-                $"Semantic {region} central target branch '{proxy.Name}' is absent " +
-                "from the generated deform skeleton; the complete hand remains rigid.");
-            return null;
-        }
-
         float lateralMinimum = branchEvidence.Min(value => value.Lateral);
         float lateralMaximum = branchEvidence.Max(value => value.Lateral);
         float lateralSpan = lateralMaximum - lateralMinimum;
@@ -335,9 +307,6 @@ public static partial class GeneratedSkinningPreparer
             "vertices will use only approximate transverse lanes and detected " +
             "per-lane tip length; donor finger identity is never inferred.");
         return new CoarseHandMotionProfile(
-            proxy.Name,
-            proxy.JointIndex,
-            proxySkeletonIndex,
             Array.AsReadOnly(approximateBranches),
             Array.AsReadOnly(progressKnots),
             Array.AsReadOnly(weightKnots),
@@ -1336,10 +1305,8 @@ public static partial class GeneratedSkinningPreparer
     private static bool TryCaptureCompleteSemanticHandLobe(
         SemanticRegionCalibration calibration,
         GeneratedSkinningRegionVolume volume,
-        IReadOnlyList<GeometryComponent> bodyComponents,
         IReadOnlyList<GeometrySource> donorSources,
         IReadOnlyList<Vector3[]> alignedPositionsByMesh,
-        SideCalibration sideCalibration,
         out IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment> assignments,
         out IReadOnlyList<TargetRigBodyVertexMembership> coreVertices,
         out IReadOnlyList<TargetRigBodyVertexMembership> transitionVertices,
@@ -1348,17 +1315,12 @@ public static partial class GeneratedSkinningPreparer
         SemanticHandLobe? lobe = calibration.DonorHandLobe;
         if (lobe is null || lobe.Vertices.Count == 0)
         {
-            return TryCaptureManualSemanticVolume(
-                calibration,
-                volume,
-                bodyComponents,
-                donorSources,
-                alignedPositionsByMesh,
-                sideCalibration,
-                out assignments,
-                out coreVertices,
-                out transitionVertices,
-                out failure);
+            assignments = EmptySemanticAssignments();
+            coreVertices = [];
+            transitionVertices = [];
+            failure =
+                $"Semantic {calibration.Region} has no complete donor Hand lobe.";
+            return false;
         }
         GeometryVertex[] outside = lobe.Vertices
             .Where(vertex => DistanceToSemanticVolume(

@@ -320,7 +320,7 @@ public static class ObjModelReader
             textureIndices.Add(candidate.FullPath, index);
             textureHasAlpha.Add(
                 index,
-                ImportedTextureAtlasRepacker.TextureContainsTransparency(texture));
+                ImportedTextureImageTools.TextureContainsTransparency(texture));
             return index;
         }
 

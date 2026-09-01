@@ -81,19 +81,6 @@ public static class ImportedTextureCatalog
         ExternalEntry[] unmatchedExternal = externalEntries
             .Where(entry => !assignedExternalIndices.Contains(entry.Index))
             .ToArray();
-        TextureGroup[] unmatchedUnresolvedGroups = groups
-            .Where(group => group.TextureIndex < 0 && !assignments.ContainsKey(group))
-            .ToArray();
-        TextureGroup? fallbackGroup = null;
-        ExternalEntry? fallbackExternal = null;
-        if (unmatchedExternal.Length == 1 && unmatchedUnresolvedGroups.Length == 1)
-        {
-            fallbackGroup = unmatchedUnresolvedGroups[0];
-            fallbackExternal = unmatchedExternal[0];
-            assignments.Add(fallbackGroup, fallbackExternal);
-            assignedExternalIndices.Add(fallbackExternal.Index);
-        }
-
         var effectiveTextures = sourceTextures.ToList();
         ImportedMaterial[] effectiveMaterials = sourceMaterials.ToArray();
         var messages = new List<string>();
@@ -113,13 +100,9 @@ public static class ImportedTextureCatalog
             {
                 effectiveTextureIndex = effectiveTextures.Count;
                 effectiveTextures.Add(entry.Texture);
-                string resolution = ReferenceEquals(group, fallbackGroup) &&
-                                    ReferenceEquals(entry, fallbackExternal)
-                    ? " by the unique unresolved-group fallback"
-                    : string.Empty;
                 messages.Add(
                     $"External texture '{DisplayName(entry.Texture)}' resolves " +
-                    $"{group.MaterialDescription}{resolution}.");
+                    $"{group.MaterialDescription} by an explicit filename match.");
             }
 
             foreach (int materialIndex in group.MaterialIndices)
