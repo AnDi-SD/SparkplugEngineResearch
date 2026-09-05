@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-sp-transform-track-eval-2026-09-05T09:12:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T09:12:00Z",
+  "notes": "PC-only SAN-to-PRS runtime dependency scout; PS2 deliberately deferred because PC evidence is sufficient for this checkpoint.",
+  "classes": [
+    {
+      "className": "spTransformTrackEval",
+      "researchStatus": "scouted",
+      "pcStatus": "partial",
+      "ps2Status": "deferred",
+      "coverageScore": 38,
+      "lowerBound": 31,
+      "upperBound": 45,
+      "priorityTier": 1,
+      "summary": "PC identity, hierarchy, vtable, factory allocation, binding slot, two-input storage and complete PRS evaluator body are pinned; input field names, active tick scheduling, final spNode/world update and PS2 remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_layout",
+          "sourcePath": "docs/research/native-class-sp-transform-track-eval.md",
+          "locator": "0x005FF000;0x005FF090;0x005FEBB0",
+          "observation": "The PC factory allocates 0x78 bytes; offset +0x10 is the initially unbound transform slot, +0x14 bounds two 0x30-byte PRS blend inputs, and the evaluator combines their position, rotation and scale outputs.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "read_only_regression",
+          "sourcePath": "research/inspect_transform_track_eval.py",
+          "locator": "14/14 checks",
+          "observation": "Pinned pristine-PC body hashes, vtable, registration getter, allocation extent and layout patterns reproduce the static evidence without executing the game.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_binding",
+          "sourcePath": "docs/research/smo-runtime-results.md",
+          "locator": "0x00454628;0x005FEBB0",
+          "observation": "Runtime probes confirm case-sensitive all-target binding into +0x10; the tested startLevel=2 route did not call the evaluator, so final PRS/world matrices remain unmeasured.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

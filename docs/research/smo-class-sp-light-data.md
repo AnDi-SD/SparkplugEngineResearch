@@ -120,8 +120,23 @@ SmoViewer.Inspect research-db analyze-class <db> spLightData
 четыре evidence-записи. `light_spot` имеет статус
 `executable_confirmed_unobserved`. Редактирование намеренно остаётся выключенным.
 
-В текущей schema v2 2 584 реально наблюдаемых Light-поля ошибочно сохраняют
+В строках annotations, перенесённых из schema v2 в текущую schema v5, 2 584 реально наблюдаемых Light-поля ошибочно сохраняют
 `is_decoded=0`: старое PC-specific definition конфликтует с актуальным common
 PC/PS2 definition. Это технический долг annotations, а не неизвестный payload;
 условие исправления описано в
 [`smo-corpus-database.md`](smo-corpus-database.md#известный-технический-долг-annotations).
+
+## Дополнение: нативный runtime layout
+
+Последующий разбор классов связал все поля этой секции с `spLight` storage.
+На PC offsets равны: type `+0xC0`, color `+0xC4`, attenuation `+0xD4`, intensity
+`+0xD8`, range `+0xE0`, hotspot/falloff `+0xE4/+0xE8`, project shadow
+`+0xEC`, enabled `+0xED`. На PS2 каждый из них сдвинут на `+0x0C` из-за
+большего `spNode`, то есть начинается с type `+0xCC` и заканчивается enabled
+`+0xF9`.
+
+Между intensity и range существует несерилизуемое слово `+0xDC/+0xE8`: native
+constructor его не инициализирует, writer не использует, но inherited copy
+переносит. Это не десятое поле формата. Напротив, PS2 copy пропускает саму
+intensity, поэтому clone получает constructor default `1.0`. Подробная
+runtime-карточка: [`native-class-sp-light-data.md`](native-class-sp-light-data.md).

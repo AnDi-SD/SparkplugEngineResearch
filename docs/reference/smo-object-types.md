@@ -244,13 +244,18 @@ executable подтверждает все три class/serializer. Полные
 `spAnimation` (`0x56EE563A`) находится в `.san`, который тоже является
 FFPS-контейнером, но не SMO. Ещё 12 зарегистрированных классов не встречены ни в
 одном SMO трёх корпусов: `spBoundingVolume`, `spCapsuleBV`,
-`spCollisionManager`, `spCollisionMesh`, `spConvexBV`, `spDXShadowMesh`,
-`spDXShadowVolume`, `spEnvironmentMapLayer`, `spMaterialTextureLayer`,
-`spPhysicsManager`, `spShadowVolume`, `spStdLayer`.
+`spCollisionManager`, `spCollisionMesh`, `spConvexBV`,
+`spDXShadowMeshSerializer`, `spDXShadowVolumeManager`,
+`spEnvironmentMapLayer`, `spMaterialTextureLayer`, `spPhysicsManager`,
+`spShadowVolumeManager`, `spStdLayer`.
 
 Это могут быть abstract bases, runtime managers или классы соседних форматов.
 Они остаются в общем registry, но не выдаются за отсутствующие SMO-типы без
 реального object-directory sample.
+
+`spMaterialTextureLayer` и `spStdLayer` при этом уже восстановлены как runtime
+классы по PC/PS2 executable; неизвестным остаётся только самостоятельный образец
+в object directory корпуса.
 
 ## Воспроизведение
 

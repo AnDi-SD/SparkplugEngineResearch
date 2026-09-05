@@ -2,20 +2,27 @@
 
 Дата: 29 августа 2026 года. Статус: `Passed`.
 
-## Исправленная ошибка writer
+## Каноническая форма writer и граница loader
 
-`spStaticRenderObject.InvTransform` не является обычным математическим inverse
-при scale. Движок хранит транспонированный 3x3 basis и translation
-`-T*A^T`. Старые project-пути `TranslateStaticPlacement`,
+В shipped-корпусе `spStaticRenderObject.InvTransform` не является обычным
+математическим inverse при scale. Эти файлы хранят транспонированный 3x3 basis
+и translation `-T*A^T`. Ранние project-пути `TranslateStaticPlacement`,
 `AddReferencePlacementCore` и `SetPlacementTransform` использовали
-`Matrix4x4.Invert`; при чистом rotation/translation ошибка была незаметна, а
-при uniform/nonuniform scale создавала неверную пару.
+`Matrix4x4.Invert`; при чистом rotation/translation формы совпадают, а при
+uniform/nonuniform scale расходятся.
 
-Все три пути переведены на
-`SmoStaticRenderObjectDecoder.CreateEngineInverseTransform`. Project version 1
-получил консервативную миграцию: старое значение исправляется только когда оно
-совпадает с математическим inverse и отличается от engine convention.
-Произвольная несовпадающая либо неполная пара отклоняется до build.
+Последующая проверка рабочего `Alfea02.smo` в игре показала, что объекты с
+математической обратной матрицей нормально загружаются и отображаются. Это
+подтверждает совместимость файла, но не механизм loader: field 2 может быть
+принят как второй вариант, проигнорирован, пересчитан или использован только в
+другом consumer. Поэтому математическая форма поддерживается нашим reader для
+совместимости, но не считается вторым доказанным вариантом runtime-контракта до
+трассы executable.
+
+Все новые записи по-прежнему используют каноническую форму shipped-корпуса через
+`SmoStaticRenderObjectDecoder.CreateEngineInverseTransform`. Строгий decoder
+принимает и явно классифицирует обе согласованные формы. Произвольная
+несовпадающая либо неполная пара отклоняется до build.
 
 Также исправлена граница Gate 2: `spModel` собственных PRS-полей не имеет.
 Реальные node-владельцы transform — `spNode` и `spRenderNode`; модель получает

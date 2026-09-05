@@ -6,7 +6,7 @@
 
 ## Текущий вывод
 
-SMO — не просто упаковка одной геометрии. Это little-endian `FFPS`-контейнер с каталогом сериализованных объектов Sparkplug. В исследованном корпусе его граф включает модели, меши, материалы, текстуры, узлы сцены, skin/collision-объекты и другие классы. Игра использует эти связи при загрузке ресурса; точная runtime-семантика отдельных классов ещё исследуется.
+SMO — не просто упаковка одной геометрии. Это little-endian `FFPS`-контейнер с каталогом сериализованных объектов Sparkplug. В исследованном корпусе его граф включает модели, меши, материалы, текстуры, узлы сцены, skin/collision-объекты и другие классы. Текущий главный этап — отделение исходного Sparkplug от application-кода Winx, восстановление оригинальных class/module names и точного executable-пути от запроса файла через FAT/serializer и runtime object до сцены и draw call; corpus SMO служит набором контрольных входов, а не заменой реверса загрузчика.
 
 Уже работают строгий анализ структуры, просмотр геометрии/материалов/анимаций,
 экспорт и контролируемый импорт моделей, а также встроенная проверка результата
@@ -24,13 +24,15 @@ read-only границу для ещё не подтверждённых writer-
 | [`tools/SmoImporter`](tools/SmoImporter) | Visual transplant SMO → SMO и импорт rigid/skinned OBJ, GLB и нативного FBX |
 | [`tools/SmoLVLcreator`](tools/SmoLVLcreator) | Модульный редактор SMO-уровней: сцена, размещения, коллизии, импорт, экспорт и сохранение |
 | [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Патчер `WinxClub.exe` для управления внешними волосами Bloom в игре и меню костюмов |
+| [`Sparkplug`](Sparkplug/README.md) | Evidence-first реконструкция исходного дерева движка по подтверждённым путям и именам |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Текущий опубликованный цикл от 2026-08-24: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
+Последние зафиксированные версии инструментов: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
 [SmoExporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.5.0),
-[SmoImporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.5.0),
+[SmoImporter `0.6.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.6.0),
+[SmoLVLcreator `0.1.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smolvlcreator-v0.1.0),
 [Winx Hair Patcher `0.2.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/v0.2.0) и
 [SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0).
 Архивы собраны общей схемой в `artifacts/release/current` и опубликованы в GitHub Releases.
@@ -48,7 +50,10 @@ read-only границу для ещё не подтверждённых writer-
 
 ## Быстрый старт
 
-Требуются Windows и .NET SDK 8 или новее. Общее решение включает WPF-приложение, поэтому полная сборка привязана к Windows.
+Требуются Windows и .NET SDK 9.0.300 или новее. Проекты по-прежнему нацелены на
+`.NET 8`, но корневой `.slnx` поддерживается только начиная с SDK 9.0.200, а
+генераторы Avalonia 12.1 требуют компилятор из feature band 9.0.300 или новее.
+Общее решение включает WPF-приложение, поэтому полная сборка привязана к Windows.
 
 ```powershell
 git clone --recurse-submodules https://github.com/AnDi-SD/SparkplugEngineResearch.git
@@ -108,14 +113,17 @@ dotnet run --project tools/SMOTextureTool/SMOTextureTool.FormatTests -- path/to/
 Начать удобнее отсюда:
 
 1. [Обзор Sparkplug](docs/engine/overview.md)
-2. [Поиск и загрузка ресурсов Winx Club PC](docs/engine/resource-loading.md)
-3. [Разрешение экрана, камеры и GUI](docs/engine/display-resolution-camera-gui.md)
-4. [Формат SMO](docs/formats/smo.md)
-5. [Формат STX](docs/formats/stx.md)
-6. [PC и PS2](docs/platforms/pc-vs-ps2.md)
-7. [Подтверждённые class ID](docs/reference/class-ids.md)
-8. [План исследования](ROADMAP.md)
-9. [Открытые вопросы](research/open-questions.md)
+2. [Оригинальная архитектура Sparkplug/Winx](docs/engine/original-architecture.md)
+3. [Runtime-конвейер ресурсов в executable](docs/engine/runtime-resource-pipeline.md)
+4. [База файлов, ресурсов и native-прогресса](docs/research/game-resource-database.md)
+5. [Поиск и загрузка ресурсов Winx Club PC](docs/engine/resource-loading.md)
+6. [Разрешение экрана, камеры и GUI](docs/engine/display-resolution-camera-gui.md)
+7. [Формат SMO](docs/formats/smo.md)
+8. [Формат STX](docs/formats/stx.md)
+9. [PC и PS2](docs/platforms/pc-vs-ps2.md)
+10. [Подтверждённые class ID](docs/reference/class-ids.md)
+11. [План исследования](ROADMAP.md)
+12. [Открытые вопросы](research/open-questions.md)
 
 ## Данные игры
 

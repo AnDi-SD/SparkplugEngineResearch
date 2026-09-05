@@ -10,6 +10,11 @@
 Долгие задачи, которые разумнее выполнять вместе с разработкой writer/importer,
 отделены от текущего runtime-этапа.
 
+Главный порядок текущего исследования задаёт не этот список полей, а разрывы в
+[`runtime resource pipeline`](../docs/engine/runtime-resource-pipeline.md).
+Визуальные проверки ниже используются после локализации соответствующего
+consumer в executable либо как явно ограниченный разведочный тест.
+
 Активный pre-release scope теперь содержит только вопросы, обязательные для
 SmoLVLcreator и production model import; его gate и критерии отказа записаны в
 [`../docs/research/smo-lvlcreator-import-mvp-plan.md`](../docs/research/smo-lvlcreator-import-mvp-plan.md).
@@ -56,6 +61,7 @@ SmoLVLcreator и production model import; его gate и критерии отк
 
 | Вопрос | Быстрая проверка | Условие закрытия |
 |---|---|---|
+| Читает ли runtime `spStaticRenderObject.InvTransform`, пересчитывает его или использует только в отдельных consumers? | serializer trace и последующие reads для `Object_2_lvl`/`Object_3_lvl` в `Alfea02.smo`; лишь затем одиночная mutation | найдено место записи runtime-полей и все render/culling consumers; визуальная совместимость сама по себе вопрос не закрывает |
 | Как визуально наследуется отсутствующий parent target? | активный animation tick для `Z_Ankle` и descendant `foot_right` | binding registry уже закрыт; осталось различить итоговый bind pose и world-transform inheritance |
 | Что означают collision groups `1/2`? | переключение Group у простого collider и игровые collision/debug проверки | роли групп воспроизводимо различаются либо доказано отсутствие различия в выбранных consumers |
 | Что означают `wxFaceData.flags` и `surfaceID`? | изменение одного metadata-поля на выбранной поверхности с движением/звуком/коллизией | найден хотя бы один runtime consumer или подтверждено отсутствие эффекта в проверенных системах |
@@ -98,8 +104,9 @@ SmoLVLcreator и production model import; его gate и критерии отк
   старых инструментов. Pristine-корпус остаётся единственным формальным эталоном.
 - Точные native engine enum names для 11 material render states, 9 texture
   states и всех `FinalBlendOp`; runtime-тест может доказать поведение, но не имя.
-- Serializer field IDs/layout executable-only material sources: camera, cubemap,
-  movie, render target и UV generation.
+- Runtime-проверка executable-only material sources: их serializer fields и
+  layouts (`7`, `13..16`) уже восстановлены, но camera/cubemap/movie branches
+  отсутствуют в текущем SMO-корпусе и ещё не проходили authored in-game test.
 - Геометрические имена BSP child slots `0/1`; optional Polygon поддержан обоими
   executable, но в корпусе отсутствует.
 - Runtime-роль `PartitionNode/PartitionRenderable.DebugColor`.
@@ -149,9 +156,14 @@ SmoLVLcreator и production model import; его gate и критерии отк
 
 В executable зарегистрированы, но в SMO-корпусе не встречены:
 `spAnimation`, `spBoundingVolume`, `spCapsuleBV`, `spCollisionManager`,
-`spCollisionMesh`, `spConvexBV`, `spDXShadowMesh`, `spDXShadowVolume`,
-`spEnvironmentMapLayer`, `spMaterialTextureLayer`, `spPhysicsManager`,
-`spShadowVolume`, `spStdLayer`.
+`spCollisionMesh`, `spConvexBV`, `spDXShadowMeshSerializer`,
+`spDXShadowVolumeManager`, `spEnvironmentMapLayer`,
+`spMaterialTextureLayer`, `spPhysicsManager`, `spShadowVolumeManager`,
+`spStdLayer`.
+
+Для `spMaterialTextureLayer` и `spStdLayer` отсутствие object-directory sample
+остаётся именно пробелом корпуса: их runtime layout, factories и ownership уже
+подтверждены по обоим executable.
 
 ## Технический долг исследовательской базы
 

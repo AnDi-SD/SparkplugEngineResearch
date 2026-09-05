@@ -2,7 +2,9 @@
 
 Статус: статический triage и выборочная runtime-проверка без изменения исходных
 бинарников. Адреса нужны как точки входа для последующей разметки и не являются
-завершённой декомпиляцией.
+завершённой декомпиляцией. Непрерывная карта от resource request до draw ведётся
+в [отдельном документе](runtime-resource-pipeline.md), а граница исходных
+модулей и типов — в [карте оригинальной архитектуры](original-architecture.md).
 
 ## Зафиксированные бинарники
 
@@ -34,11 +36,14 @@ PS2-функция около VA `0x00181D80` выполняет эквивал�
 - строка компилятора `MW MIPS C Compiler (2.4.1.01) PlayStation2`;
 - `.symtab`/`.strtab` очищены;
 - сохранены имена классов, RTTI-like/registration strings, токены полей serializer и диагностика;
+- все 681 вызов registration constructor по VA `0x001115B0` восстановлены
+  вместе с class/base hashes, registration objects и callback-аргументами;
 - присутствует баннер `Sparkplug Engine v1.0`.
 
 ## Следы исходного дерева в PC executable
 
-Найдены 53 пути вида `Z:\Sparkplug\Code\...`, среди них:
+Найдены 53 уникальных пути вида `Z:\Sparkplug\Code\...`: 52 принадлежат коду
+движка, один — вложенному `Sparkplug\External\Ftsg`. Среди них:
 
 - `spDataBlockSerializer.cpp`;
 - `spSerializer.cpp`, `spSerializerManager.cpp`;
@@ -48,12 +53,39 @@ PS2-функция около VA `0x00181D80` выполняет эквивал�
 
 CodeView сохраняет ссылку на `Z:\Winx PS2\CODE\Build\PC\Release\WinxPC.pdb`, GUID `762A83CB-9F00-4B65-B56E-D1979A28956A`, age `1`. PC executable защищён SecuROM 7, поэтому PS2 ELF удобнее как основная статическая опора.
 
+Пути подтверждают реальные исходные модули `SparkBase`, `SparkBasePC`,
+`Sparkplug`, `SparkplugDX` и `SparkplugPC`. Это сильнее группировки по префиксу:
+например, `spPS2MeshDataSerializer.cpp` находился в модуле `Sparkplug`, а не в
+пока не доказанном проекте с придуманным именем `SparkplugPS2`.
+
+## Registration graph и граница engine/game
+
+Для PC image с SHA-256 `3F022480...` разобраны все 733 прямых вызова registration
+constructor RVA `0x0012FF0`. Получено 329 точных `sp...` типов движка и 404
+`wx...` типа Winx вместе с class/base hashes и registration objects. В графе
+найдены 42 прямых перехода `wx -> sp`, включая `wxEngineCore -> spEngineCore`,
+`wxPCApp -> spPCApp`, `wxEntity -> spEntity` и
+`wxFaceData -> spCustomAppData`. Обратных `sp -> wx` рёбер не найдено.
+
+В PS2 ELF разобраны все 681 MIPS registration: 275 `sp...` и 406 `wx...` типов,
+44 прямых перехода `wx -> sp` и ни одного обратного. С PC совпадают 231 engine и
+399 game типов. Для всех 630 общих имён совпали class hash и base class hash.
+PC-only набор ожидаемо содержит `spDX...`/`spPC...`, PS2-only — `spPS2...`;
+`wxPC...` и `wxPS2...` остаются игровым platform layer.
+
+Сканер также проверяет известную таблицу SMO class ID против полного графа. Так
+обнаружены три прежних неоригинальных сокращения: `0x63FEA321` на самом деле
+`spShadowVolumeManager`, `0x04680BC1` — `spDXShadowVolumeManager`, а
+`0x774E52E3` — `spDXShadowMeshSerializer`. Реестр и документация исправлены.
+
 ## Словарь serializer
 
 | Признак | PC | PS2 |
 |---|---:|---:|
-| уникальные имена классов `sp...` | 347 | 291 |
-| общие имена классов | 244 | 244 |
+| строки, совпавшие с широким шаблоном `sp...` | 347 | 291 |
+| подтверждённые PC / PS2 registrations `sp...` | 329 | 275 |
+| общие строки прежнего широкого шаблона | 244 | 244 |
+| общие exact names в строгом сравнении | 231 | 231 |
 | строки `DataBlockSerializer.*` | 314 | 298 |
 | уникальные токены с шаблоном имён serializer fields | 197 | 188 |
 | упоминания SMO/SAN/SPT/SPL/ANM/PCK | 436 | 426 |
@@ -131,10 +163,12 @@ native validator намеренно не запускает их и ничего
 
 ## Следующие шаги
 
-1. Импортировать `SLES_532.19` в Ghidra как MIPS little-endian с base `0x00100000` и разметить `0x00181D80` как кандидата на проверку FFPS-заголовка.
-2. Автоматически выгрузить имена классов, токены полей и size codes в версионируемый словарь без игровых бинарников.
-3. По xrefs восстановить `spDataBlockSerializer`, `spSerializerManager` и platform-specific mesh/texture serializers.
-4. Восстановить generic per-object serializer checkpoint, чтобы нативный журнал
-   показывал конкретный object index/class, а не только FFPS/resource-level этапы.
+1. Восстановить generic per-object serializer checkpoint, чтобы нативный журнал
+   показывал FAT index, object name/class, serialized interval, serializer и
+   runtime pointer, а не только FFPS/resource-level этапы.
+2. Проследить root `spNode` до scene/partition ownership и traversal.
+3. Связать serialized mesh/material/texture с D3D buffers и найденными
+   `DrawPrimitive`/`DrawIndexedPrimitive` endpoints.
+4. Разметить эквивалентный PS2 scene-graph loader и найти VIF/GIF/GS output.
 5. Исследовать безопасный late attach для SecuROM-сборок, отвергающих
    launch-under-debug.

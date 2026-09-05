@@ -1,6 +1,11 @@
 # Полный read-only разбор `spSkin`
 
-Дата проверки: 2026-08-28. Class ID: `0x681F2043`.
+Дата проверки формата: 2026-08-28. Class ID: `0x681F2043`.
+
+Нативные PC layout, lifetime, clone, renderer palette и serializer read/write
+после этого восстановлены отдельно: [`native-class-sp-skin.md`](native-class-sp-skin.md).
+Эта карточка ниже остаётся источником сведений о наблюдаемом SMO-корпусе и не
+смешивает wire grammar с процентом изученности runtime-логики.
 
 ## Итог
 

@@ -276,11 +276,13 @@ internal static class Program
         string path = ExistingFile(smoArgument);
         SmoDocument document = SmoDocument.Load(path);
         SmoPreparedScene scene = SmoViewer.Scene.SmoSceneBuilder.Build(document);
+        bool includeAll = nameFilter == "*";
         SmoSceneMesh[] matches = scene.Meshes
             .Where(mesh => mesh.SharedInstance is null &&
-                document.Objects[mesh.Mesh.ObjectIndex].Name.Contains(
-                    nameFilter,
-                    StringComparison.OrdinalIgnoreCase))
+                (includeAll ||
+                 document.Objects[mesh.Mesh.ObjectIndex].Name.Contains(
+                     nameFilter,
+                     StringComparison.OrdinalIgnoreCase)))
             .OrderBy(mesh => mesh.Mesh.ObjectIndex)
             .ToArray();
         Console.WriteLine(
@@ -299,6 +301,8 @@ internal static class Program
             Console.WriteLine(
                 $"MESH index={entry.Index}; id={entry.Id}; name={entry.Name}; " +
                 $"model={model?.Index}:{model?.Name}; texture={mesh.Texture?.ObjectIndex}; " +
+                $"position=({mesh.WorldTransform.M41:G9}," +
+                $"{mesh.WorldTransform.M42:G9},{mesh.WorldTransform.M43:G9}); " +
                 $"usesAlpha={mesh.UsesAlphaBlend}; order={mesh.RequiresTransparentOrdering}; " +
                 $"mode={mesh.MaterialRenderState?.BlendMode}; " +
                 $"final={mesh.MaterialRenderState?.FinalBlendOperation}");
@@ -860,7 +864,7 @@ internal static class Program
         Console.WriteLine(
             "SmoLVLcreator.ProjectTool\n\n" +
             "  model-info <model.obj|model.glb|model.fbx>\n" +
-            "  scene-mesh-info <file.smo> <name-substring>\n" +
+            "  scene-mesh-info <file.smo> <name-substring|*>\n" +
             "  import    <source.smo> <project.smolvlproj>\n" +
             "  build     <project.smolvlproj> <output.smo>\n" +
             "  roundtrip <source.smo> <project.smolvlproj> <output.smo>\n" +

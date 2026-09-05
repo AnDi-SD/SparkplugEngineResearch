@@ -203,6 +203,9 @@ Vertex alpha включён у 621 PC- и 509 PS2-материалов. Static U
   `esfMaterialLayerTextureStates`;
 - `spTextureStateBlockOld` для legacy field `8`.
 
+Runtime layout, ownership и deep-clone первых трёх layer-классов теперь
+подтверждены отдельно в [карточке material layers](native-class-sp-material-layers.md).
+
 Строки ошибок writer дополнительно называют getters для 11 render states,
 `GetFinalBlendOp`, цветов/specular power, матрицы static UV, девяти texture
 states и object relationships. Это независимое подтверждение семантики, а не

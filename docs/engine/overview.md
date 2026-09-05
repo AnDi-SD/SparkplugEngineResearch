@@ -2,18 +2,23 @@
 
 ## Граница исследования
 
-Цель проекта — документировать загрузку ресурсов Sparkplug настолько, чтобы
-независимо читать, диагностировать, визуализировать и в проверенных пределах
-изменять данные Winx Club: The Game. Это не попытка полностью заново реализовать
-движок или всю игровую логику.
+Цель проекта — восстановить исходную архитектуру Sparkplug с оригинальными
+именами типов и модулей, отделить от неё application layer Winx Club и затем
+повторить точный механизм загрузки и использования ресурсов: от точки запроса в
+executable через файл/PCK, serializer и runtime object до сцены и вывода. Это
+должно позволить независимо читать, диагностировать, визуализировать и в
+проверенных пределах изменять данные Winx Club: The Game. Полная декомпиляция
+всей игровой логики для этого не требуется.
 
 Главные источники evidence:
 
-1. байты чистых и изменённых ресурсов PC/PS2;
-2. воспроизводимый вывод строгих parsers и corpus analyzers;
-3. строки регистрации классов, serializers и call sites в исполняемых файлах;
-4. контролируемые изменения копий ресурсов с проверкой результата в игре;
-5. сравнение прямых PC/PS2-пар и соседних ANM/SAN/SPT/SPL/STX-ресурсов.
+1. статический call graph и runtime trace конкретных PC/PS2 executable;
+2. полные registrations: точные class names/hashes, inheritance и owners;
+3. исходные module/source paths, platform-specific families и границы `sp/wx`;
+4. байты чистых и изменённых ресурсов PC/PS2;
+5. воспроизводимый вывод строгих parsers и corpus analyzers;
+6. контролируемые изменения копий ресурсов с проверкой результата в игре;
+7. сравнение прямых PC/PS2-пар и соседних ANM/SAN/SPT/SPL/STX-ресурсов.
 
 ## Подтверждённая слоистая модель
 
@@ -38,8 +43,13 @@ SMO нельзя надёжно читать как поиск одной vertex
 - Проиндексированы отдельные `pc-pristine`, `pc-working` и `ps2-pristine`:
   1 149 SMO-копий, 36 наблюдаемых class ID на PC, 32 на PS2 и ни одной ошибки
   структурного разбора.
+- Та же schema v5 индексирует все 14 490 уникальных версий файлов: Media/PCK,
+  корни установок, PC PE, PS2 ELF, конфиги, звук, видео, локализацию и известные
+  зависимости. Неподтверждённые форматы и неоднозначные ссылки остаются явно
+  помеченными, а не угадываются.
 - Все 36 встреченных классов имеют строгий structural/read-only decoder,
-  corpus variants и evidence. Реестр содержит 49 классов; 13 не встречены в SMO.
+  corpus variants и evidence. Реестр содержит 50 классов; ещё один находится в
+  SAN, а 13 выбранных executable-классов не встречены в SMO.
 - Контейнер little-endian начинается с `FFPS`; исполняемые файлы обеих платформ
   проверяют также слово `0x26`.
 - Каталог хранит имя, class hash, logical offset и serialized size. Физический
@@ -61,9 +71,15 @@ SMO нельзя надёжно читать как поиск одной vertex
   namespace сворачивается в один exact key.
 - CollisionInfo, MeshBV, `wxFaceData`, surface types, BSP/octree/zone/portal,
   occlusion и navigation layouts известны для всего текущего корпуса.
-- В PC и PS2 executable найдены class registrations и serializer tokens; PS2 ELF
-  содержит баннер `Sparkplug Engine v1.0`, PC executable — пути serializer `.cpp`
-  и идентификатор PDB.
+- В PC и PS2 executable полностью восстановлены class registrations и
+  непосредственное inheritance; PS2 ELF содержит баннер `Sparkplug Engine v1.0`,
+  PC executable — пути serializer `.cpp` и идентификатор PDB.
+- Полный PC registration graph содержит 733 типа: 329 engine `sp...` и 404 game
+  `wx...`; 42 игровых типа прямо наследуют Sparkplug-типы. Пути исходников
+  подтверждают модули `SparkBase`, `SparkBasePC`, `Sparkplug`, `SparkplugDX` и
+  `SparkplugPC`. PS2 graph содержит 681 тип: 275 engine, 406 game и 44 прямых
+  ребра `wx -> sp`. С PC совпадают 231 engine и 399 game types, без расхождений
+  class hash или base class hash.
 - PC `WinxClub.exe` получает корень ресурсов из
   `HKLM\\Software\\Konami\\Winx Club\\MediaPath` и строит пути через таблицы
   каталогов.
@@ -75,7 +91,10 @@ SMO нельзя надёжно читать как поиск одной vertex
 [реестре типов](../reference/smo-object-types.md),
 [описании физики и коллизий](physics-and-collision.md),
 [платформенном сравнении](../platforms/pc-vs-ps2.md) и
-[базе корпусов](../research/smo-corpus-database.md).
+[базе корпусов](../research/smo-corpus-database.md) и
+[общей базе ресурсов](../research/game-resource-database.md) и
+[карте оригинальной архитектуры](original-architecture.md) и
+[карте runtime-конвейера](runtime-resource-pipeline.md).
 
 ## Что остаётся неизвестным
 
@@ -113,8 +132,10 @@ SMO нельзя надёжно читать как поиск одной vertex
 
 ## Следующий этап evidence
 
-Следующий этап — не новый последовательный разбор классов, а runtime-валидация
-сразу по всем системам: baseline sweep debug menu, загрузка уровней и персонажей,
-length-preserving изменения заголовка, имён, transforms, materials, collision,
-navigation, effects и GUI. Долгий PS2 binary reverse и универсальный structural
-writer выполняются позже вместе с развитием софта.
+Следующий этап — не новый последовательный разбор классов и не серия визуальных
+mutation-тестов сама по себе. Сначала восстанавливается непрерывный executable
+path `request -> stream -> FAT -> serializer -> runtime object -> scene ->
+draw`, начиная с `Alfea02.smo`. Corpus и length-preserving mutations затем
+используются как контрольные входы для уже найденных consumers. PC и PS2 reverse
+ведутся вместе: PC даёт runtime trace и D3D endpoint, PS2 — независимый и менее
+защищённый статический вариант тех же engine-функций.

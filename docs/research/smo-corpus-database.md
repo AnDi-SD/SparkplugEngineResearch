@@ -1,4 +1,4 @@
-# Платформенный индекс ресурсов SMO
+# Платформенный индекс ресурсов и классов SMO
 
 Локальная SQLite-база сохраняет результаты полного разбора PC- и PS2-корпусов,
 чтобы исследование классов, вариантов и полей не требовало повторного чтения всех
@@ -7,15 +7,18 @@ SMO. Это производный артефакт в `local-data/results/smo-c
 
 Однокорпусная база `smo-corpus.sqlite` сохранена как контрольный и
 восстанавливаемый артефакт. Основной исследовательский индекс мигрирован без
-потери объектов и evidence на schema v3, scanner revision 4.
+потери объектов и evidence на schema v5, scanner revision 7. Общий каталог всех
+файлов, форматов и зависимостей описан отдельно в
+[game-resource-database.md](game-resource-database.md); этот документ сохраняет
+подробности SMO-слоя.
 
-## Состояние на 28 августа 2026 года
+## Состояние на 1 сентября 2026 года
 
 | Корпус | Ресурсы, уникальные версии | Физические вхождения | SMO разобрано | Объекты | Прямые поля | Классы |
 |---|---:|---:|---:|---:|---:|---:|
-| `pc-pristine` | 4 277 | 4 277 | 416/416 | 177 369 | 1 112 916 | 36 |
-| `pc-working` | 4 221 | 4 221 | 416/416 | 177 369 | 1 112 916 | 36 |
-| `ps2-pristine` | 5 806 | 12 229 | 317/317 | 160 387 | 1 037 225 | 32 |
+| `pc-pristine` | 4 295 | 4 295 | 416/416 | 177 369 | 1 112 916 | 36 |
+| `pc-working` | 4 240 | 4 240 | 416/416 | 177 369 | 1 112 916 | 36 |
+| `ps2-pristine` | 5 955 | 12 378 | 317/317 | 160 387 | 1 037 225 | 32 |
 
 Ошибок разбора SMO нет. В 78 PS2 PCK находится 1 481 физическое вхождение SMO,
 но после дедупликации одинаковых логических путей и содержимого остаётся 317
@@ -33,9 +36,9 @@ SMO. Это производный артефакт в `local-data/results/smo-c
 PS2-only классов пока нет. Отсутствие класса не означает отсутствие функции:
 при разборе PC-only класса обязательно ищется альтернативное PS2-представление.
 
-После накопления анализов, миграции и runtime evidence размер базы —
-1 273 339 904 байта.
-`PRAGMA integrity_check` 29 августа 2026 года возвращает `ok`. Контрольный
+После schema-v4 migration, общего форматного анализа и runtime evidence размер
+базы — 1 304 272 896 байт.
+`PRAGMA integrity_check` 1 сентября 2026 года возвращает `ok`. Контрольный
 повторный проход без изменений пропускает все
 ресурсы: около 2 секунд для каждого PC-корпуса и 2,7 секунды для всех PS2 PCK на
 текущей машине; это контрольные замеры, а не универсальный benchmark.
@@ -89,6 +92,11 @@ dotnet run --project SmoViewer.Inspect -- research-db update-pck `
   <database.sqlite> ps2-pristine ps2 pristine <pck-directory> <SLES_532.19>
 
 dotnet run --project SmoViewer.Inspect -- research-db summary <database.sqlite>
+dotnet run --project SmoViewer.Inspect -- research-db sources <database.sqlite>
+dotnet run --project SmoViewer.Inspect -- research-db formats <database.sqlite>
+dotnet run --project SmoViewer.Inspect -- research-db format <database.sqlite> unknown
+dotnet run --project SmoViewer.Inspect -- research-db resource-audit <database.sqlite>
+dotnet run --project SmoViewer.Inspect -- research-db resource-errors <database.sqlite>
 dotnet run --project SmoViewer.Inspect -- research-db headers <database.sqlite>
 dotnet run --project SmoViewer.Inspect -- research-db classes <database.sqlite>
 dotnet run --project SmoViewer.Inspect -- research-db class `
@@ -130,17 +138,20 @@ case-sensitive lookup `R_Ankle/r_Ankle` с executable hash и locators двух 
 изменения и ревизию scanner; SHA-256 пересчитывается для реально прочитанного
 ресурса. Неизменённый PCK пропускается целиком по размеру и времени изменения,
 сохраняя все зарегистрированные occurrences. Повышение scanner revision
-принудительно перечитывает SMO, но не хеширует заново соседние типы файлов.
+принудительно перечитывает файлы тех форматов, чей анализатор изменился; строгий
+индекс уже проверенных SMO objects/direct fields при совместимой ревизии
+переиспользуется.
 
 ## Различия двух PC-корпусов
 
-В `pc-pristine` и `pc-working` соответственно 4 277 и 4 221 путей: 4 217 общих,
+В каталогах `Media` корпусов `pc-pristine` и `pc-working` соответственно 4 277 и
+4 221 путь: 4 217 общих,
 3 192 побайтно одинаковых, 1 025 изменённых, 60 только в pristine и 4 только в
 working. Среди изменённых — 29 SMO, 854 WAV, 67 MP2 и 63 M1V. Поэтому
 агрегаты 416 SMO / 177 369 объектов / 1 112 916 полей служат контролем parser,
 но не доказывают тождество содержимого корпусов.
 
-## Схема v3
+## Схема v4
 
 В `files` больше не используется ошибочное имя `ffps_version` для слова
 `0x10`. Заголовок хранится в трёх отдельных столбцах:
@@ -171,6 +182,12 @@ DELETE/INSERT уже проверенных `objects`, `direct_fields` и eviden
 | `evidence` | источник утверждения и точный locator |
 | `resource_pairs` | явные межкорпусные/межплатформенные пары ресурсов |
 | `object_pairs` | сопоставления объектов с методом, уверенностью и evidence |
+| `resource_formats` / `resource_format_variants` | общий каталог форматов и платформенных layout-вариантов |
+| `file_format_assignments` | формат и результат анализа каждого файла, включая не-SMO и executable |
+| `resource_properties` / `resource_symbols` | проверенные свойства, строки, component names и animation tracks |
+| `resource_dependencies` | исходные ссылки, target file и явный resolved/ambiguous/unresolved status |
+| `container_format_assignments` / `container_properties` | паспорта directory и PCK-контейнеров |
+| `resource_evidence` | provenance форматных утверждений с source, locator и confidence |
 
 Полный payload не копируется в базу. Для поля хранится не более 48 первых байт;
 для payload до 4096 байт дополнительно сохраняется SHA-256. Исходный SMO остаётся

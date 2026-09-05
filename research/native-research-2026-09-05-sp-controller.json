@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-sp-controller-2026-09-05T08:57:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T08:57:00Z",
+  "notes": "PC-only dependency scout for the engine RTTI bases of spAnimation; PS2 deliberately deferred.",
+  "classes": [
+    {
+      "className": "spController",
+      "researchStatus": "scouted",
+      "pcStatus": "scouted",
+      "ps2Status": "deferred",
+      "coverageScore": 25,
+      "lowerBound": 18,
+      "upperBound": 32,
+      "priorityTier": 1,
+      "summary": "PC abstract identity, vtable, null factory/clone, protected copy slot and the mismatch between engine RTTI and spAnimation physical C++ layout are known; copy body, abstract slot and fields remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "controller_vtable",
+          "sourcePath": "docs/research/native-class-sp-controller.md",
+          "locator": "0x006DC86C;0x00423070;0x00423100",
+          "observation": "spController is factory-less, has an eight-slot vtable ending in the common abstract body, a protected copy thunk and an engine RTTI base of spSubController.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "inheritance_boundary",
+          "sourcePath": "research/inspect_animation.py",
+          "locator": "27/27 checks",
+          "observation": "The eight-slot controller vtable differs from the seven-slot spAnimation vtable, whose destructor returns directly through the spBaseObject body; engine RTTI base is not a physical-layout guarantee.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spSubController",
+      "researchStatus": "scouted",
+      "pcStatus": "scouted",
+      "ps2Status": "deferred",
+      "coverageScore": 25,
+      "lowerBound": 18,
+      "upperBound": 32,
+      "priorityTier": 1,
+      "summary": "PC abstract identity, vtable, null factory/clone and base no-payload copy are known; exact layout, original abstract method name and callers remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "controller_vtable",
+          "sourcePath": "docs/research/native-class-sp-controller.md",
+          "locator": "0x006E83E4;0x00467950;0x00467970",
+          "observation": "spSubController is factory-less, uses the base no-payload copy and has an eight-slot vtable ending in the same abstract body as spController.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

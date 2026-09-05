@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-sp-skin-2026-09-05T08:20:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T08:20:00Z",
+  "notes": "PC-first spSkin runtime and spSkinSerializer read/write cycle; PS2 deliberately deferred because PC evidence was sufficient.",
+  "classes": [
+    {
+      "className": "spSkin",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 75,
+      "lowerBound": 69,
+      "upperBound": 81,
+      "priorityTier": 1,
+      "summary": "PC identity, full observed member extent, ownership/copy, renderer palette submission and the matching serializer contract are reconstructed; constructor defaults, exact matrix convention, full portable stream mutation and PS2 remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "binary_layout_lifetime",
+          "sourcePath": "docs/research/native-class-sp-skin.md",
+          "locator": "0x0046A100;0x0046A1F0;0x0046A650",
+          "observation": "The PC object has weightCount at +0x60, boneCount at +0x64, spNode pointer array at +0x68 and parallel 64-byte matrix array at +0x6C; destructor frees both arrays and copy remaps relationships.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_render_path",
+          "sourcePath": "docs/research/native-class-sp-skin.md",
+          "locator": "0x0046A240",
+          "observation": "The render body combines bone transforms with inverse-bind matrices, publishes the palette count to the renderer, submits the inherited base mesh and clears temporary palette state.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "read_only_regression",
+          "sourcePath": "research/inspect_skin.py",
+          "locator": "21/21 checks",
+          "observation": "Pinned-executable body hashes, vtables, offsets, target ID, serializer entry points and source path pass 21 independent regression checks.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "common",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spSkin.cpp",
+          "locator": "spSkin; SparkplugEngineTests",
+          "observation": "Portable ownership, clone/copy and palette invariants compile and pass the project CTest suite; analytical API names are kept distinct from unknown originals.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spSkinSerializer",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 80,
+      "lowerBound": 74,
+      "upperBound": 86,
+      "priorityTier": 1,
+      "summary": "PC identity, source path, storage-free layout, target class, index/write/read bodies and null-bone error branch are reconstructed; full portable stream/fixup/rollback execution and PS2 remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "serializer_identity_layout",
+          "sourcePath": "docs/research/native-class-sp-skin.md",
+          "locator": "0x006D4880;0x006EC7C0;0x006EC7CC",
+          "observation": "spSkinSerializer directly derives from spModelSerializer, adds no observed storage beyond 0x14, targets spSkin and preserves the exact original translation-unit path.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "serializer_index_write_read",
+          "sourcePath": "docs/research/native-class-sp-skin.md",
+          "locator": "0x00490D30;0x00490DA0;0x00491170",
+          "observation": "Index traverses all bones; writer and reader agree on two UInt32 values followed by one spNode relationship and one 64-byte inverse-bind matrix per slot, and reader rejects null bones.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "common",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp",
+          "locator": "BuildKnownWritePlanForAnalysis; SparkplugEngineTests",
+          "observation": "The portable serializer exposes only the confirmed field and payload plan while leaving object-directory mutation to the still-incomplete common serializer protocol.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

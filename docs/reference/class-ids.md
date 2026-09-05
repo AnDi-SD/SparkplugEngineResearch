@@ -6,6 +6,7 @@
 |---:|---|
 | `0x763277DB` | `spModel` |
 | `0x6160348B` | `spMaterialData` |
+| `0x0F507BC8` | `spPS2Material` |
 | `0x78EA082B` | `spTextureData` |
 | `0x33C34CF0` | `spMeshData` |
 | `0x56D67170` | `spStaticRenderObject` |
@@ -36,9 +37,13 @@
 | `0x234C576B` | `spStdLayer` |
 | `0x7F577C6D` | `spMaterialTextureLayer` |
 | `0x427C7480` | `spEnvironmentMapLayer` |
-| `0x63FEA321` | `spShadowVolume` |
-| `0x04680BC1` | `spDXShadowVolume` |
-| `0x774E52E3` | `spDXShadowMesh` |
+| `0x4DED3E44` | `spCubeEnvMapLayer` |
+| `0x194613E1` | `spCameraViewLayer` |
+| `0x46B61C67` | `spMirrorLayer` |
+| `0x075F3EB6` | `spMovieLayer` |
+| `0x63FEA321` | `spShadowVolumeManager` |
+| `0x04680BC1` | `spDXShadowVolumeManager` |
+| `0x774E52E3` | `spDXShadowMeshSerializer` |
 | `0x7AC95AEC` | `spFog` |
 | `0x5E6402DF` | `spLightData` |
 | `0x188A161F` | `spNavigationGraph` |
@@ -55,6 +60,24 @@
 | `0x16FB0E47` | `spAnimTexController` |
 | `0x390946D2` | `spSphereBV` |
 
+## Runtime material/target classes
+
+Эти RTTI-типы подтверждены регистрациями обоих executable и serializer call
+graph, но не обязаны появляться отдельными top-level FAT entries в исследованном
+SMO-корпусе.
+
+| Hash | Имя класса |
+|---:|---|
+| `0x694E6975` | `spMaterialTexture` |
+| `0x535D1473` | `spMaterialRenderTargetTexture` |
+| `0x34EF51B9` | `spMaterialCameraViewTexture` |
+| `0x1C3B499A` | `spMaterialCubeMapTexture` |
+| `0x6A24474A` | `spMaterialMovieTexture` |
+| `0x18DF3845` | `spCamera` |
+| `0x24BB4C41` | `spCameraData` |
+| `0x41672E34` | `spDXCamera` |
+| `0x055A04E0` | `spPS2Camera` |
+
 ## Правила обновления
 
 Новая запись добавляется после подтверждения как минимум двумя источниками, например:
@@ -64,6 +87,11 @@
 - существующим именем класса и воспроизводимым runtime experiment.
 
 Неизвестный hash сохраняется числом в выводе parser. Давать ему «похожее» имя без evidence не следует. Состояние decode полей нужно отслеживать отдельно от подтверждения имени класса.
+
+Три прежних сокращённых имени shadow-классов исправлены по полной PC registration
+table: ID `0x63FEA321`, `0x04680BC1` и `0x774E52E3` принадлежат manager/serializer,
+а не `spShadowVolume`, `spDXShadowVolume` и `spDXShadowMesh`. Проверка таблицы
+воспроизводится `research/inspect_executable_architecture.py --class-id-table`.
 
 `spNavigationSet` подтверждён регистрацией и serializer-кодом PC/PS2 как
 базовый класс `spMeshNavigationSet`; отдельных объектов этого точного class ID в

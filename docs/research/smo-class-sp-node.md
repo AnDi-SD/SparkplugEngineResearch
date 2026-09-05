@@ -37,9 +37,12 @@ Field 6 подтверждён обоими executable, но у объектов
 показывает `engine axis 1/2`, а не подставляет догадку X/Y.
 
 Field 8 имеет legacy-исключение. В каждом PC-корпусе 16 544 значения равны
-`false`, 928 — `true`, а 369 старых объектов не содержат поле и используют
-constructor-default `false`. PS2 явно хранит 14 887 `false` и 827 `true` во всех
-15 714 объектах. Текущие PC и PS2 writer-функции поле не опускают.
+`false`, 928 — `true`, а 369 старых объектов не содержат поле; read-only decoder
+использует для них форматный fallback `false`. Это не constructor-default
+текущего runtime: PS2 constructor `0x001A8EE0` явно пишет flags `0x00070A00`,
+включая animated bit `0x800`. Точное поведение native reader для отсутствующего
+legacy-поля остаётся открытым. PS2 явно хранит 14 887 `false` и 827 `true` во
+всех 15 714 объектах. Текущие PC и PS2 writer-функции поле не опускают.
 
 ## Child и collision relationships
 
@@ -105,6 +108,9 @@ PS2 `SLES_532.19` независимо подтверждает тот же ко
   же ID, defaults и циклами relationships;
 - xrefs строк полей находятся около `0x00196F1C..0x00197450`;
 - функция `0x001974C0` возвращает class hash `0x695C0F65`.
+
+Runtime-layout, lifetime и portable reconstruction отдельно зафиксированы в
+[`native-class-sp-node.md`](native-class-sp-node.md).
 
 PC runtime дополнительно подтвердил слой привязки имени к transform evaluator.
 Class registration связывает ID `0x5DAF152D` с `spTransformTrackEval`, а запись

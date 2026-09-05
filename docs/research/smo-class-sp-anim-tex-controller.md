@@ -5,12 +5,13 @@
 ```text
 UInt32 frameCount
 Single time[frameCount]
-relationship<spTextureData> texture[frameCount]
+relationship<spTexture> texture[frameCount]
 ```
 
 Времена конечны, строго возрастают; число times и textures обязано совпадать с
-`frameCount`. Все texture relationships разрешаются, inline-объекты дополнительно
-проходят полный `spTextureData` decoder.
+`frameCount`. Native serializer проверяет базовый Class ID `spTexture`
+(`0x2F281E13`). Все texture relationships разрешаются, а конкретные inline-объекты
+texture-data дополнительно проходят соответствующий decoder.
 
 Строго декодированы 28 controllers (9/9/10) и 974 frames. Найдены три storage
 variants:

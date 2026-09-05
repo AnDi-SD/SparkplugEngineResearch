@@ -14,7 +14,7 @@
 1. функция `0x00592F70` освобождает прежнюю строку `MediaPath`;
 2. через `RegOpenKeyExA` открывается `HKLM\Software\Konami\Winx Club`;
 3. через `RegQueryValueExA` читается `MediaPath`;
-4. строка копируется в динамическое поле resource manager по смещению `+0x14`;
+4. строка копируется в динамическое поле игрового asset manager по смещению `+0x14`;
 5. из того же ключа читается `LanguageID`, после чего выбирается языковой каталог;
 6. функция `0x00592C50` собирает полный путь из корня, таблиц каталогов и имени файла.
 
@@ -55,9 +55,17 @@ Hair-setup передаёт builder имя `bloom_hair.smo`, индекс вер
 MediaPath + Characters\ + Bloom\ + bloom_hair.smo
 ```
 
-Так исследование общего resource manager связывается с отдельно восстановленной [системой волос Bloom](../research/bloom-hair-system.md): hair-код знает короткое имя ресурса, а абсолютный путь строит общий asset manager.
+Так исследование игрового asset manager связывается с отдельно восстановленной [системой волос Bloom](../research/bloom-hair-system.md): hair-код знает короткое имя ресурса, а абсолютный путь строит общий asset manager.
 
-## Поля resource manager
+## Поля игрового `wxAssetManager`
+
+Ранее этот объект был ошибочно назван движковым resource manager. Последующий
+независимый разбор настоящего `spResourceManager` показал несовместимые identity,
+размер и назначение: `spResourceManager` — компактный кэш именованных
+`spTexture`/`spMesh`, тогда как объект ниже владеет `MediaPath` и игровыми
+таблицами каталогов. Поэтому здесь используется атрибуция `wxAssetManager`;
+точную карточку движкового класса см. в
+[`spResourceManager`](../research/native-class-sp-resource-manager.md).
 
 По текущему реверсу:
 
@@ -100,4 +108,7 @@ Validator не меняет описанный контракт игры и не
 
 ## Границы уверенности
 
-Подтверждены registry key, значения `MediaPath`/`LanguageID`, поля manager, основные таблицы и конкретная сборка пути `bloom_hair.smo`. Пока не подтверждены скрытый command-line override, повторное чтение registry во время жизни процесса и полная семантика второй таблицы подкаталогов.
+Подтверждены registry key, значения `MediaPath`/`LanguageID`, поля игрового
+asset manager, основные таблицы и конкретная сборка пути `bloom_hair.smo`.
+Пока не подтверждены скрытый command-line override, повторное чтение registry
+во время жизни процесса и полная семантика второй таблицы подкаталогов.

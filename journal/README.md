@@ -6,6 +6,9 @@
 
 ### 2026
 
+- [2026-09-05 — native-реконструкция Sparkplug и постоянная база знаний](2026/2026-09-05-native-reconstruction-and-knowledge-base.md)
+- [2026-08-26 — SmoLVLcreator 0.1.0](2026/2026-08-26-smolvlcreator-0.1.0.md)
+- [2026-08-25 — общий WPF/OpenGL renderer SmoViewer](2026/2026-08-25-smoviewer-shared-renderer.md)
 - [2026-08-24 — выпуск SmoViewer 0.5.0 и SmoExporter 0.5.0](2026/2026-08-24-smoviewer-0.5-exporter-0.5.md)
 - [2026-08-24 — прямой GPU-render уровней в SmoViewer](2026/2026-08-24-smoviewer-direct-gpu-level-rendering.md)
 - [2026-08-24 — transforms partitioned-уровня Alfea02](2026/2026-08-24-alfea02-partition-transforms.md)
