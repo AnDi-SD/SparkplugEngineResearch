@@ -1,8 +1,9 @@
 # `spMaterialPassLayer`, `spMaterialTextureLayer` и `spStdLayer`
 
-Дата проверки: 5 сентября 2026 года. Статус: RTTI-граф, полный внешний layout,
-factory/lifetime, deep-clone relationships и связь стандартного слоя с
-`spMaterialTexture` подтверждены на PC и PS2.
+Дата проверки: 6 сентября 2026 года. Статус: RTTI/layout и статические
+clone edges подтверждены раздельными PC/PS2 evidence. PC checkpoint13 добавил
+actual factories, direct-delete lifetime и standard-layer codec; полная
+clone-policy и весь runtime ещё не закрыты.
 
 ## Иерархия
 
@@ -27,7 +28,7 @@ spBaseObject
 | `0x00..0x0F` | `spBaseObject` |
 | `0x10` | raw `FinalBlendOperation` |
 | `0x14` | layer count |
-| `0x18..0x34` | восемь intrusive layer pointers |
+| `0x18..0x34` | восемь owned layer pointers; на PC direct-delete, не intrusive |
 | extent | `0x38` |
 
 Constructor обнуляет все десять слов после base. Destructor освобождает все
@@ -52,7 +53,8 @@ Constructor обнуляет все десять слов после base. Destr
 
 `spStdLayer` не добавляет полей. Его factory создаёт внешний объект `0x14`, а
 затем обычный [`spMaterialTexture`](native-class-sp-material-render-target-texture.md)
-в relationship `+0x10`: nested object имеет observed `0x6C` на PC и exact
+в relationship `+0x10`: nested object имеет actual allocation **`0x68` на PC**
+(checkpoint12, прежнее guessed6C неверно) и exact
 aligned `0x80` на PS2. Это отделяет сериализуемый «тип слоя» от фактического
 набора texture states, texture/controller relationships и UV matrix.
 
@@ -73,16 +75,19 @@ aligned `0x80` на PS2. Это отделяет сериализуемый «т
 ## Переносимый срез и проверка
 
 Восстановлены три native RTTI-типа, bounded pass API, standard-layer factory и
-deep clone внешнего pass/layer/nested-texture графа. Portable ownership хранится
-в `shared_ptr`; это безопасная модель наблюдаемого intrusive lifetime, а не
-заявление о byte-compatible host layout.
+deep clone внешнего pass/layer/nested-texture графа. Исправление PC checkpoint13:
+Pass→Layer и Layer→MaterialTexture используют direct-delete при refcount0,
+поэтому portable ownership этих двух связей теперь `unique_ptr`. Только
+Material→Pass — intrusive/shared owner. Полная native clone-policy ещё не
+подтверждена; portable clone не является её доказательством. См.
+[PC standard graph](native-pc-material-standard-graph.md).
 
 `python research/inspect_material_layers.py` выполняет 45 read-only проверок:
 образы и class strings, все шесть RTTI initializer-ов, vtables, body hashes,
 protected PC thunks, exact PS2 allocations, fixed bound `8` и делегирование
 copy. Полная последовательная сборка и оба CTest-набора проходят.
 
-Открыты original paths/API spelling, exact PC allocator sizes за SecuROM,
+Открыты original paths/API spelling, остальные PC allocator/lifetime variants,
 `FinalBlendOperation` enum, имя дополнительной texture-state операции и
 state-application/render dispatch, который потребляет pass непосредственно
 перед mesh submission.
@@ -99,5 +104,11 @@ Thunk `0x00170790` раскрывает `spMaterialTextureLayer +0x10`, посл
 `spMaterialTexture +0x48` в renderer slot `23`. Это точный
 pass → layer → material texture → texture-transform edge; он не означает, что
 вся таблица texture states уже применена. Evidence включён в scanner
-`inspect_ps2_material.py` (31/31). PC slot `23` независимо подтверждает ту же
-роль через `D3DTS_TEXTURE0 + stage` и `IDirect3DDevice9::SetTransform`.
+`inspect_ps2_material.py` (31/31). Исправление CP23: на PC именно slot `24`
+принимает3×3 и передаёт4×4 в SetTransform; PC slot `23` принимает уже4×4.
+Одинаковый stage+16 не означает одинаковую ABI-форму матрицы.
+
+CP29: [spDXShaderLayer](native-pc-shader-layer.md) отдельно проверен на PC:
+factory28, deep parameter copy/clear/dtor и реальное отклонение его RTTI
+обычными layer read/write/index. Наследование от MaterialTextureLayer не
+превращает его в StdLayer; unsupported check не обходится.

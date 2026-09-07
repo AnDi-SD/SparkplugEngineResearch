@@ -1,7 +1,9 @@
 # Полный разбор `spSkyBox`
 
-`spSkyBox` (`0x7A7124AF`) — прямой наследник `spNode`, владеющий упорядоченным
-списком из 1..3 inline `spModel`. Строго декодированы 126 объектов
+`spSkyBox` (`0x7A7124AF`) имеет сериализуемую node-секцию и упорядоченный
+список из 1..3 inline `spModel`. Это **не direct C++ inheritance от `spNode`**:
+PC runtime RTTI/factory подтверждают `spSkyBox -> spRenderNode -> spNode`,
+exact1D4. Строго декодированы 126 объектов
 (43/43/40) и все 159 вложенных models. Собственная секция содержит только
 повторяемый field 0 `sky_box.model`; все relationships физически inline, а
 каждый model проходит полный model/mesh/material decoder.
@@ -18,7 +20,10 @@ enum стороны куба и нет отдельного признака sky
 
 Воспроизводимый отчёт: [`analyze_smo_sky_box.py`](../../research/analyze_smo_sky_box.py).
 
-Serializer не кодирует имена визуальных ролей. Camera-follow и влияние порядка
-models остаются runtime-вопросами; быстрый этап проверяет только camera-follow,
-а structural reorder отложен до relationship writer. План:
+Serializer не кодирует имена визуальных ролей. PC camera-follow теперь
+подтверждён original game→SkyBoxManager snapshot reparent на DefaultCamera:
+position наследуется, orientation сохраняется local override. Отдельный draw
+снимает fog с models и идёт через base render support; normal sky support —
+no-op. [Доказательства](native-pc-scene-special-managers.md). Геометрический
+результат structural reorder в игре ещё не проверен; он отложен до relationship writer. План:
 [`smo-runtime-validation-plan.md`](smo-runtime-validation-plan.md).

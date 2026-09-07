@@ -2,7 +2,16 @@
 
 Статус: точный source identity, RTTI/lifetime, storage-free ABI, target, source-wrapper,
 writer/reader dispatch и каркас нативного payload подтверждены независимо в PC и PS2.
-Настоящий stream codec и Direct3D resource creation пока остаются evidence-only.
+Полный native stream codec и Direct3D resource creation пока не перенесены.
+PC checkpoint 16 восстановил native-data reader и общий source wrapper для
+полных поддержанных mip chains, с 11 exact comparisons оригинальных пикселей
+и состояния: [карточка](native-pc-texture-native-source.md). Writer, conversion,
+missing mips, external source и live Direct3D по-прежнему открыты.
+PC checkpoint18 добавляет [native-data writer](native-pc-texture-native-writer.md)
+на CPU TextureData, policies0/1/2;6 byte-exact cases. Это не writer runtimeDXTexture.
+PC checkpoint14 подтвердил actual factory14, header42DD10→DXTexture4AB520
+и отдельные COM boundaries, без GPU:
+[карточка](native-pc-texture-codec-boundaries.md).
 
 PC сохраняет точный путь translation unit:
 
@@ -14,7 +23,11 @@ PS2 сохраняет `spDXTextureDataSerializer.cpp` и имя класса. �
 ## Идентичность и ABI
 
 Class ID `0x1C6D480F`, direct C++/registered base — `spTextureDataSerializer`
-(`0x1C4C75BA`), target — `0x0B1C67BB`, соответствующий `spDXTextureData`.
+(`0x1C4C75BA`). Virtual identifier — `0x0B1C67BB`, исторически подписанный
+`spDXTextureData`. **Actual PC startup регистрирует этот serializer под wire
+`spTextureData78EA082B`, masks6/op1 или2**, а не под0B1C67BB. Отдельный runtime
+класс с таким ID этим getter не доказан. Исполненные registrations и реальные
+runtime/native mip codecs: [checkpoint15](native-pc-texture-runtime-mips.md).
 
 | Свойство | PC | PS2 |
 |---|---:|---:|
@@ -27,7 +40,8 @@ Class ID `0x1C6D480F`, direct C++/registered base — `spTextureDataSerializer`
 
 PS2 factory выделяет `0x14` байт, вызывает constructor базового serializer и заменяет
 только два vptr. Derived-состояния нет. PC размер остаётся наблюдаемым из factory path,
-поскольку прямой allocator скрыт защитной секцией.
+поскольку прямой allocator был скрыт защитной секцией. PC checkpoint14
+исполняет этот original factory и фиксирует actual allocation14.
 
 ## Методы
 
@@ -101,4 +115,11 @@ PC/PS2 reader masks, zero-mip failure, mip wire sizing, overflow guard, ABI и c
 4. Семантика первого byte-флага и допустимые комбинации pixel-data flag/mip records.
 5. Полный Direct3D format/FVF mapping, texture creation, pitch conversion и ownership.
 6. Alignment, status enum и rollback при частично прочитанной mip-chain.
-7. Полный layout/lifetime target `spDXTextureData`.
+7. Виртуальный identifier0B1C67BB и отсутствие отдельного RTTI-класса: не
+   смешивать wire78EA082B, temporaryTextureData и runtimeDXTexture3F3651B6.
+
+Checkpoint15 исполнил9 native mip readers с actual temporaryTextureData,
+vector16 records и target4ABBA0→explicit COM row copy. Runtime44/size48
+при этом **не заполняются**, хотя обычный runtime serializer4B2950 их
+устанавливает. Полный источник, missing-mip generation и errors ещё открыты;
+source adapter пока не заменён неподтверждённой конверсией.

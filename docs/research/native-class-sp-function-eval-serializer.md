@@ -1,5 +1,11 @@
 # `spFunctionEvalSerializer`
 
+PC checkpoint21: [актуальный runtime/codec](native-pc-function-eval.md)
+подтвердил зарегистрированное имя target, factory38, все finite scalar режимы,
+shared RNG и actual codec;21 exact сравнений. Ниже сохранён исходный разбор
+grammar и его тогдашние unknowns. Они не отменяют последующее PC evidence;
+PS2 runtime из него автоматически не выводится.
+
 Статус: подтверждены исходное имя класса, identity, RTTI/lifetime, раздельный
 PC/PS2 ABI и полная шестиполевая scalar grammar. Runtime-математика target-а
 намеренно не восстановлена по одним лишь данным serializer-а.

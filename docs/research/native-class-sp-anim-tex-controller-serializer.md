@@ -76,6 +76,14 @@ Read-only декодер ранее нашёл 28 controller-объектов и
 
 ## Неизвестное
 
+Дополнение PC, checkpoint20 (6 сентября 2026): актуальные наблюдения о
+factory/lifetime, владении frame slots, interval-end выборе и strict-greater
+wrap записаны в [material controllers](native-pc-material-controllers.md).
+Реконструкция теперь содержит actual shared-core read/index/write и runtime;
+11 native/source сравнений совпали. Следующий список — историческая граница
+первого serializer-разбора; пункты, закрытые CP20 для PC, не считаются вновь
+неизвестными. Для PS2 отдельной runtime-проверки в CP20 не было.
+
 - оригинальные header/source paths и имена методов;
 - полный `spAnimTexController` lifecycle/layout вне подтверждённых offsets;
 - ownership/refcount различия relationship-массивов PC и PS2;

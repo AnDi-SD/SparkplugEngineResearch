@@ -88,7 +88,8 @@ PC factory entry `0x004AA430` состоит из exact thunk
 доступных копиях PC executable. Это скрывает factory/constructor, но не другие
 методы класса.
 
-Slot `0x004AAB80` вызывает основную функцию `0x004AA870`. Она работает до
+Slot `0x004AAB80` вызывает основную функцию `0x004AA870` только при platform
+bit2; bit4 без bit2 недостаточен, Common1 пропускает body. Она работает до
 обычной materialization FAT и выполняет следующее:
 
 1. проходит unresolved entries класса `spMeshData` (`0x33C34CF0`);
@@ -109,6 +110,14 @@ commit и unlock. Поэтому portable hook реализует metadata reade
 а отдельный portable combiner — проверяемое GPU-storage state без Direct3D.
 `HasCompleteNativeMaterializationForAnalysis() == false` остаётся корректным:
 сам hook ещё не выполняет настоящий serializer dispatch второго прохода.
+
+6 сентября:48 original checks подтвердили mask1/2/3/4/6 и отличие exact
+MeshData от cacheable base Mesh. Portable hook исправлен: прежде отсутствовал
+platform gate и helper предзаполнял **все** cacheable types, что могло изменить
+root selection внешнего loader-а. Теперь PrepareForAnalysis принимает explicit
+platform/cache/FAT inputs, повторяет gate и exact-ID filter, затем строит plan.
+Непустой plan НЕ выдаётся за готовое materialization. Новый full-file loader
+в этом случае сообщает unsupported вместо частичного success.
 
 ### `ReadDXMeshDataInfo`
 

@@ -101,3 +101,11 @@ target `spLight`, default-план `{node: IsAnimated, light: Enabled}`, пол�
 3. Поведение отсутствующего field 8 на всех loader/factory путях.
 4. Byte-exact float-to-ARGB rounding/clamping.
 5. Stream status enum, rollback и relationship error handling.
+
+
+## CP88 update, 2026-09-07
+
+The earlier portable-plan-only and protected-factory gaps are superseded by
+[complete PC codec evidence](native-pc-light-serialization.md): actual factories,
+19 exact184 native assertions,4 additional native boundary cases,source
+read/write and fresh-object round trips. Remaining limits are stated there.

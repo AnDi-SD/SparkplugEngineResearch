@@ -3,7 +3,13 @@
 Статус: identity/base, concrete factory, exact platform layouts, embedded
 `spTextureBuffer`, constructor/destructor, blank-data clone, CPU-buffer copy и
 две platform-dependent container ABI подтверждены на PC и PS2. Полная семантика
-двух списков, блока `0x410` и serializer read/write остаётся отдельной задачей.
+двух списков и блока `0x410` остаётся отдельной задачей. PC checkpoint14
+добавил3 exact CPU serializer read/write rows, actual4A0 factory/dtor и
+разделение CPU buffer от DX runtime:
+[проверки](native-pc-texture-codec-boundaries.md).
+PC checkpoint18 добавил [native vector writer](native-pc-texture-native-writer.md)
+через DXData serializer, policies0/1/2,6 exact outputs. Остальные containers и
+создание/конвертация native data остаются открыты; CPUData не равен runtimeDXTexture.
 
 | Platform | PC | PS2 |
 |---|---:|---:|

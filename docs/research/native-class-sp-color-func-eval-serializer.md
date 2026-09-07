@@ -1,5 +1,9 @@
 # `spColorFuncEvalSerializer`
 
+Обновление PC CP24: [реальный runtime и общий codec](native-pc-color-functions.md)
+проверены отдельно от первоначального schema-only описания ниже. PC byte blend,
+factory/blank clone,20 exact source/native comparisons; это не PS2 credit.
+
 Статус: подтверждены native class name, identity, RTTI/lifetime, раздельный
 PC/PS2 ABI и полная восьмиполевая scalar grammar. Различие platform default color
 сохранено явно, как и у `spLightControllerSerializer`.

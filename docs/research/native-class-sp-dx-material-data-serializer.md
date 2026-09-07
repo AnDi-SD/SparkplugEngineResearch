@@ -1,5 +1,14 @@
 # `spDXMaterialDataSerializer`: DX material marker
 
+PC checkpoint12: [actual3C factory / secondary6DE514](native-pc-material-scalar.md).
+Actual table retains common476B50/4766D0/4774D0; source marker inherits the
+same bounded material codec. No additional DX-specific payload invented.
+
+PC checkpoint13: header42F4C0 is shared with MaterialDataSerializer and
+unconditionally creates spDXMaterial after eight-byte read. This class is
+**not** the distinct runtime spDXMaterialSerializer177E2F26 registered for
+797B39EC at6D4C80. See [exact PC graph](native-pc-material-standard-graph.md).
+
 Статус: RTTI/lifetime, direct base, storage-free derived ABI и наследуемый material
 contract подтверждены в PC и PS2. Это не отдельный material codec.
 
@@ -31,5 +40,5 @@ Portable-класс поэтому восстанавливает только R
 write/index plan получает наследованием. Platform payload и target ID намеренно не
 придуманы.
 
-Открыты original header/source path, интерфейсные имена/signatures, прямой PC allocation,
+Открыты original header/source path, интерфейсные имена/signatures, остальные allocation/error ветви,
 семантика platform selection и in-game mutation test.

@@ -1,8 +1,10 @@
 # Нативный класс `spRenderNode`
 
-Дата проверки: 2026-09-05. Статус: class identity, direct base, factory/clone,
-renderable ownership, optimizer traversal и PS2 layout подтверждены бинарно.
-PC tail и исходные имена render/cull API пока остаются неизвестными.
+Дата проверки: 2026-09-06. Статус: class identity/direct base, полный PC layout,
+native factory/lifetime/scene registration, world/bounds/matrix/cull/draw boundary
+проверены original instructions. [Новый PC runtime срез](native-pc-render-node-runtime.md)
+отделяет исполняемые доказательства и переносимую математику от ещё не готовой
+полной runtime-реконструкции класса. Исходные имена render/cull API не найдены.
 
 Этот документ описывает runtime-класс. Формат его SMO-полей разобран отдельно
 в [`smo-class-sp-render-node.md`](smo-class-sp-render-node.md); wire layout нельзя
@@ -14,7 +16,7 @@ PC tail и исходные имена render/cull API пока остаются
 | Class ID / direct base | `0x603625D0 / spNode` | same |
 | Registration / initializer | `0x0075E150 / 0x006D2A20` | `0x004AB290 / 0x00483F00` |
 | Factory | protected entry `0x00425520` | `0x001AB160` |
-| Constructor | protected | `0x001AAFF0` |
+| Constructor | `424F60→13D8030` | `0x001AAFF0` |
 | Destructor | deleting `0x004255D0` | `0x001AAEF0` |
 | Clone / copy | `0x00425580 / 0x00424980` | `0x001AB090 / 0x001AA230` |
 | Registration getter | `0x00425030` | `0x001A9DE0` |
@@ -26,19 +28,23 @@ PC tail и исходные имена render/cull API пока остаются
 
 ## Layout и владение renderables
 
-На PC защищённая factory скрыта SecuROM-переходом. Независимые обращения
-`spSceneGraphOptimizer::OptimizeNode` фиксируют vector prefix после полного
-`spNode` размером `0xB4`:
+PC factory `425520→13C5390` теперь исполнена и выделяет **0x1D4**. После
+полного `spNode` (`0xB4`) находится secondary support:
 
 | Offset | Роль |
 |---:|---|
-| `+0xB4` | поле с пока неизвестной ролью |
+| `+0xB4` | secondary vptr `6DCADC`, шесть методов, original type name неизвестен |
 | `+0xB8` | allocator/служебное слово compiler-specific vector |
 | `+0xBC` | begin массива renderable-ссылок |
 | `+0xC0` | end |
 | `+0xC4` | capacity end |
 
-Это лишь доказанный префикс `0xC8`, не полный PC `sizeof`.
+Старый prefix type `spRenderNodeObservedPrefixLayout` оставлен для совместимости,
+но больше не является пределом знания. Новый `spRenderNodeLayout` покрывает
+local/world spheres `C8/D8`, matrix pointers `E8/EC`, light-cache `F0`, self124,
+scene links128/12C, cull bypass130, dirty134, matrices138/178, inverse scale1B8
+и callback vector1C4. Неназванные cache words/bytes и untouched padding не
+получают вымышленных ролей. Exact fields/static asserts — `Analysis/PC/SparkplugAbi.h`.
 
 PS2 factory чисто выделяет `0x1E0` байт с выравниванием 16. Там `spNode`
 занимает `0xC0`, а renderable-контейнер принадлежит support-subobject по
@@ -48,14 +54,17 @@ inverse scale `(1,1,1)` по `+0x1C0` и инициализирует хвост
 Exact структура сохранена в `Analysis/PS2/SparkplugAbi.h`; PC и PS2 layouts
 намеренно не объединены.
 
-Native список владеет renderables через intrusive references. Copy/clone
-проходит по нему и связывает либо клонирует элементы через общий clone manager;
-повторная ссылка не обязана создавать второй объект. Destructor сначала
+Native список владеет renderables через intrusive references. PC copy/clone
+для **каждого вхождения** вызывает always-clone `412BE0`: повторные указатели
+дают разные Model, но shared Mesh. Это не map-aware entry `412C40→4D3810`.
+Copy **добавляет** элементы в непустой destination, не очищает его; spheres
+копируются до и снова после append-loop. Destructor сначала
 освобождает хвостовые callbacks, затем support-subobject и лишь потом `spNode`.
 
-Portable реконструкция использует `shared_ptr`, сохраняет порядок, допускает
-повторные ссылки, при clone сохраняет их aliasing и инвалидирует безопасный
-bounds-state при attach/detach. Это host-ownership, а не попытка повторить ABI.
+Portable реконструкция использует `shared_ptr`, сохраняет порядок и разные
+Model для повторов при clone. Attach немедленно пересчитывает bounds, как
+native `469ED0→469820`, **без установки dirty bits**. Host detach/clear не
+выдаются за ещё не исполненный native individual detach469F50.
 
 ## Bounds, update и render boundary
 
@@ -88,8 +97,10 @@ Secondary header содержит 13 slots:
 `0, 0, 1AB2D0, 135E10, 135E00, 1AB2E0, 135E80, 135E70, 1AAA20,
 1AA810, 1AA580, 1A9F00, 1A9DF0`.
 
-PC primary vtable по `0x006DCAA4` имеет 20 entries; её точный список и обе
-PS2 таблицы контролирует `research/inspect_render_node.py`.
+Исправлена ошибка прежней карточки: PC primary по `0x006DCAA4` имеет **14**
+entries; соседние **6** относятся к secondary `6DCADC` с `this+=B4`. Это не
+20 методов одной таблицы. PC-only anchors — `research/inspect_pc_render_node.py`;
+старый cross-platform inspector также исправлен. PS2 в новом цикле не исследуется.
 
 ## Связь с optimizer и открытая граница
 
@@ -99,9 +110,16 @@ PC `spSceneGraphOptimizer::OptimizeNode` (`0x004C19D0`) проверяет RTTI
 children. Это независимо подтверждает назначение списка и ставит
 `spRenderNode` между общим scene graph и DX batch/materialization.
 
-Открыты: original header/TU/API, полный PC размер и tail, исходное имя
-support-subobject, callback record layout, cached transform/cull state,
-точные сигнатуры bounds/update/render slots и отношение этих кэшей к scene
-manager. Optimizer и serializer уже разобраны до своих защищённых/fixup
-границ; следующий обязательный узел render-пути — material/fog state внутри
-pre/post-render.
+Checkpoint10 [Model→RenderNode world](native-pc-model-render-world.md) перенёс
+virtual world-dispatch, native geometry getters, local/world sphere и lazy
+world/inverse caches в классы; light-cache обновляется через explicit manager
+binding. Clone **не копирует** cached matrices/dirty134/light-cache/manager
+binding, но копирует spheres, controls120..123 и cull130. Native ownership29,
+portable34, сквозное сравнение2272/32 сценария; прежние math1504 также проходят.
+
+Открыты: original header/TU/API, имя support-subobject и light-cache helper,
+remaining cache roles, automatic Scene/Partition/Occlusion side effects,
+scene45EC70/renderer456310/material submission и native individual detach.
+Простые callback-vector records теперь
+подтверждены как borrowed pointers с swap-last/remove/drain протоколом, но их
+оригинальные interface names/внешние lifetime invariants ещё не закрыты.

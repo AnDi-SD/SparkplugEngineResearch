@@ -1,5 +1,16 @@
 # `spMaterialSerializer`: общая грамматика материала
 
+PC checkpoint26: [color reference/index/writer and frame consumer](native-pc-material-color-graph.md).
+CP19–26 add canonical fallback, AnimTex, UV and prebound ColorController edges
+through the common resource core. Protected ColorController inline factory is
+still unavailable; nonstandard layers and full pipeline are not closed.
+
+Historical PC checkpoint13: [standard-layer graph and actual DX runtime identity](native-pc-material-standard-graph.md).
+The common bounded codec now handles MaterialData/DXMaterial scalar fields,
+StdLayer states8/17 and UV9, using common references and DataBlock framing.
+Nonstandard layers and nonempty external texture/controller branches still
+reject explicitly; this is not whole real material or renderer completeness.
+
 Статус: identity/base, lifetime, встроенный data-block helper, стандартный layer-path,
 reader field set и resource-index order подтверждены executable-кодом и массовым
 SMO-корпусом. Редкие camera/movie/render-target/environment-map ветки пока остаются

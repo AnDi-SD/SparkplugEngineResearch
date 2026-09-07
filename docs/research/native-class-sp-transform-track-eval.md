@@ -1,65 +1,115 @@
-# `spTransformTrackEval`: PC reconnaissance
+# `spTransformTrackEval`: PC PRS evaluator
 
-Статус: `scouted`, только PC. Карточка фиксирует ближайший runtime-узел между
-SAN-треками и PRS узла; она не объявляет восстановленными внутренний формат
-blend input или окончательное обновление world matrix.
+Статус: `substantial`, PC-first. Дополнено часовым циклом 2026-09-05.
+Подтверждены layout, вычисление PRS, binding inputs и непосредственный caller;
+полный actor scheduler и SAN loader ещё не восстановлены. Key sampling и
+world-update закрыты последующими checkpoints, перечисленными ниже.
+PS2 не исследовался в этом цикле.
 
-## Идентичность и границы
+## Идентичность
 
-- class ID: `0x5DAF152D`;
-- engine RTTI base: `spTransformEval` (`0x87B0E260`), далее `spEvaluator`;
-- registration object: `0x00768E90`, initializer: `0x006D79C0`;
-- protected factory: `0x005FF090`, constructor entry: `0x005FF000`;
-- vtable: `0x00711404`, семь слотов;
-- registration getter: `0x005FEBA0`;
-- PRS evaluator: `0x005FEBB0`.
+- class ID `0x5DAF152D`, engine RTTI base `spTransformEval` (`0x87B0E260`),
+  далее `spEvaluator` (`0xE91D088D`);
+- registration `0x00768E90`, initializer `0x006D79C0`;
+- factory `0x005FF090`, constructor `0x005FF000`, allocation `0x78`;
+- vtable `0x00711404`: **девять**, не семь слотов. После неё по
+  `0x00711428` начинается строка `spTransformTrackEval`;
+- `+0x1C -> 0x004D6550` — no-op `ret 8`, роль пока неизвестна;
+- `+0x20 -> 0x005FEBB0` — PRS evaluator, `ret 0x1C`;
+- clone `0x005FF0F0` использует no-payload copy `0x0040ECE0`: новая копия
+  не наследует входы и binding slot.
 
-Фабрика выделяет `0x78` байт. Конструктор сначала вызывает общий evaluator
-initializer `0x0040E910`, задаёт `+0x10 = 0xFFFFFFFF`, обнуляет `+0x14`, затем
-инициализирует два блока с шагом `0x30`. Часть constructor control flow защищена
-косвенным переходом, поэтому оригинальные имена полей пока не присваиваются.
+Фабричный/constructor control flow частично защищён; allocation и записи
+полей установлены по доступным инструкциям и согласованным consumers.
+Названия класса точные; пути новых `.h/.cpp` и имена методов — inferred/analytical.
 
-## Наблюдаемый PC-layout
+## PC layout
 
-| Offset | Размер | Осторожная интерпретация |
-|---:|---:|---|
-| `+0x00` | `0x10` | физический prefix `spBaseObject` |
-| `+0x10` | `4` | slot transform target; до name binding равен `-1` |
-| `+0x14` | `4` | число активных blend inputs |
-| `+0x18` | `2 * 0x30` | два входа PRS-смешивания, внутренние поля ещё не названы |
+| Offset | Поле / analytical role |
+|---:|---|
+| `+0x00` | `spBaseObject` prefix `0x10` |
+| `+0x10` | transform slot, исходно `-1` |
+| `+0x14` | input count |
+| `+0x18` | два input по `0x30` |
 
-Runtime-пробы уже показали запись найденного name/transform slot в `+0x10`:
-missing target получает новый slot, а duplicate names направляют два разных
-evaluator в один slot. Функция `0x005FEBB0` проходит входы с шагом `0x30`,
-получает отдельные position/rotation/scale и смешивает несколько активных
-результатов. Для rotation она вызывает quaternion helper `0x004648C0`; position
-и scale смешиваются покомпонентно. При отсутствии входов выходные флаги PRS
-сбрасываются.
+Внутри каждого input:
 
-Обе ветви завершаются `ret 0x1C`, то есть метод принимает семь stack-аргументов.
-По записям в выходы аргументы 2–4 являются соответственно адресами трёх
-компонентов PRS (`Vector3`, четырёхкомпонентный rotation, `Vector3`), а аргументы
-5–7 — адресами их byte-validity flags. Точный тип и смысл первого аргумента
-пока оставлен неизвестным: назначать ему имя `time` только по контексту рано.
+| Offset | Подтверждённая роль |
+|---:|---|
+| `+0x00` | borrowed pointer на playback entry `spActor`, stride `0x60` |
+| `+0x04` | pointer на animation track entry, stride `0x44` |
+| `+0x08` | unsigned priority; default `0xFFFFFFFF` |
+| `+0x0C` | три in/out position key indices |
+| `+0x18` | три in/out rotation key indices |
+| `+0x24` | три in/out scale key indices |
 
-Это подтверждает сам вычислительный мост, но не доказывает, кто планирует tick:
-текущий `startLevel=2` runtime-маршрут выполнял binding, однако не входил в
-`0x005FEBB0`.
+Layout закреплён в `Analysis/PC/SparkplugAbi.h` через size/offset assertions.
+Original member names и ownership track storage не объявляются найденными.
 
-## Воспроизводимость и открытые вопросы
+## Вычисление и binding
 
-[`inspect_transform_track_eval.py`](../../research/inspect_transform_track_eval.py)
-проверяет SHA pristine PC EXE, хеши пяти тел, vtable, allocation extent и
-ключевые offset/stride patterns. Текущий результат: `14/14 PASS`.
+`0x005FEBB0` принимает `float time`, три output-адреса PRS и три byte-validity
+output-адреса. Тип первого аргумента теперь подтверждён controller call sites,
+но именно этот evaluator его **не использует**: время берётся из
+`input.playback +0x34`, вес — из `+0x0C`. Sampling выполняет `0x00479290`;
+он изменяет сохранённые в input key indices.
 
-Неизвестны:
+Нет samples: все validity flags очищаются, caller output storage не меняется.
+Один ненулевой track: копируются PRS и флаги. Два: position/scale смешиваются
+с cumulative weights; для каждого канала первое valid значение копируется.
+Rotation смешивается через `0x004648C0`, только когда доля прежнего веса
+положительна. Null track пропускается, сохраняя соответствие sample его
+исходному input. Clamp весов/перехода не найден.
 
-- оригинальные имена и точная структура полей каждого `0x30`-байтного входа;
-- точный тип первого аргумента `0x005FEBB0` и оригинальные имена шести
-  подтверждённых PRS-output аргументов;
-- scheduler/caller, который запускает active animation tick;
-- применение локального PRS к `spNode` и вычисление world matrix;
-- PS2-реализация — намеренно отложена, поскольку для этих PC-выводов не нужна.
+`0x005FE9C0` вставляет `(playback, track, priority, exclusive)`:
 
-Следующий логический шаг — найти PC scheduler/caller evaluator и только после
-этого ставить runtime-probe на активном игровом маршруте.
+- exclusive отвергает приоритет ниже любого активного; иначе оставляет один input;
+- неэксклюзивная ветвь сортирует два input по возрастанию unsigned priority,
+  сохраняя caches удержанных записей;
+- обновляется playback `+0x48`, но это пока не названо полноценным refcount:
+  замена первого exclusive input не показывает симметричного decrement;
+- локального ограничения capacity до двух не найдено. Проверки третьего
+  входа намеренно не запускались; caller invariant остаётся открытым.
+
+`0x005FEB70(index)` очищает только два указателя input. Count, priority,
+caches и playback counter не меняются.
+
+Actor binder tail `0x005A1C16..0x005A1E21` соединяет playback entries и tracks,
+вызывает insert по `0x005A1D26`; priority берётся из playback `+0x50`,
+exclusive соответствует `playback +0x10 == 0`. Entry `0x005A1C10` защищён.
+
+Непосредственный scheduler и применение к узлу теперь разобраны в
+[`spActor`](native-class-sp-actor.md) и
+[`spNodeController`](native-class-sp-node-controller.md). Внешний frame caller
+actor tick подтверждён как `spAnimationManager::4535A0`; старый игровой `startLevel=2` probe проверял binding,
+но не входил в evaluator. Это ограничение старого эксперимента сохраняется.
+
+## Исходники, проверки и ограничения
+
+`Sparkplug/Code/Sparkplug/spTransformTrackEval.*` восстанавливает вычислительную
+часть и [original insert/clear lifecycle](native-pc-actor-binding.md). Sampling подключается через явный `TrackSamplerForAnalysis`; теперь
+для него есть проверенный [prepared SAN key adapter](native-pc-animation-keys.md).
+Входы безопасно ограничены двумя. Это не полный SAN loader
+и не полная реконструкция upstream actor capacity contract. Host safely initializes
+invalid-channel storage, где оригинал мог копировать неопределённые байты.
+
+`inspect_transform_track_eval.py` теперь проходит 15/15 проверок, включая
+полную vtable и её границу. Общие evidence/replay проверки и точные
+математические особенности описаны в
+[PC animation runtime pipeline](native-pc-animation-runtime.md).
+
+Открыты: оригинальные API/source names, полная ownership/capacity политика
+input insertion, original API/source names и outer engine frame.
+Representations `1..4` и dirty/world transforms закрыты следующими checkpoints;
+полная загрузка, ownership и frame integration остаются открытыми.
+
+Ночной checkpoint 5/6 сентября: native factories/discovery/binder/start исполнены;
+input insert/clear перенесены, **4368 comparisons /156 cases** проходят.
+Exclusive counter asymmetry подтверждена, новая запись наследует cache
+физического места назначения. Третий input не запускался: Start остановлен
+перед binder CALL. [Подробности и точные ограничения](native-pc-actor-binding.md).
+
+[Owned actor runtime](native-pc-actor-owned-runtime.md) теперь действительно
+соединяет discovery/Start/Rebind/Stop, SAN leases, prepared keys, evaluator и node:
+5154 сквозных comparisons проходят. Это закрывает отсутствие portable actor
+binding, но не внешний frame, full loader или upstream third-input invariant.

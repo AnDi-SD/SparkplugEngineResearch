@@ -116,5 +116,15 @@ python research/analyze_smo_zone_portal_node.py `
 
 Связанные [`spBSPNode`](smo-class-sp-bsp-node.md),
 [`spOcclusionVolume`](smo-class-sp-occlusion-volume.md) и
-[`spMeshNavigationSet`](smo-class-sp-mesh-navigation-set.md) уже полностью
-разобраны. Следующий этап проверяет `Open`/navigation/culling в игре.
+[`spMeshNavigationSet`](smo-class-sp-mesh-navigation-set.md) имеют отдельные
+wire-карточки; это не доказательство полного runtime-разбора всех трёх классов.
+`Open`/navigation/culling в настоящей игре требуют отдельной проверки.
+
+## PC runtime дополнение — 2026-09-06
+
+[Executable/runtime карточка](native-pc-zone-portal-runtime.md): actualC4,
+Node-only clone и borrowed duplicate-preserving vector. Native append481930
+не ограничивает пару и принимает null ниже serializer gate. Inherited Node
+world/Enabled не меняют ни polygon/plane, ни Open. Partial original-named
+source и native whole Scene portal tests63 закрывают эти конкретные contracts,
+но не весь Scene/loader, game Open controller или near-plane45E870 branch.

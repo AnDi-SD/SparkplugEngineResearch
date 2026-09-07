@@ -38,3 +38,15 @@ Exact ABI layouts/anchors and tests are included; isolated build passes 2/2.
 Open: original TU/header and method names, exact PC tail, identities of the
 five PS2 renderer resources/two PC globals, the table/sentinel type and the
 meaning of every debug flag.
+
+PC animation lifecycle продолжение независимо исполнило protected constructor
+через `spAnimation`. Helper `0x0041D4E0` потребляет PC 20-entry table `0x0073FEE8`
+и sentinel `0x0073FEBC`; animation сохраняет результат в `+0x54`. Lazy reference
+`0x0075526C` не следует смешивать с собственным singleton `0x00755278`.
+Доказательства и границы — [animation lifecycle](native-pc-animation-lifecycle.md).
+
+PC [Model checkpoint10](native-pc-model-render-world.md) подтвердил ещё одного
+consumer-а того же `41D4E0`: Renderable ctor сохраняет raw DWORD в `+0x28`,
+позднее pre-render переносит его в rendererC194. Прежнее имя renderer-global
+float исправлено; это не отдельный вновь найденный renderer manager и не
+доказательство исходного имени/типа всей таблицы.

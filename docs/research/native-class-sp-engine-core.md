@@ -37,6 +37,11 @@ PC factory передаёт объект в entry `0x0041C7E0`, но это за
 детали PC constructor берутся только из независимо видимых destructor/method
 accesses и не дорисовываются по PS2.
 
+Ночной PC scout6 сентября исполнил factory allocation, но protected constructor
+остановился внутри guest VM по явному instruction/time limit. Полный ctor
+не закрыт; [новый frame replay](native-pc-engine-frame.md) использует явно
+synthetic core storage и actual отдельные методы, не подменяет ctor.
+
 Clone `0x0041CB90`/`0x00133500` создаёт новый core через тот же factory,
 регистрирует пару в clone manager и вызывает у источника inherited copy slot.
 Manager graph и runtime state не копируются. Это объясняет, почему portable
@@ -77,7 +82,7 @@ intrusive `+0x1C`, восстанавливает base support-vptr и вызы�
 | callback 1 | `+0x30` | `+0x2C` |
 | callback 2 | `+0x34` | `+0x30` |
 | manager/opaque fields | `+0x38..+0x53` | `+0x34..+0x4B` |
-| два больших inline containers | `+0x54..+0x153` | `+0x4C..+0x14B` |
+| область inline-подсистем | `+0x54..+0x153` | `+0x4C..+0x14B` |
 | final owned manager/object | `+0x154` | `+0x14C` |
 | exact size | `0x158` | `0x150` |
 
@@ -87,6 +92,14 @@ PS2 constructor дополнительно доказывает self-links `+0x1
 но по сдвинутым началам `+0x54/+0xCC`. Один общий C struct здесь был бы
 фактически неверен; поэтому `Analysis/PC/SparkplugAbi.h` и
 `Analysis/PS2/SparkplugAbi.h` содержат разные exact layouts.
+
+PC checkpoint6 сентября уточняет прежнее условное слово «containers»:
+`54/90` — два exact `spTaskTimer`3C, `CC/110` — два event-queue helper44,
+чьё original type name ещё не найдено. Измерение engineB8 теперь однозначно
+соответствует delta28 второго timer. Полная source/child конфигурация constructor
+ещё открыта. Bootstrap41B3B0 назначает `3C=spAnimationManager`,
+`40=spDXAudioManager`, `44=spGUIManager`, `48=spCinematicManager`,
+`4C=spNetworkManager`; factory names подтверждены registration, не догадкой.
 
 ## Vtables
 
@@ -167,7 +180,7 @@ manager classes: он воспроизводит доказанный short-circ
 
 - original header, namespace и имена всех 18 virtual methods;
 - скрытое PC constructor body за `.rld` trampoline;
-- точные типы трёх inline containers и их элементов;
+- native camera-vector mutation/ownership и original type name двух event queues;
 - original names и concrete class IDs manager globals;
 - точные request/event structs для wrapper/dispatch slots;
 - renderer reset и frame begin/end signatures;
@@ -177,3 +190,9 @@ manager classes: он воспроизводит доказанный short-circ
 Следующий класс по принятой bootstrap-очереди — `wxEngineCore`. Он должен
 закрыть derived overrides и отделить Winx-specific stages от общего manager
 bootstrap.
+
+Актуальный PC-first маршрут продолжается от
+[app/update/graphics frame](native-pc-engine-frame.md), а не от произвольного
+нового leaf: `spTaskTimer` перенесён; далее full portable frame и
+`spSceneManager`→world-update→renderer. Tests134+209 original checks; slot names,
+callbacks и полные manager implementations не объявлены готовыми.

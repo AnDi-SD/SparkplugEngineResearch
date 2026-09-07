@@ -70,8 +70,22 @@ Read-only сканер `research/inspect_resource_pipeline.py` однознач�
   -> IDirect3DDevice9::DrawPrimitive/DrawIndexedPrimitive
 ```
 
-Средняя часть от runtime object до scene traversal пока не восстановлена. Она
-не должна заполняться предположениями из структуры SMO.
+Средняя часть теперь **частично подтверждена PC instructions**, а не только
+структурой SMO: actual Node attachment/typed Scene registrations/world,
+Model/RenderNode ownership и draw callbacks, queues, SceneRender и
+Visibility→Partition/Octree/BSP/ZonePortal consumers. См.
+[сцену/world](../research/native-pc-scene-world.md),
+[render path](../research/native-pc-scene-render-runtime.md),
+[BSP](../research/native-pc-bsp-runtime.md) и
+[spatial consumers](../research/native-pc-spatial-consumers.md).
+
+Однако это не единая успешно восстановленная `ResourceLoad→pixels` цепочка:
+полная loader transaction/FAT fixup, protected Visibility constructor/
+plane-copy45E870, Occlusion Init и часть backend/shadow остаются открытыми.
+Whole Scene tests используют явные decoded-graph/constructor boundaries,
+без запуска игры/GPU; portable Scene pipeline ещё partial. Текущий PC-first
+порядок и результаты — [native plan](../research/native-reconstruction-plan.md)
+и [журнал цикла](../../journal/2026/2026-09-06-pc-reconstruction-until-1000.md).
 
 ### Вход и общий загрузчик
 
@@ -233,13 +247,17 @@ VIF/DMA/GS-подготовки. Формат самих packet descriptors и �
    factory, read method, объект на входе/выходе и наследование serializer.
 4. **Scene ownership.** Проследить root `spNode*` из `ResourceLoad` до
    partition/scene manager, attachment, ref-count и удаления.
-5. **Traversal и culling.** Найти update/render entry, обход `spNode`, выбор
-   `spStaticRenderObject`/`spPartitionRenderable`, frustum/portal/occlusion gates.
+5. **Traversal и culling.** Update/render entries и значительная часть
+   `spNode`/Static/Partition/portal selection теперь исполнены отдельно.
+   Соединить их с реальным loader graph и закрыть protected normal plane-copy,
+   Occlusion Init/silhouette и portable traversal, не выдавая Debug21 за normal.
 6. **Material и GPU resources.** Связать object IDs mesh/material/texture с
    созданными D3D vertex/index buffers, textures и pass/state setup.
 7. **Draw provenance.** Для каждого draw получить root asset, object ID/name,
    class ID, mesh/material pointer, buffer pointer и primitive arguments.
-8. **PS2 output.** Сопоставить тот же logical mesh с VIF/GIF packet и GS draw.
+8. **PS2 output — вторая очередь.** Сопоставить тот же logical mesh с VIF/GIF
+   packet и GS draw, когда это нужно для незакрытого PC доказательства либо
+   после приоритетного PC пути; не отвлекать текущий цикл без необходимости.
 
 ## Первый контрольный маршрут
 
@@ -284,9 +302,10 @@ python -B research\inspect_render_targets.py
 python -B research\inspect_material_render_target_textures.py
 ```
 
-Корпус файлов теперь является набором входных векторов и проверкой покрытия.
-Он помогает выбирать варианты и подтверждать parser, но не определяет порядок
-главного исследования.
+Корпус файлов является набором входных векторов и проверкой покрытия. Direct
+SMO/SAN classes из базы получают приоритет, а **порядок внутри этого фронта**
+определяется runtime-зависимостями. Корпус помогает выбирать варианты, но не
+подменяет доказательство actual loader/processing/render поведения.
 
 ## Критерий завершения end-to-end пути
 

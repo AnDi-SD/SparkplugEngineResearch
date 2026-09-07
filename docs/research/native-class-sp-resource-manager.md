@@ -1,7 +1,7 @@
 # `spResourceManager`: нативный кэш мешей и текстур
 
 Статус: identity, прямой base, singleton/lifetime, exact PS2 `0x2C`, полный
-наблюдаемый PC extent `0x30`, cache entry `0x08`, reserve-настройка,
+PC exact allocation `0x30`, cache entry `0x08`, reserve-настройка,
 классификация, register/remove/find и синхронные load-ветви подтверждены.
 Имена исходных методов, header и translation unit не восстановлены.
 
@@ -32,7 +32,7 @@
 | RTTI getter | `0x00458B00` | `0x0017D0B0` |
 | Main / support vtable | `0x006E703C / 0x006E7038` | `0x0048EEF0 / 0x0048EF14` |
 | Singleton | `0x0075DB78` | `0x0049F868` |
-| Size | observed complete `0x30` | exact allocation `0x2C` |
+| Size | exact allocation `0x30` | exact allocation `0x2C` |
 
 PS2 factory вызывает `operator new(0x2C)`, устанавливает обе vtable,
 публикует singleton и задаёт `+0x15=false`, `+0x18=0`, `+0x1C=-1`.
@@ -127,11 +127,22 @@ layout stores, startup reserve, call counts, обе classification branches,
 destructor hook и serializer load edges. CTest отдельно проверяет category/name
 lookup, leaf/base lookup, duplicate order, rejection и автоматическое remove.
 
+PC [checkpoint10](native-pc-model-render-world.md) исполнил lazy factory
+`458D00` при actual MeshData→Mesh→Resource teardown: exact30, обе vtable,
+global75DB78 и actual empty deleting destructor подтверждены. Это не
+исполнение nonempty PC cache или полного loader transaction.
+
+[PC read-reference checkpoint](native-pc-read-reference.md) теперь дополнительно
+исполняет nonempty register/find/remove через один named MeshData: actual
+register добавляет8-byte entry, resolver переиспользует его без фабрики и
+даже без зарегистрированного serializer-а, teardown освобождает все allocations.
+Это не закрывает остальные cache categories/duplicates/error/async ветви.
+
 Открыты:
 
 - original header/TU и имена всех методов/полей;
 - роль bytes `+0x14` и word `+0x1C`;
-- protected PC factory body и прямой PC allocation-size proof;
+- остальные nonempty PC cache cases и полный loader transaction;
 - `.stx` helper и точный тип возвращаемого texture resource;
 - async callback/job ABI и error propagation;
 - полная FAT materialization/fixup ownership после cache hit/miss;

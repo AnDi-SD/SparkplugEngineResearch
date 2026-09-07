@@ -260,6 +260,25 @@ PC подтверждает тот же class/base ID и размер `0x18`: fa
 `0x006DB548`. Это независимая проверка размера, но не доказательство исходного
 имени второго base.
 
+### PC уточнение clone transaction — 2026-09-06
+
+[Checkpoint10](native-pc-model-render-world.md) исполняет actual static map
+startup `6D14C0→52FD90(755588)`, insert/overwrite412F70 и root cleanup.
+**`412BE0` всегда клонирует**, кроме null early-return; map не читает.
+**`412C40→4D3810`** — отдельный защищённый map-aware entry: hit возвращает
+готовую пару, miss запускает always-clone. `4D3800` относится к другому
+constructor-у и не является входом поиска. Public entry также разрешает
+protected constant13B342C→74E060; прямой вызов body до него некорректен.
+
+PC map compiler-object12, nodes24; register заменяет value без refs и без
+увеличения count. Root cleanup освобождает entries, сохраняет sentinel;
+null always-clone не очищает существующие пары. На actual RenderNode
+**повторные Model клонируются отдельно**, shared Mesh сохраняется. Поэтому
+универсальное обещание alias-preserving clone неверно: контракт зависит от
+конкретного caller-а. Циклические ссылки и все derived callers ещё открыты.
+Native ownership/clone probe29/29; portable manager/source согласован с этим
+различием, исходное имя secondary base по-прежнему неизвестно.
+
 ## `spRTTIManager`
 
 Регистрация `spRTTIManager` имеет одинаковые ID на обеих платформах: class ID
@@ -282,11 +301,11 @@ Destructor `0x00111820` разрушает дерево и сбрасывает 
 между подсистемами.
 
 PC registration object находится по `0x0075A368`, factory `0x00414C60`
-выделяет `0x20`, а не `0x24` байта. Наиболее вероятная причина — меньший
-platform-specific tree object после `+0x14`, однако это вывод по размерам, не
-прочитанный layout: constructor защищён/перенаправлен SecuROM. Поэтому PS2
-layout `0x24` зафиксирован как exact evidence, а единый псевдоуниверсальный
-layout для двух платформ не создаётся.
+выделяет `0x20`, а не `0x24` байта. [PC loader checkpoint](native-pc-smo-san-loader.md)
+независимо подтвердил tree14/head18/count1C через consumers: membership
+`4143F0 ->4423F0`, factory dispatch `414420` через node10/record4C. Десять
+native проверок покрывают missing/abstract/concrete factory. Полный constructor
+и registration startup по-прежнему открыты; PS2 layout24 не переносится на PC.
 
 ## `spPropertySystem`
 

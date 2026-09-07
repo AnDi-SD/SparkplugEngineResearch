@@ -1,5 +1,25 @@
 # План реконструкции исходных классов Sparkplug
 
+Цель — [проверяемое завершение PC SMO/SAN](pc-smo-san-completion-contract.md).
+Последний ограниченный цикл завершён 7 сентября в 19:00 МСК:
+[отчёт CP51–CP98](native-cycle-report-2026-09-07-1900.md),
+[журнал](../../journal/2026/2026-09-07-pc-smo-san-1900.md).
+PC workflow-v2: **45,19%**, 190 оценённых классов из 279; PS2: 31,16% из 245.
+Семь критериев готовности: 0 passed, 6 partial, 1 open. Ниже сохранены
+исторические срезы, а не новая очередь от первого класса.
+
+Постоянные правила закреплены в [манифесте исследования](research-manifesto.md):
+непрерывная оптимизация, общий бюджет RAM около 1 ГиБ, регулярные commits.
+Текущий порядок: loader/save, DX mesh materialization, Node resource graph;
+полная очередь — [native-work-items.json](../../research/native-work-items.json).
+[Первый опыт ускорения после цикла](native-research-strategy-2026-09-07.md)
+снял ограничение стенда для двух lit first-generation сценариев при heap
+128 КиБ. Полные loader/save/ownership/visibility и PC display остаются
+обязательными. 37 прямых классов не заменяют транзитивный список,
+а средняя оценка — семь критериев готовности.
+
+## Историческая последовательность реконструкции
+
 Текущий прогресс: первый срез собран и протестирован. Подтверждены registration
 record `0x60`, роли factory/property callbacks, clone slots `+0x10/+0x14`,
 `spNamedObject` размером `0x14`, reverse-reference list базы, её 16-битный
@@ -732,7 +752,8 @@ PS2 для обоих узлов оставлен `deferred`: PC-код не с�
 случайно — это `spController`/`spSubController`, evaluator tick и его выход в
 `spNode` transform, затем проверка заполнения уже восстановленной skin palette.
 
-Снимок после импорта четырёх incremental manifests:
+Исторический снимок первого PC-first цикла после четырёх incremental manifests
+(последующий часовой цикл описан в конце документа):
 
 | Scope | Оценка | Диапазон | Числитель / знаменатель |
 |---|---:|---:|---:|
@@ -1020,5 +1041,229 @@ factory allocation `0x78`, binding slot `+0x10`, два blend input по `0x30` 
 локального PRS в `spNode` и проверка заполнения skin palette. PS2 остаётся
 отложен до реальной PC-неоднозначности.
 
-Текущий DB-снимок: executable 13,10%, Sparkplug 24,78%, Winx 2,50%, прямые
+DB-снимок предыдущего PC-first цикла: executable 13,10%, Sparkplug 24,78%, Winx 2,50%, прямые
 SMO/SAN-классы 44,54%.
+
+### Часовой PC animation runtime-цикл 2026-09-05
+
+Следующий этап выполнил именно намеченную зависимость, без поиска случайного
+простого класса: `spActor` tick/binder → `spNodeController` →
+`spTransformTrackEval` → local node PRS. Добавлены portable вычислительные
+срезы и isolated native checks. Исправлена граница evaluator vtable (9 slots),
+установлены input key caches/time/priority, node cached-world fields и точный
+порядок `inverseBind * boneWorld`. Методика, адреса и ограничения:
+[PC animation runtime](native-pc-animation-runtime.md).
+
+Следующий порядок работы:
+
+1. Protected preamble `spNode::0x00421420` закрыт продолжением, как и
+   quaternion setter/affine builder; portable tree/billboard и 179 guest checks
+   готовы. Caller перед skin palette остаётся частью frame integration.
+2. Representations `1..4`, preparation, shared-array hints и reader-to-sampler
+   закрыты [SAN keys checkpoint](native-pc-animation-keys.md). Следующий шаг —
+   animation/track constructor, ownership, tags и partial-read rollback;
+   allocator padding при native next-slot reads остаётся неизвестным.
+3. Довести frame caller, callbacks и input ownership/capacity `spActor`.
+4. Проверить связанную цепочку на контролируемом игровом запуске с ограничениями
+   времени/ресурсов; isolated replay не заменяет такую проверку.
+
+PS2 не требуется для полученных доказательств и остаётся второй очередью.
+Точные текущие четыре оценки хранятся в базе, итоговая запись —
+[журнал часового цикла](../../journal/2026/2026-09-05-pc-animation-runtime-cycle.md).
+
+Продолжение до 21:00 МСК фиксируется отдельным
+[журналом](../../journal/2026/2026-09-05-pc-reconstruction-until-2100.md).
+Первый checkpoint — [PC node world](native-pc-node-world.md), второй —
+[PC SAN keys](native-pc-animation-keys.md). Следующий активный участок —
+animation object/track/tag lifecycle был закрыт третьим
+[checkpoint](native-pc-animation-lifecycle.md): три portable original classes,
+206 guest checks и уточнение physical named base. Четвёртый
+[checkpoint](native-pc-san-reader.md) закрыл full field reader, normal tag names,
+header/payload failure distinction и переносимый original serializer: четыре SAN,
+2832 native/portable comparisons. Теперь front — actor/frame и name registry,
+затем full resource-loader/writer integration. Опасные ownership/resize contracts
+сохранены как явные неизвестные upstream invariants.
+
+Финал цикла: [actor playback](native-pc-actor-playback.md) — original tick и
+portable scheduler совпали на 93 сценариях, empty lifecycle проверен, ближайший
+caller установлен как `spAnimationManager::0x004535A0`. Работа остановлена по
+просьбе пользователя после перебоя связи. Следующий цикл начинать с manager/frame,
+name registry и существующих input-capacity/lifetime вопросов, не с новой случайной leaf.
+
+Ночной цикл до 10:00 МСК 2026-09-06:
+[журнал](../../journal/2026/2026-09-06-pc-reconstruction-until-1000.md).
+Первый [manager checkpoint](native-class-sp-animation-manager.md) исполнил и
+перенёс registry/frame/lifetime, controller copy и fresh-runtime actor clone;
+real SAN reader использует shared registry в guest integration tests.
+Далее идти к actor input binding/priority/capacity, tree/nonempty teardown,
+затем наружу к engine frame/resource/render caller. Portable SAN binding
+ownership — отдельная незавершённая часть, non-owning lookup не подменять
+удерживающим BindName без освобождения. PS2 и игровой запуск не нужны текущему
+изолированному доказательству и сейчас не запускаются.
+
+Второй [input/start checkpoint](native-pc-actor-binding.md) исполнил discovery,
+binder, Start/restart и nonempty teardown, перенёс evaluator insertion с156
+differential cases. Далее complete descendant wrapper/Stop, portable registry
+lease и actor owned input/start; затем outer frame. Прямой third blended input
+не запускать: локальный Start guard до binder CALL не найден.
+
+Третий checkpoint добавил original descendant wrapper/Stop и portable owned SAN
+name leases. Четвёртый [owned runtime](native-pc-actor-owned-runtime.md) перенёс
+actor tree/Start/Rebind/Stop/StopAll, подключил owned Tick к тем же evaluator/keys/
+node classes: 11 CTest suites, 81 owned-actor assertions, 5154 сквозных comparisons.
+PC node startup global matrix найден и инициализируется original6D38E0.
+Это закрывает portable binding пункт выше, но не upstream animation lifetime/
+third-input contract. Следующие связные шаги — remaining public controls,
+outer frame41CD50/owner3C и затем resource/render; native event dispatcher/reentry
+и full FFPS/FAT loader/writer не подменяются имеющимися seams.
+
+Checkpoint5: [PC app/engine frame](native-pc-engine-frame.md) и
+[`spTaskTimer`](native-class-sp-task-timer.md). Actual app/update/animation
+chain134 checks, isolated graphics209, timer34 native/30 C++/1968 bit-exact
+comparisons, CTest12/12. Outer animation caller закрыт как executable edge;
+portable app/core ещё требует подключения, native timer child links и full
+engine ctor остаются открыты. Далее логично идти от scene manager45A7D0
+к world-update и palette/render consumers, параллельно закрывая необходимые
+frame/event зависимости, не расширяя direct SMO/SAN37 искусственно.
+
+Checkpoint6: [scene registration/owned world frame](native-pc-scene-world.md).
+Native scenes и node attachment исполняются вместе с app/timers/SAN actor;
+source camera ABI offsets исправлены фактическими аргументами renderer.
+Далее **по этой же зависимости**: typed scene registration (RenderNode/Light/
+Partition/Occlusion), четыре scene-owned manager runtime boundaries,
+portable Scene/SceneManager и camera→scene culling/draw. Не пропускать эти
+side effects ради упрощённого Attach и не объявлять existing plain host Node
+полноценным native scene graph. PS2 остаётся вторичным фронтом.
+
+Checkpoint7: [PC render-node runtime](native-pc-render-node-runtime.md).
+Native ctor/registration55, world/bounds/cull/draw54, callback15, static21;
+corrected PC1D4 и primary14/support6, portable geometry math1504 comparisons,
+CTest13/13. RenderNode branch scene attachment закрыт вместе с исходными
+списками; class runtime/source integration ещё не объявлен готовым. Следом
+specialized45A810/45A8C0 и Light/Partition/Occlusion: они нужны той же сцене.
+Не забывать unknown projection ID58DA4026, light-cache type, original clone/cache
+и переходы renderer456310/scene45EC70; geometry getters и portable virtual
+world-dispatch требуют подключения без потери native side effects.
+
+Checkpoint8: [`spLightManager`/PC light runtime](native-class-sp-light-manager.md).
+Original Light branch registration/reparent, world refresh и fixed cache
+закрыты; portable list/selection source добавлен, Node100 helper перенесён.
+Exact PC LightDataF0 и protected intensity-copy независимо подтверждены;
+старые unknown allocation/copy пункты больше не актуальны. Native90/static22,
+portable29/differential1800, CTest14/14. Далее specialized45A810/45A8C0
+SkyBox/LensFlare/Projection, затем SceneInit/Partition/Occlusion и portable
+Scene wiring. Literal partition recursion — не реконструкция concrete payload
+класса; original types и property invalidation должны быть установлены отдельно.
+
+Checkpoint9: [PC specialized scene managers](native-pc-scene-special-managers.md).
+Registration81, Sky runtime39, Projection/Flare43, static25; exact ABI и CTest14.
+Sky follows actual DefaultCamera parent из game blocks, сохраняет local
+orientation и отдельно очищает model fog перед base draw. Три разных списка
+не сводить к одному контракту. Следующие приоритеты: portable RenderNode/derived
+virtual world/geometry getters и Scene wiring; одновременно обязательная
+SceneInit→Partition/Occlusion граница и настоящие Projection/LensFlare consumers.
+Оригинальные недостающие классы не заменяются successes от recording seams.
+
+Checkpoint10: [Model→RenderNode source/world](native-pc-model-render-world.md).
+Native Model47/clone ownership29/static23, portable34,2272 comparisons/32
+сценария и14 CTest. Virtual world/getters/lazy caches подключены; source
+duplicate-alias clone исправлен actual always-clone contract. Дальше по
+той же цепочке: nonempty Renderable pre/post callbacks и renderer alpha/
+model queues; derived Sky/Light/Camera world source и automatic Scene wiring.
+Обязательные SceneInit→Partition/Occlusion не откладываются навсегда за seams.
+PC cold MeshData teardown не равен полной Init/materialization; game/PS2
+и проценты не расширяются за счёт повторного учёта старых source/cards.
+
+Checkpoint11: [PC renderer protocol](native-pc-renderer-protocol.md). Native
+callbacks75/queues64/static28, source23/differential768/CTest15. Alpha and
+normal queue contracts теперь исполнены, typed PC passes original no-op.
+Дальше scene45EC70 nonpartition path и обязательный SceneInit45D850→concrete
+Partition/Occlusion; derived Sky/Light/Camera world source. Full renderer ctor
+scout достиг100k/2s cap, не повышать лимит ради whole-object claim; изучать
+необходимые protected fragments и runtime global75F8E8 по callers.
+
+Checkpoint12: [PC partition/static runtime](native-pc-partition-runtime.md).
+Exact six class identities/ABI, spatial38/render38/static30 и CTest15.
+Закрыты concrete counterpart RenderNode callbacks, разные виды владения,
+System physical-vs-RTTI inheritance, static matrix submission и shared math
+startup. Далее **по тому же графу**: VisibilityManager ctor/container/portal
+queries, SceneInit/render и portable spatial source; full static serializer
+transaction связывает уже известные SMO fields с native render boundary.
+Не повышать bounded cap ради whole ctor и не заменять неизвестные зависимости
+положительными fixture results. Root raw reset требует снятых обратных связей.
+
+Checkpoint13: [SceneInit/Visibility](native-pc-visibility-runtime.md). Actual
+Init и System transfer, native39/static25, record-oriented source и1215
+differential checks. Whole manager ctor46C0F0 остаётся capped, это явно
+borrowed dependency, не factory-success seam. Next: SceneRender45EC70 через
+Shadow/occluder dependencies, concrete Octree/portal child walk; preserve the
+different first camera plane and normal/debug root selection. Не расширять
+direct SMO/SAN37 denominator за счёт зависимых managers.
+
+Checkpoint14: [whole SceneRender/Shadow/DX state](native-pc-scene-render-runtime.md).
+Actual Scene67/Shadow lifetime14/static23, source state-cache960 comparisons,
+6 unit tests/CTest17. Whole draw no longer just a static map: original
+perspective/alternate ordinary/partition calls complete through real empty
+Shadow/Lens phases, explicit COM leaves only. Далее **OcclusionVolume mesh
+and camera volume planes**, then Octree/portal clipping; native shader/light
+shadow nonempty path stays open, not replaced by unconditional success.
+
+Checkpoint15: [Occlusion geometry/Scene](native-pc-occlusion-runtime.md).
+Exact1B8/original TU, native84/static24, plane math1483 comparisons/CTest17.
+Standalone CPU weld and cached plane consumer выполнены; full Init470FE0
+достиг100k cap и не продолжался. Далее **Octree concrete child queries**,
+затем portal geometry; параллельно по встреченным callers искать topology
+builder и проверку authored decagon. Наличие формы в SMO больше не выдаётся
+за доказанную успешную runtime-инициализацию. Новых manager dependencies
+в direct37 denominator не добавлять.
+
+Checkpoint16: [Octree runtime/source](native-pc-octree-runtime.md).
+Native43/static24, original-named partial PartitionNode/Octree source28,
+3104 exact fields/320cases и CTest18. Original sphere-mask shortcut сохранён,
+не заменён идеальной geometry overlap. Normal traversal/isolated45E870 copy
+capped100k; whole Debug21 Scene отдельно подтверждён, не считается заменой.
+Далее **ZonePortal/ZonePortalNode→plane/polygon clipping**, сохраняя список
+protected constructor/copy/topology gaps и неопределённые original names.
+
+Checkpoint17: [Portal runtime/source](native-pc-zone-portal-runtime.md).
+Native63/static32, partial Portal/PortalNode source19,1024 plane comparisons/
+256cases/CTest19. Original whole Scene front/closed/backface/empty/partial
+aperture and cyclic Zone graph now executed, imported CRT exit registration
+explicit and original cleanup runs. Далее **491AA0 polygon clipping and its
+scratch lifecycle**, сохраняя game Open/debug и protected near-plane45E870
+gaps. Пять original getter names берём из диагностик, остальные analytical
+имена не выдаём за восстановленные C++ symbols; PS2 по-прежнему deferred.
+
+Checkpoint18: [polygon clipping/ring contracts](native-pc-polygon-clipping.md).
+Native28/static22, geometry-only source11/3842 differential fields256cases,
+CTest20. Logical resize491660/partial copy491A30 и mixed alias metadata move
+разделены; repeated-first correction и keepCoplanar/empty contracts сохранены.
+Unnamed helper не получает invented class/denominator. Далее **spBSPNode** —
+второй concrete spatial query путь из SMO, позволяющий закрыть обе authored
+альтернативы PartitionNode; protected normal plane-copy/ctor остаются open.
+
+Checkpoint19: [BSP runtime/source и camera Zone](native-pc-bsp-runtime.md).
+Native48/static17/source17,2046 differential fields256cases/CTest21. ExactAC,
+independent plane/polygon и original query distinctions перенесены в partial
+source. Whole Scene выбирает camera leaf Zone; это не выполнение normal
+recursive plane-copy45E870. Далее по этой же цепочке: оставшиеся spatial
+registration consumers/geometry-to-render inputs, приоритет direct SMO/SAN,
+без замены неизвестных helper-ов и без нового unrelated class sampling.
+
+Checkpoint20: [spatial consumers](native-pc-spatial-consumers.md), native94/
+static15. BSP Zoned Static stays-root отличается от Octree always-mask;
+Occlusion borrowed lists/без billboard exception и Static owning duplicates
+исполнены. Whole Debug21 draw dedup не закрывает normal protected traversal.
+Далее — Collision owner/registration и оставшиеся geometry-to-render inputs;
+до deadline текущего цикла — сверка checkpoint manifests/DB/source evidence.
+
+Цикл6 сентября до12:00: [workbench](native-research-workbench.md) переводит
+выбор задач на общий blocker/dependency порядок и раздельный PC/PS2 ledger.
+Начальный logical queue хранится в `research/native-work-items.json`, unknown
+behavior отделён от unknown name/path. Новый
+[plane-storage checkpoint](native-pc-visibility-plane-storage.md) подтвердил
+resize/reuse, raw all-enabled, release, copy-constructor и outer append,
+но не подменил ими assignment45E870 или manager ctor46C0F0. Дальнейшая очередь:
+эти две точные границы по новым evidence, затем остающиеся concrete spatial
+consumers и actual FFPS/FAT mesh submission. PS2 остаётся second tier;
+перенос прежних доказательств в platform ledger не считается новым reverse.

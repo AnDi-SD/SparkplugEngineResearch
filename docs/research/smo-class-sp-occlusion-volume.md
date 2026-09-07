@@ -98,9 +98,12 @@ payloadSize = 12 + 12*V
 - этот же payload без изменений присутствует на PC и PS2.
 
 Итого строго выпуклы 54/60 экземпляров, а остальные шесть — повтор одного
-authored decagon. Следовательно, convexity-проверка имеет допуск либо относится
-к пути создания/редактирования, но не отвергает этот ресурс при загрузке.
-Viewer не должен молча «исправлять» его до convex hull.
+authored decagon. Прежний вывод, что наличие этих данных автоматически доказывает
+их успешную runtime-инициализацию, **отозван в PC checkpoint15**: reader44F400
+вызывает Init470FE0 и обрабатываетfalse. Допуск0.001f некоторых shape helpers
+уже найден, но его достаточность для этого decagon пока не проверена целиком.
+Наличие данных, успешная загрузка и включение в culling — разные утверждения.
+Viewer не должен молча «исправлять» форму до convex hull.
 
 Замкнутых объёмов в корпусе нет, хотя обе реализации executable явно допускают
 их. Поэтому это подтверждённая возможность формата, но пока не наблюдаемый
@@ -166,6 +169,8 @@ python research/analyze_smo_occlusion_volume.py `
   local-data/results/smo-corpus-v2.sqlite
 ```
 
-Связанный `spMeshNavigationSet` уже полностью разобран. Runtime-план проверяет
-только фактическое culling-поведение перемещением существующего volume; создание
-новой геометрической формы отложено до structural writer.
+Связанный `spMeshNavigationSet` имеет структурный wire-разбор; это не означает
+полную runtime-реконструкцию navigation. [PC checkpoint15](native-pc-occlusion-runtime.md)
+добавляет exact1B8 ABI, original class TU, native lifetime/world/weld/planes и
+whole Scene consumer на явно подготовленном силуэте. Full protected Init и
+фактическая загрузка authored decagon остаются открытыми.

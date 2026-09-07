@@ -113,7 +113,13 @@ callers, размеры allocations и параметры, с которыми w
 комбайнером. CTest отдельно проверяет layout/ID, factory, blank clone,
 инициализацию и release-семантику переносимого слоя.
 
+6 сентября: actual protected factories/constructors обоих wrappers и combiner
+исполнены:97 checks/6 cases, включая unchecked Create/Lock/Unlock HRESULT.
+Vertex ctor оставляет byteSize1C нетронутым, но обнуляет10/14/18; index
+обнуляет10/14/18. Это consumer/lifetime evidence без настоящего device.
+[Детали](native-pc-dx-materialization.md).
+
 Открыто: original header/TU и имена методов, роли `vertex +0x18` и
-`index +0x14`, защищённые constructor/factory bodies, точная политика device
+`index +0x14`, точная политика device
 loss/reset и связь с `spDXVertexDeclaration`. Следующий обязательный узел —
 `spDXMeshCombiner`, после него можно восстанавливать полный `spDXMesh`.

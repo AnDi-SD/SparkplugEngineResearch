@@ -149,3 +149,14 @@ Analyzer идемпотентно обновляет три field definition, de
 Ближайшая проверка этого класса — controlled nonuniform-scale load и
 length-preserving transform test по
 [`smo-runtime-validation-plan.md`](smo-runtime-validation-plan.md).
+
+## PC runtime — 2026-09-06
+
+[Native checkpoint](native-pc-partition-runtime.md) подтвердил exact10C,
+NamedObject+support14, Scene88/world8C/inverseCC. Обе матрицы ctor копирует из
+shared identity после **отдельного CRT6D38C0**; cold PE zeros не default игры.
+Actual44FBA0 передаёт две сохранённые матрицы в renderer независимо, без
+recompute на этой границе. Это сужает inverse-вопрос выше, но не доказывает
+whole serializer/upstream/backend contract и принятие любого input.
+Model refs/append/bounds, name-only clone и draw failure policy исполнены:
+matrix false ignored by draw, Model false stops. No GPU/game/source class claim.

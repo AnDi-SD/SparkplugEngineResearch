@@ -1,5 +1,12 @@
 # Нативный `spRenderNodeSerializer`
 
+PC checkpoint10: [concrete sections and common graph](native-pc-scene-serialization.md).
+Actual factory allocation14, inherited reader/writer/index и Model aliases
+теперь исполнены и побайтно сравнены с source. Ниже сохранены исходные
+identity/PS2 свидетельства; прежние observed-only/plan-only ограничения для
+проверенных PC секций заменены этим checkpoint. Collision, nonempty resources,
+lossless/error/whole scene/save по-прежнему открыты.
+
 Дата проверки: 2026-09-05. Статус: identity, factory/lifetime, target,
 relationship read/index/write и storage-free layout подтверждены PC/PS2.
 
@@ -28,7 +35,7 @@ PC содержит точный translation-unit path:
 PS2 factory выделяет ровно `0x14` байт, вызывает `spNodeSerializer`
 constructor и меняет только две vtable. Derived storage отсутствует. PC
 обращения также заканчиваются secondary vptr по `+0x10`, но защищённая factory
-оставляет `0x14` как полный observed extent, а не прямой `sizeof`.
+раньше оставляла `0x14` как observed extent. Checkpoint10 прямо подтвердил14.
 
 Clone создаёт пустой serializer, регистрирует пару в clone manager и использует
 унаследованный no-payload copy.
@@ -73,9 +80,8 @@ Writer также сначала сериализует полную `spNode`-с
 нативным data-block size/relationship code; исходное enum spelling пока не
 восстановлено.
 
-Portable `WritePlanForAnalysis` возвращает отдельно inherited node fields и
-упорядоченный список renderable pointers. Такой интерфейс не притворяется
-полным stream writer, пока общий relationship framing/fixup ещё не замкнут.
+Portable план сохранён; checkpoint10 добавил реальный bounded stream adapter
+через общий relationship framing/index, без отдельного import core.
 
 ## Проверка и остаток
 

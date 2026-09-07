@@ -1,7 +1,9 @@
 # Открытые вопросы native-реконструкции
 
-Статус: актуализировано 5 сентября 2026 года в графическом цикле после
-разбора camera-to-model traversal и platform mesh submission.
+Статус: текущая очередь актуализирована по PC checkpoints 51–98 и
+последующему опыту с heap 128 КиБ, 7 сентября 2026. Ранние заметки ниже исторические:
+их формулировки «далее/open» относятся к моменту записи, не отменяют
+более поздних проверок. Текущие work items: `research/native-work-items.json`.
 Это канонический список неизвестного в исполняемом коде; вопросы SMO
 отдельно ведутся в `research/open-questions.md`.
 
@@ -9,7 +11,154 @@
 не найдены, в коде используются `field_<offset>`, `vfunc_<offset>` или
 `sub_<VA>`, а предполагаемый смысл хранится отдельно как analytical role.
 
-## Активный срез SparkBase
+## Текущие связанные пробелы PC
+
+- [Loader/save](native-pc-full-loader.md): SAN full-file core и отдельные
+  object/graph readers/writers подтверждены; полный SMO load/save со всеми
+  необходимыми зависимостями, внешними ссылками и отказами остаётся открытым.
+- [Геометрия](native-pc-mesh-writer-roundtrip.md): source MeshData writer
+  принимается original reader; DX materialization и включение произвольной
+  сетки в полную resource/scene цепь ещё требуют работы.
+- [Node resource graph](native-pc-node-serialization.md): отдельные graphs,
+  serializers и aliases проверены; полнота общих графов и их lifetime не доказана.
+- [Shader generation](native-pc-shader-generation.md): generating miss,
+  RFX/template и compiler-boundary контракты проверены в выбранных сценариях;
+  Parser/EffectTemplate/RFXFileLoader теперь имеют отдельные оценки.
+  Live compiler/GPU integration и полнота вариантов остаются открытыми.
+- [Свет и Skin](native-pc-skin-selected-light.md): связка decoded SMO light,
+  scene cache, SAN/Skin и constants подтверждена. Два first-generation случая
+  прошли [при heap 128 КиБ](native-research-strategy-2026-09-07.md);
+  queued first-generation и полный PC display этим не закрыты.
+- [Controllers](native-pc-material-color-graph.md): UV/Anim/color consumer
+  иcodec slices проверены; capped colorfactory/clone не повторять, source
+  clone parity иmalformed/full-file lifetime остаются открытыми.
+- Conversion/missing mips, full native save/lossless unknowns, protected
+  visibility иlive PCdisplay остаются обязательными. PS2 отдельно, вторично.
+
+Полный накопленный список включает исторические неизвестные ниже; текущая
+сверка очереди со знаменателем: `python research/audit_native_scope_dependencies.py`.
+Пустой результат этой проверки не доказывает полноту call graph.
+
+## Исторические checkpoint-заметки
+
+Checkpoint18 [native-data writer](native-pc-texture-native-writer.md):
+CPU TextureData vector6C теперь записывается общим ядром для policies0/1/2,
+6 exact cases +3 shared CPU regressions. Полная поддержанная цепочка читается
+source DX reader; partial chain остаётся missing-mip boundary. Remaining writer
+failures, embedded/external sources и conversion не закрыты.
+
+Checkpoint 17 [palette/lifetime](native-pc-palette-lifetime.md): спPalette
+factory/copy constructor/blank virtual clone, renderer register/free-index reuse,
+texture setter and destructor, palette codec и пять failure paths подтверждены.
+Source palette codec теперь работает, но не имитирует live GPU registration.
+Original setter ошибочно unregister-ит новый argument; same-pointer удаляет palette;
+DX destructor оставляет palette/index. Failed create и failed mip write могут
+вернуть true. Host RAII/проверки ошибок — явное безопасное отличие. Далее native-data
+writer, material/controller links, missing mips/conversion/external и live backend.
+
+Checkpoint 16 [native texture source](native-pc-texture-native-source.md):
+общий CPU/DX source wrapper и DX native-data reader перенесены; одиннадцать
+exact comparisons, включая две рекурсивные секции field 3. Ранее указанный
+source-adapter blocker закрыт только для полного поддержанного mip-chain.
+Не закрыты native-data writer, cross conversion, missing mips, external source,
+palette ownership/renderer registration, material/controller links и live backend.
+spPalette factory/getter/dtor подтверждены пятью проверками; это не полный класс.
+
+Checkpoint15 [PC runtime/mip/registry](native-pc-texture-runtime-mips.md):
+runtimeDXTexture/sourceclass и flat palette-free codec восстановлены,
+nativeDXData→temporaryData→DXTexture copy исполняется на full tiny chains.
+Source Dataheader теперь правильныйDXTexture CPU shadow, не unavailable.
+Actualstartup всехplatformvariants связан сwire78EA082B, неvirtualID0B1C67BB.
+Palette — реальныйspPalette591C0B9F; ownership/rendererregistration ещёopen.
+ДалееnativeData/sourcefield3 adapter, материал/ссылки, realassetsslice,
+missingmips/conversion/COMerrors и livePCbackend. Дваnative пути заполняют
+разныеruntimeполя:4ABBA0 не пишет44/48;4ABAC0 не инициализирует18/1C/flags20.
+
+Checkpoint14 [PC texture codec/boundaries](native-pc-texture-codec-boundaries.md):
+CPU source/local/raw reader/writer exact3 rows, actual factory/header/runtime
+identity и pre-conversion COM arguments подтверждены. Header42DD10 создаёт
+DXTexture, не CPUData; source явно не подменяет runtime object. Открыты
+native mips/palette/containers, actual60FDB4/61039A conversion и attribution,
+DX source/backend, material texture/controller graph, внешние sources,
+lossless unknowns и real PC rendering. Size4AAC50 hidden reset404BC6
+подтверждён; первоначальная гипотеза накопления отвергнута оригиналом.
+
+Новый этап без прежнего deadline: [PC SMO/SAN до проверяемого завершения](pc-smo-san-completion-contract.md).
+Впереди очереди теперь [FFPS/FAT/SAN loader](native-pc-smo-san-loader.md):
+whole422B50 на bbush и повторная загрузка пройдены, registry/FAT/RTTI consumers
+получили PC evidence. Открыты startup registration/constructors, directed
+remaining materialization/cache/error/external-file branches и whole native save.
+[SAN field writer и nested blocks](native-pc-san-writer.md) уже исполнены;
+остаются missing descriptors/unknown preservation и часть error paths.
+[Общий save-reference protocol](native-pc-save-reference.md) теперь тоже
+исполнен и перенесён: indexing/alias/null/SBOO/one-shot, включая native
+unchecked final-patch failures. Полная FFPS/FAT save orchestration ещё открыта.
+[Read-reference](native-pc-read-reference.md) теперь также исполнен/перенесён:
+115 native checks,167 portable,227 runtime comparisons. Actual nonempty PC
+MeshData cache hit подтверждён; другие cache cases и cyclic SMO ownership
+открыты. Ожидаемый class ID и fresh inline-size original не проверяет,
+повторный объект не retain-ит. Общие ошибки не заменяются host rollback.
+[Full-file SAN loader](native-pc-full-loader.md) теперь перенесён через прежнее
+ядро:227 original/portable whole bbush comparisons,160 full-loader portable
+checks,266 reference checks. Outer422940 дополнен42 native checks; DX hook
+bit2/exact MeshData selection ещё48. Следующий открытый стык — непустая
+DX mesh batch и concrete SMO payload adapters; portable4 SAN/62 tracks не
+выдаются за original whole-load evidence на трёх capped файлах.
+Cold whole-load bflower/barrel/bw capped100k, профили не повторять; прежние
+успешные object-reader/PRS тесты этих файлов остаются действительными.
+Unknown44 PC FAT не заполнять именем по симметрии. Старые spatial gaps ниже
+сохраняются, но не блокируют независимый serializer/writer research.
+
+[PC DX materialization](native-pc-dx-materialization.md): actual metadata,
+first scan, wrapper/combiner ownership и полный native payload helper429A40
+теперь исполнены с explicit COM boundary. Исправлен wire order:index codec,
+затем vertex codec. Renderer4AE0E0 больше не полностью unknown:actual cache
+возвращает spPCVertexDeclaration pointer, map/factory/Init/bind/clear проверены.
+Checkpoint7 исполнил **whole4AA870** на triangle/two-mesh/logo-field,91checks;
+106 declaration masks/8656 bytes совпали с source, clone/reinit/failure59checks.
+Checkpoint8 добавил concrete MeshData/DXMeshData readers через общие codecs,
+200 native checks (156 readers+44 whole constructed FFPS),60 exact source/native
+fields и131 source checks с двумя одновременно живыми файлами. Все28 CTests
+прошли. Deferred source RTTI и lazy target linkage исправлены без ослабления
+FAT validation; это host adaptation, не protected native startup evidence.
+Открыты реальные SMO scene graphs/остальные concrete adapters, полный writer,
+unknown preservation, все lifetime/error variants и GPU validation.
+Записи backlog ниже уточняются этой новой карточкой, не требуют повторять
+уже исполненные constructors/mapping с нуля.
+
+Перед общим backlog текущий PC-first front идёт по
+[доказанной animation-цепочке](native-pc-animation-runtime.md):
+
+| Приоритет | Неизвестно | Уже доказано | Следующая проверка |
+|---:|---|---|---|
+| P1 | world-update внешние зависимости | protected world/quaternion/builder entries закрыты, 179 guest checks; transform/tree/billboard и rotation-only dirty перенесены | bits `2/4`, collision implementation и frame caller перед `0x0046A240`; [доказательства](native-pc-node-world.md) |
+| P0 | полный SAN resource-loader transaction | field reader на четырёх SAN; original и portable owned registry на двух SAN,342 differential lifetime checks; header failure иногда даёт success, payload failure не откатывает target | FFPS/FAT integration, writer, allocation/malformed-key/tag и filled-target lifetime; [reader evidence](native-pc-san-reader.md) |
+| P1 | original ownership hazards | incoming ownership governs old release; track-wide bool, stale pointers после release, uninitialized standalone owner, reserve-shrink по capacity | upstream lifecycle invariants в loader/actor; не объявлять host safe guards поведением original EXE |
+| P1 | key buffer edge invariants | two-key endpoint preserved; real one-key quaternion and empty packed scale exist; native next-slot reads не всегда bounded | установить allocator padding и upstream guarantees; не объявлять host finite/bounds guards оригинальным поведением |
+| P1 | внешний frame и полный lifecycle `spActor` | owned runtime5154 comparisons; actual PCApp→timers→SAN actor→owned scene→world исполнен без forced snapshot update | remaining public controls, borrowed animation lifetime/event reentry; full portable app/core/scene frame и renderer; [scene evidence](native-pc-scene-world.md) |
+| P1 | upstream input capacity | insert/clear исполнены и перенесены:4368 comparisons/156 cases; exclusive counter асимметричен, incoming наследует destination cache; Start дошёл до third binder CALL без local2 guard | проверить upstream callers, не постулировать counter balance; third CALL остановлен до вставки, опасный input не запускать |
+| P1 | PC matrix startup dependency | node ctor421BA0→4D3740 копирует global7600BC; original initializer исполнен,13 checks; SceneManager→world frame edge теперь найден и исполнен | original math type names и полный startup order; другие globals не объявлять инициализированными по одному matrix helper |
+| P1 | engine timers/queues | exact task timers54/90; setup41C300 закрывает append/source и10/34/38; source append34 tests,1968 bit-exact comparisons | native detach/reparent, protected whole core ctor, hardware timer и event queue original type/dispatch |
+| P1 | PC graphics frame | core41C460/base begin41C210/end41C2A0 исполнены:209 checks, first-boundary two-phase vector walk, renderer gates/return semantics | concrete engine50/global75DBA0, renderer interface downstream names, scene/camera drawing и native mutation/reentry |
+| P0 | PC scene typed registrations | actual Scene54/Manager24 lifecycle; typed registrations; whole SceneInit, Partition switch48E940 RenderNode branch и whole45EC70 с явной Visibility constructor boundary | Occlusion/Collision nonempty switch transfers (не путать с tested tree insertions), unknown58DA4026, full startup/portable Scene; [visibility](native-pc-visibility-runtime.md), [whole render](native-pc-scene-render-runtime.md), [specialized](native-pc-scene-special-managers.md) |
+| P0 | PC spatial query/visibility | actual Visibility46D270/46C4D0 selection, root7C/Scene40 stamps, six planes omit cameraNear; support selection/fully-inside source1483 differential fields; Octree queries and clipped portal/cycle tests now confirmed | whole ctor46C0F0 still capped100k/2s; remaining Octree/near-portal-plane45E870, ZoneC4, full portable traversal and occluder overlap490360/490480; [evidence](native-pc-visibility-runtime.md) |
+| P0 | PC shared plane storage | [190 native/28 static/17569 differential](native-pc-visibility-plane-storage.md): resize46B720, floor1.5 capacity, raw enabled46ADC0, copy17-of20, release45EA00, separate copy-constructor45E530 and outer append46C350/aliased source; original allocator header path | Assignment45E870 is NOT copy-constructor45E530; ctor preparation46C0F0 reserve-versus-size unknown. Do not resume previous capped calls, use fake copy success or infer original plane class names from allocator path. Interior insert/erase and failure unwinds remain open. |
+| P0 | PC SceneRender remainder | original whole45EC70 ordinary/partition perspective+alternate branches executed; actual Shadow3C lifetime/empty passes and nonempty Occlusion on cached input; ignores4702E0 false, consumes previous planes; Debug18 gates notification1A | real occluder Init/full silhouette, shadow light meshes/shaders, full startup and portable Scene; same Visibility ctor gap remains, no GPU image claim; [evidence](native-pc-scene-render-runtime.md) |
+| P0 | PC OcclusionVolume remainder | original TU, exact1B8/14 slots, Node-only clone, direct buffers, world/reciprocal links, UInt16 weld/original byte comparator, cached plane builder/Scene84 checks; [evidence](native-pc-occlusion-runtime.md) | full470FE0 topology/silhouette capped100k; actual authored decagon acceptance and reader failure transaction, re-init nonempty edges, original helper names; cached input is not completed Init; full portable class absent |
+| P0 | PC Octree remainder | actualC8/eight slots, leaf/mask/plane/ray and registrations43; partial original-named source3104 fields/320cases, actual Debug21 eight-leaf Scene; [evidence](native-pc-octree-runtime.md) | normal traversal and isolated45E870 copy capped100k, remaining64..7C queries/debug/geometry, native setters/full Zone/Scene/source wiring; preserve sphere shortcut F0, don't substitute generic overlap |
+| P0 | PC portal/clipping remainder | exact Portal38/NodeC4/native63, clipped whole Scene; now491AA0 classification/alias/ring metadata28 and geometry-only source3842 fields/256cases; [portal](native-pc-zone-portal-runtime.md), [clipping](native-pc-polygon-clipping.md) | unnamed helper identity/opaque20/24/28, upstream polygon<=127 guarantees/pool allocation failure, camera-near-plane45E870, game Open controls/DebugDraw; preserve repeated-first correction and camera-origin near plane |
+| P0 | PC BSP remaining consumers | [runtime/source](native-pc-bsp-runtime.md): exactAC/query source; [consumers](native-pc-spatial-consumers.md): BSP/Octree Static/Occlusion native94, Zone asymmetry/owning-vs-borrowed refs/Debug21 draw dedup | nonempty Collision registration, debug/ray consumers64..7C, optional polygon producers, setup/error lifetime; protected recursive45E870/full Visibility ctor остаются open |
+| P1 | DX device state cache | actual4B0A90 E4F4+4*index/vE4 ignores HRESULT and writes cache, 960 differential fields/single-entry source | full array extent/default initialization, other texture/sampler/state operations and device backend; do not conflate with common12-wordC868 cache |
+| P0 | PC static render placements | actual Static10C/PartitionRenderable8C/support74, shared Matrix4 CRT6D38C0, original model ownership/blank own clones; stored inverse independently reaches renderer; draw failure contracts differ from RenderNode | full serializer->matrix->backend trace, portable classes, native support original name; no invented inverse recomputation or uniform draw failure policy; [evidence](native-pc-partition-runtime.md) |
+| P0 | PC SkyBox/Projection/LensFlare remainder | Sky1D4/Manager24, PCProjection24/PCLens38; camera-parent/local-orientation/sky fog release, projection phases и flare capability Init proved | portable classes/world integration, nonempty clone, Projection helper4C51B0/virtual38 и flare query-map/visibility/glare/backend; ordinary sky support no-op нельзя считать отсутствующей геометрией |
+| P1 | PC render-node runtime integration | exact1D4/14+6; portable virtual world/getters/caches подключены,2272 comparisons; actual duplicate Model always-clone/append-to-destination29 | automatic Scene/Partition/Occlusion wiring, native individual detach469F50, renderer queue/material consumers; host explicit light-manager binding не равен полной сцене |
+| P1 | PC camera runtime | exact238 factories; corrected viewCC/projection10C/basis14C; actual renderer pointer/return gates32 checks, angle clears2D | viewport activation/registry, world/view/frustum/culling, faithful in-place cache transition; fresh utility не равна native cache |
+| P1 | `spTransformConstEval` dependency | controller kind `1` создаёт `0x68` object через `0x00601C20` | constructor/evaluate contract, только если нужен текущему PRS пути |
+| P1 | skin failure cleanup | inverseBind×world и полный `0x00461D70` builder; renderer count очищается только success branch | error caller recovery; не «исправлять» native поведение догадкой |
+
+`spTransformTrackEval` caller и input fields больше не считаются полностью
+неизвестными; `spNodeController` PRS-slice восстановлен. Original source/API
+names остаются открытыми даже там, где поведение уже проверено. PS2 deferred.
 
 | Приоритет | Неизвестно | Что уже доказано | Следующий источник evidence |
 |---:|---|---|---|
@@ -20,7 +169,7 @@
 | P1 | exact tree/container type managers | известны размеры, init/destroy/search/insert и key class ID | восстановить node layout и allocator contract по helpers |
 | P1 | остаток field schema property record | доказаны размер `0x58`, comparison vptr `+0x00`, name/type `+0x04/+0x08`, name-argument flag `+0x14`, точный 12-байтный PS2 callable ABI и getter/setter `+0x18/+0x24`; `+0x30` является type-specific union, `+0x50` — type-specific payload | определить общую семантику `+0x30/+0x3C/+0x48/+0x4C`, исходные enum/type/descriptor names и сверить ABI с PC |
 | P1 | original type name встроенной property group | registration `+0x50` точно содержит owner/count/first record; append, indexed lookup, inherited name lookup и stride `0x58` восстановлены | source/header strings либо повторно используемый helper в соседних модулях |
-| P1 | clone ownership общих ссылок и циклов | native map возвращает уже существующий clone и очищается на root depth zero | небольшой native класс с двумя object references/циклом и его clone slots |
+| P1 | clone ownership общих ссылок и циклов | PC412BE0 always-clone;412C40→4D3810 map-aware; actual map startup/overwrite/root cleanup и RenderNode duplicated Model проверены29 checks | remaining derived callers/cycles; не обещать alias preservation всем классам, не путать unrelated4D3800 с lookup |
 | P2 | исходные имена virtual slots, notification record и header/namespace | addresses и поведение базовых slots доказаны на PC/PS2; notification record имеет точный PS2 layout `0x20`, путь `.cpp` exact | PDB/source strings, exports, RTTI/assert messages; не выводить имена только из поведения |
 | P2 | точное размещение managers по original source modules | class names/IDs и регистрация доказаны, но отдельные source paths не найдены | registration initializer neighborhoods и PC source-path anchors |
 | P1 | `spStream` original mode enum и stream-to-stream write slot | mode передаётся первым аргументом второй перегрузки `Open`; основные биты проверяются с приоритетом read `1`, write `2`, read/write `4`, append `8` служит модификатором; безымянный слот переносит заданное число байт из другого `spStream`; на PC это `+0x34`, на PS2 `+0x40`, поскольку он меняется местами с raw `WriteData` | искать original enumerator/method names в call-site strings, header fragments или ещё одной platform build; до этого сохранять analytical `vfunc_WriteFromStream` и разные ABI-таблицы |
@@ -62,7 +211,7 @@
 | P1 | остаток `spIndexBuffer` | общий ID/base, exact `0x28`, полный field layout, четыре count transforms, 16/32-bit payload, stream grammar, release, blank RTTI clone и отдельный deep copy доказаны на PC/PS2 | найти original TU/header/API и enumerators `eIndexBufferType`, семантику flags выше bit 0, прямую PC-пару deep-copy helper и error-code schema |
 | P1 | остаток `spVertexBuffer` | общий ID/direct base, exact `0x5C`, 22 offset fields, component-mask widths, allocation/release, stream grammar, blank RTTI clone и отдельный deep copy доказаны на PC/PS2 | найти original TU/header/API и enum spellings, назвать редкие component bits, `m_uFlags`, raw/external init contracts и PS2 deep-copy boolean |
 | P1 | остаток `spResource` | общий ID/base, concrete factory, storage-free exact `0x14`, name-only clone и destructor-to-resource-manager remove-first hook доказаны на PC/PS2 | найти original TU/header/API; portable teardown намеренно не создаёт manager из destructor, как делает PS2 |
-| P0 | остаток `spResourceManager` | общий ID/direct base, singleton, exact PS2 `0x2C`, PC observed `0x30`, entry `0x08`, reserve, texture/mesh category+name register/find/remove и load edges доказаны | найти original header/TU/method names, роли `+0x14/+0x1C`, PC factory body, `.stx` helper, async ABI и runtime cache trace; продолжить FAT cache-hit/miss materialization |
+| P0 | остаток `spResourceManager` | общий ID/direct base, singleton, exact PS2 `0x2C`/PC `0x30`, entry `0x08`, reserve/category/name/cache/load edges; PC lazy factory/empty teardown исполнены | original header/TU/method names, роли `+0x14/+0x1C`, nonempty PC cache, `.stx` helper, async ABI; FAT cache-hit/miss materialization |
 | P0 | остаток `spMesh` | общий ID/base, null factory/clone, exact `0x50`, dual-vtable prefix, bounds flag/min/max, indexed bounds pass и trailing component/primitive/vertex counts `+0x44/+0x48/+0x4C` доказаны PC/PS2 | назвать secondary interface/support object, init API, PC constructor, bounding-sphere/min-max synchronization и связь с 32-bit indices/vertex formats |
 | P0 | остаток `spDXVertexBuffer` / `spDXIndexBuffer` | PC-only IDs/direct base, exact `0x20/0x1C`, vtables, blank clones, COM lifetime, D3D9 create signatures и combiner-параметры доказаны; safe host storage и тесты готовы | найти original headers/TU/method names, назвать `vertex +0x18` и `index +0x14`, извлечь protected constructor/factory bodies, device-loss/reset policy и связь с `spDXVertexDeclaration` |
 | P0 | остаток `spDXMeshCombiner` | exact `SparkplugDX/spDXMesh.cpp`, PC-only `0x2C`, весь state, lifetime, единственный vslot, dynamic INDEX16/VB init, lock/commit/unlock и active global доказаны; safe portable helper подключён к `spDXMesh` | найти original header/method names и тип пятого неиспользуемого аргумента, восстановить native failure rollback и полный serializer dispatch |
@@ -70,14 +219,14 @@
 | P0 | остаток `spDXMesh` | PC-only ID/base, observed `0x88`, две vtable, lifetime, common metadata, standalone CPU/GPU, combined/shared paths, packed expansion и exact FVF map доказаны | direct sizeof/protected bodies, original API, renderer mapping `0x004AE0E0`, device reset, exact rollback и draw consumer |
 | P0 | остаток `spDXMeshSerializer` и optimizer materializer | PC-only ID/direct base/target, observed `0x14`, обе vtable, полный scalar wire order, shared relationship ID, read materialization и write/index optimizer calls доказаны; safe codec round-trip готов | назвать interface/header и optimizer types; разобрать `0x004BEDF0` и `0x004C07E0`, common relationship framing, shared-buffer ownership/deduplication и partial-read rollback |
 | P0 | остаток `spDXCombinedVB` / `spDXSceneGraphOptimizer` | combined-VB ID/direct base, observed `0x3C`, vtable/lifetime, list+map ownership, raw payload, five-word mesh association и save-side роль доказаны; common traversal подтверждён; DX prefix уточнён до `0x54`, разделены lookup/range/CombineData VM-entry | восстановить DX ownership/singleton, protected add/group/lookup bodies, physical record layouts, grouping/dedup, failure rollback и original paths/API; определить PS2 судьбу common implementation |
-| P0 | остаток `spRenderer` / platform leaves | обе RTTI-цепочки, common/interface/support vptr offsets, exact sizes/caches/factories и 29 targets/thunks доказаны; operations `0/1`, `3/4/5`, `9`, `10`, `12/13/14`, `22`, `23`, `26` названы от callers/endpoints; slot `9` связывает `spModel` с mesh backend, slot `23` — material UV transform | назвать оставшиеся 16 operations и original signatures, восстановить D3D device/resource ownership/reset, PS2 GS packet semantics, opaque blocks и protected PC constructors; сохранять перестановку ordinary/cube slots между PC и PS2 |
+| P0 | остаток `spRenderer` / platform leaves | RTTI/layout/29 interface slots; PC native alpha2048×24/general20/bucket8 queues, sort/flush/failure/no-ref; PC typed pass slots no-op; math192 comparisons | source queue/Scene/backend wiring, global75F8E8 startup, alpha CRT tie order, protected ctor100k cap, remaining platform operations/device ownership/reset; PS2 deferred |
 | P0 | остаток `spRenderTarget` / cube / manager | три RTTI-ветви, common/cube layouts, PC surfaces, exact PS2 размеры, format matrices, reset path и три manager lists доказаны; renderer slots теперь связаны: PC ordinary/cube `1/0`, PS2 `0/1`, причём PS2 cube диагностически unsupported | назвать остальные target-interface slots, закрыть `.rld` PC allocation sizes, backing ownership и failure rollback; не считать concrete PS2 cube factory аппаратной поддержкой |
 | P0 | остаток `spMaterialTexture` / render-target leaves | RTTI/layout/target/fallback/manager/recursion/camera/cube state и serializer fields доказаны; render methods теперь связаны с target bind, begin/end/clear, camera render и PS2 unsupported cube path | восстановить original signatures двух leaf slots, intrusive ownership, protected PC bodies и movie backend; проследить draw provenance внутри camera traversal |
 | P0 | остаток `spCamera` / concrete leaves | common/concrete IDs, PC observed `0x238`, PS2 exact `0x250/0x340`, defaults, viewport, dirty masks, projection/frustum state, clone и renderer matrix/viewport operations доказаны; portable code и scanner 37/37 готовы | original paths/API, opaque state blocks, full view/world update, frustum consumers, camera-manager ownership и direct PC allocations; не сливать serialized Is2D с отдельным projection-branch byte |
-| P0 | остаток `spRenderNode` | общий ID/direct `spNode`, PC observed prefix `0xC8`, PS2 exact `0x1E0`, renderable ownership, clone/lifetime, aggregate bounds, world-matrix slot `14`, sphere/frustum culling и dispatch до model submission доказаны | назвать original header/TU/API, PC full size/tail, support-subobject type, remaining cached transform/cull state и точные primary/secondary signatures |
-| P0 | остаток `spRenderable` | общий ID/base/null factory, copy state, material/fog, alpha-sort/priority, callback paths, platform layouts и pre/pure-render/post protocol доказаны; PS2 pre-render пишет current-material cache, вызывает fog slot `26` и сохраняет material override byte | найти original TU/header/API, назвать `+0x14/+0x28`, callback record/signatures, alpha queue и проследить current-material cache до всех draw-state calls |
-| P0 | остаток `spModel` | общий ID/base/factory/layout, base `spMesh`, projection group, clone/copy/setter/bounds и draw через renderer slot `9` доказаны; classifier `0..8` существует только в PS2 slot, PC equivalent — no-op | восстановить защищённый PC constructor/default, original draw/bounds names, PS2 classifier enum/rules, projection-group semantics и concrete material/fog types; не проецировать PS2 classifier на PC |
-| P0 | остаток `spMeshData` | общий ID/direct `spMesh`, exact/observed `0x58`, dual vtables, owning concrete buffers, blank RTTI clone, deep-copy/release/bounds-init и отсутствие allocator zero-fill доказаны; portable code/tests готовы с явной safe-null divergence | найти original TU/API, объяснить native uninitialized-owner lifetime, назвать secondary interface и перейти к platform mesh subclasses |
+| P0 | остаток `spRenderNode` | PC exact1D4/14+6, source virtual world/getters/lazy caches, original copy append/independent Model/spheres/control fields, source light binding;2272 comparisons | original header/TU/API/support type,118/11C, automatic Scene/Partition/Occlusion and renderer; native detach469F50; callbacks external lifetime |
+| P0 | остаток `spRenderable` | PC exact58/raw28, nonempty cdecl5 groups/erase/ordinal, direct AL gates, shared material save/failure paths; source callback phases и576 state comparisons | original TU/API/field names, full source pre/post/renderer wiring, current-material cache consumers, upstream valid pass/reentry invariants; PS2 deferred |
+| P0 | остаток `spModel` | actual PC exact60/default3, Mesh getters, clone/shared mesh, full nonempty callback/alpha queue pre/mesh/post protocol; source mode hook/raw28 copy fixed | original draw/bounds names, projection enum, full source draw/backend wiring; PS2 classifier not imposed on PC |
+| P0 | остаток `spMeshData` | PC exact58 ctor independently run, uninitialized50/54/minmax, sphere0/validfalse; explicit cold-owner-zero teardown through ResourceMgr, source safe-null divergence | original TU/API, upstream Init/rollback lifetime invariant, secondary interface, full original buffer materialization; cold teardown is not Init |
 | P0 | остаток `spDXMeshData` | общий ID/base, owning-buffer prefix, PS2 exact `0x44`, conversion из `spMeshData`, destruction, blank clone и serializer boundary доказаны | получить прямой PC `sizeof`/constructor, назвать `+0x14` и PS2 tail `+0x20..+0x43`, восстановить original API и cross-platform header words |
 | P0 | остаток `spPS2MeshData` | общий ID/base, PS2 exact `0x100`, PC observed extent `0x100`, constructor tables, packet lifetime, component normalization, planning helpers и serializer connection доказаны; `+0x30/+0x34` определены как emitted vertex/primitive counts | получить прямой PC `sizeof`/constructor, original API/enums и имена счётчиков, полностью описать descriptor formats, `+0xF8` и binary/external packet grammar |
 | P0 | остаток `spPS2Mesh` | PS2-only ID/direct `spRenderMesh` base, exact `0x58`, обе vtable, owned prepared data/helper, conversion/attach/release, blank clone, перенос counts и draw-preparation consumer доказаны | найти original header/TU/API, тип и manager packet-emitter-а, сигнатуры/семантику трёх draw operations и полный failure rollback |
@@ -85,8 +234,9 @@
 | P0 | остаток `spTextureBuffer` | общий ID/base, exact `0x30`, default format `6`, ownership `+0x1C/+0x24`, blank clone, Init и pixel-size map доказаны на PC/PS2 | найти original TU/header, enum spellings, имя третьего `u16`, тип auxiliary object `+0x24`, deep-copy API и platform-upload contract |
 | P0 | остаток `spTextureData` | общий ID/base, exact `0x4A0/0x498`, embedded buffer, container ABI split, name-only clone, copy и selected payload cleanup доказаны | назвать flags/record types, разобрать `0x410`, четыре interface slots, serializer-to-record mapping, rollback и platform upload lifetime |
 | P0 | остаток `spNode` | общий ID/base/factory, exact PC `0xB4` и PS2 `0xC0`, local matrix/PRS, flags, parent/child lifetime, root walk, recursive mask `0x200`, destruction и deep child clone доказаны | найти original header/TU/API, тип scene link `+0x3C`, dirty/cache masks, world-transform/bounds/name-search slots, collision API и legacy animated reader semantics |
-| P0 | остаток `spLight` | общий ID/base, null factory/clone, PC observed `0xF0`, PS2 exact `0x100`, два vptr, все light fields/defaults, update/helper boundary и PS2 copy доказаны | прямой PC allocation/copy, original TU/API, имя embedded support-типа, opaque `+0xDC/+0xE8`, scene-manager signatures и property-setter side effects |
-| P0 | остаток `spLightData` | общий ID/base, concrete factory/clone, storage-free layout, PS2 exact allocation и все девять serializer-to-runtime offsets доказаны; PS2 clone пропускает intensity | восстановить protected PC constructor/allocation, независимо проверить PC intensity-copy, затем разобрать отдельный `spLightDataSerializer` read/write без слияния обязанностей классов |
+| P0 | остаток `spLight` | общий ID/base, null factory/clone, PC exactF0/PS2 exact100, PC copy intensity omission, previousB8/nextBC scene list и dirty8→LightManager refresh executed | original TU/API/support type, opaqueDC, property-setter invalidation, full portable virtual world/scene/backend wiring |
+| P0 | остаток `spLightData` | exact PC original factoryF0, concrete clone/copy независимо подтверждают intensity1, actual scene reparent/world consumption и девять serializer offsets | original constructor symbol, native root clone transaction, full portable Scene/renderer integration; serializer lifecycle остаётся самостоятельным |
+| P0 | остаток `spLightManager` | original24 factory/lifetime, borrowed lists, scene cache propagation, helper28 with8 ordinary+first ambient;90 native/22 static и1800 portable comparisons | original support/cache names, concrete partition payload type, full SceneInit/wiring, backend light upload; ctor owner20 untouched, не использовать standalone refresh как initialized scene |
 | P0 | остаток `spSerializer` | общий ID/direct base, null factory/clone, dual-vptr `+0x10`, PS2 exact `0x14`, PC observed `0x14`, identity class-ID hook и центральные `SBOO` load/save entry доказаны; object-header reader фактически не проверяет marker, strict helper отделён; PS2 relationship resolver рекурсивно materialize-ит inline entry без отдельного глобального fixup | назвать secondary interface/callbacks, полностью перенести relationship resolver/ownership/rollback и получить прямой PC sizeof |
 | P0 | остаток `spSerializerManager` / FAT helper | manager и основной PS2 FAT-срез перенесены: exact `0x2C/0x64`, registry/header, index grammar, RTTI validation, lookup/cursor/clear, object indexing и safe file-index compatibility path; уточнено, что LoadIndex не инициализирует byte `+0x1C` | установить original identity helper-а `+0x28`, enum/name политики `+0x18`, save-side происхождение `fileID +0x08`, PC container ABI, payload writer, object materialization, fixup и rollback contract |
 | P0 | остаток `spSerializerHook` / platform hooks | общий base и PS2 leaf перенесены; exact PS2 slot обеспечивает lazy manager и больше не использует FAT/stream, все 25 инструкций закреплены; PC factory — доказанный SecuROM thunk `FF 25 98 2D 3B 01` | назвать slot `+0x24`, извлечь настоящее PC body/signature/TU и объяснить пустую PS2 platform branch; не подменять DX leaf догадочным no-op |
@@ -283,7 +433,55 @@ mutation test. Target ID `0x4DA04889` остаётся corpus-связью бе�
 контрольного executable и наблюдаемого consumer. Отрицательный поиск также
 фиксируется в карточке класса, если он ограничивает область дальнейшего поиска.
 
+## PC Node serialization checkpoint9
+
+[Node field/ref/write evidence](native-pc-node-serialization.md): factory14,
+scalar rules and owning children now have original/source exact comparisons;
+real object.smo passes staged-native outer versus source whole loader. Full
+Node/Save is not closed. Collision/reparent/scene registration/lossless/error
+remain open. Constructed whole Node422B50@88FDE3 and gameover outer@89A355
+hit100k and are disabled; no retry/resume/cap increases. Second stop occurs
+during third Node factory, before attach; underlying cause remains unknown.
+
 ## Очередь после SparkBase
+
+Актуализация CP19–29: nonempty Texture/Anim/UV и prebound Color relationships
+проходят общий reference core; scalar/color/PRS evaluators и finite controller
+consumers имеют source/native сравнения. Полный Color factory остаётся capped.
+DXShaderLayer имеет actual factory/lifetime/copy, но его корректный RTTI
+отклоняется оригинальными common layer helpers до shader-specific tail.
+Ниже сохранены исторические checkpoint-ы; текущие проценты брать из platform
+ledger/goal report, а не складывать старые локальные статусы.
+
+Checkpoint13 [PC standard material graph](native-pc-material-standard-graph.md):
+header MaterialData/DXData42F4C0 создаёт runtime spDXMaterial797B39EC, а не
+файловый6160348B. Actual Model→Material→Pass→Std read/index/write замкнут на
+четырёх bounded graphs. Pass→Layer→MaterialTexture — direct-delete, не
+intrusive; UV9 имеет40bytes, zeroflag не сбрасывает старую матрицу.
+Открыты nonempty Texture/Color/UV/Anim links, DXShaderLayer71643E66,
+полный native clone graph, render application и whole Save. DX power+B8
+ctor не инициализирует; host writer требует явно заданного значения.
+
+Checkpoint12 [PC Material](native-pc-material-scalar.md): прежний PC prefix80 /
+MaterialDataC4 оказался PS2-derived предположением. Actual PC78/BC и interface
+6DE9D0 подтверждены; word10 Fog/Material — physical NamedObject при direct
+BaseObject RTTI. Common4671F0 всё равно не переносит FAT-name в эти типы.
+Material scalars/empty passes замкнуты, full layers/ColorController423650,
+base-copy policy и renderer остаются открыты. Whole logo-field native scout
+достиг32KiB allocation guard и отключён, безповторов/увеличениялимитов;
+точный failing request/PC не записан, причина не объявлена доказанной.
+
+Checkpoint11 [Fog codec/owner](native-pc-fog-serialization.md) замкнул
+nonempty Model/Fog. Новый конкретный lifetime риск: clear удаляетsole-owned
+Fog, но native FAT entry.object остаётся freedaddress. Ни повторный resolve,
+ни UAF не запускались. Host context pinning — безопасное отличие, не доказанная
+native очистка. Native partial-word read mutation также явно отделена отhost.
+
+Checkpoint10 [scene sections](native-pc-scene-serialization.md) добавил
+native/source RenderNode→Model read/index/write и concrete adapters. Nonempty
+Model mesh, Renderable material/fog, Skin и textures ещё требуют замыкания.
+Whole RenderNode NULL diagnostic4169DF→0033D03C не исполнена доreturn;
+pre-diagnostic stop469288 — отдельная ограниченная проверка, не fake-success.
 
 - bootstrap и ownership `spApp/spEngineCore -> wx...`;
 - raw-file/PCK resolver и stream lifetime;

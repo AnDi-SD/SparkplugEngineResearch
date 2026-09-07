@@ -1,5 +1,11 @@
 # `spMatColorControllerSerializer`
 
+Обновление PC CP25–27: [runtime/common codec](native-pc-material-color.md),
+[material references](native-pc-material-color-graph.md),
+[реальный payload roundtrip](native-pc-renderer-scene.md). Исполняемый portable
+codec использует восстановленные Scalar/ColorEval и общее ядро sections/refs.
+Ниже исторический schema-only этап; protected controller ctor всё ещё открыт.
+
 Статус: восстановлены идентичность, RTTI/lifetime, раздельный PC/PS2 ABI и
 подтверждённая структура пяти evaluator-секций. Portable-класс намеренно не
 реализует формулы evaluator-ов и реальный stream codec до реконструкции самих

@@ -162,4 +162,13 @@ SmoViewer.Inspect research-db analyze-class <db> spPartitionRenderable
 - Изменение количества inline-моделей требует catalog-safe перестройки всего
   вложенного поддерева; writer намеренно не включён.
 - `spPartitionNode`, octree/BSP и parent spatial graph после первоначального
-  отчёта полностью разобраны; `DebugColor` остаётся отдельным runtime-вопросом.
+  отчёта структурно разобраны по SMO; это не полнота executable runtime.
+
+## PC runtime — 2026-09-06
+
+[Native checkpoint](native-pc-partition-runtime.md): base factory4CD950 реально
+возвращает `spPCPartitionRenderable9CBB56A2`, exact8C, support+10 и shared identity
+matrices760058 после обязательного CRT6D38C0. Actual Model refs/bounds и blank
+own clone, Scene88, parent direct-delete подтверждены. Draw ignores matrix
+failure, но stops on first Model failure — не контракт RenderNode. Полный
+portable class/Visibility/loader остаётся открытым; GPU/игра не запускались.

@@ -5,6 +5,15 @@
 уникальных объектов, разрешил 412 отношений и аннотировал 1 231 содержательное
 direct field в schema v2. Изменение и пересборка графа пока не разрешены.
 
+PC runtime уточнён [отдельным checkpoint](native-pc-partition-runtime.md):
+exactC8, NodeB4 prefix, local-root vectorB4 **borrowed**, duplicate append без
+refcount. Dtor освобождает storage, не roots; clone копирует только Node-часть,
+tailC4 untouched. Inline ownership в файле не тождественно runtime владению.
+
+[Visibility checkpoint](native-pc-visibility-runtime.md) исполнил реальное
+SceneInit заполнение local roots и два корня при отборе: ordinary path обходит
+оба, Debug21 повторяет selectedSystem root. Portal transitions и C4 ещё open.
+
 ## Итоговая структура
 
 `spZone` наследует `spNode` и имеет две serializer-секции:
@@ -114,6 +123,6 @@ dotnet run --project tools/SmoViewer/SmoViewer.Inspect -- `
   spZone --json
 ```
 
-Связанные `spZonePortal`, `spZonePortalNode`, BSP и navigation-классы уже
-полностью разобраны. Дальнейшие вопросы относятся к runtime-поведению переходов,
-а не к границам serializer этого класса.
+Для связанных `spZonePortal`, `spZonePortalNode`, BSP и navigation-классов
+разобран наблюдаемый **wire/serializer** layout. Их runtime-поведение переходов
+и видимости не объявляется полностью восстановленным.

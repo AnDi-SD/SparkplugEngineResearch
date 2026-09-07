@@ -64,7 +64,7 @@ Constructor и оконные функции используют следующ
 | Slot | Target | Результат |
 |---:|---:|---|
 | `+0x20` | `0x004C3230` | получить module handle, задать defaults, зарегистрировать и создать окно |
-| `+0x24` | `0x004C2D60` | вызвать pre-update hook, при неактивном окне сделать 1 ms throttle, вернуть true |
+| `+0x24` | `0x004C2D60` | pre-update, engine41CD50 всегда, graphics41C460 для foreground/owner, иначе 1 ms throttle; true независимо от engine result |
 | `+0x28` | `0x004C2D10` | передать управление общему shutdown cascade |
 | `+0x2C` | `0x004C2C70` | Win32 message loop |
 | `+0x30` | `0x0048EAA0` | no-op pre-update hook |
@@ -100,3 +100,11 @@ ShowWindow и UpdateWindow. Это side-effect boundary: portable
 2. Original declarations/signatures слотов после `+0x30`.
 3. Имена window class/title и precise error-manager edges.
 4. Состав общего shutdown cascade `0x004C2D10`.
+
+Ночной checkpoint6 сентября:
+[PC engine frame](native-pc-engine-frame.md) исполнил original4C2D60 и
+41CD50 с actual SAN/actor/manager/timer code. Foreground APIs/Sleep — explicit
+data seams, не host calls. Общий update идёт и в фоне. Отдельный graphics replay
+исполнил core begin/end и двухфазный camera-vector walk. Portable PC app backend
+ещё не подключён; его старый Update возвращает true после pre-hook и не является
+полноценным кадровым циклом.

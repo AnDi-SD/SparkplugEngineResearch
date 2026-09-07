@@ -1,5 +1,15 @@
 # `spMaterialDataSerializer`: concrete material-data serializer
 
+PC checkpoint12: [actual3C factory and secondary42F670/4B0CF0](native-pc-material-scalar.md).
+Five scalar/pass-only native/source rows match exactly. This is not a full
+material-layer or whole-file loader claim; inherited codec remains shared.
+
+PC checkpoint13 resolves header42F4C0: reads eight bytes, ignores both words,
+creates **spDXMaterial**, not spMaterialData. TargetID6160348B is the wire
+registration, not a guarantee of runtime class. The complete small Model
+graph, standard layers and save are covered in
+[PC standard graph](native-pc-material-standard-graph.md).
+
 Статус: RTTI, lifetime, размер, target и тонкие read/write-обёртки подтверждены
 независимо в PC и PS2. Собственной material grammar у класса нет: она наследуется от
 `spMaterialSerializer`.
@@ -71,6 +81,6 @@ clone и раздельные PC/PS2 ABI-константы.
 
 1. Original header и точный путь translation unit.
 2. Имя secondary serializer interface и точные сигнатуры read/write/load hooks.
-3. Прямой PC allocation size и разбор protected factory entry.
+3. Остальные allocation/error варианты (actual PC3C factory уже проверена).
 4. Semantics статуса reader-а и поведение при частично прочитанном datablock.
 5. Контролируемая in-game проверка изменения material payload.

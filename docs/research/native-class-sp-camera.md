@@ -1,6 +1,6 @@
 # `spCamera`: projection, viewport и выход в renderer
 
-Дата проверки: 5 сентября 2026 года. Статус: class graph, concrete leaves,
+Дата проверки: 6 сентября 2026 года (PC уточнения checkpoint6). Статус: class graph, concrete leaves,
 PC observed/PS2 exact layouts, defaults, viewport lifecycle, обе ветви projection,
 frustum storage и связь с platform renderer подтверждены. Original header/TU,
 часть runtime-полей и camera-manager ownership пока не установлены.
@@ -38,16 +38,17 @@ Concrete clone сначала создаёт новый объект того ж
 ## Layout
 
 PS2 factories дают точный общий размер `0x250`; `spPS2Camera` выделяет `0x340`.
-PC factory спрятан за `.rld`, поэтому `0x238` обозначается только как observed
-extent, хотя runtime-методы покрывают все байты до последнего поля.
+Обе PC concrete factories теперь исполнены в bounded guest: **exact0x238**
+для spDXCamera и spCameraData. Старое имя `ObservedLayout` оставлено в коде
+для совместимости, но размер больше не является только косвенным наблюдением.
 
 | Поле | PC | PS2 |
 |---|---:|---:|
 | `spNode` base | `0x000..0x0B3` | `0x000..0x0BF` |
 | near / far | `+0xBC / +0xC0` | `+0xC8 / +0xCC` |
 | serialized `Is2DMode` | `+0xC8` | `+0xD4` |
-| view matrix | `+0xD4` | `+0xE0` |
-| projection matrix | `+0x114` | `+0x120` |
+| view matrix | **`+0xCC`** | `+0xE0` |
+| projection matrix | **`+0x10C`** | `+0x120` |
 | view angle / scaled angle / pixel aspect | `+0x188/+0x18C/+0x190` | `+0x19C/+0x1A0/+0x1A4` |
 | six frustum planes | `+0x1C4` | `+0x1D8` |
 | dirty flags | `+0x224` | `+0x238` |
@@ -88,10 +89,14 @@ M33 = 0
 ```
 
 Вторая ветвь ставит `M00=2/half`, `M11=2/aspectHalf`,
-`M22=1/(far-near)`, `M32=near/(near-far)` и сохраняет identity `M33=1`.
+`M22=1/(far-near)`, `M32=near/(near-far)` и **сохраняет остальные cells**.
+`M33=1` только у fresh identity cache; после perspective original PC cache
+сохраняет прежние `M23=1/M33=0`. Это не полная перестройка матрицы.
 Portable `BuildProjectionMatrixForAnalysis` дополнительно отклоняет
-нефинитные/нулевые делители. Это safety guard host-кода, а не найденная native
-валидация.
+нефинитные/нулевые делители и создаёт fresh identity-based result. Это utility,
+не faithful stateful cache transition. Native validation этим не утверждается.
+PC SetViewAngle427DA0 очищает serialized2D byteC8 независимо от branch231;
+portable setter исправлен и проверен отдельно.
 
 ## Camera → renderer
 
@@ -129,6 +134,18 @@ CTest проверяет IDs/factories, ABI offsets, defaults, обе projection
 1. Original header/TU и настоящие имена camera vtable methods.
 2. Роли opaque blocks перед matrices, derived basis и поля рядом с dirty mask.
 3. Полный world/view update, frustum culling consumer и camera-manager policy.
-4. Direct PC allocations за protected `.rld` entries.
+4. Native viewport activation/camera-manager ownership и точный cache-transition
+   перенос; direct PC allocations закрыты в checkpoint6.
 5. Точные сигнатуры 29-slot renderer interface; текущие имена помечены как
    analytical и не выдаются за исходный API.
+
+## Уточнения PC checkpoint6
+
+`probe_pc_camera_matrix_boundary.py`: **32/32**. Реальные constructors и renderer
+arguments подтвердили исправление view/projection offsets **D4/114→CC/10C**,
+basis **154→14C**, untouched viewport170..187, обе exact238 allocations,
+angle-setter2D reset, cached projection preservation и matrix-call return gates.
+Прежний static whole-body hash проверял неизменность bytes, но сам по себе не
+проверял ошибочно записанные в ABI offsets. Теперь они закреплены actual pointer
+arguments и C++ static_assert. PS2 layout в этом checkpoint не пересматривался.
+[Scene/world integration](native-pc-scene-world.md) устанавливает actual caller.

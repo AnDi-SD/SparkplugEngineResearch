@@ -22,9 +22,9 @@ PC executable содержит точный путь исходника:
 PS2 factory выделяет ровно `0x14` байт. Constructor `0x00197540` сначала
 вызывает `spSerializer::spSerializer` (`0x00181D00`), затем ставит primary
 vptr `0x0048F950` и secondary vptr `0x0048F974` по `+0x10`. Нового storage нет.
-PC constructor/factory защищён, но все наблюдаемые обращения также заканчиваются
-на `+0x10`; поэтому его `0x14` пока отмечен как полный observed extent, а не как
-прямо доказанный `sizeof`.
+PC factory защищена, но checkpoint9 исполнил оригинальную `0x004638F0`
+в ограниченной x86-песочнице и прямо подтвердил allocation **0x14**.
+Историческое имя `ObservedLayout` в ABI оставлено для совместимости исходников.
 
 ## Lifetime и virtual contract
 
@@ -62,7 +62,7 @@ Read dispatch и writer на обеих платформах подтвержд�
 Сравнения transform с default используют константу `0x3A83126F`, то есть
 примерно `0.001`. Порядок writer: `0, 1, 2, 3, 4, 8, 5, 6, 7`. Rotation в
 runtime хранится матрицей `3x3`, а stream получает quaternion через отдельный
-math helper; его численная реализация пока не переносилась.
+math helper; PC helper теперь переиспользован из общей SAN math реконструкции.
 
 Read применяет position/scale и помечает transform dirty, преобразует quaternion
 в orientation, меняет флаги `0x1000`, `0x400`, `0x800`,
@@ -80,11 +80,12 @@ Read применяет position/scale и помечает transform dirty, пр
   default suppression и число доступных child relationships;
 - отдельные PC/PS2 ABI records и адреса.
 
-Потоковый read/write намеренно не имитируется. Portable `spNode` ещё не хранит
-`spCollisionInfo`, а quaternion codec, data-block protocol, relationship rollback
-и исходное имя secondary interface не закрыты. Поэтому метод называется
-`BuildKnownWritePlanForAnalysis`: он не заявляет, что collision fields отсутствуют
-в настоящем объекте.
+Checkpoint9 добавил настоящий bounded read/write/index adapter через общее
+ядро, точные native/source сравнения секций и child references, а также
+сравнение настоящего `object.smo`. Подробные контракты, проверки и два
+**неуспешных capped whole calls**: [PC Node serialization](native-pc-node-serialization.md).
+`spCollisionInfo` пока явно отклоняется; unknown payloads не сохраняются lossless.
+Это не полный writer и не доказательство100% Node/нативного whole Save.
 
 ## Проверка
 
@@ -95,8 +96,9 @@ target ID, blank clone, default-план только с обязательны�
 ## Открытые вопросы
 
 1. Original header, namespace и имена secondary-interface методов.
-2. Точный PC allocation size без опоры на observed extent.
+2. PC allocation0x14 закрыт native factory; полный failure/rollback остаётся открыт.
 3. Типы data stream/context и значения status enum.
-4. Quaternion conversion и byte-exact payload encoding.
+4. Произвольные численные края quaternion, unsafe/error payloads и lossless unknowns.
 5. `spCollisionInfo`, forward-reference fixup и rollback при ошибке.
-6. Семантика старых файлов, где field 8 отсутствует.
+6. Отсутствующий field8 оставляет default Animated=true. Zero не очищает его,
+   как и Static; эта native асимметрия подтверждена, безопасная политика редакторов ещё нужна.

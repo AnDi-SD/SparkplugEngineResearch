@@ -81,8 +81,16 @@ layout-числа всё равно сохранены раздельно.
 3. `uVBDataSize`;
 4. index-buffer byte size;
 5. `Is32Bit`;
-6. преобразованный vertex-buffer payload;
-7. преобразованный index-buffer payload.
+6. для подтверждённого **PC reader** — полный обычный serialized index buffer;
+7. затем полный обычный serialized vertex buffer.
+
+Уточнение6 сентября: прежний порядок «raw vertex, затем raw index» был неверным
+для PC429A40. Actual helper читает17byte planning header, **игнорирует все пять
+значений при materialization**, затем вызывает45FB80 и460300. Это независимо
+проверено на directed bytes и readonly field1 изlogo_screen.smo. Protected PC
+writer4298A0 ещё не исполнен полностью; его прежнее описание, основанное на
+частичных/cross-platform свидетельствах, не считать byte-exact PC writer proof.
+Подробности: [PC DX materialization](native-pc-dx-materialization.md).
 
 `uVBDataSize` начинается с `vertexStride * vertexCount`. При component bit
 `0x20` native writer добавляет ещё `12 * vertexCount`. Index size равен index
@@ -110,5 +118,6 @@ platform masks, blank clone и контрольный header: FVF `0x20`, 3 vert
 1. Original header и имя secondary serializer interface.
 2. Прямое PC `sizeof` и распаковка protected factory.
 3. Имена native mode/config flags и полный FVF mapping.
-4. Точный DX buffer stream codec, usage/pool параметры и device ownership.
+4. Whole field writer и native-containing FFPS chain; PC read buffer order,
+   combiner usage/pool и directed shared ownership теперь исполнены отдельно.
 5. Error/status enum, partial-allocation cleanup и rollback.

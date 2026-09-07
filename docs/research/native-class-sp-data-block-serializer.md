@@ -1,8 +1,10 @@
 # `spDataBlockSerializer`: универсальный codec полей SMO
 
-Статус: wire grammar, read/skip и прямой writer восстановлены и проверены на
-PC/PS2. Вложенный `WriteBegin`/`WriteEnd` и точные имена вспомогательных типов
-ещё требуют отдельного прохода.
+Статус: wire grammar и read/skip имеют PC/PS2 evidence. PC nested writer
+дополнительно исполнен 6 сентября: 163 направленные проверки, 18 сравнений
+с восстановленным кодом (1658 точных bytes). Обнаружены PC writer quirks,
+исправляющие прежнее чрезмерное утверждение о прямом writer ниже.
+Подробности: [PC SAN и block writer](native-pc-san-writer.md).
 
 ## Доказательства
 
@@ -23,7 +25,7 @@ PC сохраняет точный путь
 |---:|---:|---|
 | `+0x00` | `0x0C` | platform-specific sequence/list state для stack-а headers |
 | `+0x0C` | `0x10` | текущий header |
-| `+0x1C` | `0x04` | writer state, точное имя пока неизвестно |
+| `+0x1C` | `0x04` | PC BeginObject сохраняет object pointer; имя member неизвестно |
 | `+0x20` | `0x04` | stream writer-а |
 | `+0x24` | `0x04` | сохранённый size code для reserved header |
 
@@ -56,9 +58,13 @@ Header одинаков на PC и PS2:
 | `7` | следующий little-endian `u32` |
 
 Размеры `1/2/4/8` получают fixed form. Все прочие размеры выбирают минимальный
-из `u8/u16/u32`. Поэтому payload размера `0` кодируется как size code `5` плюс
-нулевой byte и **не** является terminator. Конец секции writer выводит отдельным
-нулевым byte.
+из `u8/u16/u32`. По грамматике payload размера `0` можно представить как
+size code `5` плюс нулевой byte; это **не** terminator. Но original PC
+`WriteHeader` для size0 возвращает success вообще без записи. После
+`WriteBegin` это оставляет placeholder all-ones. Прямой portable helper
+выдаёт корректное пустое поле как явную host policy, не копирует native bug.
+Original PC также ошибочно считает ID31 inline, хотя reader требует escape.
+Конец секции writer выводит отдельным нулевым byte.
 
 ## Native методы
 
@@ -68,8 +74,11 @@ Header одинаков на PC и PS2:
 | terminal byte | `0x00472B00` | `0x0017E7C0` |
 | `SkipData` | `0x00472AC0` | `0x0017E830` |
 | `ReadHeader` | `0x004728F0` | `0x0017E890` |
-| `WriteHeader` | protected fragment | `0x0017EAA0` |
+| `WriteHeader` | `4727B0 -> 4F5AD0` | `0x0017EAA0` |
 | direct field + payload | `0x00472B40` | тот же общий writer graph |
+| `BeginObject` | `0x00472710` | в этом checkpoint не проверялся |
+| `WriteBegin` | `472D30 -> 44EB66 -> 472D5D` | в этом checkpoint не проверялся |
+| `WriteEnd` | `0x00472E20` | в этом checkpoint не проверялся |
 
 `ReadHeader` сначала сохраняет текущую позицию, читает compact header и size,
 затем сохраняет позицию payload. `SkipData` не вычитывает bytes: он делает
@@ -90,8 +99,13 @@ Header одинаков на PC и PS2:
 - безопасный отказ при переполнении позиции, ID больше `0xFF`, null payload
   ненулевого размера и ошибках stream-а.
 
-Безопасные отказы — явное отличие от мест, где оригинал полагался на валидный
-вход и 32-битную арифметику. Wire bytes для допустимого ввода совпадают.
+Добавлен PC nested writer: reservation UInt8/16/32, stack, backpatch и
+восстановление позиции. Безопасные отказы — явное отличие от мест, где
+оригинал полагался на валидный вход. Native имеет ОДИН width на весь stack:
+mixed-width nesting повреждает outer header. Portable API отвергает mixed
+nesting, ID31 и fixed reservation, пустое/слишком большое поле при End.
+Прямой portable writer корректно кодирует ID31/size0 как отдельно указанную
+host policy; заявление о побайтном совпадении native на них неверно.
 
 `research/inspect_data_block_serializer.py` фиксирует 36 PC/PS2 проверок,
 включая hashes полных тел, source path, masks, layout stores и абсолютный seek.
@@ -101,9 +115,8 @@ terminator.
 ## Открыто
 
 - оригинальное имя header-типа и public header path;
-- семантика sequence state `+0x00..+0x0B`;
-- полные контракты nested `WriteBegin`/`WriteEnd`, включая выбор заранее
-  зарезервированной ширины размера и patch-back;
-- native error propagation/частично изменённое состояние на повреждённом
-  потоке;
+- точные template/container имена; PC list/head/count и normal push/pop теперь
+  подтверждены, но allocator failure/exception paths ещё открыты;
+- оставшиеся tell/seek/overflow/error-manager ветви и native unsafe empty-stack
+  End (не исполнялся); PS2 nested writer не засчитывается по PC;
 - перенос всех concrete serializer payload methods на этот codec.

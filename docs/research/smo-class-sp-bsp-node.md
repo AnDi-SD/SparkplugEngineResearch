@@ -21,9 +21,9 @@ spPartitionSystem.PartitionRoot
 ```
 
 Это не navigation graph: дерево относится к общей partition/visibility
-подсистеме уровня. Названия геометрических сторон для slots 0 и 1 пока не
-подтверждены, поэтому Viewer намеренно не называет их front/back или
-positive/negative.
+подсистеме уровня. [PC runtime checkpoint19](native-pc-bsp-runtime.md) подтвердил
+strict leaf lookup: positive distance →slot0, negative/zero/NaN →slot1.
+Исторический Viewer показывает neutral slots; этот цикл его не изменяет.
 
 ## Serializer layout
 
@@ -113,8 +113,10 @@ inline-поддеревьев. В базе записан один нормал�
 формы `dot(normal, point) - constant` выраженный, но не строгий перекос: slot 0
 чаще положителен, slot 1 чаще отрицателен. В обеих ветвях остаются точки другого
 знака и точки на плоскости. Это может объясняться пересекающими плоскость
-объектами или неполнотой выбранных representative points, поэтому сторона slot
-пока остаётся рабочей гипотезой, а не подтверждённым именем поля.
+объектами или неполнотой выбранных representative points. Этот старый corpus
+вывод сам по себе не доказывает стороны. Теперь original480710 отдельно
+подтверждает positive0/other1, а480780/4807D0 подтверждают epsilon/overlap masks;
+различные запросы не следует смешивать.
 
 ## Свидетельства из executable
 
@@ -177,6 +179,9 @@ python research/analyze_smo_bsp_node.py `
 ```
 
 Связанные [`spOcclusionVolume`](smo-class-sp-occlusion-volume.md) и
-[`spMeshNavigationSet`](smo-class-sp-mesh-navigation-set.md) также полностью
-разобраны. Геометрические имена slots и ненаблюдаемый Polygon остаются в
-каноническом списке открытых вопросов.
+[`spMeshNavigationSet`](smo-class-sp-mesh-navigation-set.md) имеют структурные
+wire-разборы; это не означает полного восстановления runtime-классов.
+PC BSP source/query/lifetime и remaining gaps описаны в
+[runtime-карточке](native-pc-bsp-runtime.md). Optional Polygon отсутствует в
+этом корпусе, но native independent setter/visibility consumer уже проверены;
+его runtime producers остаются открытыми.

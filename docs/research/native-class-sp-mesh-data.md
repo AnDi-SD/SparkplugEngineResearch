@@ -54,6 +54,12 @@ allocation chain `0x0010D850 -> 0x0010BFB0 -> 0x00406920 -> 0x00406C18`
 factory `0x00134DB0` формально может вернуть объект с неопределёнными pointers
 до init transaction. Это нативная шероховатость, а не скрытая гарантия.
 
+PC checkpoint10 также исполнил factory41A270: exact58, owners50/54 **не
+инициализированы**, sphere нулевая, validity28 false, min/max untouched.
+Для проверки actual destructor оба cold owners явно обнулены fixture;
+это не доказательство завершённого native Init. Destructor вызвал lazy
+ResourceManager exact30; все tracked allocations освобождены.
+
 Portable constructor намеренно ставит оба owner в `nullptr`. Это явно
 документированная safety-divergence: воспроизводить неопределённые pointers и
 риск destructor-а нельзя, а доказанные layout и последующая init-семантика от
@@ -79,8 +85,8 @@ native `0x0015D1A0`, не переносит bounds-valid byte. Обычный `
 только inherited resource name и оставляет оба buffers пустыми.
 
 Тесты различают все три операции и проверяют ownership, bounds и class/layout
-identity. `spModel` после этого использует concrete `shared_ptr<spMeshData>`, а
-не временный широкий `spBaseObject` seam.
+identity. `spModel` использует **`shared_ptr<spMesh>`**, принимая concrete
+`spMeshData` полиморфно; старое заужение поля до MeshData исправлено.
 
 Открыты original header/TU/API, роль secondary vtable/interface, причины
 неинициализированных native owners, trailing поля `spMesh`, platform-specific

@@ -1,12 +1,13 @@
 # Нативные `spMaterial` и `spMaterialData`
 
-Дата проверки: 5 сентября 2026 года. Статус: identity, наследование,
-PC/PS2 layout, defaults, material-state/pass prefix и concrete color payload
-подтверждены. Неизвестные поля и pass/layer ownership оставлены непрозрачными.
+Обновлено 6 сентября 2026, [PC checkpoint12](native-pc-material-scalar.md):
+исправлены ошибочно перенесённые PS2 offsets и PC interface vtable. Actual PC
+factories/scalar codecs/clone/pass ownership проверены отдельно; full material
+layers/render/error contracts не объявляются завершёнными.
 
 ## Идентичность и lifetime
 
-`spMaterial` имеет Class ID `0x5C0314C5`, напрямую наследует `spBaseObject` и
+`spMaterial` имеет Class ID `0x5C0314C5`, в engine RTTI наследует `spBaseObject` и
 регистрируется как абстрактный тип с null factory. `spMaterialData` имеет Class
 ID `0x6160348B`, напрямую наследует `spMaterial` и является concrete leaf.
 
@@ -16,16 +17,19 @@ ID `0x6160348B`, напрямую наследует `spMaterial` и являе�
 | `spMaterial` primary vtable | `0x006DC984` | header `0x0048E870` |
 | `spMaterialData` registration / initializer | `0x0075D548 / 0x006D1D90` | `0x004A82C0 / 0x00480ED4` |
 | `spMaterialData` factory | protected `0x0041A390` | `0x00134AB0` |
-| `spMaterialData` primary/interface vtables | `0x006DE9FC / 0x006DEA20` | headers `0x0048D8A0 / 0x0048D8C4` |
-| размер `spMaterial` | observed `0x80` | exact `0x80` |
-| размер `spMaterialData` | observed `0xC4` | exact aligned allocation `0xD0` |
+| `spMaterialData` primary/interface vtables | `0x006DE9FC / 0x006DE9D0` | headers `0x0048D8A0 / 0x0048D8C4` |
+| размер `spMaterial` prefix | exact observed `0x78` | exact `0x80` |
+| размер `spMaterialData` | actual allocation `0xBC` | exact aligned allocation `0xD0` |
 
 Полные исходные paths не сохранились. Поэтому reconstructed files размещены в
 подтверждённом общем модуле `Code/Sparkplug`, но путь помечен inferred.
 
 ## Layout `spMaterial`
 
-Обе платформы подтверждают общий prefix до `0x80`:
+Следующая историческая таблица относится **только к PS2**, не к PC.
+Для PC точная таблица находится в [checkpoint12](native-pc-material-scalar.md):
+name10, interface14, states18, opaque44, count48, passes4C, flags6C/6D,
+opaque70, controller74; prefix78. Physical NamedObject и engine RTTI различны.
 
 | Offset | Представление | Подтверждённая роль |
 |---:|---|---|
@@ -50,7 +54,9 @@ Native default render-state vector равен
 
 ## Concrete payload `spMaterialData`
 
-После общего prefix расположены четыре RGBA-вектора и один float:
+После общего prefix расположены четыре RGBA-вектора и один float.
+Следующая таблица — **PS2**. PC offsets соответственно78/88/98/A8/B8,
+secondary getter ECX=complete+14; defaults совпадают.
 
 | Offset | Поле | Default |
 |---:|---|---|
@@ -80,11 +86,15 @@ PS2 оставляет alignment padding `0xC4..0xCF`. Defaults независи
 accessors, blank clone/copy и material-to-fog renderer path. CTest фиксирует
 RTTI, defaults, bounds, clone-семантику и platform ABI `static_assert`.
 
-Открыты original paths и spelling API, роли `+0x10/+0x18/+0x4C/+0x78`, exact
-PC allocations, exact роли некоторых полей и контролируемый in-game mutation
-test. Pass/layer ownership теперь закрыт в
+Открыты original paths и spelling API, PC opaque44/70 и полные state operations,
+native base-copy graph/policy и in-game mutation. Binding423650 независимо
+проверен на declared controller state в [CP25](native-pc-material-color.md),
+без успешного protected controller constructor.
+PC allocations и physical name10 уже подтверждены checkpoint12. Pass/layer
+ownership изучен в
 [`native-class-sp-material-layers.md`](native-class-sp-material-layers.md);
-следующая зависимость — фактический state-application/render dispatch.
+но это не закрывает все PC alias/error/clone-policy ветви. Следующая
+зависимость — full layer codec и фактический state-application/render dispatch.
 
 PS2-only concrete sibling [`spPS2Material`](native-class-sp-ps2-material.md)
 теперь разобран отдельно: он также занимает exact `0xD0`, использует те же

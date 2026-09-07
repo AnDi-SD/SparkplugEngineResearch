@@ -1,8 +1,16 @@
 # `spModelSerializer`: mesh relationship и projection group
 
+PC checkpoint10: [реальные sections и RenderNode→Model](native-pc-scene-serialization.md).
+Factory exact14, reader4938F0, actual writer secondary4935F0→1404A30;
+историческое body label493600 нельзя считать обычным callable writer.
+Отсутствующий mesh допустим, explicitNULL идёт на493A04. Projection1 всегда
+пишется с UInt32 length framing, не minimal fixed-size tag. Source adapter
+реализован/сравнен, но nonempty mesh/material/fog, Skin, errors/lossless открыты.
+
 Статус: source filename, identity, inheritance, storage-free layout, lifetime,
 target, resource indexing и два собственных поля подтверждены на PC и PS2.
-Потоковая реализация остаётся evidence-only.
+PC bounded stream секции теперь имеют actual native/source сравнения;
+PS2 потоковая реализация этим не заявляется.
 
 Оба executable сохраняют строку `spModelSerializer.cpp`, но не полный путь и
 не header. Файлы реконструкции размещены в `Code/Sparkplug` по подтверждённой
@@ -19,7 +27,7 @@ Target slot возвращает `spModel::ClassID` (`0x763277DB`).
 | Registration | `0x00762BC8` | `0x004AA7B0` |
 | Initializer | `0x006D49B0` | `0x004836D0` |
 | Factory | `0x004934C0` (protected entry) | `0x00196480` |
-| Allocation | observed `0x14` | exact `0x14` |
+| Allocation | exact `0x14` (checkpoint10) | exact `0x14` |
 | Primary vtable | `0x006ECBE4` | header `0x0048F8F0` |
 | Secondary vtable | `0x006ECBD8` | header `0x0048F914` |
 
@@ -74,8 +82,8 @@ ProjectionGroup}`; непустой mesh добавляет `Base` перед gr
 фиксируют, что relationship ожидает `spMesh`, а `spMeshData` остаётся допустимым
 concrete объектом.
 
-Не реализованы block framing, relationship fixup/rollback, status enum и
-downstream non-null validation.
+Block framing/common references реализованы. Полные rollback/status,
+nonempty resource lifetime и остальные downstream consumers остаются открытыми.
 
 ## Открытые вопросы
 

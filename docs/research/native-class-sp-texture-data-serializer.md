@@ -3,7 +3,11 @@
 Статус: точный source identity, RTTI/lifetime, storage-free ABI, target,
 source-wrapper, base write/read dispatch и арифметика cross-platform payload
 подтверждены независимо на PC и PS2. Загрузка внешнего ресурса и настоящий
-stream codec пока оставлены evidence-only.
+stream codec первоначально были evidence-only. PC checkpoint14 добавил
+исполненный CPU source/local/raw codec и byte-exact comparison:
+[карточка](native-pc-texture-codec-boundaries.md). External source ещё открыт.
+PC checkpoint 16 перенёс общий recursive source wrapper и ограниченный DX
+native-data reader: [карточка](native-pc-texture-native-source.md).
 
 PC сохраняет точный путь translation unit:
 
@@ -39,7 +43,7 @@ secondary vptr к таблице этого класса и переходит �
 | write source wrapper | `0x0042E5F0` | `0x00177B30` |
 | read cross-platform texture | `0x0042E100` | `0x00177F00` |
 | write cross-platform texture | `0x0042DD70` | `0x00178200` |
-| generic `SBOO` load | `0x0042DD10` | `0x00178980` |
+| header → runtime factory (PC: DXTexture) | `0x0042DD10` | `0x00178980` |
 | write | `0x0042EE10` | `0x00178640` |
 | index resource graph | `0x005A7DB0` | `0x00178460` |
 | read | `0x0042F180` | `0x00178470` |
@@ -83,7 +87,8 @@ attached source через RTTI: сначала `spStream` (`0x6CC80D8A`), за�
 2. field 0 `esfTextureDataCrossPlatform`;
 3. внутри него raw texture field 5.
 
-В других режимах базовый writer закрывает объект сразу после field 2.
+Source wrapper имеет собственный terminator после field2, локальная секция —
+отдельный. В других режимах базовый writer пишет пустую локальную секцию.
 Значение platform type `1` поэтому сохранено как числовой подтверждённый
 контракт, а не как придуманный enum. Base reader после source-wrapper знает
 только field 0; platform-specific field 1 относится к производным
@@ -101,22 +106,36 @@ byte pixels[width * height * pixelSize]
 
 Код обеих платформ намеренно не включает `spTextureBuffer::depth` в этот
 размер. Portable `CrossPlatformPayloadHeader` повторяет именно эту арифметику,
-проверяет 32-bit overflow и наличие требуемого числа байт, но не притворяется
-полным stream writer.
+проверяет 32-bit overflow и наличие требуемого числа байт. PC checkpoint14
+восстановил именно CPU stream writer; это не полный DX/external-source writer.
 
 ## Portable-срез и проверка
 
 `Code/Sparkplug/spTextureDataSerializer.*` восстанавливает RTTI/factory,
 blank clone, target ID, точные field IDs, source/mode write plan и безопасный
-header planner. Последовательная `ninja -j1` сборка и оба CTest-набора проходят.
+header planner. Историческая проверка: последовательная `ninja -j1` сборка и
+два тогдашних CTest-набора проходили.
 Тесты закрепляют direct base, exact PS2/observed PC `0x14`, три source-ветки,
 режимы `0/2`, raw header `3×5×4 = 60` и отказ для неинициализированного буфера.
 
 ## Открытые вопросы
 
 1. Original header и имя secondary serializer interface.
-2. Прямой PC `sizeof` и распаковка protected factory.
+2. PC factory42DC30 теперь исполнен, exact allocation14; полный rollback/failure ещё открыт.
 3. Имена native mode и platform type enum.
 4. Attached-source member/API, правила canonical reference path и resolver.
 5. Точный status/rollback при ошибке вложенного либо внешнего потока.
 6. Platform container mapping и производные DX/PS2 texture serializers.
+
+Checkpoint14:42DD10 потребляет8 arbitrary bytes и создаёт actual DXTexture4AB520,
+игнорируя оба слова; это не generic467550. На checkpoint14 source был
+явно unavailable; checkpoint15 теперь создаёт правильный DXTexture CPU shadow,
+без заявления о live COM.3 tiny CPU read/write
+rows exact, texture source113 checks, CTest32/32; platform header/shared
+source/lifetime границы описаны в новой карточке. Старые PS2 выводы не повышались.
+
+Actual PC startup использует wire78EA082B для Data/DXData/PS2Data serializers
+с разными platform masks; virtual target identifier нельзя использовать
+как единственный registry key. Field3 вызывает **тот же selected serializer
+read рекурсивно**, без нового8-byte object header:
+[runtime/mips/registry](native-pc-texture-runtime-mips.md).

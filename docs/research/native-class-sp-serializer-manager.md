@@ -8,6 +8,12 @@ object-materialization/fixup-конвейер ещё не восстановле
 
 ## Область доказательств
 
+Дополнение 6 сентября: [PC loader checkpoint](native-pc-smo-san-loader.md)
+исполнил общий `422B50` целиком на `bbush.san`, включая actual factory,
+serializer reader, shared-name registry, повторную загрузку и FAT clear.
+Начальный manager/FAT/RTTI state пока явно задан fixture-ом; полный startup,
+SMO mesh hook, все failure/fixup branches и writer не закрыты.
+
 | Платформа | Файл | SHA-256 |
 |---|---|---|
 | PC | `local-data/pc-pristine/WinxClub.exe` | `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F` |
@@ -250,8 +256,9 @@ object-index path этой PS2-сборки.
 sequence `+0x44` и не освобождает её на этом пути. Это наблюдаемое поведение
 данной сборки, похожее на оставленный compatibility/stub path, а не основание
 повторять утечку в переносимом коде. PC entry `0x00465CD0` закрыт переходом в
-relocated/obfuscated область, поэтому независимого подтверждения этого нюанса
-для PC пока нет.
+relocated/obfuscated область, но теперь `465CD0 ->13BCA90` исполнен независимо
+и подтвердил то же consume-without-store поведение. Старое PS2-only ограничение
+этого утверждения снято; native утечка в portable helper не переносится.
 
 Полный разбор вынесен в отдельную карточку
 [`native-class-sp-resource-fat-serializer.md`](native-class-sp-resource-fat-serializer.md).
@@ -315,14 +322,20 @@ python -B research\inspect_serializer_manager.py
 
 ## Открытые вопросы и следующий логический узел
 
-- точное исходное имя и layout owned helper-а `+0x28`;
+PC checkpoint5: [whole portable SAN loader](native-pc-full-loader.md) уже
+реализован через existing core; outer422940 имеет42 directed native checks,
+inline reference —115. Это закрывает прежний общий gap для подтверждённого
+SAN subset, но не SMO mesh batches, whole save или general cyclic ownership.
+Последующие пункты относятся к оставшимся ветвям, а не отсутствию loader-а.
+
+- исходное имя и полный constructor owned helper-а `+0x28`; PC extent58 и container consumers уже подтверждены;
 - original enum/name политики `+0x18` и смысл значений, отличных от `0/2`;
 - original enum/type names platform, operation и header result;
 - save pipeline и использование `declaredFileSize/dataSize`;
-- PC FAT container ABI и save-side происхождение resource `fileID`;
+- оставшееся PC unknown44 и save-side происхождение resource `fileID`;
 - cache-miss materialization, ownership и rollback;
 - рекурсивный relationship resolver и момент удаления временного FAT state;
-- original имя/signature hook slot `+0x24` и закрытое PC body.
+- original имя/signature hook slot (PS2 `+0x24`, PC `+0x1C`) и полный PC mesh-containing body.
 
 Hook, основной FAT index-срез и `spResourceManager` category+name cache теперь
 закрыты отдельными code/evidence/test/doc циклами. Следующий прямой join-узел —

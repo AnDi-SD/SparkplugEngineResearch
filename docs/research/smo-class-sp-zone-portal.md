@@ -107,3 +107,14 @@ python research/analyze_smo_zone_portal.py `
 Разбор продолжен в
 [`spZonePortalNode`](smo-class-sp-zone-portal-node.md): подтверждены две секции,
 унаследованный node-transform и фиксированный порядок двух portal-ссылок.
+
+## PC runtime дополнение — 2026-09-06
+
+[Executable/runtime карточка](native-pc-zone-portal-runtime.md) дополняет wire
+анализ: exact38, borrowed destination, owned polygon, Named-only clone,
+first-three plane481130/471420 и original whole Scene portal clipping.
+`Open` отдельно от Node Enabled; plane не переносится автоматически world
+transform-ом PortalNode. В source сохранены original getter names из diagnostics.
+Partial C++ source/1024 plane comparisons не означают full serializer/Scene
+или завершённую camera-near-plane ветку45E870. Данные прежнего корпуса
+не пересканировались и проценты wire/runtime не смешиваются.

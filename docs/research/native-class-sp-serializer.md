@@ -4,7 +4,15 @@
 двойной vptr-префикс и центральные load/save границы подтверждены на PC и PS2.
 Переносимый RTTI/identity-срез реализован. Registry и FAT boundary теперь
 закрыты в отдельном срезе `spSerializerManager`; точный secondary stream
-interface и relationship/failure callbacks остаются evidence-only.
+interface и часть relationship/failure callbacks остаются evidence-only.
+6 сентября [PC save-reference checkpoint](native-pc-save-reference.md)
+добавил 86 направленных native checks, actual index dispatch и generic
+header/reference source. Native one-shot/unchecked-patch ошибки отделены
+от host safety; whole FFPS save не объявляется завершённым.
+[PC read-reference](native-pc-read-reference.md) добавил115 native checks,
+167 portable checks и227 captured-value comparisons на bbush. Expected type
+игнорируется; split streams, ранняя публикация object20 и cache reuse теперь
+доказаны на PC, не только по PS2 resolver-у.
 
 | Платформа | PC | PS2 |
 |---|---:|---:|
@@ -93,8 +101,8 @@ materialized pointer либо ищет serializer/cache и рекурсивно 
 объекты, созданные при чтении ссылок. Точные source-level names и ownership
 этого resolver-а остаются открыты.
 
-Открыты: исходное имя secondary interface, точные signatures callbacks,
-error/result enum, rollback, полный перенос relationship resolver-а и PC exact allocation.
+Открыты: исходное имя secondary interface, оставшиеся signatures callbacks,
+error/result enum, rollback/cyclic ownership, полная FFPS integration и PC exact allocation.
 Структура `[Class ID, SBOO]`, registry ownership и dispatch теперь закрыты;
 подробности — в
 [`spSerializerManager`](native-class-sp-serializer-manager.md).

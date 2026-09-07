@@ -3,8 +3,8 @@
 Статус: class identity, direct base, concrete factory, exact PC/PS2 allocation,
 local transform, parent/child lifetime, collision-container boundary, flags,
 recursive enabled-state и deep hierarchy clone подтверждены двумя executable.
-World-transform update, scene registration и `spCollisionInfo` пока остаются
-evidence-only и не подменяются придуманным renderer API.
+World-transform update перенесён последующим PC checkpoint; scene registration
+и `spCollisionInfo` остаются evidence-only, без придуманного renderer API.
 
 | Platform | PC | PS2 |
 |---|---:|---:|
@@ -39,7 +39,8 @@ evidence-only и не подменяются придуманным renderer API
 | `+0x64` | platform | контейнер intrusive `spCollisionInfo*` |
 
 На PC collision vector занимает `0x10` (`allocator/begin/end/capacityEnd`),
-после него лежит opaque cached-world блок `+0x74..+0xAF`, а flags находятся по
+после него лежат cached-world position `+0x74`, scale `+0x80`, orientation
+`+0x8C..+0xAF`, а flags находятся по
 `+0xB0`; итоговый размер `0xB4` прямо задан factory allocation. На PS2
 контейнер занимает `0x0C`, вслед за ним явно видны cached world position
 `+0x70`, scale `+0x80`, orientation `+0x90`, flags `+0xB4` и восемь байт
@@ -56,6 +57,13 @@ alignment padding; factory выделяет `0xC0` с выравниванием
 пустой collision container и identity cached world state. Последним он пишет
 flags `0x00070A00`. PC constructor защищён, но serializer/copy/runtime accesses
 независимо подтверждают те же смысловые offsets до PC flags `+0xB0`.
+
+Ночной [PC owned-runtime checkpoint](native-pc-actor-owned-runtime.md) исполнил
+constructor `421BA0 -> 4D3740` и подтвердил PC defaults напрямую. Важная зависимость:
+обе orientation matrices копируются из global7600BC, который заполняется original
+initializer6D38E0 (table pointer73F800). Без startup PE-only guest получает zeros,
+а не identity. Probe13/13 исполняет initializer, проверяет оба варианта и normal
+destructor. Это исправление test setup, не изменение корректного portable default.
 
 Native runtime хранит rotation как матрицу `3×3`, хотя SMO serializer переводит
 её в quaternion XYZW. Portable `spNode` поэтому хранит matrix, не выдавая
@@ -117,7 +125,29 @@ registration-зависимости `spLight`/`spLightData`, `spRenderNode` и s
 классы могут наследовать восстановленную основу без повторного изобретения
 transform-графа.
 
-Открыты: original header/TU и method names, тип `+0x3C`, точные dirty/cache masks,
-весь world-transform update, bounds aggregation, recursive name lookup,
-scene-manager callbacks, collision ownership API и serializer reader behavior
+Часовой PC-проход 2026-09-05 подтвердил роли cached-world полей через независимые
+forward/inverse point consumers `0x00420660/0x00420710` и `spSkin`. Их
+orthonormal transform проверен isolated native replay. Контроллер анимации
+записывает local position/scale с `flags |= 1`. Последующее продолжение прошло
+protected quaternion tail: он делает тот же `flags |= 1`. См.
+[закрытые world-переходы и проверки](native-pc-node-world.md).
+
+Дополнительная разведка нашла updater vslot `+0x30 -> 0x00421420`: protected
+preamble сменяется читаемым tail `0x0042142E..0x00421633`. Там подтверждены
+parent-transform gates `0x10000/0x20000/0x40000`, рекурсивная передача flags
+детям, collision refresh и финальный `flags &= ~7`. В продолжении protected
+вход закрыт bounded x86 emulation: `0x013B1510 -> 0x00442FA6` лишь читает
+flags в EBX. Полный transform/tree/billboard путь проверен 179 fixtures и
+перенесён в portable слой; collision callee остаётся recording seam в тесте.
+
+PC scene checkpoints подтвердили `+0x3C` как scene link и actual owned
+Attach/reparent/typed registration, но portable Attach пока намеренно уже.
+`420DE0(bool)` рекурсивно переключает hierarchy100, сохраняет Enabled200,
+не меняет links/membership и не пересчитывает кэши. Узкий portable
+`SetHierarchyActiveForAnalysis` добавлен; [проверки со светом](native-class-sp-light-manager.md).
+
+Открыты: original header/TU и method names, остальные dirty/cache masks,
+семантика dirty bits `2/4`, frame caller и полная семантика callbacks,
+bounds aggregation, recursive name lookup,
+полное portable scene/derived virtual world подключение, collision ownership API и serializer reader behavior
 для legacy отсутствующего `esfNodeIsAnimated`.

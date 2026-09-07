@@ -6,6 +6,15 @@
 
 ### 2026
 
+- [2026-09-07 — ограниченный PC SMO/SAN цикл до 19:00 МСК](2026/2026-09-07-pc-smo-san-1900.md) — [итоговый отчёт](../docs/research/native-cycle-report-2026-09-07-1900.md)
+- [2026-09-07 — оптимизация после цикла](../docs/research/native-research-strategy-2026-09-07.md) — [постоянный манифест](../docs/research/research-manifesto.md)
+- [2026-09-07 — ограниченный PC SMO/SAN цикл до 07:30 МСК](2026/2026-09-07-pc-smo-san-0730.md) — [итоговый отчёт](../docs/research/native-cycle-report-2026-09-07-0730.md)
+- [2026-09-06 — PC SMO/SAN до полного проверенного знания](2026/2026-09-06-pc-smo-san-completion.md)
+- [2026-09-06 — ускорение SMO/SAN и раздельный PC/PS2 отчёт до12:00](2026/2026-09-06-pc-acceleration-until-1200.md)
+- [2026-09-06 — PC-реконструкция до 10:00 МСК](2026/2026-09-06-pc-reconstruction-until-1000.md)
+
+- [2026-09-05 — PC-реконструкция: пять checkpoints и итоговый отчёт](2026/2026-09-05-pc-reconstruction-until-2100.md)
+- [2026-09-05 — часовой PC animation runtime-цикл](2026/2026-09-05-pc-animation-runtime-cycle.md)
 - [2026-09-05 — native-реконструкция Sparkplug и постоянная база знаний](2026/2026-09-05-native-reconstruction-and-knowledge-base.md)
 - [2026-08-26 — SmoLVLcreator 0.1.0](2026/2026-08-26-smolvlcreator-0.1.0.md)
 - [2026-08-25 — общий WPF/OpenGL renderer SmoViewer](2026/2026-08-25-smoviewer-shared-renderer.md)

@@ -7,8 +7,14 @@ layout. Все 88 уникальных объектов заново прочи�
 
 ## Итоговая структура
 
-`spPartitionSystem` наследует `spRenderNode`, а тот — `spNode`, поэтому объект
-имеет три serializer-секции:
+Физическая implementation и serializer-цепочка `spPartitionSystem` идут через
+`spRenderNode` к `spNode`, поэтому объект имеет три serializer-секции.
+Важное PC runtime уточнение: native RTTI direct parent — **spNode**, и
+IsKindOf(RenderNode)=false. Это [проверено отдельно](native-pc-partition-runtime.md),
+не причина менять корректный порядок секций ниже. Exact PC1D8/root1D4 и
+direct root ownership подтверждены. [Следующий checkpoint](native-pc-visibility-runtime.md)
+исполнил SceneInit, typed attachment и RenderNode transfer48E940 перед raw reset;
+Collision/Occlusion branches и full Scene render пока open.
 
 ```text
 spNode section
@@ -109,5 +115,5 @@ dotnet run --project tools/SmoViewer/SmoViewer.Inspect -- `
 ```
 
 Связанные [`spZone`](smo-class-sp-zone.md),
-[`spZonePortal`](smo-class-sp-zone-portal.md) и portal nodes уже полностью
-разобраны; новых class-by-class шагов для этого graph нет.
+[`spZonePortal`](smo-class-sp-zone-portal.md) и portal nodes имеют разобранный
+наблюдаемый wire layout; native traversal/runtime этого graph ещё исследуется.

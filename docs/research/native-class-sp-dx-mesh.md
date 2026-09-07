@@ -13,8 +13,8 @@
 - primary vtable `0x006EF334`, secondary vtable `0x006EF32C`;
 - exact implementation path `Z:\Sparkplug\Code\SparkplugDX\spDXMesh.cpp`.
 
-Constructor и factory являются переходами в protected region. Поэтому конец
-`0x88` следует считать доказанным наблюдаемым prefix, а не direct allocation size.
+Constructor и factory являются переходами в protected region. Теперь actual
+factory4A9E80 выполнена в bounded guest: `0x88` — exact allocation, не только prefix.
 
 ## Layout
 
@@ -38,7 +38,7 @@ PC leaf продолжает layout:
 | `+0x70` | D3D9 FVF |
 | `+0x74` | runtime vertex stride |
 | `+0x78/+0x7C` | base index/base vertex в общем buffer-е |
-| `+0x80` | число texture-coordinate sets, выведенное из component bits |
+| `+0x80` | count из bits02/04/08/10 →1/2/3/4, **не UV**; blend-weight count — analytical role |
 | `+0x84` | renderer-owned vertex-format code |
 
 Cross-platform подтверждение полей общего base независимо даёт `spPS2Mesh`:
@@ -68,9 +68,17 @@ count по topology, переносит четырёхкомпонентную b
 восьми texture-coordinate sets и для component `0x20` ставит `0x1000`.
 Portable `ComponentFlagsToFVFForAnalysis` повторяет приоритеты ветвей буквально.
 
-Значение `+0x84` пока не эмулируется: короткий helper `0x004AE0E0` уходит в
-protected renderer import. Portable code оставляет явный ноль, а не выдаёт FVF
-за другой renderer handle.
+6 сентября: helper4AE0E0 **исполнен**, он возвращает pointer на
+[spPCVertexDeclaration](native-class-sp-vertex-declaration.md), не numeric
+FVF/handle. Native mesh84 заимствует renderer-owned object. PC ABI исправлен
+на Address32 vertexDeclaration; portable legacy zero-code stub пока требует
+замены реальной source-level declaration integration и не выдаётся за неё.
+
+Actual factory4A9E80 теперь подтверждает exact88h. Complete native helper429A40
+проходит CPU buffer reading/copy/shared commit/declaration creation и cleanup
+на normal/packed inputs. Packed combiner path ошибочно удваивает12byte-per-vertex
+прибавку в stored byteSize64h; actual copied bytes и safe source не удваивают её.
+[Ограничения и данные](native-pc-dx-materialization.md).
 
 ## Проверка и открытое
 
@@ -79,8 +87,8 @@ bodies, RTTI, две vtable, offsets, active combiner, packed expansion и FVF m
 CTest проверяет standalone GPU, CPU staging, packed conversion, два диапазона
 общего batch-а, shared payload, ABI и blank clone.
 
-Открыты direct `sizeof`, protected constructor/factory, original header и имена
-двух interface methods, renderer mapping `0x004AE0E0`, device loss/reset, точные
+Открыты original header и имена
+двух interface methods, полный declaration emitter/source integration, device loss/reset, точные
 ошибки/rollback и непосредственный draw consumer. Serializer, создающий этот
 класс из shared-buffer relationship, теперь закрыт отдельно; следующий узел —
 его optimizer materializer `0x004BEDF0/0x004C07E0`.

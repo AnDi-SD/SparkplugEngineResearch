@@ -5,6 +5,13 @@
 PC/PS2; model-to-mesh submission доказан, имена и сигнатуры остальных
 render-операций пока открыты.
 
+[PC checkpoint14](native-pc-scene-render-runtime.md) добавляет original
+DX4B0A90 device-state cache entryE4F4+4*index: equal suppresses call, changed
+invokes COMvE4 and caches value **даже при HRESULT failure**. Это иной кэш,
+чем commonC868 ниже. Перенесён только explicit single-entry source helper;
+960 differential fields/96 двухшаговых cases,6 C++ tests. Полная длина массива,
+его startup и GPU не выводятся из этой узкой проверки.
+
 ## Доказанная иерархия
 
 Исполняемые файлы дают две независимые ветки одной общей границы:
@@ -171,7 +178,7 @@ start/end/density states. PS2 body `0x001FB1F0` сохраняет fog relations
 ведёт в shutdown body и fog-операцией не является. Детали и отдельные 42
 regression-проверки собраны в [`spFog`](native-class-sp-fog.md).
 
-## Slot 23: texture transform
+## Texture transform: PC 4×4 slot23 and UV 3×3 slot24
 
 PS2 material path называет ещё одну общую операцию. `spMaterialTexture`
 `0x001732E0` передаёт texture-stage index и 3×3 UV matrix с `+0x48` через
@@ -183,7 +190,14 @@ portable slot map; original C++ spelling пока не утверждается.
 PC slot `23` — открытое тело `0x004BB590` размером `0xB4`. Оно копирует
 64-байтную matrix в per-stage cache, прибавляет к stage `0x10`
 (`D3DTS_TEXTURE0`) и вызывает D3D device virtual `+0xB0` (`SetTransform`).
-Таким образом ordinal и аналитическая роль независимо подтверждены на PC/PS2.
+Эти два slot23 НЕ имеют одинаковую форму аргумента: PC принимает4×4,
+PS2 material caller передаёт3×3. CP22/23 исправляет прежний слишком общий
+вывод о тождестве операций. Реальный PC material caller467B70 использует
+slot24/4BB4B0 для3×3. Он встраивает её в верхний левый3×3 блок4×4 (последняя
+диагональ1), кеширует по `renderer+F0F4+64*stage` и передаёт device+ B0.
+Оба PC варианта отправляют matrix каждый раз и игнорируют HRESULT.
+Аналитический `SetUVTransform3x3` учитывает PC24/PS2 23; прежний slot23
+сохранён как отдельная 4×4 PC операция, без переноса PC сигнатуры на PS2.
 
 ## Следующая логическая граница
 
@@ -195,10 +209,28 @@ PC slot `23` — открытое тело `0x004BB590` размером `0xB4`.
 - связывают material/pass state с уже доказанным mesh submission;
 - переживают device loss/reset.
 
-`spMaterialData`, fog binding и runtime pass/layer ownership уже закрыты.
+Локальные участки `spMaterialData`, fog binding и runtime pass/layer ownership
+уже описаны; это не означает100% классов или завершённый end-to-end pipeline.
 PS2 pre-render теперь также доказан как запись material/fallback pointer и
 связанного float в renderer current-material cache, тогда как fog применяется
 сразу через slot `26`; material state читается позднее draw path. Следующий
 проход идёт от этого cache consumer-а к уже найденным D3D9/PS2 mesh endpoints.
 Spatial/gameplay ветки не исключаются, но исследуются только когда оказываются
 обязательными владельцами или consumers этого графического пути.
+
+## PC продолжение — checkpoint11, 2026-09-06
+
+[Original queue/protocol evidence](native-pc-renderer-protocol.md): alpha
+fixed2048×24, borrowed lifetime, wrapped priority/distance/particle sorting,
+original general vector20/sort/clear и nine mode vectors8 выполнены. PC nine
+pass slots20..40 — shared5B7A00 no-op; эту ветку не выдавать за рабочий PC draw.
+Both flush paths игнорируют support/model failure. Nonempty callbacks и shared
+material-save byte7400FC проверены отдельно. Native75+64/static28, source
+callback/math23, differential768, CTest15/15. Alpha qsort — explicit seam для
+preordered input, tie order неизвестен; normal456090 sort исполняется целиком.
+
+Renderer ABI уточнён, portable `spRenderable` callbacks добавлены; **полного
+source renderer queue/Scene/backend подключения ещё нет**. Full PC factory
+scout остановлен на100k/2s protection cap; лимит не повышался. Runtime global
+75F8E8 initialization, remaining backend states и SceneInit/Partition/Occlusion
+остаются обязательными зависимостями, не заменяются recording successes.

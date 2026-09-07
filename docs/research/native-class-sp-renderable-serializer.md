@@ -1,8 +1,16 @@
 # `spRenderableSerializer`: базовые renderable-связи и alpha-sort
 
+PC checkpoint10: [реальные reader/writer sections](native-pc-scene-serialization.md).
+Factory exact14; read47FBA0→13E7FB0, writer secondary47F7A0→1402630.
+Не вызывать историческое body label47F7B0 как обычный unprotected writer.
+Alpha2/priority3 — оба UInt32; NULL material/fog разрешены. Bounded source
+adapter и точные scalar/derived сравнения заменяют прежнюю plan-only границу.
+Nonempty material/fog, lifetime/errors/lossless остаются открыты.
+
 Статус: identity, inheritance, storage-free layout, lifetime, target, resource
 indexing и четырёхпольный writer/read contract подтверждены на PC и PS2.
-Потоковая реализация пока остаётся evidence-only.
+PC потоковые секции теперь реализованы в проверенной границе checkpoint10;
+PS2 runtime stream реализация этим не заявляется.
 
 Имя класса и подробные diagnostics присутствуют в обоих executable, но строка
 оригинального source path не найдена. Поэтому
@@ -19,7 +27,7 @@ indexing и четырёхпольный writer/read contract подтвержд
 | Registration | `0x00761398` | `0x004AA870` |
 | Initializer | `0x006D41E0` | `0x00483750` |
 | Factory | `0x0047F650` (protected entry) | `0x00197D90` |
-| Allocation | observed `0x14` | exact `0x14` |
+| Allocation | exact `0x14` (checkpoint10) | exact `0x14` |
 | Primary vtable | `0x006EB6DC` | header `0x0048F9B0` |
 | Secondary vtable | `0x006EB6D0` | header `0x0048F9D4` |
 
@@ -65,14 +73,13 @@ Reader принимает поля в произвольном block-order и д
 
 ## Portable срез
 
-Восстановлены RTTI/factory, blank clone, target ID и
-`BuildKnownWritePlanForAnalysis`. Пока concrete `spMaterial` и `spFog` не
-восстановлены, метод использует уже существующие безопасные relationship
-facades `spRenderable`, но не вводит ложные типы или ownership.
+Восстановлены RTTI/factory, blank clone, target ID, writer plan и PC bounded
+read/write/index секции. Existing `spMaterial`/`spFog` используются через общий
+resolver и explicit shared-owner context; nonempty native проверки ещё нужны.
 
-Не реализованы stream framing, relationship ID table/fixups, read rollback и
-status/error enum. Эти механизмы остаются общими открытыми обязанностями
-serialization subsystem.
+Stream framing и relationship ID table теперь общие реализованные механизмы.
+Полные rollback/error/lossless/native lifetime и исходные status names остаются
+открытыми; наличие adapter не означает их100%.
 
 ## Проверка
 

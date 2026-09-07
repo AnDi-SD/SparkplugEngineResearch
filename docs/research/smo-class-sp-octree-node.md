@@ -147,5 +147,11 @@ SmoViewer.Inspect research-db analyze-class <db> spOctreeNode
 ```
 
 Python-аудит read-only; C# analyzer повторно читает исходные ресурсы и
-идемпотентно обновляет базу. Связанный `spPartitionSystem` и его zone/portal
-graph также полностью разобраны.
+идемпотентно обновляет базу. У связанного `spPartitionSystem` и zone/portal
+graph завершён структурный wire-разбор, **не вся runtime-логика**.
+
+[PC checkpoint16](native-pc-octree-runtime.md) добавляет exactC8/8-slot ctor,
+original leaf/mask/plane/ray queries и частичные original-named source classes
+`spPartitionNode/spOctreeNode`. Runtime scratch90 — четыре ray-кандидата,
+не сериализуемые поля. Source3104 differential fields, native43/static24,
+CTest18; full normal Visibility ограничен protected copy45E870, не завершён.

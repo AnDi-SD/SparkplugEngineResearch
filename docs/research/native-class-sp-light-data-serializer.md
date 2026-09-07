@@ -103,3 +103,11 @@ light: Enabled}`, полный порядок изменённых light fields 
 3. Инициализация отсутствующего field 8 на всех loader paths.
 4. Byte-exact float-to-ARGB rounding/clamping для нештатных значений.
 5. Stream status enum, block rollback и диагностический контракт.
+
+
+## CP88 update, 2026-09-07
+
+The earlier portable-plan-only and protected-factory gaps are superseded by
+[complete PC codec evidence](native-pc-light-serialization.md): actual factories,
+19 exact184 native assertions,4 additional native boundary cases,source
+read/write and fresh-object round trips. Remaining limits are stated there.

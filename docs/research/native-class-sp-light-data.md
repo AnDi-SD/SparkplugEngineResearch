@@ -2,20 +2,20 @@
 
 Статус: concrete RTTI/factory, storage-free наследование от `spLight`,
 constructor/destructor, clone и serializer-to-runtime offsets подтверждены на
-обеих платформах. PS2 allocation точен; PC остаётся complete observed extent
-из-за `.rld`-защиты factory.
+обеих платформах. PC protected factory теперь исполнен: allocation exactF0;
+copy/clone независимо подтвердили пропуск intensity, ранее известный по PS2.
 
 | Платформа | PC | PS2 |
 |---|---:|---:|
 | SHA-256 | `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F` | `198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE` |
 | Class ID / base | `0x5E6402DF / spLight` | то же |
 | Registration / initializer | `0x0075D4E8 / 0x006D1D60` | `0x004A8260 / 0x00480E9C` |
-| Factory / allocation | protected `0x0041A330 / ?` | `0x00134BB0 / 0x100` |
+| Factory / allocation | original protected `0x0041A330 / 0xF0` исполнен | `0x00134BB0 / 0x100` |
 | Constructor | protected/unresolved entry | `0x0016ECC0` |
 | Destructor | body `0x00435410`, deleting `0x00435430` | deleting `0x0016EC50` |
 | Clone / getter | `0x0041ACA0 / 0x00435400` | `0x00134AF0 / 0x00135B00` |
 | Primary / support vtable | `0x006DE990 / 0x006DE98C` | headers `0x0048D930 / 0x0048D970` |
-| Layout | observed `0xF0` | exact `0x100` |
+| Layout | exact `0xF0` | exact `0x100` |
 
 PS2 constructor вызывает только `spLight` constructor и заменяет primary и
 embedded-support vtable. Собственных полей нет. Destructor аналогично
@@ -32,7 +32,7 @@ embedded-support vtable. Собственных полей нет. Destructor а
 3. вызывает inherited `spLight::copy` virtual slot;
 4. уничтожает destination и возвращает null при неуспехе copy.
 
-Вследствие доказанной особенности `spLight::copy` PS2 clone переносит все
+Вследствие доказанной особенности `spLight::copy` PC и PS2 clone переносят все
 light-параметры, кроме intensity: destination остаётся `1.0`. Portable
 `spLightData::vfunc_10` воспроизводит именно этот порядок. Name, transform,
 flags и дочерняя node-иерархия проходят через уже восстановленный `spNode`.
@@ -70,10 +70,12 @@ Writer PS2 `0x00191FC0..0x001926E0` и PC
 
 `Sparkplug/Code/Sparkplug/spLightData.*` добавляет concrete factory/RTTI и
 clone поверх `spLight`; дублирующего storage нет. Тесты проверяют hierarchy,
-defaults, все переносимые light-поля, exact PS2 ABI, observed PC ABI и
+defaults, все переносимые light-поля, exact PS2/PC ABI и
 intensity-аномалию clone.
 
-Не включены: serializer writer/reader, renderer backend, shadow-volume
-построение и scene registration. Следующим отдельным классом должен идти
-`spLightDataSerializer`, а не фиктивное расширение `spLightData` этими
-обязанностями.
+Original PC allocation/copy/clone и сценовая регистрация теперь проверены в
+[`spLightManager`](native-class-sp-light-manager.md):90 native checks и1800
+selection/cache comparisons. Clone-pair там recording seam; complete native
+root-clone transaction не объявлен готовым. Portable Scene wiring остаётся
+отдельным. Serializer writer/reader и renderer/shadow-volume backend также
+не включаются в data-класс; existing `spLightDataSerializer` имеет свою карточку.

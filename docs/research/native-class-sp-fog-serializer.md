@@ -1,9 +1,11 @@
 # `spFogSerializer`
 
 Статус: восстановлена подтверждённая граница класса, RTTI/lifetime, раздельный
-PC/PS2 ABI и полная известная wire-грамматика. Реальный stream codec пока не
-перенесён: portable-класс предоставляет безопасное представление payload и плана
-записи, не объявляя недоказанные имена внутренних интерфейсов.
+PC/PS2 ABI и известная wire-грамматика. PC checkpoint11 добавил concrete
+common read/write/index adapter, actual factory14 и exact scalar/real-SMO/graph
+сравнения: [Fog codec и lifetime](native-pc-fog-serialization.md). Native partial
+mutation отличается от строгой host envelope проверки; PS2 streaming этим не
+перенесён. Неизвестные имена интерфейсов остаются аналитическими.
 
 ## Идентичность и наследование
 

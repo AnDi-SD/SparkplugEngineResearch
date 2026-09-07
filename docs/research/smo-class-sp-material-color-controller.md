@@ -1,5 +1,10 @@
 # `spMaterialColorController` (`0x4C633E85`)
 
+Обновление PC runtime: [CP25](native-pc-material-color.md) независимо проверяет
+привязку, тип0-gating, разделение diffuse RGB/alpha и copy без alpha на объявленном
+состоянии. Защищённый constructor не доказан; это не full native load/in-game test.
+Ниже сохранён результат исходного корпусного анализа, а не новая runtime-оценка.
+
 Статус: структура и значения полностью декодируются в пределах наблюдаемого
 корпуса; только чтение. Безопасное изменение и runtime-эффект отдельных
 evaluator-параметров ещё не проверены.
@@ -75,11 +80,12 @@ field 3 (`frequency`) равен `0.1`, затем идёт terminator. Alpha-с
 | 4 | `esfFunctionEvalYOffset` | Single | 0 | **1** |
 | 5 | `esfFunctionEvalPitch` | Single | 0 | нет |
 
-Alpha evaluator при `amplitude=0` и `yOffset=1` даёт постоянный коэффициент 1
-независимо от frequency. Четыре color evaluator используют одинаковые defaults и
-частоту, однако точная формула применения их результата к `spMaterialData` пока
-не прослежена. Поэтому весь controller не объявляется «no-op» только по
-статической структуре.
+Отдельный scalar evaluator при `amplitude=0` и `yOffset=1` возвращает 1,
+но контроллер сначала проверяет `functionType != 0`: при type0 он вообще не
+вызывает evaluator. CP25 установил формулу применения и порядок A,D,alpha,S,E.
+Конструктор контроллера пока защищён/не восстановлен, поэтому отсутствие type
+в wire само по себе не доказывает его runtime-default; полный controller
+не объявляется no-op только по статической структуре корпуса.
 
 ## Свидетельства executable
 

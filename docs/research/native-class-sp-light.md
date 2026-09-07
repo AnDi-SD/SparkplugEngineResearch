@@ -17,7 +17,7 @@ scene/render backend оставлена evidence-only.
 | Transform update | `0x00428C30` | `0x0016DAC0` |
 | Light helper | `0x00428DD0` | `0x0016DB30` |
 | Primary / support vtable | `0x006DCC18 / 0x006DE98C` | headers `0x0048E7E0 / 0x0048E820` |
-| Object extent | observed `0xF0` | exact `0x100` через concrete descendant |
+| Object extent | exact `0xF0` через original `spLightData` factory | exact `0x100` через concrete descendant |
 
 Исходный путь самого класса не найден. Путь
 `Code/Sparkplug/spLightDataSerializer.cpp` относится к отдельному serializer,
@@ -31,7 +31,7 @@ scene/render backend оставлена evidence-only.
 | Роль | PC | PS2 | Constructor default |
 |---|---:|---:|---:|
 | embedded scene-light vptr | `+0xB4` | `+0xC0` | platform vtable |
-| два слова support state | `+0xB8..+0xBF` | `+0xC4..+0xCB` | `0, 0` |
+| PC scene-list previous/next (PS2 роль отдельно не перепроверена) | `+0xB8/+0xBC` | `+0xC4/+0xC8` | `0, 0` |
 | type | `+0xC0` | `+0xCC` | `0`, directional |
 | normalized color R,G,B,A | `+0xC4` | `+0xD0` | white |
 | attenuation | `+0xD4` | `+0xE0` | false |
@@ -47,9 +47,9 @@ payload из `R,G,B,A`, то есть сериализованное 32-битн
 На PC конструктор читает default `0xFFFFFFFF`; PS2 берёт те же четыре
 глобальных byte-компонента после startup-инициализации.
 
-Последний известный byte PC равен `+0xED`, а выравнивание MSVC даёт полный
-наблюдаемый extent `0xF0`. Это пока не называется точным `sizeof`: concrete
-factory скрыт `.rld`, и прямой allocation immediate не восстановлен. На PS2
+Последний известный byte PC равен `+0xED`; original concrete factory41A330
+теперь исполнен и выделяет exact `0xF0`, а не только предполагаемый extent.
+Constructor padding и opaqueDC действительно не инициализируются. На PS2
 `spLightData` ничего не добавляет и его factory непосредственно выделяет
 `0x100`, поэтому размер `spLight` там доказан точно.
 
@@ -63,8 +63,9 @@ enabled. Единственное сериализуемое поле, кото�
 
 Это выглядит как ошибка оригинала, но реконструкция не подменяет факт более
 удобным поведением. Portable `vfunc_14` повторяет доказанный PS2 contract и тест
-явно закрепляет потерю intensity. PC copy находится за protected entry и пока
-не является независимым подтверждением этой аномалии.
+явно закрепляет потерю intensity. PC copy `428EB0 → 505CB0` теперь независимо
+исполнен: existing destination9.5 сохраняется при source3.25, actual fresh
+LightData clone остаётся1.0. См. [PC light manager checkpoint](native-class-sp-light-manager.md).
 
 Opaque word — обратный случай: constructor его не пишет, serializer его не
 читает и не записывает, но copy переносит как 32 bits. Host-реконструкция
@@ -74,7 +75,8 @@ Opaque word — обратный случай: constructor его не пише�
 ## Transform и scene-light граница
 
 PC `0x00428C30` и PS2 `0x0016DAC0` вызывают унаследованный update `spNode`,
-проверяют dirty bit `0x8` в node flags, очищают его и при ненулевом scene link
+проверяют dirty bit `0x8` (PC: current flags OR inherited argument), очищают
+его в собственных flags и при ненулевом scene link
 передают полный light в manager. Это подтверждает, что light state существует
 отдельно от сериализованной секции и обновляется вместе с world transform.
 
@@ -91,7 +93,11 @@ disabled lights, project-shadow lights в обычном проходе и point
 semantic getters/setters, constructor defaults и подтверждённый copy. Exact
 PC/PS2 bytes живут отдельно в `Analysis/*/SparkplugAbi.h`.
 
-Открыты: точный PC allocation size; исходное имя embedded support-типа;
-назначение opaque word; независимое чтение protected PC copy; сигнатуры scene
-manager callbacks; side effects оригинальных property setters; правила
+PC scene34 теперь связан с оригинальным `spLightManager`:46ACE0→46AC60
+обновляет кэши render nodes/partition payloads; конкретные алгоритмы и
+portable list/selection source описаны в отдельной карточке выше.
+
+Открыты: исходное имя embedded support-типа;
+назначение opaque word; full portable scene/world integration;
+side effects оригинальных property setters; правила
 нормализации/валидации type, range и углов вне serializer.

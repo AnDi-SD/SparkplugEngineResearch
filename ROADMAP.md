@@ -67,13 +67,21 @@ layer. Неизвестные функции остаются `sub_<VA>`, а а�
   evidence с provenance; не смешивать его с SMO `classes`.
 - [x] Создать каркас `Sparkplug/` и `Winx/` только после доказательства имени
   модуля и класса; signatures и layouts добавляются по мере подтверждения,
-  неизвестные поля остаются явными. Текущий срез содержит 112 native-карточек,
+  неизвестные поля остаются явными. Срез от 5 сентября содержит 112 native-карточек,
   248 файлов реконструкции Sparkplug и шесть файлов application-слоя Winx.
 - [x] Ввести воспроизводимую оценку покрытия из SQLite, а не из памяти сессии:
   executable 13,10%, Sparkplug 24,78%, Winx 2,50%, прямые SMO/SAN-типы 44,54%
   на снимке 5 сентября 2026 года.
 
 ## 0.1. Точный runtime-конвейер — активный этап
+
+Актуальный порядок после цикла 7 сентября до 19:00: PC SMO/SAN loader/save,
+DX mesh materialization, Node resource graph. Правила работы закреплены в
+[манифесте исследования](docs/research/research-manifesto.md),
+результаты CP51–CP98 — в [отчёте](docs/research/native-cycle-report-2026-09-07-1900.md).
+PC workflow-v2: 45,19% (190 оценённых классов из 279), PS2: 31,16%;
+семь критериев готовности: 0 passed, 6 partial, 1 open. Исторический mixed
+снимок выше не сопоставляется с независимыми platform scores как прирост.
 
 Цель: для PC и PS2 пройти цепь `logical request -> file/PCK -> serializer ->
 runtime object -> scene -> renderer -> draw` с адресами, структурами и

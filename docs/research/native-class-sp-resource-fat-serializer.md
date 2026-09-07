@@ -2,7 +2,10 @@
 
 Статус: основные PS2 layouts, index readers, lookup/cursor/clear и первичная
 save-side индексация восстановлены; object materialization, payload save,
-relationship fixup и PC container ABI ещё открыты. Имя самого C++ типа не
+relationship fixup ещё открыты. PC allocation58, container consumers и
+index/cursor/clear проверены в [PC loader checkpoint](native-pc-smo-san-loader.md);
+PC save-side entry/index теперь также проверены в [save-reference checkpoint](native-pc-save-reference.md).
+Полный PC constructor открыт. Имя самого C++ типа не
 найдено, поэтому переносимый класс называется
 `spResourceFATHelperForAnalysis`, а не выдаётся за оригинальную декларацию.
 
@@ -86,8 +89,9 @@ Portable loader вместо этого возвращает false и сохра
 
 PS2 `0x0017F460` читает count и для каждой записи `m_uFileID/m_szFilename`,
 но не использует переданный helper, ничего не вставляет и не освобождает
-выделенную запись. Это доказано только для данной PS2-сборки; PC counterpart
-закрыт relocated/obfuscated переходом.
+выделенную запись. PC counterpart `465CD0 ->13BCA90` теперь независимо исполнен:
+он также потребляет записи без вставки/освобождения. 60 проверок описаны в
+[PC loader checkpoint](native-pc-smo-san-loader.md); это больше не PS2-only вывод.
 
 `ReadDiscardedFileIndexForAnalysis` потребляет exact grammar, но временные
 данные уничтожает нормально. Наблюдаемая native утечка не считается частью
@@ -145,7 +149,7 @@ RTTI ID и file-index consumption.
 Открыты:
 
 - original имя helper type, headers и имена методов;
-- exact PC container/object ABI;
+- полный PC constructor и unknown44; extent58/maps14,20,2C/list48/cursor54 подтверждены;
 - transactional/rollback contract при частично повреждённом индексе;
 - сохранение offsets/sizes и запись payload;
 - cache-miss object materialization и рекурсивный relationship resolver;

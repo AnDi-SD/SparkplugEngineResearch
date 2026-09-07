@@ -25,3 +25,8 @@ composition остаётся непроверенной. Ближайший эт
 occlusion radius/speed; замена нулевого sentinel на compound glare требует новой
 material relationship и отложена до structural writer:
 [`smo-runtime-validation-plan.md`](smo-runtime-validation-plan.md).
+
+PC runtime checkpoint2026-09-06 закрыл exact-ID scene registration в
+`spPCLensFlareManager`: borrowed intrusive flare links58/5C, removal перед
+reparent, exact manager38 и отдельный capability probe устройства. Это не
+полный glare/query render. [Нативные методы и границы](native-pc-scene-special-managers.md).

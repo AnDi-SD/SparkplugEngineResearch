@@ -17,6 +17,13 @@ executable. Канонический baseline хранится в
 `research/native-research-baseline.json`, а синхронизация выполняется
 `research/native_knowledge.py`.
 
+С6 сентября раздельный PC/PS2 учёт ведётся в additive
+`native_platform_*` tables через `research/native_platform_knowledge.py`.
+Старый mixed ряд не является оценкой каждой платформы. Методика,
+неразнесённое историческое знание и UNRATED явно описаны в
+[workbench](native-research-workbench.md); текущие snapshots читать из базы,
+а не пересчитывать EXE. Resource schema_version остаётся5.
+
 Полный каталог нативных типов намеренно пока не смешан с таблицей SMO `classes`.
 PC executable регистрирует 733 типа, из которых лишь часть является классами
 сериализованных ресурсов. Будущее расширение хранит отдельно executable hash,
@@ -198,12 +205,10 @@ SMO-связь проверяется одновременно по имени �
 для снятия PC-неоднозначности, общего ABI либо заблокированного кода. Deferred
 не означает `not_started` и не уменьшает уже накопленное PC evidence.
 
-Снимок после PC-first цикла 2026-09-05 хранится четырьмя записями view
-`latest_native_coverage`: весь executable — 13,10% (102,705/784), движок —
-24,78% (92,430/373), игровая логика — 2,50% (10,275/411), прямые SMO/SAN-типы —
-44,54% (16,480/37). Изменения внесены четырьмя incremental manifests для
-`spSkin`, `spAnimation`, controller dependency и `spTransformTrackEval`; повторный импорт каждого
-manifest возвращает `imported=False` и не создаёт новый snapshot.
+Текущий снимок читается из `latest_native_coverage`; значения и последний
+incremental manifest приведены в итоговом разделе ниже. Предыдущие снимки
+сохраняются исторически, а повторный импорт manifest возвращает
+`imported=False` и не создаёт новый snapshot.
 
 Обновление использует уже существующие `update-directory` и `update-pck`.
 Scanner revision заставляет один раз перечитать файлы после изменения parser;
@@ -234,12 +239,365 @@ path/extension-типы без полного повторного сканир�
 - поверх read-only индекса реализовать общий Asset Resolver для Viewer,
   Importer и Level Creator.
 
-### Итоговый снимок PC-first цикла 2026-09-05
+### Снимок после часового PC animation runtime-цикла 2026-09-05
 
-После импорта четырёх incremental manifests (`spSkin`, `spAnimation`,
-controller dependency и `spTransformTrackEval`) `latest_native_coverage`
-содержит: весь executable — 13,10% (102,705/784), движок — 24,78%
-(92,430/373), игровая логика — 2,50% (10,275/411), прямые SMO/SAN-типы —
-44,54% (16,480/37). `spTransformTrackEval` является подтверждённой runtime-
-зависимостью SAN, но не сериализованным corpus-классом, поэтому честно меняет
-общую и engine-оценки, не расширяя прямой знаменатель 37 типов.
+После четырёх предыдущих incremental manifests добавлен
+[`native-research-2026-09-05-pc-animation-runtime.json`](../../research/native-research-2026-09-05-pc-animation-runtime.json).
+Он обновляет семь class progress records и сохраняет 20 атомарных evidence
+records. `latest_native_coverage`: весь executable — 13,30% (104,235/784),
+движок — 25,19% (93,960/373), игровая логика — 2,50% (10,275/411), прямые
+SMO/SAN-типы — 44,84% (16,590/37).
+
+`spActor`, `spNodeController`, `spSubController`, `spTransformTrackEval` —
+runtime-зависимости, а не новые сериализованные corpus-типы: они не расширяют
+прямой знаменатель 37. В этой группе растут только `spAnimation`, `spNode`,
+`spSkin`. Это class-weighted оценка исследованной логики, не доля разобранных
+байтов EXE и не процент готовности native importer. PS2 deferred, игровой код
+в этом цикле не анализировался. Метод и проверки — в
+[журнале](../../journal/2026/2026-09-05-pc-animation-runtime-cycle.md).
+
+### Следующий checkpoint: PC node world, 2026-09-05
+
+Добавлен immutable
+[`native-research-2026-09-05-pc-node-world.json`](../../research/native-research-2026-09-05-pc-node-world.json):
+три class records, восемь evidence; всего 7 imports / 1480 evidence / 28 snapshots.
+Текущие оценки: всё EXE **13,31%** (104,385/784), движок **25,23%**
+(94,110/373), игра **2,50%** (10,275/411), прямые SMO/SAN **45,08%** (16,680/37).
+Protected node/quaternion/affine entries и transform/tree/billboard slice
+закреплены bounded guest emulation; это не in-game integration.
+[Текущий журнал](../../journal/2026/2026-09-05-pc-reconstruction-until-2100.md).
+
+### Checkpoint PC SAN keys, 2026-09-05
+
+Добавлен immutable
+[`native-research-2026-09-05-pc-animation-keys.json`](../../research/native-research-2026-09-05-pc-animation-keys.json):
+3 class records / 8 evidence; всего 8 imports / 1488 evidence / 32 snapshots.
+Оценки: всё EXE **13,36%** (104,755/784), движок **25,33%** (94,480/373),
+игра **2,50%** (10,275/411), прямые SMO/SAN **45,41%** (16,800/37).
+Representations, preparation и reader-to-sampler закреплены
+[bounded guest/portable checks](native-pc-animation-keys.md); полный native loader,
+ownership и frame integration пока не считаются готовыми.
+
+### Checkpoint PC animation object lifecycle, 2026-09-05
+
+Immutable [manifest](../../research/native-research-2026-09-05-pc-animation-lifecycle.json):
+4 class records / 12 evidence; база 9 imports / 1500 evidence / 36 snapshots.
+Оценки: всё EXE **13,60%** (106,615/784), движок **25,83%** (96,340/373),
+игра **2,50%** (10,275/411), прямые SMO/SAN **45,54%** (16,850/37).
+`spTrack`/`spAnimTrack` — runtime dependencies, знаменатель прямых assets остаётся 37.
+Уточнение physical `spNamedObject` base и name-only clone внесено новым evidence,
+без изменения уже импортированных manifests. [Карточка](native-pc-animation-lifecycle.md).
+## PC SAN reader checkpoint — 2026-09-05 18:39 МСК
+
+Импортирован immutable `native-research-2026-09-05-pc-san-reader.json`:
+1 class update / 6 evidence. Перед записью проверены native-only in-memory
+trial, повторный import `(0, false)` и FK. База: 10 imports / 1506 evidence /
+40 snapshots. [Reader evidence](native-pc-san-reader.md).
+
+Оценки из `latest_native_coverage`: всё **13,61%** (106,685/784), движок
+**25,85%** (96,410/373), игра **2,50%** (10,275/411), прямые SMO/SAN
+**45,54%** (16,850/37). `spAnimationSerializer` — runtime dependency, не один
+из 37 непосредственно сериализованных типов, поэтому последняя оценка не растёт.
+Это class-weighted research coverage, не процент готовности импортера.
+
+## Финальный actor checkpoint — 2026-09-05
+
+После native-only trial/idempotence/FK импортирован
+`native-research-2026-09-05-pc-actor-playback.json`: 1 class update / 5 evidence.
+Итого **11 imports / 1511 evidence / 44 snapshots**. Актуальные оценки:
+всё **13,65%** (107,015/784), engine **25,94%** (96,740/373), game **2,50%**
+(10,275/411), direct SMO/SAN **45,54%** (16,850/37). Fixed denominators сохранены.
+Actor/serializer — runtime dependencies; их прогресс не приписан direct wire types.
+[Evidence](native-pc-actor-playback.md),
+[итоговый журнал](../../journal/2026/2026-09-05-pc-reconstruction-until-2100.md).
+
+## PC animation-manager checkpoint — ночь 2026-09-05/06
+
+Immutable [manifest](../../research/native-research-2026-09-06-pc-animation-manager.json):
+3 class updates (`spAnimationManager`, `spController`, `spActor`) /9 evidence,
+native-only trial/repeat/FK проверены до canonical import.
+База: **12 imports /1520 evidence /48 snapshots**.
+Оценки: всё **13,83%** (108,395/784), engine **26,31%** (98,120/373), game
+**2,50%** (10,275/411), direct SMO/SAN **45,54%** (16,850/37).
+Runtime-зависимости не расширяют direct37; метод и знаменатели не менялись.
+[Доказательства](native-class-sp-animation-manager.md),
+[журнал продолжающегося цикла](../../journal/2026/2026-09-06-pc-reconstruction-until-1000.md).
+
+## PC actor input/start checkpoint — 2026-09-05 19:48 UTC
+
+Immutable [manifest](../../research/native-research-2026-09-06-pc-actor-binding.json):
+4 class updates /9 evidence; native-only in-memory trial4, repeat0, FK clean.
+База: **13 imports /1529 evidence /52 snapshots**. Evaluator86, actor72,
+animation91, node94: оценка относится к изученности, не полноте portable actor API.
+Всё **13,84%** (108,525/784), engine **26,34%** (98,250/373), game **2,50%**
+(10,275/411), direct SMO/SAN **45,62%** (16,880/37). Direct37 не расширялся.
+[Доказательства и safety boundary](native-pc-actor-binding.md): original
+discovery/binder/start,156 differential input cases, portable insert/clear;
+третья вставка не исполнялась. Полный actor Start/tree/Rebind source ещё открыт.
+
+## PC owned animation bindings — 2026-09-05 20:07 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-animation-owned-bindings.json):
+4 class records /6 evidence, **14 imports /1535 evidence /56 snapshots**.
+Новые original descendant/Stop helpers повышают actor72→74; перенос уже
+исследованного registry lifetime в source не повышает остальные scores.
+Всё **13,85%** (108,545/784), engine **26,35%** (98,270/373), game **2,50%**,
+direct SMO/SAN **45,62%**. 342 differential owned-name lifetime comparisons,
+2832 прежних reader/PRS comparisons и CTest10/10. Это не процент готовности tools.
+
+## PC owned actor runtime — 2026-09-05 20:43 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-actor-owned-runtime.json):
+3 class records /6 evidence, **15 imports /1541 evidence /60 snapshots**.
+Native-only trial3, repeat0, FK clean. Actor78, Node95, NodeController74 unchanged.
+Всё **13,85%** (108,595/784), engine **26,36%** (98,320/373), game **2,50%**,
+direct SMO/SAN **45,65%** (16,890/37). Denominators прежние.
+[Подробная граница](native-pc-actor-owned-runtime.md): owned actor source,
+5154 сквозных comparisons, CTest11/11 и original node/global-init13 checks.
+External frame, native event dispatcher и full resource loader остаются открытыми.
+
+## PC frame/task timer — 2026-09-05 21:22 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-engine-frame-timer.json):
+4 class records /8 evidence, **16 imports /1549 evidence /64 snapshots**.
+Native-only trial4, repeat0, FK clean; CTest12/12, original update134/graphics209,
+timer34 native/30 portable/1968 bit-exact comparisons.
+Всё **13,95%** (109,385/784), engine **26,57%** (99,110/373), game **2,50%**,
+direct SMO/SAN **45,65%**. Direct37 и исходный метод оценок не расширялись.
+
+Уточнение учёта: optional class field `coverageAccounting: "baseline_backfill"`
+допустим только при отсутствии progress row и непустом `baselineBackfillReason`.
+Он сохраняет текущий class score/evidence, **не добавляя score в старый aggregate
+baseline повторно**. Имеющийся ряд так обновить нельзя, обычный default остаётся
+`incremental`. Старые manifests не меняются; идемпотентный repeat работает прежде
+валидации нового импорта. `test_native_knowledge_accounting.py` —6 in-memory tests.
+
+В этом checkpoint старые engine-core80/PC-app75 cards внесены именно как backfill:
+индивидуальный prior score не был сохранён, поэтому ни двойное начисление, ни
+догадочный current-cycle delta не применены. Прирост0,790 units относится только
+к новому TaskTimer78 и manager80→81. Следующие исследования используют эти
+persisted individual rows. [Границы текущего доказательства](native-pc-engine-frame.md).
+
+## PC scene/world — 2026-09-05 22:06 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-scene-world.json):
+8 class records /12 evidence, **17 imports /1561 evidence /68 snapshots**.
+Native-only trial8, repeat0, FK clean. New Scene35/SceneManager62, Timer78→83,
+Core80→81, Node95→96 дают1,040 units. Старые Camera78/CameraData72/DXCamera72
+внесены как zero-delta baseline backfill; четыре scene-owned managers пока не
+оценены отдельно. Нет повторного начисления за прежние camera source/cards.
+
+Всё **14,08%** (110,425/784), engine **26,85%** (100,150/373), game **2,50%**
+(10,275/411), direct SMO/SAN **45,68%** (16,900/37). Fixed sets сохранены.
+[Доказательства](native-pc-scene-world.md): original scene/world80, core setup32,
+app→world39, camera32 и static29 checks; CTest12/12 и timer1968 comparisons.
+Scene/SceneManager пока ABI/probes, не готовые portable classes; render/resource
+границы остаются открыты. Проценты — class-weighted исследование, не готовность tools.
+
+## PC render-node runtime — 2026-09-05 22:42 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-render-node-runtime.json):
+3 class records /8 evidence, **18 imports /1569 evidence /72 snapshots**.
+Native-only trial3, repeat0, FK clean. RenderNode80→87, Scene35→40,
+SceneManager62→66: только0,160 новых units, из них0,070 direct SMO/SAN.
+Оценка не начисляется за переописание прежнего PS2 материала.
+
+Всё **14,11%** (110,585/784), engine **26,89%** (100,310/373), game **2,50%**
+(10,275/411), direct SMO/SAN **45,86%** (16,970/37). Fixed sets/метод прежние.
+[Доказательства](native-pc-render-node-runtime.md): original registry55,
+world/cull/draw54, callback15, static21; portable math1504/144 cases, CTest13/13.
+Полные portable Scene/Manager/RenderNode runtime и specialized registrations
+остаются открыты; GPU/игра не запускались, raw EXE не пересканирован при импорте.
+
+## PC scene lights — 2026-09-05 23:19 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-scene-lights.json):
+6 class records /10 evidence, **19 imports /1579 evidence /76 snapshots**.
+Native-only trial6, repeat0, FK clean. New LightManager72, LightData80→87,
+SceneManager66→70, RenderNode87→88:0,840 units/direct0,080. Node96 без прироста.
+Прежний Light source/card без individual row внесён как zero-delta
+baseline_backfill84, без повторного начисления за старую работу.
+
+Всё **14,21%** (111,425/784), engine **27,12%** (101,150/373), game **2,50%**
+(10,275/411), direct SMO/SAN **46,08%** (17,050/37). Это class-weighted
+исследование, не byte coverage и не готовность tools; fixed sets сохранены.
+[Проверки и границы](native-class-sp-light-manager.md): native90/static22,
+C++29/differential1800 (540 cases), CTest14/14. Scene/partition/backend wiring
+ещё не объявлен законченным. No GPU/game/PS2 или app/assets/publication.
+
+## PC specialized scene managers — 2026-09-05 23:53 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-scene-special.json):
+8 class records /13 evidence, **20 imports /1592 evidence /80 snapshots**.
+Native-only trial8, repeat0, FK clean; canonical import без EXE rescan.
+SkyBox25→65, new SkyManager70/Projection48/PCProjection52/LensManager34/PCLens40,
+Scene40→45/SceneManager70→74:2,930 units, direct0,400. Small game caller blocks
+не засчитываются как разобранный игровой класс; fixed scopes не расширяются.
+
+Всё **14,59%** (114,355/784), engine **27,90%** (104,080/373), game **2,50%**
+(10,275/411), direct SMO/SAN **47,16%** (17,450/37). Это прежняя class-weighted
+оценка, не готовность импортера и не процент инструкций EXE.
+[Доказательства](native-pc-scene-special-managers.md): native81/39/43,
+static25, ABI rebuild и CTest14/14. Source manager classes/Scene runtime пока
+не готовы; actual scene-specific списки/sky-pass/camera owner не неизвестны целиком.
+
+## PC Model → RenderNode source/world — 2026-09-06 01:05 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-model-render-world.json):
+7 class records /10 evidence, **21 imports /1602 evidence /84 snapshots**.
+Native-only trial7, repeat0, FK clean; canonical import без EXE rescan.
+Model75→83/RenderNode88→92/MeshData80→82:0,140 units/direct0,140. Node96 без
+прироста; прежние Renderable72/CloneManager82/ResourceManager75 backfilled
+с нулевым delta, чтобы не засчитывать старые source/cards второй раз.
+
+Всё **14,60%** (114,495/784), engine **27,94%** (104,220/373), game **2,50%**
+(10,275/411), direct SMO/SAN **47,54%** (17,590/37). Fixed scopes/метод прежние.
+[Доказательства](native-pc-model-render-world.md): original47/29/static23,
+source34,2272 comparisons/32 сценария, прежние1504/144 и CTest14/14.
+Automatic Scene/Partition/renderer ещё открыты; no GPU/game/PS2/publication.
+
+## PC renderer callback/queue protocol — 2026-09-06 01:37 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-renderer-protocol.json):
+4 class records /7 evidence, **22 imports /1609 evidence /88 snapshots**.
+Native-only trial4/repeat0/FK clean; canonical import без EXE rescan.
+Renderable72→85/Model83→85:0,150 units/direct0,020; RenderNode92 unchanged.
+Прежний renderer source/card backfilled72 с нулевым delta, не новый класс с0.
+
+Всё **14,62%** (114,645/784), engine **27,98%** (104,370/373), game **2,50%**
+(10,275/411), direct SMO/SAN **47,59%** (17,610/37). Fixed class-weighted sets.
+[Проверки](native-pc-renderer-protocol.md): native75+64/static28,
+portable23/768 fields и CTest15/15. CPU callbacks/math и ABI не означают готовую
+portable Scene/renderer/GPU; alpha CRT tie order и full ctor остаются open.
+
+## PC partition/static runtime — 2026-09-06 02:16 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-partition-runtime.json):
+8 class records /11 evidence, **23 imports /1620 evidence /92 snapshots**.
+Native-only trial8/repeat0/FK clean; canonical import без EXE rescan.
+PartitionNode25→58/System25→52/Zone25→65/PartitionRenderable25→65/Static30→70,
+new PCPartition65:2,450 class units, direct1,800. Scene45/RenderNode92 retained.
+
+Всё **14,94%** (117,095/784), engine **28,64%** (106,820/373), game **2,50%**
+(10,275/411), direct SMO/SAN **52,46%** (19,410/37). Fixed class-weighted sets,
+не процент инструкций EXE или готовности импортера.
+[Проверки](native-pc-partition-runtime.md): native38+38/static30, exact ABI
+compiled/CTest15. Полные portable spatial/Scene/Visibility/serializer-to-backend
+ещё open. Два вновь названных manager globals не считаются готовыми классами.
+
+## PC SceneInit/Visibility — 2026-09-06 03:04 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-visibility-runtime.json):
+5 class records /8 evidence, **24 imports /1628 evidence /96 snapshots**.
+Native-only trial5/repeat0/FK clean; canonical import без EXE rescan.
+New Visibility50 +Scene45→58/System52→58/Zone65→68/PartitionNode58→63:
+0,770 units/direct0,140, без backfill и расширения denominator.
+
+Всё **15,03%** (117,865/784), engine **28,84%** (107,590/373), game **2,50%**
+(10,275/411), direct SMO/SAN **52,84%** (19,550/37). Это class-weighted research,
+не процент готового исходника/инструкций или импортера.
+[Проверки](native-pc-visibility-runtime.md): native20+39/static25,
+portable17/1215 differential fields и CTest16/16. Whole Visibility ctor capped,
+record-oriented source не объявлен полной Scene/portal/occluder реализацией.
+
+## PC whole SceneRender / Shadow — 2026-09-06 03:30 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-scene-render-runtime.json):
+4 class records /7 evidence, **25 imports /1635 evidence /100 snapshots**.
+Native-only trial4/repeat0/FK clean. Scene58→68 +new Shadow30/DXShadow35
+дают0,750 engine/all units; direct unchanged. Older DXRenderer family source/
+card migrated conservatively35, **zero aggregate credit**; historical individual
+35 score не утверждается и весь класс не считается новым.
+
+Всё **15,13%** (118,615/784), engine **29,05%** (108,340/373), game **2,50%**
+(10,275/411), direct SMO/SAN **52,84%** (19,550/37). Same class-weighted scopes.
+[Проверки](native-pc-scene-render-runtime.md): native67+14/static23,
+DX state source6/960 fields и CTest17. Nonempty occluders/shadows/shaders,
+Visibility full ctor и portable Scene/runtime startup остаются open.
+
+## PC Occlusion geometry/Scene — 2026-09-06 04:05 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-occlusion-runtime.json):
+3 class records /6 evidence, **26 imports /1641 evidence /104 snapshots**.
+Native-only trial3/repeat0/FK clean; canonical import без EXE rescan.
+Occlusion25→58 +Visibility50→52 +Scene68→70 дают0,370 all/engine units,
+direct0,330. Никакого нового backfill или расширения denominator.
+
+Всё **15,18%** (118,985/784), engine **29,14%** (108,710/373), game **2,50%**
+(10,275/411), direct SMO/SAN **53,73%** (19,880/37). Class-weighted research,
+не byte/instruction/source completeness и не готовность импортера.
+[Проверки](native-pc-occlusion-runtime.md): native84/static24, portable
+visibility24/1483 differential fields и CTest17. Full protected Init capped;
+prepared-buffer/cached-silhouette границы отражены в evidence, не скрыты.
+
+## PC Octree runtime/source — 2026-09-06 04:31 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-octree-runtime.json):
+3 class records /6 evidence, **27 imports /1647 evidence /108 snapshots**.
+Native-only trial3/repeat0/FK clean; canonical import без EXE rescan.
+Octree25→65 +PartitionNode63→67 +Visibility52→54:0,460 all/engine units,
+0,440 direct, без backfill/изменения fixed denominator.
+
+Всё **15,24%** (119,445/784), engine **29,27%** (109,170/373), game **2,50%**
+(10,275/411), direct SMO/SAN **54,92%** (20,320/37). Class-weighted research,
+не процент инструкций EXE или полной готовности исходников/importer.
+[Проверки](native-pc-octree-runtime.md): native43/static24/source28,
+3104 differential fields/320cases/CTest18; normal copy45E870 capped,
+actual whole Debug21 traversal не выдаётся за обычную clipped ветку.
+
+## PC Portal runtime/source — 2026-09-06 05:08 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-zone-portal-runtime.json):
+3 class records /6 evidence, **28 imports /1653 evidence /112 snapshots**.
+Native-only trial3/repeat0/FK clean; canonical import без EXE rescan.
+Portal25→73 +PortalNode25→78 +Visibility54→61:1,080 all/engine units,
+1,010 direct, без backfill/изменения fixed denominator.
+
+Всё **15,37%** (120,525/784), engine **29,56%** (110,250/373), game **2,50%**
+(10,275/411), direct SMO/SAN **57,65%** (21,330/37). Это условная class-weighted
+оценка исследования, не доля инструкций/байтов или готовность импортера.
+[Проверки](native-pc-zone-portal-runtime.md): native63/static32/source19,
+1024 plane fields/256cases/CTest19. Clipped whole Scene portal/cycle executed;
+near-plane45E870 branch не объявлен завершённым, full ctor gap остаётся.
+
+## PC polygon clipping — 2026-09-06 05:26 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-polygon-clipping.json):
+1 class record /3 evidence, **29 imports /1656 evidence /116 snapshots**.
+Native-only trial1/repeat0/FK clean; canonical import без EXE rescan.
+Visibility61→66 даёт0,050 all/engine units. Anonymous clipping dependency
+не становится выдуманным классом и не увеличивает direct37 denominator/score.
+
+Всё **15,38%** (120,575/784), engine **29,57%** (110,300/373), game **2,50%**
+(10,275/411), direct SMO/SAN **57,65%** (21,330/37, без изменения).
+Class-weighted research, не процент инструкций или готовности приложения.
+[Проверки](native-pc-polygon-clipping.md): native28/static22/source11,
+3842 differential fields/256cases/CTest20; safe127 test,128 не исполнялся.
+
+## PC BSP runtime/source — 2026-09-06 06:24 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-bsp-runtime.json):
+2 class records /6 evidence, **30 imports /1662 evidence /120 snapshots**.
+Native-only trial2/repeat0/FK clean; canonical import без EXE rescan.
+BSP25→70 и Visibility66→67:0,460 all/engine units,0,450 direct; fixed
+denominators784/373/411/37 не менялись.
+
+Всё **15,44%** (121,035/784), engine **29,69%** (110,760/373), game **2,50%**
+(10,275/411), direct SMO/SAN **58,86%** (21,780/37). Условная class-weighted
+оценка исследования, не доля bytes/instructions и не готовность импортера.
+[Проверки](native-pc-bsp-runtime.md): native48/static17/source17,
+2046 differential fields/256cases/CTest21. Whole camera-leaf Zone Scene
+прошёл, но normal recursive protected45E870/full constructor остаются open.
+
+## PC spatial consumers — 2026-09-06 06:34 UTC
+
+[Immutable manifest](../../research/native-research-2026-09-06-pc-spatial-consumers.json):
+4 class records /5 evidence, **31 imports /1667 evidence /124 snapshots**.
+Native-only trial4/repeat0/FK clean; canonical import без EXE rescan.
+BSP70→72/Octree65→67/Occlusion58→59/Static70→71:0,060 units all/engine/direct.
+
+Всё **15,45%** (121,095/784), engine **29,71%** (110,820/373), game **2,50%**
+(10,275/411), direct SMO/SAN **59,03%** (21,840/37). Class-weighted research,
+не инструкция/byte/source/tool readiness. [Проверки](native-pc-spatial-consumers.md):
+native94/static15; original Debug21 Static dedup не заменяет normal clipping.
+Portable source не менялся; CTest21 проверяет предыдущий source checkpoint.

@@ -5,6 +5,10 @@ layout**. Все уникальные экземпляры из `pc-working`, `p
 `ps2-pristine` повторно прочитаны из исходных directory/PCK-данных строгим
 декодером. Отдельно проверены обе реализации serializer в исполняемых файлах.
 
+[PC Visibility runtime](native-pc-visibility-runtime.md) дополнительно доказал
+root7C как visited frame stamp и отбор payload/static/dynamic support pointers.
+Это не означает закрытый Octree/portal/occluder traversal.
+
 ## Назначение и общий layout
 
 `spPartitionNode` — связующий узел spatial-partition дерева. Он принадлежит
@@ -170,3 +174,12 @@ SmoViewer.Inspect research-db analyze-class <db> spPartitionNode
 Обе команды идемпотентны относительно исходных ресурсов; Python-аудит работает
 read-only. Разбор наследника продолжен в
 [`spOctreeNode`](smo-class-sp-octree-node.md).
+
+## PC runtime — 2026-09-06
+
+[Отдельный native-разбор](native-pc-partition-runtime.md) подтвердил exact84,
+BaseObject (не Node),33 virtual slots, intrusive static/portal/Zone refs против
+direct-owned children/payload, borrowed reciprocal RenderNode registration и
+Scene propagation. File inline ownership не следует переносить буквально в
+runtime containers. Полный structural/read-only статус выше **не** означает
+полный runtime: query/visibility/portal/debug и original API ещё открыты.

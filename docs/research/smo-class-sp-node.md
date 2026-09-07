@@ -131,6 +131,13 @@ Bloom: в трёх контрольных запусках tracked evaluator н�
 Поэтому binding slots подтверждены, а final local/world matrices остаются
 отдельным runtime-вопросом.
 
+Дополнение часового PC-цикла 2026-09-05: отдельные native instruction probes
+подтвердили evaluator → controller → local PRS, cached-world offsets и
+матричную конвенцию; найден visible tail world updater `0x00421420`.
+Это не меняет отрицательный результат старых игровых `startLevel=2` запусков:
+полная frame integration ещё не проверена. Адреса, source slices и ограничения
+см. в [PC animation runtime](native-pc-animation-runtime.md).
+
 ## Сопоставление корпусов
 
 Сравнение нормализует object ID, inline-размер и платформенное тело вложенного

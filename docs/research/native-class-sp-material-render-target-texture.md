@@ -30,18 +30,31 @@ Platform-разница начинается внутри `spMaterialTexture`: P
 |---|---:|---:|
 | texture-state block | `+0x10`, `9 * u32` | `+0x10`, `12 * u32` |
 | fallback `spTexture*` | `+0x34` | `+0x40` |
-| animation controller | `+0x38` | `+0x44` |
+| controller slot A | `+0x38`: **UV**, PC field12 | `+0x44`: old animation label needs independent recheck |
 | static UV matrix, 9 floats | `+0x3C` | `+0x48` |
 | has-static-UV byte | `+0x60` | `+0x6C` |
-| UV controller | `+0x64` | `+0x70` |
-| common texture extent | observed `0x6C` | exact `0x80` |
+| controller slot B | `+0x64`: **AnimTex**, PC field11 | `+0x70`: old UV label needs independent recheck |
+| common texture extent | actual allocation **`0x68`** (checkpoint12) | exact `0x80` |
 
-PS2 update `0x001732E0` подтверждает назначение UV-полей на runtime path:
+PC follow-up correction: original477985 loads class16FB0E47 (spAnimTexController),
+then47799D calls476680 which writes64 and controller24. Original4779DE loads
+class1C0053D6 (spUVController), then4779F6 calls467D90 which writes38 and invokes
+UV binder4346C0. Previous PC labels38/64 were reversed. Clone/destructor addresses
+stay valid; their semantic labels must follow these actual typed callers.
+PS2 labels are not automatically corrected or credited from PC evidence.
+
+Historical PS2 interpretation below requires that independent recheck:
+PS2 update `0x001732E0` связывает controller и UV-поля с runtime path:
 animation controller по `+0x44` при необходимости обновляется, а static matrix
 по `+0x48` передаётся вместе с texture-stage index в renderer slot `23`.
 UV controller по `+0x70` затем также получает update callback.
 
 `spMaterialRenderTargetTexture` продолжает этот layout:
+
+PC checkpoint12: word68 **не принадлежит common MaterialTexture**, actual
+StdLayer nested factory выделяет104bytes. В historical target layout он
+оставлен как derived-only opaque68; роль и полные target constructors требуют
+отдельной проверки. Остальные target offsets ниже не пересчитываются по догадке.
 
 | Поле | PC | PS2 | Default |
 |---|---:|---:|---:|
