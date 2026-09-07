@@ -66,6 +66,10 @@
     {
       "id": "CP110",
       "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp110.json"
+    },
+    {
+      "id": "CP111",
+      "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp111.json"
     }
   ]
 }

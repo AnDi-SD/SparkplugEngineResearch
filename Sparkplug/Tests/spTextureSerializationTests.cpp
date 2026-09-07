@@ -7,6 +7,7 @@
 #include "Code/SparkplugDX/spDXTextureSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Analysis/PC/spTextureMipFilter.h"
+#include "Analysis/PC/spTextureBlockCodec.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -151,6 +152,33 @@ namespace
             spMemoryStream input;Open(input,data);spDXTexture texture;std::string error;
             Check(!spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(data.size()),texture,&error)&&context.failed,"malformed/unrestored native texture rejected");
         }
+    }
+    void DecodeBlocks()
+    {
+        unsigned flags=0,count=0;std::string hex;
+        while(std::cin>>flags>>hex)
+        {
+            Check(++count<=1024&&hex.size()<=32&&hex.size()%2==0,"bounded block decoder input");
+            const auto nibble=[](char c)->unsigned
+            {if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;throw std::runtime_error("lowercase block hex");};
+            std::vector<std::byte> bytes;for(std::size_t i=0;i<hex.size();i+=2)bytes.push_back(static_cast<std::byte>(nibble(hex[i])*16+nibble(hex[i+1])));
+            sparkplug::evidence::pc::texture_blocks::Block block;
+            Check(sparkplug::evidence::pc::texture_blocks::Decode(flags,bytes.data(),bytes.size(),block),"valid native block shape");
+            std::cout<<'[';bool first=true;for(const auto& color:block)for(float value:color)
+            {if(!first)std::cout<<',';first=false;std::uint32_t bits;std::memcpy(&bits,&value,4);std::cout<<bits;}
+            std::cout<<"]\n";
+        }
+        Check(std::cin.eof()&&count,"complete nonempty block batch");
+    }
+    void BlockDecodeGuards()
+    {
+        namespace codec=sparkplug::evidence::pc::texture_blocks;
+        std::array<std::byte,16> bytes;bytes.fill(std::byte{255});bytes[8]=bytes[9]=std::byte{0};
+        codec::Block block;Check(codec::Decode(2,bytes.data(),bytes.size(),block),"DXT3 explicit alpha with DXT1 color branch");
+        Check(std::all_of(block.begin(),block.end(),[](const auto& c){return c==codec::Color{0,0,0,1};}),"native DXT3 index3 is black when first endpoint is lower");
+        const auto previous=block;
+        Check(!codec::Decode(0,bytes.data(),bytes.size(),block)&&block==previous,"invalid codec preserves output");
+        Check(!codec::Decode(1,bytes.data(),bytes.size(),block)&&block==previous,"invalid packed extent preserves output");
     }
     std::string MissingMips()
     {
@@ -318,6 +346,7 @@ int main(int argc,char** argv)
 {
     try
     {
+        if(argc==2&&std::string(argv[1])=="--decode-blocks"){DecodeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--cross"){std::cout<<Cross(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--runtime"){std::cout<<Runtime(argv[2])<<'\n';return 0;}
@@ -330,6 +359,7 @@ int main(int argc,char** argv)
         for(const auto* mode:{"raw","dxt1","dxt3","dxt5","raw-2","raw-4","dxt1-4","dxt3-2","dxt5-4","raw-2-embedded","dxt1-4-embedded"})(void)Native(mode);
         NativeBounds();
         MissingMipGuards();
+        BlockDecodeGuards();
         for(const auto* mode:{"raw","indexed","indexed-upload-fail"})(void)Palette(mode);
         PaletteBounds();
         for(const auto* mode:{"raw","raw-2","dxt1-4","raw-both","raw-auto","raw-4-partial"})(void)NativeWrite(mode);

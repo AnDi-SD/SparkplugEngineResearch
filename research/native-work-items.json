@@ -20,21 +20,22 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP108 reconstructs raw power-of-two missing mip generation including filter4 wrapped coefficients and exact byte/float rounding. Ten native/source comparisons (9136 bytes) plus existing texture regressions pass. CP109 adds whole loading.smo with the generated texture attached to its material. Continue other whole resources, compressed conversion, external source, failures and live backend.",
+      "summary": "CP108 raw missing mips and CP109 whole loading.smo pass exact comparisons. CP111 adds original compressed missing-mip execution and 438 exact C++ block decode cases. Restore color/alpha encoders next; compressed C++ synthesis, DX cross conversion, external source and live backend remain open.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
         "42DD10 ignores eight header bytes and creates4AB520 DXTexture, not CPU TextureData.",
         "CPU source-wrapper and local payload have separate terminators; native writer fields6/0/5 use UInt32BeginEnd.",
-        "423250в†’4ABB70в†’4AB650 reaches60FDB4 with actual conversion arguments;1x1 input normalizes destination2x2. This is a stop-before boundary, not completed conversion.",
+        "423250 -> 4ABB70 -> 4AB650 reaches60FDB4 with actual conversion arguments;1x1 input normalizes destination2x2. This earlier stop-before probe does not claim completed DX cross conversion.",
         "4AAC50 protected prefix404BC6 resets size48 before summing surface sizes; raw uses pitch*height, DXT uses native floor width/4 and height/4 with minimum1.",
         "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs.",
-        "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released."
+        "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released.",
+        "CP111 original64C493/64C5D5/64C65A block decoders match438 C++ cases/28032 binary32 words without seams. DXT3/5 reuse DXT1 color branches before replacing alpha."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Internal60FDB4/61039A conversion/library attribution, missing-mip generation, remaining native-data writer failures, palette reset/replacement, external source, source controller clone graph, reinit/errors and live PC backend remain required. CP18/19/34 known writer/reference/palette-bind slices are not repeated as wholly unknown."
+          "text": "Compressed C++ missing-mip encoding, DX cross upload conversion, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, source controller clone graph, reinit/errors and live PC backend remain required. Raw missing mips and known writer/reference/palette-bind slices are already restored."
         },
         {
           "kind": "behavior",
@@ -54,7 +55,8 @@
         "docs/research/native-pc-skin-texture-render.md",
         "docs/research/native-pc-skin-texture-generated-render.md",
         "docs/research/native-pc-texture-missing-mips.md",
-        "docs/research/native-pc-whole-textured-scene.md"
+        "docs/research/native-pc-whole-textured-scene.md",
+        "docs/research/native-pc-texture-compressed-blocks.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -65,7 +67,8 @@
         "pc-skin-texture-render",
         "pc-skin-texture-generated-render",
         "pc-texture-missing-mips",
-        "pc-scene-file-profile"
+        "pc-scene-file-profile",
+        "pc-texture-compressed-blocks"
       ]
     },
     {
@@ -11251,6 +11254,95 @@
           "--guest",
           "random",
           "2x2"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-compressed-blocks": [
+      {
+        "id": "pc-texture-block-decode",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_decode.py",
+        "args": [
+          "--guest"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt1-indices",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "4",
+          "indices",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt1-transparent",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "4",
+          "transparent",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt3-indices",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "4",
+          "indices",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt3-transparent",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "4",
+          "transparent",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt5-indices",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "4",
+          "indices",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-missing-dxt5-transparent",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "4",
+          "transparent",
+          "profile"
         ],
         "parallelSafe": true
       }
