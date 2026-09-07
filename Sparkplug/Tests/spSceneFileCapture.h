@@ -4,6 +4,8 @@
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNodeSerializer.h"
 #include "Code/Sparkplug/spModelSerializer.h"
+#include "Code/Sparkplug/spSkinSerializer.h"
+#include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spFogSerializer.h"
 #include "Code/Sparkplug/spLightDataSerializer.h"
@@ -52,6 +54,7 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spNode::ClassID,std::make_shared<spNodeSerializer>(),255,3),"Node binding");
         Require(manager.RegisterForAnalysis(spRenderNode::ClassID,std::make_shared<spRenderNodeSerializer>(),255,3),"RenderNode binding");
         Require(manager.RegisterForAnalysis(spModel::ClassID,std::make_shared<spModelSerializer>(),255,3),"Model binding");
+        Require(manager.RegisterForAnalysis(spSkin::ClassID,std::make_shared<spSkinSerializer>(),255,3),"Skin binding");
         Require(manager.RegisterForAnalysis(spMaterialDataSerializer::TargetClassID,std::make_shared<spMaterialDataSerializer>(),255,3),"MaterialData binding");
         Require(manager.RegisterForAnalysis(spFog::ClassID,std::make_shared<spFogSerializer>(),255,3),"Fog binding");
         Require(manager.RegisterForAnalysis(spLightDataSerializer::TargetClassID,std::make_shared<spLightDataSerializer>(),255,3),"LightData binding");
@@ -113,6 +116,13 @@ namespace sparkplug::reconstruction::scene_file_test
             {
                 Add(state,std::uint8_t(model->IsAlphaSortEnabledForAnalysis()));Add(state,model->GetPriorityForAnalysis());Add(state,model->GetProjectionGroupForAnalysis());
                 edges={Reference(model->GetMaterialForAnalysis().get()),Reference(model->GetFogForAnalysis().get()),Reference(model->GetBaseMeshForAnalysis().get())};
+                if(const auto* skin=dynamic_cast<const spSkin*>(model))
+                {
+                    Require(skin->GetBoneCountForAnalysis()<=32,"Bounded skin palette");
+                    Add(state,skin->GetWeightCountForAnalysis());Add(state,std::uint32_t(skin->GetBoneCountForAnalysis()));
+                    for(const auto& binding:skin->GetBoneBindingsForAnalysis())
+                    {edges.push_back(Reference(binding.GetBoneForAnalysis().get()));Add(state,binding.inverseBindMatrix);}
+                }
             }
             else if(const auto* material=dynamic_cast<const spDXMaterial*>(object))
             {

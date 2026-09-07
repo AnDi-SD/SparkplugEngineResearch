@@ -96,7 +96,7 @@ namespace
         static bool QueueRender(void* p,spRenderable& object,spCamera* camera,spRenderNode* support)
         {auto& s=*static_cast<Sink*>(p);auto* skin=dynamic_cast<spSkin*>(&object);Check(skin!=nullptr,"whole queued Skin type");const bool result=skin->RenderUnlitForAnalysis(s.state,camera,support);s.queuedResults.push_back(result);return result;}
     };
-    void LoadSkin(spSkin& skin,const std::string& directory,const std::string& payload)
+    std::vector<std::shared_ptr<spBaseObject>> LoadSkin(spSkin& skin,const std::string& directory,const std::string& payload)
     {
         const auto open=[](spMemoryStream& stream,const std::string& text)
         {
@@ -115,14 +115,15 @@ namespace
         spMemoryStream input;open(input,payload);std::string error;
         Check(spSkinSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<unsigned>(payload.size()/2),skin,&error),error.c_str());
         unsigned cursor=0;Check(input.GetCurrentPosition(cursor)&&cursor==payload.size()/2,"linked reader completed exactly");
-        Check(skin.GetBoneCountForAnalysis()==1&&skin.GetBoneBindingsForAnalysis()[0].bone.get()==manager.GetFATForAnalysis()->FindByIDForAnalysis(7)->object,"retained canonical decoded bone");
-        // Skin owns the source-side reference. The native ABI borrows it; the
-        // comparison fixture explicitly retains the native Node for this phase.
+        Check(skin.GetBoneCountForAnalysis()==1&&skin.GetBoneBindingsForAnalysis()[0].GetBoneForAnalysis().get()==manager.GetFATForAnalysis()->FindByIDForAnalysis(7)->object,"retained canonical decoded bone");
+        // Keep the decoded graph owners in the calling fixture. Skin's loaded
+        // bone palette borrows them, matching the native non-retaining edges.
+        return context.createdObjects;
     }
     std::string AnimateSkin(spSkin& skin,const char* asset,const std::string& delta,bool sceneWorld=false)
     {
         spAnimationManager manager;auto animation=sparkplug::tests::ReadOwnedSan(asset,manager);
-        auto bone=skin.GetBoneBindingsForAnalysis().at(0).bone;
+        auto bone=skin.GetBoneBindingsForAnalysis().at(0).GetBoneForAnalysis();
         Check(animation->GetTrackCountForAnalysis()==5,"real bbush track count");
         bone->SetName(animation->GetTrackForAnalysis(0)->GetName());spActor actor;std::string error;
         Check(actor.DiscoverNodeForAnalysis(bone,&error),error.c_str());
@@ -157,8 +158,8 @@ namespace
             {auto& s=*static_cast<AlphaSink*>(p);s.events.push_back("[\"pre\","+std::to_string(s.queue.count)+','+std::to_string(s.queue.flushing)+']');return 0;}
         } sink;
         spSkin skin;
-        if(directory)LoadSkin(skin,*directory,*payload);
-        else
+        const auto loadedOwners=directory?LoadSkin(skin,*directory,*payload):std::vector<std::shared_ptr<spBaseObject>>{};
+        if(!directory)
         {
             auto material=std::make_shared<spDXMaterial>();auto pass=std::make_shared<spMaterialPassLayer>();
             pass->SetFinalBlendOperationForAnalysis(mode=="zero-blend"?0:1);
@@ -225,8 +226,8 @@ namespace
         sink.mode=mode;alphaFlushObserver=&sink;
         struct ResetObserver final{~ResetObserver(){alphaFlushObserver=nullptr;}} resetObserver;
         auto skin=std::make_shared<spSkin>();
-        if(directory)LoadSkin(*skin,*directory,*payload);
-        else
+        const auto loadedOwners=directory?LoadSkin(*skin,*directory,*payload):std::vector<std::shared_ptr<spBaseObject>>{};
+        if(!directory)
         {
             auto material=std::make_shared<spDXMaterial>();auto pass=std::make_shared<spMaterialPassLayer>();pass->SetFinalBlendOperationForAnalysis(1);
             Check(material->SetPassForAnalysis(0,pass),"queued alpha material");skin->SetMaterialForAnalysis(material);
@@ -284,8 +285,8 @@ namespace
             mesh=std::make_shared<spDXMesh>();Check(mesh->InitializeSharedForAnalysis(shared,0x803,0,spIndexBuffer::eIndexBufferType::Type2,11,17,39,19,32),"mesh source metadata consumed by same submission core");
         }
         spSkin skin;
-        if(directory)LoadSkin(skin,*directory,*payload);
-        else
+        const auto loadedOwners=directory?LoadSkin(skin,*directory,*payload):std::vector<std::shared_ptr<spBaseObject>>{};
+        if(!directory)
         {
             auto bone=std::make_shared<spNode>();bone->SetPositionForAnalysis({1,2,3});bone->SetScaleForAnalysis({2,3,4});bone->MarkLocalTransformDirtyForAnalysis();Check(bone->UpdateWorldForAnalysis(),"source bone world cache");
             spSkin::Matrix4 inverse{1,0,0,0,0,1,0,0,0,0,1,0,5,6,7,1};Check(skin.SetPaletteForAnalysis(mode=="weights-zero"?0u:4u,{{bone,inverse}}),"source Skin palette");

@@ -13,8 +13,10 @@ shader constants и indexed draw. Common resolver `4678B0` и Node reader
 Три сценария: обычный успех, false post callback и weights=0. Source harness
 читает ровно те же directory/payload bytes через настоящий FAT, Node и Skin
 сериализаторы. После уничтожения read context сохранённый Skin передаётся
-в восстановленный render caller. Source shared ownership явно удерживает
-кость; native Skin заимствует pointer, стенд сохраняет Node до конца render.
+в восстановленный render caller. После [CP107](native-pc-whole-skin-scene.md)
+source harness явно сохраняет владельцев из context до конца render, а Skin
+заимствует кости через weak_ptr. Native Skin заимствует pointer, стенд также
+сохраняет Node до конца render.
 
 ## Ускорение без расширения лимитов
 

@@ -1,8 +1,12 @@
 #include "Code/Sparkplug/spNodeController.h"
 #include "Analysis/PC/spNodeTransformMath.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
+#include <string>
 
 using namespace sparkplug::reconstruction;
 namespace
@@ -36,9 +40,38 @@ namespace
     };
 } // namespace
 
-int main()
+int main(int argc,char** argv)
 {
     namespace math = sparkplug::evidence::pc::node_math;
+    if(argc==2&&std::string(argv[1])=="--math-bits")
+    {
+        char kind;unsigned count=0;
+        while(std::cin>>kind)
+        {
+            Require(++count<=512&&(kind=='v'||kind=='m'),"bounded math input batch");
+            std::array<float,18> input{};
+            for(unsigned i=0;i<(kind=='v'?12u:18u);++i)
+            {std::uint32_t bits;Require(bool(std::cin>>bits),"complete input words");std::memcpy(&input[i],&bits,4);Require(std::isfinite(input[i]),"finite math input");}
+            const auto emit=[](const auto& values)
+            {
+                std::cout<<'[';bool first=true;
+                for(float value:values){std::uint32_t bits;std::memcpy(&bits,&value,4);if(!first)std::cout<<',';first=false;std::cout<<bits;}
+                std::cout<<"]\n";
+            };
+            math::Matrix3 a{},b{};
+            if(kind=='v')
+            {std::copy_n(input.begin()+3,9,b.begin());emit(math::Transform({input[0],input[1],input[2]},b));}
+            else
+            {std::copy_n(input.begin(),9,a.begin());std::copy_n(input.begin()+9,9,b.begin());emit(math::Multiply(a,b));}
+        }
+        return 0;
+    }
+    Require(argc==1,"known NodeWorld command");
+    const math::Matrix3 ones{1,1,1,1,1,1,1,1,1};
+    Require(math::Transform({100000000,1,-100000000},ones)==math::Vector3{1,1,1},
+            "x87 destination rounding retains cancellation residue");
+    Require(math::Multiply({100000000,1,-100000000,100000000,1,-100000000,100000000,1,-100000000},ones)==ones,
+            "all nine x87 matrix cells retain cancellation residue");
     const spNode::Matrix3 turn{0, 1, 0, -1, 0, 0, 0, 0, 1};
     for (unsigned mask = 0; mask < 8; ++mask)
     {

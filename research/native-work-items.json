@@ -91,7 +91,7 @@
       "dependsOn": [
         "pc-smo-san-loader-save"
       ],
-      "summary": "Common and derived graph adapters verified; CP101 whole original object/gameover matches C++ with2/6 exact Node records. Continue whole mesh/material/skin graph and unresolved collision/rollback/ownership.",
+      "summary": "CP101 whole object/gameover and CP103-107 mesh/material/light/Skin SMOs verified under explicit startup/COM fixtures. Continue texture/level resources, collision, rollback and remaining ownership.",
       "originalName": "spNodeSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spNodeSerializer.cpp",
       "known": [
@@ -123,7 +123,8 @@
         "docs/research/native-pc-skin-alpha-queue.md",
         "docs/research/native-pc-skin-alpha-flush.md",
         "docs/research/native-pc-whole-file-profile.md",
-        "docs/research/native-pc-whole-scene-file.md"
+        "docs/research/native-pc-whole-scene-file.md",
+        "docs/research/native-pc-whole-skin-scene.md"
       ],
       "testProfiles": [
         "pc-node-output",
@@ -135,7 +136,8 @@
         "pc-skin-alpha-queue",
         "pc-skin-alpha-flush",
         "pc-whole-file-profile",
-        "pc-scene-file-profile"
+        "pc-scene-file-profile",
+        "pc-node-math-bits"
       ]
     },
     {
@@ -782,14 +784,14 @@
       "dependsOn": [],
       "originalName": "spSkinSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spSkinSerializer.cpp",
-      "summary": "CP62-72 Skin read/write/clone and retained real-SAN bone through original scene world caller into first shader generation/draw. Continue complete resources and simultaneous frame.",
+      "summary": "CP107 whole droid_trail matches 13 objects/16 bone bindings; loaded palettes borrow graph/context owners and avoid ancestor ownership cycles. Original/source read/write, clone and loaded render remain verified.",
       "known": [
         "Factory sizes/default four weights; borrowed bones; raw matrices; repeated field/null error array leaks; source lifetime guards explicit."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Whole SMO mesh/material resources, simultaneous actor/renderer frame, original world-update hook, arbitrary cycles and remaining errors are open."
+          "text": "Other whole SMO resource classes, simultaneous actor/renderer frame, arbitrary cycles, startup, save and remaining errors are open."
         }
       ],
       "evidencePaths": [
@@ -804,7 +806,8 @@
         "docs/research/native-pc-skin-mesh-generated-render.md",
         "docs/research/native-pc-skin-scene-mesh-render.md",
         "docs/research/native-pc-skin-queued-mesh-render.md",
-        "docs/research/native-pc-skin-lights-render.md"
+        "docs/research/native-pc-skin-lights-render.md",
+        "docs/research/native-pc-whole-skin-scene.md"
       ],
       "testProfiles": [
         "pc-skin-serialization",
@@ -819,7 +822,9 @@
         "pc-skin-scene-mesh-render",
         "pc-mesh-bounds",
         "pc-skin-queued-mesh-render",
-        "pc-skin-lights-render"
+        "pc-skin-lights-render",
+        "pc-scene-file-profile",
+        "pc-node-math-bits"
       ]
     },
     {
@@ -10980,6 +10985,16 @@
           "bloom-projectile",
           "--file-ids"
         ]
+      },
+      {
+        "id": "pc-whole-droid-trail-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "droid-trail",
+          "--file-ids"
+        ]
       }
     ],
     "pc-dx-shared-payload": [
@@ -11071,6 +11086,16 @@
         "args": [
           "--guest",
           "init-return-false"
+        ]
+      }
+    ],
+    "pc-node-math-bits": [
+      {
+        "id": "pc-node-math-bits-batch",
+        "platform": "pc",
+        "script": "research/compare_pc_node_math_bits.py",
+        "args": [
+          "--guest"
         ]
       }
     ]

@@ -27,7 +27,7 @@ class SceneFileFixture(MeshFixture):
 class CrystalSceneFileFixture(SceneFileFixture):
     guest_max_buffer_size=8192
 
-def seed_scene_rtti(f,with_light=False,with_material=None):
+def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False):
     p=f.p
     records=[(0x755310,0x415352a1,0),(0x7555f8,0x44de07fd,0x755310),
         (0x75dd88,0x695c0f65,0x7555f8),(0x75e150,0x603625d0,0x75dd88),
@@ -38,7 +38,8 @@ def seed_scene_rtti(f,with_light=False,with_material=None):
         (0x75d428,0x33c34cf0,0x75e090),(0x763150,0x193b2671,0x763b40),
         (0x763b40,0x67974a9c,0x75e090),(0x75e090,0x3f077b6c,0x7603a0),
         (0x7603a0,0x46f043fe,0x7555f8),(0x75e278,0x72444900,0x75dd88),
-        (0x75d4e8,0x5e6402df,0x75e278),(0x7634b0,0x6b3e7baa,0x75e278)]
+        (0x75d4e8,0x5e6402df,0x75e278),(0x7634b0,0x6b3e7baa,0x75e278),
+        (0x760520,0x681f2043,0x760cf8)]
     for rec,identity,parent in records:p.put_uint(rec,identity);p.put_uint(rec+0x48,parent)
     targets=[(0x695c0f65,0x75dd88,0x421e20),(0x603625d0,0x75e150,0x425520),
         (0x763277db,0x760cf8,0x479ed0),(0x6160348b,0x75d548,0x41a390),
@@ -50,6 +51,9 @@ def seed_scene_rtti(f,with_light=False,with_material=None):
         # The common mesh path publishes a freshly created runtime DXMesh to
         # the resource manager, which queries runtime (not only wire) RTTI.
         targets += [(0x193b2671,0x763150,0x4a9e80),(0x6b3e7baa,0x7634b0,0x4ac000)]
+    if with_skin:
+        targets += [(0x681f2043,0x760520,0x46a120)]
+        if not with_light:targets += [(0x193b2671,0x763150,0x4a9e80)]
     tree=p.allocate(32);head=p.allocate(24);targets.sort()
     red_level=(len(targets)+1).bit_length()-1
     def build(rows,parent,depth=0):
@@ -113,9 +117,13 @@ def capture_scene(f,root,entries,by_file_id=False):
             if kind==0x6b3e7baa:
                 state+=read(obj,0xc0,20)+b''.join(read(obj,a,1) for a in (0xec,0xd4,0xed))
                 state+=b''.join(read(obj,a,4) for a in (0xd8,0xe0,0xe4,0xe8))
-        elif kind==0x763277db:
+        elif kind in (0x763277db,0x681f2043):
             state=read(obj,0x18,1)+read(obj,0x1c,4)+read(obj,0x5c,4)
             row['edges']=[identity(p.uint(obj+a)) for a in (0x20,0x24,0x58)]
+            if kind==0x681f2043:
+                count=p.uint(obj+0x64);check(count<=32,'bounded native skin palette')
+                state+=read(obj,0x60,8)+read(p.uint(obj+0x6c),0,count*64)
+                row['edges'] += [identity(p.uint(p.uint(obj+0x68)+4*i)) for i in range(count)]
         elif kind==0x797b39ec:
             state=read(obj,0x18,44)+read(obj,0x6d,1)+read(obj,0x78,68)+read(obj,0x48,4)
             count=p.uint(obj+0x48);check(count<=8,'bounded native passes')
@@ -142,10 +150,13 @@ def capture_scene(f,root,entries,by_file_id=False):
 def main(case='logo',by_file_id=False):
     cases={'logo':('Menus/logo_screen.smo',703,'DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7'),
         'bloom-projectile':('Characters/Bloom/bloom_projectile.smo',770,'BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D'),
-        'g-crystal':('SFX/g_crystal.smo',6264,'9ECB8CFEFADD7A30F1411F8235039FB07EA342BA13177B4060DE975158609A0A')}
+        'g-crystal':('SFX/g_crystal.smo',6264,'9ECB8CFEFADD7A30F1411F8235039FB07EA342BA13177B4060DE975158609A0A'),
+        'droid-trail':('SFX/droid_trail.smo',3070,'4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8')}
     check(case in cases,'selected bounded whole scene case')
-    relative,size,digest=cases[case];with_light=case!='logo';common_mesh=case=='bloom-projectile'
-    by_file_id=by_file_id or case=='g-crystal';object_count=26 if case=='g-crystal' else 6
+    relative,size,digest=cases[case];with_light=case in ('bloom-projectile','g-crystal')
+    common_mesh=case in ('bloom-projectile','droid-trail');with_skin=case=='droid-trail'
+    by_file_id=by_file_id or case in ('g-crystal','droid-trail')
+    object_count={'g-crystal':26,'droid-trail':13}.get(case,6)
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSceneSerializationTests.exe'
@@ -154,14 +165,15 @@ def main(case='logo',by_file_id=False):
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
     f=(CrystalSceneFileFixture if case=='g-crystal' else SceneFileFixture)(raw)
-    p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light,with_material=not common_mesh)
+    p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin)
     fat=empty_fat(f);manager,_=empty_manager(f);p.put_uint(manager+0x28,fat);p.put_uint(0x75dde8,manager)
     bindings=[(0x695c0f65,0x4638f0,255),(0x603625d0,0x469040,255),
         (0x763277db,0x4934c0,255),(0x6160348b,0x42f690,255),(0x7ac95aec,0x43b830,255),(0x33c34cf0,0x4297c0,2)]
     if common_mesh:
-        bindings=[row for row in bindings if row[0] not in (0x6160348b,0x33c34cf0)]
+        bindings=[row for row in bindings if row[0]!=0x33c34cf0 and (case!='bloom-projectile' or row[0]!=0x6160348b)]
         bindings += [(0x33c34cf0,0x42aef0,1)]
     if with_light:bindings += [(0x5e6402df,0x43ffd0,255)]
+    if with_skin:bindings += [(0x681f2043,0x490c50,255)]
     for kind,factory,platform in bindings:
         serializer=f.call(factory);f.call(0x422d90,this=manager,args=(kind,serializer,platform,1))
     f.call(0x45adf0);published=[]
@@ -187,6 +199,7 @@ def main(case='logo',by_file_id=False):
             stages=tuple(a for a in stages if a not in (0x4aa870,0x429a40))
             stages+=(0x42afd0,0x42b420)
         if with_light:stages+=(0x4400b0,0x440640,0x4b58d0,0x421a60)
+        if with_skin:stages+=(0x491170,0x46a120,0x421a60)
         report.update(wholeLoadInstructions=sum(p.visits.values()),wholeLoadSeconds=time.monotonic()-at,
             executionLimits=p.last_execution_limits,visitedStages={f'{a:08X}':p.visits[a] for a in stages})
         for a in stages:check(p.visits[a]>0,f'actual whole-file stage {a:08X}')
@@ -196,8 +209,8 @@ def main(case='logo',by_file_id=False):
         report['phase']='comparison';observed=capture_scene(f,root,published[0],by_file_id)
         directory=ROOT/'local-data/results/cycle-20260908-0700'
         suffix='ids' if by_file_id else 'class'
-        (directory/f'cp106-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
-        (directory/f'cp106-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
+        (directory/f'cp107-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
+        (directory/f'cp107-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
         check(observed==expected,'exact whole original/source scene state and edges')
         report['phase']='cleanup'
         combiners=[a for a,s in f.allocations.items() if a not in f.freed and s==0x2c and p.uint(a)==0x6ef294]
@@ -220,7 +233,7 @@ def main(case='logo',by_file_id=False):
         raise
     finally:
         report.update(arenaReservedBytes=p.allocated,elapsedSeconds=time.monotonic()-at)
-        name=f'cp106-{case}-'+('ids' if by_file_id else 'class')+'.json'
+        name=f'cp107-{case}-'+('ids' if by_file_id else 'class')+'.json'
         (ROOT/'local-data/results/cycle-20260908-0700'/name).write_text(json.dumps(report,indent=2)+'\n')
         print('CAPTURE',json.dumps(report,sort_keys=True),flush=True)
     return 0

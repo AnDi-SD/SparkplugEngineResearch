@@ -1,0 +1,195 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP107",
+  "createdUtc": "2026-09-07T22:17:49.097991+00:00",
+  "documentation": "docs/research/native-pc-whole-skin-scene.md",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "classScoresChanged": false,
+  "ctest": {
+    "passed": 62,
+    "total": 62,
+    "elapsedSeconds": 42.98
+  },
+  "wholeScene": {
+    "kind": "native-scene-whole-file-comparison",
+    "asset": "droid_trail.smo",
+    "executionProfile": "file",
+    "inputSha256": "4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8",
+    "sourceExecutableSha256": "CB3E8FAA52625B9AA94E8D9291E6789A4CEA2034457C3F760C3C6E856FE3F330",
+    "arenaLimitBytes": 131072,
+    "maxAllocationBytes": 32768,
+    "maxCOMBufferBytes": 1024,
+    "identityMode": "file-id",
+    "processTimeoutSeconds": 30,
+    "phase": "cleanup",
+    "wholeLoadInstructions": 423008,
+    "wholeLoadSeconds": 2.6466791999991983,
+    "executionLimits": {
+      "profile": "file",
+      "instructionLimit": 1000000,
+      "timeoutUs": 8000000
+    },
+    "visitedStages": {
+      "00422260": 1,
+      "00466B90": 1,
+      "00465CD0": 1,
+      "00422940": 1,
+      "00463A70": 9,
+      "004938F0": 1,
+      "0043B910": 1,
+      "00466760": 2,
+      "0042AFD0": 1,
+      "0042B420": 1,
+      "00491170": 1,
+      "0046A120": 1,
+      "00421A60": 8
+    },
+    "status": "passed",
+    "nativeAssertions": 113,
+    "exactObjects": 13,
+    "releasedAllocations": 146,
+    "stateBytes": 2330,
+    "bufferAndDeclarationBytes": 1154,
+    "materialLayerBytes": 85,
+    "arenaReservedBytes": 77296,
+    "elapsedSeconds": 3.265599199999997
+  },
+  "nodeMathBatch": {
+    "status": "passed",
+    "kind": "node-math-bit-comparison",
+    "cases": 196,
+    "exactFloatWords": 1176,
+    "nativeInstructions": 12642,
+    "sourceExecutableSha256": "6ED5273E7F2D54F50D28157C3CAB809EE0B361FE6213CBDF12D8DD78C1F76064",
+    "executionProfile": "micro",
+    "arenaReservedBytes": 144,
+    "seams": 0,
+    "seconds": 4.500492599996505
+  },
+  "skinRegression": {
+    "passed": 21,
+    "total": 21,
+    "seconds": 34.53281319999951,
+    "cases": [
+      {
+        "id": "pc-skin-serialization-empty",
+        "returncode": 0,
+        "seconds": 2.8321634999956586
+      },
+      {
+        "id": "pc-skin-serialization-zero",
+        "returncode": 0,
+        "seconds": 2.8224938999992446
+      },
+      {
+        "id": "pc-skin-serialization-one",
+        "returncode": 0,
+        "seconds": 3.332506499995361
+      },
+      {
+        "id": "pc-skin-serialization-repeat-bone",
+        "returncode": 0,
+        "seconds": 3.197383799997624
+      },
+      {
+        "id": "pc-skin-serialization-repeat-field",
+        "returncode": 0,
+        "seconds": 3.381291000005149
+      },
+      {
+        "id": "pc-skin-serialization-clear",
+        "returncode": 0,
+        "seconds": 3.507714899998973
+      },
+      {
+        "id": "pc-skin-serialization-unknown",
+        "returncode": 0,
+        "seconds": 3.5433924999961164
+      },
+      {
+        "id": "pc-skin-serialization-prebound",
+        "returncode": 0,
+        "seconds": 3.3312404999960563
+      },
+      {
+        "id": "pc-skin-serialization-raw-bits",
+        "returncode": 0,
+        "seconds": 3.1319069000019226
+      },
+      {
+        "id": "pc-skin-serialization-null",
+        "returncode": 0,
+        "seconds": 2.5646589000025415
+      },
+      {
+        "id": "pc-skin-clone-empty",
+        "returncode": 0,
+        "seconds": 2.65540239999973
+      },
+      {
+        "id": "pc-skin-clone-one",
+        "returncode": 0,
+        "seconds": 2.7945980000004056
+      },
+      {
+        "id": "pc-skin-clone-mapped",
+        "returncode": 0,
+        "seconds": 2.9138162000017473
+      },
+      {
+        "id": "pc-skin-clone-repeat",
+        "returncode": 0,
+        "seconds": 2.8506968000001507
+      },
+      {
+        "id": "pc-skin-clone-direct-repeat",
+        "returncode": 0,
+        "seconds": 2.9265429000006407
+      },
+      {
+        "id": "pc-skin-clone-child",
+        "returncode": 0,
+        "seconds": 3.297746399999596
+      },
+      {
+        "id": "pc-skin-clone-copy-populated",
+        "returncode": 0,
+        "seconds": 3.0514831000036793
+      },
+      {
+        "id": "pc-skin-clone-raw-bits",
+        "returncode": 0,
+        "seconds": 2.95908259999851
+      },
+      {
+        "id": "pc-skin-loaded-render-normal",
+        "returncode": 0,
+        "seconds": 3.8007165000017267
+      },
+      {
+        "id": "pc-skin-loaded-render-post-false",
+        "returncode": 0,
+        "seconds": 3.7129209999984596
+      },
+      {
+        "id": "pc-skin-loaded-render-weights-zero",
+        "returncode": 0,
+        "seconds": 3.6241880000015954
+      }
+    ]
+  },
+  "fingerprints": {
+    "Sparkplug/Analysis/PC/spNodeTransformMath.h": "FFD7353142093898F165C07E1F559E9B7BB6C30A0E96BDDED6F6E2EE22DE9052",
+    "Sparkplug/Code/Sparkplug/spSkin.cpp": "770708F70384F6A8B48B263720C03766C064785961D53F2865DC48AB8D883EC4",
+    "Sparkplug/Code/Sparkplug/spSkin.h": "56DB7F8224E3510F5EB45EEC57BC5FD0EF1489724B27292F7EDF654D02BBDB32",
+    "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp": "EEE510DF48D0041C8D27EF5E4FC69E59313D47A99D25BEA974A07969D4BB8BEE",
+    "Sparkplug/Tests/spEngineCoreTests.cpp": "7AED4AC08C289068E0A23623B4C661CC011D029AD4B76DECE29FB4BFB575620C",
+    "Sparkplug/Tests/spNodeWorldTests.cpp": "16290539C7AA980321FE7D4147E54DFEC313EA2BB7E8402F226BBF6204B5C482",
+    "Sparkplug/Tests/spSceneFileCapture.h": "A7777A6EA7C8C1FCFB4651FAEE3A4493FF36738D59000F80F6BF913136748288",
+    "Sparkplug/Tests/spSkinRenderTests.cpp": "CC63844425D53E587772A52F536E16941F0828E51B042D422D25460CF16C7EBA",
+    "Sparkplug/Tests/spSkinSerializationTests.cpp": "D594EF23BC95E94E8C63F61E1429F7E8B49EEBC1B74B5466E353A2CEC8128DBE",
+    "research/probe_pc_scene_file_profile.py": "BB5F81A4CD115F75146E14F93C911ECD28E34895AB65B1A9AA0BBB6094478F15",
+    "research/compare_pc_node_math_bits.py": "09347D4FDCF8F60B54B39A7E586A4C91E6A753EC2FE2BD9F4F8641C15D0E760C"
+  }
+}

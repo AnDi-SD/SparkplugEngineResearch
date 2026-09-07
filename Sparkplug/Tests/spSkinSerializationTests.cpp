@@ -1,6 +1,7 @@
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/Sparkplug/spNode.h"
+#include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
@@ -43,10 +44,10 @@ namespace
         Bytes matrices;std::ostringstream bones;bones<<'[';bool first=true;
         for(const auto& binding:skin.GetBoneBindingsForAnalysis())
         {
-            Check(binding.bone.get()==fat->FindByIDForAnalysis(7)->object,"one canonical borrowed reference with explicit host owner");
+            Check(binding.GetBoneForAnalysis().get()==fat->FindByIDForAnalysis(7)->object,"one canonical borrowed reference with explicit host owner");
             const auto bits=Bits(binding.inverseBindMatrix);matrices.insert(matrices.end(),bits.begin(),bits.end());
             if(!first)bones<<',';first=false;
-            bones<<"[7,\""<<Hex(Bits(binding.bone->GetWorldPositionForAnalysis()))<<"\"]";
+            bones<<"[7,\""<<Hex(Bits(binding.GetBoneForAnalysis()->GetWorldPositionForAnalysis()))<<"\"]";
         }
         bones<<']';std::string output="null";
         if(result)
@@ -63,6 +64,26 @@ namespace
     }
     void Guards()
     {
+        std::weak_ptr<spNode> releasedRoot;
+        std::weak_ptr<spSkin> releasedSkin;
+        {
+            auto root=std::make_shared<spNode>();auto render=std::make_shared<spRenderNode>();
+            auto skin=std::make_shared<spSkin>();releasedRoot=root;releasedSkin=skin;
+            Check(root->AttachChildForAnalysis(render)&&render->AttachRenderableForAnalysis(skin),"ancestor owns the Skin graph");
+            spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+            context.externalOwners.push_back(root);
+            Check(manager.GetFATForAnalysis()->IndexObjectForAnalysis(spNode::ClassID,*root),"prebound ancestor FAT entry");
+            Bytes payload{0,0,0xa0,80};
+            for(auto value:{4u,1u,1u,0u}){const auto bytes=Bits(value);payload.insert(payload.end(),bytes.begin(),bytes.end());}
+            payload.insert(payload.end(),64,0);payload.push_back(0);
+            spMemoryStream stream;Open(stream,payload);std::string error;
+            Check(spSkinSerializer{}.ReadPayloadForAnalysis(context,stream,static_cast<unsigned>(payload.size()),*skin,&error),error.c_str());
+            Check(skin->GetBoneBindingsForAnalysis()[0].GetBoneForAnalysis()==root,"decoded Skin borrows its ancestor");
+        }
+        Check(releasedRoot.expired()&&releasedSkin.expired(),"loaded ancestor-bone edge creates no ownership cycle");
+        spSkin::BoneBinding expired(nullptr,{});
+        {auto owner=std::make_shared<spNode>();expired=spSkin::BoneBinding::BorrowedForAnalysis(owner,{});}
+        Check(!expired.GetBoneForAnalysis(),"expired borrowed bone resolves safely to null");
         // Host-only envelope checks: original ignores matrix ReadData failure
         // and may overflow count arithmetic. These are declared deviations.
         for(const auto* text:{"0000a00800000000ffffffff00","0000a0070000000000000000","00000000"})
@@ -105,11 +126,11 @@ namespace
         Check(!manager.FindClone(source)&&!manager.FindClone(*bone),"root transaction map cleared");
         std::vector<const spNode*> unique;
         for(const auto& binding:clone->GetBoneBindingsForAnalysis())
-            if(std::find(unique.begin(),unique.end(),binding.bone.get())==unique.end())unique.push_back(binding.bone.get());
+            if(std::find(unique.begin(),unique.end(),binding.GetBoneForAnalysis().get())==unique.end())unique.push_back(binding.GetBoneForAnalysis().get());
         Bytes matrices;std::ostringstream nodes;nodes<<'[';bool first=true;
         for(const auto& binding:clone->GetBoneBindingsForAnalysis())
         {
-            const auto* node=binding.bone.get();Check(node!=bone.get()&&node!=child.get(),"unmapped bone cloned independently of source");
+            const auto* node=binding.GetBoneForAnalysis().get();Check(node!=bone.get()&&node!=child.get(),"unmapped bone cloned independently of source");
             const auto bits=Bits(binding.inverseBindMatrix);matrices.insert(matrices.end(),bits.begin(),bits.end());
             const auto parent=std::find(unique.begin(),unique.end(),node->GetParentForAnalysis());
             if(!first)nodes<<',';first=false;
@@ -121,7 +142,7 @@ namespace
         // Ownership test independent of the native borrowed-pointer ABI:
         // resulting bones must remain valid when every source owner is gone.
         Check(source.SetPaletteForAnalysis(4,{}),"release source palette");bone.reset();child.reset();mapped.reset();
-        for(const auto& binding:clone->GetBoneBindingsForAnalysis())Check(binding.bone->IsKindOf(spNode::ClassID),"clone retains real destination owner");
+        for(const auto& binding:clone->GetBoneBindingsForAnalysis())Check(binding.GetBoneForAnalysis()->IsKindOf(spNode::ClassID),"clone retains real destination owner");
         std::ostringstream row;row<<"[\""<<mode<<"\",1,"<<clone->GetWeightCountForAnalysis()<<','<<count<<','<<clone->GetProjectionGroupForAnalysis()
             <<",\""<<Hex(matrices)<<"\","<<nodes.str()<<']';return row.str();
     }

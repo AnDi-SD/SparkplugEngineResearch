@@ -57,6 +57,7 @@ Source frontend: `SparkplugSceneSerializationTests.exe --asset-file-ids PATH`.
 
 [CP106 manifest](../../research/native-cycle-checkpoint-2026-09-08-cp106.json)
 содержит пять успешных runs на трёх разных файлах, checks и fingerprints.
-Открыты whole textured/skinned/level files, все отказы/ownership варианты,
+Следующий [CP107](native-pc-whole-skin-scene.md) добавляет whole droid_trail Skin.
+Открыты whole textured/level files, все отказы/ownership варианты,
 внешние зависимости и runtime save graph. Class scores не повышены за новый
 масштаб композиционной проверки.

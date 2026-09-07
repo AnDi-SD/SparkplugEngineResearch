@@ -35,7 +35,7 @@ namespace sparkplug::reconstruction
 
     bool spSkin::BoneBinding::operator==(const BoneBinding& other) const noexcept
     {
-        return bone == other.bone && inverseBindMatrix == other.inverseBindMatrix;
+        return GetBoneForAnalysis() == other.GetBoneForAnalysis() && inverseBindMatrix == other.inverseBindMatrix;
     }
 
     spSkin::~spSkin() = default;
@@ -73,13 +73,14 @@ namespace sparkplug::reconstruction
         // reuse a new clone. Shared ownership is explicit host storage.
         for (auto& binding : skin->boneBindings_)
         {
-            if (binding.bone == nullptr)
+            const auto bone=binding.GetBoneForAnalysis();
+            if (bone == nullptr)
             {
-                continue;
+                return false; // expired host owner must not become a dangling clone input
             }
-            auto mapped=std::dynamic_pointer_cast<spNode>(manager.CloneReferenceForAnalysis(*binding.bone));
+            auto mapped=std::dynamic_pointer_cast<spNode>(manager.CloneReferenceForAnalysis(*bone));
             if(!mapped)return false; // host guard for unavailable/cyclic owner
-            binding.bone=std::move(mapped);
+            binding.SetOwnedBoneForAnalysis(std::move(mapped));
         }
         return true;
     }
@@ -94,7 +95,7 @@ namespace sparkplug::reconstruction
         std::vector<BoneBinding> bindings)
     {
         if (std::any_of(bindings.begin(), bindings.end(),
-                [](const BoneBinding& binding) { return binding.bone == nullptr; }))
+                [](const BoneBinding& binding) { return binding.GetBoneForAnalysis() == nullptr; }))
         {
             return false;
         }
@@ -162,7 +163,8 @@ namespace sparkplug::reconstruction
         for(std::size_t i=0;i<boneBindings_.size();++i)
         {
             const auto& binding=boneBindings_[i];
-            const auto palette=ComposePaletteMatrixForAnalysis(binding.inverseBindMatrix,binding.bone->GetWorldMatrixForAnalysis());
+            const auto bone=binding.GetBoneForAnalysis();if(!bone)return false;
+            const auto palette=ComposePaletteMatrixForAnalysis(binding.inverseBindMatrix,bone->GetWorldMatrixForAnalysis());
             std::memcpy(state.constants.blendMatrices[i].data(),palette.data(),sizeof(palette));
         }
         R::MatrixStateForAnalysis::RawMatrix identity{};

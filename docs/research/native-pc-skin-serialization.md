@@ -58,8 +58,11 @@ Manager/FAT/RTTI переданы как явно подготовленное �
 же helpers и общего resolver. Это устраняет прежний stub только с write plan.
 Источник требует корректный field extent, наличие явного владельца Node,
 не допускает переполнения count и проверяет полное чтение матриц. Эти guards
-строже оригинала. `shared_ptr` сохраняет жизнь костей, vector освобождает
-заменённые массивы; побайтовый heap ABI и исходные утечки не имитируются.
+строже оригинала. После [CP107](native-pc-whole-skin-scene.md) загруженные
+bindings заимствуют кости через weak_ptr к владельцам context/graph; это
+устраняет цикл с ancestor Node. Ручные palettes и clone могут владеть костями
+явно. Vector освобождает заменённые массивы; побайтовый heap ABI и исходные
+утечки не имитируются.
 
 `research/probe_pc_skin_serializer.py` и `compare_pc_skin_serializer.py`
 сверяют **10** сценариев: empty, zero, one, repeat-bone, repeat-field, clear,

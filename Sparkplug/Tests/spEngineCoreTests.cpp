@@ -2241,7 +2241,7 @@ int main()
         Require(skin.SetPaletteForAnalysis(4, {{bone, identity}})
                 && skin.GetWeightCountForAnalysis() == 4
                 && skin.GetBoneCountForAnalysis() == 1
-                && skin.GetBoneBindingsForAnalysis()[0].bone == bone,
+                && skin.GetBoneBindingsForAnalysis()[0].GetBoneForAnalysis() == bone,
             "skin stores weight count and parallel bone/matrix palette");
         Require(!skin.SetPaletteForAnalysis(2, {{nullptr, identity}})
                 && skin.GetWeightCountForAnalysis() == 4
@@ -2268,7 +2268,7 @@ int main()
         Require(skinClone != nullptr
                 && skinClone->GetWeightCountForAnalysis() == 4
                 && skinClone->GetBoneCountForAnalysis() == 1
-                && skinClone->GetBoneBindingsForAnalysis()[0].bone != bone
+                && skinClone->GetBoneBindingsForAnalysis()[0].GetBoneForAnalysis() != bone
                 && skinClone->GetBoneBindingsForAnalysis()[0].inverseBindMatrix == identity,
             "skin clone creates an unmapped bone and preserves inverse-bind matrices");
         auto serializerCloneBase = serializer.Clone();

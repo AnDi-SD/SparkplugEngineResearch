@@ -51,18 +51,27 @@ namespace sparkplug::evidence::pc::node_math
     inline Vector3 Transform(const Vector3& v, const Matrix3& m)
     {
         Vector3 result{};
+        // PC420350 accumulates k=2,1,0 on x87 and rounds only the final
+        // component store. CP107 droid_trail exposes cancellation differences.
         for (std::size_t c = 0; c < 3; ++c)
-            for (std::size_t k = 0; k < 3; ++k)
-                result[c] += v[k] * m[k * 3 + c];
+            result[c] = static_cast<float>((double(v[2]) * m[6 + c]
+                + double(v[1]) * m[3 + c]) + double(v[0]) * m[c]);
         return result;
     }
     inline Matrix3 Multiply(const Matrix3& a, const Matrix3& b)
     {
         Matrix3 result{};
+        // PC420C00 has a different order in individual destination cells.
+        constexpr unsigned order[9][3]={{1,0,2},{2,0,1},{2,0,1},
+            {2,1,0},{2,1,0},{2,1,0},{2,0,1},{0,2,1},{0,2,1}};
         for (std::size_t r = 0; r < 3; ++r)
             for (std::size_t c = 0; c < 3; ++c)
-                for (std::size_t k = 0; k < 3; ++k)
-                    result[r * 3 + c] += a[r * 3 + k] * b[k * 3 + c];
+            {
+                const auto& o=order[r*3+c];
+                double value=double(a[r*3+o[0]])*b[o[0]*3+c];
+                for(unsigned k=1;k<3;++k)value+=double(a[r*3+o[k]])*b[o[k]*3+c];
+                result[r*3+c]=static_cast<float>(value);
+            }
         return result;
     }
     inline Matrix4 Affine(const Vector3& position, const Matrix3& orientation, const Vector3& scale)

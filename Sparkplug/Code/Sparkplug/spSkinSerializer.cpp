@@ -109,7 +109,7 @@ namespace sparkplug::reconstruction
                 // Its borrowed pointer is kept alive by explicit host ownership.
                 auto bone=std::dynamic_pointer_cast<spNode>(context.ShareObjectForAnalysis(raw));
                 if(!bone)return cursor.Fail("Skin bone is null, wrong type or lacks an explicit owner");
-                bindings.push_back({std::move(bone),matrix});
+                bindings.push_back(spSkin::BoneBinding::BorrowedForAnalysis(bone,matrix));
             }
             // Original replaces both arrays without freeing old ones. The
             // portable container deliberately releases replaced storage.
@@ -124,7 +124,10 @@ namespace sparkplug::reconstruction
         auto* skin=dynamic_cast<spSkin*>(&object);
         if(!skin||!IndexModelFieldsForAnalysis(manager,*skin))return false;
         for(const auto& binding:skin->GetBoneBindingsForAnalysis())
-            if(!IndexReferenceForAnalysis(manager,binding.bone.get()))return false;
+        {
+            const auto bone=binding.GetBoneForAnalysis();
+            if(!bone||!IndexReferenceForAnalysis(manager,bone.get()))return false;
+        }
         return true;
     }
 
@@ -142,8 +145,11 @@ namespace sparkplug::reconstruction
         const auto count=static_cast<std::uint32_t>(skin.GetBoneCountForAnalysis());
         if(!stream.WriteData(&weights,4)||!stream.WriteData(&count,4))return false;
         for(const auto& binding:skin.GetBoneBindingsForAnalysis())
-            if(!WriteReferenceForAnalysis(*manager,stream,binding.bone.get(),error)
+        {
+            const auto bone=binding.GetBoneForAnalysis();
+            if(!bone||!WriteReferenceForAnalysis(*manager,stream,bone.get(),error)
                 ||!stream.WriteData(binding.inverseBindMatrix.data(),sizeof(binding.inverseBindMatrix)))return false;
+        }
         return blocks.WriteEndForAnalysis(0)&&blocks.FinalizeObjectForAnalysis();
     }
 
