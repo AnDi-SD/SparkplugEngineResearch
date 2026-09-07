@@ -25,12 +25,13 @@ namespace sparkplug::reconstruction
         {
             return false;
         }
+        if (count > 65536) return false; // host allocation bound, not a native cap
 
         for (std::uint32_t index = 0; index < count; ++index)
         {
             auto entry = std::make_unique<spResourceFATEntryForAnalysis>();
             if (!source.Read(entry->id)
-                || !source.ReadString(entry->name)
+                || !source.ReadString(entry->name, &entry->nameIsNullForAnalysis)
                 || !source.Read(entry->classID)
                 || !source.Read(entry->offset)
                 || !source.Read(entry->size))
@@ -124,7 +125,7 @@ namespace sparkplug::reconstruction
             }
 
             entry->object = resourceManager.FindForAnalysis(
-                entry->classID, entry->name.c_str());
+                entry->classID, entry->GetNameForAnalysis());
             resolvedCount += entry->object != nullptr ? 1U : 0U;
         }
         return resolvedCount;

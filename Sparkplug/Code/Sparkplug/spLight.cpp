@@ -1,4 +1,5 @@
 #include "spLight.h"
+#include "spLightManager.h"
 
 namespace sparkplug::reconstruction
 {
@@ -14,12 +15,28 @@ namespace sparkplug::reconstruction
         };
 
         const bool LightRegistered =
-            spRTTIManager::Instance().Register(LightRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(LightRecord);
     }
 
-    spLight::spLight() noexcept = default;
+    spLight::spLight() noexcept
+    {
+        // PC428D5B: even an empty Node section must refresh constructor light
+        // state before the derived light fields are read (CP91 ambient SMO).
+        MarkLightDataDirtyForAnalysis();
+    }
 
     spLight::~spLight() = default;
+
+    bool spLight::UpdateWorldForAnalysis(std::uint32_t inherited,const Matrix3* camera) noexcept
+    {
+        if(!spNode::UpdateWorldForAnalysis(inherited,camera))return false;
+        if((flags_|inherited)&8u)
+        {
+            flags_&=~8u;
+            if(sceneLightManager_)sceneLightManager_->RefreshRenderTargetsForAnalysis(*this);
+        }
+        return true;
+    }
 
     const spRTTIRecord& spLight::StaticRTTI() noexcept
     {
@@ -53,9 +70,10 @@ namespace sparkplug::reconstruction
         lightDestination.projectShadowVolume_ = projectShadowVolume_;
         lightDestination.lightEnabled_ = lightEnabled_;
 
-        // Exact PS2 copy at 0x0016D9F0 deliberately skips +0xE4. A fresh
+        // Exact PS2 copy at 0x0016D9F0 skips +0xE4. A fresh
         // spLightData clone therefore retains the constructor intensity 1.0.
-        // The protected PC body cannot independently confirm or refute this.
+        // PC428EB0->505CB0 independently confirms omission of +0xD8,
+        // including retention of nondefault intensity in an existing target.
         return true;
     }
 

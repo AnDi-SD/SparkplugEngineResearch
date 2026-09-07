@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool TemplateSerializerRegistered =
-            spRTTIManager::Instance().Register(TemplateSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(TemplateSerializerRecord);
     }
 
     spTemplateSerializer::spTemplateSerializer() noexcept = default;

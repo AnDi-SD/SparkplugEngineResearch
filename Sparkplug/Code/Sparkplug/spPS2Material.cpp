@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2MaterialRegistered =
-            spRTTIManager::Instance().Register(PS2MaterialRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2MaterialRecord);
     }
 
     spPS2Material::spPS2Material() noexcept = default;

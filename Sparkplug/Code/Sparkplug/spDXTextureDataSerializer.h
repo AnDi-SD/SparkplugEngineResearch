@@ -15,6 +15,7 @@ namespace sparkplug::reconstruction
     public:
         static constexpr spClassID ClassID = 0x1C6D480F;
         static constexpr spClassID TargetClassID = 0x0B1C67BB;
+        static constexpr spClassID ActualRegistryWireClassID = 0x78EA082B; // PC6D1850/6D1880, masks6/op2 or1
 
         static constexpr std::uint32_t PCNativeLoadFlagMask = 0x00000002;
         static constexpr std::uint32_t PS2NativeLoadFlagMask = 0x00000008;
@@ -61,6 +62,10 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept override;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
+            const spBaseObject&,std::string*) const override;
 
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             DataSourceKind sourceKind,

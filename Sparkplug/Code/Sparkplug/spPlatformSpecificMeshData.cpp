@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PlatformSpecificMeshDataRegistered =
-            spRTTIManager::Instance().Register(PlatformSpecificMeshDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PlatformSpecificMeshDataRecord);
     }
 
     spPlatformSpecificMeshData::~spPlatformSpecificMeshData() = default;

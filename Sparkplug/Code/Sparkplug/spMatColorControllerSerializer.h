@@ -49,7 +49,7 @@ namespace sparkplug::reconstruction
 
         using EvaluatorPlan = std::array<EvaluatorBinding, 5>;
 
-        spMatColorControllerSerializer() noexcept = default;
+        spMatColorControllerSerializer() noexcept;
         ~spMatColorControllerSerializer() override;
 
         spMatColorControllerSerializer(const spMatColorControllerSerializer&) = delete;
@@ -62,6 +62,9 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 
         [[nodiscard]] static std::vector<Field> BuildWritePlanForAnalysis();
         [[nodiscard]] static EvaluatorPlan BuildEvaluatorPlanForAnalysis() noexcept;

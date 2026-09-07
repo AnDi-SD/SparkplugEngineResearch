@@ -1,4 +1,7 @@
 #include "spColorFuncEvalSerializer.h"
+#include "spColorFuncEval.h"
+#include "spFunctionEvalSerializer.h"
+#include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
 #include <utility>
@@ -22,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool ColorFuncEvalSerializerRegistered =
-            spRTTIManager::Instance().Register(ColorFuncEvalSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(ColorFuncEvalSerializerRecord);
     }
 
     bool spColorFuncEvalSerializer::FieldBinding::operator==(
@@ -34,7 +37,46 @@ namespace sparkplug::reconstruction
             && targetOffset == other.targetOffset;
     }
 
+    spColorFuncEvalSerializer::spColorFuncEvalSerializer() noexcept{(void)spColorFuncEval::StaticRTTI();}
     spColorFuncEvalSerializer::~spColorFuncEvalSerializer() = default;
+    bool spColorFuncEvalSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,spStream& stream,
+        std::uint32_t size,spBaseObject& object,std::string* error) const
+    {return ReadColorFieldsForAnalysis(context,stream,size,object,true,error);}
+    bool spColorFuncEvalSerializer::ReadColorFieldsForAnalysis(spSerializerReadContextForAnalysis& context,spStream& stream,
+        std::uint32_t size,spBaseObject& object,bool exact,std::string* error) const
+    {
+        auto* evaluator=dynamic_cast<spColorFuncEval*>(&object);evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error);
+        if(!evaluator)return cursor.Fail("ColorFuncEval target mismatch");
+        while(const auto* field=cursor.Next())
+        {
+            if(field->IsTerminator())return true;
+            if(field->fieldID>7){if(!cursor.Skip())return cursor.Fail("Cannot skip ColorFuncEval field");continue;}
+            std::uint32_t raw=0;if(!cursor.Read(raw))return cursor.Fail("ColorFuncEval field requires four bytes");
+            if(field->fieldID==0)evaluator->SetColorsForAnalysis(raw,evaluator->GetColor2ForAnalysis());
+            else if(field->fieldID==1)evaluator->SetColorsForAnalysis(evaluator->GetColor1ForAnalysis(),raw);
+            else if(!spFunctionEvalSerializer::ApplyRawStateFieldForAnalysis(evaluator->GetFunctionForAnalysis(),field->fieldID-2,raw))return cursor.Fail("Invalid ColorFunc scalar field");
+        }
+        return false;
+    }
+    bool spColorFuncEvalSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();const auto* evaluator=dynamic_cast<const spColorFuncEval*>(&object);
+        if(!evaluator){if(error)*error="ColorFuncEval writer target mismatch";return false;}
+        const auto& state=evaluator->GetFunctionForAnalysis().GetStateForAnalysis();
+        const std::uint32_t colors[]{evaluator->GetColor1ForAnalysis(),evaluator->GetColor2ForAnalysis()};
+        const float values[]{state.frequency,state.amplitude,state.xOffset,state.yOffset,state.pitch};
+        const auto plan=BuildWritePlanForAnalysis({colors[0],colors[1],state.functionType,state.frequency,state.amplitude,state.xOffset,state.yOffset,state.pitch},0xFF000000u);
+        spDataBlockSerializer blocks;if(!blocks.BeginObjectForAnalysis(stream,evaluator))return false;
+        for(const auto field:plan)
+        {
+            const auto id=static_cast<std::uint32_t>(field);const void* data=id<2?static_cast<const void*>(&colors[id]):id==2?static_cast<const void*>(&state.functionType):static_cast<const void*>(&values[id-3]);
+            if(!blocks.WriteFieldForAnalysis(stream,id,data,4)){if(error)*error="Cannot write ColorFuncEval field";return false;}
+        }
+        if(blocks.FinalizeObjectForAnalysis())return true;
+        if(error)*error="Cannot finish ColorFuncEval section";return false;
+    }
+    bool spColorFuncEvalSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject& object) const
+    {return dynamic_cast<spColorFuncEval*>(&object)!=nullptr;}
 
     const spRTTIRecord& spColorFuncEvalSerializer::StaticRTTI() noexcept
     {

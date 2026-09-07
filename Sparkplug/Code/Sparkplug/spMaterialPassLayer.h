@@ -20,7 +20,7 @@ namespace sparkplug::reconstruction
         static constexpr spClassID ClassID = 0x3A8905A5;
         static constexpr std::size_t MaximumLayerCount = 8;
 
-        spMaterialPassLayer() noexcept = default;
+        spMaterialPassLayer() noexcept;
         ~spMaterialPassLayer() override;
 
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
@@ -34,15 +34,21 @@ namespace sparkplug::reconstruction
             const noexcept;
         void SetFinalBlendOperationForAnalysis(std::uint32_t operation) noexcept;
         [[nodiscard]] std::size_t GetLayerCountForAnalysis() const noexcept;
-        [[nodiscard]] const std::shared_ptr<spMaterialTextureLayer>&
+        [[nodiscard]] const std::unique_ptr<spMaterialTextureLayer>&
             GetLayerForAnalysis(std::size_t index) const noexcept;
         [[nodiscard]] bool SetLayerForAnalysis(std::size_t index,
-            std::shared_ptr<spMaterialTextureLayer> layer) noexcept;
+            std::unique_ptr<spMaterialTextureLayer> layer) noexcept;
+        using UVSubmitForAnalysis=bool (*)(void*,std::uint32_t,const std::array<float,9>&);
+        // PC45F570→4596B0. FFFFFFFF uses each layer's ordinal; otherwise
+        // every layer receives the same requested stage. Native return void;
+        // bool explicitly represents host rejection of an unsafe input.
+        [[nodiscard]] bool UpdateForRenderForAnalysis(std::uint32_t stage,UVSubmitForAnalysis,void*);
 
     private:
         std::uint32_t finalBlendOperation_ = 0;
         std::size_t layerCount_ = 0;
-        std::array<std::shared_ptr<spMaterialTextureLayer>, MaximumLayerCount>
+        // PC45F5E0/45F5B0 directly delete layers; these are not refcounted edges.
+        std::array<std::unique_ptr<spMaterialTextureLayer>, MaximumLayerCount>
             layers_{};
     };
 }

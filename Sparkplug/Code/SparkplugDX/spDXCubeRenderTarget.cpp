@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXCubeRenderTargetRegistered =
-            spRTTIManager::Instance().Register(DXCubeRenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXCubeRenderTargetRecord);
     }
 
     spDXCubeRenderTarget::~spDXCubeRenderTarget() = default;

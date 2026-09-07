@@ -17,7 +17,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MeshRegistered =
-            spRTTIManager::Instance().Register(MeshRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MeshRecord);
     }
 
     spMesh::~spMesh() = default;
@@ -131,6 +131,15 @@ namespace sparkplug::reconstruction
 
     void spMesh::MarkBoundsValidForAnalysis() noexcept
     {
+        boundsValid_ = true;
+    }
+
+    void spMesh::SetBoundsForAnalysis(const BoundingSphere& sphere,
+        const Position& minimum, const Position& maximum) noexcept
+    {
+        boundingSphere_ = sphere;
+        minimum_ = minimum;
+        maximum_ = maximum;
         boundsValid_ = true;
     }
 

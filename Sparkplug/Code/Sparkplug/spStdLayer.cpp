@@ -23,12 +23,12 @@ namespace sparkplug::reconstruction
         };
 
         const bool StdLayerRegistered =
-            spRTTIManager::Instance().Register(StdLayerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(StdLayerRecord);
     }
 
     spStdLayer::spStdLayer()
     {
-        SetMaterialTextureForAnalysis(std::make_shared<spMaterialTexture>());
+        SetMaterialTextureForAnalysis(std::make_unique<spMaterialTexture>());
     }
 
     spStdLayer::~spStdLayer() = default;

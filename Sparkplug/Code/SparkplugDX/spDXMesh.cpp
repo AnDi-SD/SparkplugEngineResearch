@@ -10,14 +10,18 @@
 #include "spDXIndexBuffer.h"
 #include "spDXSharedMeshData.h"
 #include "spDXVertexBuffer.h"
+#include "spDXRenderer.h"
 
 #include "../Sparkplug/spDataBlockSerializer.h"
 #include "../Sparkplug/spMeshData.h"
+#include "../Sparkplug/spMeshDataSerializer.h"
 #include "../Sparkplug/spResourceFATSerializer.h"
 #include "../Sparkplug/spResourceManager.h"
+#include "../Sparkplug/spSerializerManager.h"
 #include "../Sparkplug/spVertexBuffer.h"
 
 #include <cstring>
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <utility>
@@ -27,6 +31,80 @@ namespace sparkplug::reconstruction
 {
     namespace
     {
+        struct PCMeshBounds
+        {
+            spMesh::BoundingSphere sphere{};
+            spMesh::Position minimum{}, maximum{};
+        };
+
+        // PC424230 -> 468370/468000. Sphere scans every vertex; the separate
+        // AABB scans primitiveCount uint16 words even for a uint32 index stream.
+        // Keep the older decoded-position analytical helper independent.
+        bool ComputePCMeshBounds(const spIndexBuffer& indices,
+            const spVertexBuffer& vertices, const std::vector<std::byte>& indexBytes,
+            PCMeshBounds& result) noexcept
+        {
+            const auto& bytes = vertices.GetDataForAnalysis();
+            const std::size_t stride = vertices.GetVertexStrideForAnalysis();
+            const std::size_t count = vertices.GetVertexCountForAnalysis();
+            if (stride < 12 || count > bytes.size() / stride
+                || indices.GetPrimitiveCountForAnalysis() > indexBytes.size() / 2)
+                return false;
+            const auto position = [&](std::size_t index) {
+                spMesh::Position value{};
+                std::memcpy(value.data(), bytes.data() + index * stride, 12);
+                return value;
+            };
+            const float high = std::numeric_limits<float>::max();
+            spMesh::Position low{high, high, high}, upper{-high, -high, -high};
+            for (std::size_t i = 0; i < count; ++i)
+            {
+                const auto v = position(i);
+                for (std::size_t c = 0; c < 3; ++c)
+                {
+                    if (low[c] > v[c]) low[c] = v[c];
+                    if (upper[c] < v[c]) upper[c] = v[c];
+                }
+            }
+            // Match the explicit float stores between the x87 operations.
+            for (std::size_t c = 0; c < 3; ++c)
+            {
+                const float extent = static_cast<float>(double(upper[c]) - low[c]);
+                const double sum = double(upper[c]) + low[c];
+                const float center = static_cast<float>((c < 2 ? double(static_cast<float>(sum)) : sum) * .5);
+                const double half = double(extent) * .5;
+                const float first = static_cast<float>(double(center) - half);
+                const double last = double(center) + half;
+                const double joined = (c == 0 ? double(static_cast<float>(last)) : last) + first;
+                result.sphere[c] = static_cast<float>((c < 2 ? double(static_cast<float>(joined)) : joined) * .5);
+            }
+            float radiusSquared = 0;
+            for (std::size_t i = 0; i < count; ++i)
+            {
+                const auto v = position(i);
+                const double x = double(v[0]) - result.sphere[0];
+                const double y = double(v[1]) - result.sphere[1];
+                const double z = double(v[2]) - result.sphere[2];
+                const double distance = (z*z + y*y) + x*x;
+                if (distance > radiusSquared) radiusSquared = static_cast<float>(distance);
+            }
+            result.sphere[3] = static_cast<float>(std::sqrt(double(radiusSquared)));
+            result.minimum = {high, high, high}; result.maximum = {-high, -high, -high};
+            for (std::size_t i = 0; i < indices.GetPrimitiveCountForAnalysis(); ++i)
+            {
+                std::uint16_t index = 0;
+                std::memcpy(&index, indexBytes.data() + i * 2, 2);
+                if (index >= count) return false; // native has no range guard
+                const auto v = position(index);
+                for (std::size_t c = 0; c < 3; ++c)
+                {
+                    if (v[c] < result.minimum[c]) result.minimum[c] = v[c];
+                    if (v[c] > result.maximum[c]) result.maximum[c] = v[c];
+                }
+            }
+            return true;
+        }
+
         std::unique_ptr<spBaseObject> CreateDXSerializerHook()
         {
             return std::make_unique<spDXSerializerHook>();
@@ -42,7 +120,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXSerializerHookRegistered =
-            spRTTIManager::Instance().Register(DXSerializerHookRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXSerializerHookRecord);
 
         std::unique_ptr<spBaseObject> CreateDXMesh()
         {
@@ -59,7 +137,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXMeshRegistered =
-            spRTTIManager::Instance().Register(DXMeshRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXMeshRecord);
 
         std::unique_ptr<spBaseObject> CreateDXMeshSerializer()
         {
@@ -76,7 +154,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXMeshSerializerRegistered =
-            spRTTIManager::Instance().Register(DXMeshSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXMeshSerializerRecord);
 
         [[nodiscard]] bool AddWithoutOverflow(
             std::uint32_t& destination,
@@ -118,20 +196,30 @@ namespace sparkplug::reconstruction
         spResourceFATHelperForAnalysis* const fatHelper,
         spStream& source)
     {
+        const auto* manager = spSerializerManager::GetInstance();
+        // Missing host manager does not create an implicit process-owned
+        // singleton. Native would lazily create one with default platform0.
+        (void)PrepareForAnalysis(manager ? manager->GetPlatformMaskForAnalysis() : 0,
+            spResourceManager::GetInstance(), fatHelper, source);
+    }
+
+    bool spDXSerializerHook::PrepareForAnalysis(std::uint32_t platformMask,
+        const spResourceManager* resources, spResourceFATHelperForAnalysis* fatHelper,
+        spStream& source)
+    {
         lastBatchPlan_.clear();
-        if (fatHelper == nullptr)
-        {
-            return;
-        }
+        if ((platformMask & spSerializerManager::PlatformPC) == 0) return true;
+        if (fatHelper == nullptr) return false;
 
         // Native PC probes the resource cache before reading an unresolved
         // spMeshData payload. Reuse the already reconstructed common helper.
-        if (const auto* const resources = spResourceManager::GetInstance();
-            resources != nullptr)
+        if (resources != nullptr)
         {
-            (void)fatHelper->ResolveCachedResourcesForAnalysis(*resources);
+            for (auto* entry = fatHelper->FirstForAnalysis(); entry; entry = fatHelper->NextForAnalysis())
+                if (!entry->object && entry->classID == spMeshData::ClassID)
+                    entry->object = resources->FindForAnalysis(entry->classID, entry->GetNameForAnalysis());
         }
-        (void)BuildBatchPlanForAnalysis(*fatHelper, source, lastBatchPlan_);
+        return BuildBatchPlanForAnalysis(*fatHelper, source, lastBatchPlan_);
     }
 
     bool spDXSerializerHook::ReadDXMeshDataInfoForAnalysis(
@@ -297,6 +385,72 @@ namespace sparkplug::reconstruction
     spDXSerializerHook::GetLastBatchPlanForAnalysis() const noexcept
     {
         return lastBatchPlan_;
+    }
+
+    bool spDXSerializerHook::MaterializePreparedForAnalysis(spStream& source,
+        spSerializerReadContextForAnalysis& context,std::string* error)
+    {
+        if(error)error->clear();
+        const auto fail=[&](const char* message){context.failed=true;if(error&&error->empty())*error=message;return false;};
+        if(context.failed||context.depth||context.activeMeshCombiner)return fail("Invalid mesh batch context");
+        if(lastBatchPlan_.empty())return true;
+        if(!context.pcRenderer)return fail("PC mesh batches require an explicit analytical renderer");
+        auto* fat=context.manager.GetFATForAnalysis();
+        std::uint32_t size=0;
+        if(!fat||!source.GetSize(&size)||source.GetLogicalOriginForAnalysis()>size)return fail("Invalid mesh batch stream");
+        size-=source.GetLogicalOriginForAnalysis();
+        std::uint64_t budget=0;
+        try
+        {
+            for(const auto& batch:lastBatchPlan_)
+            {
+                budget+=std::uint64_t(batch.vertexDataSize)+batch.indexDataSize;
+                if(!batch.vertexCount||budget>2ull*spMeshDataSerializer::MaximumPayloadBytesForAnalysis)
+                    return fail("Mesh batch allocation budget exceeded or empty batch");
+                spDXMeshCombiner combiner;
+                if(!combiner.InitializeForAnalysis(batch.fvfCode,batch.vertexCount,batch.vertexDataSize,batch.indexDataSize))
+                    return fail("Cannot initialize bounded mesh combiner");
+                for(auto id:batch.resourceIDs)
+                {
+                    auto* entry=fat->FindByIDForAnalysis(id);
+                    if(!entry||entry->object||entry->fileID||entry->classID!=spMeshData::ClassID)
+                        return fail("Prepared mesh entry changed or is external");
+                    if(entry->offset>size||entry->size<8||entry->size>size-entry->offset||
+                        entry->offset>std::uint32_t(std::numeric_limits<std::int32_t>::max())||
+                        !source.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(entry->offset)))
+                        return fail("Invalid mesh FAT extent or seek failure");
+                    auto* serializer=context.manager.FindForAnalysis(entry->classID);
+                    if(!serializer||context.createdObjects.size()>=4096)return fail("Missing mesh serializer or object budget exceeded");
+                    auto object=serializer->ReadObjectHeaderAndCreateForAnalysis(source);
+                    if(!object)return fail("Mesh header/factory failed");
+                    auto* pointer=object.get();context.createdObjects.push_back(std::move(object));
+                    bool loaded=false;
+                    {
+                        struct BatchScope final
+                        {
+                            spSerializerReadContextForAnalysis& context;
+                            BatchScope(spSerializerReadContextForAnalysis& c,spDXMeshCombiner& b):context(c)
+                            {context.activeMeshCombiner=&b;++context.depth;}
+                            ~BatchScope(){--context.depth;context.activeMeshCombiner=nullptr;}
+                        } scope(context,combiner);
+                        loaded=serializer->ReadPayloadForAnalysis(context,source,entry->size-8,*pointer,error);
+                    }
+                    std::uint32_t end=0;
+                    if(!loaded||context.failed||!source.GetCurrentPosition(end)||end!=entry->offset+entry->size)
+                        return fail("Mesh payload failed or did not consume its exact extent");
+                    // Unlike generic ReadReference/outer materialization,
+                    // original4AA870 publishes only AFTER successful payload.
+                    entry->object=pointer;
+                    if(pointer->IsKindOf(spNamedObject::ClassID))
+                        if(auto* named=dynamic_cast<spNamedObject*>(pointer))named->SetName(entry->GetNameForAnalysis());
+                }
+                if(!combiner.IsFullForAnalysis())return fail("Mesh batch did not reach declared vertex count");
+                // Host owns this temporary: destructor drops its wrapper refs.
+                // Original hook leaves the combiner allocated (documented).
+            }
+        }
+        catch(...){return fail("Host mesh batch allocation failed");}
+        return true;
     }
 
     bool spDXMeshCombiner::IsFullForAnalysis() const noexcept
@@ -528,7 +682,7 @@ namespace sparkplug::reconstruction
         return fvf;
     }
 
-    std::uint32_t spDXMesh::TextureCoordinateCountForAnalysis(
+    std::uint32_t spDXMesh::ComponentWeightCountForAnalysis(
         const std::uint32_t componentFlags) noexcept
     {
         if ((componentFlags & 0x10U) != 0)
@@ -697,7 +851,8 @@ namespace sparkplug::reconstruction
         const spIndexBuffer& indices,
         const spVertexBuffer& vertices,
         const bool keepCPUData,
-        spDXMeshCombiner* const combiner)
+        spDXMeshCombiner* const combiner,
+        spDXRenderer* const renderer)
     {
         std::vector<std::byte> nextIndices;
         std::vector<std::byte> nextVertices;
@@ -709,8 +864,16 @@ namespace sparkplug::reconstruction
             return false;
         }
 
+        PCMeshBounds nextBounds;
+        if (!ComputePCMeshBounds(indices, vertices, nextIndices, nextBounds))
+            return false;
+
         const auto fvf = ComponentFlagsToFVFForAnalysis(
             vertices.GetComponentFlagsForAnalysis());
+        auto nextDeclaration=renderer
+            ? renderer->GetVertexDeclarationForAnalysis(vertices.GetComponentFlagsForAnalysis())
+            : nullptr;
+        if(renderer&&!nextDeclaration)return false;
         std::shared_ptr<spDXIndexBuffer> nextIndexBuffer;
         std::shared_ptr<spDXVertexBuffer> nextVertexBuffer;
         std::uint32_t nextIndexBegin = 0;
@@ -718,13 +881,15 @@ namespace sparkplug::reconstruction
 
         if (combiner != nullptr)
         {
+            // Native planning header may contain engine mask940, whereas this
+            // mesh FVF is152 (unchanged logo_screen.smo). Do not equate those
+            // two domains. Capacity/range validation below remains strict.
             nextIndexBuffer = combiner->GetIndexBufferForAnalysis();
             nextVertexBuffer = combiner->GetVertexBufferForAnalysis();
             nextIndexBegin = combiner->GetWrittenIndexCountForAnalysis();
             nextVertexBegin = combiner->GetWrittenVertexCountForAnalysis();
             if (!combiner->IsLockedForAnalysis()
                 || nextIndexBuffer == nullptr || nextVertexBuffer == nullptr
-                || combiner->GetFVFCodeForAnalysis() != fvf
                 || nextVertexBegin > combiner->GetTargetVertexCountForAnalysis()
                 || vertices.GetVertexCountForAnalysis()
                     > combiner->GetTargetVertexCountForAnalysis()
@@ -795,16 +960,17 @@ namespace sparkplug::reconstruction
             * indices.GetIndexElementSizeForAnalysis());
         vertexByteSize_ = nextStride * vertices.GetVertexCountForAnalysis();
         fvfCode_ = fvf;
+        vertexDeclaration_=std::move(nextDeclaration);
         vertexStride_ = nextStride;
         indexBegin_ = nextIndexBegin;
         vertexBegin_ = nextVertexBegin;
-        textureCoordinateCount_ = TextureCoordinateCountForAnalysis(
+        componentWeightCount_ = ComponentWeightCountForAnalysis(
             vertices.GetComponentFlagsForAnalysis());
         SetMeshMetadataForAnalysis(
             vertices.GetComponentFlagsForAnalysis(),
             indices.GetPrimitiveCountForAnalysis(),
             vertices.GetVertexCountForAnalysis());
-        MarkBoundsValidForAnalysis();
+        SetBoundsForAnalysis(nextBounds.sphere, nextBounds.minimum, nextBounds.maximum);
         return true;
     }
 
@@ -860,8 +1026,8 @@ namespace sparkplug::reconstruction
         vertexStride_ = vertexStride;
         indexBegin_ = indexBegin;
         vertexBegin_ = vertexBegin;
-        textureCoordinateCount_ =
-            TextureCoordinateCountForAnalysis(vertexComponentFlags);
+        componentWeightCount_ =
+            ComponentWeightCountForAnalysis(vertexComponentFlags);
         SetMeshMetadataForAnalysis(vertexComponentFlags,
             PrimitiveCountForAnalysis(indexType, indexCount), vertexCount);
         if (boundingSphere != nullptr)
@@ -877,6 +1043,7 @@ namespace sparkplug::reconstruction
         indexBuffer_.reset();
         vertexBuffer_.reset();
         sharedData_.reset();
+        vertexDeclaration_.reset();
         std::vector<std::byte>{}.swap(cpuIndexData_);
         std::vector<std::byte>{}.swap(cpuVertexData_);
         fvfCode_ = 0;
@@ -949,15 +1116,15 @@ namespace sparkplug::reconstruction
     }
 
     std::uint32_t
-    spDXMesh::GetTextureCoordinateCountForAnalysis() const noexcept
+    spDXMesh::GetComponentWeightCountForAnalysis() const noexcept
     {
-        return textureCoordinateCount_;
+        return componentWeightCount_;
     }
 
-    std::uint32_t
-    spDXMesh::GetRendererVertexFormatCodeForAnalysis() const noexcept
+    std::shared_ptr<spPCVertexDeclaration>
+    spDXMesh::GetVertexDeclarationForAnalysis() const noexcept
     {
-        return rendererVertexFormatCode_;
+        return vertexDeclaration_;
     }
 
     spDXMeshSerializer::~spDXMeshSerializer() = default;

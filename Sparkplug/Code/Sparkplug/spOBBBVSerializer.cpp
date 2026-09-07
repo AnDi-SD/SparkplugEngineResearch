@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool OBBBVSerializerRegistered =
-            spRTTIManager::Instance().Register(OBBBVSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(OBBBVSerializerRecord);
 
         constexpr spOBBBVSerializer::Matrix3 IdentityMatrix{
             1.0F, 0.0F, 0.0F,

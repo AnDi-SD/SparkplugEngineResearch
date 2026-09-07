@@ -1,6 +1,9 @@
 #include "spRenderableSerializer.h"
 
 #include "spRenderable.h"
+#include "spMaterial.h"
+#include "spFog.h"
+#include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
 #include <utility>
@@ -24,7 +27,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool RenderableSerializerRegistered =
-            spRTTIManager::Instance().Register(RenderableSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(RenderableSerializerRecord);
     }
 
     spRenderableSerializer::~spRenderableSerializer() = default;
@@ -53,6 +56,97 @@ namespace sparkplug::reconstruction
     spClassID spRenderableSerializer::GetTargetClassIDForAnalysis() const noexcept
     {
         return spRenderable::ClassID;
+    }
+
+    bool spRenderableSerializer::ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spRenderable& object,bool exact,std::string* error) const
+    {
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error);
+        while(const auto* header=cursor.Next())
+        {
+            if(header->IsTerminator())return true;
+            if(header->fieldID<2)
+            {
+                const auto expected=header->fieldID==0?spMaterial::ClassID:spFog::ClassID;
+                auto* raw=ReadFieldReferenceForAnalysis(context,expected,stream,*header,error);
+                if(context.failed)return false;
+                auto owner=context.ShareObjectForAnalysis(raw);
+                if(raw&&(!owner||!raw->IsKindOf(expected)))return cursor.Fail("Renderable relationship type/owner mismatch");
+                if(header->fieldID==0)object.SetMaterialForAnalysis(std::move(owner));else object.SetFogForAnalysis(std::move(owner));
+            }
+            else if(header->fieldID==2||header->fieldID==3)
+            {
+                std::uint32_t value=0;if(!cursor.Read(value))return cursor.Fail("Invalid Renderable UInt32 scalar");
+                if(header->fieldID==2)object.SetAlphaSortEnabledForAnalysis(value!=0);else object.SetPriorityForAnalysis(value);
+            }
+            else if(!cursor.Skip())return cursor.Fail("Cannot skip Renderable field");
+        }
+        return false;
+    }
+
+    bool spRenderableSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();auto* target=dynamic_cast<spRenderable*>(&object);
+        if(!target||GetTargetClassIDForAnalysis()!=spRenderable::ClassID)
+        {context.failed=true;if(error)*error="Derived Renderable serializer requires own section adapter";return false;}
+        return ReadRenderableFieldsForAnalysis(context,stream,size,*target,true,error);
+    }
+
+    bool spRenderableSerializer::IndexRenderableFieldsForAnalysis(spSerializerManager& manager,spRenderable& object) const
+    {
+        return IndexReferenceForAnalysis(manager,object.GetMaterialForAnalysis().get())
+            &&IndexReferenceForAnalysis(manager,object.GetFogForAnalysis().get());
+    }
+
+    bool spRenderableSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
+    {
+        auto* target=dynamic_cast<spRenderable*>(&object);
+        return target&&GetTargetClassIDForAnalysis()==spRenderable::ClassID&&IndexRenderableFieldsForAnalysis(manager,*target);
+    }
+
+    bool spRenderableSerializer::WriteRenderableFieldsForAnalysis(spSerializerManager* manager,spStream& stream,
+        const spRenderable& object,std::string* error) const
+    {
+        if(error)error->clear();
+        if(!manager&&(object.GetMaterialForAnalysis()||object.GetFogForAnalysis()))
+        {if(error)*error="Renderable graph writer requires explicit manager";return false;}
+        spDataBlockSerializer blocks;if(!blocks.BeginObjectForAnalysis(stream,&object))return false;
+        for(auto field:BuildKnownWritePlanForAnalysis(object))
+        {
+            const auto id=static_cast<std::uint32_t>(field);
+            if(id<2)
+            {
+                auto* target=(id==0?object.GetMaterialForAnalysis():object.GetFogForAnalysis()).get();
+                if(!target->IsKindOf(id==0?spMaterial::ClassID:spFog::ClassID))
+                {if(error)*error="Renderable write relationship type mismatch";return false;}
+                if(!blocks.WriteBeginForAnalysis(id,spDataBlockSerializer::SizeCode::UInt32)
+                    ||!WriteReferenceForAnalysis(*manager,stream,target,error)||!blocks.WriteEndForAnalysis(id))return false;
+            }
+            else
+            {
+                const std::uint32_t value=id==2?std::uint32_t(object.IsAlphaSortEnabledForAnalysis()):object.GetPriorityForAnalysis();
+                if(!blocks.WriteFieldForAnalysis(stream,id,&value,sizeof(value)))return false;
+            }
+        }
+        return blocks.FinalizeObjectForAnalysis();
+    }
+
+    bool spRenderableSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const
+    {
+        const auto* target=dynamic_cast<const spRenderable*>(&object);
+        if(!target||GetTargetClassIDForAnalysis()!=spRenderable::ClassID)
+        {if(error)*error="Derived Renderable writer requires own section adapter";return false;}
+        return WriteRenderableFieldsForAnalysis(nullptr,stream,*target,error);
+    }
+
+    bool spRenderableSerializer::WritePayloadWithContextForAnalysis(spSerializerManager& manager,
+        spStream& stream,const spBaseObject& object,std::string* error) const
+    {
+        const auto* target=dynamic_cast<const spRenderable*>(&object);
+        if(!target||GetTargetClassIDForAnalysis()!=spRenderable::ClassID)
+        {if(error)*error="Derived Renderable writer requires own section adapter";return false;}
+        return WriteRenderableFieldsForAnalysis(&manager,stream,*target,error);
     }
 
     std::vector<spRenderableSerializer::Field>

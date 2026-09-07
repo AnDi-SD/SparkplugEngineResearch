@@ -97,6 +97,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::uint32_t GetPlatformMaskForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetOperationMaskForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetSerializationPolicyForAnalysis() const noexcept;
+        // Explicit bounded caller configuration for native policy18; not native startup.
+        [[nodiscard]] bool SetSerializationPolicyForAnalysis(std::uint32_t policy) noexcept;
         [[nodiscard]] std::size_t GetRegistrationCountForAnalysis() const noexcept;
         [[nodiscard]] spResourceFATHelperForAnalysis* GetFATForAnalysis() noexcept;
         [[nodiscard]] const spResourceFATHelperForAnalysis*
@@ -117,6 +119,26 @@ namespace sparkplug::reconstruction
             spStream& source,
             std::uint32_t nativePlatformMask,
             spSerializerFileHeader* header = nullptr);
+
+        // PC422940: iterate insertion order; pre-materialized entries do not
+        // select the return root. Cache lookup precedes seek/dispatch. Fresh
+        // addresses are published before payloads. Host bounds/failure policy
+        // is explicit; unsupported external-file IDs fail without native's
+        // discarded lookup result/empty-root ambiguity.
+        [[nodiscard]] spBaseObject* MaterializeResourcesForAnalysis(
+            spStream& source, spSerializerReadContextForAnalysis& context,
+            std::string* error = nullptr);
+
+        // PC422B50 generic file flow, NOT scene-only422550. Existing header,
+        // FAT, PC hook preparation and concrete payload adapters are used.
+        // Nonempty DX batches require context.pcRenderer and supported concrete
+        // mesh serializers; unsupported graph payloads still fail explicitly.
+        // Successful return is owned by context, not FAT. Stream origin advances
+        // as native; caller must explicitly reopen/reset origin for another file.
+        // Host clears FAT on every exit; original early failures can retain it.
+        [[nodiscard]] spBaseObject* LoadResourcesForAnalysis(
+            spStream& source, spSerializerReadContextForAnalysis& context,
+            std::string* error = nullptr);
 
     private:
         struct Registration final

@@ -1,8 +1,9 @@
 #include "spRenderNode.h"
 
 #include <algorithm>
-#include <unordered_map>
 #include <utility>
+#include <cstring>
+#include "Analysis/PC/spRenderNodeContext.h"
 
 namespace sparkplug::reconstruction
 {
@@ -14,16 +15,22 @@ namespace sparkplug::reconstruction
         }
 
         const spRTTIRecord RenderNodeRecord{
-            spRenderNode::ClassID,
-            spNode::ClassID,
-            "spRenderNode",
-            &spNode::StaticRTTI(),
-            &CreateRenderNode,
-            nullptr,
+            spRenderNode::ClassID, spNode::ClassID,   "spRenderNode",
+            &spNode::StaticRTTI(), &CreateRenderNode, nullptr,
         };
 
-        const bool RenderNodeRegistered =
-            spRTTIManager::Instance().Register(RenderNodeRecord);
+        const bool RenderNodeRegistered = spRTTIManager::Instance().RegisterDeferredForAnalysis(RenderNodeRecord);
+    } // namespace
+
+    bool spRenderNode::PrepareForRenderForAnalysis(evidence::pc::RenderNodeContextForAnalysis& state) noexcept
+    {
+        if(!state.preserveLightSelection)state.currentLights=&lightCache_;
+        UpdateRenderMatricesForAnalysis();
+        if(!state.matrices)return false;
+        spDXRenderer::MatrixStateForAnalysis::RawMatrix words{};
+        std::memcpy(words.data(),cachedMatrix_.data(),sizeof(words));
+        if(!spDXRenderer::SetInputMatrixForAnalysis(*state.matrices,0,words,0,state.setMatrix,state.deviceContext))return false;
+        state.currentSphere=worldSphere_;return true;
     }
 
     spRenderNode::~spRenderNode()
@@ -37,28 +44,26 @@ namespace sparkplug::reconstruction
         return RenderNodeRecord;
     }
 
-    std::unique_ptr<spBaseObject> spRenderNode::vfunc_10(
-        spCloneManager& manager) const
+    std::unique_ptr<spBaseObject> spRenderNode::vfunc_10(spCloneManager& manager) const
     {
         auto clone = std::make_unique<spRenderNode>();
         manager.RegisterClone(*this, *clone);
         return vfunc_14(*clone, manager) ? std::move(clone) : nullptr;
     }
 
-    bool spRenderNode::vfunc_14(
-        spBaseObject& destination,
-        spCloneManager& manager) const
+    bool spRenderNode::vfunc_14(spBaseObject& destination, spCloneManager& manager) const
     {
         auto* renderNode = dynamic_cast<spRenderNode*>(&destination);
-        if (renderNode == nullptr)
+        // Native424980 copies Node first, then support469FB0. Host rejects
+        // self-copy: native self-append traversal is not a bounded operation.
+        if (renderNode == nullptr || renderNode == this)
         {
             return false;
         }
-
-        std::vector<std::shared_ptr<spRenderable>> clonedRenderables;
-        clonedRenderables.reserve(renderables_.size());
-        std::unordered_map<const spRenderable*, std::shared_ptr<spRenderable>>
-            localClones;
+        if (!spNode::vfunc_14(destination, manager))
+            return false;
+        renderNode->localSphere_ = localSphere_;
+        renderNode->worldSphere_ = worldSphere_;
 
         for (const auto& renderable : renderables_)
         {
@@ -67,14 +72,10 @@ namespace sparkplug::reconstruction
                 return false;
             }
 
-            const auto known = localClones.find(renderable.get());
-            if (known != localClones.end())
-            {
-                clonedRenderables.push_back(known->second);
-                continue;
-            }
-
-            auto cloneBase = renderable->vfunc_10(manager);
+            // PC support calls412BE0 (always clone), NOT map-aware4D3810.
+            // Repeated renderable references deliberately become separate
+            // model objects; each model still shares its mesh relationship.
+            auto cloneBase = manager.Clone(*renderable);
             auto* clone = dynamic_cast<spRenderable*>(cloneBase.get());
             if (clone == nullptr)
             {
@@ -83,17 +84,16 @@ namespace sparkplug::reconstruction
 
             std::shared_ptr<spRenderable> ownedClone(
                 static_cast<spRenderable*>(cloneBase.release()));
-            localClones.emplace(renderable.get(), ownedClone);
-            clonedRenderables.push_back(std::move(ownedClone));
+            if (!renderNode->AttachRenderableForAnalysis(std::move(ownedClone)))
+                return false;
         }
-
-        if (!spNode::vfunc_14(destination, manager))
-        {
-            return false;
-        }
-
-        renderNode->renderables_ = std::move(clonedRenderables);
-        renderNode->renderableBoundsDirty_ = renderableBoundsDirty_;
+        // Source spheres are written AGAIN after per-append recomputations.
+        // Native copy appends to destination; matrices, dirty134, light cache
+        // and scene ownership remain destination state, not source state.
+        renderNode->localSphere_ = localSphere_;
+        renderNode->worldSphere_ = worldSphere_;
+        renderNode->supportControls_ = supportControls_;
+        renderNode->cullBypass_ = cullBypass_;
         return true;
     }
 
@@ -107,8 +107,7 @@ namespace sparkplug::reconstruction
         return renderables_.size();
     }
 
-    spRenderable* spRenderNode::GetRenderableForAnalysis(
-        const std::size_t index) noexcept
+    spRenderable* spRenderNode::GetRenderableForAnalysis(const std::size_t index) noexcept
     {
         return index < renderables_.size() ? renderables_[index].get() : nullptr;
     }
@@ -119,15 +118,14 @@ namespace sparkplug::reconstruction
         return index < renderables_.size() ? renderables_[index].get() : nullptr;
     }
 
-    bool spRenderNode::AttachRenderableForAnalysis(
-        std::shared_ptr<spRenderable> renderable)
+    bool spRenderNode::AttachRenderableForAnalysis(std::shared_ptr<spRenderable> renderable)
     {
         if (renderable == nullptr)
         {
             return false;
         }
         renderables_.push_back(std::move(renderable));
-        renderableBoundsDirty_ = true;
+        RebuildRenderableBoundsForAnalysis();
         return true;
     }
 
@@ -135,12 +133,8 @@ namespace sparkplug::reconstruction
         spRenderable& renderable) noexcept
     {
         const auto iterator = std::find_if(
-            renderables_.begin(),
-            renderables_.end(),
-            [&renderable](const auto& candidate)
-            {
-                return candidate.get() == &renderable;
-            });
+            renderables_.begin(), renderables_.end(),
+            [&renderable](const auto& candidate) { return candidate.get() == &renderable; });
         if (iterator == renderables_.end())
         {
             return nullptr;
@@ -148,7 +142,9 @@ namespace sparkplug::reconstruction
 
         auto detached = std::move(*iterator);
         renderables_.erase(iterator);
-        renderableBoundsDirty_ = true;
+        // Host ownership-transfer helper; the individual native removal entry
+        // has not yet been independently executed. Keep cached bounds coherent.
+        RebuildRenderableBoundsForAnalysis();
         return detached;
     }
 
@@ -157,17 +153,129 @@ namespace sparkplug::reconstruction
         if (!renderables_.empty())
         {
             renderables_.clear();
-            renderableBoundsDirty_ = true;
+            RebuildRenderableBoundsForAnalysis();
         }
     }
 
     bool spRenderNode::AreRenderableBoundsDirtyForAnalysis() const noexcept
     {
-        return renderableBoundsDirty_;
+        return (flags_ & 2U) != 0;
+    }
+
+    void spRenderNode::MarkRenderableBoundsDirtyForAnalysis() noexcept
+    {
+        flags_ |= 2U;
     }
 
     void spRenderNode::MarkRenderableBoundsCleanForAnalysis() noexcept
     {
-        renderableBoundsDirty_ = false;
+        flags_ &= ~2U;
     }
-}
+
+    void spRenderNode::RebuildRenderableBoundsForAnalysis() noexcept
+    {
+        // Native469820 resets only radius, retaining the old center when no
+        // non-tiny sphere contributes. Geometry validity is not a draw gate.
+        localSphere_[3] = 0;
+        for (const auto& renderable : renderables_)
+            evidence::pc::render_node_math::Merge(localSphere_,
+                                                  renderable->GetBoundingSphereForAnalysis());
+        worldSphere_ =
+            evidence::pc::render_node_math::FromCachedMatrix(localSphere_, cachedMatrix_);
+    }
+
+    const spRenderNode::BoundingSphere& spRenderNode::GetLocalBoundingSphereForAnalysis()
+        const noexcept
+    {
+        return localSphere_;
+    }
+
+    const spRenderNode::BoundingSphere& spRenderNode::GetWorldBoundingSphereForAnalysis()
+        const noexcept
+    {
+        return worldSphere_;
+    }
+
+    bool spRenderNode::UpdateWorldForAnalysis(const std::uint32_t inheritedFlags,
+                                              const Matrix3* cameraOrientation) noexcept
+    {
+        const auto captured = flags_ | inheritedFlags;
+        if (!spNode::UpdateWorldForAnalysis(inheritedFlags, cameraOrientation))
+            return false;
+        for (std::size_t i = 0; i < 3; ++i)
+            reciprocalWorldScale_[i] = 1.F / GetWorldScaleForAnalysis()[i];
+        if (flags_ & (BillboardAxis1Mask | BillboardAxis2Mask))
+            MarkLocalTransformDirtyForAnalysis(); // arms next frame AFTER capture
+        if (captured & 2U)
+            RebuildRenderableBoundsForAnalysis();
+        if (captured & 1U)
+        {
+            renderMatricesDirty_ = true;
+            worldSphere_ = evidence::pc::render_node_math::FromPRS(
+                localSphere_, GetWorldPositionForAnalysis(), GetWorldOrientationForAnalysis(),
+                GetWorldScaleForAnalysis());
+            if (sceneLightManager_ && supportControls_[3] && IsEnabledForAnalysis())
+                sceneLightManager_->RebuildCacheForAnalysis(lightCache_, worldSphere_,
+                                                            supportControls_[1] != 0);
+            // Native424EF0 partition/callback refresh follows here when a
+            // Scene exists. That unrepresented ownership graph is not faked.
+        }
+        return true;
+    }
+
+    void spRenderNode::UpdateRenderMatricesForAnalysis() noexcept
+    {
+        if (!renderMatricesDirty_)
+            return;
+        cachedMatrix_ = GetWorldMatrixForAnalysis();
+        cachedInverse_ = evidence::pc::render_node_math::InversePRS(
+            GetWorldPositionForAnalysis(), GetWorldOrientationForAnalysis(), reciprocalWorldScale_);
+        renderMatricesDirty_ = false;
+    }
+
+    bool spRenderNode::AreRenderMatricesDirtyForAnalysis() const noexcept
+    {
+        return renderMatricesDirty_;
+    }
+    const spNode::Matrix4& spRenderNode::GetCachedRenderMatrixForAnalysis() const noexcept
+    {
+        return cachedMatrix_;
+    }
+    const spNode::Matrix4& spRenderNode::GetCachedRenderInverseForAnalysis() const noexcept
+    {
+        return cachedInverse_;
+    }
+    const spNode::Vector3& spRenderNode::GetReciprocalWorldScaleForAnalysis() const noexcept
+    {
+        return reciprocalWorldScale_;
+    }
+
+    bool spRenderNode::IsCulledForAnalysis(const FrustumPlanes& planes) const noexcept
+    {
+        return evidence::pc::render_node_math::Culled(worldSphere_, planes, cullBypass_);
+    }
+
+    void spRenderNode::SetCullBypassForAnalysis(bool value) noexcept
+    {
+        cullBypass_ = value;
+    }
+    void spRenderNode::SetSceneLightManagerForAnalysis(const spLightManager* manager) noexcept
+    {
+        sceneLightManager_ = manager;
+    }
+    const spLightManager::CacheForAnalysis& spRenderNode::GetLightCacheForAnalysis() const noexcept
+    {
+        return lightCache_;
+    }
+
+    void spRenderNode::SetSupportControlsForAnalysis(
+        const std::array<std::uint8_t, 4>& controls) noexcept
+    {
+        supportControls_ = controls;
+    }
+
+    const std::array<std::uint8_t, 4>& spRenderNode::GetSupportControlsForAnalysis() const noexcept
+    {
+        return supportControls_;
+    }
+} // namespace sparkplug::reconstruction

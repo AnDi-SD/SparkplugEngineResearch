@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXMeshDataRegistered =
-            spRTTIManager::Instance().Register(DXMeshDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXMeshDataRecord);
     }
 
     spDXMeshData::~spDXMeshData() = default;

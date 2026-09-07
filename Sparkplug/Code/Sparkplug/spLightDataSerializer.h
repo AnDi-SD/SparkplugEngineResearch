@@ -57,5 +57,16 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] KnownWritePlan BuildKnownWritePlanForAnalysis(
             const spLightData& light) const;
+        [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
+            spStream&,spSerializerObjectHeaderForAnalysis* observedHeader=nullptr) const override;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
+            const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        std::uint32_t defaultWhiteARGBForAnalysis=0xffffffffu;
+    private:
+        bool WriteSectionsForAnalysis(spSerializerManager*,spStream&,const spBaseObject&,std::string*) const;
     };
 }

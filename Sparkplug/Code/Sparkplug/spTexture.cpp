@@ -16,7 +16,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool TextureRegistered =
-            spRTTIManager::Instance().Register(TextureRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(TextureRecord);
     }
 
     spTexture::spTexture() noexcept = default;
@@ -112,6 +112,13 @@ namespace sparkplug::reconstruction
     {
         return initialized_;
     }
+
+    void spTexture::ApplyRuntimeAttachmentStateForAnalysis(std::uint32_t width,std::uint32_t height) noexcept
+    {width_=width;height_=height;initialized_=true;field31_=false;}
+
+    void spTexture::ApplyNativeMipStateForAnalysis(std::uint32_t width,std::uint32_t height,
+        std::uint32_t levelCount,std::uint32_t flags,std::uint8_t field1C) noexcept
+    {width_=width;height_=height;field18_=levelCount;textureFlags_=flags;field1C_=field1C;initialized_=true;}
 
     std::uint32_t spTexture::GetField18ForAnalysis() const noexcept
     {

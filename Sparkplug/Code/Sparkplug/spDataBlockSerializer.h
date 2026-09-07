@@ -9,6 +9,7 @@
 #include "../SparkBase/spStream.h"
 
 #include <cstdint>
+#include <vector>
 
 namespace sparkplug::reconstruction
 {
@@ -63,7 +64,10 @@ namespace sparkplug::reconstruction
 
         // A safe direct-field writer built from the native WriteHeader and
         // WriteData sequence. It uses the same smallest representable size
-        // code selected by PC 0x00472730 / PS2 0x0017E740.
+        // code selected by PC 0x00472730 / PS2 0x0017E740. Explicit host
+        // corrections: native PC WriteHeader omits size-zero fields entirely
+        // and treats ID31 as inline despite the reader's escape rule. This
+        // direct helper emits valid wire headers for both, NOT identical bugs.
         [[nodiscard]] bool WriteFieldForAnalysis(
             spStream& destination,
             std::uint32_t fieldID,
@@ -77,6 +81,26 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] static SizeCode SelectSizeCodeForAnalysis(
             std::uint32_t payloadSize) noexcept;
+
+        // PC472710 stores the object and stream, without writing any bytes.
+        // Writer API names are diagnostic-backed; ForAnalysis marks host
+        // bounds and the portable container, not a native C++ declaration.
+        [[nodiscard]] bool BeginObjectForAnalysis(
+            spStream& destination, const spBaseObject* object = nullptr) noexcept;
+        [[nodiscard]] bool WriteBeginForAnalysis(
+            std::uint32_t fieldID, SizeCode reservedSizeCode = SizeCode::UInt32) noexcept;
+        // PC472E20 uses the top header, ignoring the supplied field ID.
+        [[nodiscard]] bool WriteEndForAnalysis(std::uint32_t ignoredFieldID) noexcept;
+        [[nodiscard]] bool FinalizeObjectForAnalysis() noexcept;
+        [[nodiscard]] std::size_t GetOpenFieldCountForAnalysis() const noexcept
+        {
+            return writerHeaders_.size();
+        }
+        // Native keeps ONE reserved-size code, not one per header. Mixed
+        // nested widths corrupt outer headers. This portable boundary rejects
+        // mixed nesting, fieldID31 and fixed-width reservation up front, and
+        // rejects empty/oversized fields at End; no fake native support or
+        // silent repair. Uniform UInt8/16/32 with nonempty payloads works.
         [[nodiscard]] const spDataBlockHeaderForAnalysis&
             GetCurrentHeaderForAnalysis() const noexcept;
 
@@ -85,7 +109,14 @@ namespace sparkplug::reconstruction
             spStream& destination,
             std::uint32_t fieldID,
             std::uint32_t payloadSize) noexcept;
+        [[nodiscard]] static bool WriteHeaderWithCodeForAnalysis(
+            spStream& destination, std::uint32_t fieldID,
+            std::uint32_t payloadSize, SizeCode sizeCode) noexcept;
 
         spDataBlockHeaderForAnalysis currentHeader_{};
+        spStream* writerStream_ = nullptr;
+        const spBaseObject* writerObject_ = nullptr; // stored, never owned/dereferenced here
+        SizeCode reservedSizeCode_ = SizeCode::Empty;
+        std::vector<spDataBlockHeaderForAnalysis> writerHeaders_;
     };
 }

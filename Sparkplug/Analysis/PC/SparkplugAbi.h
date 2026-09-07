@@ -11,7 +11,7 @@
 namespace sparkplug::evidence::pc
 {
     // Common seven-word header consumed directly by spSerializerManager.
-    // The following ObjectCount word is read by spResourceFAT::LoadIndex.
+    // The following ObjectCount word is read by the unnamed FAT helper.
     struct spSerializerFileHeaderLayout final
     {
         std::uint32_t signature;       // 0x00: "FFPS" / 0x53504646
@@ -73,6 +73,43 @@ namespace sparkplug::evidence::pc
         std::uint32_t serializationPolicy; // 0x18: 0/2 enable optional/default fields
         spSerializerRegistrationListLayout registrations; // 0x1c
         Address32 fat;                 // 0x28: owned FAT helper, exact type unresolved
+    };
+
+    // Analytical labels, not recovered C++ type/member names. PC allocation58
+    // comes from the manager constructor; container offsets are independently
+    // observed in native load/index/clear/cursor consumers, not a full ctor run.
+    struct spResourceFATHelperObservedLayout final
+    {
+        spBaseObjectLayout base;
+        std::uint32_t nextResourceID;  // 0x10
+        std::uint8_t filesByID[0x0C];  // 0x14: MSVC allocator/head/count
+        std::uint8_t resourcesByID[0x0C]; // 0x20
+        std::uint8_t resourcesByObject[0x0C]; // 0x2c
+        std::uint8_t orderedFiles[0x0C]; // 0x38
+        std::uint32_t unknown44;       // 0x44: do not infer file cursor by symmetry
+        std::uint8_t orderedResources[0x0C]; // 0x48
+        Address32 resourceCursor;      // 0x54: clear may leave stale node pointer
+    };
+
+    struct spResourceFATEntryObservedLayout final
+    {
+        Address32 vtableAddress;
+        std::uint32_t id;
+        std::uint32_t fileID;
+        Address32 ownedName;
+        std::uint32_t classID;
+        std::uint32_t offset;
+        std::uint32_t size;
+        std::uint8_t payloadWritten;   // 0x1c: NOT initialized by PC LoadIndex
+        std::uint8_t padding1D[3];
+        Address32 object;              // 0x20: borrowed; entry dtor does not delete
+    };
+
+    struct spResourceFATFileEntryObservedLayout final
+    {
+        Address32 vtableAddress;
+        std::uint32_t fileID;
+        Address32 ownedFilename;
     };
 
     struct spSerializerHookObservedLayout final
@@ -152,6 +189,42 @@ namespace sparkplug::evidence::pc
         std::uint8_t padding32[2];     // 0x32
         std::uint32_t field34;         // 0x34
     };
+
+    struct spDXTextureObservedLayout final
+    {
+        spTextureObservedLayout base; //00..37
+        Address32 device;             //38: ctor acquires renderer.C9E8
+        Address32 texture;            //3C: retained COM texture
+        Address32 palette;            //40: spPalette; setter deletes old, DX dtor leaves alive
+        std::uint32_t runtimeFormat;  //44: ctor/nativeData4ABBA0 leave unset
+        std::uint32_t byteCount;      //48: ctor0; runtime attach/size query set
+    };
+    static_assert(sizeof(spDXTextureObservedLayout)==0x4C);
+    static_assert(offsetof(spDXTextureObservedLayout,runtimeFormat)==0x44);
+    inline constexpr std::uint32_t spDXTextureClassID=0x3F3651B6;
+    inline constexpr Address32 spDXTextureRegistration=0x00763210;
+    inline constexpr Address32 spDXTextureFactory=0x004AB520;
+    inline constexpr Address32 spDXTexturePrimaryVTable=0x006EF6E8;
+    inline constexpr Address32 spDXTextureInterfaceVTable=0x006EF6D4;
+
+    struct spPaletteObservedLayout final
+    {
+        std::uint8_t base[0x10];
+        std::uint32_t index;          //10: ctorFFFFFFFF; renderer assigns
+        std::uint8_t entries[1024];   //14: ctor-uninitialized; copy ctor copies, virtual clone does not
+    };
+    static_assert(sizeof(spPaletteObservedLayout)==0x414);
+    static_assert(offsetof(spPaletteObservedLayout,entries)==0x14);
+    inline constexpr std::uint32_t spPaletteClassID=0x591C0B9F;
+    inline constexpr Address32 spPaletteRegistration=0x00763DE0;
+    inline constexpr Address32 spPaletteFactory=0x004B2C80;
+    inline constexpr Address32 spPaletteConstructor=0x004B2C10;
+    inline constexpr Address32 spPaletteCopyConstructor=0x004B2C50;
+    inline constexpr Address32 spPaletteClone=0x004B2CF0;
+    inline constexpr Address32 spPalettePrimaryVTable=0x006F0A6C;
+    inline constexpr Address32 spDXRendererRegisterPalette=0x004BB7D0;
+    inline constexpr Address32 spDXRendererUnregisterPalette=0x004BB840;
+    inline constexpr Address32 spDXTextureSetPalette=0x004B93C0;
 
     struct spTextureDataVectorLayout final
     {
@@ -312,8 +385,8 @@ namespace sparkplug::evidence::pc
         std::uint32_t vertexStride;    // 0x74
         std::uint32_t indexBegin;      // 0x78
         std::uint32_t vertexBegin;     // 0x7c
-        std::uint32_t textureCoordinateCount; // 0x80: derived from component bits
-        std::uint32_t rendererVertexFormatCode;// 0x84: renderer-owned mapping
+        std::uint32_t componentWeightCount; // 0x80: bits02/04/08/10, NOT UV count; analytical name
+        Address32 vertexDeclaration; // 0x84: borrowed spPCVertexDeclaration*, NOT numeric FVF
     };
 
     // The secondary serialization interface begins at +0x10. The protected
@@ -349,6 +422,12 @@ namespace sparkplug::evidence::pc
         std::uint8_t padding59[3];     // 0x59
     };
 
+    struct spRenderableCallbackRecordLayout final
+    {
+        Address32 callback; // cdecl(model,camera,support,ordinal,user), returns signed32
+        Address32 user;
+    };
+
     struct spRenderableCallbackVectorLayout final
     {
         Address32 allocatorState;      // +0x00: compiler-specific vector head
@@ -366,13 +445,13 @@ namespace sparkplug::evidence::pc
         std::uint32_t priority;         // 0x1c
         Address32 material;             // 0x20
         Address32 fog;                  // 0x24
-        float field28;                  // 0x28
+        std::uint32_t field28;           // 0x28: raw value from DebugManager41D4E0, not proven float
         Address32 callback2C;           // 0x2c
         Address32 callback30;           // 0x30
         spRenderableCallbackVectorLayout callbacks34; // 0x34
         spRenderableCallbackVectorLayout callbacks44; // 0x44
-        std::uint8_t useCallbacks34;    // 0x54
-        std::uint8_t useCallbacks44;    // 0x55
+        std::uint8_t usePreCallbacks44; // 0x54:423E30 traverses vector44
+        std::uint8_t usePostCallbacks34;// 0x55:423EA0 traverses vector34
         std::uint8_t padding56[2];      // 0x56
     };
 
@@ -397,15 +476,47 @@ namespace sparkplug::evidence::pc
 
     // The protected factory prevents an exact sizeof claim. These fields are
     // the continuous prefix directly touched by the PC reader, destructor,
-    // track resizer and sorted-tag insertion helper. Engine RTTI reports
-    // spController as the base, but the seven-slot vtable and final destructor
-    // call prove that it is not a physical C++ layout base here.
-    struct spAnimationObservedPrefixLayout final
+    // Factory/constructor/track lifetimes additionally verified in bounded
+    // original guest instructions. Engine RTTI is separate from C++ ancestry.
+    struct AnimationDescriptorPoolLayout final
     {
-        spBaseObjectLayout base;        // 0x00: physical PC prefix
-        std::uint32_t field10;          // 0x10: role still unknown
+        Address32 vtable;               // +00: one destructor slot
+        Address32 activeBlock;          // +04: circular block list
+        std::uint32_t entriesPerBlock;  // +08: 64
+        std::uint32_t field0C;          // +0c: zero on construction
+        std::uint32_t initialBlocks;    // +10: zero
+        std::uint32_t blockLimit;       // +14: 0xffffffff
+        std::uint32_t entrySize;        // +18: 16
+        std::uint32_t blockCount;       // +1c
+        std::uint32_t freeEntryCount;   // +20: active blocks only
+        Address32 spareBlock;           // +24: retired last-free block
+        std::uint32_t field28;          // +28: trunc(64*0.333...) = 21
+    };
+    struct spTrackLayout final
+    {
+        spNamedObjectLayout base;       // exact 0x14; no extra fields
+    };
+    struct spAnimTrackLayout final
+    {
+        spTrackLayout base;
+        std::int32_t bindingSlot;       // +14: -1
+        Address32 descriptors[3][3];    // +18: PRS, independent scalar axes
+        std::uint8_t ownsKeyBuffers;    // +3c: one flag for the entire track
+        std::uint8_t padding3D[3];
+        Address32 animationOwner;       // +40: append initializes; factory does not
+    };
+    struct AnimationTagObservedLayout final
+    {
+        spBaseObjectLayout base;        // distinct vtable, inherited root RTTI
+        Address32 ownedName;            // +10: ordinary char buffer, not shared entry
+        float time;                    // +14
+        std::uint32_t wireOrdinal;      // +18: reader order, retained after time sort
+    };
+    struct spAnimationLayout final
+    {
+        spNamedObjectLayout base;       // physical PC base; engine RTTI says controller
         float totalTime;                // 0x14: serializer field 0
-        std::uint32_t field18;          // 0x18: role still unknown
+        std::uint32_t priorityGroup;    // 0x18: actor priority high byte; analytical name
         Address32 tracks;               // 0x1c: 0x44-byte entries
         std::uint32_t trackCount;       // 0x20
         std::uint32_t trackCapacity;    // 0x24
@@ -413,21 +524,142 @@ namespace sparkplug::evidence::pc
         Address32 tagsBegin;            // 0x2c: owned tag pointers
         Address32 tagsEnd;              // 0x30
         Address32 tagsCapacityEnd;      // 0x34
-        Address32 auxiliaryBuffers[6];  // 0x38..0x4c
-        Address32 field50;              // 0x50: separately freed payload
-        std::uint32_t field54;          // 0x54: role still unknown
-        std::uint32_t containerState58; // 0x58: observed prefix only
+        Address32 auxiliaryBuffers[6];  // 0x38..0x4c: scalar/vector/quaternion linear/cubic
+        Address32 times;                // 0x50: shared float array
+        std::uint32_t debugCycleValue;  // 0x54: spDebugManager table, not a fixed default
+        AnimationDescriptorPoolLayout descriptorPool; // 0x58..0x83
     };
 
-    // The PC factory allocates 0x78 bytes. Runtime binding probes and the
-    // evaluator body confirm the first two fields and two 0x30-byte blend
-    // inputs; their internal pointer/key representation is not named yet.
+    // Analytical field names, pinned by 0x005FE9C0/0x005FEBB0 and spActor
+    // 0x005A1D26. Key-cache arrays are passed by address to 0x00479290.
+    struct spTransformTrackEvalInputLayout final
+    {
+        Address32 playbackState;           // +0x00: actor 0x60-byte entry
+        Address32 animationTrack;          // +0x04: animation 0x44-byte entry
+        std::uint32_t priority;            // +0x08: unsigned ordering, default -1
+        std::int32_t positionKeyIndices[3];// +0x0c
+        std::int32_t rotationKeyIndices[3];// +0x18
+        std::int32_t scaleKeyIndices[3];   // +0x24
+    };
+
+    // Exact concrete extent 0x78; caller capacity invariant remains open.
     struct spTransformTrackEvalObservedLayout final
     {
         spBaseObjectLayout base;            // 0x00: observed physical prefix
         std::uint32_t boundTransformSlot;   // 0x10: -1 before name binding
         std::uint32_t blendInputCount;      // 0x14: evaluator loop bound
-        std::uint8_t blendInputs[2][0x30];  // 0x18: PRS blend inputs
+        spTransformTrackEvalInputLayout blendInputs[2]; // 0x18
+    };
+
+    struct spNodeControllerLayout final
+    {
+        spBaseObjectLayout base; // physical prefix; registered spSubController
+        Address32 node;          // +0x10: intrusive owned spNode
+        Address32 evaluator;     // +0x14: directly deleted spTransformEval
+    };
+
+    struct spAnimationManagerLayout final
+    {
+        spBaseObjectLayout base;
+        std::uint32_t frame;           // +10: constructor starts at one
+        std::uint32_t nextNameSlot;    // +14: starts at one, never reuses erased IDs
+        std::uint32_t nameMapState;    // +18: MSVC allocator state, unwritten
+        Address32 nameMapSentinel;     // +1c: 0x34-byte red-black tree nodes
+        std::uint32_t nameCount;       // +20
+        Address32 controllerHead;      // +24: borrowed intrusive list
+        Address32 controllerTail;      // +28
+    };
+    struct AnimationNameMapNodeLayout final
+    {
+        Address32 left, parent, right; // +00..08
+        std::uint32_t stringState;     // +0c: unwritten allocator byte/padding
+        std::uint8_t stringStorage[16];// +10: inline chars or heap pointer
+        std::uint32_t stringSize;      // +20
+        std::uint32_t stringCapacity;  // +24: inline capacity 15
+        std::uint32_t slot;            // +28
+        std::uint32_t references;      // +2c
+        std::uint8_t color, isSentinel;// +30, +31
+        std::uint8_t padding32[2];
+    };
+    struct spControllerLayout final
+    {
+        spBaseObjectLayout base;
+        std::uint8_t enabled;          // +10: defaults true
+        std::uint8_t padding11[3];
+        Address32 next;                // +14
+        Address32 previous;            // +18
+    };
+
+    // Full allocation size is pinned, but several field roles are still opaque.
+    struct spActorObservedLayout final
+    {
+        spBaseObjectLayout base;
+        std::uint8_t controllerFields[0x0c]; // +0x10
+        std::uint8_t appliesNodeTransforms; // +0x1c
+        std::uint8_t padding1D[3];
+        float timeMultiplier;              // +0x20
+        std::uint8_t advancesWhileDisabled; // +0x24: exact original name unknown
+        std::uint8_t padding25[3];
+        Address32 playbackStates;          // +0x28: 0x60 stride
+        std::uint32_t playbackCapacity;    // +0x2c
+        std::uint8_t slotMap[0x0c];         // +0x30
+        std::uint32_t vectorState;         // +0x3c
+        Address32 controllersBegin;        // +0x40
+        Address32 controllersEnd;          // +0x44
+        Address32 controllersCapacity;     // +0x48
+        std::uint8_t unknown4C[8];         // +0x4c, allocation ends at 0x54
+    };
+
+    // Start helper 005A1E30 mutates request.weight; request != playback state.
+    // Original API/field names unknown. Exact observed extent 0x38.
+    struct spActorStartRequestObservedLayout final
+    {
+        Address32 animation;           // +00
+        std::uint32_t playbackMode;    // +04
+        std::uint8_t reverse;          // +08
+        std::uint8_t padding09[3];
+        float weight;                 // +0c: overwritten according to fadeMode
+        std::uint32_t fadeMode;        // +10
+        float fadeInDuration;          // +14: positive => inverse, else fallback
+        float fallbackFadeInRate;      // +18
+        float fadeOutDuration;         // +1c
+        float fallbackFadeOutRate;     // +20
+        float transitionDuration;     // +24
+        Address32 loopCallback;        // +28
+        Address32 callbackCookie;      // +2c
+        float timeMultiplier;          // +30
+        float initialTime;             // +34: divided by animation total time
+    };
+
+    struct spActorPlaybackObservedLayout final
+    {
+        Address32 animation;               // +0x00
+        std::uint32_t playbackMode;         // +0x04: 0..3, original enum unknown
+        std::uint8_t reverse;               // +0x08
+        std::uint8_t padding09[3];
+        float weight;                      // +0x0c
+        std::uint32_t fadeMode;             // +0x10
+        std::uint32_t unknown14;            // +0x14: Start does NOT copy request duration
+        float fadeInRate;                   // +0x18
+        std::uint32_t unknown1C;            // +0x1c: original role still open
+        float fadeOutRate;                  // +0x20
+        float transitionDuration;          // +0x24
+        Address32 loopCallback;             // +0x28
+        std::uint32_t callbackCookie;       // +0x2c: opaque callback argument
+        float timeMultiplier;              // +0x30
+        float sampleTime;                  // +0x34
+        std::uint32_t unknown38;            // +0x38
+        std::uint8_t stopAfterFade;         // +0x3c
+        std::uint8_t padding3D[3];
+        std::uint32_t playbackStatus;       // +0x40
+        std::uint32_t slotIndex;            // +0x44
+        std::uint32_t bindingUseCount;      // +0x48: evaluator insert/remove consumer
+        std::uint8_t running;               // +0x4c
+        std::uint8_t padding4D[3];
+        std::uint32_t priority;             // +0x50
+        float normalizedProgress;          // +0x54
+        float fadeThreshold;               // +0x58
+        float elapsedTime;                 // +0x5c
     };
 
     struct spIndexBufferLayout final
@@ -589,14 +821,65 @@ namespace sparkplug::evidence::pc
     // derived spDXRenderer lifetime starts after +0xca08. Semantic names stop
     // where executable consumers do not yet distinguish the large state
     // blocks. The renderer-interface vptr at +0x18 has exactly 29 slots.
+    struct spRendererAlphaRecordLayout final
+    {
+        Address32 camera;
+        Address32 support;
+        Address32 renderable;
+        float distanceSquared;
+        std::uint32_t priority; // renderer48 + renderable1c, wrapping unsigned
+        std::uint8_t exactParticleSystem;
+        std::uint8_t padding15[3];
+    };
+
+    struct spRendererGeneralRecordLayout final
+    {
+        Address32 renderable;
+        Address32 support;
+        Address32 camera;
+        std::uint32_t materialKey; // material4c->18->10 virtual1c; original type unknown
+        Address32 mesh; // Model or derived, else null
+    };
+
+    struct spRendererBucketRecordLayout final
+    {
+        Address32 renderable;
+        Address32 support;
+    };
+
+    struct spRendererQueueVectorLayout final
+    {
+        std::uint32_t allocatorWord;
+        Address32 begin;
+        Address32 end;
+        Address32 capacityEnd;
+    };
+
     struct spRendererLayout final
     {
         spCrossPlatformLayout base;     // 0x0000
         Address32 supportVTable;        // 0x0014: one-slot adjustor subobject
         Address32 rendererInterfaceVTable; // 0x0018: 29 platform operations
-        std::uint8_t state1C[0xC034];   // 0x001c
+        std::uint8_t state1C[0x28];    // 0x001c
+        std::uint8_t alphaFlushActive; // 0x0044, prevents re-enqueue
+        std::uint8_t alphaQueueEnabled;// 0x0045
+        std::uint8_t padding46[2];
+        std::uint32_t alphaPriority;   // 0x0048
+        std::uint32_t alphaCount;      // 0x004c, capacity2048
+        spRendererAlphaRecordLayout alphaRecords[2048]; // 0x0050..c04f
         std::uint8_t renderQueueEnabled;// 0xc050: gates submission
-        std::uint8_t stateC051[0x817];  // 0xc051
+        std::uint8_t paddingC051[3];
+        spRendererQueueVectorLayout generalQueue; // 0xc054, record20
+        spRendererQueueVectorLayout modeQueues[9];// 0xc064, record8
+        std::uint8_t stateC0F4[0x94];   // 0xc0f4
+        std::uint8_t materialOverride; // 0xc188
+        std::uint8_t paddingC189[3];
+        Address32 currentMaterial;     // 0xc18c
+        Address32 currentLightCache;   // 0xc190
+        std::uint32_t currentField28;  // 0xc194, raw Renderable28
+        std::uint8_t stateC198[0x2c];
+        std::uint8_t materialStateC1C4;// saved in global7400fc, original name unknown
+        std::uint8_t stateC1C5[0x6a3];
         std::uint32_t renderStateCache[12]; // 0xc868: invalidated to ~0u
         std::uint32_t textureStateCache[72];// 0xc898: invalidated to ~0u
         std::uint8_t lifetimeTailC9B8[0x50]; // 0xc9b8
@@ -679,17 +962,17 @@ namespace sparkplug::evidence::pc
         spBaseObjectLayout base;        // 0x00: direct registered/C++ base
         std::uint32_t textureStates[9]; // 0x10: PC etsMaxTextureStates
         Address32 fallbackTexture;      // 0x34: intrusive spTexture*
-        Address32 animationController; // 0x38: clone-resolved relationship
+        Address32 uvController;        // 0x38: field12/1C0053D6 -> 467D90
         float uvTransform[9];           // 0x3c: 3x3 static transform
         std::uint8_t hasStaticUV;       // 0x60
         std::uint8_t padding61[3];      // 0x61
-        Address32 uvController;         // 0x64: clone-resolved relationship
-        std::uint32_t tail68;           // 0x68: role unresolved
+        Address32 animationController; // 0x64: field11/16FB0E47 -> 476680
     };
 
     struct spMaterialRenderTargetTextureObservedLayout final
     {
         spMaterialTextureObservedLayout base; // 0x00
+        std::uint32_t opaque68;        // derived-only; actual common factory ends68
         std::uint32_t maxRecursionLevel;// 0x6c: default 1
         std::uint32_t currentRecursionLevel; // 0x70: default 0
         std::uint32_t width;            // 0x74: default 256
@@ -716,6 +999,24 @@ namespace sparkplug::evidence::pc
         std::uint32_t currentFace;      // 0x98: default 0
     };
 
+    struct spTaskTimerLayout final
+    {
+        spBaseObjectLayout base;          // 0x00
+        Address32 previousSibling;        // 0x10: core41C300 append writes old tail
+        Address32 nextSibling;            // 0x14: read after virtual child update
+        std::uint8_t active;              // 0x18
+        std::uint8_t relative;            // 0x19: default1
+        std::uint8_t padding1A[2];        // 0x1a: not initialized
+        std::uint32_t currentMilliseconds;// 0x1c
+        std::uint32_t startMilliseconds;  // 0x20
+        std::uint32_t pausedMilliseconds; // 0x24
+        float deltaSeconds;              // 0x28
+        Address32 sourceClock;           // 0x2c: borrowed; optional ctor argument
+        Address32 firstChild;            // 0x30: borrowed child list
+        Address32 lastChild;             // 0x34: core41C300 append updates tail
+        std::uint32_t childCount;        // 0x38: incremented on append
+    };
+
     struct spEngineCoreLayout final
     {
         spBaseObjectLayout base;       // 0x00
@@ -727,21 +1028,21 @@ namespace sparkplug::evidence::pc
         std::uint8_t container20[0x10];// 0x20: compiler-specific container
         Address32 firstFrameCallback;  // 0x30
         Address32 secondFrameCallback; // 0x34
-        Address32 field38;             // 0x38: role unresolved
-        Address32 field3C;             // 0x3c: manager pointer
-        Address32 field40;             // 0x40: manager pointer
-        Address32 field44;             // 0x44: manager pointer
-        Address32 field48;             // 0x48: manager pointer
-        Address32 field4C;             // 0x4c: manager pointer
+        Address32 field38;             // 0x38: passed by value to renderer slot5
+        Address32 field3C;             // 0x3c: spAnimationManager* (41B3B0/41CD50)
+        Address32 field40;             // 0x40: spDXAudioManager* (registered factory4C4200)
+        Address32 field44;             // 0x44: spGUIManager* (registered factory452380)
+        Address32 field48;             // 0x48: spCinematicManager* (registered factory4533A0)
+        Address32 field4C;             // 0x4c: spNetworkManager* (registered factory4512D0)
         Address32 field50;             // 0x50: manager pointer
-        std::uint8_t containers54[0x100]; // 0x54: two inline containers
+        spTaskTimerLayout taskTimers54[2]; // 0x54,0x90: exact destructor/stride/type
+        std::uint8_t eventQueuesCC[0x88]; // 0xcc,0x110: two44-byte queue helpers, original type name open
         Address32 field154;            // 0x154: released during shutdown
     };
 
     // Exact native allocation. The semantic transform/relationship fields are
-    // named where both the runtime methods and spNodeSerializer agree; cached
-    // world-transform bytes remain opaque until their full update contract is
-    // closed.
+    // named where runtime consumers and serializers agree. Cached world PRS
+    // roles/update are proved by 0x420660/0x420710/0x421420 and spSkin.
     struct spNodeLayout final
     {
         spNamedObjectLayout base;      // 0x00
@@ -757,14 +1058,47 @@ namespace sparkplug::evidence::pc
         Address32 collisionBegin;      // 0x68: intrusive spCollisionInfo**
         Address32 collisionEnd;        // 0x6c
         Address32 collisionCapacityEnd;// 0x70
-        std::uint8_t cachedWorldState[0x3C]; // 0x74
+        float cachedWorldPosition[3];  // 0x74: consumed by point transform/skin
+        float cachedWorldScale[3];     // 0x80
+        float cachedWorldOrientation[9]; // 0x8c
         std::uint32_t flags;           // 0xb0
     };
 
-    // The PC factories are SecuROM .rld thunks, so this is kept as an
-    // observed extent rather than a direct sizeof claim. Runtime setters,
-    // matrix construction, frustum construction and teardown account for
-    // every byte through the final viewport ratio at +0x234.
+    struct spSceneManagerLayout final
+    {
+        spBaseObjectLayout base;       // 0x00
+        Address32 singletonSupport;    // 0x10: vtable6E7150
+        Address32 listAllocatorState;  // 0x14: untouched by ctor
+        Address32 sceneListHead;       // 0x18: owned12-byte sentinel
+        std::uint32_t sceneCount;      // 0x1c: borrowed scene pointers
+        Address32 currentScene;        // 0x20: set around root virtual30(0)
+    };
+
+    struct spSceneLayout final
+    {
+        spNamedObjectLayout base;      // 0x00
+        Address32 systemRoot;          // 0x14: intrusive spNode, "System Root"
+        Address32 firstRenderNode;     // 0x18: borrowed intrusive list, node128/12c
+        Address32 lastRenderNode;      // 0x1c
+        std::uint32_t renderNodeCount; // 0x20
+        std::uint8_t viewportDepthPass;// 0x24: default0; camera chooses depth range
+        std::uint8_t beforeManagerPass;// 0x25: default1; core graphics boundary
+        std::uint8_t padding26[2];     // 0x26: untouched
+        Address32 lensFlareManager;    // 0x28: owned spPCLensFlareManager
+        Address32 projectionManager;   // 0x2c: owned spPCProjectionManager
+        Address32 skyBoxManager;       // 0x30: owned spSkyBoxManager
+        Address32 lightManager;        // 0x34: owned spLightManager; owner20=this
+        Address32 partitionSystem;     // 0x38: intrusive reference, getter45D930
+        Address32 fallbackPartition;   // 0x3c: intrusive reference, init45D850
+        std::uint32_t field40;         // 0x40: default0; role not closed
+        Address32 sortedAllocator;     // 0x44: untouched
+        Address32 sortedBegin;         // 0x48: pairs<object,float>, sorting45EC70
+        Address32 sortedEnd;           // 0x4c
+        Address32 sortedCapacity;      // 0x50
+    };
+
+    // Exact238 allocation now executed for both PC concrete factories.
+    // Retain the old type spelling to avoid unrelated consumer churn.
     struct spCameraObservedLayout final
     {
         spNodeLayout base;             // 0x000
@@ -775,11 +1109,10 @@ namespace sparkplug::evidence::pc
         float aspectHalfExtent;        // 0x0c4
         std::uint8_t twoDimensional;   // 0x0c8: serialized Is2DMode
         std::uint8_t paddingC9[3];     // 0x0c9
-        std::uint8_t stateCC[8];       // 0x0cc: role unresolved
-        float viewMatrix[16];          // 0x0d4
-        float projectionMatrix[16];    // 0x114
-        float viewBasis[9];            // 0x154
-        std::uint8_t state178[0x10];   // 0x178: role unresolved
+        float viewMatrix[16];          // 0x0cc: corrected by ctor/renderer arg
+        float projectionMatrix[16];    // 0x10c: corrected by ctor/renderer arg
+        float viewBasis[9];            // 0x14c: forward/up/right
+        std::uint8_t viewport170[0x18];// 0x170: untouched until configure/render
         float viewAngle;               // 0x188
         float scaledViewAngle;         // 0x18c: viewAngle*viewportRatio
         float pixelAspectRatio;        // 0x190
@@ -806,17 +1139,344 @@ namespace sparkplug::evidence::pc
         spCameraObservedLayout base;
     };
 
-    // The protected PC factory hides sizeof. Runtime traversal nevertheless
-    // fixes the compiler-specific renderable vector prefix: begin/end are
-    // read at +0xbc/+0xc0 and the surrounding four-word vector spans +0xb8.
+    // Kept for existing prefix consumers; the complete1D4 layout follows.
     struct spRenderNodeObservedPrefixLayout final
     {
         spNodeLayout base;             // 0x00
-        std::uint32_t fieldB4;         // 0xb4: role unresolved
+        Address32 supportVTable;       // 0xb4: secondary6DCADC, six slots
         Address32 renderableAllocatorState; // 0xb8
         Address32 renderableBegin;     // 0xbc: intrusive spRenderable**
         Address32 renderableEnd;       // 0xc0
         Address32 renderableCapacityEnd; // 0xc4
+    };
+
+    // Analytical layout name: original support/helper class name is unknown.
+    // PC490B20/490B50/490BA0, also embedded in render and partition payloads.
+    struct spLightCacheObservedLayout final
+    {
+        Address32 ordinaryLights[8];  // 0x00: borrowed, stale unused slots possible
+        Address32 ambientLight;       // 0x20: first ambient wins
+        std::uint32_t lightCount;     // 0x24: ordinary only, max8
+    };
+
+    // Original protected factory425520 resolves to13C5390 and allocates1D4.
+    // The embedded render support has no recovered original class name.
+    struct spRenderNodeLayout final
+    {
+        spRenderNodeObservedPrefixLayout prefix; // 0x000
+        float localSphere[4];          // 0x0c8: center3,radius
+        float worldSphere[4];          // 0x0d8
+        Address32 worldMatrixPointer;  // 0x0e8: points to this138
+        Address32 inverseMatrixPointer;// 0x0ec: points to this178
+        spLightCacheObservedLayout lightCache; // 0x0f0
+        std::uint32_t field118;        // 0x118: compared to scene40 by support slot4
+        std::uint32_t field11C;        // 0x11c: ctor0, exact role open
+        std::uint8_t field120;         // 0x120: ctor0
+        std::uint8_t excludeShadowVolumeLights; // 0x121: ctor1;46A850
+        std::uint8_t field122;         // 0x122: ctor1
+        std::uint8_t updateLights;     // 0x123: ctor1; gates46AC40
+        Address32 self;                // 0x124: complete-object pointer
+        Address32 previousInScene;     // 0x128: borrowed intrusive link
+        Address32 nextInScene;         // 0x12c
+        std::uint8_t bypassFrustumCull;// 0x130: ctor0
+        std::uint8_t padding131[3];    // 0x131: untouched
+        std::uint32_t matrixDirty;     // 0x134: bit1 lazy world/inverse cache
+        float worldMatrix[16];         // 0x138: ctor identity
+        float inverseWorldMatrix[16];  // 0x178: ctor identity
+        float inverseWorldScale[3];    // 0x1b8: ctor1,1,1
+        Address32 callbackAllocator;   // 0x1c4: untouched
+        Address32 callbackBegin;       // 0x1c8: borrowed callback pointers
+        Address32 callbackEnd;         // 0x1cc
+        Address32 callbackCapacity;    // 0x1d0
+    };
+
+    // Analytical layout name: original C++ name of this embedded support is
+    // still unknown. Same constructor469E00/storage74 at RenderNode+B4,
+    // StaticRenderObject+14 and PartitionRenderable+10; NOT their RTTI base.
+    struct spRenderSupportObservedLayout final
+    {
+        Address32 vtable;              // 0x00: six interface slots
+        Address32 vectorAllocator;     // 0x04: untouched
+        Address32 renderableBegin;     // 0x08: intrusive object references
+        Address32 renderableEnd;       // 0x0c
+        Address32 renderableCapacity;  // 0x10
+        float localSphere[4];          // 0x14
+        float worldSphere[4];          // 0x24
+        Address32 worldMatrixPointer;  // 0x34
+        Address32 inverseMatrixPointer;// 0x38
+        spLightCacheObservedLayout lightCache; // 0x3c
+        std::uint32_t visibilityMark;  // 0x64: compared with Scene40
+        std::uint32_t field68;         // 0x68: ctor0, meaning open
+        std::uint8_t controls[4];      // 0x6c: first differs by concrete owner
+        Address32 completeObject;      // 0x70
+    };
+
+    struct spStaticRenderObjectLayout final
+    {
+        spNamedObjectLayout base;      // 0x00
+        spRenderSupportObservedLayout support; // 0x14
+        Address32 scene;               // 0x88: borrowed, NOT part of support
+        float worldMatrix[16];         // 0x8c: constructor copies shared760058
+        float inverseWorldMatrix[16];  // 0xcc: independently submitted as stored
+    };
+
+    struct spPartitionRenderableLayout final
+    {
+        spBaseObjectLayout base;       // 0x00
+        spRenderSupportObservedLayout support; // 0x10
+        std::uint32_t debugColor;      // 0x84: FF000000
+        Address32 scene;               // 0x88: borrowed
+    };
+
+    struct spPCPartitionRenderableLayout final
+    {
+        spPartitionRenderableLayout base; // concrete factory4CD950 exact8c
+    };
+
+    struct spPartitionPointerVectorLayout final
+    {
+        Address32 allocator;           // untouched compiler word
+        Address32 begin;
+        Address32 end;
+        Address32 capacity;
+    };
+
+    struct spPartitionNodeLayout final
+    {
+        spBaseObjectLayout base;       // 0x00: NOT scene spNode
+        spPartitionPointerVectorLayout collisions; // 0x10: borrowed reciprocal
+        spPartitionPointerVectorLayout renderNodes;// 0x20: borrowed reciprocal
+        spPartitionPointerVectorLayout staticObjects; // 0x30: intrusive owned
+        spPartitionPointerVectorLayout occlusionVolumes;// 0x40: borrowed reciprocal
+        std::uint32_t debugColor;      // 0x50: FFFFFFFF
+        Address32 parent;              // 0x54: borrowed PartitionNode
+        Address32 children;            // 0x58: owned array; children direct deleted
+        std::uint32_t childCount;      // 0x5c
+        Address32 zone;                // 0x60: intrusive owned
+        spPartitionPointerVectorLayout portals; // 0x64: intrusive owned
+        Address32 partitionSystem;     // 0x74: borrowed
+        Address32 partitionRenderable; // 0x78: direct owned, NOT intrusive
+        std::uint32_t visibilityMark;  // 0x7c: visited stamp from Visibility14
+        Address32 scene;               // 0x80: borrowed
+    };
+
+    struct spZoneLayout final
+    {
+        spNodeLayout base;             // 0x00
+        spPartitionPointerVectorLayout localRoots; // 0xb4: BORROWED, duplicates
+        std::uint32_t fieldC4;         // 0xc4: untouched, not claimed null
+    };
+    struct spZonePortalLayout final
+    {
+        spNamedObjectLayout base;     // 0x00
+        Address32 destinationZone;    // 0x14: borrowed
+        std::uint32_t vertexCount;    // 0x18
+        Address32 vertices;           // 0x1c: directly owned XYZ array
+        std::uint8_t open;            // 0x20: default1
+        std::uint8_t padding21[3];
+        float plane[4];               // 0x24: untouched until Init481130
+        std::uint32_t visibilityMark; // 0x34: default0
+    };
+    struct spZonePortalNodeLayout final
+    {
+        spNodeLayout base;
+        spPartitionPointerVectorLayout portals; // 0xb4: borrowed, duplicate-preserving
+    };
+    struct spOctreeRayCandidateObservedLayout final
+    {
+        std::uint32_t childIndex;
+        float parameter;
+    };
+    struct spOctreeNodeLayout final
+    {
+        spPartitionNodeLayout base;    // 0x00: eight directly owned nullable slots
+        float pivot[3];               // 0x84: ctor does NOT initialize
+        spOctreeRayCandidateObservedLayout rayCandidates[4]; // 0x90: scratch, not serialized
+        float mins[3];                // 0xb0: ctor zeros
+        float maxs[3];                // 0xbc: ctor zeros
+    };
+
+    struct spBSPRayCandidateObservedLayout final
+    {
+        std::uint32_t childIndex;
+        float parameter;
+    };
+    struct spBSPNodeLayout final
+    {
+        spPartitionNodeLayout base;
+        float plane[4];               //0x84: original m_vNormal/m_fConstant, ctor untouched
+        spBSPRayCandidateObservedLayout rayCandidates[2]; //0x94: uninitialized scratch
+        Address32 polygon;            //0xa4: directly owned, ctor0
+        std::uint32_t polygonCount;   //0xa8: ctor0
+    };
+    struct spPartitionSystemLayout final
+    {
+        // Actual physical/render implementation prefix. Native RTTI record
+        // deliberately names spNode as direct base and skips spRenderNode.
+        spRenderNodeLayout base;       // 0x000
+        Address32 root;                // 0x1d4: directly owned PartitionNode
+    };
+
+    // Original helper class names are unknown. Explicit observed layouts,
+    // not fabricated named engine classes or native C++ host containers.
+    struct spVisibilityPlaneObservedLayout final
+    {
+        float equation[4];            // dot(n,p)-d
+        std::uint8_t enabled;
+        std::uint8_t padding11[3];
+    };
+    struct spVisibilityPlaneSetObservedLayout final
+    {
+        spPartitionPointerVectorLayout planes; // elements20, not pointers
+        std::uint32_t activeCount;     //4902D0/4903E0 gate;490500 ignores
+    };
+    struct spOcclusionFaceObservedLayout final
+    {
+        float plane[4];
+        Address32 vertices[3];
+        std::uint32_t cameraSide;      // 0 front,1 back,2 epsilon band
+    };
+    struct spOcclusionEdgeObservedLayout final
+    {
+        Address32 firstVertex;
+        Address32 secondVertex;
+        Address32 oppositeFace;
+        Address32 face;
+        spPartitionPointerVectorLayout outgoingEdges;
+        std::uint32_t walkStamp;
+        std::uint8_t border;
+        std::uint8_t padding25[3];
+    };
+    struct spOcclusionVolumeLayout final
+    {
+        spNodeLayout base;             // 0x000: original direct Node
+        spPartitionPointerVectorLayout partitionNodes; // 0x0b4: borrowed reciprocal
+        std::uint32_t visibilityMark;  // 0x0c4
+        Address32 localVertexBuffer;  // 0x0c8: directly owned, position-only
+        Address32 worldVertexBuffer;  // 0x0cc: directly owned transformed copy
+        Address32 indexBuffer;        // 0x0d0: directly owned UInt16 copy
+        std::uint32_t borderEdgeCount; // 0x0d4
+        spPartitionPointerVectorLayout edges; // 0x0d8: owned edge28 pointers
+        spPartitionPointerVectorLayout borderPositions; // 0x0e8: Vector3 values
+        spPartitionPointerVectorLayout faces; // 0x0f8: face20 values
+        spPartitionPointerVectorLayout cameraFacePlanes; // 0x108: plane10 values
+        float lastCameraPosition[3];  // 0x118: world position, cache key
+        std::byte field124[0x3C];      // geometric auxiliary state not fully named
+        std::uint8_t planar;           // 0x160: nonzero border, coplanar faces
+        std::uint8_t padding161[3];
+        std::uint32_t borderWalkStamp; // 0x164
+        spVisibilityPlaneSetObservedLayout occlusionPlanes; // 0x168
+        float localMins[3];            // 0x17c: Init scan starts at zero
+        float localMaxs[3];            // 0x188
+        float localSphere[4];          // 0x194
+        float worldSphere[4];          // 0x1a4
+        std::uint8_t initialized;      // 0x1b4
+        std::uint8_t cameraGeometryDirty; // 0x1b5
+        std::uint8_t padding1B6[2];
+    };
+    struct spPolygonVertexObservedLayout final
+    {
+        Address32 freeNext;           //0x00: used only while returned to pool
+        std::uint32_t identity;       //0x04: new serial even on reuse
+        float position[3];           //0x08
+        Address32 previous;           //0x14
+        Address32 next;               //0x18
+    };
+    struct spVisibilityScratchObservedLayout final
+    {
+        std::uint32_t field00;         // untouched
+        std::uint32_t identity;        // global740384 increment
+        std::uint32_t nodeCount;       // logical vertex count, NOT capacity
+        Address32 circularHead;        // shared740388 pool; may be stale when count0
+        float plane10[4];
+        std::uint32_t field20;         // untouched
+        std::uint32_t field24;         // ctor0
+        std::uint32_t field28;         // ctor0
+    };
+    struct spVisibilityManagerLayout final
+    {
+        spBaseObjectLayout base;
+        Address32 supportVTable;       // 0x10:6E8CD8
+        std::uint32_t frameStamp;      // 0x14: wraps including zero
+        spPartitionPointerVectorLayout occluders; // 0x18: borrowed complete objects
+        spPartitionPointerVectorLayout visibleSupports; // 0x28: borrowed adjusted supports
+        Address32 overrideCamera;      // 0x38: borrowed
+        std::uint8_t sphereCulling;    // 0x3c: ctor1
+        std::uint8_t padding3D[3];
+        spPartitionPointerVectorLayout planeStack; // 0x40: elements20
+        std::uint32_t planeStackIndex; // 0x50
+        spVisibilityScratchObservedLayout scratch[2]; // 0x54,0x80
+    };
+
+    struct spShadowVolumeManagerObservedPrefixLayout final
+    {
+        spCrossPlatformLayout base;    // 0x00: Named14 prefix
+        Address32 supportVTable;       // 0x14
+        std::uint8_t enabled;          // 0x18: ctor1, Scene render gate
+        std::uint8_t option19;         // 0x19: ctor0, second light volume draw branch
+        std::uint8_t padding1A[2];
+    };
+    struct spDXShadowVolumeManagerLayout final
+    {
+        spShadowVolumeManagerObservedPrefixLayout base;
+        std::uint32_t field1C;         // ctor0
+        std::uint32_t field20;         // ctor0
+        std::uint32_t field24;         // ctor0
+        std::uint32_t shader28;        // ctor0; Init ShadowVolumePoint lookup
+        std::uint32_t shaderParameter2C; // ctor0; view_proj_matrix lookup
+        std::uint32_t shaderParameter30; // untouched; Init LightPos lookup
+        std::uint32_t shaderParameter34; // untouched; Init Range lookup
+        std::uint32_t field38;         // ctor1
+    };
+
+    // Original49E4C0 allocates the same1D4 as its actual C++/RTTI RenderNode
+    // base. Wire section order is not the native inheritance graph.
+    struct spSkyBoxLayout final
+    {
+        spRenderNodeLayout base;
+    };
+
+    struct spSkyBoxManagerLayout final
+    {
+        spBaseObjectLayout base;       // 0x00
+        std::uint8_t enabled;          // 0x10: ctor0; SceneInit/game set1
+        std::uint8_t padding11[3];     // 0x11: untouched
+        Address32 attachmentRoot;      // 0x14: borrowed; game chooses DefaultCamera
+        Address32 listAllocator;       // 0x18: untouched
+        Address32 listSentinel;        // 0x1c: owned12-byte list nodes, borrowed sky pointers
+        std::uint32_t skyBoxCount;     // 0x20: duplicate append allowed
+    };
+
+    struct spPCProjectionManagerLayout final
+    {
+        spCrossPlatformLayout base;    // 0x00: registered ProjectionManager base adds fields14+
+        std::uint8_t enabled;          // 0x14: ctor0, Init45A290 sets1
+        std::uint8_t padding15[3];     // 0x15: untouched
+        Address32 listAllocator;       // 0x18: untouched
+        Address32 listSentinel;        // 0x1c: borrowed pointers, duplicate scan before append
+        std::uint32_t projectionCount;// 0x20
+    };
+
+    // Base prefix only: original LensFlareManager has no RTTI factory.
+    struct spLensFlareManagerObservedLayout final
+    {
+        spCrossPlatformLayout base;    // 0x00
+        std::uint8_t enabled;          // 0x14
+        std::uint8_t padding15[3];     // 0x15: untouched
+        Address32 firstFlare;          // 0x18: borrowed intrusive; flare previous58/next5c
+        Address32 lastFlare;           // 0x1c
+        std::uint32_t flareCount;      // 0x20
+    };
+
+    struct spPCLensFlareManagerLayout final
+    {
+        spLensFlareManagerObservedLayout base; // 0x00
+        std::uint8_t queryCapability;  // 0x24: result !=8876086A, not general HRESULT success
+        std::uint8_t padding25[3];     // 0x25: untouched
+        Address32 queryMapAllocator;   // 0x28: untouched
+        Address32 queryMapSentinel;    // 0x2c: owned tree, payload query-group pointers
+        std::uint32_t queryMapCount;   // 0x30
+        std::uint32_t queryCount;      // 0x34: four query interfaces per entry
     };
 
     // No RTTI factory exposes a complete sizeof. The common destructor and
@@ -850,16 +1510,14 @@ namespace sparkplug::evidence::pc
         std::uint32_t groupMapSize;    // 0x50
     };
 
-    // The .rld-protected concrete factory prevents a direct PC sizeof proof.
-    // Constructor, copy, serializer and render paths nevertheless account for
-    // every byte through +0xED; natural MSVC alignment yields this 0xF0
-    // complete observed extent.
+    // Original concrete41A330 now proves exactF0. Keep former type spelling
+    // for compatibility; allocator/padding/opaque bytes remain distinct.
     struct spLightObservedLayout final
     {
         spNodeLayout base;             // 0x00
         Address32 sceneLightVTable;    // 0xb4: embedded support subobject
-        Address32 sceneLightFieldB8;   // 0xb8: initialized zero
-        Address32 sceneLightFieldBC;   // 0xbc: initialized zero
+        Address32 previousInScene;     // 0xb8: borrowed intrusive manager link
+        Address32 nextInScene;         // 0xbc
         std::uint32_t type;            // 0xc0: 0..3 light type
         float colorRGBA[4];            // 0xc4: normalized R,G,B,A
         std::uint8_t attenuation;      // 0xd4: serializer field 3
@@ -880,39 +1538,70 @@ namespace sparkplug::evidence::pc
         spLightObservedLayout base;    // 0x00
     };
 
+    struct spLightManagerLayout final
+    {
+        spBaseObjectLayout base;       // 0x00
+        Address32 firstLight;          // 0x10: borrowed intrusive list
+        Address32 lastLight;           // 0x14
+        std::uint32_t lightCount;      // 0x18
+        Address32 renderNodeList;      // 0x1c: ctor0;45D850 points to scene18
+        Address32 ownerScene;          // 0x20: ctor UNTOUCHED; scene ctor writes this
+    };
+
     struct spMaterialObservedLayout final
     {
         spBaseObjectLayout base;       // 0x00
-        std::uint32_t padding10;       // 0x10: constructor leaves unresolved
+        Address32 name;                // 0x10: physical NamedObject, RTTI Base
         Address32 materialVTable;      // 0x14: secondary material interface
-        std::uint8_t padding18[8];     // 0x18
-        std::uint32_t renderStates[11];// 0x20
-        std::uint32_t padding4C;       // 0x4c
-        std::uint32_t passCount;       // 0x50
-        Address32 passes[8];           // 0x54
-        std::uint8_t renderOverride;   // 0x74
-        std::uint8_t useVertexAlpha;   // 0x75
-        std::uint8_t padding76[2];
-        std::uint32_t opaqueRuntime78;
-        Address32 materialColorController; // 0x7c
+        std::uint32_t renderStates[11];// 0x18: not PS2-aligned 0x20
+        std::uint32_t opaque44;        // 0x44: ctor untouched, base copy includes
+        std::uint32_t passCount;       // 0x48
+        Address32 passes[8];           // 0x4c
+        std::uint8_t renderOverride;   // 0x6c
+        std::uint8_t useVertexAlpha;   // 0x6d
+        std::uint8_t padding6E[2];
+        std::uint32_t opaqueRuntime70;
+        Address32 materialColorController; // 0x74
     };
 
     struct spMaterialDataObservedLayout final
     {
         spMaterialObservedLayout base; // 0x00
-        float diffuseRGBA[4];          // 0x80
-        float ambientRGBA[4];          // 0x90
-        float specularRGBA[4];         // 0xa0
-        float emissiveRGBA[4];         // 0xb0
-        float specularPower;           // 0xc0
+        float diffuseRGBA[4];          // 0x78 (secondary this+0x64)
+        float ambientRGBA[4];          // 0x88
+        float specularRGBA[4];         // 0x98
+        float emissiveRGBA[4];         // 0xa8
+        float specularPower;           // 0xb8
     };
+
+    struct spDXMaterialObservedLayout final
+    {
+        spMaterialObservedLayout base;
+        float diffuseRGBA[4];
+        float ambientRGBA[4];
+        float specularRGBA[4];
+        float emissiveRGBA[4];
+        std::uint32_t specularPowerBits; // +B8 untouched by actual4A9460 factory
+    };
+    static_assert(sizeof(spDXMaterialObservedLayout)==0xBC);
+    static_assert(offsetof(spDXMaterialObservedLayout,specularPowerBits)==0xB8);
+    inline constexpr std::uint32_t spDXMaterialClassID=0x797B39EC;
+    inline constexpr Address32 spDXMaterialRegistration=0x007630E8;
+    inline constexpr Address32 spDXMaterialFactory=0x004A9460;
+    inline constexpr Address32 spDXMaterialPrimaryVTable=0x006EF264;
+    inline constexpr Address32 spDXMaterialInterfaceVTable=0x006EF238;
+    inline constexpr std::uint32_t spDXMaterialSerializerClassID=0x177E2F26;
+    inline constexpr Address32 spDXMaterialSerializerRegistration=0x00763AE0;
+    inline constexpr Address32 spDXMaterialSerializerFactory=0x004B0DD0;
+    inline constexpr Address32 spDXMaterialSerializerPrimaryVTable=0x006EFD74;
+    inline constexpr Address32 spDXMaterialSerializerInterfaceVTable=0x006EFD68;
 
     struct spMaterialPassLayerObservedLayout final
     {
         spBaseObjectLayout base;       // 0x00: direct registered base
         std::uint32_t finalBlendOperation; // 0x10: serializer pass payload
         std::uint32_t layerCount;      // 0x14
-        Address32 layers[8];           // 0x18: fixed intrusive relationships
+        Address32 layers[8];           // 0x18: fixed direct-delete owners, refcount0
     };
 
     struct spMaterialTextureLayerObservedLayout final
@@ -929,7 +1618,7 @@ namespace sparkplug::evidence::pc
     struct spFogObservedLayout final
     {
         spBaseObjectLayout base;       // 0x00
-        std::uint32_t padding10;       // 0x10: not initialized by constructor
+        Address32 name;                // 0x10: physical NamedObject; ctor NULL
         std::uint32_t type;            // 0x14
         std::uint32_t colorARGB;       // 0x18
         float start;                   // 0x1c
@@ -946,7 +1635,20 @@ namespace sparkplug::evidence::pc
         Address32 serializerVTable;    // 0x10: secondary interface
     };
 
-    // spNodeSerializer adds behavior and vtables but no observed storage.
+    // Exact 0x4C allocation from the original PC animation serializer factory.
+    // Reader 0x0043ECC0 receives this + 0x10 and resets these scratch counters.
+    struct spAnimationSerializerLayout final
+    {
+        spSerializerObservedLayout base;
+        std::uint32_t valuePoolCounts[6];   // 0x14..0x28
+        std::uint32_t valuePoolOffsets[6];  // 0x2C..0x40: used entries, not pointers
+        std::uint32_t timePoolOffset;      // 0x44: used float entries
+        std::uint32_t timePoolCount;       // 0x48
+    };
+
+    // spNodeSerializer adds behavior and vtables but no storage. Original
+    // PC4638F0 factory now confirms exact14 (probe_pc_node_serializer).
+    // Keep the historical ObservedLayout spelling for source compatibility.
     struct spNodeSerializerObservedLayout final
     {
         spSerializerObservedLayout base;
@@ -1132,7 +1834,7 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spDXMeshObservedLayout, indexType) == 0x50);
     static_assert(offsetof(spDXMeshObservedLayout, sharedMeshData) == 0x5C);
     static_assert(offsetof(spDXMeshObservedLayout, fvfCode) == 0x70);
-    static_assert(offsetof(spDXMeshObservedLayout, rendererVertexFormatCode) == 0x84);
+    static_assert(offsetof(spDXMeshObservedLayout, vertexDeclaration) == 0x84);
     static_assert(sizeof(spDXMeshSerializerObservedLayout) == 0x14);
     static_assert(offsetof(spDXMeshSerializerObservedLayout,
         serializerInterfaceVTable) == 0x10);
@@ -1176,6 +1878,7 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spPS2MeshDataObservedLayout, field48) == 0x48);
     static_assert(offsetof(spPS2MeshDataObservedLayout, fieldA0) == 0xA0);
     static_assert(offsetof(spPS2MeshDataObservedLayout, fieldFC) == 0xFC);
+    static_assert(sizeof(spRenderableCallbackRecordLayout) == 8);
     static_assert(sizeof(spRenderableCallbackVectorLayout) == 0x10);
     static_assert(sizeof(spRenderableLayout) == 0x58);
     static_assert(offsetof(spRenderableLayout, material) == 0x20);
@@ -1188,13 +1891,45 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spSkinObservedLayout, boneCount) == 0x64);
     static_assert(offsetof(spSkinObservedLayout, bones) == 0x68);
     static_assert(offsetof(spSkinObservedLayout, inverseBindMatrices) == 0x6C);
-    static_assert(sizeof(spAnimationObservedPrefixLayout) == 0x5C);
-    static_assert(offsetof(spAnimationObservedPrefixLayout, totalTime) == 0x14);
-    static_assert(offsetof(spAnimationObservedPrefixLayout, tracks) == 0x1C);
-    static_assert(offsetof(spAnimationObservedPrefixLayout, tagsBegin) == 0x2C);
-    static_assert(offsetof(spAnimationObservedPrefixLayout, auxiliaryBuffers) == 0x38);
-    static_assert(offsetof(spAnimationObservedPrefixLayout, containerState58) == 0x58);
+    static_assert(sizeof(AnimationDescriptorPoolLayout) == 0x2C);
+    static_assert(sizeof(spTrackLayout) == 0x14);
+    static_assert(sizeof(spAnimTrackLayout) == 0x44);
+    static_assert(offsetof(spAnimTrackLayout, descriptors) == 0x18);
+    static_assert(offsetof(spAnimationLayout, priorityGroup) == 0x18);
+    static_assert(sizeof(spActorStartRequestObservedLayout) == 0x38);
+    static_assert(offsetof(spActorStartRequestObservedLayout, initialTime) == 0x34);
+    static_assert(offsetof(spAnimTrackLayout, animationOwner) == 0x40);
+    static_assert(sizeof(AnimationTagObservedLayout) == 0x1C);
+    static_assert(sizeof(spAnimationLayout) == 0x84);
+    static_assert(sizeof(spAnimationManagerLayout) == 0x2C);
+    static_assert(offsetof(spAnimationManagerLayout, frame) == 0x10);
+    static_assert(offsetof(spAnimationManagerLayout, nameMapSentinel) == 0x1C);
+    static_assert(offsetof(spAnimationManagerLayout, controllerHead) == 0x24);
+    static_assert(sizeof(AnimationNameMapNodeLayout) == 0x34);
+    static_assert(offsetof(AnimationNameMapNodeLayout, slot) == 0x28);
+    static_assert(offsetof(AnimationNameMapNodeLayout, references) == 0x2C);
+    static_assert(offsetof(AnimationNameMapNodeLayout, isSentinel) == 0x31);
+    static_assert(sizeof(spControllerLayout) == 0x1C);
+    static_assert(offsetof(spControllerLayout, next) == 0x14);
+    static_assert(offsetof(spAnimationLayout, totalTime) == 0x14);
+    static_assert(offsetof(spAnimationLayout, tracks) == 0x1C);
+    static_assert(offsetof(spAnimationLayout, tagsBegin) == 0x2C);
+    static_assert(offsetof(spAnimationLayout, auxiliaryBuffers) == 0x38);
+    static_assert(offsetof(spAnimationLayout, descriptorPool) == 0x58);
     static_assert(sizeof(spTransformTrackEvalObservedLayout) == 0x78);
+    static_assert(sizeof(spTransformTrackEvalInputLayout) == 0x30);
+    static_assert(offsetof(spTransformTrackEvalInputLayout, positionKeyIndices) == 0x0C);
+    static_assert(offsetof(spTransformTrackEvalInputLayout, rotationKeyIndices) == 0x18);
+    static_assert(offsetof(spTransformTrackEvalInputLayout, scaleKeyIndices) == 0x24);
+    static_assert(sizeof(spNodeControllerLayout) == 0x18);
+    static_assert(offsetof(spNodeControllerLayout, node) == 0x10);
+    static_assert(offsetof(spNodeControllerLayout, evaluator) == 0x14);
+    static_assert(sizeof(spActorObservedLayout) == 0x54);
+    static_assert(offsetof(spActorObservedLayout, playbackStates) == 0x28);
+    static_assert(offsetof(spActorObservedLayout, controllersBegin) == 0x40);
+    static_assert(sizeof(spActorPlaybackObservedLayout) == 0x60);
+    static_assert(offsetof(spActorPlaybackObservedLayout, sampleTime) == 0x34);
+    static_assert(offsetof(spActorPlaybackObservedLayout, bindingUseCount) == 0x48);
     static_assert(offsetof(spTransformTrackEvalObservedLayout,
         boundTransformSlot) == 0x10);
     static_assert(offsetof(spTransformTrackEvalObservedLayout,
@@ -1247,9 +1982,20 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spDXInputManagerObservedLayout, controllerCount) == 0x3C);
     static_assert(offsetof(spDXInputManagerObservedLayout, keyboardDevice) == 0x2C);
     static_assert(offsetof(spDXInputManagerObservedLayout, controllers) == 0x40);
+    static_assert(sizeof(spRendererAlphaRecordLayout) == 0x18);
+    static_assert(sizeof(spRendererGeneralRecordLayout) == 0x14);
+    static_assert(sizeof(spRendererBucketRecordLayout) == 8);
+    static_assert(sizeof(spRendererQueueVectorLayout) == 0x10);
     static_assert(sizeof(spRendererLayout) == 0xCA08);
     static_assert(offsetof(spRendererLayout, rendererInterfaceVTable) == 0x18);
     static_assert(offsetof(spRendererLayout, renderQueueEnabled) == 0xC050);
+    static_assert(offsetof(spRendererLayout, alphaRecords) == 0x50);
+    static_assert(offsetof(spRendererLayout, generalQueue) == 0xC054);
+    static_assert(offsetof(spRendererLayout, modeQueues) == 0xC064);
+    static_assert(offsetof(spRendererLayout, currentMaterial) == 0xC18C);
+    static_assert(offsetof(spRendererLayout, currentLightCache) == 0xC190);
+    static_assert(offsetof(spRendererLayout, currentField28) == 0xC194);
+    static_assert(offsetof(spRendererLayout, materialStateC1C4) == 0xC1C4);
     static_assert(offsetof(spRendererLayout, renderStateCache) == 0xC868);
     static_assert(offsetof(spRendererLayout, textureStateCache) == 0xC898);
     static_assert(offsetof(spRendererLayout, lifetimeTailC9B8) == 0xC9B8);
@@ -1274,11 +2020,13 @@ namespace sparkplug::evidence::pc
         cubeTargets) == 0x24);
     static_assert(offsetof(spRenderTargetManagerObservedLayout,
         layerTargets) == 0x30);
-    static_assert(sizeof(spMaterialTextureObservedLayout) == 0x6C);
+    static_assert(sizeof(spMaterialTextureObservedLayout) == 0x68);
     static_assert(offsetof(spMaterialTextureObservedLayout,
         fallbackTexture) == 0x34);
     static_assert(offsetof(spMaterialTextureObservedLayout,
-        uvController) == 0x64);
+        uvController) == 0x38);
+    static_assert(offsetof(spMaterialTextureObservedLayout,
+        animationController) == 0x64);
     static_assert(sizeof(spMaterialRenderTargetTextureObservedLayout) == 0x8C);
     static_assert(offsetof(spMaterialRenderTargetTextureObservedLayout,
         maxRecursionLevel) == 0x6C);
@@ -1293,7 +2041,17 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spEngineCoreLayout, defaultCamera) == 0x1C);
     static_assert(offsetof(spEngineCoreLayout, firstFrameCallback) == 0x30);
     static_assert(offsetof(spEngineCoreLayout, field3C) == 0x3C);
-    static_assert(offsetof(spEngineCoreLayout, containers54) == 0x54);
+    static_assert(sizeof(spTaskTimerLayout) == 0x3C);
+    static_assert(offsetof(spTaskTimerLayout, active) == 0x18);
+    static_assert(offsetof(spTaskTimerLayout, deltaSeconds) == 0x28);
+    static_assert(offsetof(spTaskTimerLayout, sourceClock) == 0x2C);
+    static_assert(offsetof(spTaskTimerLayout, previousSibling) == 0x10);
+    static_assert(offsetof(spTaskTimerLayout, lastChild) == 0x34);
+    static_assert(offsetof(spTaskTimerLayout, childCount) == 0x38);
+    static_assert(offsetof(spEngineCoreLayout, taskTimers54) == 0x54);
+    static_assert(offsetof(spEngineCoreLayout, taskTimers54) + sizeof(spTaskTimerLayout)
+        + offsetof(spTaskTimerLayout, deltaSeconds) == 0xB8);
+    static_assert(offsetof(spEngineCoreLayout, eventQueuesCC) == 0xCC);
     static_assert(offsetof(spEngineCoreLayout, field154) == 0x154);
     static_assert(sizeof(spNodeLayout) == 0xB4);
     static_assert(offsetof(spNodeLayout, childListHead) == 0x18);
@@ -1303,12 +2061,25 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spNodeLayout, sceneLink) == 0x3C);
     static_assert(offsetof(spNodeLayout, orientation) == 0x40);
     static_assert(offsetof(spNodeLayout, collisionBegin) == 0x68);
+    static_assert(offsetof(spNodeLayout, cachedWorldPosition) == 0x74);
+    static_assert(offsetof(spNodeLayout, cachedWorldScale) == 0x80);
+    static_assert(offsetof(spNodeLayout, cachedWorldOrientation) == 0x8C);
     static_assert(offsetof(spNodeLayout, flags) == 0xB0);
+    static_assert(sizeof(spSceneManagerLayout) == 0x24);
+    static_assert(offsetof(spSceneManagerLayout, currentScene) == 0x20);
+    static_assert(sizeof(spSceneLayout) == 0x54);
+    static_assert(offsetof(spSceneLayout, systemRoot) == 0x14);
+    static_assert(offsetof(spSceneLayout, firstRenderNode) == 0x18);
+    static_assert(offsetof(spSceneLayout, renderNodeCount) == 0x20);
+    static_assert(offsetof(spSceneLayout, lightManager) == 0x34);
+    static_assert(offsetof(spSceneLayout, sortedBegin) == 0x48);
     static_assert(sizeof(spCameraObservedLayout) == 0x238);
     static_assert(offsetof(spCameraObservedLayout, nearClipPlane) == 0xBC);
     static_assert(offsetof(spCameraObservedLayout, twoDimensional) == 0xC8);
-    static_assert(offsetof(spCameraObservedLayout, viewMatrix) == 0xD4);
-    static_assert(offsetof(spCameraObservedLayout, projectionMatrix) == 0x114);
+    static_assert(offsetof(spCameraObservedLayout, viewMatrix) == 0xCC);
+    static_assert(offsetof(spCameraObservedLayout, projectionMatrix) == 0x10C);
+    static_assert(offsetof(spCameraObservedLayout, viewBasis) == 0x14C);
+    static_assert(offsetof(spCameraObservedLayout, viewport170) == 0x170);
     static_assert(offsetof(spCameraObservedLayout, viewAngle) == 0x188);
     static_assert(offsetof(spCameraObservedLayout, pixelAspectRatio) == 0x190);
     static_assert(offsetof(spCameraObservedLayout, frustumPlanes) == 0x1C4);
@@ -1322,6 +2093,94 @@ namespace sparkplug::evidence::pc
         renderableBegin) == 0xBC);
     static_assert(offsetof(spRenderNodeObservedPrefixLayout,
         renderableEnd) == 0xC0);
+    static_assert(sizeof(spRenderNodeLayout) == 0x1D4);
+    static_assert(sizeof(spSkyBoxLayout) == 0x1D4);
+    static_assert(sizeof(spSkyBoxManagerLayout) == 0x24);
+    static_assert(offsetof(spSkyBoxManagerLayout, attachmentRoot) == 0x14);
+    static_assert(sizeof(spPCProjectionManagerLayout) == 0x24);
+    static_assert(offsetof(spPCProjectionManagerLayout, listSentinel) == 0x1C);
+    static_assert(sizeof(spLensFlareManagerObservedLayout) == 0x24);
+    static_assert(sizeof(spPCLensFlareManagerLayout) == 0x38);
+    static_assert(offsetof(spPCLensFlareManagerLayout, queryCapability) == 0x24);
+    static_assert(sizeof(spLightCacheObservedLayout) == 0x28);
+    static_assert(offsetof(spLightCacheObservedLayout, ambientLight) == 0x20);
+    static_assert(offsetof(spRenderNodeLayout, localSphere) == 0xC8);
+    static_assert(offsetof(spRenderNodeLayout, worldSphere) == 0xD8);
+    static_assert(offsetof(spRenderNodeLayout, lightCache) == 0xF0);
+    static_assert(offsetof(spRenderNodeLayout, self) == 0x124);
+    static_assert(offsetof(spRenderNodeLayout, previousInScene) == 0x128);
+    static_assert(offsetof(spRenderNodeLayout, bypassFrustumCull) == 0x130);
+    static_assert(offsetof(spRenderNodeLayout, worldMatrix) == 0x138);
+    static_assert(offsetof(spRenderNodeLayout, inverseWorldMatrix) == 0x178);
+    static_assert(offsetof(spRenderNodeLayout, inverseWorldScale) == 0x1B8);
+    static_assert(offsetof(spRenderNodeLayout, callbackBegin) == 0x1C8);
+    static_assert(sizeof(spRenderSupportObservedLayout) == 0x74);
+    static_assert(offsetof(spRenderSupportObservedLayout, lightCache) == 0x3C);
+    static_assert(offsetof(spRenderSupportObservedLayout, completeObject) == 0x70);
+    static_assert(sizeof(spStaticRenderObjectLayout) == 0x10C);
+    static_assert(offsetof(spStaticRenderObjectLayout, scene) == 0x88);
+    static_assert(offsetof(spStaticRenderObjectLayout, worldMatrix) == 0x8C);
+    static_assert(offsetof(spStaticRenderObjectLayout, inverseWorldMatrix) == 0xCC);
+    static_assert(sizeof(spPartitionRenderableLayout) == 0x8C);
+    static_assert(sizeof(spPCPartitionRenderableLayout) == 0x8C);
+    static_assert(offsetof(spPartitionRenderableLayout, debugColor) == 0x84);
+    static_assert(offsetof(spPartitionRenderableLayout, scene) == 0x88);
+    static_assert(sizeof(spPartitionNodeLayout) == 0x84);
+    static_assert(offsetof(spPartitionNodeLayout, debugColor) == 0x50);
+    static_assert(offsetof(spPartitionNodeLayout, zone) == 0x60);
+    static_assert(offsetof(spPartitionNodeLayout, portals) == 0x64);
+    static_assert(offsetof(spPartitionNodeLayout, partitionRenderable) == 0x78);
+    static_assert(offsetof(spPartitionNodeLayout, scene) == 0x80);
+    static_assert(sizeof(spZoneLayout) == 0xC8);
+    static_assert(sizeof(spZonePortalLayout) == 0x38);
+    static_assert(offsetof(spZonePortalLayout, destinationZone) == 0x14);
+    static_assert(offsetof(spZonePortalLayout, vertices) == 0x1C);
+    static_assert(offsetof(spZonePortalLayout, plane) == 0x24);
+    static_assert(offsetof(spZonePortalLayout, visibilityMark) == 0x34);
+    static_assert(sizeof(spZonePortalNodeLayout) == 0xC4);
+    static_assert(offsetof(spZonePortalNodeLayout, portals) == 0xB4);
+    static_assert(sizeof(spOctreeRayCandidateObservedLayout) == 8);
+    static_assert(sizeof(spOctreeNodeLayout) == 0xC8);
+    static_assert(offsetof(spOctreeNodeLayout, pivot) == 0x84);
+    static_assert(offsetof(spOctreeNodeLayout, rayCandidates) == 0x90);
+    static_assert(offsetof(spOctreeNodeLayout, mins) == 0xB0);
+    static_assert(offsetof(spOctreeNodeLayout, maxs) == 0xBC);
+    static_assert(sizeof(spBSPRayCandidateObservedLayout) == 8);
+    static_assert(sizeof(spBSPNodeLayout) == 0xAC);
+    static_assert(offsetof(spBSPNodeLayout, plane) == 0x84);
+    static_assert(offsetof(spBSPNodeLayout, rayCandidates) == 0x94);
+    static_assert(offsetof(spBSPNodeLayout, polygon) == 0xA4);
+    static_assert(offsetof(spBSPNodeLayout, polygonCount) == 0xA8);
+    static_assert(offsetof(spZoneLayout, localRoots) == 0xB4);
+    static_assert(sizeof(spPartitionSystemLayout) == 0x1D8);
+    static_assert(offsetof(spPartitionSystemLayout, root) == 0x1D4);
+    static_assert(offsetof(spPartitionNodeLayout, visibilityMark) == 0x7C);
+    static_assert(sizeof(spVisibilityPlaneObservedLayout) == 20);
+    static_assert(sizeof(spVisibilityPlaneSetObservedLayout) == 20);
+    static_assert(sizeof(spOcclusionFaceObservedLayout) == 0x20);
+    static_assert(sizeof(spOcclusionEdgeObservedLayout) == 0x28);
+    static_assert(sizeof(spOcclusionVolumeLayout) == 0x1B8);
+    static_assert(offsetof(spOcclusionVolumeLayout, partitionNodes) == 0xB4);
+    static_assert(offsetof(spOcclusionVolumeLayout, localVertexBuffer) == 0xC8);
+    static_assert(offsetof(spOcclusionVolumeLayout, borderPositions) == 0xE8);
+    static_assert(offsetof(spOcclusionVolumeLayout, cameraFacePlanes) == 0x108);
+    static_assert(offsetof(spOcclusionVolumeLayout, planar) == 0x160);
+    static_assert(offsetof(spOcclusionVolumeLayout, occlusionPlanes) == 0x168);
+    static_assert(offsetof(spOcclusionVolumeLayout, localSphere) == 0x194);
+    static_assert(offsetof(spOcclusionVolumeLayout, initialized) == 0x1B4);
+    static_assert(sizeof(spVisibilityScratchObservedLayout) == 0x2C);
+    static_assert(sizeof(spPolygonVertexObservedLayout) == 0x1C);
+    static_assert(offsetof(spPolygonVertexObservedLayout, position) == 0x08);
+    static_assert(offsetof(spPolygonVertexObservedLayout, previous) == 0x14);
+    static_assert(offsetof(spPolygonVertexObservedLayout, next) == 0x18);
+    static_assert(sizeof(spVisibilityManagerLayout) == 0xAC);
+    static_assert(offsetof(spVisibilityManagerLayout, visibleSupports) == 0x28);
+    static_assert(offsetof(spVisibilityManagerLayout, planeStack) == 0x40);
+    static_assert(offsetof(spVisibilityManagerLayout, scratch) == 0x54);
+    static_assert(sizeof(spShadowVolumeManagerObservedPrefixLayout) == 0x1C);
+    static_assert(sizeof(spDXShadowVolumeManagerLayout) == 0x3C);
+    static_assert(offsetof(spDXShadowVolumeManagerLayout, shader28) == 0x28);
+    static_assert(offsetof(spDXShadowVolumeManagerLayout, field38) == 0x38);
     static_assert(sizeof(spSceneGraphOptimizerObservedPrefixLayout) == 0x38);
     static_assert(offsetof(spSceneGraphOptimizerObservedPrefixLayout,
         callbackVTable) == 0x18);
@@ -1330,6 +2189,9 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spSceneGraphOptimizerObservedPrefixLayout,
         detachListHead) == 0x34);
     static_assert(sizeof(spLightObservedLayout) == 0xF0);
+    static_assert(sizeof(spLightManagerLayout) == 0x24);
+    static_assert(offsetof(spLightManagerLayout, ownerScene) == 0x20);
+    static_assert(offsetof(spLightObservedLayout, previousInScene) == 0xB8);
     static_assert(offsetof(spLightObservedLayout, sceneLightVTable) == 0xB4);
     static_assert(offsetof(spLightObservedLayout, type) == 0xC0);
     static_assert(offsetof(spLightObservedLayout, colorRGBA) == 0xC4);
@@ -1340,21 +2202,21 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spLightObservedLayout, projectShadow) == 0xEC);
     static_assert(offsetof(spLightObservedLayout, enabled) == 0xED);
     static_assert(sizeof(spLightDataObservedLayout) == 0xF0);
-    static_assert(sizeof(spMaterialObservedLayout) == 0x80);
+    static_assert(sizeof(spMaterialObservedLayout) == 0x78);
     static_assert(offsetof(spMaterialObservedLayout, materialVTable) == 0x14);
-    static_assert(offsetof(spMaterialObservedLayout, renderStates) == 0x20);
-    static_assert(offsetof(spMaterialObservedLayout, passCount) == 0x50);
-    static_assert(offsetof(spMaterialObservedLayout, passes) == 0x54);
-    static_assert(offsetof(spMaterialObservedLayout, renderOverride) == 0x74);
-    static_assert(offsetof(spMaterialObservedLayout, useVertexAlpha) == 0x75);
+    static_assert(offsetof(spMaterialObservedLayout, renderStates) == 0x18);
+    static_assert(offsetof(spMaterialObservedLayout, passCount) == 0x48);
+    static_assert(offsetof(spMaterialObservedLayout, passes) == 0x4C);
+    static_assert(offsetof(spMaterialObservedLayout, renderOverride) == 0x6C);
+    static_assert(offsetof(spMaterialObservedLayout, useVertexAlpha) == 0x6D);
     static_assert(offsetof(spMaterialObservedLayout,
-        materialColorController) == 0x7C);
-    static_assert(sizeof(spMaterialDataObservedLayout) == 0xC4);
-    static_assert(offsetof(spMaterialDataObservedLayout, diffuseRGBA) == 0x80);
-    static_assert(offsetof(spMaterialDataObservedLayout, ambientRGBA) == 0x90);
-    static_assert(offsetof(spMaterialDataObservedLayout, specularRGBA) == 0xA0);
-    static_assert(offsetof(spMaterialDataObservedLayout, emissiveRGBA) == 0xB0);
-    static_assert(offsetof(spMaterialDataObservedLayout, specularPower) == 0xC0);
+        materialColorController) == 0x74);
+    static_assert(sizeof(spMaterialDataObservedLayout) == 0xBC);
+    static_assert(offsetof(spMaterialDataObservedLayout, diffuseRGBA) == 0x78);
+    static_assert(offsetof(spMaterialDataObservedLayout, ambientRGBA) == 0x88);
+    static_assert(offsetof(spMaterialDataObservedLayout, specularRGBA) == 0x98);
+    static_assert(offsetof(spMaterialDataObservedLayout, emissiveRGBA) == 0xA8);
+    static_assert(offsetof(spMaterialDataObservedLayout, specularPower) == 0xB8);
     static_assert(sizeof(spMaterialPassLayerObservedLayout) == 0x38);
     static_assert(offsetof(spMaterialPassLayerObservedLayout,
         finalBlendOperation) == 0x10);
@@ -1368,6 +2230,11 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spFogObservedLayout, type) == 0x14);
     static_assert(offsetof(spFogObservedLayout, density) == 0x24);
     static_assert(sizeof(spSerializerObservedLayout) == 0x14);
+    static_assert(sizeof(spAnimationSerializerLayout) == 0x4C);
+    static_assert(offsetof(spAnimationSerializerLayout, valuePoolCounts) == 0x14);
+    static_assert(offsetof(spAnimationSerializerLayout, valuePoolOffsets) == 0x2C);
+    static_assert(offsetof(spAnimationSerializerLayout, timePoolOffset) == 0x44);
+    static_assert(offsetof(spAnimationSerializerLayout, timePoolCount) == 0x48);
     static_assert(offsetof(spSerializerObservedLayout,
         serializerVTable) == 0x10);
     static_assert(sizeof(spNodeSerializerObservedLayout) == 0x14);
@@ -1415,6 +2282,16 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spSerializerManagerLayout, serializationPolicy) == 0x18);
     static_assert(offsetof(spSerializerManagerLayout, registrations) == 0x1C);
     static_assert(offsetof(spSerializerManagerLayout, fat) == 0x28);
+    static_assert(sizeof(spResourceFATHelperObservedLayout) == 0x58);
+    static_assert(offsetof(spResourceFATHelperObservedLayout, resourcesByID) == 0x20);
+    static_assert(offsetof(spResourceFATHelperObservedLayout, resourcesByObject) == 0x2C);
+    static_assert(offsetof(spResourceFATHelperObservedLayout, orderedFiles) == 0x38);
+    static_assert(offsetof(spResourceFATHelperObservedLayout, orderedResources) == 0x48);
+    static_assert(offsetof(spResourceFATHelperObservedLayout, resourceCursor) == 0x54);
+    static_assert(sizeof(spResourceFATEntryObservedLayout) == 0x24);
+    static_assert(offsetof(spResourceFATEntryObservedLayout, payloadWritten) == 0x1C);
+    static_assert(offsetof(spResourceFATEntryObservedLayout, object) == 0x20);
+    static_assert(sizeof(spResourceFATFileEntryObservedLayout) == 0x0C);
     static_assert(sizeof(spSerializerHookObservedLayout) == 0x10);
     static_assert(sizeof(spDXSerializerHookObservedPrefixLayout) == 0x1C);
     static_assert(offsetof(spDXSerializerHookObservedPrefixLayout,
@@ -1431,6 +2308,12 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spRenderNodeCopy = 0x00424980;
     inline constexpr Address32 spRenderNodeRegistrationGetter = 0x00425030;
     inline constexpr Address32 spRenderNodeVTable = 0x006DCAA4;
+    inline constexpr Address32 spRenderNodeSupportVTable = 0x006DCADC;
+    inline constexpr Address32 spRenderNodeWorldUpdate = 0x004250F0;
+    inline constexpr Address32 spRenderNodeCull = 0x00424840;
+    inline constexpr Address32 spRenderNodeApplyMatrices = 0x004248D0;
+    inline constexpr Address32 spRenderNodeRender = 0x00424B60;
+    inline constexpr std::uint32_t spRenderNodeSize = 0x1D4;
     inline constexpr Address32 spRenderNodeClassName = 0x006DCAF4;
     inline constexpr std::uint32_t spRenderNodeRenderableBeginOffset = 0xBC;
     inline constexpr std::uint32_t spRenderNodeRenderableEndOffset = 0xC0;
@@ -1626,6 +2509,23 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spDataBlockSerializerWriteTerminator = 0x00472B00;
     inline constexpr Address32 spDataBlockSerializerWriteField = 0x00472B40;
     inline constexpr Address32 spDataBlockSerializerConstructor = 0x00473000;
+    inline constexpr Address32 spDataBlockSerializerBeginObject = 0x00472710;
+    inline constexpr Address32 spDataBlockSerializerWriteBegin = 0x00472D30;
+    inline constexpr Address32 spDataBlockSerializerWriteBeginResolvedTail = 0x0044EB66;
+    inline constexpr Address32 spDataBlockSerializerWriteEnd = 0x00472E20;
+    inline constexpr Address32 spDataBlockSerializerWriteHeaderResolved = 0x004F5AD0;
+    // Save-reference protocol and unnamed FAT helper, independently executed
+    // on PC. These addresses do not imply a complete FFPS file-save entry.
+    inline constexpr Address32 spSerializerWriteObjectHeader = 0x00467260;
+    inline constexpr Address32 spSerializerIndexResource = 0x004672C0;
+    inline constexpr Address32 spSerializerIndexReference = 0x00467300;
+    inline constexpr Address32 spSerializerWriteReference = 0x00467350;
+    inline constexpr Address32 spSerializerReadReference = 0x004678B0;
+    inline constexpr Address32 spSerializerResolveReadReference = 0x00467670;
+    inline constexpr Address32 spResourceFATFindByIDPC = 0x004664C0;
+    inline constexpr Address32 spResourceFATIndexObjectPC = 0x00466FA0;
+    inline constexpr Address32 spResourceFATSaveEntryConstructorPC = 0x00465BF0;
+    inline constexpr Address32 spResourceFATSaveEntryConstructorResolvedPC = 0x0047DD80;
     inline constexpr Address32 spDataBlockSerializerSourcePath = 0x006E93D8;
     inline constexpr std::uint32_t spDataBlockSerializerObservedSize = 0x28;
     inline constexpr std::uint32_t spSerializerHookClassID = 0x18092F8D;
@@ -1661,6 +2561,11 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spSerializerManagerSingleton = 0x0075DDE8;
     inline constexpr Address32 spSerializerManagerValidateFileHeader = 0x00422260;
     inline constexpr Address32 spSerializerManagerLoadSceneGraph = 0x00422550;
+    inline constexpr Address32 spSerializerManagerLoadGenericResource = 0x00422B50;
+    inline constexpr Address32 spSerializerManagerMaterializeResources = 0x00422940;
+    inline constexpr Address32 spSerializerManagerLookupClassID = 0x004224F0;
+    inline constexpr Address32 spSerializerManagerLookupResolvedBody = 0x0042C9F0;
+    inline constexpr Address32 spSerializerManagerClearRegistrations = 0x004228A0;
     inline constexpr Address32 spSerializerManagerRegisterSerializer = 0x00422D90;
     inline constexpr Address32 spSerializerManagerProtectedConstructorEntry =
         0x00422E00;
@@ -1674,6 +2579,12 @@ namespace sparkplug::evidence::pc
     inline constexpr std::uint32_t spSerializerManagerAllocationSize = 0x2C;
     inline constexpr Address32 spResourceFATHelperLoadFileIndex = 0x00465CD0;
     inline constexpr Address32 spResourceFATHelperFirstEntry = 0x00465F00;
+    inline constexpr Address32 spResourceFATHelperNextEntry = 0x00465F20;
+    inline constexpr Address32 spResourceFATHelperClearResources = 0x00466760;
+    inline constexpr Address32 spResourceFATHelperClearFiles = 0x00466870;
+    inline constexpr Address32 spResourceFATHelperLoadFileIndexResolvedBody = 0x013BCA90;
+    inline constexpr Address32 spResourceFATEntryDeletingDestructor = 0x00465CA0;
+    inline constexpr Address32 spResourceFATFileEntryDeletingDestructor = 0x00465C70;
     inline constexpr Address32 spResourceFATHelperLoadIndex = 0x00466B90;
     inline constexpr Address32 spResourceFATApplyName = 0x004671F0;
     inline constexpr std::uint32_t spNodeSerializerClassID = 0x4545848A;
@@ -2003,6 +2914,14 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spNodeCopy = 0x00421F80;
     inline constexpr Address32 spNodeRegistrationGetter = 0x00421D50;
     inline constexpr Address32 spNodeVTable = 0x006DC4F4;
+    // Analytical roles. Guest x86 replay resolves the unmodified protected
+    // bridges; scene/collision implementations remain separate dependencies.
+    inline constexpr Address32 spNodeWorldUpdateProtectedEntry = 0x00421420;
+    inline constexpr Address32 spNodeWorldUpdateVisibleTail = 0x0042142E;
+    inline constexpr Address32 spNodeWorldUpdateResolvedFlagsRead = 0x00442FA6;
+    inline constexpr Address32 spNodeQuaternionResolvedDirtyWrite = 0x004023A9;
+    inline constexpr Address32 spNodeAffineResolvedStackSetup = 0x004061E8;
+    inline constexpr std::uint32_t spNodeWorldUpdateVirtualByteOffset = 0x30;
     inline constexpr std::uint32_t spNodeAllocationSize = 0xB4;
     inline constexpr std::uint32_t spNodeDefaultFlags = 0x00070A00;
     inline constexpr std::uint32_t spLightClassID = 0x72444900;
@@ -2035,7 +2954,7 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spMaterialCopy = 0x00423880;
     inline constexpr Address32 spMaterialRegistrationGetter = 0x00423830;
     inline constexpr Address32 spMaterialPrimaryVTable = 0x006DC984;
-    inline constexpr std::uint32_t spMaterialObservedSize = 0x80;
+    inline constexpr std::uint32_t spMaterialObservedSize = 0x78;
     inline constexpr std::uint32_t spMaterialDataClassID = 0x6160348B;
     inline constexpr Address32 spMaterialDataRegistration = 0x0075D548;
     inline constexpr Address32 spMaterialDataRegistrationInitializer = 0x006D1D90;
@@ -2045,8 +2964,8 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spMaterialDataCopy = 0x005A7DB0;
     inline constexpr Address32 spMaterialDataRegistrationGetter = 0x004356E0;
     inline constexpr Address32 spMaterialDataPrimaryVTable = 0x006DE9FC;
-    inline constexpr Address32 spMaterialDataInterfaceVTable = 0x006DEA20;
-    inline constexpr std::uint32_t spMaterialDataObservedSize = 0xC4;
+    inline constexpr Address32 spMaterialDataInterfaceVTable = 0x006DE9D0;
+    inline constexpr std::uint32_t spMaterialDataObservedSize = 0xBC;
     inline constexpr std::uint32_t spMaterialPassLayerClassID = 0x3A8905A5;
     inline constexpr Address32 spMaterialPassLayerRegistration = 0x0075FE80;
     inline constexpr Address32 spMaterialPassLayerRegistrationInitializer = 0x006D37C0;
@@ -2476,8 +3395,15 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spSkinSerializerSecondaryVTable = 0x006EC7C0;
     inline constexpr std::uint32_t spAnimationClassID = 0x56EE563A;
     inline constexpr Address32 spAnimationRegistration = 0x0075D248;
-    inline constexpr Address32 spAnimationRegistrationInitializer = 0x006D1C30;
+    inline constexpr Address32 spAnimationRegistrationInitializer = 0x006D1C10;
+    inline constexpr Address32 spAnimationRegistrationInitializerCallSite = 0x006D1C30;
     inline constexpr Address32 spAnimationFactoryProtectedEntry = 0x0041A090;
+    inline constexpr Address32 spAnimationFactoryResolvedBody = 0x013D1E00;
+    inline constexpr Address32 spAnimationConstructor = 0x00430290;
+    inline constexpr Address32 spAnimationConstructorResolvedBody = 0x013C64B0;
+    inline constexpr std::uint32_t spAnimationSize = 0x84;
+    inline constexpr Address32 spAnimationTrackAppend = 0x0042FED0;
+    inline constexpr Address32 spAnimationTrackAppendResolvedBody = 0x013C91A0;
     inline constexpr Address32 spAnimationClone = 0x0041AA70;
     inline constexpr Address32 spAnimationTrackResize = 0x00430010;
     inline constexpr Address32 spAnimationDestructor = 0x00430130;
@@ -2485,6 +3411,20 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spAnimationDeletingDestructor = 0x00430380;
     inline constexpr Address32 spAnimationTagInsert = 0x004305F0;
     inline constexpr Address32 spAnimationVTable = 0x006DE6CC;
+    inline constexpr std::uint32_t spTrackClassID = 0x60C839C5;
+    inline constexpr Address32 spTrackRegistration = 0x00762B68;
+    inline constexpr Address32 spTrackFactory = 0x00493070;
+    inline constexpr Address32 spTrackVTable = 0x006ECBA4;
+    inline constexpr std::uint32_t spTrackSize = 0x14;
+    inline constexpr std::uint32_t spAnimTrackClassID = 0x33B61869;
+    inline constexpr Address32 spAnimTrackRegistration = 0x00760C98;
+    inline constexpr Address32 spAnimTrackFactory = 0x004791B0;
+    inline constexpr Address32 spAnimTrackConstructor = 0x00478DE0;
+    inline constexpr Address32 spAnimTrackVTable = 0x006EAA24;
+    inline constexpr std::uint32_t spAnimTrackSize = 0x44;
+    inline constexpr Address32 spAnimTrackDuration = 0x00478E30;
+    inline constexpr Address32 spAnimTrackReleaseKeys = 0x00479760;
+    inline constexpr Address32 spAnimTrackReleaseKeysResolvedBody = 0x013D2850;
     inline constexpr std::uint32_t spAnimationSerializerClassID = 0xC0ACBFA6;
     inline constexpr Address32 spAnimationSerializerRegistration = 0x0075EC48;
     inline constexpr Address32 spAnimationSerializerRegistrationInitializer = 0x006D2FC0;
@@ -2492,6 +3432,7 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spAnimationSerializerRegistrationGetter = 0x0043DA20;
     inline constexpr Address32 spAnimationSerializerTargetClass = 0x0043DA50;
     inline constexpr Address32 spAnimationSerializerWrite = 0x0043DFE0;
+    inline constexpr Address32 spAnimationSerializerWriteKeys = 0x0043DDC0;
     inline constexpr Address32 spAnimationSerializerIndex = 0x005A7DB0;
     inline constexpr Address32 spAnimationSerializerRead = 0x0043ECC0;
     inline constexpr Address32 spAnimationSerializerStreamVTable = 0x006E0B00;
@@ -2519,6 +3460,24 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spTransformTrackEvalRegistrationGetter =
         0x005FEBA0;
     inline constexpr Address32 spTransformTrackEvalVTable = 0x00711404;
+    inline constexpr std::uint32_t spTransformTrackEvalVTableSlotCount = 9;
+    inline constexpr Address32 spTransformTrackEvalInsertInput = 0x005FE9C0;
+    inline constexpr Address32 spTransformTrackEvalClearInput = 0x005FEB70;
+    inline constexpr Address32 spAnimationTrackSamplePRS = 0x00479290;
+    inline constexpr Address32 spAnimationTrackFindInterval = 0x00478F90;
+    inline constexpr std::uint32_t spNodeControllerClassID = 0x14A9784E;
+    inline constexpr Address32 spNodeControllerRegistration = 0x00768EF0;
+    inline constexpr Address32 spNodeControllerFactory = 0x005FF550;
+    inline constexpr Address32 spNodeControllerConstructor = 0x005FF400;
+    inline constexpr Address32 spNodeControllerDestructor = 0x005FF4D0;
+    inline constexpr Address32 spNodeControllerApply = 0x005FF1B0;
+    inline constexpr Address32 spNodeControllerBlend = 0x005FF250;
+    inline constexpr Address32 spNodeControllerVTable = 0x00711444;
+    inline constexpr std::uint32_t spActorClassID = 0x19D676E6;
+    inline constexpr Address32 spActorRegistration = 0x00766480;
+    inline constexpr Address32 spActorVTable = 0x00703F80;
+    inline constexpr Address32 spActorTick = 0x005A2380;
+    inline constexpr Address32 spActorBindInputsProtectedEntry = 0x005A1C10;
     inline constexpr std::uint32_t spResourceClassID = 0x46F043FE;
     inline constexpr Address32 spResourceRegistration = 0x007603A0;
     inline constexpr Address32 spResourceRegistrationInitializer = 0x006D3A60;

@@ -74,7 +74,7 @@ namespace sparkplug::reconstruction
 
         using FieldSchema = std::array<FieldBinding, 8>;
 
-        spColorFuncEvalSerializer() noexcept = default;
+        spColorFuncEvalSerializer() noexcept;
         ~spColorFuncEvalSerializer() override;
 
         spColorFuncEvalSerializer(const spColorFuncEvalSerializer&) = delete;
@@ -87,6 +87,10 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool ReadColorFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,bool exact,std::string*) const;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 
         [[nodiscard]] static FieldSchema BuildFieldSchemaForAnalysis() noexcept;
         [[nodiscard]] static std::vector<Field> BuildWritePlanForAnalysis(

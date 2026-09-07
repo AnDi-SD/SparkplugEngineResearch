@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool IndexBufferRegistered =
-            spRTTIManager::Instance().Register(IndexBufferRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(IndexBufferRecord);
     }
 
     spIndexBuffer::~spIndexBuffer()
@@ -127,21 +127,21 @@ namespace sparkplug::reconstruction
         // remain observable, so the portable state deliberately retains them.
     }
 
-    bool spIndexBuffer::ReadForAnalysis(spStream& stream)
+    bool spIndexBuffer::ReadForAnalysis(spStream& stream, const std::uint32_t maximumSerializedBytes)
     {
         std::uint32_t rawType = 0;
         std::uint32_t primitiveCount = 0;
         std::uint32_t formatFlags = 0;
-        if (!stream.Read(rawType)
+        if (maximumSerializedBytes < 12 || !stream.Read(rawType)
             || !stream.Read(primitiveCount)
-            || !stream.Read(formatFlags)
-            || !InitializeForAnalysis(
-                primitiveCount,
-                static_cast<eIndexBufferType>(rawType),
-                formatFlags))
+            || !stream.Read(formatFlags))
         {
             return false;
         }
+        const auto count=IndexCountFor(static_cast<eIndexBufferType>(rawType),primitiveCount);
+        const std::uint32_t width=(formatFlags&1u)?4u:2u;
+        if(!count || *count>(maximumSerializedBytes-12)/width ||
+            !InitializeForAnalysis(primitiveCount,static_cast<eIndexBufferType>(rawType),formatFlags))return false;
 
         const auto elementSize = GetIndexElementSizeForAnalysis();
         for (std::uint32_t index = 0; index < indexCount_; ++index)

@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2RendererRegistered =
-            spRTTIManager::Instance().Register(PS2RendererRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2RendererRecord);
     }
 
     spPS2Renderer::spPS2Renderer()

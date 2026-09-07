@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool FogRegistered =
-            spRTTIManager::Instance().Register(FogRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(FogRecord);
     }
 
     spFog::spFog() noexcept = default;
@@ -40,6 +40,18 @@ namespace sparkplug::reconstruction
         auto clone = std::make_unique<spFog>();
         manager.RegisterClone(*this, *clone);
         return vfunc_14(*clone, manager) ? std::move(clone) : nullptr;
+    }
+
+    bool spFog::vfunc_14(spBaseObject& destination, spCloneManager& manager) const
+    {
+        auto* const fog = dynamic_cast<spFog*>(&destination);
+        if (fog == nullptr || !spBaseObject::vfunc_14(destination, manager))
+        {
+            return false;
+        }
+        // Actual PC slot 0x0C = 0x00413120: share the name, not fog payload.
+        CopyNameToForAnalysis(*fog);
+        return true;
     }
 
     const spRTTIRecord& spFog::vfunc_18() const noexcept

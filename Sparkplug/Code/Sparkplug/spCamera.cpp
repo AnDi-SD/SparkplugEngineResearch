@@ -16,7 +16,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool CameraRegistered =
-            spRTTIManager::Instance().Register(CameraRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(CameraRecord);
 
         spCamera::Matrix4 IdentityMatrix() noexcept
         {
@@ -87,6 +87,9 @@ namespace sparkplug::reconstruction
     void spCamera::SetViewAngle(const float value) noexcept
     {
         viewAngle_ = value;
+        // Original PC427DBF unconditionally leaves serialized2D mode.
+        // The independent projection-branch byte231 is not changed.
+        twoDimensional_ = false;
         cameraDirtyFlags_ |= ProjectionDirtyMask;
     }
 

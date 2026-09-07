@@ -43,8 +43,9 @@ namespace sparkplug::reconstruction
         void SetSpecularPowerForAnalysis(float value) noexcept;
 
     private:
-        // Native offsets relative to the complete object are +0x80, +0x90,
-        // +0xA0, +0xB0 and +0xC0 respectively.
+        // PC complete offsets: +0x78, +0x88, +0x98, +0xA8, +0xB8;
+        // PS2: +0x80, +0x90, +0xA0, +0xB0, +0xC0. Interface this is
+        // PC complete+0x14, so getter-relative offsets are a further 0x14 less.
         ColorRGBA diffuse_{1.0F, 1.0F, 1.0F, 1.0F};
         ColorRGBA ambient_{0.0F, 0.0F, 0.0F, 1.0F};
         ColorRGBA specular_{1.0F, 1.0F, 1.0F, 1.0F};

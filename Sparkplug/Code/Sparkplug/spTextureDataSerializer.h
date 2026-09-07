@@ -62,6 +62,14 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         [[nodiscard]] virtual spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
+            spStream&,spSerializerObjectHeaderForAnalysis* observedHeader=nullptr) const override;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
+            const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 
         // Models the confirmed source-selection wrapper and, for SourceNone,
         // the base serializer's optional cross-platform body. Modes 0 and 2
@@ -75,5 +83,12 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static CrossPlatformPayloadHeader
             BuildCrossPlatformPayloadHeaderForAnalysis(
                 const spTextureData& textureData) noexcept;
+    protected:
+        [[nodiscard]] static bool WriteSourceNoneForAnalysis(spStream&,const spTextureData&);
+        [[nodiscard]] static bool WriteCrossSectionForAnalysis(spStream&,const spTextureData&);
+        // Actual42EA50: same selected virtual reader recurses for field3;
+        // no new object header. Context depth/extent are explicit host guards.
+        [[nodiscard]] bool ReadSourceWrapperForAnalysis(spSerializerReadContextForAnalysis&,
+            spStream&,std::uint32_t,spBaseObject&,std::uint32_t& remaining,bool& handled,std::string*) const;
     };
 }

@@ -27,7 +27,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool ResourceManagerRegistered =
-            spRTTIManager::Instance().Register(ResourceManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(ResourceManagerRecord);
     }
 
     spResourceManager* spResourceManager::instance_ = nullptr;

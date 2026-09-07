@@ -24,7 +24,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool VertexBufferRegistered =
-            spRTTIManager::Instance().Register(VertexBufferRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(VertexBufferRecord);
     }
 
     spVertexBuffer::~spVertexBuffer()
@@ -178,18 +178,21 @@ namespace sparkplug::reconstruction
         // Layout, counts and flags remain in the object.
     }
 
-    bool spVertexBuffer::ReadForAnalysis(spStream& stream)
+    bool spVertexBuffer::ReadForAnalysis(spStream& stream, const std::uint32_t maximumSerializedBytes)
     {
         std::uint32_t componentFlags = 0;
         std::uint32_t vertexCount = 0;
         std::uint32_t flags = 0;
-        if (!stream.Read(componentFlags)
+        if (maximumSerializedBytes < 12 || !stream.Read(componentFlags)
             || !stream.Read(vertexCount)
-            || !stream.Read(flags)
-            || !InitializeForAnalysis(componentFlags, vertexCount, flags))
+            || !stream.Read(flags))
         {
             return false;
         }
+        spVertexBuffer layout;
+        layout.componentFlags_=componentFlags;layout.RebuildComponentLayoutForAnalysis();
+        if(vertexCount>(maximumSerializedBytes-12)/layout.vertexStride_ ||
+            !InitializeForAnalysis(componentFlags,vertexCount,flags))return false;
         return vertexSize_ == 0
             || stream.ReadData(data_.data(), vertexSize_);
     }

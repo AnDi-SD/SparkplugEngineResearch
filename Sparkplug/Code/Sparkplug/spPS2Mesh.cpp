@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2MeshRegistered =
-            spRTTIManager::Instance().Register(PS2MeshRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2MeshRecord);
     }
 
     spPS2Mesh::~spPS2Mesh() = default;

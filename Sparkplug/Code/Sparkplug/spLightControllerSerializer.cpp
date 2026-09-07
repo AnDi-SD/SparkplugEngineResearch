@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool LightControllerSerializerRegistered =
-            spRTTIManager::Instance().Register(LightControllerSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(LightControllerSerializerRecord);
     }
 
     bool spLightControllerSerializer::FieldBinding::operator==(

@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXRenderTargetRegistered =
-            spRTTIManager::Instance().Register(DXRenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXRenderTargetRecord);
     }
 
     spDXRenderTarget::~spDXRenderTarget() = default;

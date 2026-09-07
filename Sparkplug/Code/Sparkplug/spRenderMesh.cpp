@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool RenderMeshRegistered =
-            spRTTIManager::Instance().Register(RenderMeshRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(RenderMeshRecord);
     }
 
     spRenderMesh::~spRenderMesh() = default;

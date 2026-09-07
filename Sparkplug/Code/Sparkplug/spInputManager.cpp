@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool InputManagerRegistered =
-            spRTTIManager::Instance().Register(InputManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(InputManagerRecord);
     }
 
     spInputManager* spInputManager::instance_ = nullptr;

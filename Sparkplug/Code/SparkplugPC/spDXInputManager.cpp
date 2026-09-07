@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXInputManagerRegistered =
-            spRTTIManager::Instance().Register(DXInputManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXInputManagerRecord);
     }
 
     spDXInputManager::~spDXInputManager()

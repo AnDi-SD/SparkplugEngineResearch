@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool CameraDataRegistered =
-            spRTTIManager::Instance().Register(CameraDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(CameraDataRecord);
     }
 
     const spRTTIRecord& spCameraData::StaticRTTI() noexcept

@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool TemplateObjectRegistered =
-            spRTTIManager::Instance().Register(TemplateObjectRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(TemplateObjectRecord);
     }
 
     spTemplateObject::spTemplateObject() = default;

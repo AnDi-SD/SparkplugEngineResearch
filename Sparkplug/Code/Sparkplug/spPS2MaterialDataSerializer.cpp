@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2MaterialDataSerializerRegistered =
-            spRTTIManager::Instance().Register(PS2MaterialDataSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2MaterialDataSerializerRecord);
     }
 
     spPS2MaterialDataSerializer::~spPS2MaterialDataSerializer() = default;

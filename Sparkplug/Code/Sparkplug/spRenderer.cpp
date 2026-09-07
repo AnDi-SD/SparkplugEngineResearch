@@ -1,4 +1,6 @@
 #include "spRenderer.h"
+#include "spRenderNode.h"
+#include "spRenderable.h"
 
 #include <algorithm>
 #include <limits>
@@ -17,10 +19,49 @@ namespace sparkplug::reconstruction
         };
 
         const bool RendererRegistered =
-            spRTTIManager::Instance().Register(RendererRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(RendererRecord);
     }
 
     spRenderer* spRenderer::instance_ = nullptr;
+
+    bool spRenderer::EnqueueAlphaForAnalysis(AlphaQueueForAnalysis& state,
+        spRenderable* object,spRenderNode* support,const AlphaCameraInputForAnalysis* camera,
+        std::uint32_t priority) noexcept
+    {
+        if(!state.enabled)return true;
+        if(!object||!support||!camera||!camera->identity)return false; // host invalid-pointer guard
+        const auto& sphere=object->GetBoundingSphereForAnalysis();
+        auto key=evidence::pc::renderer_queue_math::BuildAlphaKey({sphere[0],sphere[1],sphere[2]},
+            support->GetCachedRenderMatrixForAnalysis(),camera->view,camera->depthOnly,priority,state.priorityBase,false);
+        if(state.count>=AlphaQueueForAnalysis::Capacity)return false;
+        key.exactParticleSystem=object->IsExactly(0x5AFA1A4F); // exact spParticleSystem, not IsKindOf
+        state.entries[state.count++]={camera->identity,support,object,key};return true;
+    }
+
+    bool spRenderer::FlushAlphaForAnalysis(AlphaQueueForAnalysis& state,const AlphaDispatchForAnalysis& dispatch)
+    {
+        if(state.dispatching||state.count>AlphaQueueForAnalysis::Capacity||!dispatch.sort)return false;
+        state.dispatching=true;
+        struct Reset final{bool& active;~Reset(){active=false;}} reset{state.dispatching};
+        dispatch.sort(dispatch.context,state.entries.data(),state.count,
+            [](const AlphaEntryForAnalysis& a,const AlphaEntryForAnalysis& b)noexcept
+            {return evidence::pc::renderer_queue_math::CompareAlpha(a.key,b.key);});
+        state.flushing=true;spRenderNode* previous=nullptr;
+        for(std::size_t i=0;i<state.count;++i)
+        {
+            if(state.count>AlphaQueueForAnalysis::Capacity)return false; // host corrupted-count guard
+            auto& entry=state.entries[i];
+            if(previous!=entry.support)
+            {
+                if(!entry.support||!dispatch.prepare)return false;
+                (void)dispatch.prepare(dispatch.context,*entry.support);
+                previous=entry.support; // original rereads it after virtual callback
+            }
+            if(!entry.renderable||!dispatch.render)return false;
+            (void)dispatch.render(dispatch.context,*entry.renderable,entry.camera,entry.support);
+        }
+        state.flushing=false;state.count=0;return true;
+    }
 
     spRenderer::spRenderer(const std::size_t textureStateCacheCount)
         : renderStateCache_(RenderStateCacheCount),
@@ -78,6 +119,8 @@ namespace sparkplug::reconstruction
             return 23u;
         case spRendererPlatformOperationForAnalysis::SetFog:
             return 26u;
+        case spRendererPlatformOperationForAnalysis::SetUVTransform3x3:
+            return platform == spRendererPlatformForAnalysis::PC ? 24u : 23u;
         }
         return PlatformInterfaceSlotCount;
     }

@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXIndexBufferRegistered =
-            spRTTIManager::Instance().Register(DXIndexBufferRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXIndexBufferRecord);
     }
 
     spDXIndexBuffer::~spDXIndexBuffer() = default;

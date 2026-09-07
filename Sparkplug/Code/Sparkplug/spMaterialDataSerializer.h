@@ -27,6 +27,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         [[nodiscard]] virtual spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
+            spStream&,spSerializerObjectHeaderForAnalysis* observedHeader=nullptr) const override;
         [[nodiscard]] static bool CanReadIntoObjectForAnalysis(
             bool hasTargetObject) noexcept;
     };

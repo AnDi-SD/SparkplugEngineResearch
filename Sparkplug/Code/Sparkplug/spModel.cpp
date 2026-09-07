@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool ModelRegistered =
-            spRTTIManager::Instance().Register(ModelRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(ModelRecord);
     }
 
     spModel::~spModel() = default;
@@ -82,5 +82,29 @@ namespace sparkplug::reconstruction
     std::uint32_t spModel::GetProjectionGroupForAnalysis() const noexcept
     {
         return projectionGroup_;
+    }
+
+    const spModel::BoundingSphere& spModel::GetBoundingSphereForAnalysis() const noexcept
+    {
+        return baseMesh_ ? baseMesh_->GetBoundingSphereForAnalysis()
+                         : spRenderable::GetBoundingSphereForAnalysis();
+    }
+
+    void spModel::GetBoundsForAnalysis(BoundsPosition& minimum,
+                                       BoundsPosition& maximum) const noexcept
+    {
+        minimum = baseMesh_ ? baseMesh_->GetMinimumForAnalysis() : BoundsPosition{};
+        maximum = baseMesh_ ? baseMesh_->GetMaximumForAnalysis() : BoundsPosition{};
+    }
+
+    bool spModel::HasBoundsForAnalysis() const noexcept
+    {
+        return baseMesh_ && baseMesh_->HasBoundsForAnalysis();
+    }
+
+    void spModel::InvalidateRuntimeModeForAnalysis() noexcept
+    {
+        // Exact PC vslot34 =48EAA0. The PS2 classifier is a different body;
+        // neither its categories nor a forced zero are a PC implementation.
     }
 }

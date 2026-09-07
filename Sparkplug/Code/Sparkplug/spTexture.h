@@ -68,6 +68,11 @@ namespace sparkplug::reconstruction
 
     protected:
         spTexture() noexcept;
+        // Actual PC4ABAC0 COM attachment subset. Does not set18/1C/flags20.
+        void ApplyRuntimeAttachmentStateForAnalysis(std::uint32_t width,std::uint32_t height) noexcept;
+        // Actual4ABBA0 native-data overload: no normalization/field31 change.
+        void ApplyNativeMipStateForAnalysis(std::uint32_t width,std::uint32_t height,
+            std::uint32_t levelCount,std::uint32_t flags,std::uint8_t field1C) noexcept;
 
     private:
         // Portable state mirrors proven native offsets semantically, not ABI.

@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool GameLevelSerializerRegistered =
-            spRTTIManager::Instance().Register(GameLevelSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(GameLevelSerializerRecord);
     }
 
     spGameLevelSerializer::spGameLevelSerializer() noexcept = default;

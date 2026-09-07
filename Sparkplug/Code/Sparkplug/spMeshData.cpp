@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MeshDataRegistered =
-            spRTTIManager::Instance().Register(MeshDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MeshDataRecord);
     }
 
     spMeshData::~spMeshData() = default;

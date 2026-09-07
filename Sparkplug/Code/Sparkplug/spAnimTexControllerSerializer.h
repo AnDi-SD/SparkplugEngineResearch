@@ -42,7 +42,7 @@ namespace sparkplug::reconstruction
 
         using PayloadPlan = std::array<SegmentPlan, 3>;
 
-        spAnimTexControllerSerializer() noexcept = default;
+        spAnimTexControllerSerializer() noexcept;
         ~spAnimTexControllerSerializer() override;
 
         spAnimTexControllerSerializer(const spAnimTexControllerSerializer&) = delete;
@@ -64,5 +64,10 @@ namespace sparkplug::reconstruction
             std::uint32_t textureRelationshipCount) noexcept;
         [[nodiscard]] static bool IsKnownReadFieldForAnalysis(
             std::uint32_t fieldID) noexcept;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,
+            spStream& destination,const spBaseObject& object,std::string* error) const override;
     };
 }

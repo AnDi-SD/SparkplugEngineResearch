@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool TemplateManagerRegistered =
-            spRTTIManager::Instance().Register(TemplateManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(TemplateManagerRecord);
     }
 
     spTemplateManager* spTemplateManager::instance_ = nullptr;

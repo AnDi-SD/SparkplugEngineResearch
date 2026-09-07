@@ -1,4 +1,5 @@
 #include "spNode.h"
+#include "../../Analysis/PC/spNodeTransformMath.h"
 
 #include <algorithm>
 #include <utility>
@@ -22,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool NodeRegistered =
-            spRTTIManager::Instance().Register(NodeRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(NodeRecord);
     }
 
     spNode::~spNode()
@@ -85,6 +86,9 @@ namespace sparkplug::reconstruction
 
             std::shared_ptr<spNode> ownedChild(
                 static_cast<spNode*>(childCloneBase.release()));
+            // Supply the host owner for a later map-aware Skin bone hit.
+            // The original map itself still borrows this Node pointer.
+            manager.RegisterSharedCloneForAnalysis(*child,ownedChild);
             if (!nodeDestination.AttachChildForAnalysis(std::move(ownedChild)))
             {
                 return false;
@@ -136,9 +140,88 @@ namespace sparkplug::reconstruction
         return flags_;
     }
 
+    void spNode::MarkLocalTransformDirtyForAnalysis() noexcept
+    {
+        flags_ |= 1U;
+    }
+
+    void spNode::SetInheritanceForAnalysis(bool position, bool orientation, bool scale) noexcept
+    {
+        SetMaskedFlag(flags_, InheritPositionMask, position);
+        SetMaskedFlag(flags_, InheritOrientationMask, orientation);
+        SetMaskedFlag(flags_, InheritScaleMask, scale);
+    }
+
+    const spNode::Vector3& spNode::GetWorldPositionForAnalysis() const noexcept { return worldPosition_; }
+    const spNode::Vector3& spNode::GetWorldScaleForAnalysis() const noexcept { return worldScale_; }
+    const spNode::Matrix3& spNode::GetWorldOrientationForAnalysis() const noexcept { return worldOrientation_; }
+    spNode::Matrix4 spNode::GetWorldMatrixForAnalysis() const noexcept
+    {
+        return evidence::pc::node_math::Affine(worldPosition_, worldOrientation_, worldScale_);
+    }
+
+    bool spNode::UpdateWorldForAnalysis(
+        const std::uint32_t inheritedFlags, const Matrix3* cameraOrientation) noexcept
+    {
+        namespace math = evidence::pc::node_math;
+        const auto billboard = (flags_ & (BillboardAxis1Mask | BillboardAxis2Mask)) >> 20;
+        if (billboard && !math::Billboard(cameraOrientation, billboard, worldOrientation_))
+            return false;
+        if ((flags_ | inheritedFlags) & 1U)
+        {
+            if (parent_)
+            {
+                if (flags_ & InheritPositionMask)
+                {
+                    auto local = position_;
+                    if (flags_ & InheritScaleMask)
+                        for (std::size_t i=0;i<3;++i) local[i] *= parent_->worldScale_[i];
+                    worldPosition_ = math::Transform(local, parent_->worldOrientation_);
+                    for (std::size_t i=0;i<3;++i) worldPosition_[i] += parent_->worldPosition_[i];
+                }
+                // Without 0x10000, the native updater retains old world position.
+                worldScale_ = scale_;
+                if (flags_ & InheritScaleMask)
+                    for (std::size_t i=0;i<3;++i) worldScale_[i] *= parent_->worldScale_[i];
+                if (flags_ & InheritOrientationMask)
+                {
+                    if (!billboard)
+                        worldOrientation_ = math::Multiply(orientation_, parent_->worldOrientation_);
+                }
+                else
+                    worldOrientation_ = orientation_; // also overwrites a computed billboard
+            }
+            else
+            {
+                worldPosition_ = position_;
+                worldScale_ = scale_;
+                if (!billboard) worldOrientation_ = orientation_;
+            }
+            // Native collision-vector updates occur here, before descendants.
+            // That subsystem is intentionally outside this transform-only slice.
+        }
+        for (const auto& child : children_)
+            if (child && !child->UpdateWorldForAnalysis((flags_ | inheritedFlags) & ~2U, cameraOrientation))
+                return false;
+        flags_ &= ~7U;
+        return true;
+    }
+
     bool spNode::IsEnabledForAnalysis() const noexcept
     {
         return (flags_ & EnabledMask) != 0;
+    }
+
+    bool spNode::IsHierarchyActiveForAnalysis() const noexcept
+    {
+        return (flags_ & ActiveHierarchyMask) != 0;
+    }
+
+    void spNode::SetHierarchyActiveForAnalysis(const bool value) noexcept
+    {
+        SetMaskedFlag(flags_, ActiveHierarchyMask, value);
+        for (const auto& child : children_)
+            if (child) child->SetHierarchyActiveForAnalysis(value);
     }
 
     bool spNode::IsStaticForAnalysis() const noexcept
@@ -259,6 +342,10 @@ namespace sparkplug::reconstruction
 
     bool spNode::AttachChildForAnalysis(std::shared_ptr<spNode> child)
     {
+        // Native421A7B returns immediately for the same parent: success/no-op,
+        // not a duplicate list entry. Different-parent reparenting and scene
+        // registrations still need their own reconstructed host contracts.
+        if (child && child->parent_ == this) return true;
         if (child == nullptr || child.get() == this || child->parent_ != nullptr)
         {
             return false;
@@ -273,8 +360,10 @@ namespace sparkplug::reconstruction
             }
         }
 
+        children_.push_back(child); // allocate before mutating reciprocal state
         child->parent_ = this;
-        children_.push_back(std::move(child));
+        child->flags_ |= 5U; // native421AF7: local/structural world invalidation
+        if (IsHierarchyActiveForAnalysis()) child->SetHierarchyActiveForAnalysis(true);
         return true;
     }
 

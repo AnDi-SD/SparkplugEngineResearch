@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool SphereBVSerializerRegistered =
-            spRTTIManager::Instance().Register(SphereBVSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(SphereBVSerializerRecord);
     }
 
     bool spSphereBVSerializer::FieldBinding::operator==(

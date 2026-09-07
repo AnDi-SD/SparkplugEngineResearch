@@ -1,4 +1,8 @@
 #include "spMatColorControllerSerializer.h"
+#include "spMaterialColorController.h"
+#include "spColorFuncEvalSerializer.h"
+#include "spFunctionEvalSerializer.h"
+#include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
 #include <utility>
@@ -22,7 +26,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MatColorControllerSerializerRegistered =
-            spRTTIManager::Instance().Register(MatColorControllerSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MatColorControllerSerializerRecord);
     }
 
     bool spMatColorControllerSerializer::EvaluatorBinding::operator==(
@@ -33,7 +37,42 @@ namespace sparkplug::reconstruction
             && targetOffset == other.targetOffset;
     }
 
+    spMatColorControllerSerializer::spMatColorControllerSerializer() noexcept{(void)spMaterialColorController::StaticRTTI();}
     spMatColorControllerSerializer::~spMatColorControllerSerializer() = default;
+
+    bool spMatColorControllerSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const
+    {
+        auto* controller=dynamic_cast<spMaterialColorController*>(&object);
+        evidence::pc::serialization::SectionCursor cursor(context,source,size,true,error);
+        if(!controller)return cursor.Fail("MaterialColorController target mismatch");
+        while(const auto* field=cursor.Next())
+        {
+            if(field->IsTerminator())return true;
+            if(field->fieldID!=0){if(!cursor.Skip())return cursor.Fail("Cannot skip material color field");continue;}
+            const auto end=field->dataStreamPosition+field->payloadSize;spColorFuncEvalSerializer colorCodec;spFunctionEvalSerializer scalarCodec;
+            for(auto& color:controller->GetColorsForAnalysis())
+            {
+                std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return cursor.Fail("Missing packed ColorFunc section");
+                if(!colorCodec.ReadColorFieldsForAnalysis(context,source,end-pos,color,false,error))return false;
+            }
+            std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return cursor.Fail("Missing packed alpha Function section");
+            if(!scalarCodec.ReadFunctionFieldsForAnalysis(context,source,end-pos,controller->GetAlphaForAnalysis(),true,error))return false;
+        }
+        return false;
+    }
+    bool spMatColorControllerSerializer::WritePayloadForAnalysis(spStream& output,const spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();const auto* controller=dynamic_cast<const spMaterialColorController*>(&object);
+        if(!controller){if(error)*error="MaterialColorController writer target mismatch";return false;}
+        spDataBlockSerializer blocks;spColorFuncEvalSerializer colorCodec;spFunctionEvalSerializer scalarCodec;
+        if(!blocks.BeginObjectForAnalysis(output,controller)||!blocks.WriteBeginForAnalysis(0,spDataBlockSerializer::SizeCode::UInt32))return false;
+        for(const auto& color:controller->GetColorsForAnalysis())if(!colorCodec.WritePayloadForAnalysis(output,color,error))return false;
+        if(scalarCodec.WritePayloadForAnalysis(output,controller->GetAlphaForAnalysis(),error)&&blocks.WriteEndForAnalysis(0)&&blocks.FinalizeObjectForAnalysis())return true;
+        if(error&&error->empty())*error="Cannot finish material color section";return false;
+    }
+    bool spMatColorControllerSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject& object) const
+    {return dynamic_cast<spMaterialColorController*>(&object)!=nullptr;}
 
     const spRTTIRecord& spMatColorControllerSerializer::StaticRTTI() noexcept
     {

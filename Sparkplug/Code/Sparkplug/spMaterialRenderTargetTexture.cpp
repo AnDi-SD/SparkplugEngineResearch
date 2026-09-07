@@ -18,7 +18,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialRenderTargetTextureRegistered =
-            spRTTIManager::Instance().Register(MaterialRenderTargetTextureRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialRenderTargetTextureRecord);
     }
 
     spMaterialRenderTargetTexture::spMaterialRenderTargetTexture()

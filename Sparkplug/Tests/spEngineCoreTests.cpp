@@ -400,7 +400,8 @@ int main()
         child->SetName("Child");
         auto* const childRaw = child.get();
         Require(node.AttachChildForAnalysis(child)
-                && !node.AttachChildForAnalysis(child)
+                && node.AttachChildForAnalysis(child)
+                && node.GetChildCountForAnalysis() == 1
                 && childRaw->GetParentForAnalysis() == &node
                 && childRaw->GetRootForAnalysis() == &node,
             "node attachment retains one parent and exposes the tree root");
@@ -447,8 +448,8 @@ int main()
                 && renderNode.AttachRenderableForAnalysis(model)
                 && renderNode.GetRenderableCountForAnalysis() == 2
                 && renderNode.GetRenderableForAnalysis(0) == modelPointer
-                && renderNode.AreRenderableBoundsDirtyForAnalysis(),
-            "render node owns its native-order renderable relationship list");
+                && !renderNode.AreRenderableBoundsDirtyForAnalysis(),
+            "render node owns native-order relationships and immediately rebuilds bounds");
 
         renderNode.MarkRenderableBoundsCleanForAnalysis();
         auto cloneBase = renderNode.Clone();
@@ -459,15 +460,15 @@ int main()
                 && clone->GetRenderableForAnalysis(0)
                     != renderNode.GetRenderableForAnalysis(0)
                 && clone->GetRenderableForAnalysis(0)
-                    == clone->GetRenderableForAnalysis(1)
+                    != clone->GetRenderableForAnalysis(1)
                 && !clone->AreRenderableBoundsDirtyForAnalysis(),
-            "render node clone deep-clones renderables and preserves repeated references");
+            "PC render node clones each occurrence separately through the always-clone entry");
 
         auto detached = renderNode.DetachRenderableForAnalysis(*modelPointer);
         Require(detached == model
                 && renderNode.GetRenderableCountForAnalysis() == 1
-                && renderNode.AreRenderableBoundsDirtyForAnalysis(),
-            "render node detaches the first matching intrusive relationship");
+                && !renderNode.AreRenderableBoundsDirtyForAnalysis(),
+            "host render node detachment transfers first relationship and refreshes bounds");
         renderNode.ClearRenderablesForAnalysis();
         Require(renderNode.GetRenderableCountForAnalysis() == 0,
             "render node clears every owned renderable relationship");
@@ -1216,6 +1217,9 @@ int main()
             "DX hook reads the exact five-value native field through spDataBlockSerializer");
 
         spDXSerializerHook hook;
+        spSerializerManager hookManager;
+        hookManager.SetDispatchContextForAnalysis(spSerializerManager::PlatformPC,
+            spSerializerManager::OperationLoad);
         hook.vfunc_24(&fat, meshBodies);
         const auto& plan = hook.GetLastBatchPlanForAnalysis();
         Require(plan.size() == 1 && plan.front().fvfCode == 0x112
@@ -1470,6 +1474,10 @@ int main()
         camera->SetFarClipPlane(500.0F);
         camera->SetViewAngle(0.75F);
         camera->SetPixelAspectRatio(1.25F);
+        camera->Set2DModeForAnalysis(true);
+        camera->SetViewAngle(0.75F);
+        Require(!camera->Is2DMode(),
+            "PC angle setter exits serialized2D mode independently of projection branch");
         camera->Set2DModeForAnalysis(true);
         auto cloneBase = camera->Clone();
         auto* const clone = dynamic_cast<spCameraData*>(cloneBase.get());
@@ -2221,7 +2229,7 @@ int main()
     {
         spSkin skin;
         spSkinSerializer serializer;
-        Require(skin.GetWeightCountForAnalysis() == 0
+        Require(skin.GetWeightCountForAnalysis() == 4
                 && skin.GetBoneCountForAnalysis() == 0
                 && serializer.GetTargetClassIDForAnalysis() == spSkin::ClassID
                 && spSkinSerializer::BoneRelationshipClassID == spNode::ClassID,
@@ -2259,9 +2267,10 @@ int main()
         const auto* skinClone = dynamic_cast<spSkin*>(skinCloneBase.get());
         Require(skinClone != nullptr
                 && skinClone->GetWeightCountForAnalysis() == 4
-                && skinClone->GetBoneBindingsForAnalysis()
-                    == skin.GetBoneBindingsForAnalysis(),
-            "skin clone preserves palette relationships and inverse-bind matrices");
+                && skinClone->GetBoneCountForAnalysis() == 1
+                && skinClone->GetBoneBindingsForAnalysis()[0].bone != bone
+                && skinClone->GetBoneBindingsForAnalysis()[0].inverseBindMatrix == identity,
+            "skin clone creates an unmapped bone and preserves inverse-bind matrices");
         auto serializerCloneBase = serializer.Clone();
         Require(dynamic_cast<spSkinSerializer*>(serializerCloneBase.get()) != nullptr,
             "skin serializer has the native concrete blank clone");
@@ -3379,7 +3388,7 @@ int main()
         auto meshData = std::make_shared<spMeshData>();
         spModel model;
         Require(model.GetProjectionGroupForAnalysis()
-                == spModel::PS2DefaultProjectionGroup,
+                == spModel::NativeDefaultProjectionGroup,
             "model preserves the native PS2 constructor default group 3");
         model.SetName("model-probe");
         model.SetMaterialForAnalysis(material);
@@ -3975,26 +3984,26 @@ int main()
             && spSkinSerializer::ClassID
                 == sparkplug::evidence::pc::spSkinSerializerClassID,
         "PC skin and serializer field extents match executable evidence");
-    Require(sizeof(sparkplug::evidence::pc::spAnimationObservedPrefixLayout)
-                == 0x5C
+    Require(sizeof(sparkplug::evidence::pc::spAnimationLayout)
+                == 0x84
             && offsetof(
-                sparkplug::evidence::pc::spAnimationObservedPrefixLayout,
+                sparkplug::evidence::pc::spAnimationLayout,
                 totalTime) == 0x14
             && offsetof(
-                sparkplug::evidence::pc::spAnimationObservedPrefixLayout,
+                sparkplug::evidence::pc::spAnimationLayout,
                 tracks) == 0x1C
             && offsetof(
-                sparkplug::evidence::pc::spAnimationObservedPrefixLayout,
+                sparkplug::evidence::pc::spAnimationLayout,
                 tagsBegin) == 0x2C
             && offsetof(
-                sparkplug::evidence::pc::spAnimationObservedPrefixLayout,
+                sparkplug::evidence::pc::spAnimationLayout,
                 auxiliaryBuffers) == 0x38
             && sparkplug::evidence::pc::spAnimationClassID == 0x56EE563A
             && sparkplug::evidence::pc::spAnimationSerializerClassID
                 == 0xC0ACBFA6
             && sparkplug::evidence::pc::spControllerClassID == 0x4FAD24F1
             && sparkplug::evidence::pc::spSubControllerClassID == 0x062C22ED,
-        "PC animation prefix and controller registry identities match executable evidence");
+        "PC complete animation layout and controller registry identities match executable evidence");
     Require(sizeof(
                 sparkplug::evidence::pc::spTransformTrackEvalObservedLayout)
                 == 0x78
@@ -4528,7 +4537,7 @@ int main()
                 && offsetof(sparkplug::evidence::pc::spDXMeshObservedLayout,
                     indexType) == 0x50
                 && offsetof(sparkplug::evidence::pc::spDXMeshObservedLayout,
-                    rendererVertexFormatCode) == 0x84
+                    vertexDeclaration) == 0x84
                 && spDXMesh::ClassID
                     == sparkplug::evidence::pc::spDXMeshClassID
                 && record.baseClassID == spRenderMesh::ClassID
@@ -4548,11 +4557,11 @@ int main()
                     0x80 | 0x100 | 0x200 | 0x400 | 0x40000 | 0x10 | 0x20)
                     == (0x02U | 0x20U | 0x40U | 0x80U | 0x10100U
                         | 0x800U | 0x0CU | 0x1000U)
-                && spDXMesh::TextureCoordinateCountForAnalysis(0x10) == 4
-                && spDXMesh::TextureCoordinateCountForAnalysis(0x08) == 3
-                && spDXMesh::TextureCoordinateCountForAnalysis(0x04) == 2
-                && spDXMesh::TextureCoordinateCountForAnalysis(0x02) == 1,
-            "DX mesh reproduces native component-to-FVF and texture-count maps");
+                && spDXMesh::ComponentWeightCountForAnalysis(0x10) == 4
+                && spDXMesh::ComponentWeightCountForAnalysis(0x08) == 3
+                && spDXMesh::ComponentWeightCountForAnalysis(0x04) == 2
+                && spDXMesh::ComponentWeightCountForAnalysis(0x02) == 1,
+            "DX mesh reproduces native component-to-FVF and component-weight-count maps");
 
         spIndexBuffer indices;
         spVertexBuffer vertices;
@@ -4881,10 +4890,10 @@ int main()
             && spFog::ClassID == sparkplug::evidence::pc::spFogClassID
             && spFog::ClassID == sparkplug::evidence::ps2::spFogClassID,
         "material and fog class identities agree across native builds");
-    Require(sizeof(sparkplug::evidence::pc::spMaterialObservedLayout) == 0x80
+    Require(sizeof(sparkplug::evidence::pc::spMaterialObservedLayout) == 0x78
             && sizeof(sparkplug::evidence::ps2::spMaterialLayout) == 0x80
             && sizeof(
-                sparkplug::evidence::pc::spMaterialDataObservedLayout) == 0xC4
+                sparkplug::evidence::pc::spMaterialDataObservedLayout) == 0xBC
             && sizeof(sparkplug::evidence::ps2::spMaterialDataLayout) == 0xD0
             && sizeof(sparkplug::evidence::pc::spFogObservedLayout) == 0x28
             && sizeof(sparkplug::evidence::ps2::spFogLayout) == 0x28,
@@ -4938,28 +4947,27 @@ int main()
                 && stdLayer->GetMaterialTextureForAnalysis() != nullptr,
             "layer factories preserve native inheritance and default payloads");
 
-        auto layer = std::make_shared<spStdLayer>();
+        auto layer = std::make_unique<spStdLayer>();
+        auto* const originalLayer=layer.get();
         layer->GetMaterialTextureForAnalysis()->SetTextureStateForAnalysis(3, 7);
         pass->SetFinalBlendOperationForAnalysis(2);
-        Require(pass->SetLayerForAnalysis(0, layer)
+        Require(pass->SetLayerForAnalysis(0, std::move(layer))
                 && !pass->SetLayerForAnalysis(
-                    spMaterialPassLayer::MaximumLayerCount, layer)
+                    spMaterialPassLayer::MaximumLayerCount, std::make_unique<spStdLayer>())
                 && pass->GetLayerCountForAnalysis() == 1,
             "material pass keeps the native eight-slot bounded relationship array");
         auto cloneBase = pass->Clone();
         auto* const clone = dynamic_cast<spMaterialPassLayer*>(cloneBase.get());
-        const auto& clonedLayerBase = clone != nullptr
-            ? clone->GetLayerForAnalysis(0)
-            : std::shared_ptr<spMaterialTextureLayer>{};
-        auto* const clonedStd = dynamic_cast<spStdLayer*>(clonedLayerBase.get());
+        auto* const clonedStd = clone != nullptr
+            ? dynamic_cast<spStdLayer*>(clone->GetLayerForAnalysis(0).get()) : nullptr;
         Require(clone != nullptr
                 && clone->GetFinalBlendOperationForAnalysis() == 2
                 && clone->GetLayerCountForAnalysis() == 1
                 && clonedStd != nullptr
-                && clonedStd != layer.get()
+                && clonedStd != originalLayer
                 && clonedStd->GetMaterialTextureForAnalysis() != nullptr
                 && clonedStd->GetMaterialTextureForAnalysis().get()
-                    != layer->GetMaterialTextureForAnalysis().get()
+                    != originalLayer->GetMaterialTextureForAnalysis().get()
                 && clonedStd->GetMaterialTextureForAnalysis()
                     ->GetTextureStatesForAnalysis()[3] == 7,
             "material pass clone deep-clones layers and their material texture");
@@ -4990,6 +4998,11 @@ int main()
             "material-data factory preserves native state and color defaults");
         const spMaterialData::ColorRGBA changed{0.1F, 0.2F, 0.3F, 0.4F};
         material->SetDiffuseColorForAnalysis(changed);
+        Require(dynamic_cast<spNamedObject*>(object.get()) != nullptr
+                && !material->IsKindOf(spNamedObject::ClassID)
+                && material->GetName() == nullptr,
+            "material physical name does not change its engine RTTI ancestry");
+        material->SetName("material-prefix");
         material->SetUsesVertexAlphaForAnalysis(true);
         Require(material->SetRenderStateForAnalysis(3, 9)
                 && !material->SetRenderStateForAnalysis(
@@ -5000,7 +5013,8 @@ int main()
         Require(clone != nullptr
                 && clone->GetDiffuseColorForAnalysis() == white
                 && clone->GetRenderStatesForAnalysis() == expectedStates
-                && !clone->UsesVertexAlphaForAnalysis(),
+                && !clone->UsesVertexAlphaForAnalysis()
+                && clone->GetName() == nullptr,
             "material-data clone preserves the native blank-state copy stub");
     }
     {
@@ -5051,12 +5065,18 @@ int main()
             "fog factory preserves the complete native five-field defaults");
         fog->SetTypeForAnalysis(spFog::Type::Linear);
         fog->SetEndForAnalysis(50.0F);
+        Require(dynamic_cast<spNamedObject*>(object.get()) != nullptr
+                && !fog->IsKindOf(spNamedObject::ClassID)
+                && fog->GetName() == nullptr,
+            "Fog physical named prefix does not change the engine RTTI parent");
+        fog->SetName("fog-prefix");
         auto cloneBase = fog->Clone();
         auto* const clone = dynamic_cast<spFog*>(cloneBase.get());
         Require(clone != nullptr
                 && clone->GetTypeForAnalysis() == spFog::Type::Disabled
-                && clone->GetEndForAnalysis() == 1.0F,
-            "fog clone retains constructor defaults like the native base copy path");
+                && clone->GetEndForAnalysis() == 1.0F
+                && clone->GetName() == fog->GetName(),
+            "fog clone shares the physical name but retains default fog payload");
     }
 
     Require(spRenderer::ClassID
@@ -5189,7 +5209,7 @@ int main()
             && spMaterialCubeMapTexture::StaticRTTI().factory != nullptr,
         "material target-texture hierarchy preserves native abstract/concrete RTTI");
     Require(sizeof(sparkplug::evidence::pc::spMaterialTextureObservedLayout)
-                == 0x6C
+                == 0x68
             && sizeof(sparkplug::evidence::pc::
                 spMaterialRenderTargetTextureObservedLayout) == 0x8C
             && sizeof(sparkplug::evidence::pc::

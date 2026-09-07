@@ -33,9 +33,9 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2RenderTargetRegistered =
-            spRTTIManager::Instance().Register(PS2RenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2RenderTargetRecord);
         const bool PS2CubeRenderTargetRegistered =
-            spRTTIManager::Instance().Register(PS2CubeRenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2CubeRenderTargetRecord);
     }
 
     spPS2RenderTarget::~spPS2RenderTarget() = default;

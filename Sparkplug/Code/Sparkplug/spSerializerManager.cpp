@@ -1,6 +1,9 @@
 #include "spSerializerManager.h"
 #include "spResourceFATSerializer.h"
+#include "spResourceManager.h"
+#include "spSerializerHook.h"
 
+#include <limits>
 #include <utility>
 
 namespace sparkplug::reconstruction
@@ -22,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool SerializerManagerRegistered =
-            spRTTIManager::Instance().Register(SerializerManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(SerializerManagerRecord);
     }
 
     spSerializerManager* spSerializerManager::instance_ = nullptr;
@@ -149,6 +152,9 @@ namespace sparkplug::reconstruction
         return registrations_.size();
     }
 
+    bool spSerializerManager::SetSerializationPolicyForAnalysis(std::uint32_t policy) noexcept
+    {if(policy>2)return false;serializationPolicy_=policy;return true;}
+
     spResourceFATHelperForAnalysis*
     spSerializerManager::GetFATForAnalysis() noexcept
     {
@@ -255,5 +261,116 @@ namespace sparkplug::reconstruction
                 localHeader.platformMask, OperationLoad);
         }
         return status;
+    }
+
+    spBaseObject* spSerializerManager::MaterializeResourcesForAnalysis(
+        spStream& source, spSerializerReadContextForAnalysis& context, std::string* error)
+    {
+        if (error) error->clear();
+        const auto fail = [&](const char* message) -> spBaseObject* {
+            context.failed = true;
+            if (error) *error = message;
+            return nullptr;
+        };
+        if (&context.manager != this || context.failed || context.depth)
+            return fail("Invalid or failed materialization context");
+        spBaseObject* root = nullptr;
+        bool first = true;
+        for (auto* entry = fat_->FirstForAnalysis(); entry; entry = fat_->NextForAnalysis())
+        {
+            if (entry->object) continue;
+            if (entry->fileID)
+                return fail("External file-ID materialization is not reconstructed");
+            entry->object = context.resources.FindForAnalysis(entry->classID, entry->GetNameForAnalysis());
+            if (!entry->object)
+            {
+                std::uint32_t physicalSize = 0;
+                const auto origin = source.GetLogicalOriginForAnalysis();
+                if (!source.GetSize(&physicalSize) || origin > physicalSize ||
+                    entry->offset > physicalSize - origin || entry->size < 8 ||
+                    entry->size > physicalSize - origin - entry->offset ||
+                    entry->offset > std::uint32_t(std::numeric_limits<std::int32_t>::max()) ||
+                    !source.Seek(spStream::SeekSource::essStart, static_cast<std::int32_t>(entry->offset)))
+                    return fail("Invalid FAT object extent or seek failure");
+                auto* serializer = FindForAnalysis(entry->classID);
+                if (!serializer) return fail("No serializer for FAT resource");
+                if (context.createdObjects.size() >= 4096) return fail("Resource object limit exceeded");
+                auto object = serializer->ReadObjectHeaderAndCreateForAnalysis(source);
+                if (!object) return fail("FAT resource header or factory failed");
+                auto* objectPointer = object.get();
+                context.createdObjects.push_back(std::move(object));
+                entry->object = objectPointer;
+                bool loaded = false;
+                {
+                    struct DepthGuard final
+                    {
+                        std::uint32_t& depth;
+                        explicit DepthGuard(std::uint32_t& value) : depth(value) { ++depth; }
+                        ~DepthGuard() { --depth; }
+                    } guard(context.depth);
+                    loaded = serializer->ReadPayloadForAnalysis(context, source, entry->size - 8, *entry->object, error);
+                }
+                if (!loaded)
+                {
+                    context.failed = true;
+                    if (error && error->empty()) *error = "FAT resource payload failed";
+                    return nullptr;
+                }
+                std::uint32_t end = 0;
+                if (context.failed || !source.GetCurrentPosition(end) || end != entry->offset + entry->size)
+                    return fail("FAT resource reader did not consume its bounded extent");
+                // Unlike ReadReference, the original outer loop attempts
+                // cache registration BEFORE applying the directory name.
+                if (entry->object->IsKindOf(spNamedObject::ClassID))
+                    if (auto* resource = dynamic_cast<spResource*>(entry->object))
+                        (void)context.resources.RegisterForAnalysis(*resource);
+            }
+            if (first) { root = entry->object; first = false; }
+            if (entry->object && entry->object->IsKindOf(spNamedObject::ClassID))
+                if (auto* named = dynamic_cast<spNamedObject*>(entry->object)) named->SetName(entry->GetNameForAnalysis());
+        }
+        return root;
+    }
+
+    spBaseObject* spSerializerManager::LoadResourcesForAnalysis(
+        spStream& source, spSerializerReadContextForAnalysis& context, std::string* error)
+    {
+        if (error) error->clear();
+        const auto fail = [&](const char* message) -> spBaseObject* {
+            context.failed = true;
+            if (error) *error = message;
+            return nullptr;
+        };
+        if (&context.manager != this || context.failed || context.depth)
+            return fail("Invalid or failed file-load context");
+        fat_->ClearResourceEntriesForAnalysis(); fat_->ClearFileEntriesForAnalysis();
+        struct ClearFAT final
+        {
+            spResourceFATHelperForAnalysis& fat;
+            ~ClearFAT() { fat.ClearResourceEntriesForAnalysis(); fat.ClearFileEntriesForAnalysis(); }
+        } cleanup{*fat_};
+        std::uint32_t position = 0;
+        if (!source.GetCurrentPosition(position) || position != 0)
+            return fail("File loader requires the start of an explicitly opened logical stream");
+        spSerializerFileHeader header;
+        if (ReadAndValidateHeaderForAnalysis(source, PlatformPC, &header) != spSerializerFileHeaderStatus::Valid)
+            return fail("Invalid PC FFPS header");
+        if (!fat_->LoadIndexForAnalysis(source)) return fail("Cannot read resource FAT index");
+        if (!fat_->ReadDiscardedFileIndexForAnalysis(source)) return fail("Cannot read compatibility file index");
+        if (!source.GetCurrentPosition(position) || position != header.dataOffset)
+            return fail("FAT/file indices do not end at FFPS data offset");
+        const auto origin = source.GetLogicalOriginForAnalysis();
+        std::uint32_t physicalSize = 0;
+        if (!source.GetSize(&physicalSize) || origin > physicalSize || position > physicalSize - origin)
+            return fail("Invalid physical FFPS data origin");
+        source.SetLogicalOriginForAnalysis(origin + position);
+        spDXSerializerHook hook;
+        if (!hook.PrepareForAnalysis(header.platformMask, &context.resources, fat_.get(), source))
+            return fail("PC mesh preparation failed");
+        if (!hook.MaterializePreparedForAnalysis(source,context,error))
+            return nullptr; // hook already poisoned context and recorded the cause
+        auto* root = MaterializeResourcesForAnalysis(source, context, error);
+        if (!root && !context.failed) return fail("No newly materialized root resource");
+        return root;
     }
 }

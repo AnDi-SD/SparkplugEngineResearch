@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2MeshDataRegistered =
-            spRTTIManager::Instance().Register(PS2MeshDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2MeshDataRecord);
 
         std::uint32_t CountSetBits(
             std::uint32_t value,

@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2InputManagerRegistered =
-            spRTTIManager::Instance().Register(PS2InputManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2InputManagerRecord);
     }
 
     spPS2InputManager::~spPS2InputManager()

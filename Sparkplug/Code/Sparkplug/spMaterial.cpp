@@ -1,4 +1,5 @@
 #include "spMaterial.h"
+#include "spMaterialColorController.h"
 
 #include <algorithm>
 
@@ -16,12 +17,18 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialRegistered =
-            spRTTIManager::Instance().Register(MaterialRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialRecord);
     }
 
     spMaterial::spMaterial() noexcept = default;
 
-    spMaterial::~spMaterial() = default;
+    spMaterial::~spMaterial()
+    {
+        // Host context may retain canonical controller beyond holder lifetime.
+        // Base destruction must not call a derived color-interface setter.
+        auto* color=dynamic_cast<spMaterialColorController*>(materialColorController_.get());
+        if(color&&color->GetMaterialForAnalysis()==this)color->DetachMaterialForAnalysis();
+    }
 
     const spRTTIRecord& spMaterial::StaticRTTI() noexcept
     {
@@ -39,7 +46,8 @@ namespace sparkplug::reconstruction
         spBaseObject& destination,
         spCloneManager& manager) const
     {
-        if (!destination.IsKindOf(ClassID)
+        if (dynamic_cast<spMaterialColorController*>(materialColorController_.get())
+            || !destination.IsKindOf(ClassID)
             || !spBaseObject::vfunc_14(destination, manager))
         {
             return false;
@@ -94,12 +102,12 @@ namespace sparkplug::reconstruction
     spBaseObject* spMaterial::GetPassForAnalysis(
         const std::size_t index) const noexcept
     {
-        return index < passCount_ ? passes_[index] : nullptr;
+        return index < passCount_ ? passes_[index].get() : nullptr;
     }
 
     bool spMaterial::SetPassForAnalysis(
         const std::size_t index,
-        spBaseObject* const pass) noexcept
+        std::shared_ptr<spBaseObject> pass) noexcept
     {
         if (index >= passes_.size())
         {
@@ -110,12 +118,14 @@ namespace sparkplug::reconstruction
         {
             passCount_ = std::max(passCount_, index + 1);
         }
-        else if (index + 1 == passCount_)
+        else if (index < passCount_)
         {
-            while (passCount_ != 0 && passes_[passCount_ - 1] == nullptr)
-            {
-                --passCount_;
-            }
+            // PC423960 removes a slot and shifts the remaining seven-slot
+            // tail, not merely trims trailing null entries.
+            --passCount_;
+            for (auto next=index;next+1<passes_.size();++next)
+                passes_[next]=std::move(passes_[next+1]);
+            passes_.back().reset();
         }
         return true;
     }
@@ -154,12 +164,17 @@ namespace sparkplug::reconstruction
     spBaseObject* spMaterial::GetMaterialColorControllerForAnalysis()
         const noexcept
     {
-        return materialColorController_;
+        return materialColorController_.get();
     }
 
     void spMaterial::SetMaterialColorControllerForAnalysis(
-        spBaseObject* const controller) noexcept
+        std::shared_ptr<spBaseObject> controller) noexcept
     {
-        materialColorController_ = controller;
+        // Actual423A50 also invokes the binder on alias; NULL only releases.
+        // Host-only pinning guard when a canonical former controller survives.
+        if(materialColorController_.get()!=controller.get())
+        {auto* old=dynamic_cast<spMaterialColorController*>(materialColorController_.get());if(old&&old->GetMaterialForAnalysis()==this)old->DetachMaterialForAnalysis();}
+        materialColorController_ = std::move(controller);
+        if(auto* color=dynamic_cast<spMaterialColorController*>(materialColorController_.get()))color->BindMaterialForAnalysis(this);
     }
 }

@@ -13,6 +13,8 @@
 namespace sparkplug::reconstruction
 {
     class spTexture;
+    class spAnimTexController;
+    class spUVController;
 
     class spMaterialTexture : public spBaseObject
     {
@@ -44,8 +46,25 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool HasStaticTransformForAnalysis() const noexcept;
 
         void SetFallBackTextureForAnalysis(spTexture* texture) noexcept;
+        // Native41E870 retains one edge, same-pointer assignment is a no-op.
+        // Shared owner is the canonical host equivalent; raw overload remains
+        // explicitly borrowed for legacy analysis fixtures using stack objects.
+        void SetOwnedFallBackTextureForAnalysis(std::shared_ptr<spTexture> texture) noexcept;
+        [[nodiscard]] const std::shared_ptr<spTexture>& GetFallBackTextureOwnerForAnalysis() const noexcept{return fallbackOwner_;}
         void SetAnimTextureControllerForAnalysis(spBaseObject* controller) noexcept;
+        void SetOwnedAnimTextureControllerForAnalysis(std::shared_ptr<spAnimTexController> controller) noexcept;
+        [[nodiscard]] const auto& GetAnimTextureControllerOwnerForAnalysis() const noexcept{return animationOwner_;}
+        [[nodiscard]] bool UpdateTextureAnimationForAnalysis();
         void SetUVControllerForAnalysis(spBaseObject* controller) noexcept;
+        void SetOwnedUVControllerForAnalysis(std::shared_ptr<spUVController> controller) noexcept;
+        [[nodiscard]] const auto& GetUVControllerOwnerForAnalysis() const noexcept{return uvOwner_;}
+        // Original467B70 only recomputes UV when its two clocks differ;
+        // submitting the matrix to the backend is a separate renderer boundary.
+        [[nodiscard]] bool UpdateUVAnimationForAnalysis();
+        using UVSubmitForAnalysis=bool (*)(void*,std::uint32_t,const std::array<float,UVTransformValueCount>&);
+        // PC467B70: conditional UV update, submit this holder's matrix, then
+        // unconditional AnimTex update if present. Backend result is ignored.
+        [[nodiscard]] bool UpdateForRenderForAnalysis(std::uint32_t stage,UVSubmitForAnalysis submit,void* context);
         void SetTextureStateForAnalysis(std::size_t index,
             std::uint32_t value) noexcept;
         void SetStaticUVTransformForAnalysis(
@@ -55,9 +74,12 @@ namespace sparkplug::reconstruction
     private:
         std::array<std::uint32_t, PS2TextureStateCount> textureStates_{};
         spTexture* fallbackTexture_ = nullptr;
+        std::shared_ptr<spTexture> fallbackOwner_;
         spBaseObject* animationController_ = nullptr;
+        std::shared_ptr<spAnimTexController> animationOwner_;
         std::array<float, UVTransformValueCount> uvTransform_{};
         bool hasStaticUV_ = false;
         spBaseObject* uvController_ = nullptr;
+        std::shared_ptr<spUVController> uvOwner_;
     };
 }

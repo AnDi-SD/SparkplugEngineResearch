@@ -14,11 +14,15 @@ namespace sparkplug::reconstruction
 
     class spModel : public spRenderable
     {
+        friend class spModelSerializer;
     public:
         static constexpr spClassID ClassID = 0x763277DB;
+        static constexpr std::uint32_t NativeDefaultProjectionGroup = 3;
+        // Compatibility alias: now independently confirmed on PC too.
         static constexpr std::uint32_t PS2DefaultProjectionGroup = 3;
 
-        spModel() noexcept = default;
+        // Original PC constructor also initializes Renderable +28 to ARGB black.
+        spModel() noexcept {SetField28ForAnalysis(0xff000000);}
         ~spModel() override;
 
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
@@ -36,10 +40,18 @@ namespace sparkplug::reconstruction
         void SetProjectionGroupForAnalysis(std::uint32_t group) noexcept;
         [[nodiscard]] std::uint32_t GetProjectionGroupForAnalysis() const noexcept;
 
+        // PC479D20/479D40/479DA0 delegate to mesh18/2C/38/28. The sphere
+        // getter does not gate on the separate bounds-valid byte.
+        [[nodiscard]] const BoundingSphere& GetBoundingSphereForAnalysis() const noexcept override;
+        void GetBoundsForAnalysis(BoundsPosition& minimum,
+                                  BoundsPosition& maximum) const noexcept override;
+        [[nodiscard]] bool HasBoundsForAnalysis() const noexcept;
+
+    protected:
+        void InvalidateRuntimeModeForAnalysis() noexcept override;
+
     private:
         std::shared_ptr<spMesh> baseMesh_;
-        // The portable choice follows the only constructor whose body is
-        // visible. PC default remains an explicit open question.
-        std::uint32_t projectionGroup_ = PS2DefaultProjectionGroup;
+        std::uint32_t projectionGroup_ = NativeDefaultProjectionGroup;
     };
 }

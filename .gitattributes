@@ -1,0 +1,7 @@
+# Research provenance uses SHA-256 of exact file bytes, including line endings.
+# Preserve evidence, manifests and cited source/dossiers on every platform.
+/research/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/Sparkplug/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/Winx/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/docs/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/journal/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

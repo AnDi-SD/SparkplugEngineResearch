@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool TextureBufferRegistered =
-            spRTTIManager::Instance().Register(TextureBufferRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(TextureBufferRecord);
     }
 
     spTextureBuffer::~spTextureBuffer()

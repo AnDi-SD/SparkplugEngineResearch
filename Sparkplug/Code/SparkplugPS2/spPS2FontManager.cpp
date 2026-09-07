@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2FontManagerRegistered =
-            spRTTIManager::Instance().Register(PS2FontManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2FontManagerRecord);
     }
 
     const spRTTIRecord& spPS2FontManager::StaticRTTI() noexcept

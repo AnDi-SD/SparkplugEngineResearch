@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 // Inferred reconstruction path. The exact class names are present in the
 // shipped PC/PS2 executables, but no original header or translation-unit path
@@ -14,7 +15,9 @@ namespace sparkplug::reconstruction
 {
     class spStream;
     class spResourceFATHelperForAnalysis;
+    class spResourceManager;
     struct spResourceFATEntryForAnalysis;
+    struct spSerializerReadContextForAnalysis;
 
     class spSerializerHook : public spBaseObject
     {
@@ -87,8 +90,8 @@ namespace sparkplug::reconstruction
 
     // Implemented by the original PC translation unit
     // Z:\Sparkplug\Code\SparkplugDX\spDXMesh.cpp. The GPU container is now
-    // reconstructed separately; full serializer dispatch remains outside this
-    // portable hook slice.
+    // reconstructed separately. The portable normal batch path now uses the
+    // common serializer dispatch; native GPU/lifetime/error closure is pending.
     class spDXSerializerHook final : public spSerializerHook
     {
     public:
@@ -125,6 +128,19 @@ namespace sparkplug::reconstruction
             spResourceFATHelperForAnalysis& fatHelper,
             spStream& source,
             std::vector<spDXMeshBatchForAnalysis>& plan) noexcept;
+
+        // PC4AAB80 gates on platform bit2 (bit4 alone is insufficient).
+        // 4AA870 caches exact serialized MeshData only. Returns preparation
+        // status; consume a nonempty batch with MaterializePreparedForAnalysis.
+        // Explicit dependencies avoid a fake singleton.
+        [[nodiscard]] bool PrepareForAnalysis(std::uint32_t platformMask,
+            const spResourceManager* resources, spResourceFATHelperForAnalysis* fatHelper,
+            spStream& source);
+        // Complete normal PC4AA870 second pass, using the common serializer
+        // registry/header/payload interfaces. Host extents/counts and temporary
+        // combiner ownership are strict/safe, not native rollback semantics.
+        [[nodiscard]] bool MaterializePreparedForAnalysis(spStream& source,
+            spSerializerReadContextForAnalysis& context,std::string* error = nullptr);
 
         [[nodiscard]] const std::vector<spDXMeshBatchForAnalysis>&
             GetLastBatchPlanForAnalysis() const noexcept;

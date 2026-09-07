@@ -15,7 +15,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool RenderTargetRegistered =
-            spRTTIManager::Instance().Register(RenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(RenderTargetRecord);
     }
 
     spRenderTarget::spRenderTarget(

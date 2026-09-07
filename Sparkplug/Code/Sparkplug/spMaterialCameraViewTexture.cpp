@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialCameraViewTextureRegistered =
-            spRTTIManager::Instance().Register(MaterialCameraViewTextureRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialCameraViewTextureRecord);
     }
 
     const spRTTIRecord& spMaterialCameraViewTexture::StaticRTTI() noexcept

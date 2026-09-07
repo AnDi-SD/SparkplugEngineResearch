@@ -84,7 +84,7 @@ namespace sparkplug::reconstruction
         return WriteData(value, bytesToWrite);
     }
 
-    bool spStream::ReadString(std::string& value)
+    bool spStream::ReadString(std::string& value, bool* wasNull)
     {
         std::uint16_t byteCount = 0;
         if (!ReadData(&byteCount, sizeof(byteCount)))
@@ -95,6 +95,7 @@ namespace sparkplug::reconstruction
         if (byteCount == 0)
         {
             value.clear();
+            if (wasNull) *wasNull = true;
             return true;
         }
 
@@ -114,6 +115,7 @@ namespace sparkplug::reconstruction
             // out-of-bounds C-string scan while retaining all bytes.
             value.assign(buffer.data(), buffer.size());
         }
+        if (wasNull) *wasNull = false;
         return true;
     }
 

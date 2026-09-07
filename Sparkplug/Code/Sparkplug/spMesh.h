@@ -52,6 +52,8 @@ namespace sparkplug::reconstruction
     protected:
         void SetBoundingSphereForAnalysis(
             const BoundingSphere& sphere) noexcept;
+        void SetBoundsForAnalysis(const BoundingSphere& sphere,
+            const Position& minimum, const Position& maximum) noexcept;
         void MarkBoundsValidForAnalysis() noexcept;
         void SetMeshMetadataForAnalysis(
             std::uint32_t componentFlags,

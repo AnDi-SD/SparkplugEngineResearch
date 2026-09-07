@@ -1,4 +1,7 @@
 #include "spFunctionEvalSerializer.h"
+#include "spFunctionEval.h"
+#include "Analysis/PC/spSectionCursor.h"
+#include <cstring>
 
 #include <memory>
 #include <utility>
@@ -22,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool FunctionEvalSerializerRegistered =
-            spRTTIManager::Instance().Register(FunctionEvalSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(FunctionEvalSerializerRecord);
     }
 
     bool spFunctionEvalSerializer::FieldBinding::operator==(
@@ -34,7 +37,62 @@ namespace sparkplug::reconstruction
             && targetOffset == other.targetOffset;
     }
 
+    spFunctionEvalSerializer::spFunctionEvalSerializer() noexcept{(void)spFunctionEval::StaticRTTI();}
     spFunctionEvalSerializer::~spFunctionEvalSerializer() = default;
+
+    bool spFunctionEvalSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const
+    {return ReadFunctionFieldsForAnalysis(context,stream,size,object,true,error);}
+    bool spFunctionEvalSerializer::ReadFunctionFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spBaseObject& object,bool requireExactEnd,std::string* error) const
+    {
+        if(error)error->clear();auto* evaluator=dynamic_cast<spFunctionEval*>(&object);
+        if(!evaluator){context.failed=true;if(error)*error="FunctionEval target mismatch";return false;}
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size,requireExactEnd,error);
+        while(const auto* field=cursor.Next())
+        {
+            if(field->IsTerminator())return true;
+            if(field->fieldID>5){if(!cursor.Skip())return cursor.Fail("Cannot skip FunctionEval field");continue;}
+            std::uint32_t raw=0;if(!cursor.Read(raw))return cursor.Fail("FunctionEval scalar requires four bytes");
+            if(!ApplyRawStateFieldForAnalysis(*evaluator,field->fieldID,raw))return cursor.Fail("Unknown scalar state field");
+        }
+        return false;
+    }
+    bool spFunctionEvalSerializer::ApplyRawStateFieldForAnalysis(spFunctionEval& evaluator,std::uint32_t id,std::uint32_t raw) noexcept
+    {
+        auto state=evaluator.GetStateForAnalysis();float value=0;std::memcpy(&value,&raw,4);
+        switch(id)
+        {
+        case 0:state.functionType=raw;break;
+        case 1:state.frequency=value;state.reciprocal=1.0F/value;break;
+        case 2:state.amplitude=value;break;
+        case 3:state.xOffset=value;break;
+        case 4:state.yOffset=value;break;
+        case 5:state.pitch=value;break;
+        default:return false;
+        }
+        evaluator.SetStateForAnalysis(state);return true;
+    }
+    bool spFunctionEvalSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();const auto* evaluator=dynamic_cast<const spFunctionEval*>(&object);
+        if(!evaluator){if(error)*error="FunctionEval writer target mismatch";return false;}
+        const auto& state=evaluator->GetStateForAnalysis();
+        const auto plan=BuildWritePlanForAnalysis({state.functionType,state.frequency,state.amplitude,state.xOffset,state.yOffset,state.pitch});
+        const float values[]{state.frequency,state.amplitude,state.xOffset,state.yOffset,state.pitch};
+        spDataBlockSerializer blocks;if(!blocks.BeginObjectForAnalysis(stream,evaluator))return false;
+        for(const auto field:plan)
+        {
+            const auto id=static_cast<std::uint32_t>(field);
+            const void* data=id?static_cast<const void*>(&values[id-1]):static_cast<const void*>(&state.functionType);
+            if(!blocks.WriteFieldForAnalysis(stream,id,data,4))
+            {if(error)*error="Cannot write FunctionEval scalar";return false;}
+        }
+        if(blocks.FinalizeObjectForAnalysis())return true;
+        if(error)*error="Cannot finish FunctionEval section";return false;
+    }
+    bool spFunctionEvalSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject& object) const
+    {return dynamic_cast<spFunctionEval*>(&object)!=nullptr;}
 
     const spRTTIRecord& spFunctionEvalSerializer::StaticRTTI() noexcept
     {

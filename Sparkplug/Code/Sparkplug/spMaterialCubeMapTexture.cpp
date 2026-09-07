@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialCubeMapTextureRegistered =
-            spRTTIManager::Instance().Register(MaterialCubeMapTextureRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialCubeMapTextureRecord);
     }
 
     const spRTTIRecord& spMaterialCubeMapTexture::StaticRTTI() noexcept

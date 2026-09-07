@@ -11,6 +11,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spLightManager;
     class spLight : public spNode
     {
     public:
@@ -57,6 +58,15 @@ namespace sparkplug::reconstruction
         void SetFalloffAngleForAnalysis(float value) noexcept;
         [[nodiscard]] bool IsLightEnabledForAnalysis() const noexcept;
         void SetLightEnabledForAnalysis(bool value) noexcept;
+        // PC440640/471670 mark bit8 after every known light field, even equal values.
+        void MarkLightDataDirtyForAnalysis() noexcept { flags_ |= 8u; }
+        // Explicit borrowed scene+34 dependency. Binding alone does not imply
+        // native Node attachment, registration or ownership (PC428C30/CP92).
+        void SetSceneLightManagerForAnalysis(spLightManager* manager) noexcept
+        { sceneLightManager_ = manager; }
+        // PC428C30 clears dirty8 after Node world, then refreshes scene targets.
+        [[nodiscard]] bool UpdateWorldForAnalysis(std::uint32_t inheritedFlags=0,
+            const Matrix3* cameraOrientation=nullptr) noexcept override;
 
         // Native +0xDC PC / +0xE8 PS2 is copied but neither initialized by
         // spLight nor serialized by spLightDataSerializer. Keep it raw until
@@ -68,6 +78,7 @@ namespace sparkplug::reconstruction
         spLight() noexcept;
 
     private:
+        spLightManager* sceneLightManager_ = nullptr;
         Type type_ = Type::Directional;
         ColorRGBA color_{1.0F, 1.0F, 1.0F, 1.0F};
         bool attenuationEnabled_ = false;

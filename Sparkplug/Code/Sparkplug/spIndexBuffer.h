@@ -52,7 +52,10 @@ namespace sparkplug::reconstruction
             std::uint32_t formatFlags = 0);
         void ReleaseForAnalysis() noexcept;
 
-        [[nodiscard]] bool ReadForAnalysis(spStream& stream);
+        // Explicit host wire-byte budget includes the12-byte header. Rejects
+        // oversized counts before allocation; not a recovered native guard.
+        [[nodiscard]] bool ReadForAnalysis(spStream& stream,
+            std::uint32_t maximumSerializedBytes = 0xffffffffu);
         [[nodiscard]] bool WriteForAnalysis(spStream& stream) const;
 
         // Native PS2 0x00159780 performs this independent deep-copy operation;

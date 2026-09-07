@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialDataRegistered =
-            spRTTIManager::Instance().Register(MaterialDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialDataRecord);
     }
 
     spMaterialData::spMaterialData() noexcept = default;

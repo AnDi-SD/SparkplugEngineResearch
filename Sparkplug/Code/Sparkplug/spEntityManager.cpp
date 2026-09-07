@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool EntityManagerRegistered =
-            spRTTIManager::Instance().Register(EntityManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(EntityManagerRecord);
     }
 
     spEntityManager* spEntityManager::instance_ = nullptr;

@@ -61,8 +61,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::uint32_t GetBackendModeForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetCameraDirtyFlagsForAnalysis() const noexcept;
 
-        // Reproduces the two matrix branches in PC 0x00426F10 and PS2
-        // 0x001B17E0/0x001B22F0 without touching either native renderer.
+        // Builds a fresh identity-based matrix using the two native formulas.
+        // This is NOT the stateful PC426F10 cache operation: its orthographic
+        // branch preserves all other cells, including previous perspective
+        // M23/M33. Exact cache updates are still an open runtime boundary.
         // `orthographicBranch` names the observed branch only; its original
         // field/API name is still unknown and is not the serialized 2D flag.
         [[nodiscard]] bool BuildProjectionMatrixForAnalysis(

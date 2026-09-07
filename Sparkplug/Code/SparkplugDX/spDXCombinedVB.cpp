@@ -25,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXCombinedVBRegistered =
-            spRTTIManager::Instance().Register(DXCombinedVBRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXCombinedVBRecord);
     }
 
     spDXCombinedVB::~spDXCombinedVB() = default;

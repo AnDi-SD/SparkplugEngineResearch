@@ -16,20 +16,26 @@ namespace sparkplug::reconstruction
 {
     class spNode : public spNamedObject
     {
+        friend class spLight; // PC Light serializers share the native Node dirty word.
     public:
         using Vector3 = std::array<float, 3>;
         using Matrix3 = std::array<float, 9>;
+        using Matrix4 = std::array<float, 16>;
 
         static constexpr spClassID ClassID = 0x695C0F65;
 
         // Exact native masks used by spNodeSerializer on both platforms.
         static constexpr std::uint32_t EnabledMask = 0x00000200;
+        static constexpr std::uint32_t ActiveHierarchyMask = 0x00000100;
         static constexpr std::uint32_t StaticMask = 0x00000400;
         static constexpr std::uint32_t AnimatedMask = 0x00000800;
         static constexpr std::uint32_t BoneMask = 0x00001000;
         static constexpr std::uint32_t BillboardAxis1Mask = 0x00100000;
         static constexpr std::uint32_t BillboardAxis2Mask = 0x00200000;
         static constexpr std::uint32_t NativeDefaultFlags = 0x00070A00;
+        static constexpr std::uint32_t InheritPositionMask = 0x00010000;
+        static constexpr std::uint32_t InheritOrientationMask = 0x00020000;
+        static constexpr std::uint32_t InheritScaleMask = 0x00040000;
 
         spNode() noexcept = default;
         ~spNode() override;
@@ -45,8 +51,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         // Portable names for the executable-backed local transform state.
-        // Native setters also maintain cached world state and scene-manager
-        // registrations; those side effects remain outside this safe slice.
+        // These raw analytical setters do not imply native invalidation or
+        // scene registrations. Mark dirty explicitly before updating caches.
         [[nodiscard]] const Vector3& GetPositionForAnalysis() const noexcept;
         void SetPositionForAnalysis(const Vector3& value) noexcept;
         [[nodiscard]] const Vector3& GetScaleForAnalysis() const noexcept;
@@ -55,7 +61,27 @@ namespace sparkplug::reconstruction
         void SetOrientationForAnalysis(const Matrix3& value) noexcept;
 
         [[nodiscard]] std::uint32_t GetFlagsForAnalysis() const noexcept;
+        // Proven by PC position/scale consumers and the resolved quaternion
+        // setter. Cached state changes only when UpdateWorld is called.
+        void MarkLocalTransformDirtyForAnalysis() noexcept;
+        void SetInheritanceForAnalysis(bool position, bool orientation, bool scale) noexcept;
+        [[nodiscard]] const Vector3& GetWorldPositionForAnalysis() const noexcept;
+        [[nodiscard]] const Vector3& GetWorldScaleForAnalysis() const noexcept;
+        [[nodiscard]] const Matrix3& GetWorldOrientationForAnalysis() const noexcept;
+        [[nodiscard]] Matrix4 GetWorldMatrixForAnalysis() const noexcept;
+
+        // PC vslot +0x30. Reconstructs represented transform/cache/child state.
+        // Collision objects and scene registrations are not represented by
+        // this host class. Camera is an explicit cache input, not a singleton.
+        // Returns false for a degenerate camera (host safety). A failure in a
+        // descendant can occur after earlier nodes were updated.
+        [[nodiscard]] virtual bool UpdateWorldForAnalysis(
+            std::uint32_t inheritedFlags = 0, const Matrix3* cameraOrientation = nullptr) noexcept;
         [[nodiscard]] bool IsEnabledForAnalysis() const noexcept;
+        // PC420DE0 changes bit100 recursively, independently of Enabled200.
+        // This does NOT attach/detach scene registries or rebuild light caches.
+        [[nodiscard]] bool IsHierarchyActiveForAnalysis() const noexcept;
+        void SetHierarchyActiveForAnalysis(bool value) noexcept;
         [[nodiscard]] bool IsStaticForAnalysis() const noexcept;
         [[nodiscard]] bool IsAnimatedForAnalysis() const noexcept;
         [[nodiscard]] bool IsBoneForAnalysis() const noexcept;
@@ -85,6 +111,8 @@ namespace sparkplug::reconstruction
             spNode& child) noexcept;
 
     private:
+        friend class spActor; // original discovery sets ownership bit2000
+        friend class spRenderNode; // PC world/bounds dirty bits in the common B0 word
         static void SetMaskedFlag(
             std::uint32_t& flags,
             std::uint32_t mask,
@@ -98,6 +126,9 @@ namespace sparkplug::reconstruction
             0.0F, 0.0F, 1.0F,
         };
         Vector3 scale_{1.0F, 1.0F, 1.0F};
+        Vector3 worldPosition_{0.0F, 0.0F, 0.0F};
+        Vector3 worldScale_{1.0F, 1.0F, 1.0F};
+        Matrix3 worldOrientation_{1,0,0,0,1,0,0,0,1};
         std::uint32_t flags_ = NativeDefaultFlags;
         spNode* parent_ = nullptr;
         std::vector<std::shared_ptr<spNode>> children_;

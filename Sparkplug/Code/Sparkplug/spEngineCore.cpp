@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         // This target is a layer above SparkBase, so it installs its own
         // registration when the translation unit is linked.
         const bool EngineCoreRegistered =
-            spRTTIManager::Instance().Register(EngineCoreRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(EngineCoreRecord);
     }
 
     spEngineCore* spEngineCore::instance_ = nullptr;

@@ -23,7 +23,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool BoxBVSerializerRegistered =
-            spRTTIManager::Instance().Register(BoxBVSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(BoxBVSerializerRecord);
     }
 
     bool spBoxBVSerializer::Vector3::operator==(

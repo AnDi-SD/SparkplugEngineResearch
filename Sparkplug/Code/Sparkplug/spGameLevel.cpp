@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool GameLevelRegistered =
-            spRTTIManager::Instance().Register(GameLevelRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(GameLevelRecord);
     }
 
     spGameLevel::spGameLevel() noexcept = default;

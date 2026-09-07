@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2CameraRegistered =
-            spRTTIManager::Instance().Register(PS2CameraRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2CameraRecord);
     }
 
     const spRTTIRecord& spPS2Camera::StaticRTTI() noexcept

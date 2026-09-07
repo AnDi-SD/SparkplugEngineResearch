@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+namespace sparkplug::evidence::pc {struct SkinRenderContextForAnalysis;}
 
 namespace sparkplug::reconstruction
 {
@@ -50,8 +51,24 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const std::vector<BoneBinding>&
             GetBoneBindingsForAnalysis() const noexcept;
 
+        // PC 0x0046A2AA calls 0x00426B00 with inverseBind in ECX and the
+        // already-assembled world matrix as the second stack argument.
+        // This does not compute world transforms from local spNode state.
+        [[nodiscard]] static Matrix4 ComposePaletteMatrixForAnalysis(
+            const Matrix4& inverseBind, const Matrix4& boneWorld) noexcept;
+        // PC46A240 complete palette -> world setter -> mesh/pass/draw chain,
+        // with declared alpha/fog/light/material and shader inputs.
+        // Context carries explicit renderer/SDK inputs, no live GPU.
+        [[nodiscard]] bool RenderForAnalysis(
+            sparkplug::evidence::pc::SkinRenderContextForAnalysis&,spCamera*,void* support);
+        // Compatibility name from the initial unlit-only reconstruction.
+        [[nodiscard]] bool RenderUnlitForAnalysis(
+            sparkplug::evidence::pc::SkinRenderContextForAnalysis& state,spCamera* camera,void* support)
+        { return RenderForAnalysis(state,camera,support); }
+
     private:
-        std::uint32_t weightCount_ = 0;
+        // Original PC factory 46A120/constructor initializes +60 to four.
+        std::uint32_t weightCount_ = 4;
         std::vector<BoneBinding> boneBindings_;
     };
 }

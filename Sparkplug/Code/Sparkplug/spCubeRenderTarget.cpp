@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool CubeRenderTargetRegistered =
-            spRTTIManager::Instance().Register(CubeRenderTargetRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(CubeRenderTargetRecord);
     }
 
     spCubeRenderTarget::~spCubeRenderTarget() = default;

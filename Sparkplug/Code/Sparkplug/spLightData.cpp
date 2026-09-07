@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool LightDataRegistered =
-            spRTTIManager::Instance().Register(LightDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(LightDataRecord);
     }
 
     spLightData::spLightData() noexcept = default;

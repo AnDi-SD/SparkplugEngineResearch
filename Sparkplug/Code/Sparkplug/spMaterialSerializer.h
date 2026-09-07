@@ -80,7 +80,7 @@ namespace sparkplug::reconstruction
             std::vector<Field> fields;
         };
 
-        spMaterialSerializer() noexcept = default;
+        spMaterialSerializer() noexcept;
         ~spMaterialSerializer() override;
 
         spMaterialSerializer(const spMaterialSerializer&) = delete;
@@ -91,6 +91,21 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
+
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream& destination,
+            const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,
+            spStream& destination,const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,
+            spBaseObject& object) const override;
+
+    private:
+        [[nodiscard]] bool WriteMaterialFieldsForAnalysis(spSerializerManager* manager,
+            spStream& destination,const spBaseObject& object,std::string* error) const;
+
+    public:
 
         // This base owns the common material grammar but does not expose a
         // confirmed target-ID hook. Concrete material-data serializers add it.

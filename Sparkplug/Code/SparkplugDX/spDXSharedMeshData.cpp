@@ -25,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXSharedMeshDataRegistered =
-            spRTTIManager::Instance().Register(DXSharedMeshDataRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXSharedMeshDataRecord);
     }
 
     spDXSharedMeshData::~spDXSharedMeshData() = default;

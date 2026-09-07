@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace sparkplug::reconstruction
 {
@@ -82,6 +83,11 @@ namespace sparkplug::reconstruction
         static spRTTIManager& Instance();
 
         bool Register(const spRTTIRecord& record);
+        // Host-only startup adaptation. The record MUST have static lifetime.
+        // Cross-TU C++ initialization may not have populated its base record yet;
+        // queries retry strict registration. This does not reconstruct the
+        // native protected RTTI startup or weaken Register's validation.
+        bool RegisterDeferredForAnalysis(const spRTTIRecord& record);
         [[nodiscard]] const spRTTIRecord* Find(spClassID classID) const noexcept;
         [[nodiscard]] std::unique_ptr<spBaseObject> Create(spClassID classID) const;
         [[nodiscard]] std::size_t GetRegistrationCount() const noexcept;
@@ -91,8 +97,11 @@ namespace sparkplug::reconstruction
 
     private:
         spRTTIManager() = default;
+        void FlushDeferredForAnalysis() noexcept;
 
         std::map<spClassID, const spRTTIRecord*> records_;
+        std::vector<const spRTTIRecord*> deferredRecords_;
+        bool flushingDeferred_ = false;
     };
 
     class spCloneManager final
@@ -100,11 +109,17 @@ namespace sparkplug::reconstruction
     public:
         static constexpr spClassID NativeClassID = 0xC4419F78;
 
-        // This first portable slice owns a single root result.  Native
-        // repeated/cyclic reference resolution needs a graph-owning API and
-        // is intentionally not claimed by Clone yet.
+        // Portable construction/lifetime, not the native singleton ABI.
+        spCloneManager() = default;
+        // PC412BE0 always clones and clears temporary mappings at root exit.
         [[nodiscard]] std::unique_ptr<spBaseObject> Clone(const spBaseObject& source);
         [[nodiscard]] spBaseObject* FindClone(const spBaseObject& source) const noexcept;
+        // PC412C40 uses a mapped result or clones on a miss. Portable callers
+        // must supply a real shared owner for any pre-mapped borrowed result;
+        // a raw mapped pointer without an owner is rejected, never aliased to
+        // an unrelated source owner. Cyclic unique-root references stay open.
+        [[nodiscard]] std::shared_ptr<spBaseObject> CloneReferenceForAnalysis(const spBaseObject& source);
+        bool RegisterSharedCloneForAnalysis(const spBaseObject& source,const std::shared_ptr<spBaseObject>& clone);
 
         spCloneManager(const spCloneManager&) = delete;
         spCloneManager& operator=(const spCloneManager&) = delete;
@@ -129,6 +144,17 @@ namespace sparkplug::reconstruction
         friend class spDXInputManager;
         friend class spPS2InputManager;
         friend class spDebugManager;
+        friend class spAnimationManager;
+        friend class spSceneManager;
+        friend class spTaskTimer;
+        friend class spLightManager;
+        friend class spVisibilityManager;
+        friend class spPartitionNode;
+        friend class spOctreeNode;
+        friend class spBSPNode;
+        friend class spZonePortal;
+        friend class spZonePortalNode;
+        friend class spActor;
         friend class spEntityManager;
         friend class spTemplateManager;
         friend class spTemplateInstance;
@@ -140,6 +166,7 @@ namespace sparkplug::reconstruction
         friend class spVertexBuffer;
         friend class spTextureBuffer;
         friend class spTextureData;
+        friend class spPalette;
         friend class spMeshData;
         friend class spPlatformSpecificMeshData;
         friend class spDXMeshData;
@@ -150,18 +177,30 @@ namespace sparkplug::reconstruction
         friend class spDXCombinedVB;
         friend class spDXSharedMeshDataSerializer;
         friend class spDXMesh;
+        friend class spPCVertexDeclaration;
         friend class spPS2Mesh;
         friend class spDXMeshSerializer;
         friend class spResource;
         friend class spResourceManager;
         friend class spModel;
         friend class spNode;
+        friend class spNodeController;
+        friend class spTransformTrackEval;
+        friend class spAnimation;
+        friend class spTrack;
+        friend class spAnimTrack;
+        friend class spAnimationSerializer;
         friend class spRenderNode;
         friend class spLightData;
+        friend class spDXLight;
         friend class spLightDataSerializer;
         friend class spLightSerializer;
         friend class spMaterialSerializer;
         friend class spMaterialData;
+        friend class spDXMaterial;
+        friend class spDXTexture;
+        friend class spDXTextureSerializer;
+        friend class spDXMaterialSerializer;
         friend class spPS2Material;
         friend class spMaterialDataSerializer;
         friend class spDXMaterialDataSerializer;
@@ -213,12 +252,19 @@ namespace sparkplug::reconstruction
         friend class spMaterialCubeMapTexture;
         friend class spMaterialPassLayer;
         friend class spMaterialTextureLayer;
+        friend class spDXShaderLayer;
+        friend class spPCShaderManager;
+        friend class spParser;
+        friend class spPCRFXFileLoader;
+        friend class spPCVertexShader;
         friend class spStdLayer;
+        friend class spFunctionEval;
+        friend class spColorFuncEval;
 
-        spCloneManager() = default;
         void RegisterClone(const spBaseObject& source, spBaseObject& clone);
 
         std::map<const spBaseObject*, spBaseObject*> clones_;
+        std::map<spBaseObject*,std::weak_ptr<spBaseObject>> cloneOwners_;
         std::size_t depth_ = 0;
     };
 
@@ -272,6 +318,12 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         bool vfunc_14(spBaseObject& destination, spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
+
+    protected:
+        // PC 0x00413120 copies the physical name even for classes whose engine
+        // RTTI does not list spNamedObject. The ordinary virtual wrapper above
+        // retains its portable RTTI check; mismatched-hierarchy leaves use this.
+        void CopyNameToForAnalysis(spNamedObject& destination) const noexcept;
 
     private:
         // Portable equivalent of the native +0x10 shared string-entry pointer.

@@ -33,9 +33,9 @@ namespace sparkplug::reconstruction
         };
 
         const bool SerializerHookRegistered =
-            spRTTIManager::Instance().Register(SerializerHookRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(SerializerHookRecord);
         const bool PS2SerializerHookRegistered =
-            spRTTIManager::Instance().Register(PS2SerializerHookRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2SerializerHookRecord);
 
         // PS2 sub_00208E70 allocates a manager if its singleton is null and
         // leaves it process-owned. A static unique_ptr preserves that lifetime

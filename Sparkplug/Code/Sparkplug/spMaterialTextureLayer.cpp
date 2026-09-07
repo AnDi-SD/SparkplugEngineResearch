@@ -3,9 +3,12 @@
 #include "spMaterialTexture.h"
 
 #include <utility>
+#include <algorithm>
 
 namespace sparkplug::reconstruction
 {
+    bool spMaterialTextureLayer::UpdateForRenderForAnalysis(std::uint32_t stage,UVSubmitForAnalysis submit,void* context)
+    {return materialTexture_&&materialTexture_->UpdateForRenderForAnalysis(stage,submit,context);}
     namespace
     {
         std::unique_ptr<spBaseObject> CreateMaterialTextureLayer()
@@ -23,10 +26,19 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialTextureLayerRegistered =
-            spRTTIManager::Instance().Register(MaterialTextureLayerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialTextureLayerRecord);
     }
 
+    spMaterialTextureLayer::spMaterialTextureLayer() noexcept = default;
     spMaterialTextureLayer::~spMaterialTextureLayer() = default;
+
+    bool spMaterialTextureLayer::CopyTextureStatesForAnalysis(std::uint32_t,
+        std::array<std::uint32_t,9>& output) const noexcept
+    {
+        if(!materialTexture_)return false;
+        const auto& states=materialTexture_->GetTextureStatesForAnalysis();
+        std::copy_n(states.begin(),output.size(),output.begin());return true;
+    }
 
     const spRTTIRecord& spMaterialTextureLayer::StaticRTTI() noexcept
     {
@@ -74,14 +86,14 @@ namespace sparkplug::reconstruction
         return MaterialTextureLayerRecord;
     }
 
-    const std::shared_ptr<spMaterialTexture>&
+    const std::unique_ptr<spMaterialTexture>&
     spMaterialTextureLayer::GetMaterialTextureForAnalysis() const noexcept
     {
         return materialTexture_;
     }
 
     void spMaterialTextureLayer::SetMaterialTextureForAnalysis(
-        std::shared_ptr<spMaterialTexture> texture) noexcept
+        std::unique_ptr<spMaterialTexture> texture) noexcept
     {
         materialTexture_ = std::move(texture);
     }

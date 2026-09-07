@@ -52,5 +52,21 @@ namespace sparkplug::reconstruction
         // represented by the portable spNode facade.
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             const spNode& node) const;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream& destination,
+            const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,
+            spStream& destination,const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,
+            spBaseObject& object) const override;
+
+    protected:
+        // Derived native serializers contain sequential base/derived sections.
+        // Only the final section must consume the complete bounded object.
+        [[nodiscard]] bool ReadNodeFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source,std::uint32_t byteCount,spNode& node,bool requireExactEnd,std::string* error) const;
+        [[nodiscard]] bool WriteNodeFieldsForAnalysis(spSerializerManager* manager,
+            spStream& destination,const spNode& node,std::string* error) const;
     };
 }

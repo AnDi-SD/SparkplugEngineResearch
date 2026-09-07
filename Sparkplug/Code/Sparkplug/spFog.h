@@ -9,7 +9,9 @@
 
 namespace sparkplug::reconstruction
 {
-    class spFog final : public spBaseObject
+    // PC physical prefix/copy/dtor are spNamedObject; the engine RTTI record
+    // nevertheless names spBaseObject directly. Do not conflate the two.
+    class spFog final : public spNamedObject
     {
     public:
         enum class Type : std::uint32_t
@@ -30,6 +32,7 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(
             spCloneManager& manager) const override;
+        bool vfunc_14(spBaseObject& destination, spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         [[nodiscard]] Type GetTypeForAnalysis() const noexcept;

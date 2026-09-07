@@ -31,6 +31,11 @@ namespace sparkplug::reconstruction
         std::uint32_t id = 0;
         std::uint32_t fileID = 0;
         std::string name;
+        // Native length0 is nullptr, length1/NUL is a nonnull empty name.
+        // Nonempty manual name assignments remain convenient and unambiguous.
+        bool nameIsNullForAnalysis = true;
+        [[nodiscard]] const char* GetNameForAnalysis() const noexcept
+        { return nameIsNullForAnalysis && name.empty() ? nullptr : name.c_str(); }
         spClassID classID = 0;
         std::uint32_t offset = 0;
         std::uint32_t size = 0;

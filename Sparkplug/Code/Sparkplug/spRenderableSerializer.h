@@ -39,10 +39,18 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         [[nodiscard]] virtual spClassID GetTargetClassIDForAnalysis() const noexcept;
+        bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
+        bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,const spBaseObject&,std::string*) const override;
+        bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 
         // Native writer omits null relationships but always emits the two
         // alpha-sort scalars, including their constructor-default values.
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             const spRenderable& renderable) const;
+    protected:
+        bool ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spRenderable&,bool,std::string*) const;
+        bool WriteRenderableFieldsForAnalysis(spSerializerManager*,spStream&,const spRenderable&,std::string*) const;
+        bool IndexRenderableFieldsForAnalysis(spSerializerManager&,spRenderable&) const;
     };
 }

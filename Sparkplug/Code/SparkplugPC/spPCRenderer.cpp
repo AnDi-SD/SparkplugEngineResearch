@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PCRendererRegistered =
-            spRTTIManager::Instance().Register(PCRendererRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PCRendererRecord);
     }
 
     const spRTTIRecord& spPCRenderer::StaticRTTI() noexcept

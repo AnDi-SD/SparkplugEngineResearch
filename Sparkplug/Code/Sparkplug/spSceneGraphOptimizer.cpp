@@ -17,7 +17,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool SceneGraphOptimizerRegistered =
-            spRTTIManager::Instance().Register(SceneGraphOptimizerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(SceneGraphOptimizerRecord);
     }
 
     spSceneGraphOptimizer::~spSceneGraphOptimizer() = default;

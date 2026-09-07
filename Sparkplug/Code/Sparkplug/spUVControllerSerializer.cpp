@@ -1,4 +1,7 @@
 #include "spUVControllerSerializer.h"
+#include "spUVController.h"
+#include "spTransFunctionEvalSerializer.h"
+#include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
 #include <utility>
@@ -22,7 +25,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool UVControllerSerializerRegistered =
-            spRTTIManager::Instance().Register(UVControllerSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(UVControllerSerializerRecord);
     }
 
     bool spUVControllerSerializer::EvaluatorBinding::operator==(
@@ -41,7 +44,36 @@ namespace sparkplug::reconstruction
             && targetOffset == other.targetOffset;
     }
 
+    spUVControllerSerializer::spUVControllerSerializer() noexcept{(void)spUVController::StaticRTTI();}
     spUVControllerSerializer::~spUVControllerSerializer() = default;
+
+    bool spUVControllerSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const
+    {
+        auto* uv=dynamic_cast<spUVController*>(&object);
+        evidence::pc::serialization::SectionCursor cursor(context,source,size,true,error);
+        if(!uv)return cursor.Fail("UV controller target mismatch");
+        while(const auto* field=cursor.Next())
+        {
+            if(field->IsTerminator())return true;
+            if(field->fieldID!=0){if(!cursor.Skip())return cursor.Fail("Cannot skip UV field");continue;}
+            spTransFunctionEvalSerializer nested;
+            if(!nested.ReadPayloadForAnalysis(context,source,field->payloadSize,uv->GetTransformForAnalysis(),error))return false;
+        }
+        return false;
+    }
+    bool spUVControllerSerializer::WritePayloadForAnalysis(spStream& output,const spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();const auto* uv=dynamic_cast<const spUVController*>(&object);
+        if(!uv){if(error)*error="UV controller writer target mismatch";return false;}
+        spDataBlockSerializer blocks;spTransFunctionEvalSerializer nested;
+        if(blocks.BeginObjectForAnalysis(output,uv)&&blocks.WriteBeginForAnalysis(0,spDataBlockSerializer::SizeCode::UInt32)
+            &&nested.WritePayloadForAnalysis(output,uv->GetTransformForAnalysis(),error)
+            &&blocks.WriteEndForAnalysis(0)&&blocks.FinalizeObjectForAnalysis())return true;
+        if(error&&error->empty())*error="Cannot finish UV controller section";return false;
+    }
+    bool spUVControllerSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject& object) const
+    {return dynamic_cast<spUVController*>(&object)!=nullptr;}
 
     const spRTTIRecord& spUVControllerSerializer::StaticRTTI() noexcept
     {

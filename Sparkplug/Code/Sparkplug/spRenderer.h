@@ -4,6 +4,7 @@
 // directly below spCrossPlatform, but no original header path survives.
 
 #include "../SparkBase/spBaseObject.h"
+#include "Analysis/PC/spRendererQueueMath.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,6 +13,9 @@
 
 namespace sparkplug::reconstruction
 {
+    class spCamera;
+    class spRenderNode;
+    class spRenderable;
     // Analytical names for the platform-interface operations whose behavior
     // is now proven from their native callers and backend endpoints. These
     // are not claimed to be the original C++ method names.
@@ -36,6 +40,7 @@ namespace sparkplug::reconstruction
         SetViewport,
         SetTextureTransform,
         SetFog,
+        SetUVTransform3x3, // PC24, PS2 material boundary23; unlike PC4x4 slot23
     };
 
     // Common renderer owner. The native class is abstract (null RTTI factory)
@@ -79,6 +84,47 @@ namespace sparkplug::reconstruction
             std::size_t index) const noexcept;
         [[nodiscard]] std::uint32_t GetTextureStateCacheForAnalysis(
             std::size_t index) const noexcept;
+
+        struct AlphaCameraInputForAnalysis final
+        {
+            spCamera* identity=nullptr;
+            // Explicit original camera+CC cache and distinct byte231 branch;
+            // neither is inferred from the serialized camera Is2D setting.
+            evidence::pc::renderer_queue_math::Matrix4 view{};
+            bool depthOnly=false;
+        };
+        struct AlphaEntryForAnalysis final
+        {
+            spCamera* camera=nullptr;
+            spRenderNode* support=nullptr;
+            spRenderable* renderable=nullptr;
+            evidence::pc::renderer_queue_math::AlphaKey key;
+        };
+        struct AlphaQueueForAnalysis final
+        {
+            static constexpr std::size_t Capacity=2048;
+            std::array<AlphaEntryForAnalysis,Capacity> entries{};
+            std::uint32_t count=0,priorityBase=0;
+            bool enabled=true,flushing=false,sortTransparent=true;
+            bool dispatching=false; // explicit host reentry guard, not native44
+        };
+        // PC454C30: disabled45 succeeds before any object reads. Otherwise
+        // sphere/matrices/metric precede capacity check. All records BORROW.
+        [[nodiscard]] static bool EnqueueAlphaForAnalysis(AlphaQueueForAnalysis&,
+            spRenderable*,spRenderNode*,const AlphaCameraInputForAnalysis*,std::uint32_t priority) noexcept;
+        struct AlphaDispatchForAnalysis final
+        {
+            using Compare=int (*)(const AlphaEntryForAnalysis&,const AlphaEntryForAnalysis&) noexcept;
+            // Actual external CRT qsort boundary. Native comparator never
+            // returns zero; no host std::sort or unproved tie policy is hidden.
+            void (*sort)(void*,AlphaEntryForAnalysis*,std::size_t,Compare)=nullptr;
+            bool (*prepare)(void*,spRenderNode&)=nullptr;
+            bool (*render)(void*,spRenderable&,spCamera*,spRenderNode*)=nullptr;
+            void* context=nullptr;
+        };
+        // PC454850: sort even an empty queue, then flag44=1; adjacent support
+        // reuse, ignored virtual results, live count reread, stale record bytes.
+        [[nodiscard]] static bool FlushAlphaForAnalysis(AlphaQueueForAnalysis&,const AlphaDispatchForAnalysis&);
 
     protected:
         explicit spRenderer(std::size_t textureStateCacheCount);

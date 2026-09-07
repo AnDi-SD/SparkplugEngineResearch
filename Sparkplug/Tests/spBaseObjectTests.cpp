@@ -358,6 +358,25 @@ int main()
     using namespace sparkplug::reconstruction;
 
     auto& rtti = spRTTIManager::Instance();
+    // Static lifetime is mandatory for deferred registrations. Simulate a
+    // derived TU being initialized before the TU containing its base record.
+    static spRTTIRecord delayedBase{};
+    static const spRTTIRecord delayedChild{
+        0xFDF00002, 0xFDF00001, "test-delayed-child", &delayedBase, nullptr, nullptr};
+    Require(!rtti.Register(delayedChild), "strict registration rejects an uninitialized base");
+    Require(rtti.RegisterDeferredForAnalysis(delayedChild), "queue static child before base initialization");
+    Require(rtti.RegisterDeferredForAnalysis(delayedChild), "duplicate pending record is harmless");
+    Require(rtti.Find(delayedChild.classID) == nullptr, "deferred registration does not bypass base validation");
+    delayedBase = {0xFDF00001, 0, "test-delayed-base", nullptr, nullptr, nullptr};
+    Require(rtti.RegisterDeferredForAnalysis(delayedBase), "queue initialized static base");
+    Require(rtti.Find(delayedChild.classID) == &delayedChild, "child becomes discoverable after base initialization");
+    Require(rtti.Find(delayedBase.classID) == &delayedBase, "base is registered too");
+    const auto delayedCount = rtti.GetRegistrationCount();
+    Require(rtti.Register(delayedChild) && rtti.RegisterDeferredForAnalysis(delayedChild)
+        && rtti.GetRegistrationCount() == delayedCount, "repeat registrations do not duplicate records");
+    static const spRTTIRecord wrongBase{
+        0xFDF00003, 0xFDF00099, "test-wrong-base", &delayedBase, nullptr, nullptr};
+    Require(!rtti.Register(wrongBase) && !rtti.Find(wrongBase.classID), "strict mismatched base remains rejected");
     Require(rtti.GetRegistrationCount() >= 5, "SparkBase registrations are installed");
 
     const auto* baseRecord = rtti.Find(spBaseObject::ClassID);

@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2RenderTargetManagerRegistered =
-            spRTTIManager::Instance().Register(PS2RenderTargetManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2RenderTargetManagerRecord);
     }
 
     const spRTTIRecord& spPS2RenderTargetManager::StaticRTTI() noexcept

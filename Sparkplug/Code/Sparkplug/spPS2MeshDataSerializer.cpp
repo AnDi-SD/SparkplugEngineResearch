@@ -24,7 +24,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2MeshDataSerializerRegistered =
-            spRTTIManager::Instance().Register(PS2MeshDataSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2MeshDataSerializerRecord);
     }
 
     spPS2MeshDataSerializer::~spPS2MeshDataSerializer() = default;

@@ -1,4 +1,5 @@
 #include "spDXMaterialDataSerializer.h"
+#include "spMaterialDataSerializer.h"
 
 #include <memory>
 #include <utility>
@@ -22,10 +23,17 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXMaterialDataSerializerRegistered =
-            spRTTIManager::Instance().Register(DXMaterialDataSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXMaterialDataSerializerRecord);
     }
 
     spDXMaterialDataSerializer::~spDXMaterialDataSerializer() = default;
+
+    std::unique_ptr<spBaseObject> spDXMaterialDataSerializer::ReadObjectHeaderAndCreateForAnalysis(
+        spStream& source,spSerializerObjectHeaderForAnalysis* observedHeader) const
+    {
+        // Both native primary tables point to the SAME42F4C0 implementation.
+        return spMaterialDataSerializer{}.ReadObjectHeaderAndCreateForAnalysis(source,observedHeader);
+    }
 
     const spRTTIRecord& spDXMaterialDataSerializer::StaticRTTI() noexcept
     {

@@ -48,8 +48,11 @@ namespace sparkplug::reconstruction
     bool spPCApp::vfunc_24_Update()
     {
         vfunc_30_PreUpdate();
-        // Native 0x004C2D60 always returns true after foreground-window
-        // throttling.  Game subclasses add the actual per-frame failure path.
+        // Native 0x004C2D60 calls engine41CD50 unconditionally, then engine
+        // graphics41C460 only for foreground/owned foreground windows; otherwise
+        // it requests1ms throttle. It ignores both helpers' return values.
+        // These engine/backend edges are not connected in this older portable
+        // app seam yet; this method must not be mistaken for a complete frame.
         return true;
     }
 

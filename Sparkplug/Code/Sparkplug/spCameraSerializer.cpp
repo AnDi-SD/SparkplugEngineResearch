@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool CameraSerializerRegistered =
-            spRTTIManager::Instance().Register(CameraSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(CameraSerializerRecord);
     }
 
     spCameraSerializer::~spCameraSerializer() = default;

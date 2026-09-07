@@ -24,5 +24,7 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
+        [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
+            spStream&,spSerializerObjectHeaderForAnalysis* observedHeader=nullptr) const override;
     };
 }

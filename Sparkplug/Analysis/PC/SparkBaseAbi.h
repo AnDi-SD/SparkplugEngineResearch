@@ -25,6 +25,19 @@ namespace sparkplug::evidence::pc
         Address32 sharedNameEntry;     // 0x10
     };
 
+    // PC allocation20 and lookup414420/contains4423F0 consumer layout.
+    // The whole protected constructor/registration path remains unexecuted.
+    struct spRTTIManagerObservedLayout final
+    {
+        spBaseObjectLayout base;
+        std::uint32_t support10;       // 0x10: exact construction not closed
+        std::uint32_t allocatorState;  // 0x14
+        Address32 registrationHead;    // 0x18: allocated RB sentinel
+        std::uint32_t registrationCount; // 0x1c
+    };
+    static_assert(sizeof(spRTTIManagerObservedLayout) == 0x20);
+    static_assert(offsetof(spRTTIManagerObservedLayout, registrationHead) == 0x18);
+
     struct spCrossPlatformLayout final
     {
         spNamedObjectLayout base;      // 0x00; no additional storage observed

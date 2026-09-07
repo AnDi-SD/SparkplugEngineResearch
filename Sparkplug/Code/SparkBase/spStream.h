@@ -104,7 +104,13 @@ namespace sparkplug::reconstruction
 
         // Safe portable counterpart of the native char** helper.  The binary
         // allocates a C buffer; the reconstruction keeps ownership explicit.
-        [[nodiscard]] bool ReadString(std::string& value);
+        [[nodiscard]] bool ReadString(std::string& value, bool* wasNull = nullptr);
+
+        // PC loader422D04 adds dataOffset to native word14. Expose that state
+        // explicitly to reconstructed file protocols; GetSize remains physical
+        // while Tell/Seek(start) use this origin. Not recovered source names.
+        [[nodiscard]] std::uint32_t GetLogicalOriginForAnalysis() const noexcept { return logicalOrigin_; }
+        void SetLogicalOriginForAnalysis(std::uint32_t origin) noexcept { logicalOrigin_ = origin; }
 
         // Native sub_00114E60 asks this stream for its full size, then invokes
         // destination's stream-to-stream slot.  That slot is +0x40 on PS2 but

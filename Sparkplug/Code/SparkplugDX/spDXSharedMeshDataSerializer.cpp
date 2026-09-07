@@ -26,7 +26,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXSharedMeshDataSerializerRegistered =
-            spRTTIManager::Instance().Register(
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(
                 DXSharedMeshDataSerializerRecord);
     }
 

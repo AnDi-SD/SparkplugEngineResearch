@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXRendererRegistered =
-            spRTTIManager::Instance().Register(DXRendererRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXRendererRecord);
     }
 
     const spRTTIRecord& spDXRenderer::StaticRTTI() noexcept

@@ -21,7 +21,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXVertexBufferRegistered =
-            spRTTIManager::Instance().Register(DXVertexBufferRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXVertexBufferRecord);
     }
 
     spDXVertexBuffer::~spDXVertexBuffer() = default;

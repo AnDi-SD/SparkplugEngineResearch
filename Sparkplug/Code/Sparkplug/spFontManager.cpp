@@ -16,7 +16,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool FontManagerRegistered =
-            spRTTIManager::Instance().Register(FontManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(FontManagerRecord);
     }
 
     spFontManager* spFontManager::instance_ = nullptr;

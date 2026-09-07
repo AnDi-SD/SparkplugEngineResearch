@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PCFontManagerRegistered =
-            spRTTIManager::Instance().Register(PCFontManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PCFontManagerRecord);
     }
 
     const spRTTIRecord& spPCFontManager::StaticRTTI() noexcept

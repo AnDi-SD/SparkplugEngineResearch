@@ -2,6 +2,9 @@
 
 #include "spDXMeshData.h"
 #include "spMeshData.h"
+#include "spDataBlockSerializer.h"
+#include "spSerializerManager.h"
+#include "../SparkBase/spStream.h"
 
 #include <limits>
 #include <memory>
@@ -26,7 +29,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXMeshDataSerializerRegistered =
-            spRTTIManager::Instance().Register(DXMeshDataSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXMeshDataSerializerRecord);
     }
 
     spDXMeshDataSerializer::~spDXMeshDataSerializer() = default;
@@ -57,6 +60,12 @@ namespace sparkplug::reconstruction
         return spDXMeshData::ClassID;
     }
 
+    bool spDXMeshDataSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const
+    {
+        return ReadMeshFieldsForAnalysis(context,source,byteCount,object,true,error);
+    }
+
     std::vector<spDXMeshDataSerializer::Field>
     spDXMeshDataSerializer::BuildKnownWritePlanForAnalysis(
         const std::uint32_t nativeSerializationMode) const
@@ -68,6 +77,53 @@ namespace sparkplug::reconstruction
         }
         plan.push_back(Field::PlatformSpecific);
         return plan;
+    }
+
+    bool spDXMeshDataSerializer::IndexRelationshipsForAnalysis(spBaseObject& object) const
+    {
+        return dynamic_cast<spMeshData*>(&object)!=nullptr;
+    }
+
+    bool spDXMeshDataSerializer::WritePayloadForAnalysis(spStream& stream,
+        const spBaseObject& object, std::string* error) const
+    {
+        spSerializerManager manager;
+        return WritePayloadWithContextForAnalysis(manager, stream, object, error);
+    }
+
+    bool spDXMeshDataSerializer::WritePayloadWithContextForAnalysis(spSerializerManager& manager,
+        spStream& stream, const spBaseObject& object, std::string* error) const
+    {
+        if(error)error->clear();
+        const auto fail=[&](const char* message){if(error)*error=message;return false;};
+        const auto* mesh=dynamic_cast<const spMeshData*>(&object);
+        if(!mesh)return fail("DX mesh writer requires CPU MeshData");
+        const auto header=BuildNativePayloadHeaderForAnalysis(*mesh);
+        if(!header.valid || static_cast<std::uint64_t>(header.vertexDataSize)+header.indexDataSize
+            >MaximumPayloadBytesForAnalysis)return fail("Invalid or oversized CPU mesh buffers");
+        spDataBlockSerializer fields;
+        if(!fields.BeginObjectForAnalysis(stream,mesh))return fail("Cannot begin mesh fields");
+        if(EmitsCrossPlatformPayloadForAnalysis(manager.GetSerializationPolicyForAnalysis()))
+        {
+            if(!fields.WriteBeginForAnalysis(0)
+                ||!mesh->GetIndexBufferForAnalysis()->WriteForAnalysis(stream)
+                ||!mesh->GetVertexBufferForAnalysis()->WriteForAnalysis(stream)
+                ||!fields.WriteEndForAnalysis(0))return fail("Cannot write cross-platform mesh field");
+        }
+        // PC4298A0 -> 013BC5E0 constructs a temporary DXMeshData copy.
+        // Its CPU buffers remain packed; only this 17-byte planning header
+        // anticipates the 12 extra bytes per vertex for component bit 0x20.
+        spDXMeshData native;
+        if(!fields.WriteBeginForAnalysis(1)||!native.InitializeFromMeshDataForAnalysis(*mesh))
+            return fail("Cannot prepare native mesh field");
+        const std::uint32_t words[]{header.fvfCode,header.vertexCount,header.vertexDataSize,header.indexDataSize};
+        const auto wide=static_cast<std::uint8_t>(header.indicesAre32Bit);
+        if(!stream.WriteData(words,sizeof(words))||!stream.Write(wide)
+            ||!native.GetIndexBufferForAnalysis()->WriteForAnalysis(stream)
+            ||!native.GetVertexBufferForAnalysis()->WriteForAnalysis(stream)
+            ||!fields.WriteEndForAnalysis(1)||!fields.FinalizeObjectForAnalysis())
+            return fail("Cannot write native mesh field");
+        return true;
     }
 
     bool spDXMeshDataSerializer::PCLoadsNativePayloadForAnalysis(

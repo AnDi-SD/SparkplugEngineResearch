@@ -24,10 +24,18 @@ namespace sparkplug::reconstruction
         };
 
         const bool MaterialPassLayerRegistered =
-            spRTTIManager::Instance().Register(MaterialPassLayerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(MaterialPassLayerRecord);
     }
 
+    spMaterialPassLayer::spMaterialPassLayer() noexcept = default;
     spMaterialPassLayer::~spMaterialPassLayer() = default;
+
+    bool spMaterialPassLayer::UpdateForRenderForAnalysis(std::uint32_t stage,UVSubmitForAnalysis submit,void* context)
+    {
+        for(std::size_t index=0;index<layerCount_;++index)
+            if(!layers_[index]||!layers_[index]->UpdateForRenderForAnalysis(stage==0xffffffffu?static_cast<std::uint32_t>(index):stage,submit,context))return false;
+        return true;
+    }
 
     const spRTTIRecord& spMaterialPassLayer::StaticRTTI() noexcept
     {
@@ -53,7 +61,7 @@ namespace sparkplug::reconstruction
             return false;
         }
 
-        target->layers_.fill(nullptr);
+        for(auto& layer:target->layers_)layer.reset();
         target->finalBlendOperation_ = finalBlendOperation_;
         target->layerCount_ = layerCount_;
         for (std::size_t index = 0; index < layerCount_; ++index)
@@ -67,7 +75,7 @@ namespace sparkplug::reconstruction
                 dynamic_cast<spMaterialTextureLayer*>(clonedBase.get());
             if (clonedLayer == nullptr)
             {
-                target->layers_.fill(nullptr);
+                for(auto& layer:target->layers_)layer.reset();
                 target->layerCount_ = 0;
                 return false;
             }
@@ -99,33 +107,25 @@ namespace sparkplug::reconstruction
         return layerCount_;
     }
 
-    const std::shared_ptr<spMaterialTextureLayer>&
+    const std::unique_ptr<spMaterialTextureLayer>&
     spMaterialPassLayer::GetLayerForAnalysis(const std::size_t index) const noexcept
     {
-        static const std::shared_ptr<spMaterialTextureLayer> Empty;
+        static const std::unique_ptr<spMaterialTextureLayer> Empty;
         return index < layerCount_ ? layers_[index] : Empty;
     }
 
     bool spMaterialPassLayer::SetLayerForAnalysis(
         const std::size_t index,
-        std::shared_ptr<spMaterialTextureLayer> layer) noexcept
+        std::unique_ptr<spMaterialTextureLayer> layer) noexcept
     {
         if (index >= layers_.size())
         {
             return false;
         }
         layers_[index] = std::move(layer);
-        if (layers_[index] != nullptr)
-        {
-            layerCount_ = std::max(layerCount_, index + 1);
-        }
-        else if (index + 1 == layerCount_)
-        {
-            while (layerCount_ != 0 && layers_[layerCount_ - 1] == nullptr)
-            {
-                --layerCount_;
-            }
-        }
+        // PC45F5E0 grows count even forNULL and never shifts/shrinks. This is
+        // deliberately different from Material423960's pass-slot removal.
+        layerCount_ = std::max(layerCount_, index + 1);
         return true;
     }
 }

@@ -45,8 +45,17 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept override;
+        bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
+        bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,const spBaseObject&,std::string*) const override;
+        bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 
         [[nodiscard]] KnownWritePlan BuildKnownWritePlanForAnalysis(
             const spModel& model) const;
+    protected:
+        bool ReadModelFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spModel&,bool requireEnd,std::string*) const;
+        bool IndexModelFieldsForAnalysis(spSerializerManager&,spModel&) const;
+        bool WriteModelFieldsForAnalysis(spSerializerManager*,spStream&,const spModel&,std::string*) const;
     };
 }

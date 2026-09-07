@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool PS2TextureDataSerializerRegistered =
-            spRTTIManager::Instance().Register(PS2TextureDataSerializerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(PS2TextureDataSerializerRecord);
     }
 
     spPS2TextureDataSerializer::~spPS2TextureDataSerializer() = default;

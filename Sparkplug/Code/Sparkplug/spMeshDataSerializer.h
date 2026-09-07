@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
             CrossPlatform = 0,
         };
 
-        spMeshDataSerializer() noexcept = default;
+        spMeshDataSerializer() noexcept;
         ~spMeshDataSerializer() override;
 
         spMeshDataSerializer(const spMeshDataSerializer&) = delete;
@@ -35,6 +35,15 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
         [[nodiscard]] virtual spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
+            spStream& source, spSerializerObjectHeaderForAnalysis* observedHeader = nullptr) const override;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source, std::uint32_t byteCount, spBaseObject& object, std::string* error) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&, const spBaseObject&, std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsForAnalysis(spBaseObject&) const override;
+        [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager&, spStream&,
+            const spBaseObject&, std::string*) const override;
+        static constexpr std::uint32_t MaximumPayloadBytesForAnalysis = 32u*1024u*1024u;
 
         // The original selector type/name is not yet known. PS2 proves that
         // native values 0 and 2 emit field 0; all other values omit it.
@@ -42,5 +51,9 @@ namespace sparkplug::reconstruction
             std::uint32_t nativeSerializationMode) noexcept;
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             std::uint32_t nativeSerializationMode) const;
+    protected:
+        [[nodiscard]] bool ReadMeshFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& source, std::uint32_t byteCount, spBaseObject& object,
+            bool dxFields, std::string* error) const;
     };
 }

@@ -22,7 +22,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DXCameraRegistered =
-            spRTTIManager::Instance().Register(DXCameraRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DXCameraRecord);
     }
 
     const spRTTIRecord& spDXCamera::StaticRTTI() noexcept

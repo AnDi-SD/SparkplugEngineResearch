@@ -11,6 +11,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spFunctionEval;
     class spFunctionEvalSerializer : public spSerializer
     {
     public:
@@ -68,7 +69,7 @@ namespace sparkplug::reconstruction
 
         using FieldSchema = std::array<FieldBinding, 6>;
 
-        spFunctionEvalSerializer() noexcept = default;
+        spFunctionEvalSerializer() noexcept;
         ~spFunctionEvalSerializer() override;
 
         spFunctionEvalSerializer(const spFunctionEvalSerializer&) = delete;
@@ -81,6 +82,15 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        // Packed TransFunction/Color sections share one outer envelope.
+        [[nodiscard]] bool ReadFunctionFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spBaseObject&,bool requireExactEnd,std::string*) const;
+        // ColorFunc remaps IDs2..7 to this same six-field scalar state decoder.
+        [[nodiscard]] static bool ApplyRawStateFieldForAnalysis(spFunctionEval&,std::uint32_t id,std::uint32_t raw) noexcept;
 
         [[nodiscard]] static FieldSchema BuildFieldSchemaForAnalysis() noexcept;
         [[nodiscard]] static std::vector<Field> BuildWritePlanForAnalysis(

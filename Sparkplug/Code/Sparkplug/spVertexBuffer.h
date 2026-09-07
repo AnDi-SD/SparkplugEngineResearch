@@ -74,7 +74,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool InitializeRawForAnalysis(std::uint32_t byteCount);
         void ReleaseForAnalysis() noexcept;
 
-        [[nodiscard]] bool ReadForAnalysis(spStream& stream);
+        // Host byte budget includes12-byte header; preflight shares the real
+        // component-layout code and cannot allocate from an unchecked count.
+        [[nodiscard]] bool ReadForAnalysis(spStream& stream,
+            std::uint32_t maximumSerializedBytes = 0xffffffffu);
         [[nodiscard]] bool WriteForAnalysis(spStream& stream) const;
         [[nodiscard]] std::unique_ptr<spVertexBuffer>
             CopyBufferForAnalysis() const;

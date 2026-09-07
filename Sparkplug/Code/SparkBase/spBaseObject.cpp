@@ -67,24 +67,24 @@ namespace sparkplug::reconstruction
 
         bool RegisterSparkBaseTypes(spRTTIManager& manager)
         {
-            return manager.Register(BaseRecord)
-                && manager.Register(NamedRecord)
-                && manager.Register(CrossPlatformRecord)
-                && manager.Register(spApp::StaticRTTI())
-                && manager.Register(spAsyncFileStreamManager::StaticRTTI())
-                && manager.Register(spStream::StaticRTTI())
-                && manager.Register(spFileStream::StaticRTTI())
-                && manager.Register(spMemoryStream::StaticRTTI())
-                && manager.Register(spError::StaticRTTI())
-                && manager.Register(spErrorManager::StaticRTTI())
-                && manager.Register(spPCKManager::StaticRTTI())
-                && manager.Register(spSubscriptionManager::StaticRTTI())
-                && manager.Register(spPS2ErrorManager::StaticRTTI())
+            return manager.RegisterDeferredForAnalysis(BaseRecord)
+                && manager.RegisterDeferredForAnalysis(NamedRecord)
+                && manager.RegisterDeferredForAnalysis(CrossPlatformRecord)
+                && manager.RegisterDeferredForAnalysis(spApp::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spAsyncFileStreamManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spStream::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spFileStream::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spMemoryStream::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spError::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spErrorManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPCKManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spSubscriptionManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPS2ErrorManager::StaticRTTI())
 #if defined(_WIN32)
-                && manager.Register(spPCAsyncFileStreamManager::StaticRTTI())
-                && manager.Register(spPCFileStream::StaticRTTI())
-                && manager.Register(spPCApp::StaticRTTI())
-                && manager.Register(spPCErrorManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPCAsyncFileStreamManager::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPCFileStream::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPCApp::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spPCErrorManager::StaticRTTI())
 #endif
                 ;
         }
@@ -148,8 +148,46 @@ namespace sparkplug::reconstruction
         return true;
     }
 
+    bool spRTTIManager::RegisterDeferredForAnalysis(const spRTTIRecord& record)
+    {
+        for (const auto* pending : deferredRecords_)
+        {
+            if (pending == &record) return true;
+        }
+        deferredRecords_.push_back(&record);
+        return true;
+    }
+
+    void spRTTIManager::FlushDeferredForAnalysis() noexcept
+    {
+        if (flushingDeferred_) return;
+        flushingDeferred_ = true;
+        // Use indices: a property callback can append another static record.
+        // Only visit the initial set, so callbacks cannot create an endless pass.
+        const auto initialCount = deferredRecords_.size();
+        std::size_t index = 0;
+        try
+        {
+            for (std::size_t visited = 0; visited < initialCount; ++visited)
+            {
+                const auto* record = deferredRecords_[index];
+                if (Register(*record))
+                    deferredRecords_.erase(deferredRecords_.begin() + index);
+                else
+                    ++index;
+            }
+        }
+        catch (...)
+        {
+            // Find/Count remain noexcept. An allocation failure leaves pending
+            // records available for a later query, never a guessed registration.
+        }
+        flushingDeferred_ = false;
+    }
+
     const spRTTIRecord* spRTTIManager::Find(const spClassID classID) const noexcept
     {
+        const_cast<spRTTIManager*>(this)->FlushDeferredForAnalysis();
         const auto iterator = records_.find(classID);
         return iterator == records_.end() ? nullptr : iterator->second;
     }
@@ -167,6 +205,7 @@ namespace sparkplug::reconstruction
 
     std::size_t spRTTIManager::GetRegistrationCount() const noexcept
     {
+        const_cast<spRTTIManager*>(this)->FlushDeferredForAnalysis();
         return records_.size();
     }
 
@@ -180,6 +219,7 @@ namespace sparkplug::reconstruction
         if (isRoot)
         {
             clones_.clear();
+            cloneOwners_.clear();
         }
 
         return result;
@@ -194,6 +234,28 @@ namespace sparkplug::reconstruction
     void spCloneManager::RegisterClone(const spBaseObject& source, spBaseObject& clone)
     {
         clones_[&source] = &clone;
+    }
+
+    std::shared_ptr<spBaseObject> spCloneManager::CloneReferenceForAnalysis(const spBaseObject& source)
+    {
+        if(auto* mapped=FindClone(source))
+        {
+            const auto owner=cloneOwners_.find(mapped);
+            return owner==cloneOwners_.end()?nullptr:owner->second.lock();
+        }
+        std::shared_ptr<spBaseObject> owned(Clone(source));
+        // A standalone miss already completed its root transaction, so its
+        // mapping must stay cleared. Nested misses remain available to the
+        // next bone in the current outer transaction.
+        if(owned&&FindClone(source)==owned.get())cloneOwners_[owned.get()]=owned;
+        return owned;
+    }
+
+    bool spCloneManager::RegisterSharedCloneForAnalysis(const spBaseObject& source,
+        const std::shared_ptr<spBaseObject>& clone)
+    {
+        if(!clone)return false;
+        RegisterClone(source,*clone);cloneOwners_[clone.get()]=clone;return true;
     }
 
     spBaseObject::~spBaseObject() = default;
@@ -316,6 +378,11 @@ namespace sparkplug::reconstruction
     const spRTTIRecord& spNamedObject::vfunc_18() const noexcept
     {
         return NamedRecord;
+    }
+
+    void spNamedObject::CopyNameToForAnalysis(spNamedObject& destination) const noexcept
+    {
+        destination.name_ = name_;
     }
 
     spCrossPlatform::~spCrossPlatform() = default;

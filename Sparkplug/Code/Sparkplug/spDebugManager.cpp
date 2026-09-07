@@ -19,7 +19,7 @@ namespace sparkplug::reconstruction
         };
 
         const bool DebugManagerRegistered =
-            spRTTIManager::Instance().Register(DebugManagerRecord);
+            spRTTIManager::Instance().RegisterDeferredForAnalysis(DebugManagerRecord);
     }
 
     spDebugManager* spDebugManager::instance_ = nullptr;
