@@ -1,0 +1,27 @@
+{
+  "kind": "native-cycle-plan",
+  "schemaVersion": 1,
+  "status": "active",
+  "createdUtc": "2026-09-07T19:26:16Z",
+  "cycleStartUtc": "2026-09-07T19:22:00Z",
+  "scheduledEndUtc": "2026-09-08T04:00:00Z",
+  "baseCommit": "daa813859e013371c97377c544c4518d10014309",
+  "scopeId": "smo-san-workflow-v2",
+  "baselinePath": "local-data/results/cycle-20260908-0700/baseline.json",
+  "pcWorkflowBaselinePercent": 45.193548387096776,
+  "aggregateMemoryBudgetBytes": 1073741824,
+  "cpuLogicalThreads": 16,
+  "gpu": "NVIDIA GeForce RTX 3070",
+  "gpuMemoryMiB": 8192,
+  "priority": [
+    "pc-smo-san-loader-save",
+    "pc-dx-mesh-materialization",
+    "pc-node-resource-graph"
+  ],
+  "checkpoints": [
+    {
+      "id": "CP99",
+      "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp99.json"
+    }
+  ]
+}

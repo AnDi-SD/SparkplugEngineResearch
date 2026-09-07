@@ -58,6 +58,11 @@ namespace sparkplug::reconstruction
         // validates every class ID against the global RTTI manager.
         [[nodiscard]] bool LoadIndexForAnalysis(spStream& source);
 
+        // Host encoder of the independently confirmed PC466B90 index grammar.
+        // No original whole-file/index writer has been located. Only complete
+        // inline entries are supported; fileID producers remain unresolved.
+        [[nodiscard]] bool WriteInlineIndexForAnalysis(spStream& destination) const;
+
         // PS2 sub_0017F460 parses file entries but neither stores nor releases
         // them. This safe counterpart consumes the exact grammar and discards
         // temporary entries without reproducing the leak.

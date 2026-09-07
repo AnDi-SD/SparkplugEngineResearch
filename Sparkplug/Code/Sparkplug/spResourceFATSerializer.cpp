@@ -82,6 +82,21 @@ namespace sparkplug::reconstruction
         return true;
     }
 
+    bool spResourceFATHelperForAnalysis::WriteInlineIndexForAnalysis(spStream& destination) const
+    {
+        if (!orderedFiles_.empty() || orderedResources_.size() > 65536) return false;
+        for (const auto* entry : orderedResources_)
+            if (!entry || !entry->id || entry->fileID || !entry->payloadWritten || entry->size < 8
+                || entry->name.size() >= std::numeric_limits<std::uint16_t>::max()
+                || entry->name.find('\0') != std::string::npos) return false;
+        if (!destination.Write(static_cast<std::uint32_t>(orderedResources_.size()))) return false;
+        for (const auto* entry : orderedResources_)
+            if (!destination.Write(entry->id) || !destination.Write(entry->GetNameForAnalysis())
+                || !destination.Write(entry->classID) || !destination.Write(entry->offset)
+                || !destination.Write(entry->size)) return false;
+        return true;
+    }
+
     bool spResourceFATHelperForAnalysis::IndexObjectForAnalysis(
         const spClassID classID,
         spBaseObject& object)

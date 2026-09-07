@@ -366,7 +366,8 @@
         "Whole422B50 on unchanged bbush.san: header/FAT/DX platform1 gate(no4AA870body)/RTTI factory/reader/name registry/clear; two live resources and teardown,259 directed native checks across this front,34 static anchors,227 output comparisons.",
         "PC FAT58/maps14,20,2C/list48/cursor54 independently confirmed. Duplicate IDs overwrite map/leak prior entry. File-index465CD0->13BCA90 consumes without storing/freeing. Animation engine RTTI is not NamedObject despite physical prefix.",
         "Original SAN field writer on four assets plus empty:64 success checks,17 failure checks; bbush native write/read227 comparisons. Block nested writer163 checks,18 compiled-output cases/1658 exact bytes. Native mixed widths/zero payload/ID31 bugs separated from explicit host guards.",
-        "Checkpoint5 portable full-file SAN loader227 whole-bbush comparisons/4 portable assets62tracks; native read-reference115 and outer42/cachegate48. Checkpoint6 actual DX metadata/first scan/CPU buffer copy/COM boundary and declaration map468 checks; not whole mesh-containing SMO or GPU proof."
+        "Checkpoint5 portable full-file SAN loader227 whole-bbush comparisons/4 portable assets62tracks; native read-reference115 and outer42/cachegate48. Checkpoint6 actual DX metadata/first scan/CPU buffer copy/COM boundary and declaration map468 checks; not whole mesh-containing SMO or GPU proof.",
+        "CP99 host BuildResourceFileForAnalysis composes complete FFPS from reconstructed contracts. bbush source file is byte-identical and accepted by whole original422B50:227 values/27 native assertions/39 allocations released. Four portable whole-file roundtrips:2800 values with explicit barrel capacity20->21 canonicalization. No located native whole Save function or score increase claimed."
       ],
       "unknowns": [
         {
@@ -391,7 +392,8 @@
         "docs/research/native-pc-san-writer.md",
         "docs/research/native-pc-save-reference.md",
         "docs/research/native-pc-read-reference.md",
-        "docs/research/pc-smo-san-completion-contract.md"
+        "docs/research/pc-smo-san-completion-contract.md",
+        "docs/research/native-pc-san-file-roundtrip.md"
       ],
       "testProfiles": [
         "pc-loader-contracts",
@@ -403,7 +405,8 @@
         "pc-read-reference",
         "pc-read-reference-output",
         "pc-materialization",
-        "pc-full-loader-output"
+        "pc-full-loader-output",
+        "pc-san-file-roundtrip"
       ]
     },
     {
@@ -10825,6 +10828,25 @@
           "--guest",
           "corpus-0",
           "normal"
+        ]
+      }
+    ],
+    "pc-san-file-roundtrip": [
+      {
+        "id": "pc-san-source-file-original-reader",
+        "platform": "pc",
+        "script": "research/compare_pc_san_file_roundtrip.py",
+        "args": [
+          "--guest"
+        ]
+      },
+      {
+        "id": "pc-san-source-file-portable-corpus",
+        "platform": "pc",
+        "script": "research/compare_pc_san_file_roundtrip.py",
+        "args": [
+          "--guest",
+          "--portable-corpus"
         ]
       }
     ]

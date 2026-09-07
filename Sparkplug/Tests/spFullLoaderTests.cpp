@@ -129,10 +129,58 @@ namespace
         spMemoryStream input; Load(input, file); spSerializerReadContextForAnalysis context(manager, resources);
         Check(manager.LoadResourcesForAnalysis(input, context) != nullptr, "declared size/dataSize are not invented native validators");
     }
+
+    void FullFileProducer()
+    {
+        spSerializerManager manager; spResourceManager resources; spAnimationManager names; Register(manager);
+        const auto expected = File(1);
+        spMemoryStream input; Load(input, expected);
+        spSerializerReadContextForAnalysis context(manager, resources, &names);
+        auto* root = manager.LoadResourcesForAnalysis(input, context);
+        Check(root != nullptr, "full producer source loaded");
+        Bytes output{9, 8, 7}; std::string error;
+        Check(!manager.BuildResourceFileForAnalysis(*root, output, 0, 65536, &error)
+            && output == Bytes({9, 8, 7}) && !error.empty(), "wrong dispatch keeps prior output");
+        manager.SetDispatchContextForAnalysis(1, 2);
+        Check(manager.BuildResourceFileForAnalysis(*root, output, 0, 65536, &error)
+            && error.empty() && output == expected, "whole-file producer equals independent reader-envelope fixture");
+        Check(manager.GetFATForAnalysis()->GetResourceCountForAnalysis() == 0
+            && manager.GetFATForAnalysis()->GetNextResourceIDForAnalysis() == 1, "successful build clears transient FAT");
+        const auto saved = output;
+        for (const auto limit : {0U, 35U, 36U, static_cast<std::uint32_t>(saved.size() - 1), 64U * 1024 * 1024 + 1})
+        {
+            Check(!manager.BuildResourceFileForAnalysis(*root, output, 0, limit, &error)
+                && output == saved && !error.empty(), "bounded file failure preserves previously published output");
+            Check(manager.GetFATForAnalysis()->GetResourceCountForAnalysis() == 0, "failed build leaves no one-shot state");
+        }
+        Check(manager.BuildResourceFileForAnalysis(*root, output, 0, static_cast<std::uint32_t>(saved.size()), &error)
+            && output == saved, "exact output byte limit succeeds after fresh failed transaction");
+        Check(manager.BuildResourceFileForAnalysis(*root, output, 0x87654321, 65536, &error), "caller-supplied opaque export tag");
+        auto tagged = expected; SetWord(tagged, 8, 0x87654321);
+        Check(output == tagged, "export tag is not assigned invented semantics");
+        Check(spSerializer::IndexReferenceForAnalysis(manager, root), "establish separate active index");
+        auto* prior = manager.GetFATForAnalysis()->FindByObjectForAnalysis(*root);
+        Check(!manager.BuildResourceFileForAnalysis(*root, output, 0, 65536, &error)
+            && output == tagged && manager.GetFATForAnalysis()->FindByObjectForAnalysis(*root) == prior,
+            "producer rejects occupied FAT without destroying the caller context");
+        manager.GetFATForAnalysis()->ClearResourceEntriesForAnalysis();
+        manager.SetDispatchContextForAnalysis(8, 2);
+        Check(!manager.BuildResourceFileForAnalysis(*root, output, 0, 65536, &error)
+            && output == tagged, "PC producer rejects PS2-only dispatch");
+        manager.SetDispatchContextForAnalysis(1, 2);
+        spBaseObject unsupported;
+        Check(!manager.BuildResourceFileForAnalysis(unsupported, output, 0, 65536, &error)
+            && output == tagged, "unsupported root has no fabricated writer");
+        spAnimation incomplete;
+        Check(incomplete.AppendTrackForAnalysis() != nullptr, "track without writable descriptors");
+        Check(!manager.BuildResourceFileForAnalysis(incomplete, output, 0, 65536, &error)
+            && output == tagged && !error.empty() && manager.GetFATForAnalysis()->GetResourceCountForAnalysis() == 0,
+            "payload preflight failure discards transient one-shot state and keeps prior output");
+    }
 }
 int main()
 {
-    try { (void)spAnimation::StaticRTTI(); Reuse(); Failures(); NullableNamesAndOrigin();
+    try { (void)spAnimation::StaticRTTI(); Reuse(); Failures(); NullableNamesAndOrigin(); FullFileProducer();
         std::cout << "PASS " << checks << '/' << checks << ": complete PC FFPS loader reconstruction\n"; return 0; }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

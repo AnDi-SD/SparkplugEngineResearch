@@ -2,6 +2,7 @@
 #include "spResourceFATSerializer.h"
 #include "spResourceManager.h"
 #include "spSerializerHook.h"
+#include "../SparkBase/spMemoryStream.h"
 
 #include <limits>
 #include <utility>
@@ -26,6 +27,38 @@ namespace sparkplug::reconstruction
 
         const bool SerializerManagerRegistered =
             spRTTIManager::Instance().RegisterDeferredForAnalysis(SerializerManagerRecord);
+
+        // The byte limit is a host output policy. The existing memory stream
+        // supplies all storage/seek behavior; its growth quantum may reserve
+        // up to 4999 extra bytes beyond the logical limit.
+        class BoundedFileOutput final : public spStream
+        {
+        public:
+            explicit BoundedFileOutput(std::uint32_t limit) : limit_(limit) {}
+            bool Open(const char* name) override { return memory_.Open(name); }
+            bool Open(std::uint32_t mode, const char* name) override { return memory_.Open(mode, name); }
+            bool Close() override { return memory_.Close(); }
+            bool Seek(SeekSource source, std::int32_t offset) override { return memory_.Seek(source, offset); }
+            bool GetCurrentPosition(std::uint32_t& value) const override { return memory_.GetCurrentPosition(value); }
+            bool ReadData(void* target, std::uint32_t size) override { return memory_.ReadData(target, size); }
+            bool WriteData(const void* source, std::uint32_t size) override
+            {
+                std::uint32_t position = 0;
+                return memory_.GetCurrentPosition(position) && position <= limit_ && size <= limit_ - position
+                    && memory_.WriteData(source, size);
+            }
+            bool vfunc_WriteFromStream(spStream* source, std::uint32_t size) override
+            {
+                std::uint32_t position = 0;
+                return memory_.GetCurrentPosition(position) && position <= limit_ && size <= limit_ - position
+                    && memory_.vfunc_WriteFromStream(source, size);
+            }
+            bool GetSize(std::uint32_t* size) const override { return memory_.GetSize(size); }
+            void* GetBuffer() noexcept override { return memory_.GetBuffer(); }
+        private:
+            spMemoryStream memory_;
+            std::uint32_t limit_;
+        };
     }
 
     spSerializerManager* spSerializerManager::instance_ = nullptr;
@@ -372,5 +405,66 @@ namespace sparkplug::reconstruction
         auto* root = MaterializeResourcesForAnalysis(source, context, error);
         if (!root && !context.failed) return fail("No newly materialized root resource");
         return root;
+    }
+
+    bool spSerializerManager::BuildResourceFileForAnalysis(
+        spBaseObject& root, std::vector<std::uint8_t>& output,
+        std::uint32_t exportTag, std::uint32_t maximumBytes, std::string* error)
+    {
+        if (error) error->clear();
+        const auto fail = [&](const char* message) { if (error) *error = message; return false; };
+        if (maximumBytes < 36 || maximumBytes > 64 * 1024 * 1024)
+            return fail("FFPS output limit must be between 36 bytes and 64 MiB");
+        spSerializerFileHeader header{FileSignature, FileVersion, exportTag, 0, platformMask_, 0, 0};
+        if (operationMask_ != OperationSave ||
+            ValidateFileHeaderForAnalysis(header, maximumBytes, PlatformPC) != spSerializerFileHeaderStatus::Valid)
+            return fail("FFPS producer requires explicit PC/common save dispatch");
+        if (!fat_ || fat_->GetResourceCountForAnalysis() || fat_->GetFileCountForAnalysis())
+            return fail("FFPS producer requires an empty FAT; existing contexts are not discarded");
+        struct ClearFAT
+        {
+            spResourceFATHelperForAnalysis& fat;
+            ~ClearFAT() { fat.ClearResourceEntriesForAnalysis(); fat.ClearFileEntriesForAnalysis(); }
+        } cleanup{*fat_};
+        if (!spSerializer::IndexReferenceForAnalysis(*this, &root))
+            return fail("Cannot index the complete resource graph");
+        auto* entry = fat_->FindByObjectForAnalysis(root);
+        auto* serializer = FindForAnalysis(root);
+        if (!entry || !serializer) return fail("Root has no indexed serializer");
+
+        BoundedFileOutput data(maximumBytes), file(maximumBytes);
+        if (!data.Open(nullptr) || !file.Open(nullptr)) return fail("Cannot open bounded FFPS staging streams");
+        entry->payloadWritten = true;
+        entry->offset = 0;
+        if (!spSerializer::WriteObjectHeaderForAnalysis(data, root)
+            || !serializer->WritePayloadWithContextForAnalysis(*this, data, root, error))
+        {
+            if (!error || error->empty()) return fail("Cannot write the root resource payload");
+            return false;
+        }
+        if (!data.GetCurrentPosition(entry->size) || !data.GetSize(&header.dataSize)
+            || entry->size != header.dataSize || entry->size < 8)
+            return fail("Root writer did not leave a complete bounded payload");
+        for (auto* item = fat_->FirstForAnalysis(); item; item = fat_->NextForAnalysis())
+            if (!item->payloadWritten || item->offset > header.dataSize
+                || item->size > header.dataSize - item->offset)
+                return fail("Indexed resource has no complete inline payload");
+
+        // Reserve the seven header words, then encode the known reader grammar.
+        // Whole-file layout/transaction policy is host code, not a located
+        // native SaveResources body. No external-file table is invented.
+        if (!file.Write(header) || !fat_->WriteInlineIndexForAnalysis(file)
+            || !file.Write(std::uint32_t(0)) || !file.GetCurrentPosition(header.dataOffset))
+            return fail("Cannot write FFPS resource/file indices");
+        if (header.dataSize > maximumBytes - header.dataOffset)
+            return fail("Complete FFPS exceeds the output byte limit");
+        header.declaredFileSize = header.dataOffset + header.dataSize;
+        if (!file.WriteData(data.GetBuffer(), header.dataSize)
+            || !file.Seek(spStream::SeekSource::essStart, 0) || !file.Write(header))
+            return fail("Cannot finalize FFPS header and payload");
+        const auto* bytes = static_cast<const std::uint8_t*>(file.GetBuffer());
+        std::vector<std::uint8_t> complete(bytes, bytes + header.declaredFileSize);
+        output.swap(complete);
+        return true;
     }
 }

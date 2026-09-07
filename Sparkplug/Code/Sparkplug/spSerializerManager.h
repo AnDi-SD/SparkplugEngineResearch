@@ -140,6 +140,18 @@ namespace sparkplug::reconstruction
             spStream& source, spSerializerReadContextForAnalysis& context,
             std::string* error = nullptr);
 
+        // Host FFPS producer around reconstructed index/header/payload/reference
+        // contracts, NOT a recovered original whole Save function. Requires an
+        // empty FAT and explicit PC/common Save dispatch. Root is written at
+        // data offset zero; children use the shared original-derived reference
+        // writer. Unsupported payloads/external files fail. FAT is cleared on
+        // completion/failure; output changes only on success. No preservation of
+        // skipped unknown fields or arbitrary cyclic ownership is claimed.
+        [[nodiscard]] bool BuildResourceFileForAnalysis(
+            spBaseObject& root, std::vector<std::uint8_t>& output,
+            std::uint32_t exportTag = 0, std::uint32_t maximumBytes = 8 * 1024 * 1024,
+            std::string* error = nullptr);
+
     private:
         struct Registration final
         {

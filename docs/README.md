@@ -4,6 +4,7 @@
 
 ## Навигация
 
+- [Полный SAN producer: source FFPS принят оригинальным PC reader](research/native-pc-san-file-roundtrip.md)
 - [SAN → VMD: скелет Bloom, референсы MMD и простой Python-конвертер](research/san-to-vmd-feasibility.md)
 - [Манифест исследования: приоритет SMO/SAN, оптимизация, память и commits](research/research-manifesto.md)
 - [Последний завершённый цикл: 7 сентября, 19:00 МСК, CP51–CP98](research/native-cycle-report-2026-09-07-1900.md)

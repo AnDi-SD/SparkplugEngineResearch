@@ -213,6 +213,26 @@ namespace
         std::cout << '\n' << std::dec;
         return 0;
     }
+    int RewriteFile(const char* path)
+    {
+        const auto raw = AssetBytes(path);
+        spSerializerManager manager; spResourceManager resources; spAnimationManager names;
+        Check(manager.RegisterForAnalysis(spAnimation::ClassID, std::make_shared<spAnimationSerializer>(), 0xFF, 3),
+            "full writer registration");
+        spMemoryStream input; Load(input, raw);
+        spSerializerReadContextForAnalysis context(manager, resources, &names);
+        std::string error;
+        auto* root = manager.LoadResourcesForAnalysis(input, context, &error);
+        if (!root || !dynamic_cast<spAnimation*>(root)) throw std::runtime_error(error.empty() ? "Expected SAN root" : error);
+        manager.SetDispatchContextForAnalysis(manager.GetPlatformMaskForAnalysis(), spSerializerManager::OperationSave);
+        Bytes file;
+        if (!manager.BuildResourceFileForAnalysis(*root, file, U32(raw, 8), 8 * 1024 * 1024, &error))
+            throw std::runtime_error(error);
+        std::cout << "SAN_FILE_HEX ";
+        for (const auto value : file) std::cout << std::hex << std::setw(2) << std::setfill('0') << unsigned(value);
+        std::cout << '\n' << std::dec;
+        return 0;
+    }
     void WriterTests()
     {
         spAnimationSerializer serializer;
@@ -504,6 +524,8 @@ int main(int argc, char** argv)
             return RegistryLifetime(argv[2]);
         if (argc == 3 && std::string(argv[1]) == "--rewrite-fields")
             return Rewrite(argv[2]);
+        if (argc == 3 && std::string(argv[1]) == "--rewrite-file")
+            return RewriteFile(argv[2]);
         if (argc != 1)
             throw std::runtime_error("Expected no args or --inspect <bounded SAN>");
         Tests();
