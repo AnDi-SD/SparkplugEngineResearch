@@ -4,6 +4,7 @@
 
 ## Навигация
 
+- [SAN → VMD: скелет Bloom, референсы MMD и простой Python-конвертер](research/san-to-vmd-feasibility.md)
 - [Манифест исследования: приоритет SMO/SAN, оптимизация, память и commits](research/research-manifesto.md)
 - [Последний завершённый цикл: 7 сентября, 19:00 МСК, CP51–CP98](research/native-cycle-report-2026-09-07-1900.md)
 - [Оптимизация после цикла и первый опыт с heap 128 КиБ](research/native-research-strategy-2026-09-07.md)
