@@ -29,6 +29,15 @@ INTEGRATION_ARENA_SIZE = 0x20000
 INSTRUCTION_LIMIT = 100_000
 TIMEOUT_US = 2_000_000
 PROCESS_TIMEOUT = 30
+FILE_INSTRUCTION_LIMIT = 1_000_000
+FILE_TIMEOUT_US = 8_000_000
+
+
+def execution_limits(profile):
+    """Explicit fresh-guest profiles; historical micro limits remain default."""
+    if profile == 'micro': return INSTRUCTION_LIMIT, TIMEOUT_US
+    if profile == 'file': return FILE_INSTRUCTION_LIMIT, FILE_TIMEOUT_US
+    raise ValueError('Explicit micro or file execution profile required')
 
 
 def run_bounded(script: Path, arguments=()) -> int:
@@ -42,7 +51,10 @@ def run_bounded(script: Path, arguments=()) -> int:
 
 
 class PcInstructions:
-    def __init__(self, path: Path | None = None, *, arena_size: int = ARENA_SIZE):
+    def __init__(self, path: Path | None = None, *, arena_size: int = ARENA_SIZE,
+                 execution_profile: str = 'micro'):
+        execution_limits(execution_profile)
+        self.execution_profile = execution_profile
         if arena_size not in (ARENA_SIZE, INTEGRATION_ARENA_SIZE):
             raise ValueError('Explicit 64KiB micro or 128KiB integration arena required')
         self.arena_size = arena_size
@@ -198,6 +210,9 @@ class PcInstructions:
 
     def run(self, entry: int, this: int = 0, args=(), *, stop_at: int | None = None,
             callee_pop: bool = True):
+        instruction_limit, timeout_us = execution_limits(self.execution_profile)
+        self.last_execution_limits = {'profile': self.execution_profile,
+                                      'instructionLimit': instruction_limit, 'timeoutUs': timeout_us}
         self.mu.mem_write(STACK, bytes(ARENA_SIZE))
         sp = STACK+0xe000
         for index,value in enumerate((RETURN,*args)):
@@ -212,7 +227,7 @@ class PcInstructions:
         self.tail.clear()
         self.visits.clear()
         try:
-            self.mu.emu_start(entry,RETURN,timeout=TIMEOUT_US,count=INSTRUCTION_LIMIT)
+            self.mu.emu_start(entry,RETURN,timeout=timeout_us,count=instruction_limit)
         except self.uc.UcError as error:
             raise AssertionError(f'{self.reason}: {error}; tail={list(map(hex,self.tail))}') from error
         if stop_at is not None and self.reg('EIP') == stop_at:

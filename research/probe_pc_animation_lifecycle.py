@@ -19,7 +19,8 @@ def check(value,label):
 
 class LifetimeFixture:
     def __init__(self):
-        self.p=PcInstructions(arena_size=getattr(self,'guest_arena_size',ARENA_SIZE))
+        self.p=PcInstructions(arena_size=getattr(self,'guest_arena_size',ARENA_SIZE),
+                              execution_profile=getattr(self,'guest_execution_profile','micro'))
         self.teb=self.p.fixture_seh_chain()
         self.allocations={}
         self.freed=[]

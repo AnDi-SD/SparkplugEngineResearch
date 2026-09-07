@@ -5,6 +5,11 @@ Node, whole native Save, or a completed native editor. PS2 was not exercised.
 Original PC image SHA256:
 `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F`.
 
+Update 2026-09-07: [CP101](native-pc-whole-file-profile.md) completes whole
+`422B50` for unchanged `object.smo` and `gameover.smo` under a separately declared
+fresh file profile: 2/6 exact Node records, full teardown. Historical micro
+stops below remain archived; they no longer describe current corpus coverage.
+
 ## Original execution and exact comparisons
 
 | Probe | Checks | Confirmed boundary |

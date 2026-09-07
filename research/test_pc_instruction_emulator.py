@@ -64,6 +64,29 @@ class GuardTests(unittest.TestCase):
                 p.run(0x401000)
         self.assertEqual(sum(p.visits.values()),32)
 
+    def test_execution_profile_rejected_before_image_read(self):
+        with patch.object(Path, 'read_bytes') as read:
+            with self.assertRaisesRegex(ValueError, 'execution profile'):
+                emu.PcInstructions(execution_profile='unlimited')
+            read.assert_not_called()
+
+    def test_explicit_file_profile_still_bounds_instructions(self):
+        p = emu.PcInstructions(execution_profile='file')
+        p.mu.mem_write(0x401000, b'\xeb\xfe')
+        with patch.object(emu, 'FILE_INSTRUCTION_LIMIT', 48):
+            with self.assertRaisesRegex(AssertionError, 'instruction/time cap'):
+                p.run(0x401000)
+        self.assertEqual(sum(p.visits.values()), 48)
+        self.assertEqual(p.last_execution_limits,
+                         {'profile': 'file', 'instructionLimit': 48, 'timeoutUs': 8_000_000})
+
+    def test_file_profile_keeps_unmapped_and_privileged_guards(self):
+        for code, reason in [(b'\xa1\x00\x00\x00\x00\xc3', 'invalid memory'),
+                             (b'\x0f\x05\xc3', 'OS/privileged')]:
+            p = emu.PcInstructions(execution_profile='file')
+            p.mu.mem_write(0x401000, code)
+            with self.assertRaisesRegex(AssertionError, reason): p.run(0x401000)
+
 
 if __name__=='__main__':
     if sys.argv[1:]==['--guest']:

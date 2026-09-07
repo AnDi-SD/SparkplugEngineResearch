@@ -91,12 +91,13 @@
       "dependsOn": [
         "pc-smo-san-loader-save"
       ],
-      "summary": "Common Node and derived RenderNode/Renderable/Model adapters verified; object.smo staged-native/source and15 scene-section/graph comparisons match. Continue nonempty mesh/material/fog and Skin dependencies.",
+      "summary": "Common and derived graph adapters verified; CP101 whole original object/gameover matches C++ with2/6 exact Node records. Continue whole mesh/material/skin graph and unresolved collision/rollback/ownership.",
       "originalName": "spNodeSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spNodeSerializer.cpp",
       "known": [
         "ExactPC14 allocation, original scalar/child/index/write rules; false Static/Animated do not clear defaults, duplicate same-parent child no-op.",
-        "Canonical host shared owners, explicit prebound owners; common core reused. Source whole object.smo equals staged native outer, not native whole422B50."
+        "Canonical host shared owners, explicit prebound owners; common core reused. Source whole object.smo equals staged native outer, not native whole422B50.",
+        "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged."
       ],
       "unknowns": [
         {
@@ -105,7 +106,7 @@
         },
         {
           "kind": "behavior",
-          "text": "Constructed Node whole422B50 cap88FDE3 and gameover outer cap89A355 are disabled. Never retry/resume/raise caps; third factory localization not full cause."
+          "text": "Historical constructed Node micro cap88FDE3 and gameover outer micro cap89A355 remain archived. CP101 fresh file-profile whole422B50 now completes unchanged object/gameover with exact source comparison. Constructed two-live-root whole-load case remains untested in this new profile."
         },
         {
           "kind": "name",
@@ -119,7 +120,8 @@
         "docs/research/native-pc-material-scalar.md",
         "docs/research/native-pc-material-standard-graph.md",
         "docs/research/native-pc-skin-alpha-queue.md",
-        "docs/research/native-pc-skin-alpha-flush.md"
+        "docs/research/native-pc-skin-alpha-flush.md",
+        "docs/research/native-pc-whole-file-profile.md"
       ],
       "testProfiles": [
         "pc-node-output",
@@ -129,7 +131,8 @@
         "pc-material-scalar",
         "pc-material-standard-graph",
         "pc-skin-alpha-queue",
-        "pc-skin-alpha-flush"
+        "pc-skin-alpha-flush",
+        "pc-whole-file-profile"
       ]
     },
     {
@@ -367,7 +370,8 @@
         "PC FAT58/maps14,20,2C/list48/cursor54 independently confirmed. Duplicate IDs overwrite map/leak prior entry. File-index465CD0->13BCA90 consumes without storing/freeing. Animation engine RTTI is not NamedObject despite physical prefix.",
         "Original SAN field writer on four assets plus empty:64 success checks,17 failure checks; bbush native write/read227 comparisons. Block nested writer163 checks,18 compiled-output cases/1658 exact bytes. Native mixed widths/zero payload/ID31 bugs separated from explicit host guards.",
         "Checkpoint5 portable full-file SAN loader227 whole-bbush comparisons/4 portable assets62tracks; native read-reference115 and outer42/cachegate48. Checkpoint6 actual DX metadata/first scan/CPU buffer copy/COM boundary and declaration map468 checks; not whole mesh-containing SMO or GPU proof.",
-        "CP99 host BuildResourceFileForAnalysis composes complete FFPS from reconstructed contracts. bbush source file is byte-identical and accepted by whole original422B50:227 values/27 native assertions/39 allocations released. Four portable whole-file roundtrips:2800 values with explicit barrel capacity20->21 canonicalization. No located native whole Save function or score increase claimed."
+        "CP99 host BuildResourceFileForAnalysis composes complete FFPS from reconstructed contracts. bbush source file is byte-identical and accepted by whole original422B50:227 values/27 native assertions/39 allocations released. Four portable whole-file roundtrips:2800 values with explicit barrel capacity20->21 canonicalization. No located native whole Save function or score increase claimed.",
+        "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged."
       ],
       "unknowns": [
         {
@@ -376,7 +380,7 @@
         },
         {
           "kind": "behavior",
-          "text": "Manager/FAT full constructors and RTTI startup.6D1C10 capped889BB8; whole-load bflower/barrel/bw capped472923/41FB28/13D7892 and are disabled, not resumed. Existing staged reader evidence stays valid."
+          "text": "Manager/FAT full constructors and RTTI startup remain unresolved. Historic6D1C10 micro cap889BB8 is preserved. Historical SAN micro stops are superseded for current corpus coverage by separate fresh CP101 file-profile evidence; original stopped guests were not resumed."
         },
         {
           "kind": "abi",
@@ -393,7 +397,8 @@
         "docs/research/native-pc-save-reference.md",
         "docs/research/native-pc-read-reference.md",
         "docs/research/pc-smo-san-completion-contract.md",
-        "docs/research/native-pc-san-file-roundtrip.md"
+        "docs/research/native-pc-san-file-roundtrip.md",
+        "docs/research/native-pc-whole-file-profile.md"
       ],
       "testProfiles": [
         "pc-loader-contracts",
@@ -406,7 +411,8 @@
         "pc-read-reference-output",
         "pc-materialization",
         "pc-full-loader-output",
-        "pc-san-file-roundtrip"
+        "pc-san-file-roundtrip",
+        "pc-whole-file-profile"
       ]
     },
     {
@@ -10847,6 +10853,63 @@
         "args": [
           "--guest",
           "--portable-corpus"
+        ]
+      }
+    ],
+    "pc-whole-file-profile": [
+      {
+        "id": "pc-file-profile-bflower-san",
+        "platform": "pc",
+        "script": "research/probe_pc_san_file_profile.py",
+        "args": [
+          "--guest",
+          "bflower.san"
+        ]
+      },
+      {
+        "id": "pc-file-profile-barrel-san",
+        "platform": "pc",
+        "script": "research/probe_pc_san_file_profile.py",
+        "args": [
+          "--guest",
+          "barrel.san"
+        ]
+      },
+      {
+        "id": "pc-file-profile-bw-san",
+        "platform": "pc",
+        "script": "research/probe_pc_san_file_profile.py",
+        "args": [
+          "--guest",
+          "bw.san"
+        ]
+      },
+      {
+        "id": "pc-file-profile-barrel-san-source",
+        "platform": "pc",
+        "script": "research/probe_pc_san_file_profile.py",
+        "args": [
+          "--guest",
+          "barrel.san",
+          "--source-written"
+        ]
+      },
+      {
+        "id": "pc-file-profile-object-smo",
+        "platform": "pc",
+        "script": "research/probe_pc_node_file_profile.py",
+        "args": [
+          "--guest",
+          "object.smo"
+        ]
+      },
+      {
+        "id": "pc-file-profile-gameover-smo",
+        "platform": "pc",
+        "script": "research/probe_pc_node_file_profile.py",
+        "args": [
+          "--guest",
+          "gameover.smo"
         ]
       }
     ]
