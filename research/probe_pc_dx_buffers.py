@@ -13,6 +13,8 @@ def check(value,label):
 
 class BufferFixture(LifetimeFixture):
     def __init__(self,mode,renderer_extent=0xc9ec,device_vtable_size=0x70):
+        self.max_buffer_size=getattr(self,'guest_max_buffer_size',1024)
+        if self.max_buffer_size not in (1024,8192):raise ValueError('Explicit 1KiB or 8KiB COM buffer fixture required')
         super().__init__();self.mode=mode;self.events=[];self.buffers={}
         p=self.p
         self.renderer=p.allocate(renderer_extent);self.device=p.allocate(4);vt=p.allocate(device_vtable_size)
@@ -29,7 +31,7 @@ class BufferFixture(LifetimeFixture):
         sp=p.reg('ESP');args=tuple(p.uint(sp+4+i*4) for i in range(7))
         device,size,usage,format_,pool,out,shared=args
         check(device==self.device and shared==0,'COM Create uses device this and null shared handle')
-        check(0<size<=1024,'explicit bounded buffer size')
+        check(0<size<=self.max_buffer_size,'explicit bounded buffer size')
         self.events.append(('create',kind,size,usage,format_,pool))
         if self.mode=='create-failure':p.put_uint(out,0);p.fixture_return(28,eax=0x80004005);return
         obj=p.allocate(4);data=p.allocate(size);p.put_uint(obj,self.buffer_table)

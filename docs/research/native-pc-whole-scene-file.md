@@ -9,6 +9,10 @@ CP103, 7 сентября 2026. Неизменённый `Menus/logo_screen.smo`
 также совпал с оригиналом, включая общий mesh path и LightData→DXLight.
 Ниже сохранены исходные измерения CP103; capture теперь поддерживает оба случая.
 
+CP106 добавил [идентификацию по FAT и целый `g_crystal.smo`](native-pc-whole-scene-identities.md):
+26 объектов, включая повторяющиеся Node/DXLight. Старый capture по классам
+сохранён для воспроизводимости прежних малых fixtures.
+
 Это первое в текущем цикле сравнение реального целого SMO с непустым DX batch,
 материалом и графом. Здесь одна оригинальная цепочка выполняет header, оба FAT
 index, hook, factories, readers, references и финальный FAT clear.

@@ -43,7 +43,7 @@ namespace sparkplug::reconstruction::scene_file_test
     template<class T>std::string Hex(const T& values){return Hex(values.data(),values.size()*sizeof(values[0]));}
     inline std::uint32_t Identity(const spBaseObject* object){return object?object->vfunc_18().classID:0;}
 
-    inline std::string Capture(const char* path)
+    inline std::string Capture(const char* path,bool byFileID=false)
     {
         std::ifstream file(path,std::ios::binary|std::ios::ate);Require(bool(file),"Cannot open scene fixture");
         const auto length=file.tellg();Require(length>=36&&length<=65536,"Scene fixture must fit 64 KiB");
@@ -58,29 +58,47 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spDXMeshDataSerializer>(),2,1),"DX mesh binding");
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spMeshDataSerializer>(),1,1),"Common mesh binding");
         spSerializerReadContextForAnalysis context(manager,resources);context.pcRenderer=&renderer;
+        context.captureFileObjectIDsForAnalysis=byFileID;
         spMemoryStream input;Require(input.ResizeAndSetSize(static_cast<std::uint32_t>(bytes.size())),"Fixture stream capacity");
         std::memcpy(input.GetBuffer(),bytes.data(),bytes.size());Require(input.Seek(spStream::SeekSource::essStart,0),"Fixture rewind");
         std::string error;auto* root=manager.LoadResourcesForAnalysis(input,context,&error);Require(root&&!context.failed,error);
         std::uint32_t position=0;Require(input.GetCurrentPosition(position)&&position+input.GetLogicalOriginForAnalysis()==bytes.size(),"Whole file extent");
         Require(context.createdObjects.size()<=32,"Bounded snapshot object count");
         std::map<std::uint32_t,const spBaseObject*> objects;
-        for(const auto& object:context.createdObjects)
+        if(byFileID)
+        {
+            Require(context.fileObjectsForAnalysis.size()<=32,"Bounded FAT snapshot count");
+            for(const auto& entry:context.fileObjectsForAnalysis)
+                Require(entry.id&&entry.object&&objects.emplace(entry.id,entry.object).second,"Complete distinct FAT IDs");
+        }
+        else for(const auto& object:context.createdObjects)
             Require(objects.emplace(Identity(object.get()),object.get()).second,"This directed capture requires distinct runtime classes");
-        std::ostringstream out;out<<"{\"rootClass\":"<<Identity(root)<<",\"objects\":{";bool first=true;
+        std::map<const spBaseObject*,std::uint32_t> references;
+        for(const auto& [key,object]:objects)references.emplace(object,key); // lowest ID for cache aliases
+        const auto Reference=[&](const spBaseObject* object)->std::uint32_t
+        {
+            if(!object)return 0;auto found=references.find(object);
+            Require(found!=references.end(),"Graph edge must refer to a captured object");return found->second;
+        };
+        for(const auto& object:context.createdObjects)Require(references.count(object.get())!=0,"Every created object is captured");
+        std::ostringstream out;out<<"{\"rootClass\":"<<Identity(root);
+        if(byFileID)out<<",\"rootID\":"<<Reference(root);
+        out<<",\"objects\":{";bool first=true;
         for(const auto& [identity,object]:objects)
         {
             if(!first)out<<',';first=false;
             const auto* named=object->IsKindOf(spNamedObject::ClassID)?dynamic_cast<const spNamedObject*>(object):nullptr;
             const auto* name=named?named->GetName():nullptr;
-            out<<'"'<<identity<<"\":{\"nameHex\":\""<<(name?Hex(name,std::strlen(name)):"")<<"\",\"stateHex\":\"";
+            out<<'"'<<identity<<"\":{";if(byFileID)out<<"\"classID\":"<<Identity(object)<<',';
+            out<<"\"nameHex\":\""<<(name?Hex(name,std::strlen(name)):"")<<"\",\"stateHex\":\"";
             Bytes state;std::vector<std::uint32_t> edges;std::vector<std::string> buffers,layers;
             if(const auto* node=dynamic_cast<const spNode*>(object))
             {
                 Add(state,node->GetFlagsForAnalysis());Add(state,node->GetPositionForAnalysis());Add(state,node->GetScaleForAnalysis());Add(state,node->GetOrientationForAnalysis());
                 Add(state,node->GetWorldPositionForAnalysis());Add(state,node->GetWorldScaleForAnalysis());Add(state,node->GetWorldOrientationForAnalysis());
-                for(std::size_t i=0;i<node->GetChildCountForAnalysis();++i)edges.push_back(Identity(node->GetChildForAnalysis(i)));
+                for(std::size_t i=0;i<node->GetChildCountForAnalysis();++i)edges.push_back(Reference(node->GetChildForAnalysis(i)));
                 if(const auto* render=dynamic_cast<const spRenderNode*>(node))
-                    for(std::size_t i=0;i<render->GetRenderableCountForAnalysis();++i)edges.push_back(Identity(render->GetRenderableForAnalysis(i)));
+                    for(std::size_t i=0;i<render->GetRenderableCountForAnalysis();++i)edges.push_back(Reference(render->GetRenderableForAnalysis(i)));
                 if(const auto* light=dynamic_cast<const spDXLight*>(node))
                 {
                     Add(state,std::uint32_t(light->GetTypeForAnalysis()));Add(state,light->GetColorForAnalysis());
@@ -94,7 +112,7 @@ namespace sparkplug::reconstruction::scene_file_test
             else if(const auto* model=dynamic_cast<const spModel*>(object))
             {
                 Add(state,std::uint8_t(model->IsAlphaSortEnabledForAnalysis()));Add(state,model->GetPriorityForAnalysis());Add(state,model->GetProjectionGroupForAnalysis());
-                edges={Identity(model->GetMaterialForAnalysis().get()),Identity(model->GetFogForAnalysis().get()),Identity(model->GetBaseMeshForAnalysis().get())};
+                edges={Reference(model->GetMaterialForAnalysis().get()),Reference(model->GetFogForAnalysis().get()),Reference(model->GetBaseMeshForAnalysis().get())};
             }
             else if(const auto* material=dynamic_cast<const spDXMaterial*>(object))
             {

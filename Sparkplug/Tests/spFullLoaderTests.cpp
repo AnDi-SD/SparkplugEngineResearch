@@ -66,10 +66,16 @@ namespace
         const auto file = File(); spMemoryStream firstInput, secondInput; Load(firstInput, file); Load(secondInput, file);
         auto first = std::make_unique<spSerializerReadContextForAnalysis>(manager, resources, &names);
         auto second = std::make_unique<spSerializerReadContextForAnalysis>(manager, resources, &names);
+        first->captureFileObjectIDsForAnalysis = true;
         std::string error;
         auto* a = dynamic_cast<spAnimation*>(manager.LoadResourcesForAnalysis(firstInput, *first, &error));
         Check(a && !first->failed && error.empty() && first->createdObjects.size() == 2, "whole multi-object FFPS load");
         Check(a == first->createdObjects.front().get() && a->GetTrackCountForAnalysis() == 1, "first new object is root");
+        const auto& identities = first->fileObjectsForAnalysis;
+        Check(identities.size() == 2 && identities[0].id == 1 && identities[0].object == a
+            && identities[1].id == 2 && identities[1].object == first->createdObjects[1].get()
+            && identities[0].object != identities[1].object,
+            "completed FAT IDs distinguish two objects with the same runtime class after FAT clear");
         Check(names.FindNameForAnalysis("Head")->references == 2, "two objects own two name leases");
         Check(manager.GetFATForAnalysis()->GetResourceCountForAnalysis() == 0 && firstInput.GetLogicalOriginForAnalysis() == 72,
               "FAT cleared while objects and advanced stream origin survive");
@@ -78,6 +84,7 @@ namespace
               "physical size vs logical cursor contract");
         auto* b = manager.LoadResourcesForAnalysis(secondInput, *second, &error);
         Check(b && b != a && !second->failed && names.FindNameForAnalysis("Head")->references == 4, "second full load while first remains alive");
+        Check(second->fileObjectsForAnalysis.empty(), "optional identity observation stays disabled by default");
         first.reset(); Check(names.FindNameForAnalysis("Head")->references == 2, "release only first file bindings");
         second.reset(); Check(names.GetNameCountForAnalysis() == 0, "last file releases last leases");
         for (auto platform : {2U, 3U})
@@ -104,7 +111,9 @@ namespace
             spMemoryStream input; Load(input, file); std::string error;
             {
                 spSerializerReadContextForAnalysis context(manager, resources, &names);
+                context.captureFileObjectIDsForAnalysis = true;
                 Check(!manager.LoadResourcesForAnalysis(input, context, &error) && context.failed && !error.empty(), "malformed full file fails explicitly");
+                Check(context.fileObjectsForAnalysis.empty(), "failed file never exposes a completed identity snapshot");
                 Check(manager.GetFATForAnalysis()->GetResourceCountForAnalysis() == 0, "host clears partial FAT on all exits");
                 std::uint32_t before = 0, after = 0; Check(input.GetCurrentPosition(before), "failed tell");
                 Check(!manager.LoadResourcesForAnalysis(input, context, &error) && input.GetCurrentPosition(after) && after == before,

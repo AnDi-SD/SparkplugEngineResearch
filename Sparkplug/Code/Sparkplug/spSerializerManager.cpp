@@ -376,6 +376,7 @@ namespace sparkplug::reconstruction
         };
         if (&context.manager != this || context.failed || context.depth)
             return fail("Invalid or failed file-load context");
+        context.fileObjectsForAnalysis.clear();
         fat_->ClearResourceEntriesForAnalysis(); fat_->ClearFileEntriesForAnalysis();
         struct ClearFAT final
         {
@@ -404,6 +405,21 @@ namespace sparkplug::reconstruction
             return nullptr; // hook already poisoned context and recorded the cause
         auto* root = MaterializeResourcesForAnalysis(source, context, error);
         if (!root && !context.failed) return fail("No newly materialized root resource");
+        if (root && !context.failed && context.captureFileObjectIDsForAnalysis)
+        {
+            try
+            {
+                std::vector<spSerializerReadContextForAnalysis::FileObjectForAnalysis> observed;
+                observed.reserve(fat_->GetResourceCountForAnalysis());
+                for (auto* entry = fat_->FirstForAnalysis(); entry; entry = fat_->NextForAnalysis())
+                    observed.push_back({entry->id, entry->object});
+                context.fileObjectsForAnalysis = std::move(observed);
+            }
+            catch (...)
+            {
+                return fail("Cannot capture completed file object identities");
+            }
+        }
         return root;
     }
 

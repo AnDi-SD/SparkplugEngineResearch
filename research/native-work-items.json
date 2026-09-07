@@ -317,7 +317,8 @@
         "Hook publishes after payload, leaves allocated combiner alive and clears active global. Mesh shared ranges and local (not storage-rebased) index bytes confirmed.",
         "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
         "CP104 original shared writer/reader/Init:110 exact bytes;cursor8;10 completed protocol cases/115 assertions/22 allocations released;actual factory sizes28/20. COM Create failure separately stops at4C2AB6 with null read and is never resumed. Host readers now bound sizes before allocation;contiguous helper is zero-origin and not generic graph wiring.",
-        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants."
+        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants.",
+        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes."
       ],
       "unknowns": [
         {
@@ -339,7 +340,8 @@
         "docs/research/native-pc-skin-queued-mesh-render.md",
         "docs/research/native-pc-whole-scene-file.md",
         "docs/research/native-pc-dx-shared-payload.md",
-        "docs/research/native-pc-whole-light-scene.md"
+        "docs/research/native-pc-whole-light-scene.md",
+        "docs/research/native-pc-whole-scene-identities.md"
       ],
       "testProfiles": [
         "pc-dx-metadata",
@@ -384,7 +386,8 @@
         "CP99 host BuildResourceFileForAnalysis composes complete FFPS from reconstructed contracts. bbush source file is byte-identical and accepted by whole original422B50:227 values/27 native assertions/39 allocations released. Four portable whole-file roundtrips:2800 values with explicit barrel capacity20->21 canonicalization. No located native whole Save function or score increase claimed.",
         "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged.",
         "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
-        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants."
+        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants.",
+        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes."
       ],
       "unknowns": [
         {
@@ -413,7 +416,8 @@
         "docs/research/native-pc-san-file-roundtrip.md",
         "docs/research/native-pc-whole-file-profile.md",
         "docs/research/native-pc-whole-scene-file.md",
-        "docs/research/native-pc-whole-light-scene.md"
+        "docs/research/native-pc-whole-light-scene.md",
+        "docs/research/native-pc-whole-scene-identities.md"
       ],
       "testProfiles": [
         "pc-loader-contracts",
@@ -10945,6 +10949,36 @@
         "args": [
           "--guest",
           "bloom-projectile"
+        ]
+      },
+      {
+        "id": "pc-whole-g-crystal-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "g-crystal",
+          "--file-ids"
+        ]
+      },
+      {
+        "id": "pc-whole-logo-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "logo",
+          "--file-ids"
+        ]
+      },
+      {
+        "id": "pc-whole-bloom-projectile-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "bloom-projectile",
+          "--file-ids"
         ]
       }
     ],

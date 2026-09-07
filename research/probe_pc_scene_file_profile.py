@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Whole original PC mesh/material/Fog/light scenes under explicit startup/COM inputs.
 
-The selected valid seven/nine-entry RTTI tree is a fixture, not completed CRT startup.
+The selected valid seven/nine/ten-entry RTTI tree is a fixture, not completed CRT startup.
 The original whole loader, DX batch, graph factories/readers and teardown run.
 """
 from pathlib import Path
@@ -24,7 +24,10 @@ class SceneFileFixture(MeshFixture):
         p.seams[0x4173e0]=lambda p:ReaderFixture.release_name(self,p)
         install_char_traits(p)
 
-def seed_scene_rtti(f,with_light=False):
+class CrystalSceneFileFixture(SceneFileFixture):
+    guest_max_buffer_size=8192
+
+def seed_scene_rtti(f,with_light=False,with_material=None):
     p=f.p
     records=[(0x755310,0x415352a1,0),(0x7555f8,0x44de07fd,0x755310),
         (0x75dd88,0x695c0f65,0x7555f8),(0x75e150,0x603625d0,0x75dd88),
@@ -42,7 +45,8 @@ def seed_scene_rtti(f,with_light=False):
         (0x7ac95aec,0x75cf48,0x419e90),(0x33c34cf0,0x75d428,0),
         (0x234c576b,0x75ffa8,0x460e50)]
     if with_light:
-        targets=[row for row in targets if row[0]!=0x6160348b]+[(0x5e6402df,0x75d4e8,0x41a330)]
+        if not with_material:targets=[row for row in targets if row[0]!=0x6160348b]
+        targets += [(0x5e6402df,0x75d4e8,0x41a330)]
         # The common mesh path publishes a freshly created runtime DXMesh to
         # the resource manager, which queries runtime (not only wire) RTTI.
         targets += [(0x193b2671,0x763150,0x4a9e80),(0x6b3e7baa,0x7634b0,0x4ac000)]
@@ -75,22 +79,26 @@ def check(condition,label):
     checks+=1
     if not condition:raise AssertionError(label)
 
-def capture_scene(f,root,entries):
-    p=f.p;identities={};objects={}
-    for _,_,_,obj in entries:
+def capture_scene(f,root,entries,by_file_id=False):
+    p=f.p;identities={};objects={};kinds={}
+    for file_id,_,_,obj in sorted(entries):
         check(obj in f.allocations,'published object is an actual native allocation')
         record=f.call(p.uint(p.uint(obj)+0x10),this=obj);identity=p.uint(record)
-        check(identity not in objects,'directed capture requires distinct runtime classes')
-        identities[obj]=identity;objects[identity]=obj
+        key=file_id if by_file_id else identity
+        check(key not in objects,'capture requires distinct file IDs or selected runtime classes')
+        identities.setdefault(obj,key);objects[key]=obj;kinds[obj]=identity
     def identity(obj):
         check(not obj or obj in identities,'graph edge refers to a published object')
         return identities.get(obj,0)
     def read(obj,offset,size):return bytes(p.mu.mem_read(obj+offset,size))
-    captured={'rootClass':identity(root),'objects':{}}
-    for kind,obj in objects.items():
+    captured={'rootClass':kinds[root],'objects':{}}
+    if by_file_id:captured['rootID']=identity(root)
+    for key,obj in objects.items():
+        kind=kinds[obj]
         named=f.call(0x408370,this=obj,args=(0x44de07fd,))&255
         name=p.uint(obj+0x10) if named else 0
         row={'nameHex':cstring(p,name+9).hex() if name else '', 'stateHex':'','edges':[],'buffers':[],'layers':[]}
+        if by_file_id:row['classID']=kind
         if kind in (0x695c0f65,0x603625d0,0x6b3e7baa):
             state=read(obj,0xb0,4)+b''.join(read(obj,a,n) for a,n in ((0x20,12),(0x30,12),(0x40,36),(0x74,12),(0x80,12),(0x8c,36)))
             head=p.uint(obj+0x18);at=p.uint(head)
@@ -128,28 +136,32 @@ def capture_scene(f,root,entries):
             check(len(f.declaration_arrays)==1,'one shared native declaration')
             row['buffers'].append(f.declaration_arrays[0].hex())
         else:raise ValueError('Uncaptured native runtime class')
-        row['stateHex']=state.hex();captured['objects'][str(kind)]=row
+        row['stateHex']=state.hex();captured['objects'][str(key)]=row
     return captured
 
-def main(case='logo'):
+def main(case='logo',by_file_id=False):
     cases={'logo':('Menus/logo_screen.smo',703,'DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7'),
-        'bloom-projectile':('Characters/Bloom/bloom_projectile.smo',770,'BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D')}
+        'bloom-projectile':('Characters/Bloom/bloom_projectile.smo',770,'BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D'),
+        'g-crystal':('SFX/g_crystal.smo',6264,'9ECB8CFEFADD7A30F1411F8235039FB07EA342BA13177B4060DE975158609A0A')}
     check(case in cases,'selected bounded whole scene case')
-    relative,size,digest=cases[case];with_light=case=='bloom-projectile'
+    relative,size,digest=cases[case];with_light=case!='logo';common_mesh=case=='bloom-projectile'
+    by_file_id=by_file_id or case=='g-crystal';object_count=26 if case=='g-crystal' else 6
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSceneSerializationTests.exe'
-    result=subprocess.run([str(binary),'--asset-file',str(path)],capture_output=True,timeout=10)
+    result=subprocess.run([str(binary),'--asset-file-ids' if by_file_id else '--asset-file',str(path)],capture_output=True,timeout=10)
     check(result.returncode==0,'source whole capture: '+result.stderr.decode('utf-8',errors='replace')[:2048])
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
-    f=SceneFileFixture(raw);p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light)
+    f=(CrystalSceneFileFixture if case=='g-crystal' else SceneFileFixture)(raw)
+    p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light,with_material=not common_mesh)
     fat=empty_fat(f);manager,_=empty_manager(f);p.put_uint(manager+0x28,fat);p.put_uint(0x75dde8,manager)
     bindings=[(0x695c0f65,0x4638f0,255),(0x603625d0,0x469040,255),
         (0x763277db,0x4934c0,255),(0x6160348b,0x42f690,255),(0x7ac95aec,0x43b830,255),(0x33c34cf0,0x4297c0,2)]
-    if with_light:
+    if common_mesh:
         bindings=[row for row in bindings if row[0] not in (0x6160348b,0x33c34cf0)]
-        bindings += [(0x5e6402df,0x43ffd0,255),(0x33c34cf0,0x42aef0,1)]
+        bindings += [(0x33c34cf0,0x42aef0,1)]
+    if with_light:bindings += [(0x5e6402df,0x43ffd0,255)]
     for kind,factory,platform in bindings:
         serializer=f.call(factory);f.call(0x422d90,this=manager,args=(kind,serializer,platform,1))
     f.call(0x45adf0);published=[]
@@ -157,34 +169,39 @@ def main(case='logo'):
         if p.uint(fat+0x50):
             head=p.uint(fat+0x4c);at=p.uint(head);rows=[]
             while at!=head:
-                check(len(rows)<16,'bounded FAT publication observer');entry=p.uint(at+8)
-                rows.append([p.uint(entry),p.uint(entry+4),p.uint(entry+0x10),p.uint(entry+0x20)]);at=p.uint(at)
+                check(len(rows)<32,'bounded FAT publication observer');entry=p.uint(at+8)
+                # Native FAT entry +0 is the external file ID; +4 is the
+                # object's own ID. All inline entries have external file ID0.
+                rows.append([p.uint(entry+4),p.uint(entry+0x10),p.uint(entry+0x14),p.uint(entry+0x20)]);at=p.uint(at)
             published.append(rows)
     observer=p.mu.hook_add(p.uc.UC_HOOK_CODE,observe,begin=0x466760,end=0x466760)
     report={'kind':'native-scene-whole-file-comparison','asset':path.name,'executionProfile':'file',
         'inputSha256':hashlib.sha256(raw).hexdigest().upper(),'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),
-        'arenaLimitBytes':p.arena_size,'maxAllocationBytes':f.max_allocation_size,'processTimeoutSeconds':30,'phase':'whole-load'}
+        'arenaLimitBytes':p.arena_size,'maxAllocationBytes':f.max_allocation_size,'maxCOMBufferBytes':f.max_buffer_size,
+        'identityMode':'file-id' if by_file_id else 'runtime-class','processTimeoutSeconds':30,'phase':'whole-load'}
     at=time.monotonic()
     try:
         root=f.call(0x422b50,this=manager,args=(f.stream,));p.mu.hook_del(observer)
         stages=(0x422260,0x466b90,0x465cd0,0x4aa870,0x422940,0x463a70,0x4938f0,0x429a40,0x43b910,0x466760)
-        if with_light:
+        if common_mesh:
             stages=tuple(a for a in stages if a not in (0x4aa870,0x429a40))
-            stages+=(0x42afd0,0x42b420,0x4400b0,0x440640,0x4b58d0,0x421a60)
+            stages+=(0x42afd0,0x42b420)
+        if with_light:stages+=(0x4400b0,0x440640,0x4b58d0,0x421a60)
         report.update(wholeLoadInstructions=sum(p.visits.values()),wholeLoadSeconds=time.monotonic()-at,
             executionLimits=p.last_execution_limits,visitedStages={f'{a:08X}':p.visits[a] for a in stages})
         for a in stages:check(p.visits[a]>0,f'actual whole-file stage {a:08X}')
         check(root and not f.errors and f.position==len(raw),'complete file consumed without diagnostics')
-        check(len(published)==1 and len(published[0])==6,'six original objects published before actual FAT clear')
+        check(len(published)==1 and len(published[0])==object_count,'all expected objects published before actual FAT clear')
         check(p.uint(fat+0x28)==p.uint(fat+0x34)==p.uint(fat+0x50)==0,'whole loader clears FAT while graph stays alive')
-        report['phase']='comparison';observed=capture_scene(f,root,published[0])
+        report['phase']='comparison';observed=capture_scene(f,root,published[0],by_file_id)
         directory=ROOT/'local-data/results/cycle-20260908-0700'
-        (directory/f'{case}-native-scene-capture.json').write_text(json.dumps(observed,indent=2)+'\n')
-        (directory/f'{case}-source-scene-capture.json').write_text(json.dumps(expected,indent=2)+'\n')
+        suffix='ids' if by_file_id else 'class'
+        (directory/f'cp106-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
+        (directory/f'cp106-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
         check(observed==expected,'exact whole original/source scene state and edges')
         report['phase']='cleanup'
         combiners=[a for a,s in f.allocations.items() if a not in f.freed and s==0x2c and p.uint(a)==0x6ef294]
-        check(len(combiners)==(0 if with_light else 1),'native common path has no batch; PC hook retains one combiner')
+        check(len(combiners)==(0 if common_mesh else 1),'native common path has no batch; PC hook retains one combiner')
         f.call(p.uint(p.uint(root)),this=root,args=(1,))
         for obj in combiners:f.call(0x4a9f30,this=obj,args=(1,))
         f.clear_declarations();f.call(0x4228a0,this=manager)
@@ -193,7 +210,7 @@ def main(case='logo'):
             if obj:f.call(p.uint(p.uint(obj)),this=obj,args=(1,))
         check(all(b['refs']==0 and b['locks']==0 for b in f.buffers.values()),'all fixture COM buffers released/unlocked')
         check(set(f.allocations)==set(f.freed),'all native allocations released including explicit combiner cleanup')
-        report.update(status='passed',nativeAssertions=checks,exactObjects=6,releasedAllocations=len(f.freed),
+        report.update(status='passed',nativeAssertions=checks,exactObjects=object_count,releasedAllocations=len(f.freed),
             stateBytes=sum(len(r['stateHex'])//2 for r in observed['objects'].values()),
             bufferAndDeclarationBytes=sum(sum(len(b)//2 for b in r['buffers']) for r in observed['objects'].values()),
             materialLayerBytes=sum(sum(len(b)//2 for b in r['layers']) for r in observed['objects'].values()))
@@ -203,12 +220,12 @@ def main(case='logo'):
         raise
     finally:
         report.update(arenaReservedBytes=p.allocated,elapsedSeconds=time.monotonic()-at)
-        name='cp105-light-scene-file.json' if with_light else 'cp105-logo-regression.json'
+        name=f'cp106-{case}-'+('ids' if by_file_id else 'class')+'.json'
         (ROOT/'local-data/results/cycle-20260908-0700'/name).write_text(json.dumps(report,indent=2)+'\n')
         print('CAPTURE',json.dumps(report,sort_keys=True),flush=True)
     return 0
 
 if __name__=='__main__':
-    if sys.argv[1:2]==['--guest']:raise SystemExit(main(sys.argv[2] if len(sys.argv)>2 else 'logo'))
+    if sys.argv[1:2]==['--guest']:raise SystemExit(main(sys.argv[2] if len(sys.argv)>2 else 'logo','--file-ids' in sys.argv[3:]))
     raise SystemExit(run_bounded(Path(__file__),sys.argv[1:]))
 

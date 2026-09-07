@@ -3,9 +3,17 @@ import unittest
 from unittest.mock import patch
 from pc_instruction_emulator import PcInstructions, HEAP
 from probe_pc_animation_lifecycle import LifetimeFixture
+from probe_pc_dx_buffers import BufferFixture
 
 
 class AllocationProfiles(unittest.TestCase):
+    def test_invalid_com_profile_rejected_before_guest_construction(self):
+        class Invalid(BufferFixture):
+            guest_max_buffer_size = 65536
+        with patch('probe_pc_animation_lifecycle.PcInstructions') as create:
+            with self.assertRaisesRegex(ValueError, 'COM buffer fixture'): Invalid('bounded')
+            create.assert_not_called()
+
     def test_invalid_profile_rejected_before_guest_construction(self):
         class Invalid(LifetimeFixture):
             guest_max_allocation_size = 131072

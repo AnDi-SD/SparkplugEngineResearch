@@ -149,6 +149,12 @@ namespace sparkplug::reconstruction
         std::uint32_t depth = 0;
         std::vector<std::shared_ptr<spBaseObject>> createdObjects;
         std::vector<std::shared_ptr<spBaseObject>> externalOwners;
+        // Optional host observation of the completed file's FAT identities.
+        // Borrowed pointers retain no additional ownership and live only as
+        // long as the context/external owners. Native FAT cleanup is unchanged.
+        struct FileObjectForAnalysis { std::uint32_t id; spBaseObject* object; };
+        bool captureFileObjectIDsForAnalysis = false;
+        std::vector<FileObjectForAnalysis> fileObjectsForAnalysis;
         [[nodiscard]] std::shared_ptr<spBaseObject> ShareObjectForAnalysis(
             spBaseObject* object) const noexcept;
         spSerializerReadContextForAnalysis(spSerializerManager& manager,
