@@ -126,7 +126,11 @@ def main(argv=None):
                 section.load(stream)  # Do not use File.load: it tolerates truncated sections.
             assert stream.tell() == vmd.stat().st_size, path
         assert header.model_name == model_name
-        assert set(bones) == set(rig.mapping) | {"センター"}
+        assert set(bones) == set(rig.mapping) | {"センター"} | set(rig.neutral_bones)
+        for name in rig.neutral_bones:
+            for key in bones[name]:
+                assert tuple(key.location) == converter.ZERO
+                assert tuple(key.rotation) == converter.IDENTITY
         count = converter.frame_count(clip.duration)
         for frames in bones.values():
             assert [f.frame_number for f in frames] == list(range(count)), path
@@ -193,7 +197,8 @@ def main(argv=None):
         "validator_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "skeleton": source_path.as_posix(), "skeleton_sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
         "model": target_path.name, "model_sha256": hashlib.sha256(target_path.read_bytes()).hexdigest(),
-        "files": len(paths), "keys": total_keys, "target_tracks": len(rig.mapping)+1,
+        "files": len(paths), "keys": total_keys, "target_tracks": len(rig.mapping)+1+len(rig.neutral_bones),
+        "neutral_target_bones": rig.neutral_bones,
         "source_nodes": len(rig.order), "total_source_nodes": len(source), "motion_scale": rig.scale,
         "ignored_tracks": sorted(ignored_names),
         "extra_track_mutation_identical_files": unchanged_files,

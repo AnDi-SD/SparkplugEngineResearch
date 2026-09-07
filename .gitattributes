@@ -5,3 +5,6 @@
 /Winx/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
 /docs/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
 /journal/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+# SAN/VMD validation manifests also record exact Python source hashes.
+/tools/SanToVmd/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+/tools/SanToVmd/tests/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol

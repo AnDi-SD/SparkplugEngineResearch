@@ -1,11 +1,14 @@
 """Small synthetic regressions. Run: python -m unittest discover -s tools/SanToVmd/tests -v"""
 
 import math
+import contextlib
+import io
 from pathlib import Path
 import struct
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import san_to_vmd as converter
@@ -38,6 +41,16 @@ def vector_curve(values, times=None):
 def named_track(name, payload):
     name = name.encode("ascii") + b"\0"
     return field(2, payload) + field(1, struct.pack("<H", len(name)) + name)
+
+
+def pmd_skeleton(rows):
+    """Minimal PMD through IK section; enough for the converter's skeleton reader."""
+    raw = b"Pmd" + struct.pack("<f", 1) + b"test".ljust(20, b"\0") + bytes(256)
+    raw += struct.pack("<IIIH", 0, 0, 0, len(rows))  # No mesh data.
+    for name, parent, kind in rows:
+        raw += name.encode("cp932").ljust(20, b"\0")
+        raw += struct.pack("<HHBH3f", parent, 0, kind, 0, 0, 0, 0)
+    return raw + struct.pack("<H", 0)  # No IK chains.
 
 
 class ConverterTests(unittest.TestCase):
@@ -172,6 +185,7 @@ class ConverterTests(unittest.TestCase):
         class BrokenRetargeter:
             mapping = {"頭": "Head"}
             disabled_ik = []
+            neutral_bones = []
 
             def pose(self, clip, time):
                 raise converter.ConversionError("Synthetic failure")
@@ -190,6 +204,84 @@ class ConverterTests(unittest.TestCase):
         self.assertEqual(len(converter.encoded_name("左つま先ＩＫ", 15)), 15)
         with self.assertRaises(converter.ConversionError):
             converter.encoded_name("あ"*8, 15)
+
+    def test_duplicate_pmd_endpoints_keep_separate_identities(self):
+        rows = [("root", 65535, 1), ("end", 0, 7), ("end", 0, 7)]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/"test.pmd"
+            path.write_bytes(pmd_skeleton(rows))
+            _, bones, _ = converter.read_pmd(path)
+        self.assertEqual(len(bones), 3)
+        ends = [bone for bone in bones.values() if bone.name == "end"]
+        self.assertEqual(len(ends), 2)
+        self.assertTrue(all(bone.parent == "root" for bone in ends))
+
+    def test_ambiguous_animated_pmd_names_still_rejected(self):
+        for rows in (
+            [("root", 65535, 1), ("arm", 0, 0), ("arm", 0, 0)],
+            [("root", 65535, 1), ("end", 0, 7), ("end", 0, 7), ("child", 1, 0)],
+        ):
+            with self.subTest(rows=rows), tempfile.TemporaryDirectory() as folder:
+                path = Path(folder)/"test.pmd"
+                path.write_bytes(pmd_skeleton(rows))
+                with self.assertRaises(converter.ConversionError):
+                    converter.read_pmd(path)
+
+    def test_input_selection_is_case_insensitive_and_never_guesses(self):
+        with tempfile.TemporaryDirectory() as folder:
+            directory = Path(folder)
+            with self.assertRaisesRegex(converter.ConversionError, "Положите в input"):
+                converter.single_file(directory, ".smo", "скелет")
+            (directory/"Icy.SMO").write_bytes(b"")
+            self.assertEqual(converter.single_file(directory, ".smo", "скелет").name, "Icy.SMO")
+            (directory/"Bloom.smo").write_bytes(b"")
+            with self.assertRaisesRegex(converter.ConversionError, "Оставьте только один"):
+                converter.single_file(directory, ".smo", "скелет")
+            (directory/"nested").mkdir()
+            (directory/"nested"/"hidden.san").write_bytes(b"")
+            self.assertEqual(converter.find_files(directory, ".san"), [])
+
+    def test_empty_input_creates_folders_and_has_no_project_fallback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            directory, output = Path(folder)/"input", Path(folder)/"output"
+            with patch.object(converter, "read_skeleton") as reader:
+                with self.assertRaisesRegex(converter.ConversionError, "Положите в input"):
+                    converter.convert_files(directory, output)
+                reader.assert_not_called()
+            self.assertTrue(directory.is_dir())
+            self.assertTrue(output.is_dir())
+
+    def test_one_bad_san_does_not_stop_batch_or_destroy_old_vmd(self):
+        class TestRig:
+            order = ["Head"]
+            mapping = {"頭": "Head"}
+            neutral_bones = ["twist"]
+            disabled_ik = []
+            scale = 1
+
+            def pose(self, clip, time):
+                return {name: (converter.ZERO, converter.IDENTITY)
+                        for name in ("センター", "頭", "twist")}
+
+        track = named_track("Head", vector_curve([(0, 1, 0)], (0,)))
+        raw = container([(1, "example", 0x56EE563A, field(0, struct.pack("<f", 1))+track)])
+        with tempfile.TemporaryDirectory() as folder:
+            directory, output = Path(folder)/"input", Path(folder)/"output"
+            directory.mkdir(); output.mkdir()
+            for name in ("model.smo", "model.pmd"):
+                (directory/name).write_bytes(b"reader mocked in this batch test")
+            (directory/"a_bad.san").write_bytes(b"broken")
+            (directory/"z_good.SAN").write_bytes(raw)
+            (output/"a_bad.vmd").write_bytes(b"previous result")
+            (output/"z_good.vmd").write_bytes(b"outdated result")
+            with patch.object(converter, "read_skeleton", return_value={}), \
+                 patch.object(converter, "read_pmd", return_value=("test", {}, [])), \
+                 patch.object(converter, "Retargeter", return_value=TestRig()), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(converter.convert_files(directory, output), 1)
+            self.assertEqual((output/"a_bad.vmd").read_bytes(), b"previous result")
+            self.assertTrue((output/"z_good.vmd").read_bytes().startswith(b"Vocaloid Motion Data 0002"))
+            self.assertFalse(list(output.glob("*.tmp")))
 
 
 if __name__ == "__main__":

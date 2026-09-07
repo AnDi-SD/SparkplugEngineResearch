@@ -5,3 +5,8 @@
 *.[pP][mM][xX]
 *.[vV][mM][dD]
 vmd/
+# The folders exist in Git, but user inputs and generated results remain local.
+input/*
+!input/README.txt
+output/*
+!output/README.txt
