@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Whole original PC mesh/material/Fog/light scenes under explicit startup/COM inputs.
 
-The selected valid seven/nine/ten-entry RTTI tree is a fixture, not completed CRT startup.
+The selected valid RTTI tree is a fixture, not completed CRT startup.
 The original whole loader, DX batch, graph factories/readers and teardown run.
 """
 from pathlib import Path
@@ -12,6 +12,7 @@ from probe_pc_dx_mesh_payload import MeshFixture
 from pc_loader_fixtures import PCFileBytesFixture,empty_manager,empty_fat
 from probe_pc_san_reader import ReaderFixture,cstring
 from pc_stl_fixtures import install_char_traits
+from probe_pc_texture_missing_mips import MissingMipFixture
 
 class SceneFileFixture(MeshFixture):
     guest_execution_profile='file'
@@ -27,7 +28,7 @@ class SceneFileFixture(MeshFixture):
 class CrystalSceneFileFixture(SceneFileFixture):
     guest_max_buffer_size=8192
 
-def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False):
+def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False,with_texture=False):
     p=f.p
     records=[(0x755310,0x415352a1,0),(0x7555f8,0x44de07fd,0x755310),
         (0x75dd88,0x695c0f65,0x7555f8),(0x75e150,0x603625d0,0x75dd88),
@@ -39,7 +40,8 @@ def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False):
         (0x763b40,0x67974a9c,0x75e090),(0x75e090,0x3f077b6c,0x7603a0),
         (0x7603a0,0x46f043fe,0x7555f8),(0x75e278,0x72444900,0x75dd88),
         (0x75d4e8,0x5e6402df,0x75e278),(0x7634b0,0x6b3e7baa,0x75e278),
-        (0x760520,0x681f2043,0x760cf8)]
+        (0x760520,0x681f2043,0x760cf8),
+        (0x75d488,0x78ea082b,0x75df10),(0x75df10,0x2f281e13,0x7555f8),(0x763210,0x3f3651b6,0x75df10)]
     for rec,identity,parent in records:p.put_uint(rec,identity);p.put_uint(rec+0x48,parent)
     targets=[(0x695c0f65,0x75dd88,0x421e20),(0x603625d0,0x75e150,0x425520),
         (0x763277db,0x760cf8,0x479ed0),(0x6160348b,0x75d548,0x41a390),
@@ -54,6 +56,7 @@ def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False):
     if with_skin:
         targets += [(0x681f2043,0x760520,0x46a120)]
         if not with_light:targets += [(0x193b2671,0x763150,0x4a9e80)]
+    if with_texture:targets += [(0x78ea082b,0x75d488,0x41a2d0),(0x3f3651b6,0x763210,0x4ab520)]
     tree=p.allocate(32);head=p.allocate(24);targets.sort()
     red_level=(len(targets)+1).bit_length()-1
     def build(rows,parent,depth=0):
@@ -134,6 +137,7 @@ def capture_scene(f,root,entries,by_file_id=False):
                     layer=p.uint(owner+0x18+4*j);record=f.call(p.uint(p.uint(layer)+0x10),this=layer)
                     texture=p.uint(layer+0x10)
                     layer_bytes += struct.pack('<I',p.uint(record))+read(texture,0x10,36)+read(texture,0x3c,36)+read(texture,0x60,1)
+                    if p.uint(texture+0x34):row['edges'].append(identity(p.uint(texture+0x34)))
                 row['layers'].append(layer_bytes.hex())
         elif kind==0x7ac95aec:state=read(obj,0x14,20)
         elif kind==0x193b2671:
@@ -143,6 +147,12 @@ def capture_scene(f,root,entries,by_file_id=False):
                 row['buffers'].append(bytes(p.mu.mem_read(buffer['data'],buffer['size'])).hex())
             check(len(f.declaration_arrays)==1,'one shared native declaration')
             row['buffers'].append(f.declaration_arrays[0].hex())
+        elif kind==0x3f3651b6:
+            state=b''.join(read(obj,a,n) for a,n in ((0x18,4),(0x1c,1),(0x20,4),(0x24,1),(0x28,4),(0x2c,4)))
+            io=f.texture_io;check(p.uint(obj+0x3c)==io.texture,'captured texture owns declared COM identity')
+            for rec in io.levels:
+                packed=b''.join(read(rec['pixels'],r*rec['pitch'],rec['row_bytes']) for r in range(rec['rows']))
+                row['buffers'].append(packed.hex())
         else:raise ValueError('Uncaptured native runtime class')
         row['stateHex']=state.hex();captured['objects'][str(key)]=row
     return captured
@@ -151,12 +161,14 @@ def main(case='logo',by_file_id=False):
     cases={'logo':('Menus/logo_screen.smo',703,'DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7'),
         'bloom-projectile':('Characters/Bloom/bloom_projectile.smo',770,'BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D'),
         'g-crystal':('SFX/g_crystal.smo',6264,'9ECB8CFEFADD7A30F1411F8235039FB07EA342BA13177B4060DE975158609A0A'),
-        'droid-trail':('SFX/droid_trail.smo',3070,'4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8')}
+        'droid-trail':('SFX/droid_trail.smo',3070,'4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8'),
+        'loading':('Menus/loading.smo',2442,'0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E')}
     check(case in cases,'selected bounded whole scene case')
     relative,size,digest=cases[case];with_light=case in ('bloom-projectile','g-crystal')
     common_mesh=case in ('bloom-projectile','droid-trail');with_skin=case=='droid-trail'
-    by_file_id=by_file_id or case in ('g-crystal','droid-trail')
-    object_count={'g-crystal':26,'droid-trail':13}.get(case,6)
+    with_texture=case=='loading'
+    by_file_id=by_file_id or case in ('g-crystal','droid-trail','loading')
+    object_count={'g-crystal':26,'droid-trail':13,'loading':11}.get(case,6)
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSceneSerializationTests.exe'
@@ -165,7 +177,8 @@ def main(case='logo',by_file_id=False):
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
     f=(CrystalSceneFileFixture if case=='g-crystal' else SceneFileFixture)(raw)
-    p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin)
+    if with_texture:MissingMipFixture.install_on_scene(f)
+    p=f.p;f.call(0x6d38e0);seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin,with_texture=with_texture)
     fat=empty_fat(f);manager,_=empty_manager(f);p.put_uint(manager+0x28,fat);p.put_uint(0x75dde8,manager)
     bindings=[(0x695c0f65,0x4638f0,255),(0x603625d0,0x469040,255),
         (0x763277db,0x4934c0,255),(0x6160348b,0x42f690,255),(0x7ac95aec,0x43b830,255),(0x33c34cf0,0x4297c0,2)]
@@ -174,6 +187,7 @@ def main(case='logo',by_file_id=False):
         bindings += [(0x33c34cf0,0x42aef0,1)]
     if with_light:bindings += [(0x5e6402df,0x43ffd0,255)]
     if with_skin:bindings += [(0x681f2043,0x490c50,255)]
+    if with_texture:bindings += [(0x78ea082b,0x42b660,6)]
     for kind,factory,platform in bindings:
         serializer=f.call(factory);f.call(0x422d90,this=manager,args=(kind,serializer,platform,1))
     f.call(0x45adf0);published=[]
@@ -191,6 +205,7 @@ def main(case='logo',by_file_id=False):
         'inputSha256':hashlib.sha256(raw).hexdigest().upper(),'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),
         'arenaLimitBytes':p.arena_size,'maxAllocationBytes':f.max_allocation_size,'maxCOMBufferBytes':f.max_buffer_size,
         'identityMode':'file-id' if by_file_id else 'runtime-class','processTimeoutSeconds':30,'phase':'whole-load'}
+    if with_texture:report.update(maxTextureSurfaceBytes=2048,maxTextureLevels=5,textureDimensions=[16,16])
     at=time.monotonic()
     try:
         root=f.call(0x422b50,this=manager,args=(f.stream,));p.mu.hook_del(observer)
@@ -200,6 +215,7 @@ def main(case='logo',by_file_id=False):
             stages+=(0x42afd0,0x42b420)
         if with_light:stages+=(0x4400b0,0x440640,0x4b58d0,0x421a60)
         if with_skin:stages+=(0x491170,0x46a120,0x421a60)
+        if with_texture:stages+=(0x42dd10,0x42c640,0x4abba0,0x4ab030,0x61039a,0x60fdb4)
         report.update(wholeLoadInstructions=sum(p.visits.values()),wholeLoadSeconds=time.monotonic()-at,
             executionLimits=p.last_execution_limits,visitedStages={f'{a:08X}':p.visits[a] for a in stages})
         for a in stages:check(p.visits[a]>0,f'actual whole-file stage {a:08X}')
@@ -209,8 +225,8 @@ def main(case='logo',by_file_id=False):
         report['phase']='comparison';observed=capture_scene(f,root,published[0],by_file_id)
         directory=ROOT/'local-data/results/cycle-20260908-0700'
         suffix='ids' if by_file_id else 'class'
-        (directory/f'cp107-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
-        (directory/f'cp107-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
+        (directory/f'cp109-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
+        (directory/f'cp109-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
         check(observed==expected,'exact whole original/source scene state and edges')
         report['phase']='cleanup'
         combiners=[a for a,s in f.allocations.items() if a not in f.freed and s==0x2c and p.uint(a)==0x6ef294]
@@ -222,6 +238,10 @@ def main(case='logo',by_file_id=False):
             obj=p.uint(address)
             if obj:f.call(p.uint(p.uint(obj)),this=obj,args=(1,))
         check(all(b['refs']==0 and b['locks']==0 for b in f.buffers.values()),'all fixture COM buffers released/unlocked')
+        if with_texture:
+            io=f.texture_io
+            check(io.device_refs==1 and io.texture_refs==io.surface_refs==0 and not io.locked,'whole graph releases texture and device acquisition')
+            check(all(rec['refs']==0 and not rec['locked'] for rec in io.levels),'all generated mip surfaces released')
         check(set(f.allocations)==set(f.freed),'all native allocations released including explicit combiner cleanup')
         report.update(status='passed',nativeAssertions=checks,exactObjects=object_count,releasedAllocations=len(f.freed),
             stateBytes=sum(len(r['stateHex'])//2 for r in observed['objects'].values()),
@@ -233,7 +253,7 @@ def main(case='logo',by_file_id=False):
         raise
     finally:
         report.update(arenaReservedBytes=p.allocated,elapsedSeconds=time.monotonic()-at)
-        name=f'cp107-{case}-'+('ids' if by_file_id else 'class')+'.json'
+        name=f'cp109-{case}-'+('ids' if by_file_id else 'class')+'.json'
         (ROOT/'local-data/results/cycle-20260908-0700'/name).write_text(json.dumps(report,indent=2)+'\n')
         print('CAPTURE',json.dumps(report,sort_keys=True),flush=True)
     return 0

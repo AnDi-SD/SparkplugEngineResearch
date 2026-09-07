@@ -2,6 +2,7 @@
 import unittest
 from types import SimpleNamespace
 from probe_pc_texture_missing_mips import MissingMipFixture
+from pc_compact_texture_device import install_texture_device
 
 
 class Registers:
@@ -33,6 +34,11 @@ class MissingMipBoundaries(unittest.TestCase):
     def test_dimensions_rejected_before_guest(self):
         for dimensions in ((17,16),(16,0),(3,2),(16,16,16)):
             with self.assertRaises(AssertionError):MissingMipFixture(b'',dimensions)
+
+    def test_compact_profile_rejected_before_memory_access(self):
+        for value in (object,42,None):
+            with self.assertRaisesRegex(ValueError,'texture COM fixture class'):
+                install_texture_device(None,64,fixture_class=value)
 
 
 if __name__=='__main__':unittest.main()

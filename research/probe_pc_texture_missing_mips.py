@@ -29,7 +29,10 @@ class MissingMipFixture(TextureMipChainFixture):
     def __init__(self,data,dimensions=(16,16)):
         assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
         self.dimensions=dimensions
-        super().__init__(data);p=self.p
+        super().__init__(data);self.install_external_inputs()
+
+    def install_external_inputs(self):
+        p=self.p
         # Explicit absent external debug module/registry inputs. The original
         # DebugSetMute resolver itself still executes; no DLL or registry access.
         p.put_uint(0x6d915c,0x340700c0);p.seams[0x340700c0]=self.module_absent
@@ -38,6 +41,14 @@ class MissingMipFixture(TextureMipChainFixture):
         p.put_uint(0x6d9274,0x340700f0);p.seams[0x340700f0]=self.ftol
         p.put_uint(0x6d9370,0x34070100);p.seams[0x34070100]=self.floor
         self.ftol_calls=0
+
+    @classmethod
+    def install_on_scene(cls,fixture,dimensions=(16,16)):
+        assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
+        from pc_compact_texture_device import install_texture_device
+        install_texture_device(fixture,dimensions[0]*4,fixture_class=cls)
+        io=fixture.texture_io;io.dimensions=dimensions;io.levels=[];io.surfaces={}
+        io.install_external_inputs();return io
 
     @staticmethod
     def text(p,address):

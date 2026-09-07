@@ -11,6 +11,8 @@
 #include "Code/Sparkplug/spLightDataSerializer.h"
 #include "Code/SparkplugDX/spDXLight.h"
 #include "Code/Sparkplug/spDXMeshDataSerializer.h"
+#include "Code/Sparkplug/spDXTextureDataSerializer.h"
+#include "Code/SparkplugDX/spDXTexture.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
@@ -60,6 +62,7 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spLightDataSerializer::TargetClassID,std::make_shared<spLightDataSerializer>(),255,3),"LightData binding");
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spDXMeshDataSerializer>(),2,1),"DX mesh binding");
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spMeshDataSerializer>(),1,1),"Common mesh binding");
+        Require(manager.RegisterForAnalysis(spTextureDataSerializer::TargetClassID,std::make_shared<spDXTextureDataSerializer>(),6,1),"Native TextureData binding");
         spSerializerReadContextForAnalysis context(manager,resources);context.pcRenderer=&renderer;
         context.captureFileObjectIDsForAnalysis=byFileID;
         spMemoryStream input;Require(input.ResizeAndSetSize(static_cast<std::uint32_t>(bytes.size())),"Fixture stream capacity");
@@ -141,7 +144,8 @@ namespace sparkplug::reconstruction::scene_file_test
                         const auto& texture=layer->GetMaterialTextureForAnalysis();Add(row,Identity(layer.get()));
                         for(std::size_t k=0;k<spMaterialTexture::PCTextureStateCount;++k)Add(row,texture->GetTextureStatesForAnalysis()[k]);
                         Add(row,texture->GetUVTransformForAnalysis());Add(row,std::uint8_t(texture->HasStaticTransformForAnalysis()));
-                        Require(!texture->GetTextureForAnalysis()&&!texture->GetAnimTextureControllerForAnalysis()&&!texture->GetUVControllerForAnalysis(),"This capture has no external texture/controller edges");
+                        if(texture->GetTextureForAnalysis())edges.push_back(Reference(texture->GetTextureForAnalysis()));
+                        Require(!texture->GetAnimTextureControllerForAnalysis()&&!texture->GetUVControllerForAnalysis(),"This capture has no texture/controller animation edges");
                     }
                     layers.push_back(Hex(row));
                 }
@@ -154,6 +158,14 @@ namespace sparkplug::reconstruction::scene_file_test
                 Add(state,mesh->GetIndexByteSizeForAnalysis());Add(state,mesh->GetVertexByteSizeForAnalysis());Add(state,mesh->GetFVFCodeForAnalysis());Add(state,mesh->GetVertexStrideForAnalysis());Add(state,mesh->GetIndexBeginForAnalysis());Add(state,mesh->GetVertexBeginForAnalysis());
                 Require(mesh->GetDXIndexBufferForAnalysis()&&mesh->GetDXVertexBufferForAnalysis()&&mesh->GetVertexDeclarationForAnalysis(),"Complete mesh buffers and declaration");
                 buffers={Hex(mesh->GetDXIndexBufferForAnalysis()->GetDataForAnalysis()),Hex(mesh->GetDXVertexBufferForAnalysis()->GetDataForAnalysis()),Hex(mesh->GetVertexDeclarationForAnalysis()->GetElementsForAnalysis())};
+            }
+            else if(const auto* texture=dynamic_cast<const spDXTexture*>(object))
+            {
+                Add(state,texture->GetField18ForAnalysis());Add(state,texture->GetField1CForAnalysis());
+                Add(state,texture->GetTextureFlagsForAnalysis());Add(state,std::uint8_t(texture->IsInitializedForAnalysis()));
+                Add(state,texture->GetWidthForAnalysis());Add(state,texture->GetHeightForAnalysis());
+                Require(texture->GetMipsForAnalysis().size()<=5,"Bounded texture mip capture");
+                for(const auto& mip:texture->GetMipsForAnalysis())buffers.push_back(Hex(mip.packedBytes));
             }
             else throw std::runtime_error("Uncaptured runtime class");
             out<<Hex(state)<<"\",\"edges\":[";for(std::size_t i=0;i<edges.size();++i){if(i)out<<',';out<<edges[i];}

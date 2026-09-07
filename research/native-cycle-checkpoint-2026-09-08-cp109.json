@@ -1,0 +1,113 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP109",
+  "createdUtc": "2026-09-07T22:54:54.953551+00:00",
+  "documentation": "docs/research/native-pc-whole-textured-scene.md",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "classScoresChanged": false,
+  "ctest": {
+    "passed": 1,
+    "total": 1,
+    "profile": "SparkplugSceneSerializationTests",
+    "elapsedSeconds": 0.08,
+    "previousFullCheckpoint": "CP108"
+  },
+  "pythonRegression": {
+    "passed": 93,
+    "total": 93,
+    "elapsedSeconds": 13.444
+  },
+  "wholeScene": {
+    "kind": "native-scene-whole-file-comparison",
+    "asset": "loading.smo",
+    "executionProfile": "file",
+    "inputSha256": "0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E",
+    "sourceExecutableSha256": "14D549499C367759E847C02063408F324B1CC15B62BEA6779922B40AABEA1340",
+    "arenaLimitBytes": 131072,
+    "maxAllocationBytes": 32768,
+    "maxCOMBufferBytes": 1024,
+    "identityMode": "file-id",
+    "processTimeoutSeconds": 30,
+    "phase": "cleanup",
+    "maxTextureSurfaceBytes": 2048,
+    "maxTextureLevels": 5,
+    "textureDimensions": [
+      16,
+      16
+    ],
+    "wholeLoadInstructions": 364725,
+    "wholeLoadSeconds": 2.4801384000020334,
+    "executionLimits": {
+      "profile": "file",
+      "instructionLimit": 1000000,
+      "timeoutUs": 8000000
+    },
+    "visitedStages": {
+      "00422260": 1,
+      "00466B90": 1,
+      "00465CD0": 1,
+      "004AA870": 1,
+      "00422940": 1,
+      "00463A70": 3,
+      "004938F0": 2,
+      "00429A40": 2,
+      "0043B910": 1,
+      "00466760": 2,
+      "0042DD10": 1,
+      "0042C640": 2,
+      "004ABBA0": 1,
+      "004AB030": 1,
+      "0061039A": 4,
+      "0060FDB4": 4
+    },
+    "status": "passed",
+    "nativeAssertions": 89,
+    "exactObjects": 11,
+    "releasedAllocations": 177,
+    "stateBytes": 734,
+    "bufferAndDeclarationBytes": 2052,
+    "materialLayerBytes": 170,
+    "arenaReservedBytes": 84224,
+    "elapsedSeconds": 3.0470891000004485
+  },
+  "regression": {
+    "passed": 5,
+    "total": 5,
+    "seconds": 15.115924200006702,
+    "cases": [
+      {
+        "id": "loading",
+        "returncode": 0,
+        "seconds": 5.89728230000037
+      },
+      {
+        "id": "logo",
+        "returncode": 0,
+        "seconds": 4.605510100001993
+      },
+      {
+        "id": "droid-trail",
+        "returncode": 0,
+        "seconds": 6.09171939999942
+      },
+      {
+        "id": "missing-mips",
+        "returncode": 0,
+        "seconds": 3.1773460999975214
+      },
+      {
+        "id": "legacy-skin",
+        "returncode": 0,
+        "seconds": 6.039924899996549
+      }
+    ]
+  },
+  "fingerprints": {
+    "Sparkplug/Tests/spSceneFileCapture.h": "20998524DE98BE11973E7DBD742E72E952F54208420F0B62056FA46897D6CE80",
+    "research/pc_compact_texture_device.py": "BC154EDA1BF4E745AC387F126462D6C7278548B157734A6CC62420E92ED47235",
+    "research/probe_pc_texture_missing_mips.py": "089CA5E39DF845672AE73EE03768431D30DDBDFFF76C055200D2FB35EF415966",
+    "research/probe_pc_scene_file_profile.py": "F75BFA95276215067AC05B9093463D5AE0482B0D18CDB1F513C479E07758B293",
+    "research/test_pc_texture_missing_mips.py": "13AB41E196D5F18747969240A94C78E7383A4D025DEE6F54231519F97758F14C"
+  }
+}

@@ -4,9 +4,11 @@ Only interface tables and the declared256-byte COM surface are outside engine
 arena. Original TextureData/serializer/DXTexture allocations remain inside it.
 """
 from pc_texture_fixtures import TextureUploadBoundaryFixture
-def install_texture_device(f,row_bytes):
+def install_texture_device(f,row_bytes,*,fixture_class=TextureUploadBoundaryFixture):
+ if not isinstance(fixture_class,type) or not issubclass(fixture_class,TextureUploadBoundaryFixture):
+  raise ValueError('explicit texture COM fixture class required')
  p=f.p;base=0x34070000;p.mu.mem_map(base,0x1000,p.uc.UC_PROT_ALL)
- io=object.__new__(TextureUploadBoundaryFixture);io.p=p;io.renderer=f.renderer;io.device=f.device
+ io=object.__new__(fixture_class);io.p=p;io.renderer=f.renderer;io.device=f.device
  io.texture=base+0x400;io.surface=base+0x450;texture_table=base+0x500;surface_table=base+0x600
  p.put_uint(io.texture,texture_table);p.put_uint(io.surface,surface_table)
  io.pixel_storage=base+0x800;p.mu.mem_write(io.pixel_storage,b'\xa5'*256)

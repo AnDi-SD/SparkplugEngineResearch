@@ -20,7 +20,7 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP108 reconstructs raw power-of-two missing mip generation including filter4 wrapped coefficients and exact byte/float rounding. Ten native/source comparisons (9136 bytes) plus existing texture regressions pass. Continue whole textured SMO, compressed conversion, external source, failures and live backend.",
+      "summary": "CP108 reconstructs raw power-of-two missing mip generation including filter4 wrapped coefficients and exact byte/float rounding. Ten native/source comparisons (9136 bytes) plus existing texture regressions pass. CP109 adds whole loading.smo with the generated texture attached to its material. Continue other whole resources, compressed conversion, external source, failures and live backend.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
@@ -28,7 +28,8 @@
         "CPU source-wrapper and local payload have separate terminators; native writer fields6/0/5 use UInt32BeginEnd.",
         "423250в†’4ABB70в†’4AB650 reaches60FDB4 with actual conversion arguments;1x1 input normalizes destination2x2. This is a stop-before boundary, not completed conversion.",
         "4AAC50 protected prefix404BC6 resets size48 before summing surface sizes; raw uses pitch*height, DXT uses native floor width/4 and height/4 with minimum1.",
-        "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs."
+        "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs.",
+        "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released."
       ],
       "unknowns": [
         {
@@ -52,7 +53,8 @@
         "docs/research/native-pc-texture-native-writer.md",
         "docs/research/native-pc-skin-texture-render.md",
         "docs/research/native-pc-skin-texture-generated-render.md",
-        "docs/research/native-pc-texture-missing-mips.md"
+        "docs/research/native-pc-texture-missing-mips.md",
+        "docs/research/native-pc-whole-textured-scene.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -62,7 +64,8 @@
         "pc-texture-native-writer",
         "pc-skin-texture-render",
         "pc-skin-texture-generated-render",
-        "pc-texture-missing-mips"
+        "pc-texture-missing-mips",
+        "pc-scene-file-profile"
       ]
     },
     {
@@ -10996,6 +10999,16 @@
         "args": [
           "--guest",
           "droid-trail",
+          "--file-ids"
+        ]
+      },
+      {
+        "id": "pc-whole-loading-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "loading",
           "--file-ids"
         ]
       }
