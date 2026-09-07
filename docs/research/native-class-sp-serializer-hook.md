@@ -3,8 +3,10 @@
 Статус: общий ABI, PS2 leaf и читаемый PC DX mesh-preload path восстановлены.
 У PC защищён factory/constructor, но destructor, clone, vtable, parser DX mesh
 metadata и двухпроходный FAT batching доступны напрямую. Общий D3D buffer
-container уже восстановлен как `spDXMeshCombiner`; полный serializer dispatch
-второго прохода пока остаётся evidence-only.
+container восстановлен как `spDXMeshCombiner`; portable второй проход использует
+общий serializer dispatch. [CP103](native-pc-whole-scene-file.md) сравнил целый
+реальный `logo_screen.smo` с original hook и графом. Ниже сохранены исторические
+границы первых checkpoint-ов; настоящий D3D backend и все failures ещё открыты.
 
 ## Область доказательств
 

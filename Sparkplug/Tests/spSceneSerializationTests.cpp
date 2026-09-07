@@ -11,6 +11,7 @@
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/SparkBase/spMemoryStream.h"
+#include "spSceneFileCapture.h"
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -163,6 +164,7 @@ int main(int argc,char** argv)
 {
     try
     {
+        if(argc==3&&std::string(argv[1])=="--asset-file"){std::cout<<scene_file_test::Capture(argv[2])<<'\n';return 0;}
         if(argc==4&&std::string(argv[1])=="--capture"){std::cout<<Scalar(argv[2],argv[3])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--graph"){std::cout<<Graph(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--fog"){std::cout<<Fog(argv[2])<<'\n';return 0;}
