@@ -6,6 +6,8 @@
 #include "Code/Sparkplug/spModelSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spFogSerializer.h"
+#include "Code/Sparkplug/spLightDataSerializer.h"
+#include "Code/SparkplugDX/spDXLight.h"
 #include "Code/Sparkplug/spDXMeshDataSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
@@ -52,7 +54,9 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spModel::ClassID,std::make_shared<spModelSerializer>(),255,3),"Model binding");
         Require(manager.RegisterForAnalysis(spMaterialDataSerializer::TargetClassID,std::make_shared<spMaterialDataSerializer>(),255,3),"MaterialData binding");
         Require(manager.RegisterForAnalysis(spFog::ClassID,std::make_shared<spFogSerializer>(),255,3),"Fog binding");
+        Require(manager.RegisterForAnalysis(spLightDataSerializer::TargetClassID,std::make_shared<spLightDataSerializer>(),255,3),"LightData binding");
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spDXMeshDataSerializer>(),2,1),"DX mesh binding");
+        Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spMeshDataSerializer>(),1,1),"Common mesh binding");
         spSerializerReadContextForAnalysis context(manager,resources);context.pcRenderer=&renderer;
         spMemoryStream input;Require(input.ResizeAndSetSize(static_cast<std::uint32_t>(bytes.size())),"Fixture stream capacity");
         std::memcpy(input.GetBuffer(),bytes.data(),bytes.size());Require(input.Seek(spStream::SeekSource::essStart,0),"Fixture rewind");
@@ -77,6 +81,15 @@ namespace sparkplug::reconstruction::scene_file_test
                 for(std::size_t i=0;i<node->GetChildCountForAnalysis();++i)edges.push_back(Identity(node->GetChildForAnalysis(i)));
                 if(const auto* render=dynamic_cast<const spRenderNode*>(node))
                     for(std::size_t i=0;i<render->GetRenderableCountForAnalysis();++i)edges.push_back(Identity(render->GetRenderableForAnalysis(i)));
+                if(const auto* light=dynamic_cast<const spDXLight*>(node))
+                {
+                    Add(state,std::uint32_t(light->GetTypeForAnalysis()));Add(state,light->GetColorForAnalysis());
+                    Add(state,std::uint8_t(light->ProjectsShadowVolumeForAnalysis()));
+                    Add(state,std::uint8_t(light->UsesAttenuationForAnalysis()));Add(state,std::uint8_t(light->IsLightEnabledForAnalysis()));
+                    Add(state,light->GetIntensityForAnalysis());Add(state,light->GetRangeForAnalysis());
+                    Add(state,light->GetHotspotAngleForAnalysis());Add(state,light->GetFalloffAngleForAnalysis());
+                    // Opaque DC and untouched device-cache words have no serialized value.
+                }
             }
             else if(const auto* model=dynamic_cast<const spModel*>(object))
             {

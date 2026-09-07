@@ -42,7 +42,7 @@ namespace sparkplug::reconstruction
             [[nodiscard]] bool operator==(const KnownWritePlan& other) const noexcept;
         };
 
-        spLightDataSerializer() noexcept = default;
+        spLightDataSerializer() noexcept;
         ~spLightDataSerializer() override;
 
         spLightDataSerializer(const spLightDataSerializer&) = delete;

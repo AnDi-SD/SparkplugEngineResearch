@@ -316,7 +316,8 @@
         "106 original/source declaration masks match FVF, allocation size and8656 used bytes. Source reconstructs original declaration class names and CPU-only renderer object cache, with explicit shared host ownership.",
         "Hook publishes after payload, leaves allocated combiner alive and clears active global. Mesh shared ranges and local (not storage-rebased) index bytes confirmed.",
         "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
-        "CP104 original shared writer/reader/Init:110 exact bytes;cursor8;10 completed protocol cases/115 assertions/22 allocations released;actual factory sizes28/20. COM Create failure separately stops at4C2AB6 with null read and is never resumed. Host readers now bound sizes before allocation;contiguous helper is zero-origin and not generic graph wiring."
+        "CP104 original shared writer/reader/Init:110 exact bytes;cursor8;10 completed protocol cases/115 assertions/22 allocations released;actual factory sizes28/20. COM Create failure separately stops at4C2AB6 with null read and is never resumed. Host readers now bound sizes before allocation;contiguous helper is zero-origin and not generic graph wiring.",
+        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants."
       ],
       "unknowns": [
         {
@@ -337,7 +338,8 @@
         "docs/research/native-class-sp-vertex-declaration.md",
         "docs/research/native-pc-skin-queued-mesh-render.md",
         "docs/research/native-pc-whole-scene-file.md",
-        "docs/research/native-pc-dx-shared-payload.md"
+        "docs/research/native-pc-dx-shared-payload.md",
+        "docs/research/native-pc-whole-light-scene.md"
       ],
       "testProfiles": [
         "pc-dx-metadata",
@@ -381,7 +383,8 @@
         "Checkpoint5 portable full-file SAN loader227 whole-bbush comparisons/4 portable assets62tracks; native read-reference115 and outer42/cachegate48. Checkpoint6 actual DX metadata/first scan/CPU buffer copy/COM boundary and declaration map468 checks; not whole mesh-containing SMO or GPU proof.",
         "CP99 host BuildResourceFileForAnalysis composes complete FFPS from reconstructed contracts. bbush source file is byte-identical and accepted by whole original422B50:227 values/27 native assertions/39 allocations released. Four portable whole-file roundtrips:2800 values with explicit barrel capacity20->21 canonicalization. No located native whole Save function or score increase claimed.",
         "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged.",
-        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device."
+        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
+        "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants."
       ],
       "unknowns": [
         {
@@ -409,7 +412,8 @@
         "docs/research/pc-smo-san-completion-contract.md",
         "docs/research/native-pc-san-file-roundtrip.md",
         "docs/research/native-pc-whole-file-profile.md",
-        "docs/research/native-pc-whole-scene-file.md"
+        "docs/research/native-pc-whole-scene-file.md",
+        "docs/research/native-pc-whole-light-scene.md"
       ],
       "testProfiles": [
         "pc-loader-contracts",
@@ -10932,6 +10936,15 @@
         "script": "research/probe_pc_scene_file_profile.py",
         "args": [
           "--guest"
+        ]
+      },
+      {
+        "id": "pc-whole-bloom-projectile-comparison",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "bloom-projectile"
         ]
       }
     ],

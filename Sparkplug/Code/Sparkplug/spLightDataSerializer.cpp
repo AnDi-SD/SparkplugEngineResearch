@@ -54,6 +54,13 @@ namespace sparkplug::reconstruction
             && lightFields == other.lightFields;
     }
 
+    spLightDataSerializer::spLightDataSerializer() noexcept
+    {
+        // Retain the wire-target registration TU in host static-library links.
+        // The PC header factory creates DXLight, so it does not otherwise keep
+        // LightData linked. This is not claimed as original CRT startup logic.
+        (void)spLightData::StaticRTTI();
+    }
     spLightDataSerializer::~spLightDataSerializer() = default;
 
     const spRTTIRecord& spLightDataSerializer::StaticRTTI() noexcept

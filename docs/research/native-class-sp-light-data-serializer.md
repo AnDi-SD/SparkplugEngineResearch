@@ -111,3 +111,7 @@ The earlier portable-plan-only and protected-factory gaps are superseded by
 [complete PC codec evidence](native-pc-light-serialization.md): actual factories,
 19 exact184 native assertions,4 additional native boundary cases,source
 read/write and fresh-object round trips. Remaining limits are stated there.
+
+CP105 исполнил [целый общий SMO со светом](native-pc-whole-light-scene.md).
+В host static-library сборке исправлено удержание RTTI wire LightData;
+полный original/source graph теперь совпадает после runtime DXLight creation.

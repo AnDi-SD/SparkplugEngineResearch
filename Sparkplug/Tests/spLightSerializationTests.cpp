@@ -76,6 +76,12 @@ namespace
     }
     void Guards()
     {
+        {
+            spLightDataSerializer serializer;spResourceFATHelperForAnalysis fat;spMemoryStream directory;
+            Open(directory,Unhex("01000000010000000000df02645e000000000a000000"));
+            Check(fat.LoadIndexForAnalysis(directory),
+                "wire LightData FAT entry remains loadable when its serializer creates runtime DXLight");
+        }
         for(const auto* text:{"00a00401000000","00a101","000000"})
         {
             spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);

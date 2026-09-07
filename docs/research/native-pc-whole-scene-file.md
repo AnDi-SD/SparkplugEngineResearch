@@ -5,6 +5,10 @@ CP103, 7 сентября 2026. Неизменённый `Menus/logo_screen.smo`
 точно. Вход 703 байта, SHA-256
 `DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7`.
 
+Дополнение CP105: [целый `bloom_projectile.smo`](native-pc-whole-light-scene.md)
+также совпал с оригиналом, включая общий mesh path и LightData→DXLight.
+Ниже сохранены исходные измерения CP103; capture теперь поддерживает оба случая.
+
 Это первое в текущем цикле сравнение реального целого SMO с непустым DX batch,
 материалом и графом. Здесь одна оригинальная цепочка выполняет header, оба FAT
 index, hook, factories, readers, references и финальный FAT clear.
