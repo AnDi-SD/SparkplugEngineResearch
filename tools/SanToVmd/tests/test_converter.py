@@ -102,6 +102,29 @@ class ConverterTests(unittest.TestCase):
         with self.assertRaises(converter.ConversionError):
             converter.hierarchy(bones, ["a"])
 
+    def test_extra_source_branch_is_ignored_but_body_ancestors_remain(self):
+        # Hair/cape siblings must not enter the body graph, even with unsupported
+        # scale. An unfamiliar ancestor of Head still contributes its motion.
+        source = {
+            "Root": converter.Bone("Root", None, (0, 0, 0)),
+            "ExtraParent": converter.Bone("ExtraParent", "Root", (0, 2, 0)),
+            "Head": converter.Bone("Head", "ExtraParent", (0, 1, 0)),
+            "Hair_01": converter.Bone("Hair_01", "Head", (0, 1, 0), scale=(2, 2, 2)),
+            "Cape_01": converter.Bone("Cape_01", "Root", (0, 0, 1), scale=(3, 3, 3)),
+        }
+        qz = (0, 0, math.sqrt(0.5), math.sqrt(0.5))
+        curve = converter.Curve(1, (0,), (qz,))
+        clip = converter.Clip(1, {"ExtraParent": {3: [curve]}}, 0, [])
+        order = converter.hierarchy(source, ["Head"])
+        self.assertEqual(order, ["Root", "ExtraParent", "Head"])
+        actual = converter.source_world(source, order, clip)
+        pruned = {name: source[name] for name in order}
+        self.assertEqual(actual, converter.source_world(pruned, order, clip))
+        for a, b in zip(actual["Head"][0], (-1, 2, 0)):
+            self.assertAlmostEqual(a, b)
+        with self.assertRaises(converter.ConversionError):
+            converter.source_world(source, converter.hierarchy(source, ["Hair_01"]), clip)
+
     def test_parent_rotation_is_not_applied_twice(self):
         # A 90-degree root turn must rotate lower body once and leave the local
         # head rotation neutral, even when the source head has a nonidentity bind.
