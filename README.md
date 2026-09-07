@@ -30,6 +30,7 @@ read-only границу для ещё не подтверждённых writer-
 | [`tools/SmoImporter`](tools/SmoImporter) | Visual transplant SMO → SMO и импорт rigid/skinned OBJ, GLB и нативного FBX |
 | [`tools/SmoLVLcreator`](tools/SmoLVLcreator) | Модульный редактор SMO-уровней: сцена, размещения, коллизии, импорт, экспорт и сохранение |
 | [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Патчер `WinxClub.exe` для управления внешними волосами Bloom в игре и меню костюмов |
+| [`tools/SanToVmd`](tools/SanToVmd/README.md) | Тестовый Python-конвертер SAN рядом со скриптом → VMD для стандартного скелета MMD |
 | [`Sparkplug`](Sparkplug/README.md) | Evidence-first реконструкция исходного дерева движка по подтверждённым путям и именам |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |

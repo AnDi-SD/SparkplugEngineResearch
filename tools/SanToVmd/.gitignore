@@ -1,0 +1,7 @@
+# Local input models, motions and generated results must not enter Git.
+*.[sS][aA][nN]
+*.[sS][mM][oO]
+*.[pP][mM][dD]
+*.[pP][mM][xX]
+*.[vV][mM][dD]
+vmd/

@@ -6,6 +6,7 @@
 
 ### 2026
 
+- [2026-09-07 — тестовый Python-конвертер SAN → VMD](2026/2026-09-07-san-to-vmd-prototype.md)
 - [2026-09-07 — мини-исследование SAN → VMD](2026/2026-09-07-san-to-vmd.md)
 - [2026-09-07 — ограниченный PC SMO/SAN цикл до 19:00 МСК](2026/2026-09-07-pc-smo-san-1900.md) — [итоговый отчёт](../docs/research/native-cycle-report-2026-09-07-1900.md)
 - [2026-09-07 — оптимизация после цикла](../docs/research/native-research-strategy-2026-09-07.md) — [постоянный манифест](../docs/research/research-manifesto.md)
