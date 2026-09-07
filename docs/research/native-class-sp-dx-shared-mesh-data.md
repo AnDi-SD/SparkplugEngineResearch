@@ -12,8 +12,9 @@
 - primary vtable: `0x006F23A0`;
 - реализация: `Z:\Sparkplug\Code\SparkplugDX\spDXSharedMeshData.cpp`.
 
-Защищённый factory не показывает instruction выделения памяти, поэтому `0x1C`
-записан как полный наблюдаемый prefix, а не как доказанный `sizeof`:
+CP104 исполнил защищённые factories: `4C28E0` запросил ровно `0x1C` байт,
+`4C1DF0` для serializer — `0x14`. Прежний наблюдаемый prefix класса теперь
+совпадает с непосредственно измеренным размером allocation:
 
 | Offset | Наблюдаемая роль |
 |---:|---|
@@ -52,9 +53,21 @@ Writer читает эти данные из `spDXCombinedVB` с указате�
 `spDXSharedMeshData`. Reader берёт raw pointers из contiguous memory stream и
 вызывает target `Init`.
 
-Нативная функция после вызова `Init` безусловно возвращает `true`, даже если
-создание буферов не удалось. Portable `ReadPayloadForAnalysis` намеренно строже:
-последовательно проверяет границы потока и передаёт наружу ошибку инициализации.
+Нативная функция после нормально завершившегося вызова `Init` безусловно
+возвращает `true`; CP104 подтвердил это отдельным seam с возвращаемым нулём.
+Это **не означает**, что настоящий отказ создания буферов завершится возвратом:
+при COM CreateIndexBuffer failure оригинал останавливается на чтении адреса
+`0` в `4C2AB6`, внутри `Init`. Такой guest не возобновлялся.
+
+При успешном чтении `4C1FA0` оставляет cursor после двух размеров: `8` для
+110-байтного payload. Остальные 102 байта копируются через raw pointers,
+без Read/Seek. Portable `ReadPayloadForAnalysis` остаётся последовательным
+удобным reader; `ReadContiguousPayloadForAnalysis` отдельно сохраняет native
+cursor для zero-origin memory stream. Оба проверяют сумму размеров, оставшийся
+input и предел payload 32 МиБ **до** выделения векторов. Host возвращает ошибку
+инициализации; contiguous helper явно отказывает nonzero origin/null buffer.
+Его подключение к generic reference reader пока открыто: там требуется полное
+потребление inline payload, а оригинальный shared reader ведёт себя иначе.
 
 ## Проверка
 
@@ -64,6 +77,10 @@ Writer читает эти данные из `spDXCombinedVB` с указате�
 промежуточного payload и точный порядок stream calls. CTest проверяет создание,
 release, blank clone, wire round-trip и отказ на обрезанном payload.
 
-Открыто: роль `+0x10`, точный `sizeof`, original header/API, полный layout и
-ownership `spDXCombinedVB`, поведение loader-а после нативного ложного успеха и
-device-loss/reset lifetime.
+[CP104: исполняемые проверки](native-pc-dx-shared-payload.md) добавил точные
+байты, cursor, восемь error boundaries, отдельный Init-return seam и настоящий
+Create failure stop. Все 22 allocations десяти завершённых случаев освобождены.
+
+Открыто: роль `+0x10`, original header/API, полный layout и ownership
+`spDXCombinedVB`, shared payload внутри целого runtime save/load graph,
+другие Init failures и device-loss/reset lifetime.

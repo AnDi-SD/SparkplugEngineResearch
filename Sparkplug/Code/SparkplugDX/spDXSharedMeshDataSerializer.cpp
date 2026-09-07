@@ -28,6 +28,25 @@ namespace sparkplug::reconstruction
         const bool DXSharedMeshDataSerializerRegistered =
             spRTTIManager::Instance().RegisterDeferredForAnalysis(
                 DXSharedMeshDataSerializerRecord);
+
+        bool ReadBoundedSizes(spStream& source, std::uint32_t& indexSize,
+            std::uint32_t& vertexSize, std::uint32_t& position)
+        {
+            if (!source.Read(indexSize) || !source.Read(vertexSize)
+                || !source.GetCurrentPosition(position))
+            {
+                return false;
+            }
+            std::uint32_t fileSize = 0;
+            const auto payloadSize = static_cast<std::uint64_t>(indexSize) + vertexSize;
+            const auto physicalPosition = static_cast<std::uint64_t>(position)
+                + source.GetLogicalOriginForAnalysis();
+            // Validate both arithmetic and input extent before either vector
+            // allocation. The native raw-pointer reader has no such guard.
+            return payloadSize <= spDXSharedMeshDataSerializer::MaximumPayloadBytesForAnalysis
+                && source.GetSize(&fileSize) && physicalPosition <= fileSize
+                && payloadSize <= fileSize - physicalPosition;
+        }
     }
 
     spDXSharedMeshDataSerializer::~spDXSharedMeshDataSerializer() = default;
@@ -92,7 +111,8 @@ namespace sparkplug::reconstruction
     {
         std::uint32_t indexSize = 0;
         std::uint32_t vertexSize = 0;
-        if (!source.Read(indexSize) || !source.Read(vertexSize))
+        std::uint32_t position = 0;
+        if (!ReadBoundedSizes(source, indexSize, vertexSize, position))
         {
             return false;
         }
@@ -107,6 +127,37 @@ namespace sparkplug::reconstruction
                 return false;
             }
             return target.InitializeForAnalysis(indices, vertices);
+        }
+        catch (...)
+        {
+            return false;
+        }
+    }
+
+    bool spDXSharedMeshDataSerializer::ReadContiguousPayloadForAnalysis(
+        spStream& source, spDXSharedMeshData& target) const
+    {
+        if (source.GetLogicalOriginForAnalysis() != 0)
+        {
+            return false;
+        }
+        const auto* buffer = static_cast<const std::byte*>(source.GetBuffer());
+        if (buffer == nullptr)
+        {
+            return false;
+        }
+        std::uint32_t indexSize = 0, vertexSize = 0, position = 0;
+        if (!ReadBoundedSizes(source, indexSize, vertexSize, position))
+        {
+            return false;
+        }
+        try
+        {
+            const auto* indices = buffer + position;
+            const auto* vertices = indices + indexSize;
+            return target.InitializeForAnalysis(
+                std::vector<std::byte>(indices, vertices),
+                std::vector<std::byte>(vertices, vertices + vertexSize));
         }
         catch (...)
         {

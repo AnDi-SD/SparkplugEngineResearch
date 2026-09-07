@@ -1,0 +1,462 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP104",
+  "createdUtc": "2026-09-07T21:25:03.185200+00:00",
+  "documentation": "docs/research/native-pc-dx-shared-payload.md",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "completedProtocolCases": 10,
+  "successfulPayloadCases": 1,
+  "expectedStoppedCases": 1,
+  "nativeAssertions": 115,
+  "releasedAllocationsInCompletedCases": 22,
+  "classScoresChanged": false,
+  "ctest": {
+    "passed": 62,
+    "total": 62,
+    "elapsedSeconds": 57.58
+  },
+  "cases": [
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "valid",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "writeInstructions": 54,
+      "readInstructions": 3542,
+      "sourceExecutableSha256": "49DE067D56D0262DF8A51A45D9267F788433FB7FE24AF0F1E2F6990737E427CC",
+      "exactPayloadBytes": 110,
+      "cursor": 8,
+      "io": [
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          6,
+          true
+        ],
+        [
+          "write",
+          96,
+          true
+        ],
+        [
+          "read",
+          0,
+          4,
+          true
+        ],
+        [
+          "read",
+          4,
+          4,
+          true
+        ],
+        [
+          "tell",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ]
+      ],
+      "events": [
+        [
+          "create",
+          "index",
+          6,
+          8,
+          101,
+          1
+        ],
+        [
+          "lock",
+          "index"
+        ],
+        [
+          "unlock",
+          "index"
+        ],
+        [
+          "create",
+          "vertex",
+          96,
+          8,
+          0,
+          1
+        ],
+        [
+          "lock",
+          "vertex"
+        ],
+        [
+          "unlock",
+          "vertex"
+        ]
+      ],
+      "errors": [],
+      "status": "passed",
+      "nativeAssertions": 20,
+      "releasedAllocations": 4,
+      "arenaReservedBytes": 52448,
+      "elapsedSeconds": 1.3008267000041087
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "null-target",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "readInstructions": 9,
+      "cursor": 0,
+      "io": [],
+      "events": [],
+      "errors": [],
+      "status": "passed",
+      "nativeAssertions": 8,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52176,
+      "elapsedSeconds": 0.08402919999934966
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "read-index-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "readInstructions": 32,
+      "cursor": 0,
+      "io": [
+        [
+          "read",
+          0,
+          4,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->Read(uIndexSize) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 9,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52176,
+      "elapsedSeconds": 0.08289190000505187
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "read-vertex-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "readInstructions": 45,
+      "cursor": 4,
+      "io": [
+        [
+          "read",
+          0,
+          4,
+          true
+        ],
+        [
+          "read",
+          4,
+          4,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->Read(uVertexSize) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 11,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52176,
+      "elapsedSeconds": 0.08350849999987986
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "tell-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "readInstructions": 53,
+      "cursor": 8,
+      "io": [
+        [
+          "read",
+          0,
+          4,
+          true
+        ],
+        [
+          "read",
+          4,
+          4,
+          true
+        ],
+        [
+          "tell",
+          8
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->GetCurrentPosition( uOffset ) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 12,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52176,
+      "elapsedSeconds": 0.08382210000127088
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "write-index-size-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "writeInstructions": 28,
+      "cursor": 0,
+      "io": [
+        [
+          "write",
+          4,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->Write(pVertexBuffer->GetIndexSize()) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 9,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52240,
+      "elapsedSeconds": 0.0666985999996541
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "write-vertex-size-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "writeInstructions": 41,
+      "cursor": 0,
+      "io": [
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          4,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->Write(pVertexBuffer->GetVertexSize()) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 10,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52240,
+      "elapsedSeconds": 0.08374909999838565
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "write-index-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "writeInstructions": 51,
+      "cursor": 0,
+      "io": [
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          6,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->WriteData(pVertexBuffer->GetIndexData(),pVertexBuffer->GetIndexSize()) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 11,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52240,
+      "elapsedSeconds": 0.0813782999975956
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "write-vertex-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "writeInstructions": 61,
+      "cursor": 0,
+      "io": [
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          4,
+          true
+        ],
+        [
+          "write",
+          6,
+          true
+        ],
+        [
+          "write",
+          96,
+          false
+        ]
+      ],
+      "events": [],
+      "errors": [
+        "pDataStream->WriteData(pVertexBuffer->GetVertexData(),pVertexBuffer->GetVertexSize()) ERROR: 0x%08X"
+      ],
+      "status": "passed",
+      "nativeAssertions": 12,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52240,
+      "elapsedSeconds": 0.08415319999767235
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "init-return-false",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "readInstructions": 69,
+      "cursor": 8,
+      "io": [
+        [
+          "read",
+          0,
+          4,
+          true
+        ],
+        [
+          "read",
+          4,
+          4,
+          true
+        ],
+        [
+          "tell",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ]
+      ],
+      "events": [],
+      "errors": [],
+      "status": "passed",
+      "nativeAssertions": 13,
+      "releasedAllocations": 2,
+      "arenaReservedBytes": 52176,
+      "elapsedSeconds": 0.06660940000438131
+    },
+    {
+      "kind": "native-dx-shared-payload",
+      "case": "create-failure",
+      "arenaLimitBytes": 131072,
+      "maxAllocationBytes": 32768,
+      "inputSha256": "422839DB23030789822CAE85C8DC537C5CA9C4517F2EF4574D5E75082138D589",
+      "status": "stopped",
+      "error": "invalid memory 19 at 0x0, size 4: Invalid memory read (UC_ERR_READ_UNMAPPED); tail=['0x4b216c', '0x34060020', '0x4b216f', '0x4b2172', '0x4b2173', '0x4b2175', '0x4b2176', '0x4c2a45', '0x4c2a47', '0x4c2ab0', '0x4c2ab3', '0x4c2ab6']",
+      "stoppedIp": "004C2AB6",
+      "instructions": 1757,
+      "cursor": 8,
+      "io": [
+        [
+          "read",
+          0,
+          4,
+          true
+        ],
+        [
+          "read",
+          4,
+          4,
+          true
+        ],
+        [
+          "tell",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ],
+        [
+          "buffer",
+          8
+        ]
+      ],
+      "events": [
+        [
+          "create",
+          "index",
+          6,
+          8,
+          101,
+          1
+        ]
+      ],
+      "retainedAllocations": 3,
+      "guestResumed": false,
+      "expectedBoundary": true,
+      "arenaReservedBytes": 52208,
+      "elapsedSeconds": 0.04990600000019185
+    }
+  ],
+  "fingerprints": {
+    "research/probe_pc_dx_shared_payload.py": "4830C295877502510E0BFA52985F8EC7E8AB93B34A46B6F3AAEB57486D43905B",
+    "Sparkplug/Tests/spDXSharedMeshTests.cpp": "0EE8CE59675E0FDD669D2F861A952A939AD5959DCC7B6EF61A41805F8E3FB7E9",
+    "Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.cpp": "761BB3E2A882B0818AD96CDA8E6AE516F8FCA1EB8A38DFDE6B296DAD3F42B926",
+    "Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.h": "24986B618486015904221D8BDEC355DF681566B42F3CA13BEA19564C459C2072",
+    "Sparkplug/CMakeLists.txt": "5412AE617B9B004F29037E12D4558695363EBB0C276F0CA466F4EC5F4B36F965"
+  }
+}

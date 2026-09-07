@@ -21,6 +21,7 @@ namespace sparkplug::reconstruction
         static constexpr spClassID ClassID = 0x506F8A8C;
         static constexpr spClassID TargetClassID = 0x293A2681;
         static constexpr spClassID SourceClassID = 0x4B18E622;
+        static constexpr std::uint32_t MaximumPayloadBytesForAnalysis = 32u * 1024u * 1024u;
 
         spDXSharedMeshDataSerializer() noexcept = default;
         ~spDXSharedMeshDataSerializer() override;
@@ -50,6 +51,16 @@ namespace sparkplug::reconstruction
             spStream& destination,
             const spDXCombinedVB& payload) const;
         [[nodiscard]] bool ReadPayloadForAnalysis(
+            spStream& source,
+            spDXSharedMeshData& target) const;
+
+        // PC 0x004C1FA0 uses GetBuffer()+Tell() and leaves Tell after the two
+        // sizes, even after copying all payload bytes. This bounded variant
+        // preserves that successful cursor contract for zero-origin memory
+        // streams. Nonzero origins and missing buffers are explicitly refused;
+        // initialization/allocation failures still propagate safely on host.
+        // It is not wired to the generic full-consumption reference reader.
+        [[nodiscard]] bool ReadContiguousPayloadForAnalysis(
             spStream& source,
             spDXSharedMeshData& target) const;
     };

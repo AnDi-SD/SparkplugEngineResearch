@@ -315,7 +315,8 @@
         "Whole original4AA870 on triangle, two live triangles and unchanged logo_screen mesh payload; real registry/header/fields/CPU buffers/DX copy/declaration/name dispatch. COM and name storage remain explicit fixtures, not whole FFPS/GPU proof.",
         "106 original/source declaration masks match FVF, allocation size and8656 used bytes. Source reconstructs original declaration class names and CPU-only renderer object cache, with explicit shared host ownership.",
         "Hook publishes after payload, leaves allocated combiner alive and clears active global. Mesh shared ranges and local (not storage-rebased) index bytes confirmed.",
-        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device."
+        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
+        "CP104 original shared writer/reader/Init:110 exact bytes;cursor8;10 completed protocol cases/115 assertions/22 allocations released;actual factory sizes28/20. COM Create failure separately stops at4C2AB6 with null read and is never resumed. Host readers now bound sizes before allocation;contiguous helper is zero-origin and not generic graph wiring."
       ],
       "unknowns": [
         {
@@ -335,7 +336,8 @@
         "docs/research/native-pc-dx-materialization.md",
         "docs/research/native-class-sp-vertex-declaration.md",
         "docs/research/native-pc-skin-queued-mesh-render.md",
-        "docs/research/native-pc-whole-scene-file.md"
+        "docs/research/native-pc-whole-scene-file.md",
+        "docs/research/native-pc-dx-shared-payload.md"
       ],
       "testProfiles": [
         "pc-dx-metadata",
@@ -351,7 +353,8 @@
         "pc-mesh-full-loader",
         "pc-mesh-bounds",
         "pc-skin-queued-mesh-render",
-        "pc-scene-file-profile"
+        "pc-scene-file-profile",
+        "pc-dx-shared-payload"
       ]
     },
     {
@@ -10929,6 +10932,98 @@
         "script": "research/probe_pc_scene_file_profile.py",
         "args": [
           "--guest"
+        ]
+      }
+    ],
+    "pc-dx-shared-payload": [
+      {
+        "id": "pc-dx-shared-valid",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "valid"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-null-target",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "null-target"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-read-index-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "read-index-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-read-vertex-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "read-vertex-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-tell-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "tell-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-write-index-size-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "write-index-size-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-write-vertex-size-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "write-vertex-size-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-write-index-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "write-index-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-write-vertex-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "write-vertex-failure"
+        ]
+      },
+      {
+        "id": "pc-dx-shared-init-return-false",
+        "platform": "pc",
+        "script": "research/probe_pc_dx_shared_payload.py",
+        "args": [
+          "--guest",
+          "init-return-false"
         ]
       }
     ]

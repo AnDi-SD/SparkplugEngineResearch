@@ -388,6 +388,11 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugEngineTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugEngineTests COMMAND SparkplugEngineTests)
 
+    add_executable(SparkplugDXSharedMeshTests Tests/spDXSharedMeshTests.cpp)
+    target_link_libraries(SparkplugDXSharedMeshTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXSharedMeshTests COMMAND SparkplugDXSharedMeshTests)
+    set_tests_properties(SparkplugDXSharedMeshTests PROPERTIES TIMEOUT 20)
+
     add_executable(SparkplugAnimationTests Tests/spAnimationRuntimeTests.cpp)
     target_link_libraries(SparkplugAnimationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugAnimationTests COMMAND SparkplugAnimationTests)
