@@ -19,7 +19,11 @@ def check(value,label):
 
 class LifetimeFixture:
     def __init__(self):
-        self.p=PcInstructions(arena_size=getattr(self,'guest_arena_size',ARENA_SIZE),
+        arena_size=getattr(self,'guest_arena_size',ARENA_SIZE)
+        self.max_allocation_size=getattr(self,'guest_max_allocation_size',0x8000)
+        if self.max_allocation_size not in (0x8000,0x10000) or self.max_allocation_size>arena_size:
+            raise ValueError('Explicit 32KiB or 64KiB allocation bound within the guest arena required')
+        self.p=PcInstructions(arena_size=arena_size,
                               execution_profile=getattr(self,'guest_execution_profile','micro'))
         self.teb=self.p.fixture_seh_chain()
         self.allocations={}
@@ -34,7 +38,7 @@ class LifetimeFixture:
 
     def allocate(self,p):
         size=p.uint(p.reg('ESP')+4)
-        if size>0x8000:raise AssertionError('allocation exceeds bounded fixture')
+        if size>self.max_allocation_size:raise AssertionError('allocation exceeds bounded fixture')
         address=p.allocate(max(1,size))
         p.mu.mem_write(address,b'\xcc'*max(1,size))
         self.allocations[address]=size

@@ -22,6 +22,18 @@
     {
       "id": "CP99",
       "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp99.json"
+    },
+    {
+      "id": "CP100",
+      "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp100.json"
+    },
+    {
+      "id": "CP101",
+      "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp101.json"
+    },
+    {
+      "id": "CP102",
+      "summaryPath": "research/native-cycle-checkpoint-2026-09-08-cp102.json"
     }
   ]
 }
