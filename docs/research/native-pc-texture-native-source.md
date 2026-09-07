@@ -67,6 +67,11 @@ palette need separate evidence. No source palette implementation is claimed yet.
 
 ## Still required
 
+[CP108](native-pc-texture-missing-mips.md) subsequently reconstructs missing raw
+power-of-two levels through actual61039A/60FDB4, including exact float codec
+rounding and wrapped edges. Compressed missing levels and arbitrary conversion
+remain open; the original checkpoint results below are historical.
+
 Later [checkpoint 17](native-pc-palette-lifetime.md) closes the palette-codec,
 construction/copy and observed ownership/failure subset described as pending above.
 Full renderer integration is still open.

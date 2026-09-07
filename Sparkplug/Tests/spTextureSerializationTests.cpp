@@ -6,6 +6,7 @@
 #include "Code/SparkplugDX/spDXTexture.h"
 #include "Code/SparkplugDX/spDXTextureSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
+#include "Analysis/PC/spTextureMipFilter.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -151,6 +152,38 @@ namespace
             Check(!spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(data.size()),texture,&error)&&context.failed,"malformed/unrestored native texture rejected");
         }
     }
+    std::string MissingMips()
+    {
+        std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=4096&&hex.size()%2==0,"bounded native payload hex");
+        const auto nibble=[](char c)->unsigned
+        {if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;throw std::runtime_error("lowercase hex input");};
+        Bytes data;for(std::size_t i=0;i<hex.size();i+=2)data.push_back(static_cast<std::uint8_t>(nibble(hex[i])*16+nibble(hex[i+1])));
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        context.pcTexturePitchForAnalysis=[](void*,std::uint32_t,std::uint32_t row) noexcept{return row+4;};
+        spMemoryStream stream;Open(stream,data);spDXTexture texture;std::string error;
+        Check(spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(data.size()),texture,&error),error.c_str());
+        std::uint32_t cursor=0;Check(stream.GetCurrentPosition(cursor)&&cursor==data.size()&&!context.failed&&!context.depth,"complete missing mip payload consumed");
+        Check(!texture.HasInitializedRuntimeFormatForAnalysis()&&!texture.GetNativeByteCountForAnalysis(),"missing mip path leaves runtime44/48 untouched");
+        std::ostringstream out;out<<"{\"state\":["<<texture.GetField18ForAnalysis()<<','<<unsigned(texture.GetField1CForAnalysis())<<','
+            <<texture.GetTextureFlagsForAnalysis()<<','<<texture.IsInitializedForAnalysis()<<','<<texture.GetWidthForAnalysis()<<','<<texture.GetHeightForAnalysis()<<"],\"levels\":[";
+        bool first=true;for(const auto& mip:texture.GetMipsForAnalysis())
+        {
+            Check(mip.physicalPitch==mip.rowBytes+4,"generated surfaces use declared pitch callback");
+            if(!first)out<<',';first=false;Bytes pixels;for(auto b:mip.packedBytes)pixels.push_back(std::uint8_t(b));
+            out<<"{\"width\":"<<mip.width<<",\"height\":"<<mip.height<<",\"packedHex\":\""<<Hex(pixels)<<"\"}";
+        }
+        out<<"]}";return out.str();
+    }
+    void MissingMipGuards()
+    {
+        namespace filter=sparkplug::evidence::pc::texture_mips;
+        spDXTexture::MipForAnalysis input,output;
+        Check(spDXTexture::DescribeMipForAnalysis(2,2,3,input),"rounding input shape");
+        for(unsigned blue:{134u,138u,125u,129u})for(unsigned c:{blue,0u,0u,255u})input.packedBytes.push_back(static_cast<std::byte>(c));
+        Check(filter::GenerateNext(input,output)&&output.packedBytes==std::vector<std::byte>{std::byte{131},std::byte{0},std::byte{0},std::byte{255}},"native float normalization and truncate stores differ from integer mean at 131.5");
+        const auto previous=output.packedBytes;input.packedBytes.pop_back();
+        Check(!filter::GenerateNext(input,output)&&output.packedBytes==previous,"invalid mip extent rejected without output mutation");
+    }
     std::string NativeWrite(const std::string& mode)
     {
         Check(mode=="raw"||mode=="raw-2"||mode=="dxt1-4"||mode=="raw-both"||mode=="raw-auto"||mode=="raw-4-partial","explicit native writer case");
@@ -176,7 +209,8 @@ namespace
         Check(serializer.WritePayloadWithContextForAnalysis(manager,stream,texture,&error),error.c_str());const auto written=Data(stream);
         spMemoryStream input;Open(input,written);spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);spDXTexture decoded;
         const bool read=serializer.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(written.size()),decoded,&error);
-        if(partial)Check(!read&&context.failed,"partial writer chain remains explicit unsupported missing-mip reader boundary");
+        if(partial)Check(read&&!context.failed&&decoded.GetMipsForAnalysis().size()==3
+            &&decoded.GetMipsForAnalysis()[0].packedBytes==mips[0].bytes,"partial raw writer chain generates missing levels and preserves supplied pixels");
         else
         {
             Check(read,error.c_str());Check(decoded.GetMipsForAnalysis().size()==mips.size(),"native writer output loads through same reconstructed runtime reader");
@@ -284,6 +318,7 @@ int main(int argc,char** argv)
 {
     try
     {
+        if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--cross"){std::cout<<Cross(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--runtime"){std::cout<<Runtime(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--native"){std::cout<<Native(argv[2])<<'\n';return 0;}
@@ -294,6 +329,7 @@ int main(int argc,char** argv)
         RuntimeBoundsAndHeaders();
         for(const auto* mode:{"raw","dxt1","dxt3","dxt5","raw-2","raw-4","dxt1-4","dxt3-2","dxt5-4","raw-2-embedded","dxt1-4-embedded"})(void)Native(mode);
         NativeBounds();
+        MissingMipGuards();
         for(const auto* mode:{"raw","indexed","indexed-upload-fail"})(void)Palette(mode);
         PaletteBounds();
         for(const auto* mode:{"raw","raw-2","dxt1-4","raw-both","raw-auto","raw-4-partial"})(void)NativeWrite(mode);

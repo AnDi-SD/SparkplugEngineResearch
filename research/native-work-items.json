@@ -20,14 +20,15 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP18вЂ“19 and34 verify native-data writer slices, material/controller reference boundaries and renderer texture/palette identity binding. Continue remaining writer failures, conversion/missing mips, external source, reinit/reset and live backend.",
+      "summary": "CP108 reconstructs raw power-of-two missing mip generation including filter4 wrapped coefficients and exact byte/float rounding. Ten native/source comparisons (9136 bytes) plus existing texture regressions pass. Continue whole textured SMO, compressed conversion, external source, failures and live backend.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
         "42DD10 ignores eight header bytes and creates4AB520 DXTexture, not CPU TextureData.",
         "CPU source-wrapper and local payload have separate terminators; native writer fields6/0/5 use UInt32BeginEnd.",
         "423250в†’4ABB70в†’4AB650 reaches60FDB4 with actual conversion arguments;1x1 input normalizes destination2x2. This is a stop-before boundary, not completed conversion.",
-        "4AAC50 protected prefix404BC6 resets size48 before summing surface sizes; raw uses pitch*height, DXT uses native floor width/4 and height/4 with minimum1."
+        "4AAC50 protected prefix404BC6 resets size48 before summing surface sizes; raw uses pitch*height, DXT uses native floor width/4 and height/4 with minimum1.",
+        "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs."
       ],
       "unknowns": [
         {
@@ -50,7 +51,8 @@
         "docs/research/native-pc-palette-lifetime.md",
         "docs/research/native-pc-texture-native-writer.md",
         "docs/research/native-pc-skin-texture-render.md",
-        "docs/research/native-pc-skin-texture-generated-render.md"
+        "docs/research/native-pc-skin-texture-generated-render.md",
+        "docs/research/native-pc-texture-missing-mips.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -59,7 +61,8 @@
         "pc-texture-palette-lifetime",
         "pc-texture-native-writer",
         "pc-skin-texture-render",
-        "pc-skin-texture-generated-render"
+        "pc-skin-texture-generated-render",
+        "pc-texture-missing-mips"
       ]
     },
     {
@@ -11096,6 +11099,108 @@
         "script": "research/compare_pc_node_math_bits.py",
         "args": [
           "--guest"
+        ]
+      }
+    ],
+    "pc-texture-missing-mips": [
+      {
+        "id": "pc-texture-missing-corpus-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "corpus",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-ramp-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "ramp",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-impulse-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "impulse",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-edges-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "edges",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-checker-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "checker",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-random-16x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "random",
+          "16x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-random-16x8",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "random",
+          "16x8"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-random-1x16",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "random",
+          "1x16"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-random-16x1",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "random",
+          "16x1"
+        ]
+      },
+      {
+        "id": "pc-texture-missing-random-2x2",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "random",
+          "2x2"
         ]
       }
     ]

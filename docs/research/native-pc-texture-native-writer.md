@@ -42,9 +42,10 @@ caller configuration. Policy0/2 requires a valid CPU buffer as well as native
 records before writing. Runtime DXTexture, empty/stale records, unsupported
 conversion flags and write failures are rejected rather than invented.
 
-The current DX reader still rejects partial chains at its unclosed missing-mip
-conversion boundary. Correctly writing that original representation is **not**
-a claim of complete reader/rendering support. NativeData writer's unchecked
+After [CP108](native-pc-texture-missing-mips.md), the DX reader generates missing
+raw power-of-two levels. Compressed missing-mip conversion remains open.
+Correctly writing the original representation does not establish complete
+reader/rendering support. NativeData writer's unchecked
 individual writes/error cleanup remain separate research from safer host checks.
 
 ## Validation
@@ -52,7 +53,8 @@ individual writes/error cleanup remain separate research from safer host checks.
 Six exact original/source cases: raw1, raw2, DXT1-4, raw policy2, raw policy0,
 raw4 top-level-only. Original max15121 instructions/1744 arena bytes.
 Five complete source outputs additionally load through the reconstructed DX
-reader with identical mip bytes; partial output fails at the declared boundary.
+reader with identical mip bytes; partial output failed at that historical boundary
+(CP108 subsequently adds its raw missing-level reader support).
 This source roundtrip is not substituted for original full loading.
 
 `pc-texture-native-writer`: **9/9** children, **36 original assertions**, six new
