@@ -66,11 +66,13 @@ python research/native_workbench.py run membership-native
 python research/native_workbench.py run spatial-differential
 ```
 
-Runner запускает последовательные **fresh Python children**,30s каждый,
-без shell и запуска игры; original guest вызовы внутри сохраняют100k/2s caps.
-Первый failure/timeout останавливает профиль. Deadline оставляет запас на
-целый child: если осталось меньше31s, следующий не начинается. Не используется
-продолжение stopped guest state или повышение лимита ради результата.
+Runner по умолчанию запускает последовательные **fresh Python children**,30s
+каждый, без shell и запуска игры. Original guest вызовы сохраняют явно выбранные
+micro100k/2s или file1M/8s limits. [CP110](native-parallel-profiles.md) добавляет
+`--workers 4` для reviewed `parallelSafe` профилей: после failed group следующая
+не запускается, результаты сохраняются после группы. Sequential failure/timeout
+останавливает профиль сразу. Deadline требует31s до запуска child/group.
+Stopped guest state не продолжается; пределы не повышаются ради результата.
 
 После изменения storage запускаются его directed checks и source differential;
 затем соседние visibility/registration tests. Полный C++ CTest выполняется

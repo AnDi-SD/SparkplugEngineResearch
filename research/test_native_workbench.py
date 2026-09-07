@@ -7,6 +7,8 @@ import sqlite3
 import subprocess
 from pathlib import Path
 import tempfile
+import threading
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 from native_knowledge import DDL
@@ -120,6 +122,41 @@ class WorkbenchTests(unittest.TestCase):
             report=json.loads(path.read_text(encoding='utf-8'))
         self.assertEqual(report['status'],'failed');self.assertEqual(report['completedChildren'],1)
         self.assertEqual(report['results'][0]['exitCode'],124);self.assertEqual(run.call_count,1)
+
+    @patch('native_workbench.subprocess.run')
+    def test_parallel_requires_declared_independence(self,run):
+        with self.assertRaisesRegex(ValueError,'parallelSafe'):
+            run_profile(self.config,'spatial-static',workers=2)
+        for workers in (0,5,True):
+            with self.assertRaisesRegex(ValueError,'worker count'):
+                run_profile(self.config,'spatial-static',workers=workers)
+        run.assert_not_called()
+
+    @patch('native_workbench.subprocess.run')
+    def test_parallel_failure_drains_wave_and_stops(self,run):
+        tests=self.config['testProfiles']['spatial-static']
+        for test in tests:test['parallelSafe']=True
+        barrier=threading.Barrier(2,timeout=3)
+        def execute(command,**kwargs):
+            barrier.wait()
+            self.assertEqual(kwargs['timeout'],30)
+            return SimpleNamespace(returncode=7 if Path(command[2]).name==Path(tests[0]['script']).name else 0)
+        run.side_effect=execute
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'parallel.json'
+            self.assertEqual(run_profile(self.config,'spatial-static',report_path=path,workers=2),7)
+            report=json.loads(path.read_text(encoding='utf-8'))
+        self.assertEqual(run.call_count,2)
+        self.assertEqual([r['id'] for r in report['results']],[t['id'] for t in tests[:2]])
+        self.assertEqual(report['status'],'failed')
+        self.assertEqual(report['workers'],2)
+        self.assertFalse(report['memoryAdmissionIsOSLimit'])
+
+    @patch('native_workbench.subprocess.run')
+    def test_parallel_deadline_launches_no_children(self,run):
+        for test in self.config['testProfiles']['spatial-static']:test['parallelSafe']=True
+        self.assertEqual(run_profile(self.config,'spatial-static',datetime(2020,1,1,tzinfo=timezone.utc),workers=4),3)
+        run.assert_not_called()
 
 
 if __name__ == '__main__':

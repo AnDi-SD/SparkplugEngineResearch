@@ -2,10 +2,12 @@
 """Read-only class dossiers/dependency queue plus explicit bounded regression profiles.
 
 No binary/corpus rescan for dossiers. No inferred names, evidence credit or source
-generation. Profiles use fresh sequential Python children, never launch the game.
+generation. Profiles use fresh bounded Python children, never launch the game.
+Parallel execution is opt-in and requires declared independent profile entries.
 """
 from __future__ import annotations
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -19,6 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DATABASE = ROOT / 'local-data/results/smo-corpus-v2.sqlite'
 WORK_ITEMS = ROOT / 'research/native-work-items.json'
 CHILD_TIMEOUT = 30
+MAX_WORKERS = 4
+ESTIMATED_CHILD_MIB = 192
+ESTIMATED_CONTROLLER_MIB = 64
+MEMORY_BUDGET_MIB = 1024
 
 
 def validate_config(config):
@@ -60,6 +66,8 @@ def validate_config(config):
                 raise ValueError('Only repository research Python profiles allowed')
             if test['platform'] not in ('pc', 'ps2') or not all(isinstance(arg, str) for arg in test['args']):
                 raise ValueError('Invalid test platform/arguments')
+            if 'parallelSafe' in test and not isinstance(test['parallelSafe'],bool):
+                raise ValueError('Explicit boolean parallelSafe declaration required')
             if test['id'] in identities:
                 raise ValueError('Duplicate test id')
             identities.add(test['id'])
@@ -118,7 +126,14 @@ def queue(db, config, platform):
     return ordered
 
 
-def run_profile(config, profile, deadline=None, report_path=None):
+def run_profile(config, profile, deadline=None, report_path=None, *, workers=1):
+    if type(workers) is not int or not 1<=workers<=MAX_WORKERS:
+        raise ValueError('Bounded worker count must be1..4')
+    tests=config['testProfiles'][profile]
+    if workers>1 and any(test.get('parallelSafe') is not True for test in tests):
+        raise ValueError('Every parallel child needs an audited parallelSafe declaration')
+    if workers*ESTIMATED_CHILD_MIB+ESTIMATED_CONTROLLER_MIB>MEMORY_BUDGET_MIB:
+        raise ValueError('Worker admission estimate exceeds aggregate research budget')
     results = []
     started=datetime.now(timezone.utc).isoformat()
     configuration_hash=hashlib.sha256(json.dumps(config,sort_keys=True,separators=(',',':')).encode('utf-8')).hexdigest()
@@ -130,30 +145,41 @@ def run_profile(config, profile, deadline=None, report_path=None):
                       status=status,exitCode=code,expectedChildren=len(config['testProfiles'][profile]),
                       completedChildren=len(results),childTimeoutSeconds=CHILD_TIMEOUT,results=results,
                       configurationSha256=configuration_hash,
+                      workers=workers,memoryBudgetMiB=MEMORY_BUDGET_MIB,
+                      memoryAdmissionEstimateMiB=workers*ESTIMATED_CHILD_MIB+ESTIMATED_CONTROLLER_MIB,
+                      memoryAdmissionIsOSLimit=False,
                       configurationHashMethod='sha256-of-startup-json-sort-keys-compact-ensure-ascii',
                       notes='Exit results and script hashes only; NOT class coverage, native startup, binary completeness or live display proof.')
         # Generated diagnostic artifact; callers establish exclusive ownership.
         report_path.write_text(json.dumps(document,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     save('running')
-    for test in config['testProfiles'][profile]:
+    def execute(test):
+        start=time.monotonic()
+        print(f"RUN {test['platform']} {test['id']} (fresh child; {CHILD_TIMEOUT}s cap)",flush=True)
+        try:
+            child=subprocess.run([sys.executable,'-B',str(ROOT/test['script']),*test['args']],
+                                 cwd=ROOT,timeout=CHILD_TIMEOUT)
+            code=child.returncode
+        except subprocess.TimeoutExpired:
+            code=124 # subprocess.run kills and waits for this direct child.
+        return dict(id=test['id'],platform=test['platform'],exitCode=code,
+                    script=test['script'],args=test['args'],
+                    scriptSha256=hashlib.sha256((ROOT/test['script']).read_bytes()).hexdigest(),
+                    elapsedSeconds=round(time.monotonic()-start,3))
+    # Fixed waves preserve deterministic report order and stop admission after
+    # any failed wave. Already running siblings finish under their original cap.
+    for offset in range(0,len(tests),workers):
         if deadline and (deadline - datetime.now(timezone.utc)).total_seconds() < CHILD_TIMEOUT + 1:
             print('STOP: insufficient time before report deadline', flush=True)
             save('deadline',3)
             return 3
-        start = time.monotonic()
-        print(f"RUN {test['platform']} {test['id']} (fresh child; {CHILD_TIMEOUT}s cap)", flush=True)
-        try:
-            # No shell, no inherited guest state, no user-supplied executable path.
-            child = subprocess.run([sys.executable, '-B', str(ROOT / test['script']), *test['args']],
-                                   cwd=ROOT, timeout=CHILD_TIMEOUT)
-            code = child.returncode
-        except subprocess.TimeoutExpired:
-            code = 124  # subprocess.run kills and waits for this direct child.
-        results.append(dict(id=test['id'], platform=test['platform'], exitCode=code,
-                            script=test['script'],args=test['args'],
-                            scriptSha256=hashlib.sha256((ROOT/test['script']).read_bytes()).hexdigest(),
-                            elapsedSeconds=round(time.monotonic() - start, 3)))
-        print(json.dumps(results[-1]), flush=True)
+        wave=tests[offset:offset+workers]
+        if workers==1:completed=[execute(wave[0])]
+        else:
+            with ThreadPoolExecutor(max_workers=workers) as pool:completed=list(pool.map(execute,wave))
+        results.extend(completed)
+        for row in completed:print(json.dumps(row),flush=True)
+        code=next((row['exitCode'] for row in completed if row['exitCode']),0)
         if code:
             save('failed',code)
             return code
@@ -171,6 +197,8 @@ def main():
     parser.add_argument('--database', type=Path, default=DATABASE)
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--deadline-utc', help='UTC ISO timestamp, e.g.2026-09-06T09:00:00Z')
+    parser.add_argument('--workers',type=int,choices=range(1,MAX_WORKERS+1),default=1,
+                        help='Independent fresh children per wave; audited profiles only, default1')
     args = parser.parse_args()
     config = validate_config(json.loads(WORK_ITEMS.read_text(encoding='utf-8')))
     if args.command == 'run':
@@ -187,7 +215,7 @@ def main():
         report_path=report_dir/f'{stamp}-{args.target}.json'
         with report_path.open('x',encoding='utf-8') as report:report.write('{}\n')
         print(f'RUN REPORT {report_path.relative_to(ROOT)}',flush=True)
-        return run_profile(config, args.target, deadline,report_path)
+        return run_profile(config, args.target, deadline,report_path,workers=args.workers)
     db = sqlite3.connect(args.database.resolve().as_uri() + '?mode=ro', uri=True)
     db.row_factory = sqlite3.Row
     try:

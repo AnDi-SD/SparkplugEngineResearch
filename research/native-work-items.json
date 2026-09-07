@@ -3768,7 +3768,8 @@
         "args": [
           "--guest",
           "raw"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-write-raw-2",
@@ -3777,7 +3778,8 @@
         "args": [
           "--guest",
           "raw-2"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-write-dxt1-4",
@@ -3786,7 +3788,8 @@
         "args": [
           "--guest",
           "dxt1-4"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-write-raw-both",
@@ -3795,7 +3798,8 @@
         "args": [
           "--guest",
           "raw-both"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-write-raw-auto",
@@ -3804,7 +3808,8 @@
         "args": [
           "--guest",
           "raw-auto"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-write-raw-4-partial",
@@ -3813,7 +3818,8 @@
         "args": [
           "--guest",
           "raw-4-partial"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-shared-cross-rgba",
@@ -3822,7 +3828,8 @@
         "args": [
           "--guest",
           "rgba"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-shared-cross-gray",
@@ -3831,7 +3838,8 @@
         "args": [
           "--guest",
           "gray"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-shared-cross-rgb16",
@@ -3840,7 +3848,8 @@
         "args": [
           "--guest",
           "rgb16"
-        ]
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-texture-palette-lifetime": [
@@ -4005,7 +4014,8 @@
         "args": [
           "--guest",
           "raw"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt1",
@@ -4014,7 +4024,8 @@
         "args": [
           "--guest",
           "dxt1"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt3",
@@ -4023,7 +4034,8 @@
         "args": [
           "--guest",
           "dxt3"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt5",
@@ -4032,7 +4044,8 @@
         "args": [
           "--guest",
           "dxt5"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-raw-2",
@@ -4041,7 +4054,8 @@
         "args": [
           "--guest",
           "raw-2"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-raw-4",
@@ -4050,7 +4064,8 @@
         "args": [
           "--guest",
           "raw-4"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt1-4",
@@ -4059,7 +4074,8 @@
         "args": [
           "--guest",
           "dxt1-4"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt3-2",
@@ -4068,7 +4084,8 @@
         "args": [
           "--guest",
           "dxt3-2"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt5-4",
@@ -4077,7 +4094,8 @@
         "args": [
           "--guest",
           "dxt5-4"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-raw-2-embedded",
@@ -4086,7 +4104,8 @@
         "args": [
           "--guest",
           "raw-2-embedded"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-tex-native-exact-dxt1-4-embedded",
@@ -4095,7 +4114,8 @@
         "args": [
           "--guest",
           "dxt1-4-embedded"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-palette-factory",
@@ -4103,7 +4123,8 @@
         "script": "research/probe_pc_palette_factory.py",
         "args": [
           "--guest"
-        ]
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-texture-runtime-mips": [
@@ -10951,7 +10972,8 @@
         "script": "research/probe_pc_scene_file_profile.py",
         "args": [
           "--guest"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-bloom-projectile-comparison",
@@ -10960,7 +10982,8 @@
         "args": [
           "--guest",
           "bloom-projectile"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-g-crystal-file-ids",
@@ -10970,7 +10993,8 @@
           "--guest",
           "g-crystal",
           "--file-ids"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-logo-file-ids",
@@ -10980,7 +11004,8 @@
           "--guest",
           "logo",
           "--file-ids"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-bloom-projectile-file-ids",
@@ -10990,7 +11015,8 @@
           "--guest",
           "bloom-projectile",
           "--file-ids"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-droid-trail-file-ids",
@@ -11000,7 +11026,8 @@
           "--guest",
           "droid-trail",
           "--file-ids"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-whole-loading-file-ids",
@@ -11010,7 +11037,8 @@
           "--guest",
           "loading",
           "--file-ids"
-        ]
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-dx-shared-payload": [
@@ -11124,7 +11152,8 @@
           "--guest",
           "corpus",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-ramp-16x16",
@@ -11134,7 +11163,8 @@
           "--guest",
           "ramp",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-impulse-16x16",
@@ -11144,7 +11174,8 @@
           "--guest",
           "impulse",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-edges-16x16",
@@ -11154,7 +11185,8 @@
           "--guest",
           "edges",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-checker-16x16",
@@ -11164,7 +11196,8 @@
           "--guest",
           "checker",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-random-16x16",
@@ -11174,7 +11207,8 @@
           "--guest",
           "random",
           "16x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-random-16x8",
@@ -11184,7 +11218,8 @@
           "--guest",
           "random",
           "16x8"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-random-1x16",
@@ -11194,7 +11229,8 @@
           "--guest",
           "random",
           "1x16"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-random-16x1",
@@ -11204,7 +11240,8 @@
           "--guest",
           "random",
           "16x1"
-        ]
+        ],
+        "parallelSafe": true
       },
       {
         "id": "pc-texture-missing-random-2x2",
@@ -11214,7 +11251,8 @@
           "--guest",
           "random",
           "2x2"
-        ]
+        ],
+        "parallelSafe": true
       }
     ]
   }
