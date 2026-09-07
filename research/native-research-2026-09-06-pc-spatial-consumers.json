@@ -1,0 +1,41 @@
+{
+  "schemaVersion":1,
+  "manifestId":"native-pc-spatial-consumers-2026-09-06T06:34:29Z",
+  "mode":"incremental","createdUtc":"2026-09-06T06:34:29Z",
+  "notes":"Checkpoint20 PC-first until10:00MSK. Nonempty BSP/Octree Static/Occlusion insertions, ownership/reciprocal drain/Scene publication and whole Debug21 static draw dedup:94 actual checks6 bounded children/static15. Corrects incomplete BSP static summary: with Zone touching object stays current BSP, unlike Octree always mask. Partial portable source unchanged/CTest21; no normal45E870/full ctor/OcclusionInit claim. BSP70->72,Octree65->67,Occlusion58->59,Static70->71, fixed denominators unchanged. No apps/assets/game/GPU/OS/PS2/publication.",
+  "classes":[
+    {
+      "className":"spBSPNode","coverageScore":72,"lowerBound":59,"upperBound":82,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"C19 exactAC/partial query source retained. Actual Static480AD0 Zone-aware placement now confirmed: touching stays current root with Zone, mask48 only without Zone. Actual Occlusion480630 distinguishes Static400 without RenderNode billboard exception. Original reciprocal/owning cleanup and whole Debug21 duplicate Static draw once/frame passed; Collision/debug/ray consumers and normal45E870 remain open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_spatial_consumers.py","locator":"bsp static21/occlusion20/debug-scene6;480AD0/480630/45EC70","observation":"47 native checks confirm Zone-aware static root placement versus no-Zone two children, owning duplicate refs/Scene88 publication, borrowed occlusion links/no billboard exemption, actual drain/destruction. Whole real Debug21 path draws one Static support per frame from duplicate registrations; normal clipped path not substituted.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"research/inspect_pc_spatial_consumers.py","locator":"480AD3/480B53/449A90..449AD6/426740;docs/research/native-pc-spatial-consumers.md","observation":"15 exact anchors establish BSP Zone60 gate and base append versus complete Octree static method with no Zone read; actual Occlusion static-bit checks and Static intrusive refs/Scene88 store. Corrects prior over-general static mask description, does not alter immutable C19 manifest.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spOctreeNode","coverageScore":67,"lowerBound":53,"upperBound":78,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"C16 query source/quirky sphere mask retained. Actual nonempty Static449A90 always uses sphere mask regardless Zone, including F0 case; Occlusion449D30 Zoned dynamic root/static multileaf/no billboard exception. Whole Debug21 Static with duplicate multileaf memberships draws once per frame and frees all refs. Normal protected plane copy/Collision/remaining methods open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_spatial_consumers.py","locator":"octree static21/occlusion20/debug-scene6;449A90/449D30","observation":"47 native checks confirm Zone-independent Static mask route and actual F0 shortcut; borrowed reciprocal Occlusion placement/drain, owning Static duplicate refs/Scene publication. Four Static refs across two leaves produce one draw each of two frames via original Debug21; no normal-copy execution claim.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spOcclusionVolume","coverageScore":59,"lowerBound":44,"upperBound":70,
+      "researchStatus":"partial","pcStatus":"partial","ps2Status":"deferred","priorityTier":1,
+      "summary":"C15 exact1B8/geometry and cached consumer evidence retained. Actual BSP/Octree nonempty registration adds borrowed reverseB4/forward40, Static400 rule with no billboard exemption, lower-level Enabled ignored, notifying drain and empty-geometry destructor. Full Init/topology/silhouette/real authored load still open; explicit worldSphere input not Init proof.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_spatial_consumers.py","locator":"bsp/occlusion20 +octree/occlusion20;46DCF0/480630/449D30","observation":"40 original registration/borrowed reference/reciprocal drain/destruction checks across two concrete trees. Explicit worldSphere and cleared Enabled flag; actual original factory/destructor, no geometry Init or all-upstream Enabled policy claim.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spStaticRenderObject","coverageScore":71,"lowerBound":57,"upperBound":83,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"C12 exact10C/Model/render contracts retained. Actual concrete tree placement retains once per occurrence, publishes Scene88, duplicate multileaf memberships do not duplicate draw within frame because support78 stamp. Owning graph teardown releases object after all refs. Whole proof uses real Debug21 unclipped path, not normal clipped/render-ready source.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_spatial_consumers.py","locator":"static21+21/debug-scene6+6;426740/44FC00/45EC70","observation":"54 native Static placement/Scene88/refcount and Debug21 frame checks. BSP Zoned touching root vs Octree multileaf, repeat registration takes more refs without dedup; visibility mark emits one support draw per frame, next frame repeats; actual recursive destruction releases all. Portable class remains partial/unimplemented as documented.","confidence":"confirmed"}
+      ]
+    }
+  ]
+}

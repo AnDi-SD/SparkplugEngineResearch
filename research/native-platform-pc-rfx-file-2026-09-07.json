@@ -1,0 +1,113 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-rfx-file-2026-09-07T07:16:00Z",
+  "createdUtc": "2026-09-07T07:16:00Z",
+  "notes": "CP60 fourteen exact78 native and50 source assertions. Full actual RFX file/regex metadata caller proven after completed independent shared-library initialization; cold initial ID regex capped and stays open. Failure input-buffer leaks documented; source RAII differs.",
+  "assessments": [
+    {
+      "className": "spPCRFXFileLoader",
+      "coverageScore": 60,
+      "lowerBound": 45,
+      "upperBound": 72,
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Prior RFX corpus/events now includes complete original4D56D0 file/regex metadata path, exact ID/name extraction, creation/ownership and diagnostics. Warm shared regex state is constructed by original code; cold startup remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-pc-effect-template.md",
+          "locator": "CP52",
+          "observation": "Factory/lifetime and small full original XML parse."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-constants.md",
+          "locator": "CP53",
+          "observation": "Constant producer and persistence."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-variables.md",
+          "locator": "CP54",
+          "observation": "Five variable producers and lifetime."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-corpus.md",
+          "locator": "CP55;4D4750/4D3A80/4D6050",
+          "observation": "All original corpus engine callbacks, exact full semantic captures and expected ownership deltas, unchanged guest bounds."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-parser-file-text.md",
+          "locator": "CP59;4D0A30/6BD580/45C4E0/6BD710/6BDB60/416D70/416F30/465540",
+          "observation": "6 exact36 native cases; unchanged bytes/capacity/I/O, real diagnostic path and complete tracked cleanup; original RFX regex wrapper remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-file.md",
+          "locator": "CP60;4D56D0/4D5560->476550/4D27B0/4D0960/417090",
+          "observation": "14 exact78 native cases, original regex compile/search and all tracked cleanup except two established file-error leaks; 100k/2s/64KiB caps unchanged."
+        }
+      ],
+      "unknowns": [
+        "Cold initial regex constructor, archive files, failure/short reads, scanf EOF with uninitialized ID and full manager startup remain open. Actual file caller uses initialized shared regex state, not proof of complete cold initialization.",
+        "Large corpus file/XML wrapper, metadata-to-XML/compiler integration, remaining event/error/repeated ownership and all locales remain incomplete. Source RAII and EOF/pointer guards are deliberate deviations; headers/APIs inferred."
+      ]
+    },
+    {
+      "className": "spPCEffectTemplate",
+      "coverageScore": 44,
+      "lowerBound": 32,
+      "upperBound": 57,
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Prior source/compiler-result consumer now receives exact file/regex-produced identity, name, C-string document and kind2/ready0 template. Metadata caller and failure ownership verified; full initialization chain remains partial.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-pc-effect-template.md",
+          "locator": "CP52",
+          "observation": "Constructor/type/lifetime and small native XML parse."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-constants.md",
+          "locator": "CP53",
+          "observation": "Constants and pass persistence."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-variables.md",
+          "locator": "CP54",
+          "observation": "Populated variable ownership."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-corpus.md",
+          "locator": "CP55",
+          "observation": "Complete original resource event streams."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-shader-compile.md",
+          "locator": "CP56;4CFFE0..4D063F;4CFE40->13B96C0;4CFCD0",
+          "observation": "15 exact bounded successful engine compiler-consumer cases with explicit SDK output and complete cleanup."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-file.md",
+          "locator": "CP60;4D56D0/4D5560->476550/4D27B0/4D0960/417090",
+          "observation": "14 exact78 native cases, original regex compile/search and all tracked cleanup except two established file-error leaks; 100k/2s/64KiB caps unchanged."
+        }
+      ],
+      "unknowns": [
+        "File/regex name/ID acquisition, child64, compile error/report/file-write paths, repeated/occupied output ownership and complete shader-manager generating miss remain open.",
+        "Compiler/reflection outputs are external-library contracts; exact SDK build and full original shader compiler execution are not claimed. Oversized names and malformed/missing outputs remain guarded analytical gaps."
+      ]
+    }
+  ]
+}

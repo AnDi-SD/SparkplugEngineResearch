@@ -1,0 +1,154 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-dx-materialization-2026-09-06T13:06:19Z",
+  "createdUtc": "2026-09-06T13:06:19Z",
+  "notes": "Checkpoint6 of ongoing PC SMO/SAN goal.468 directed native checks across50 bounded children plus11 static anchors. COM inputs are explicit guest fixtures, not GPU evidence. First separate DXMesh/PCVertexDeclaration/DXVertexDeclaration assessments include previous identity/static/source slices and are not fresh zero-to-score progress. PS2 and immutable legacy unchanged. Source ABI corrected mesh84 to declaration pointer; full portable renderer integration and whole mesh-containing FFPS still open.",
+  "assessments": [
+    {
+      "className": "spDXSerializerHook",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 60,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Earlier65 gate/cache plus actual4AA4E0 metadata92checks and4AA870 first-scan35. Missing-field outputs stale, failed compact header/EOF may become true, strict20k batching and zero/stale candidates confirmed. First scan stops before combiner allocation; full second-pass hook remains unexecuted.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_dx_mesh_metadata.py",
+          "locator": "19modes/92checks;4AA4E0",
+          "observation": "Actual header/field/read/seek failures, duplicate fields, ignored marker and raw bool byte."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_dx_batch_scan.py",
+          "locator": "7modes/35checks;4AA870",
+          "observation": "First-scan stop-before-allocation proves grouping and stale/missing metadata hazard without pretending materialization success."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-dx-materialization.md",
+          "locator": "native versus host checks",
+          "observation": "Preserve portable found-field/overflow guards; native quirks not silently copied."
+        }
+      ],
+      "unknowns": [
+        "Whole mesh-containing hook second pass, outer/root interaction, actual names/cache publication and original teardown of temporary combiner.",
+        "All malformed/rollback/allocation cases; source integration and real PC backend validation.",
+        "Original interface/method/header names."
+      ]
+    },
+    {
+      "className": "spDXMesh",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 55,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First separate PC assessment combines prior ABI/FVF/storage source with actual factory88h,6 native-field copy modes160checks, CPU readers/shared wrappers/packed expansion and full declaration lookup on two complete helper cases. Stored packed byteSize double-add and hardwired INDEX16 versus32bit copy documented, not claimed GPU-valid.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_dx_mesh_payload.py",
+          "locator": "6modes/160checks;4A9E80/429A40/4AA000",
+          "observation": "Four directed copy boundaries and two complete helper returns. Exact vertex/index bytes, intrusive ownership and native CPU temporary cleanup; COM fixtures only."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_dx_buffers.py",
+          "locator": "6modes/97checks",
+          "observation": "Actual wrapper factories and combiner ctor/Init/commit/dtor through explicit COM inputs; failed Create/Lock/Unlock HRESULT ignored by original."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Analysis/PC/SparkplugAbi.h",
+          "locator": "spDXMeshObservedLayout.vertexDeclaration84",
+          "observation": "Corrected numeric-code interpretation to borrowed PC declaration pointer; exact factory size88 independently established."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-dx-materialization.md",
+          "locator": "packed byteSize64 and INDEX16 mismatch",
+          "observation": "Copied84bytes/stride28 but stored120 on3 packed vertices;32bit bytes copied into hardwired INDEX16 wrapper. Host guards and normalized byte size distinguished."
+        }
+      ],
+      "unknowns": [
+        "Whole FFPS SMO integration and all standalone/CPU/shared initialization branches, deep ownership/reuse/rollback variants.",
+        "Portable declaration-object renderer integration; old zero-code facade not complete.",
+        "Exact save/shared optimizer, native draw/GPU/corpus integration, device loss/reset and interface/API names."
+      ]
+    },
+    {
+      "className": "spPCVertexDeclaration",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 50,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Original-name class needed by actual mesh84. Exact1Ch factory, base FVF initialization, six element masks and allocation tail, complete cache miss/reuse/bind/clear and failed COM Create case executed. Protected entries were executed within existing caps, not replaced.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_vertex_declaration.py",
+          "locator": "10modes/59checks",
+          "observation": "Actual factory8193instructions, map hit/null/miss boundary and six FVF/element layouts.93E alloc72/uses48, tailCC."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_declaration_device.py",
+          "locator": "2modes/25checks;4AE0E0 miss19768instructions",
+          "observation": "Real factory/element builder/map insertion/bind/cleanup with explicit COM results, including cached object with null COM field after failed Create."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/inspect_pc_dx_materialization.py",
+          "locator": "11 exact image/name anchors",
+          "observation": "PC initializer6D5A30/class66353288/base33C42E58 and source-name string spPCVertexDeclaration independently bound."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-vertex-declaration.md",
+          "locator": "renderer-owned object, inherited shared-name field10",
+          "observation": "Component-mask key maps to declaration pointer, not FVF number. Field10 belongs to existing NamedObject/CrossPlatform base."
+        }
+      ],
+      "unknowns": [
+        "Complete element emitter for allcomponent bits/valid combinations and malformed inputs, source reconstruction/differential.",
+        "Clone/mutation/reinitialize/device loss/reset and complete renderer startup/teardown ownership.",
+        "Original TU/header/API/type names and full error/out-pointer failure contract; real GPU integration."
+      ]
+    },
+    {
+      "className": "spDXVertexDeclaration",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 40,
+      "upperBound": 70,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First separate PC assessment: original registered baseCrossPlatform, no RTTI factory in6D5250; derived PC factory exposes base prefix18 and actual4B23C0 stores converted FVF14, inherited name10. Full base vtable/clone/API and source still incomplete.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_vertex_declaration.py",
+          "locator": "six4B23C0 calls inside realPC objects",
+          "observation": "840->112,940->152,20->1002,93E->114E,1FFFFF->119FE. Base initializer leaves inherited name pointer untouched."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-vertex-declaration.md",
+          "locator": "base33C42E58 and CrossPlatform chain",
+          "observation": "Reuse existing spNamedObject->spCrossPlatform ownership, do not invent unknownfield10 or direct base factory size."
+        }
+      ],
+      "unknowns": [
+        "Full base vtable/constructor/clone and all controls, original API/path names.",
+        "Source reconstruction and all valid/malformed format masks, complete emitter/renderer/reset integration."
+      ]
+    }
+  ]
+}

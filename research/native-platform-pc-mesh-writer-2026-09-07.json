@@ -1,0 +1,159 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-mesh-writer-2026-09-07T15:20:13Z",
+  "createdUtc": "2026-09-07T15:20:13Z",
+  "notes": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released.",
+  "assessments": [
+    {
+      "className": "spDXMeshDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 78,
+      "lowerBound": 64,
+      "upperBound": 89,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_serializer.py",
+          "locator": "fiveDXcases130checks;4297C0/429BC0/429A40",
+          "observation": "Platform selection materializes once when fields0/1 coexist, specialized header ignores both words, standalone packed stores84 rather than combiner120."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/compare_pc_mesh_readers.py",
+          "locator": "fiveDXcases50exactfields",
+          "observation": "Native and compiled source compare identical inputs, cursor, metadata and all geometry bytes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_full_loader.py",
+          "locator": "422B50->4AA870->429BC0;44checks",
+          "observation": "Full generic native loader with empty Animation root and one mesh executes actual nonempty hook and keeps root independent of prebound mesh; constructed FFPS only."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-mesh-generated-render.md",
+          "locator": "CP73;42AFD0/429BC0/4AA000/4AE0E0/479E20/46A240/4CFFE0/4AE930/4BE210",
+          "observation": "2 exact92 native assertions, original decoded flags803 mesh and COM payloads consumed unchanged by generating Skin draw;65472-byte peak,61 freed owners, fixed arena and explicit retired stream input."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-scene-mesh-render.md",
+          "locator": "CP74;43ECC0/4535A0/45A7D0/429BC0/46A240/4CFFE0/4AE930",
+          "observation": "4 exact261 native assertions,65424-byte fixed arena peak and107 freed owner generations; raw SAN/scene worlds, decoded mesh and complete draw trace."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-mesh-writer.md",
+          "locator": "CP95;41A270/434E40/429EA0/4298A0/013BC5E0/472590/45FC90/460400",
+          "observation": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released."
+        }
+      ],
+      "unknowns": [
+        "Whole native FFPS save, exporter registrations and arbitrary graph integration remain open.",
+        "All vertex formats, exceptional failures, native rollback and device lifecycle require independent evidence."
+      ]
+    },
+    {
+      "className": "spDXMeshData",
+      "platformKey": "pc",
+      "coverageScore": 62,
+      "lowerBound": 47,
+      "upperBound": 74,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-dx-mesh-data.md",
+          "sourceSha256": "6D726FF3EFC1A98EEE36E5E49442B86D4F0377DADAB61D59FBA5A24494BB4507",
+          "locator": "spDXMeshData: PC identity/lifetime/behavior sections; catalog registration RVA 0x002D3C90",
+          "observation": "The dossier records this platform's addresses and local mesh behavior separately from unresolved dependencies. Score is an expert class-weighted estimate, not instruction/method/test or elapsed-work coverage."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-mesh-writer.md",
+          "locator": "CP95;41A270/434E40/429EA0/4298A0/013BC5E0/472590/45FC90/460400",
+          "observation": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released."
+        }
+      ],
+      "unknowns": [
+        "Whole native FFPS save, exporter registrations and arbitrary graph integration remain open.",
+        "All vertex formats, exceptional failures, native rollback and device lifecycle require independent evidence."
+      ]
+    },
+    {
+      "className": "spMeshData",
+      "platformKey": "pc",
+      "coverageScore": 82.0,
+      "lowerBound": 75.0,
+      "upperBound": 88.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-model-render-world.json",
+          "sourceSha256": "85795E1E113401CED6890A3B099D402113D86F6900300137804BCB9B459DF2EB",
+          "locator": "classes/spMeshData/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Part of47 native checks proves untouched owners via CC allocator and exact58; explicit fixture zeros only owners before actual destructor. Source safe-null divergence retained; Model uses base Mesh polymorphically."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-mesh-writer.md",
+          "locator": "CP95;41A270/434E40/429EA0/4298A0/013BC5E0/472590/45FC90/460400",
+          "observation": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released."
+        }
+      ],
+      "unknowns": [
+        "Whole native FFPS save, exporter registrations and arbitrary graph integration remain open.",
+        "All vertex formats, exceptional failures, native rollback and device lifecycle require independent evidence."
+      ]
+    },
+    {
+      "className": "spMeshDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 60.0,
+      "lowerBound": 45.0,
+      "upperBound": 77.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_serializer.py",
+          "locator": "base-cross26checks;42AEF0/42AFD0/42B420",
+          "observation": "Actual factory and original header/reader ignore object ID/marker, consume cross-platform field0 and materialize standalone DX buffers/declaration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/compare_pc_mesh_readers.py",
+          "locator": "base-cross10exactfields",
+          "observation": "Compiled source and original match identical input, cursor, FVF/stride/sizes/count and exact vertex/index bytes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spMeshDataSerializer.cpp",
+          "locator": "ReadObjectHeaderAndCreateForAnalysis/ReadMeshFieldsForAnalysis",
+          "observation": "Existing CPU codecs and initializer reused with explicit extent/allocation guards and optional renderer/active combiner; no separate import core."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-mesh-writer.md",
+          "locator": "CP95;41A270/434E40/429EA0/4298A0/013BC5E0/472590/45FC90/460400",
+          "observation": "CP95 thirty exact210 native assertions: whole PC429EA0/013BC5E0 writer on actual CPU MeshData, fixed-u32 cross/native fields and packed-header distinction, exact source bytes and source backend reread; all actual owners released."
+        }
+      ],
+      "unknowns": [
+        "Whole native FFPS save, exporter registrations and arbitrary graph integration remain open.",
+        "All vertex formats, exceptional failures, native rollback and device lifecycle require independent evidence."
+      ]
+    }
+  ]
+}

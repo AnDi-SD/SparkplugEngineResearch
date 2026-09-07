@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-material-install-2026-09-07T00:56:19Z",
+  "createdUtc":"2026-09-07T00:56:19Z",
+  "notes":"CP33;6 exact/81 native;45 source;40CTest; PC only, no complete render/display claim.",
+  "assessments":[{
+    "className":"spDXRenderer","coverageScore":57,"lowerBound":45,"upperBound":70,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"55→57: original4BE180 copies material before color update;4BB890 refreshes selected state source, forces lighting and applies per-state override table through original state cache.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-install.md","locator":"CP33;4BE180/4BB890/4A9530;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"6 exact/81 native,45 source,40CTest; shared controller, same frame/repeats, override source and HRESULT failure, intermediate command/state ordering."}],
+    "unknowns":["Full pass/mesh submission, coordinate override producer semantics, complete renderer lifecycle/reset, whole-file save/display and nonstandard shader paths remain open.","Native NULL/uninitialized/OOB cases remain explicit source guards, not native-safe behavior; original names/defaults not invented. No PS2 transfer."]
+  }]
+}

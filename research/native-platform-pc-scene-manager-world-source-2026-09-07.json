@@ -1,0 +1,38 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-scene-manager-world-source-2026-09-07T10:09:13Z",
+  "createdUtc": "2026-09-07T10:09:13Z",
+  "notes": "CP71 source scene manager slice and executable differential;50 native42 source assertions, six captures, all tracked owners freed, unchanged limits.",
+  "assessments": [
+    {
+      "className": "spSceneManager",
+      "platformKey": "pc",
+      "coverageScore": 76,
+      "lowerBound": 64,
+      "upperBound": 85,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP71 adds portable borrowed scene-list/world/clone/singleton slice and six exact native/source captures; post-call list mutations verified. Full scene construction, typed registrations and reparent are separate.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spSceneManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 81 checks: original special dispatch calls actual sky/projection/flare registries, reparent clears old scene and preserves new order; all four projection IDs matched, base and neighbor ignored.58DA4026 deliberately unnamed; minimal borrowed geometry ID leaves explicit."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-scene-manager-world-source.md",
+          "locator": "CP71;45ADF0/45A7D0/45AE50/45ADD0",
+          "observation": "Six exact captures,50 native and42 source assertions. Original list/current/root dispatch, post-call append/remove-next/false-result, borrowed lifetime and clone/singleton semantics; source guards and explicit scene view boundary."
+        }
+      ],
+      "unknowns": [
+        "Full spScene constructor/subsystem ownership, typed scene registrations/reparent/partition/occlusion paths and original member/header names remain incomplete.",
+        "Scene views/list inputs are explicit; callback current destruction/reentry is guarded on host, not declared natively safe."
+      ]
+    }
+  ]
+}

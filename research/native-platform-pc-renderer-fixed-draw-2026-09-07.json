@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-renderer-fixed-draw-2026-09-07T02:21:23Z",
+  "createdUtc":"2026-09-07T02:21:23Z",
+  "notes":"CP40;3 exact21 native plus5 exact39 native regression;56 source/44CTest; whole automatic no-weight chain only.",
+  "assessments":[{
+    "className":"spDXRenderer","coverageScore":67,"lowerBound":55,"upperBound":79,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"66→67: actual4BC290 automatic no-weight branch executes real key/manager/NULL constant branch and common device draw; source shares resolved draw core.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-renderer-fixed-draw.md","locator":"CP40;4BC290/4BE310/4C8980/4BE2B0","observation":"3 exact21 native, earlier5 exact39 rechecked; NULL bind/repeats/pixel/HRESULT, no generating miss or fake internal constants."}],
+    "unknowns":["Weighted automatic draw/constants generation, full buffers/material/mesh submission, renderer lifecycle/reset and actual whole-file display/save remain incomplete.","Declared renderer/pixel/device inputs and injected portable manager do not establish full startup, compiled shader validity or live GPU behavior. PS2 unchanged."]
+  }]
+}

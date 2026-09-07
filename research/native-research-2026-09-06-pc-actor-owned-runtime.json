@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-actor-owned-runtime-2026-09-05T20:43:07Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T20:43:07Z",
+  "notes": "Fourth checkpoint of ongoing cycle due 10:00 MSK. Portable owned actor integration and original-to-portable six-sequence validation; original node matrix startup dependency discovered and executed. Actor74->78 for integrated behavior/order validation; node94->95 for constructor/global-init contract. NodeController score unchanged for reuse of previously established code. Fixed denominators unchanged. Not a full engine frame, callback dispatcher, resource loader or renderer implementation; no game/app/assets writes or publication.",
+  "classes": [
+    {
+      "className": "spActor",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 78,
+      "lowerBound": 67,
+      "upperBound": 86,
+      "priorityTier": 1,
+      "summary": "Owned descendant discovery, Start/Rebind/Stop/StopAll and full owned Tick now use existing manager, SAN keys and node controller/evaluator. Six original/portable sequences validate input caches/counters, node PRS and event ordering. Remaining public controls, two-input upstream contract, borrowed animation lifetime, event reentry and external engine frame remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spActor.cpp",
+          "locator": "DiscoverNodeForAnalysis;BindDescendantsForAnalysis;StartForAnalysis;BuildBindingPlan;StopForAnalysis;TickForAnalysis",
+          "observation": "Same original-class core now owns controller/name leases and maps last duplicate node name, preserves per-state old-pointer capture order and physical cache/counter semantics. Host working-copy preflight rejects overlapping third input before publishing states/actions/request weight; original unsafe input not executed. Borrowed animation lifetime remains caller precondition, tree and StopAll are not global rollback. C++ owned-binding suite81/81; CTest11/11.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_actor_binding.py",
+          "locator": "normal915;blend1299;oneshot731;transition726;fade_stop558;suppressed925",
+          "observation": "5154 comparisons across six bounded bbush.san sequences: three playback states, two real named nodes, physical input pointer identity/priorities/caches, local/world PRS/flags and queued/immediate/flush order. Native manager dispatches actor; portable observation advances manager with actor disabled then explicitly calls same Tick to collect actions, real portable dispatch separately tested. World update explicitly requested at snapshot, not a recovered outer frame hook. All original tracked allocations freed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "call_graph",
+          "sourcePath": "docs/research/native-pc-actor-owned-runtime.md",
+          "locator": "0x005A1E30;0x005A1C10;0x005A20A0;0x005A21C0",
+          "observation": "Integrated execution preserves original event payload distinction (state4/5, tag11, other checked animation events), immediate stopped3 after flush and repeated inactive Stop. Start reads request durations14/1C but does not copy them to state14/1C, nor reset sample34/stopAfterFade3C. Those unused state words remain unnamed in PC ABI.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNode",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 95,
+      "lowerBound": 90,
+      "upperBound": 98,
+      "priorityTier": 1,
+      "summary": "PC B4 node constructor and normal release now executed; both orientation matrices copy global7600BC initialized by original6D38E0->462250. Full world update already established. Parent/scene/collision ownership, complete engine ordering and original math type names remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_node_lifecycle.py",
+          "locator": "0x00421E20;0x00421BA0;0x004D3740;0x007600BC;0x006D38E0;0x00462250;0x0073F800",
+          "observation": "13/13 checks: PE-only uninitialized global produces zero orientation, original initializer at6D38E0 fills identity and real constructor copies it to local40/world8C; diagnostic nine distinct finite global values also copied to both matrices. B4/vtable6DC4F4, zero position/unit scale, flags70A00, null parent/scene and empty child/collision containers verified. Initializer pointer73F800 anchors static table. All tracked allocations released; no whole CRT initialization or renderer executed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_actor_binding.py",
+          "locator": "six actor scenarios; node local/world PRS and flags",
+          "observation": "Portable identity defaults unchanged: initial differential failure traced to missing original guest static initialization, corrected by executing native initializer rather than substituting expected matrix. Explicit per-snapshot world update agrees after real SAN sampling/controller writes across all six sequences; outer engine invocation order not claimed.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNodeController",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 74,
+      "lowerBound": 67,
+      "upperBound": 80,
+      "priorityTier": 1,
+      "summary": "Previously reconstructed direct/blended local PRS controller now exercised through owned actor discovery, SAN registry/key sampling and destruction. No score increase for integration alone. Full const-evaluator path, scene attachment and general runtime ownership remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "Sparkplug/Tests/spActorBindingTests.cpp",
+          "locator": "owned controller discovery/lifetime; actual manager dispatch; transition sequences",
+          "observation": "Actor-owned node controllers retain shared host nodes, one name lease each, and original transform evaluator. Duplicate slot-map last-wins behavior leaves all controllers in vector; teardown clears mark then releases lease/controller. C++81 checks and original/portable5154 comparisons cover integration, not a new controller algorithm or fully recovered source API.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

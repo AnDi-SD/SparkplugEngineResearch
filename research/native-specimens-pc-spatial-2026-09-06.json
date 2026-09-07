@@ -1,0 +1,1217 @@
+{
+  "kind": "pc-smo-variant-specimens",
+  "limits": {
+    "fileBytes": 4194304
+  },
+  "corpus": "pc-pristine",
+  "evidenceMode": "cached_variant_witness_selection",
+  "witnesses": [
+    {
+      "className": "spMeshData",
+      "variantId": 120,
+      "variant": "mesh_cross_only",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Bloom/bloom_projectile.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 327,
+          "payload_size": 404,
+          "payload_sha256": "3DC8EF1C9FEAA922258870057B211B4AEBB7C00B4DDDE9099D135A0BCE83CC2D",
+          "semantic_key": "mesh.cross_platform"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 732,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4536,
+      "relative_path": "Characters/Bloom/bloom_projectile.smo",
+      "sha256": "BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D",
+      "byte_size": 770,
+      "object_index": 4,
+      "physical_offset": 314,
+      "serialized_size": 418,
+      "type_hash": 868437232,
+      "name": ""
+    },
+    {
+      "className": "spMeshData",
+      "variantId": 121,
+      "variant": "mesh_direct3d_only",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Amaryl/Amaryl.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 282952,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4242,
+      "relative_path": "Characters/Amaryl/Amaryl.smo",
+      "sha256": "F147411A605F167ABA762CF7B5AA501D519BF80D2D975A6FC1B5CDEDF70AB789",
+      "byte_size": 354063,
+      "object_index": 6,
+      "physical_offset": 265319,
+      "serialized_size": 17633,
+      "type_hash": 868437232,
+      "name": "Amaryl_0_27558.811752"
+    },
+    {
+      "className": "spModel",
+      "variantId": 127,
+      "variant": "model_legacy_compact",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Gardenia/test_world_winx.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 2945,
+          "payload_size": 4,
+          "payload_sha256": "075DE2B906DBD7066DA008CAB735BEE896370154603579A50122F9B88545BD45",
+          "semantic_key": "renderable.material"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 2954,
+          "payload_size": 4,
+          "payload_sha256": "7AA8CA4A02506DA9133D8F889678B76F716CE45D02E22FDB7B70A15E56A0EFF8",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 2959,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 2964,
+          "payload_size": 4,
+          "payload_sha256": "42F4AEB81C1EF81F771F3DE8ABCA9DCF66901C575530E7672E4B1146474AE650",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 2969,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5401,
+      "relative_path": "Levels/Gardenia/test_world_winx.smo",
+      "sha256": "73BBCBD219E5874C77001D2DF2872E84501CC5FBBDC84ECDAC049333E4C01E50",
+      "byte_size": 134181,
+      "object_index": 14,
+      "physical_offset": 2932,
+      "serialized_size": 37,
+      "type_hash": 1983018971,
+      "name": "ramp-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 128,
+      "variant": "model_no_projection",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Bloom/Bloom_body.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 312272,
+          "payload_size": 142,
+          "payload_sha256": "60B6E81795008B0799310D4EBC1A462ABB956399C4705FCD451C591D6B8C8904",
+          "semantic_key": "renderable.material"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 312419,
+          "payload_size": 8,
+          "payload_sha256": "23D7F42B1CDC1F0D492EBD756ED0FE8003995DDA554D99418D47A81813650207",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 312428,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 312433,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 312438,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 312443,
+          "payload_size": 809,
+          "payload_sha256": "46244CDFA59187E425B26413A191682DB312D5A621A5ECEB0923D684C636783B",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 313253,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4522,
+      "relative_path": "Characters/Bloom/Bloom_body.smo",
+      "sha256": "3316BCE73A9F4098A4BC813E1231A81C4BEEC46FAB9C5BC34E6E9B5D1817E8F2",
+      "byte_size": 380828,
+      "object_index": 19,
+      "physical_offset": 312259,
+      "serialized_size": 994,
+      "type_hash": 1983018971,
+      "name": "Object01-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 129,
+      "variant": "model_full",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/BigGoop/Goopmonster.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 165277,
+          "payload_size": 8,
+          "payload_sha256": "AAE89FC0F03E2959AE4D701A80CC3915918C950B159F6ABB6C92C1433B1A8534",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 165286,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 165291,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 165296,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 165301,
+          "payload_size": 2649,
+          "payload_sha256": "ED2AD871B21E72D1FB09A82362C154E096527EC0888221C17B47084F9D29957C",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 167955,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "model.projection_group"
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 167960,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4346,
+      "relative_path": "Characters/BigGoop/Goopmonster.smo",
+      "sha256": "9AB656DFBAA016040C989930FAA164D4C9517ADA07CB1CEDBE94892D84D320FD",
+      "byte_size": 244595,
+      "object_index": 25,
+      "physical_offset": 99504,
+      "serialized_size": 68456,
+      "type_hash": 1983018971,
+      "name": "Goopeye01-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 130,
+      "variant": "model_no_fog_no_projection",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Gardenia/test_world_collision.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 215724,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 215729,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 215734,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 215739,
+          "payload_size": 882,
+          "payload_sha256": "7E9233E0EA4464848CFDB85D7C23F2613090270946BF5B40A11BF6CDCC3915AC",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 216622,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5397,
+      "relative_path": "Levels/Gardenia/test_world_collision.smo",
+      "sha256": "C75F7001958901E1B276CBD61FC53166E26B40B412F215DA76FB47CB451EBB80",
+      "byte_size": 241881,
+      "object_index": 58,
+      "physical_offset": 199135,
+      "serialized_size": 17487,
+      "type_hash": 1983018971,
+      "name": "Box05-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 131,
+      "variant": "model_no_fog",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/DatingAssets/mini_level_date_02.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 6559,
+          "payload_size": 142,
+          "payload_sha256": "AD68C635F4E68983C9B7567E18DEF5FFEDD21B381C372E7634E40D8C5F624450",
+          "semantic_key": "renderable.material"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 6702,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 6707,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 6712,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 6717,
+          "payload_size": 3461,
+          "payload_sha256": "917DCD738C91E1BE967E2D52A3C42D9F7E75EDE5100B80FA8A38001572F6C7FE",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 10183,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "model.projection_group"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 10188,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4703,
+      "relative_path": "Characters/DatingAssets/mini_level_date_02.smo",
+      "sha256": "A982A362FA0DB830731D68807429224C4CCEFBF18D751CF98121145C923D2308",
+      "byte_size": 763460,
+      "object_index": 2,
+      "physical_offset": 6546,
+      "serialized_size": 3642,
+      "type_hash": 1983018971,
+      "name": "sky-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 132,
+      "variant": "model_no_material_no_projection",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Bloom/bloom_projectile.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 251,
+          "payload_size": 39,
+          "payload_sha256": "DC3CDBE8F7D5C6ED80067CC41D53C0F590ED1FFE9456BC12B0B5536C8CDEF994",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 291,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 296,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 301,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 306,
+          "payload_size": 426,
+          "payload_sha256": "A6285DB7EE956F32FC1C8C91ABA1215699633B6F83B48EB2B9446D45149455CD",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 733,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4536,
+      "relative_path": "Characters/Bloom/bloom_projectile.smo",
+      "sha256": "BE5C62D8A9A00FCBB51E987C7C9FFBDC92433C0FA2BB81001E20A9A2419C928D",
+      "byte_size": 770,
+      "object_index": 2,
+      "physical_offset": 238,
+      "serialized_size": 495,
+      "type_hash": 1983018971,
+      "name": "projectile01-000"
+    },
+    {
+      "className": "spModel",
+      "variantId": 133,
+      "variant": "model_no_material",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Animals/bird.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 1129,
+          "payload_size": 39,
+          "payload_sha256": "DC3CDBE8F7D5C6ED80067CC41D53C0F590ED1FFE9456BC12B0B5536C8CDEF994",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 1169,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 1174,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 1179,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 1184,
+          "payload_size": 707,
+          "payload_sha256": "7F00A63EDF4B4BC3A52E63EBCF26023849B9AE9A918466D36FBF12F6D6749375",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 1896,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "model.projection_group"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 1901,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4253,
+      "relative_path": "Characters/Animals/bird.smo",
+      "sha256": "2BB9E4376E6F5A6D42FF41265E90C343ADDBC75342A45466FC57AD997FB3C37D",
+      "byte_size": 85562,
+      "object_index": 2,
+      "physical_offset": 1116,
+      "serialized_size": 785,
+      "type_hash": 1983018971,
+      "name": "Box01-000"
+    },
+    {
+      "className": "spSkin",
+      "variantId": 135,
+      "variant": "skin_full",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Amaryl/Amaryl.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 265256,
+          "payload_size": 39,
+          "payload_sha256": "8075EC5CED842B41E236CFEDA95A400FA76DB049AED0C77E8DB47D6A4598AB1D",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 265296,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 265301,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 265306,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 282957,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "model.projection_group"
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 282962,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 282967,
+          "payload_size": 2050,
+          "payload_sha256": "A8474C3AF6716BE9F7B15D7681F6AE14640137AC5AF006A94AB152E50A5E92ED",
+          "semantic_key": "skin.palette"
+        },
+        {
+          "field_index": 9,
+          "absolute_payload_offset": 285018,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4242,
+      "relative_path": "Characters/Amaryl/Amaryl.smo",
+      "sha256": "F147411A605F167ABA762CF7B5AA501D519BF80D2D975A6FC1B5CDEDF70AB789",
+      "byte_size": 354063,
+      "object_index": 2,
+      "physical_offset": 2875,
+      "serialized_size": 282143,
+      "type_hash": 1746870339,
+      "name": "Amaryl-000"
+    },
+    {
+      "className": "spSkin",
+      "variantId": 136,
+      "variant": "skin_no_projection",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/Bloom/Bloom_body.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 266234,
+          "payload_size": 39,
+          "payload_sha256": "8075EC5CED842B41E236CFEDA95A400FA76DB049AED0C77E8DB47D6A4598AB1D",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 266274,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 266279,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 266284,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 310999,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 336772,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4522,
+      "relative_path": "Characters/Bloom/Bloom_body.smo",
+      "sha256": "3316BCE73A9F4098A4BC813E1231A81C4BEEC46FAB9C5BC34E6E9B5D1817E8F2",
+      "byte_size": 380828,
+      "object_index": 2,
+      "physical_offset": 3862,
+      "serialized_size": 332910,
+      "type_hash": 1746870339,
+      "name": "bloom_jeans_new-000"
+    },
+    {
+      "className": "spSkin",
+      "variantId": 137,
+      "variant": "skin_no_material",
+      "sourcePath": "local-data/pc-pristine/Media/Characters/DatingAssets/prince_dating_outfit_03.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 74386,
+          "payload_size": 8,
+          "payload_sha256": "23D7F42B1CDC1F0D492EBD756ED0FE8003995DDA554D99418D47A81813650207",
+          "semantic_key": "renderable.fog"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 74395,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "renderable.alpha_sort"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 74400,
+          "payload_size": 4,
+          "payload_sha256": "67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450",
+          "semantic_key": "renderable.priority"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 74405,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 74410,
+          "payload_size": 535,
+          "payload_sha256": "73BC9B98EEDE5D64BF709C2B62EE62469958020797573844CE52AA8C4F08A588",
+          "semantic_key": "model.base_mesh"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 74950,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "model.projection_group"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 74955,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 74960,
+          "payload_size": 1860,
+          "payload_sha256": "7CA7EC568F3CEFF81A3B61EC8162233CEB4B0FEE582BBD8FB35633E659380E05",
+          "semantic_key": "skin.palette"
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 76821,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 4710,
+      "relative_path": "Characters/DatingAssets/prince_dating_outfit_03.smo",
+      "sha256": "762B7B9674FA706ADF25BAAFC2FCB9A3D0B9E9E355BE7463CE19BDA32661B504",
+      "byte_size": 531955,
+      "object_index": 33,
+      "physical_offset": 74373,
+      "serialized_size": 2448,
+      "type_hash": 1746870339,
+      "name": "Sky_Head-003"
+    },
+    {
+      "className": "spPartitionNode",
+      "variantId": 144,
+      "variant": "partition_node_common_relationship_layout",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Alfea/Alfea_broken_02.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 891359,
+          "payload_size": 4,
+          "payload_sha256": "A1C245EEBC79386F59720B7358249FBA51264EB748A6AEC72D60E2474D1532EA",
+          "semantic_key": "partition_node.debug_color"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 891368,
+          "payload_size": 8,
+          "payload_sha256": "4ADEB4453CB2E0D4F186667F3052BF6C34B102CF0FA25910F6964F4F8A55AB84",
+          "semantic_key": "partition_node.partition_system"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 891381,
+          "payload_size": 8,
+          "payload_sha256": "FB59317B8103F19F3850F0BE3FE62DB1AA481A9A7B31C590E6D243E98EACD375",
+          "semantic_key": "partition_node.zone"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 891394,
+          "payload_size": 594,
+          "payload_sha256": "13EE7BB0385B77F5DBC6508C42C708C9F32A459763713D7E609B3B869A1011E1",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 891993,
+          "payload_size": 230,
+          "payload_sha256": "707CA3E249813A3470F59AFEAB4A7023489A949562FB784EA147CA2529B50DD4",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 892228,
+          "payload_size": 775,
+          "payload_sha256": "F6EC37C2DBCBCB7161472A8B61D9E2BECFA4BE35025D009398B58E35B7A84C8F",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 893008,
+          "payload_size": 355,
+          "payload_sha256": "0039C3C92C808CD3873F51BC9EC5C87AAADEDF4FC97DD310B353AE37FA9D54CA",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 893368,
+          "payload_size": 304,
+          "payload_sha256": "25F87491F08D2ED5E3A2642531B7564580C226C745B5BD075553A7FE07BFCF8D",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 893677,
+          "payload_size": 1003,
+          "payload_sha256": "154CD92DF16449E04C04B702CBA63F1C4B40F23C9118CCA5B8CCA69F5C5AA189",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 9,
+          "absolute_payload_offset": 894685,
+          "payload_size": 193,
+          "payload_sha256": "3DD2C66F35FF9B1AF442550A41026626D50B6E961F7AE0955BF8487B6B8C8DF6",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 10,
+          "absolute_payload_offset": 894883,
+          "payload_size": 442,
+          "payload_sha256": "7B80AEFC3E6A1B008FE1314685E063C155C0D120DD1FF274AF87915B0832428E",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 11,
+          "absolute_payload_offset": 895330,
+          "payload_size": 724,
+          "payload_sha256": "66B1B37A9CF06F9209BBD2CCB0401F967C9F8321AF31F6694C0A41B01091F9BB",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 12,
+          "absolute_payload_offset": 896059,
+          "payload_size": 324,
+          "payload_sha256": "8118643BD820FE7DD3C395DF10FDFBEE41A4949BC3301488B1CEEDA95C9457AE",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 13,
+          "absolute_payload_offset": 896388,
+          "payload_size": 1030,
+          "payload_sha256": "678A7A99019604336B1A73A03901B758A7C134CA4CDCE0D01C1E6698E65841F1",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 14,
+          "absolute_payload_offset": 897423,
+          "payload_size": 724,
+          "payload_sha256": "0E361BA156B5E31C00A5838D0D31CB257BA27557D16014DD25BCBC1D7BF6B2B2",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 15,
+          "absolute_payload_offset": 898152,
+          "payload_size": 324,
+          "payload_sha256": "C8CC38418D79B080BFC84EEF5D1C0FD93A3C8735454925AD4949D406A299C5F8",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 16,
+          "absolute_payload_offset": 898481,
+          "payload_size": 1147,
+          "payload_sha256": "0BA507332314EA94B9C30D9D0BEE99387B9B45A15277E01846891B7C117245C7",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 17,
+          "absolute_payload_offset": 899633,
+          "payload_size": 324,
+          "payload_sha256": "28201AA9D741875137E5874B0F682C06D595BE8A2CF2B610962EA3382B161C1F",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 18,
+          "absolute_payload_offset": 899962,
+          "payload_size": 259,
+          "payload_sha256": "D144592780BD42C9228B61AE4ECB58C363402C24CF603CF88F62A70DDCCC31CD",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 19,
+          "absolute_payload_offset": 900226,
+          "payload_size": 324,
+          "payload_sha256": "F21F6832E31BAA40FDABF0086C4DC8F7566BF4BB7EA33FEC67AC26ABED3D8B98",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 20,
+          "absolute_payload_offset": 900555,
+          "payload_size": 324,
+          "payload_sha256": "EAC8C1C513ADAE276540443E44DE6C0FE636C2C31AB841543B76EA6AB54C31FA",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 21,
+          "absolute_payload_offset": 900884,
+          "payload_size": 301,
+          "payload_sha256": "B12C92BEDFF24A61E18BA61A376EEC045482F52A58759F5EE94B23AC0456BE46",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 22,
+          "absolute_payload_offset": 901190,
+          "payload_size": 324,
+          "payload_sha256": "98D70D709E5106203F8EF8F5E90A0275348685E1CD1678EC97DFD1D452D00A95",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 23,
+          "absolute_payload_offset": 901519,
+          "payload_size": 324,
+          "payload_sha256": "BFAF9C1F64660685D6C8784A510A4A97452CC6198B1C6A8FB228BB1AC27F168D",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 24,
+          "absolute_payload_offset": 901848,
+          "payload_size": 324,
+          "payload_sha256": "8CB4FEEBD0B9A45E179F41BA0D2EB3EAFAB78D902AA7B1B95A2C00E0546DC764",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 25,
+          "absolute_payload_offset": 902177,
+          "payload_size": 324,
+          "payload_sha256": "E81CC2FE9E74DDA88F23D5E5061DF44BB0D8A1EA1EF14E107478DF034DDFEB3C",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 26,
+          "absolute_payload_offset": 902506,
+          "payload_size": 324,
+          "payload_sha256": "89652DBE21B618D72203721F955BF47F8C2ECCB0117C16D2A6E93F2EA41D1AA9",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 27,
+          "absolute_payload_offset": 902835,
+          "payload_size": 324,
+          "payload_sha256": "C00050A2DD687EF1861BFCB35146BF07FE1D2D56B56B0F8F69F1F36E80552443",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 28,
+          "absolute_payload_offset": 903164,
+          "payload_size": 324,
+          "payload_sha256": "6BCFE0CF158FCF00FD28B6746DD2AA44AB7B4EC9CF391C8C840E0349C6946222",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 29,
+          "absolute_payload_offset": 903493,
+          "payload_size": 356,
+          "payload_sha256": "11438DDCFEA41B9AB5F4BBE1D054DE1C585E4063C54BF9729349361C255CD4C0",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 31,
+          "absolute_payload_offset": 908576,
+          "payload_size": 304,
+          "payload_sha256": "1C7613F7189AC39B412AD8CCD50BAE4285A7A17EB85FE5E2793220F9B1966373",
+          "semantic_key": "partition_node.collision_info"
+        },
+        {
+          "field_index": 32,
+          "absolute_payload_offset": 908885,
+          "payload_size": 240,
+          "payload_sha256": "2F88C4AF1C57E0C0450A2CB2A2D0C29C5FA6B823481E0EB003219EC5656E395D",
+          "semantic_key": "partition_node.collision_info"
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5291,
+      "relative_path": "Levels/Alfea/Alfea_broken_02.smo",
+      "sha256": "BA7EFE9379AB6688E03773B3D2E7480F9C9D78915CE7310D48C26F23AB3589E6",
+      "byte_size": 4167047,
+      "object_index": 258,
+      "physical_offset": 891350,
+      "serialized_size": 3274511,
+      "type_hash": 1734812481,
+      "name": ""
+    },
+    {
+      "className": "spOctreeNode",
+      "variantId": 145,
+      "variant": "octree_node_common_layout",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Challenges/race_01.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 214258,
+          "payload_size": 4,
+          "payload_sha256": "A1C245EEBC79386F59720B7358249FBA51264EB748A6AEC72D60E2474D1532EA",
+          "semantic_key": "partition_node.debug_color"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 214267,
+          "payload_size": 8,
+          "payload_sha256": "E7ED77624BEF61797EED1A770A22F9886DDB54EBCA1D37FE401302B08937AE17",
+          "semantic_key": "partition_node.partition_system"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 214280,
+          "payload_size": 8,
+          "payload_sha256": "39240F2345CEE1346E628C000AB0876632717AEBF8781AF9B266B612BCADFC95",
+          "semantic_key": "partition_node.zone"
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 3659345,
+          "payload_size": 61,
+          "payload_sha256": "E22E6325771411C4291E188C5A95D1584A36FAFA68D95D7AB2389923BC3732A3",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 3659411,
+          "payload_size": 61,
+          "payload_sha256": "B9340941EF3BE73CFD51F9728E43F481DEFC4B46D08F52EB5C0E24D88516E8C6",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 9,
+          "absolute_payload_offset": 3659477,
+          "payload_size": 61,
+          "payload_sha256": "9E2AFC2851BED7DDE46AB8C6A572A36CF3633274BF0D251A274E70F3A19AD5A3",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 10,
+          "absolute_payload_offset": 3659543,
+          "payload_size": 61,
+          "payload_sha256": "73EAA0AB9FAB287C84377C9F73A53E378D782B2BEEE9197432C99E2008859A6C",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 11,
+          "absolute_payload_offset": 3659609,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "partition_node.partition_renderable"
+        },
+        {
+          "field_index": 12,
+          "absolute_payload_offset": 3659614,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 13,
+          "absolute_payload_offset": 3659616,
+          "payload_size": 12,
+          "payload_sha256": "BB419E0276CEC6C0972964B5C3129C444462A91F5907F37D2CD7B41C91EFF3DD",
+          "semantic_key": "octree_node.pivot"
+        },
+        {
+          "field_index": 14,
+          "absolute_payload_offset": 3659630,
+          "payload_size": 12,
+          "payload_sha256": "65B3239F231FC1C3F35DD60708D45106B93F07416B34E9C8C93AB24517F402EA",
+          "semantic_key": "octree_node.minimum"
+        },
+        {
+          "field_index": 15,
+          "absolute_payload_offset": 3659644,
+          "payload_size": 12,
+          "payload_sha256": "4D20CF718C11C1436F1AC5412ADF6F14C22471EB5E05789D7A85C2F72D18B8D0",
+          "semantic_key": "octree_node.maximum"
+        },
+        {
+          "field_index": 16,
+          "absolute_payload_offset": 3659657,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5305,
+      "relative_path": "Levels/Challenges/race_01.smo",
+      "sha256": "51A680246630A71CD3CEFC4566AB5B7A4FCACD9E2B98E798B1262666C5CA3315",
+      "byte_size": 3660533,
+      "object_index": 95,
+      "physical_offset": 214249,
+      "serialized_size": 3445408,
+      "type_hash": 564594729,
+      "name": ""
+    },
+    {
+      "className": "spBSPNode",
+      "variantId": 150,
+      "variant": "bsp_node_common_binary_split",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Alfea/Alfea_broken_02.smo",
+      "fields": [
+        {
+          "field_index": 0,
+          "absolute_payload_offset": 4166852,
+          "payload_size": 4,
+          "payload_sha256": "AD95131BC0B799C0B1AF477FB14FCF26A6A9F76079E48BF090ACB7E8367BFD0E",
+          "semantic_key": "partition_node.debug_color"
+        },
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 4166861,
+          "payload_size": 8,
+          "payload_sha256": "4ADEB4453CB2E0D4F186667F3052BF6C34B102CF0FA25910F6964F4F8A55AB84",
+          "semantic_key": "partition_node.partition_system"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 4166874,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "partition_node.zone"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 4166883,
+          "payload_size": 113,
+          "payload_sha256": "BF8EF3BD7E2BB950DDC7393AD5C6BA6AF82F11623E940D8D7CD69AE19EE0A7A2",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 4,
+          "absolute_payload_offset": 4167001,
+          "payload_size": 12,
+          "payload_sha256": "FED9DD65D11DE0F57E85954A57884E7F4D4D95E4AE8B0FA973D98C758E53F530",
+          "semantic_key": "partition_node.child"
+        },
+        {
+          "field_index": 5,
+          "absolute_payload_offset": 4167018,
+          "payload_size": 4,
+          "payload_sha256": "DF3F619804A92FDB4057192DC43DD748EA778ADC52BC498CE80524C014B81119",
+          "semantic_key": "partition_node.partition_renderable"
+        },
+        {
+          "field_index": 6,
+          "absolute_payload_offset": 4167023,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        },
+        {
+          "field_index": 7,
+          "absolute_payload_offset": 4167028,
+          "payload_size": 16,
+          "payload_sha256": "5A87BC722BE466C02BF4DBD253F6D82AE5767DB6F593681FB1873153FE41916A",
+          "semantic_key": "bsp_node.plane"
+        },
+        {
+          "field_index": 8,
+          "absolute_payload_offset": 4167045,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5291,
+      "relative_path": "Levels/Alfea/Alfea_broken_02.smo",
+      "sha256": "BA7EFE9379AB6688E03773B3D2E7480F9C9D78915CE7310D48C26F23AB3589E6",
+      "byte_size": 4167047,
+      "object_index": 2215,
+      "physical_offset": 4166843,
+      "serialized_size": 202,
+      "type_hash": 1935846178,
+      "name": ""
+    },
+    {
+      "className": "spZonePortal",
+      "variantId": 148,
+      "variant": "directed_zone_portal_with_polygon_and_open_state",
+      "sourcePath": "local-data/pc-pristine/Media/Levels/Alfea/Alfea_broken_02.smo",
+      "fields": [
+        {
+          "field_index": 1,
+          "absolute_payload_offset": 2228505,
+          "payload_size": 52,
+          "payload_sha256": "BCFF696C4478A3D7D76461649FD678BC3595A4F24048C2C9A230A3E0FDBABED2",
+          "semantic_key": "zone_portal.polygon"
+        },
+        {
+          "field_index": 2,
+          "absolute_payload_offset": 2228558,
+          "payload_size": 1,
+          "payload_sha256": "4BF5122F344554C53BDE2EBB8CD2B7E3D1600AD631C385A5D7CCE23C7785459A",
+          "semantic_key": "zone_portal.open"
+        },
+        {
+          "field_index": 3,
+          "absolute_payload_offset": 2228560,
+          "payload_size": 0,
+          "payload_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+          "semantic_key": null
+        }
+      ],
+      "fieldSampleLimit": 32,
+      "file_id": 5291,
+      "relative_path": "Levels/Alfea/Alfea_broken_02.smo",
+      "sha256": "BA7EFE9379AB6688E03773B3D2E7480F9C9D78915CE7310D48C26F23AB3589E6",
+      "byte_size": 4167047,
+      "object_index": 323,
+      "physical_offset": 909678,
+      "serialized_size": 1318882,
+      "type_hash": 1696836663,
+      "name": "portal01_BackToFront"
+    }
+  ],
+  "absent": [
+    {
+      "className": "spMeshData",
+      "variant": "mesh_cross_direct3d",
+      "reason": "bounded query cap; not proof of absence"
+    },
+    {
+      "className": "spMeshData",
+      "variant": "mesh_ps2_native_only",
+      "reason": "bounded query cap; not proof of absence"
+    },
+    {
+      "className": "spMeshData",
+      "variant": "mesh_cross_ps2_native",
+      "reason": "bounded query cap; not proof of absence"
+    },
+    {
+      "className": "spMeshData",
+      "variant": "mesh_ps2_native_bounds",
+      "reason": "bounded query cap; not proof of absence"
+    },
+    {
+      "className": "spMeshData",
+      "variant": "mesh_cross_ps2_native_bounds",
+      "reason": "no witness under selected PC pristine/file-size constraints"
+    }
+  ],
+  "warnings": [
+    "Field/hash verification is not a native loader or in-game render test."
+  ]
+}

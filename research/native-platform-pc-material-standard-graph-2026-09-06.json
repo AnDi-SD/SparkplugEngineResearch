@@ -1,0 +1,270 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-material-standard-graph-2026-09-06T17:35:01Z",
+  "createdUtc": "2026-09-06T17:35:01Z",
+  "notes": "Checkpoint13 continuing goal.116 native assertions,11 exact rows;16/16 standard-graph profile,31/31 CTests21.64s,Material367 source checks. Six first separate PC class grades include prior static/identity evidence. DX default power remains explicitly uninitialized, full clone/texture/controller/shader/render unsupported. No PS2/game/GPU/assets/publication.",
+  "assessments": [
+    {
+      "className": "spMaterialSerializer",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 55,
+      "upperBound": 87,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "70→75: common standard-layer read/index/write with9-state blocks, UV flag/matrix and direct-owner graph; external dependencies remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spMaterialDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 80,
+      "lowerBound": 60,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "75→80: actual42F4C0 ignores eight-byte header and creates DXMaterial; connected Model/Material graph matches common source output.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spDXMaterialDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 53,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "65→70: shared42F4C0 header identity resolved; same common standard-layer codec, no invented DX data format.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spMaterialPassLayer",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 50,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC-only assessment includes prior static RTTI/clone-edge work: actual38 factory; direct-delete layer owner, NULL replacement grows count and does not shift.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spMaterialTextureLayer",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 45,
+      "upperBound": 82,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC-only assessment includes prior static evidence: actual14 factory/dtor, direct-delete nested texture with refcount0; full clone policy remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spStdLayer",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 45,
+      "upperBound": 82,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC-only assessment: actual14 factory owns MaterialTexture68, confirmed class and common layer grammar; state application/clone/runtime dependencies open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spMaterialTexture",
+      "platformKey": "pc",
+      "coverageScore": 60,
+      "lowerBound": 40,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC-only assessment includes prior static layout/UV evidence: actual68, PC default nine-state vector, identity/static UV and zero-flag no-reset behavior. External pointers/renderer open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spDXMaterial",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 35,
+      "upperBound": 75,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC assessment: original runtime sibling of MaterialData, actualBC/header remap, transparent black defaults and uninitialized power, scalar-copy/dtor and bounded Model graph.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    },
+    {
+      "className": "spDXMaterialSerializer",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 35,
+      "upperBound": 75,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC assessment: original3C factory/RTTI and actual6D4C80 runtime registration; common header and secondary codec; extra DXShaderLayer helpers identified but not restored.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-standard-graph.md",
+          "locator": "checkpoint13; native116=56layer+7ownership+7DXfactory+15DXheader/copy+31graphs;11 exactrows",
+          "observation": "Explicit bounded PC native execution and compiled common source. Wrong prior shared-owner/default/header assumptions corrected; arbitrary auxiliary sentinel and missing DX runtime registry were fixture faults, not native caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-standard-graph 16/16, CTest31/31, Material367",
+          "observation": "Fresh sequential30sec children;100k instructions/2sec per native call,64KiB arena/32KiB request guards unchanged. First separate PC grades include earlier identity/static layout work."
+        }
+      ],
+      "unknowns": [
+        "Nonempty external texture/animation/UV/color-controller graph, nonstandard material layers including DXShaderLayer71643E66, allocation/alias/reentry/errors and full PC render application remain unclosed.",
+        "Original APIs/header paths and complete native clone graph/policy remain unresolved. Host bounds/unique ownership/canonical context pinning are explicit safety adaptations; unknown fields are not yet lossless.",
+        "Whole SMO Save and real resource-to-PC backend not complete. All previously capped original probes remain disabled without retries/resumption/raised limits. Direct37 heuristic is not goal denominator."
+      ]
+    }
+  ]
+}

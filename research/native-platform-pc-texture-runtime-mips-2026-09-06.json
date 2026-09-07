@@ -1,0 +1,183 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-texture-runtime-mips-2026-09-06T18:37:20Z",
+  "createdUtc": "2026-09-06T18:37:20Z",
+  "notes": "Checkpoint15 continuing goal.256native assertions=141runtime+94nativeData+21registry;14exact rows;24/24profile,451source checks,32/32CTests23.96s. CPU shadow not live COM. Actual startup key78EA082B differs from virtual ID0B1C67BB. No first grades/PS2 score/assets/publication. NativeData source adapter/palette/conversion/missing mip/errors remain open.",
+  "assessments": [
+    {
+      "className": "spDXTexture",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 43,
+      "upperBound": 83,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "50→65: original nativeData row-copy and runtime attachment differ; full tiny mip chains and class/header source shadow, no live device/missing-mip/palette completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    },
+    {
+      "className": "spDXTextureSerializer",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 50,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "35→70: actual flat runtime read/write for8 formats and6 multi-level cases,14 exact compiled source rows; palette/error/alias branches remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    },
+    {
+      "className": "spDXTextureDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 50,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "65→70: original native mip reader→temporaryTextureData→DXTexture copy completes9 cases; startup uses wire78EA082B, not virtual identifier0B1C67BB. Source nativeData adapter still pending.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    },
+    {
+      "className": "spTextureDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 80,
+      "lowerBound": 60,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "75→80: actual same-serializer recursive source field3 and common header/runtime identity clarified; compiled header now correct DXTexture CPU shadow; native/external source adapter not complete.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    },
+    {
+      "className": "spTextureData",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 79,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Retain85: temporary native vector16 record mapping/copy/destruction confirmed by9 full-chain DXData consumers. Palette/other containers and clone/error scope remain.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    },
+    {
+      "className": "spTexture",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 55,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Retain75: distinguishes423250 normalization,4ABBA0 nativeData state and4ABAC0 runtime attachment. Source exposes explicit CPU-only attachment subset.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-runtime-mips.md",
+          "locator": "checkpoint15;original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;256native/14exact",
+          "observation": "Flat runtime4B2950/4B27C0 versus nativeData42C640/42C3B0→4ABBA0; pitch padding absent from stream;44/48 not initialized by nativeData;18/1C/20 not initialized by runtime attach. Actual startup masks1/6/8 sharewire78EA082B."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-texture-runtime-mips24/24;source451;CTest32/32;Workbench10/platform12",
+          "observation": "Explicit tiny COM byte storage, full provided chains, no60FDB4/61039A conversion seam or GPU execution.100k instructions/2sec,30sec child,64KiB arena/32KiB request unchanged."
+        }
+      ],
+      "unknowns": [
+        "NativeData/source field3 compiled adapter, external source paths, palette spPalette591C0B9F ownership/renderer registration, clone/reinit/alias/failure rollback and live PC backend are not complete.",
+        "Internal60FDB4/61039A exact library attribution/conversion and missing-mip generation remain open. Bundled D3DX strings are only attribution lead, not proof for individual bodies. NativeData runtime44/48 remain untouched and cannot be invented as valid writer defaults.",
+        "Material/controller texture references, full FFPS Save/resource-to-render/lossless unknowns and original names/paths remain required. CPU shadow/pitch policy is not COM/GPU readiness. Old direct37 is not goal denominator."
+      ]
+    }
+  ]
+}

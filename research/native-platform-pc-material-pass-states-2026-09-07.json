@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-material-pass-states-2026-09-07T01:19:48Z",
+  "createdUtc":"2026-09-07T01:19:48Z",
+  "notes":"CP36;8 exact/32 counted native,160 source,40CTest. NULL textures in combined pass proof; no whole GPU/nonstandard resource claim.",
+  "assessments":[{
+    "className":"spDXRenderer","coverageScore":62,"lowerBound":50,"upperBound":75,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"58→62: actual4BBBA0 complete8x8 pass-state selection/cache dispatch, default-stage fallback, shader invalidation, texture-source overrides and4BC410 final blend with material mutation.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-pass-states.md","locator":"CP36;4BBBA0/4BC410/C29C/C748/C898","observation":"8 exact captures/32 counted native checks;160 source/40CTest; desired/raw states and intermediate COM snapshots, repeats/changes, failed HRESULT. Original known-family factories and no internal fake callbacks."}],
+    "unknowns":["Combined non-NULL full-pass texture integration, alternate RTTI/nonstandard layers, shader generation/selection, buffer/mesh submission, full renderer lifecycle/reset and whole-file save/display remain required.","Explicit source bounds/NULL/resolved-input guards are not native-safe malformed contracts; original enum/member names remain partly unknown. No PS2 transfer."]
+  }]
+}

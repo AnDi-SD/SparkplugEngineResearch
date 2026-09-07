@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-visibility-runtime-2026-09-06T03:04:21Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-06T03:04:21Z",
+  "notes": "Checkpoint13 ongoing PC-first cycle due10:00 MSK. Actual SceneInit/partition transfer and Visibility selection with explicit borrowed manager record, not successful constructor seam. Whole46C0F0 preparation stays capped100k/2s; no higher budgets. Source original-named partial Visibility record selection/math and exact ABI; native20+39/static25/C++17/differential1215/CTest16. New Visibility50, Scene45->58/System52->58/Zone65->68/PartitionNode58->63 =0.770 total/engine units; fixed scopes, no backfill. Portal/occluder/full Scene/GPU/source traversal open. No game/OS/GPU/PS2/apps/assets/publication.",
+  "classes": [
+    {
+      "className":"spVisibilityManager", "coverageScore":50, "lowerBound":35, "upperBound":64,
+      "researchStatus":"partial", "pcStatus":"partial", "ps2Status":"deferred", "priorityTier":1,
+      "summary":"Original AC/Base identity, two clipping scratch/pool lifecycle, active planes/output/reset, frame stamps and mixed supports/flags/override/wrap selection. Portable partial record-oriented class/math only. Whole factory46C0F0 capped, explicit borrowed manager in probes; portal/occluder/Octree traversal and full startup/source Scene open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_visibility_runtime.py","locator":"46D270/46C4D0/46B870;Scene40/Root7C/Support64;camera1A0/1D4","observation":"39 checks: real native graph objects and original whole visibility selection with declared borrowed manager ctor gap; order/dedup/Enabled/bypass/override/wrap, first plane through camera not near1C4. Two Zone roots ordinary both, Debug21 repeats selected system root. Normal allocations fully torn down, imported bounded memmove is explicit CRT seam.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"research/inspect_pc_visibility_runtime.py","locator":"7605E0/6E8CDC/6E8CD8;46D220;4902D0/490500","observation":"25 SHA/RTTI/table/CALL/gate checks; actual primary7 and support46C340(this-10), Base-only clone dispatch. Whole constructor and clone execution not completed. ABI AC/plane20/scratch2C compiled.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/compare_pc_visibility_runtime.py","locator":"4902D0/490500;46D270 vs spVisibilityManager/VisibilityMath;Tests/spVisibilityTests.cpp","observation":"1215 differential fields:536 results/268 plane-sphere cases plus679 fields/64 mixed-support original-frame cases. Tangency, disabled planes, cached-count asymmetry, literal NaN, stale/current marks and unsigned frame wrap. Portable17 tests and CTest16/16. Record adapter does not silently implement a Scene or portal geometry.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spScene", "coverageScore":58, "lowerBound":44, "upperBound":69,
+      "researchStatus":"partial", "pcStatus":"partial", "ps2Status":"deferred", "priorityTier":1,
+      "summary":"Whole original SceneInit/fallback graph and typed new-Partition attachment execute with explicit Visibility dependency; Light list link, owned fallback teardown and RenderNode transfer-before-reset proved. Scene40 is current visibility stamp. SceneRender45EC70, nonempty Occlusion/Collision paths and portable Scene still open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_scene_partition_init.py","locator":"45D850/45F4D0/45A970;48E940/48E790","observation":"20 checks: real System1D8/Root84/ZoneC8 ownership/refs and hierarchy, actual Init sets LightManager1C after older fixture assignment explicitly undone; typed attach detaches fallback and transfers real RenderNode reciprocal links. Whole Scene teardown frees graphs. Visibility manager record borrowed, D3D query recording leaf; not full original startup.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_visibility_runtime.py","locator":"46D270->Scene40","observation":"Actual frame stamp publication and unsigned wrap synchronize support marks, explaining later support visibility predicates. Camera override affects initial halfspace, not Scene ownership. Scene drawing not executed by this evidence.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spPartitionSystem", "coverageScore":58, "lowerBound":44, "upperBound":69,
+      "researchStatus":"partial", "pcStatus":"partial", "ps2Status":"deferred", "priorityTier":1,
+      "summary":"Prior exact physical/RTTI/lifetime plus actual Scene fallback creation/typed attach and48E940 RenderNode transfer-before-old-reset. Direct root cleanup verified through whole Scene teardown. Nonempty Collision/Occlusion transfer, concrete spatial queries and portable class open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_scene_partition_init.py","locator":"45D850/45A970;48E940->424DD0/Rootv28;48E790->Rootv80","observation":"Original selected/fallback refs3 and direct-owned root0; new System attachment uses native typed registration and real Node reciprocal callbacks; old vector clear only after transfer. No inferred universal Clear implementation.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spPartitionNode", "coverageScore":63, "lowerBound":47, "upperBound":74,
+      "researchStatus":"substantial", "pcStatus":"substantial", "ps2Status":"deferred", "priorityTier":1,
+      "summary":"Actual consumer resolves7C visited stamp, v40 base leaf selection and payload/static/dynamic output support addresses/ownership. SceneInit graph and transfer execute. Basev50 returns0; full Octree/portal/occluder clipping and source still open, not credited as whole tree traversal.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_visibility_runtime.py","locator":"46D270->Rootv40;46C4D0->Root7C/78/30/20;46B870","observation":"Constructed native root visited and mixed supports selected with distinct complete-object offsets. Marker freshness controls duplicate output. Normal path visits both Zone roots; debug loop repeats selected system root. ABI field7C renamed visibilityMark from actual writes, no guessed ZoneC4 meaning.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spZone", "coverageScore":68, "lowerBound":51, "upperBound":79,
+      "researchStatus":"substantial", "pcStatus":"substantial", "ps2Status":"deferred", "priorityTier":1,
+      "summary":"Prior borrowed root vector now populated by actual SceneInit and consumed by normal Visibility across two roots; Debug21 repeats system root despite Zone vector length. C4/portal transitions and full source remain open; wire-complete wording explicitly limited to serializer.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_visibility_runtime.py","locator":"multiple_zone_roots_debug_difference;46D2E2/46D470/46D4A0","observation":"Camera leaf60 resolves Zone, two borrowed local roots output both normal supports; Debug path only selected root and second-root mark remains previous frame. Zone does not acquire root ownership. SceneInit/teardown separately executes real parent/root intrusive graph.","confidence":"confirmed"}
+      ]
+    }
+  ]
+}

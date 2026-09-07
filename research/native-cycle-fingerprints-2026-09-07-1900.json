@@ -1,0 +1,3431 @@
+{
+  "kind": "native-cycle-current-fingerprints",
+  "schemaVersion": 1,
+  "createdUtc": "2026-09-07T15:52:34Z",
+  "sourceTreeSha256": "64B55FEB13FD05F0EA5B55FF7C022CEE837CC017B974A780CF6F01D3728F7E88",
+  "sources": [
+    {
+      "path": "Sparkplug/Code/SparkBase/spApp.cpp",
+      "sha256": "E859C5E2CDCB66DE961A5F4168054CA3A8866C2FE4AB82D706424371D4BA63E4"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spApp.h",
+      "sha256": "9EA108A49CB92F571714AA9F2B6AADF4275EEBB0E1FA4B596602E979BCAC0F48"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spAsyncFileStreamManager.cpp",
+      "sha256": "5DD6B5EBAA6EAB95189DC72F23CCA8A5D30E20D28A59AA8EFA46816FD55A447F"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spAsyncFileStreamManager.h",
+      "sha256": "669AD08C7DAE45C1194EC2F1434A3D0DC5A6225CA5C49FBBB0A2D8E919FED32D"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.cpp",
+      "sha256": "9B6065ADCCD55E34CBBD11497D63AF67D4133FF8852E09715A0F2FB956114846"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.h",
+      "sha256": "B244C0ACAA32FF6B66F77D53FFF803072463C954D9CEA502916ED4DB1800CA9C"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spErrorManager.cpp",
+      "sha256": "D720EDDAC4CA9FAFFAF544F37BE9B61394400496DA1A7923A5E3BB03E0B79706"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spErrorManager.h",
+      "sha256": "90D9F31FF965267C2ED598E3B97C7945EE7618B51854EC71516C8D175AE75574"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spFileStream.cpp",
+      "sha256": "F63E17AB5F1437AB2BD8A29382296DE73E3F8039C8BBDEC6878449F5CBD6103B"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spFileStream.h",
+      "sha256": "F1DB2462526A524F9DFF909EB32E0954A5AB3EECABE11CB0A09E0BA82E0E5DDD"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spMemoryStream.cpp",
+      "sha256": "6073311DC45B323C47A0CF79B79A3BD494A328D6E2EE29416C9F5128174F6D0A"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spMemoryStream.h",
+      "sha256": "8A9E42D8B909C90B1B79DB56A1DE0B786FB5E01A602B4E74E82F127DDB67E29A"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spPCKManager.cpp",
+      "sha256": "059D2C89CD959378C47B97E99410524B00CD6EBF2226C0A1EA712F54ADB04118"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spPCKManager.h",
+      "sha256": "9D18B4B631E20768A3823AF896727C5BCFFCCD0150A3B04A387534B9723379F3"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spStream.cpp",
+      "sha256": "BC627082CA612899A4F9F2ACAF0545999FDCAB5C31861286D2102B7BE5C67174"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spStream.h",
+      "sha256": "BA5497BF38EB82988AE3B11F34A01A51EE798D1ACE3EC5BFE504BEDE15BC6AD6"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spSubscriptionManager.cpp",
+      "sha256": "8BE4569D6438C6D22BA037262C2B67E3969C7D589097F11F6F08CF5345934899"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spSubscriptionManager.h",
+      "sha256": "0BA445B89E9971D83AEE939B51A3EA0A39A71B01CC27056D40BAB3DFD9492CE2"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePC/spPCAsyncFileStreamManager.cpp",
+      "sha256": "40B648647DCF1DE5C8D74923D44BEDF77562CA7B2932AB9EB8CD372062A99AF1"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePC/spPCAsyncFileStreamManager.h",
+      "sha256": "25568BEE27BB8F9C5D5B9489D3C46E09A91047C6BFADB364A2D1F12C76E22401"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePC/spPCFileStream.cpp",
+      "sha256": "4B25D9A4134BEC011C1071AFBA16D90E2564E6FC564FDA084072CAD545FDA00C"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePC/spPCFileStream.h",
+      "sha256": "B585CA234AB8C599FDAC7376712E2CEBDA218D9949DBAEBACE906F0392523646"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePS2/spPS2Helper.cpp",
+      "sha256": "6C8E9032E0ABAEE51CE62BA842960CC35E4E342E7C979B0181DCA8E5D2705829"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePS2/spPS2Helper.h",
+      "sha256": "0B69D362553AB4ACCB72D4FCE05E7FC1BF0642787618E6FE04D9CF7130E253A8"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePS2/spPS2IOPModuleManager.cpp",
+      "sha256": "B677706054D3AB5CFA611898520B4451767C4768A0ACE220E2EC2835B0450846"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBasePS2/spPS2IOPModuleManager.h",
+      "sha256": "1073EAE081E5F1C9096C8D2AE79B3EF8EC110D9FB873DC39FA88A05F505922C1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spActor.cpp",
+      "sha256": "3D17F9D1F271F8DCA21A8368AFEE6F6E4475885DD33850070D247E2E40D32934"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spActor.h",
+      "sha256": "541E48E416EC97A121BB933EDDB8FAA8758FD798085B58F90E80714C5872A153"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimation.cpp",
+      "sha256": "5A30BCB8F71E10C5F19070C76C7541AE1999EE5F6E7992CDB610C0602CFA3C7F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimation.h",
+      "sha256": "DFA39C490F856DE73DD28EA6D3D9D974DC51EE7584E9C2125B2A2FFFF5E0D01A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimationManager.cpp",
+      "sha256": "74866A6B7B2E1CB5AD7262A13F52A90362408D72CE327A617432344C467A5740"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimationManager.h",
+      "sha256": "0D477B6DCDD7D61D2B6517BBCD2DC4F1173E64ECD3B3FD624C4C1435EB6F4130"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimationSerializer.cpp",
+      "sha256": "9512AE71082D0D00E9C957F3F17532113C5AD3A3EC0D54EBAF88A204E66DCD08"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimationSerializer.h",
+      "sha256": "158B79A23598ADDD911CB811321C0018CE6DD0BFAEACC41A643ECA247F46DC3B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexController.cpp",
+      "sha256": "B89E8C69339366D3FDA86A95D65433F4440B0D710FF7F0868FF95BA5AEE7EB72"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexController.h",
+      "sha256": "993851CF426D57B27A559920252FC5F7A9A8FCE76A12F5D7D788A5B5B7BBB38B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.cpp",
+      "sha256": "E343AE93C8DF28AA68BDD7109D46AC2EF6D8E97F1252EF0EAF39A5065B5D0768"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.h",
+      "sha256": "D6E18683A10CDB8ECD3F30FD82D523721B63DA8BDAD40A29981338B24164F12D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTrack.cpp",
+      "sha256": "CE29F509558BBA1EDC40675F265FD293C08702295CA3D422FC65CF4A512DBD38"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTrack.h",
+      "sha256": "F832C06B0401F74EDBBF2D37A91E0BE3FBE317A53C28FD63EEBAEE414CFA8683"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.cpp",
+      "sha256": "E6E6F9C899738C7B12E9D4FE7ACACBD24689179217B12318F265A618FE756B96"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.h",
+      "sha256": "B7ECF4D7EEC211AF28FA5673D2084DC598E2074A8EAC96D1AECC374F9516ACEA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBSPNode.cpp",
+      "sha256": "270EBE9ABC4F6FE7B6D2DD96531BB2DEA7285F349342CB385F8EF9B0E1329CB5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBSPNode.h",
+      "sha256": "BFD27E2B7D702F1D5D34D530A40C338F31062DCD95E25DB3A73777FE7A3356BE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCamera.cpp",
+      "sha256": "C5B2D25AFE46F67425F0C1F94C3FD22620BD3514FEE30C09442219A33AA5B3E2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCamera.h",
+      "sha256": "818D058FD48BFF7C9423DA596770A9C34526DFE6972CDD0AA7316D81DE51A213"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraData.cpp",
+      "sha256": "D195D42609FD82B9B694AAA5D0DDFCC23C54279092CF94B752E146CEF1A1C3CE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraData.h",
+      "sha256": "3C45B0423AF9E42596D98A118B5377316A8EAADDCC8F4CBE8EB48990FA4C4674"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraDataSerializer.cpp",
+      "sha256": "E8A38C6CB31C5054240B9AD28CDC8F02E26E0BCD98E1AEDC404F935959FD7398"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraDataSerializer.h",
+      "sha256": "0CA6113DBDADE09F16EFB7A3D1457D6DC2D189B5798C8E16DD6543A62C5B9B2F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraSerializer.cpp",
+      "sha256": "89FFBA1F157F7D8C9A31AF65800B45FC829D243A39B87B45B8CD3952E291F238"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCameraSerializer.h",
+      "sha256": "C12332B541CB6B8B82CB21628C8FEC0E57F74502BBD786F6E42D8B0D612240FD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorEval.cpp",
+      "sha256": "09736A73147315A78C7638BEBCC045E0E155CCBB18A7822C367CE5E2CFD32CB2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorEval.h",
+      "sha256": "EA503F3FF64816F076A1B486891B906ED72B5239F07800DC41E0EC434FC64913"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorFuncEval.cpp",
+      "sha256": "9C338448CCDE00924564A83939CE719AA2D8F4ABC97F22DE10A11D877F4A4822"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorFuncEval.h",
+      "sha256": "8E347894590E14F23B06892118A68AD8D3CB19DA1B32613E5CAC7E682CEE4540"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorFuncEvalSerializer.cpp",
+      "sha256": "EBF45769DC086E1E64ED05709E2FAC47A565D3AD0DE36F4544A17E8EAA1E38FC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spColorFuncEvalSerializer.h",
+      "sha256": "CB0D672DB0367353F8BCB982F090A2DFA3A6D54221221CABC789EC3FDDF092E2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spController.cpp",
+      "sha256": "377DD8ADABAE9A392ECF3F28C8C3E8D01FAA185E390ECFD261317697C578B9D7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spController.h",
+      "sha256": "D6B51481261F2160F070F60CEEAE63771F2AC395659A8DF0E29326FAD58BEDAE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCubeRenderTarget.cpp",
+      "sha256": "3D35DB37A21EB4AE71B2450BEC223610C9F87F23C203A1571376DAC38DB752B0"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCubeRenderTarget.h",
+      "sha256": "7FCB33C531375A0D1ECE201CA14E3766E57C31941BAC81677CB93F01452C031A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDataBlockSerializer.cpp",
+      "sha256": "492E565CF13EF7827859B554F1F86330C3F635E0A91ADCF38EBC7953FE4A5811"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDataBlockSerializer.h",
+      "sha256": "4AA4CF4D755A63553522A5AED474A05DDCDE3ED542FF2A9EA2C55EB712ECD4E7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDebugManager.cpp",
+      "sha256": "A3ABEEFF8CFA74F9420CEC6464BAF0668E819A0C8AF91175E809401DA289EDC9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDebugManager.h",
+      "sha256": "BFE587D5CE2A1BD4EBE696838110F0A45EF82C72FE0C2BDA6536F63053BA92F8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMaterialDataSerializer.cpp",
+      "sha256": "ABC9E8E128A43A3B6F8133D551D1C90EEF608C82A20061DBC6E6328A8CC981F1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMaterialDataSerializer.h",
+      "sha256": "73D294F90AE48B809BC85CCCD5D5321F5411401474E0AD8B584AB2BD2882507B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMeshData.cpp",
+      "sha256": "3069943C3580E2094FB15010C84ED2164AA328C92963B20F5B6068309CEA2A45"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMeshData.h",
+      "sha256": "5BE0B9C5E038EEBFE9AFB35261B3AD2E9BD87F975446F579BE2506B14BFEC033"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMeshDataSerializer.cpp",
+      "sha256": "CE7444D87303333121FF5DFE99A0F3C1A44353201C6FC92F61E41B0670E71BED"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXMeshDataSerializer.h",
+      "sha256": "C211B64B2D1ABC37D0EB2116BABA9743F119DB70216FE0E6B43963E3BB2606EB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.cpp",
+      "sha256": "237E4FE1FB2527AC18EAF232E235B5CC8D6D7FA7713E3311970ADE11125D14DD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.h",
+      "sha256": "13D936B5A3A71504D7CE4E7AA14FD42EEACA221E867B4CB0FF50B000D76E7C7A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEngineCore.cpp",
+      "sha256": "31BBB0328DC5D750606ADD79944F859ADFC5EF1888EA07EC730B65FE00398444"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEngineCore.h",
+      "sha256": "BCE7270AA33CB0ED14B0F027C47DA3A0E3AA1068ECDCA7CA27AE216FB07011DE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEntityManager.cpp",
+      "sha256": "FA7BCE70C3A3CB18103093BC5BE410D9185C450E8FD8206CE6B897514775CF5C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEntityManager.h",
+      "sha256": "731DB84096A56E1ECD4F48CD10B01CCF670526AE9C55E2BF73F42B95C3F424E2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEvaluator.cpp",
+      "sha256": "2A3CAAD7FE4EF45D515470CA5D6F3782CA3ACC14A7A84F06DF9F40298786173D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spEvaluator.h",
+      "sha256": "6D1048B94AAF680B1ED8D81F2DE513C55F21AE6AD8BB90AE64EAA12EC259E8B7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFog.cpp",
+      "sha256": "7D9CCD090B029FBDB320D23BD5D4BDA46FAFB0F6DD8CB8527E93ADAE203EBF7D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFog.h",
+      "sha256": "F5CD79B4BAA5E6FFCC8837E4DEACBDD1CCD6510FD8DAA8CD426457B36F4E141A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFogSerializer.cpp",
+      "sha256": "D09DD5D4CB9F4908516DBC3179178F7B393E06984A0F67C25C881C200003580C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFogSerializer.h",
+      "sha256": "639705A5D1130FB58CB754FD4E7D4A67B6BBA2C12C3A19392455A701423C6A22"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFontManager.cpp",
+      "sha256": "2456E348A5DF6D5DEEFE7C254EB40D757F82F7B3531833A4B276B395A6725298"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFontManager.h",
+      "sha256": "2F8ADCD601B715BD7093651B566011D8DCF0DA193A139D7565F237041B667AF7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEval.cpp",
+      "sha256": "0265AEB32585D3A946F26B7566E6A54E955A55AEECBABEB742102D9AB6391B81"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEval.h",
+      "sha256": "F6A83DE312EF39A03BD28F43DC07E8450D2447982DA210DFE05B8F1E5B648655"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEvalSerializer.cpp",
+      "sha256": "6711B425A6BCFBCF75E0F96DD5EB894D532E6E7969A07B8AE1C407843DBEAB4B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEvalSerializer.h",
+      "sha256": "DF977589D901B6945D69A321EF192F69EF7604BBB1CC1363D6187F2DC768DD4E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spGameLevel.cpp",
+      "sha256": "CF62C0EAC466A59C0EA4BFFED004EBDBAF0077C1ADF3F7386189F49D4954DC52"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spGameLevel.h",
+      "sha256": "F09413463B8D9E49898EAFBE3A1327310DF095A118877D7BD9F2E363477B6F90"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spGameLevelSerializer.cpp",
+      "sha256": "9FFB36676E5E8AA4BE671001808B7F045EC24677BB9268912549CF5B14699598"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spGameLevelSerializer.h",
+      "sha256": "255E65E224EF732F4A24860881483A6FCBD014A6095F711CAB628CF534ADDA7B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spIndexBuffer.cpp",
+      "sha256": "901AFDCBE92794B64DBFCFBE688FC81551173159A93E5A80B4A48CF045D91D63"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spIndexBuffer.h",
+      "sha256": "9AF850C1874E321AF8241C8432CB79DE63D0F88AA34A757223F2C7C2A4DFE4A6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spInputManager.cpp",
+      "sha256": "FA66C06CA3547BA001D8123C4616531DE8B794A5EE79E1F4A98341934772EE29"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spInputManager.h",
+      "sha256": "21AACB38C9722F4EB187D4465FCBD1C4526B8E1522A5E5E6632506AEC22ECC42"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLight.cpp",
+      "sha256": "FC7C04D894A16C31676E9FD6FE262D8AE8362D9AE5119B447DB0F824734C1FDC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLight.h",
+      "sha256": "89F28EB26B68E505293B62AA02406CC17E83D86E09D240382F7231EA389EB285"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightControllerSerializer.cpp",
+      "sha256": "55BDD2F04DB101148A1941FD96F421C38AE027A1009D2AB34C6FD9D2C55AE876"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightControllerSerializer.h",
+      "sha256": "051C22B432E9D9C1BBE2FD0DEDD703B9FE3FBA16D4B5B8EC32A48955B423A06E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightData.cpp",
+      "sha256": "C1329B4F414FA281E247BAFC33B7FECBB2C9B699D26135390476C315BDB79112"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightData.h",
+      "sha256": "20591C2B4B8A78D7ADC7DA7374AE3676B713B03ABFF638DD11A9504F3491B027"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightDataSerializer.cpp",
+      "sha256": "F1F0BED3AD7BD48A9FB0F68C7847B4F1F51D3BFD595A3BA4B9F1F9E6394C80D4"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightDataSerializer.h",
+      "sha256": "2BA0D417E0AF84F3BC6BFDA383BD759CB3CFD89C2F83A81514E48466FFE584C4"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightManager.cpp",
+      "sha256": "157DC2B3B59CB2CB0F9B54E2CAAC80D3AC299FA9946AEE3B8EF32FFBE76B1794"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightManager.h",
+      "sha256": "C84DA2ECB1CB5D83C58280984C41B15FCDEC10C843BDE79D5775D7BF1E57A2FB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightSerializer.cpp",
+      "sha256": "B50E0CB498134280130858CCD84257422F68AD1AE2E453B846092BF5B03076DC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightSerializer.h",
+      "sha256": "9C3AFD4926C0460E41DB40AE68622709D7C1F523919A5B1D8D408CC65FF1CBC1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMatColorControllerSerializer.cpp",
+      "sha256": "FB1E5CB90A14642801F73BFE08AABA9803245D1BE3C9AD48D70137832F0B4519"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMatColorControllerSerializer.h",
+      "sha256": "2BCD21FE608B9CAFAEF2AD5CEB49578B57D81973A66BB011508040DCB247611A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterial.cpp",
+      "sha256": "569C377F427C5B9E272CB2BE89D1D684B4F6592842CB0E19972A4B9E2700B082"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterial.h",
+      "sha256": "106D75A62BC7915E36C4F87A68DFC5C363C880FCDE34B19DD03160A4215DA109"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialCameraViewTexture.cpp",
+      "sha256": "C75BFD5CCAE22F9F4B4D9C90B96C224BDE8C9583A7753C100FFE1475826E245F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialCameraViewTexture.h",
+      "sha256": "75E3A1E4A02C86D8D00DAC3CC5E3816D7EE8279E29A76D2691F9D6319AF881D6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialColorController.cpp",
+      "sha256": "A5B8EF35E7AEE34AA35E6C2637319C71A8EB2049A786B4F599F0EA7C88BB66AB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialColorController.h",
+      "sha256": "5471BD5A5F546BF995ADBD7240FE5862FD6D5B557E9C15320316B81E15BE803D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialCubeMapTexture.cpp",
+      "sha256": "F52047C359B92A62626FDC57FF36BD0675038B88799DA5F34FECC295F545DE69"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialCubeMapTexture.h",
+      "sha256": "28279D06EF5F0691AD12A6B27FE7B692D4B71A775C2BEB2E938B0D4DA187097F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialData.cpp",
+      "sha256": "B2E68977AA617A9FAB7278D968DA63977454E6A1F3287D966805079B89DDA53C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialData.h",
+      "sha256": "143C553FE5D301F3436E83583C24868424F16DEA2D32A34BD65AF33D3B8C0C6A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialDataSerializer.cpp",
+      "sha256": "B874CD19C4EFEC29ED9751EABAC0B710E7A0A406E40686E165BB186CC7EA061E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialDataSerializer.h",
+      "sha256": "108D671FDFAD2B29BC8FB7F8B5EA083290E6CB7B29DB70493DFFA7471337D5DB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialPassLayer.cpp",
+      "sha256": "213B664B37C1FF83BFE3B82888EBF469CECAD308D724FA723E205D4DC73D5FB1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialPassLayer.h",
+      "sha256": "38443DD26A41BE8F3617692DC9275E735270B4590A3469E362427B3705E6AFCC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialRenderTargetTexture.cpp",
+      "sha256": "177F5F4DDD9924B580DDC7671E3115E6712CE6654C96EFF691CE5F62F2501044"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialRenderTargetTexture.h",
+      "sha256": "5FCB2109D746D947246E8020128A31AB03BAC79B69BAA661B5AC1751D52C678A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialSerializer.cpp",
+      "sha256": "8905734C0B4A8293256BA63F891989D2B2BB2C67DCC6261BE8A489B2EBF26D98"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialSerializer.h",
+      "sha256": "3D7D1D2EB91BFC29CFDDFF468CC4CF192A993598916B4360A21891C9EC70CC02"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialTexture.cpp",
+      "sha256": "BD43DAB896B0C3E2B81C213010F7DB6C6853E63E0C7E3D1C9F894E842CB1115C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialTexture.h",
+      "sha256": "A5C6D739F12B3B6EEDD3A06C59B1D2BC7E4D8BB15AAF961BEDAE2DD14642E0E1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialTextureLayer.cpp",
+      "sha256": "527254C7E0C92B9A6D3347C81F9B3E795E7705145FD3397520F6EEC64B3C03F7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialTextureLayer.h",
+      "sha256": "FE1F0DFCBF0C3A727513FC21EB0E561BF97427580AD74490FC3509C0CDDABEE6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMesh.cpp",
+      "sha256": "89EEFCCED6434D29ACD2B531D23A4B196708CF3CDE83C7886D9741DEADF75FCA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMesh.h",
+      "sha256": "B36DED86D8E60220314F3961AEF60A5AEC6B6CD4D91CC675DB5DD4C4E5A03325"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshData.cpp",
+      "sha256": "04055B34C91721836AD11657A342656DC2C6FFBAF605A9FCE6C1B7F9062FF03B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshData.h",
+      "sha256": "B7A8A3A14947347D0FC9D1FC28DCB8BCAF0164DA00341D45E3001486AB1A395E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshDataSerializer.cpp",
+      "sha256": "AAE500263015724F25899C67D355D4D377A5DE2BB4CB8CFB7E32D442C3CCF65E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshDataSerializer.h",
+      "sha256": "50FC6A0C87B01DA873F48819FC351DD301195239692A1E87A1047BB722E94775"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spModel.cpp",
+      "sha256": "EB7E36962964D8B7C421E11DB15DDECFD7837552D7AC6AF08A3DF0EB46431A73"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spModel.h",
+      "sha256": "5A361DECA75CB587092B06ABCE039B3FB0ABC6D6457033AD401788BF624B7249"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spModelSerializer.cpp",
+      "sha256": "0A6789DAAEC0FAD42CE6872F77E0B720340CFD213D053982E6A067C83EEAA02C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spModelSerializer.h",
+      "sha256": "5E277476BAEF18091D6D9C60771A994314F937E02DB68E765D045ACF315D6730"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.cpp",
+      "sha256": "7552F77E072798D9C09FB17426301C1445520E169A8439FB07CC2977BD4417DE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.h",
+      "sha256": "A65AED1C59F56D7307886FFDB3DCE9045476E5AD741DC3698F19A59BD8C5F1EE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeController.cpp",
+      "sha256": "83B9C109A961EC7CDBA24D7EFD2ACC119AE9E90F15F41C66182995CC911E8165"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeController.h",
+      "sha256": "35239CD1C78B8BBE38307C680814722FDAC1EF06E91032A9785E03C5074EE2F6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeSerializer.cpp",
+      "sha256": "FFCB7C60C2A2C160A8B198FE46330D86047BBAC3925BEE7A549E2D3CA55850DB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeSerializer.h",
+      "sha256": "1CC2CCE036FB4ADF7A89C739EFB76000EB9E4479BAE3E464D55BCCE905AE771C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.cpp",
+      "sha256": "6C90895C8885524F98DCB07C93EF709D2E53DB93D0499BDA75B5806C3537F452"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.h",
+      "sha256": "D66568654103878126C3B808C65E7EFF261A8A77D19DDCA1B6DA97143AF48F91"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOctreeNode.cpp",
+      "sha256": "B6CBAAF15B1F29457946C605D22FD68B1C50C04730A610954562DD74C7FC5B3B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOctreeNode.h",
+      "sha256": "2AEB110D451590DC27F645B192F80D6620D4A5F17994D3DE43FF4F89456FDCDF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPalette.cpp",
+      "sha256": "FD3259C0F85A0E04569582AD89AD048B7D9D1DC473BBC9938F5E8B3030A02644"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPalette.h",
+      "sha256": "2E5EDE10E71C59D44AE54FFA9A7C9662EC6803AE287ACC57CD0505789F6557D3"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParser.cpp",
+      "sha256": "2C90A7B0FA99F725C05B852C00219E687462F5531E2E29B0461B8F82DF1BE87C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParser.h",
+      "sha256": "9EA2D1A58F666028C96FD8027B7AFBC95F9810284161031BB6911ABD223BC059"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPartitionNode.cpp",
+      "sha256": "EF863FD313F5CB7FFCCE7904F1ABDB5436A3F36C1A8D0716E6D9358200F90DE2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPartitionNode.h",
+      "sha256": "6BF18988C67BE0ABC596D95DDB9B6E96DCC49ED0E6553B7E8A914F3EF53E49B6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPlatformSpecificMeshData.cpp",
+      "sha256": "B742DD15FDBBF554293ACCE1DE28B46AEBEF69092657901406E94254A06DB512"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPlatformSpecificMeshData.h",
+      "sha256": "38BB49D644A3DB23D55C7C9376DCC67EAA6CD2F3F7F37572250FB0AABBB79D24"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2Material.cpp",
+      "sha256": "C6FD10533931300E34C9DD033A14FE4884AB4CD6B9DBE5FB6293EF1039984A8D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2Material.h",
+      "sha256": "21AED6D10AF1E5D0CA89D20C594033776984310D626F7F9E359A3B9E49ACECAD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MaterialDataSerializer.cpp",
+      "sha256": "356556448D20524B0D5223990AF3AFFC830ACE189C706B25CCF3BA32C91C3F5E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MaterialDataSerializer.h",
+      "sha256": "422CD46AFD64A9EFD9E1F87AB8E850227FC50BB589D24378A27700324BA2D703"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2Mesh.cpp",
+      "sha256": "BF40751637E3761F60E3C29A2D847CE18E67E26BC577888EA4A4432608893E7B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2Mesh.h",
+      "sha256": "72765778BFB069A087136B66DA89ECA55A5850B15FD36C74036E03C3115A55A7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MeshData.cpp",
+      "sha256": "606E43D9052582A7E4325F17C9653018799297E9EE9CE63776059A3035ACF7C6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MeshData.h",
+      "sha256": "F055C32A5A9E78FB5477B5A6395BAA73D706B77D6F120306099E84F81DA4595D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MeshDataSerializer.cpp",
+      "sha256": "73AE96EBBFC818E88B85CED2E4D5C27F35EA0863D39F93308E68453109C57D2C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2MeshDataSerializer.h",
+      "sha256": "D8F21126CA3E371A78E638FD8A936CD3949989BF8901FF1A4708C1DBA98C6462"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2TextureDataSerializer.cpp",
+      "sha256": "C0E1DD48A060ADDE5478CA4BC443509EBCD2260E232B505B4B24360ACB501575"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2TextureDataSerializer.h",
+      "sha256": "C0E8025A93C91C1FF7E7B495808021413C6D68617748D2CC4D2F20EE0AC7D399"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderable.cpp",
+      "sha256": "D46E8FE53CBB153AA42CC53268FFA97AE12E372BE24484444D7EBAA77F9907BF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderable.h",
+      "sha256": "68880A1D472F7985F9499FC4F04B96ACD240E783D8FFD7BFFE466D079E525940"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderableSerializer.cpp",
+      "sha256": "C83E66378BBEF86EC0A18CF49FC7C58DCBD5D8E18694CABC6FAF4E68DF33C031"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderableSerializer.h",
+      "sha256": "7BA3128FE4B71F1DBE0F2B439FB8CA0795B8A2CF05EEA7141AC7491061FB07B5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderController.cpp",
+      "sha256": "360ACF218C6E4E5FCCE65884F132E49CBE3F0A9E6B1A94C56389CD6C5818C843"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderController.h",
+      "sha256": "A9B500F2DCFA1279FD49B4E370BB34C4813B5AF86CDE7908554CFD42B1780BB4"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderer.cpp",
+      "sha256": "5056742807E84C747D02FC2567D605CBC5BB12B7BDB2049B82B0AD30C4A52670"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderer.h",
+      "sha256": "43DF240A602BB52D3A4FDCAAAF0E04998248F32B2036D25D84D392A547BDD692"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderMesh.cpp",
+      "sha256": "9369534C5706356256E0566FD993BE4037E8B322234F9C0D4C50F8D6470F22A5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderMesh.h",
+      "sha256": "9296863E69CD326B1EBC86414375FA37B0F51547AD80B2C1C4BC9E2A7F35763B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNode.cpp",
+      "sha256": "CBE123F04FEF79831834383FCDE162C4291EA9EA589944880C47B3EA4684ED10"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNode.h",
+      "sha256": "821919F600F573AA74F53F2B94A79D82F826972B3CBB920605B6C78F7225816E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNodeSerializer.cpp",
+      "sha256": "A66D8BEA1774AB88707256BBBE3EC23BF331AF09C9BBE688AEE05C68D8C493B3"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNodeSerializer.h",
+      "sha256": "5F97B8412544AA36B9C2F7413F538BA8C713572474070CBF3BCC3A0120D4688E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderTarget.cpp",
+      "sha256": "12049A3961DC49FDC548090C789C140A912ED6C5C4652278966DC833D9135A75"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderTarget.h",
+      "sha256": "905740D4E976DF7A8524C8C788F29CEE83EF6A5D3AFECCD130EE562BF2D768F3"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderTargetManager.cpp",
+      "sha256": "429DFCC84BF84EDF932ECC3A447811F760D0A7BDBD2028E6F64338CB415A521C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderTargetManager.h",
+      "sha256": "DA7B6AAF7D16AF201D5A1CC755FD1729E93F9F7242240B4CF315D8E740E2DABA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResource.cpp",
+      "sha256": "32B8C651846D2118F9C52D7FC92D8895CA15F200D5604DC5A99419F848B95825"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResource.h",
+      "sha256": "45897E19FBA4FC92F29AA7C718B394BCE30B71BF030DD6F5ECEE0B997B05188F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "DD4CA4A1A7C9923BBF6BAD03C49092E196885A443C2BD8A9A76FD6DF942CF926"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "72F842878B6ABFAA1AF538666EE5DF37E4E3FB87DA7F097050FF07D9756A2621"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceManager.cpp",
+      "sha256": "15747186FECE72C54ACD28D8E410B4B574DED07E5CCD268A9212CFF1CEBCACB5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceManager.h",
+      "sha256": "037D14FEA5C9B9294884DB7B54D571794990944C05C02E500E0DCCEF55404987"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSceneGraphOptimizer.cpp",
+      "sha256": "484AB7DF0B072E13A10E6AEAA4913BB7BEB7C7CBF0379C9378A3BC2DB82B8BB1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSceneGraphOptimizer.h",
+      "sha256": "686896389A6039EB02A7B69DA0E5732C10CB70FFBE335A2786AD606598D2BB22"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSceneManager.cpp",
+      "sha256": "697719BDC94DC4317D4B6A4431EC70E367C40A652F1B9014B6620B2E9143028D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSceneManager.h",
+      "sha256": "B7BEE70468A5A0EDB0C67280CA11094AD267508056D1FE981DC2FB0D2740A7B1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "E83259082FB3DDEA4E33D6A61CDBCE7C73E2B1BA6E6FEDEEDE8806592FF62FF3"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "6B055DB798ACA28B4FCA734E1F83CDA580A2B0CE4EC27723CD9BA9EDB5C4CB71"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerHook.cpp",
+      "sha256": "DA0E7810F32F007DAA32019CC05F4C9516B032C428F7965A0BF6437B0E49D667"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerHook.h",
+      "sha256": "F00409B22304305C0747A478CBBB12279024CEC4EDCA0948E80ACB11E16C827B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "B7378CB508B95B2BE267CBABAD918702F8386195F7315967503693AD38C22417"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerManager.h",
+      "sha256": "FE765E1D403D024C4F4C38FC5B9944E0AB51570C08A98380C8F24DB23620FF8D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkin.cpp",
+      "sha256": "2FA36081A2A03681701562EE9D936FFFFF8CC0C707969AC8A2869607E515A098"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkin.h",
+      "sha256": "B1B4ABD38E269AFFC9999FE1B9A4788771F554CAB4D67C553F846E27F5066221"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp",
+      "sha256": "D5BCDBB7709DD9541F06A62045A99D20E1029EDF4C0744144719C5A1483F9A4B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.h",
+      "sha256": "CFB382657D10D7F2F9D0010E345F333832F4589FE3F539C91B91C0A00CEEFA61"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.cpp",
+      "sha256": "BAF6574DD759FEBD926B569BFC6D9DDFB70014FC9BD10792DB8088A10750EB8A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.h",
+      "sha256": "00575D244016639F53E56888C418EB64D3999E6546DE1394E8A890F8B1BB5CBD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spStdLayer.cpp",
+      "sha256": "167A6A7C5861A24A6B763B0B21FF6FFF9290EC9C653B41DAA8204B3AFA344B90"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spStdLayer.h",
+      "sha256": "1FA830E3552C4E7D84EF91A3C37F369F3DC2BA10CBCC78B5DB37637D7FF55C6B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSubController.cpp",
+      "sha256": "FB59BAFD55C9F6638ACB026BB53ACD491A9E9AB8E165F2EE9FACEC12D4AB7471"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSubController.h",
+      "sha256": "2C13C9F142303066E12825F702B45DE65087EFBE832E179AEB71CEDC624F9F37"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTaskTimer.cpp",
+      "sha256": "E7E4DE9B7EE0101C569DC97E99BB3840DEFDFD3FD36B1FEC3CF7CD42A465A4D2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTaskTimer.h",
+      "sha256": "343478BCDAC5C63B64F0FCA035578633627288734271D6E3E468EAB2985ABD38"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateInstance.cpp",
+      "sha256": "959A601C69C041933118EFFB8536839BE22628995E7CFA8DA5A04D59925840C1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateInstance.h",
+      "sha256": "4437D83BCEEA8E1A339A172E7750A2D9443F55855BEF75D44B5BC959262E0A66"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateManager.cpp",
+      "sha256": "CFCBA4D4B3C128A27F3BB34780C7DFFD3EBDFE713C26A5687455F74E1F6E0CFE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateManager.h",
+      "sha256": "55EABE325681C3951CABD4A3B7D18490154185CBAD2AE54897772A132B5E74E2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateObject.cpp",
+      "sha256": "DA37D3428B33D8986FAE4E05DF9F5AF623EAE59C180B1420DB92A3739F8A19B9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateObject.h",
+      "sha256": "6309CDD6831E0635CF9B23A8649E8CA9CD85432CDFDC11AA52F4FAE9FBBB5EB8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateSerializer.cpp",
+      "sha256": "BF6814675AB14D9E9DCF18909F657271B0431CE1FC7BD49C3E1CF1FDE8448501"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTemplateSerializer.h",
+      "sha256": "3845513DAAA18B15A8381DC1A9022A02FCBDB623A65FE2437958C92D4933608B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTexture.cpp",
+      "sha256": "61FA78169B5693C2CED8BFE56AA117217DD7B941D3599828C3DC614473AF0EFB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTexture.h",
+      "sha256": "87DCBD9D697872914D29A7A1ED40B36905629B292EFCF760149BE7CFC8405D1D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureBuffer.cpp",
+      "sha256": "AE9246473D8ADA66784951F4C60D937939FE9F3131071D7E712FFA05925EF8D5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureBuffer.h",
+      "sha256": "85C3BCE30C15D61A75312B46C10E364E84D8EABAF25A3D9A75B72384FBC84037"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureData.cpp",
+      "sha256": "C10CEE1D21053D76994ACFF476CB92A80E7C11E381E32691791318ACD57115F2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureData.h",
+      "sha256": "3E7EB033E246F4DB5D639CDDC4BA5E8212698501BEFEC1B05746F6764784B852"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureDataSerializer.cpp",
+      "sha256": "3F477553D2FB25E6DE3156CCCF1C77EFC062B2E011B36E6638579D4394C9B612"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureDataSerializer.h",
+      "sha256": "E46C9754F86EA8E5AD0C00E16EA81DB554F7B7E0D7FC1F7AA3D0DDE73C2F8BD7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureTrack.cpp",
+      "sha256": "29206A711C24F9E7715734D3369D2838D6FC5984182372D6E12AB52F0D0A51D0"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureTrack.h",
+      "sha256": "88061B9A519A87D82158B6B28B81C2D4DF4888D8CD2476B0773EBC28367924FD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTrack.cpp",
+      "sha256": "BE71E5C3D8E866CBF9360E7B8A275E4E578EF939F6D6CAE1E516BECCDB8D4022"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTrack.h",
+      "sha256": "E30323F7F0C686F3E346A1D31CD509BFFE5896BCE10DBAEDE768692874836A63"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransformEval.cpp",
+      "sha256": "2D11570E501B06A71211BDE6F498BFFE484301ADD533EB961DB8C174EDC939B1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransformEval.h",
+      "sha256": "89754C1C62EC30ED942D6CFE39FB85E770BEFB9DDA08699215AECE5AF39F26FC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransformTrackEval.cpp",
+      "sha256": "D89FFB0FB65B02A97D091B687EF7707789458A4A807273356970323255B0F6DA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransformTrackEval.h",
+      "sha256": "03103A837580CAB62785AEDD774A4F5CAB357746797C5812D3D96F762E580618"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransFunctionEval.cpp",
+      "sha256": "086EF82D7B9D273CF0F29DF81EEAED331AF3B255FDF3EC0A01452EA407CDFD08"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransFunctionEval.h",
+      "sha256": "E602329C8DB9A68C1CC6C728ADB6E8E40FADFCE1696818142FB4E956D8E4F5A5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransFunctionEvalSerializer.cpp",
+      "sha256": "E30260CB3C3FD49A1B06A737B3F8C52CF9F601C3D5156B3D4D6ADB474FF0DB8C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTransFunctionEvalSerializer.h",
+      "sha256": "1C2B1B67FEA22DAB0FE4D2391C2165224A07F05E8E107FF07D4BFE522382F50B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spUVController.cpp",
+      "sha256": "B76DD85A89EF05895D234ECFC1E829AD1F6D2A963794672687AC9ABC0B0893ED"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spUVController.h",
+      "sha256": "8E08F0267798BA2A6B544DABA458BFFEC47A34FBE8AE6501B3930CA1D6B65533"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spUVControllerSerializer.cpp",
+      "sha256": "62C086C8BE57CF00AD18809E2218C371CA48C70F99F088F71CC585DA2B577370"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spUVControllerSerializer.h",
+      "sha256": "B4F694770C29E2255FF99B967CA10102A57CE2BBE5744BB412BF1C736EDFEE39"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVertexBuffer.cpp",
+      "sha256": "260BAF8E099160DD30055572C77B3729C436B7F616C38633BD23E83D24D8C5EF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVertexBuffer.h",
+      "sha256": "3492880DF25EBC4DC74E68290F4242C71B31024718879264916B4EC7C850DEB5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVisibilityManager.cpp",
+      "sha256": "C36554F9CF4F685E33DC2951F3789684A1F41D4E524EB677EBB8109F821F7DC1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVisibilityManager.h",
+      "sha256": "24E8C2987ACCE8F381132D36F2E7D09B73B53CAF5E1FCFB8D8524936C67C93CB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spZonePortal.cpp",
+      "sha256": "14F7F0BC80BEEFAAD6CDF6446F773EAB8B46AC4220211B8C23DAF7AD64B0032B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spZonePortal.h",
+      "sha256": "AA2C4D6471B61F24C8B576EB956130F2B241C2BA549ADDE06200EC4ACC984A0A"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spZonePortalNode.cpp",
+      "sha256": "EF3EA3701C36FBE7DE5C9A2B17A0186249014A9F465069AAF20E214743013F02"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spZonePortalNode.h",
+      "sha256": "985D36D361876A21FA148D1DF5D90503BBCB4C90DD182B6122B4A84628C01F3D"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCamera.cpp",
+      "sha256": "88ED01E9D5E035B45BBF224D9D875D42FEE571AE47AAC53DE6C27550B7E58178"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCamera.h",
+      "sha256": "4C7FA073C85B273A69AD0CA5D3455497C6609897B55E5F9F6B5C1DA7D9696582"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCombinedVB.cpp",
+      "sha256": "626642F7D458678DADC1A2158ACBC8D323BBC9D445B7CFEA185CA3B6A7AE1BC8"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCombinedVB.h",
+      "sha256": "1CE46CDAF83B6EC46BFAA95F9A59212887864941BFEE3D31BFE486D45707BE04"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.cpp",
+      "sha256": "4B859D6ECD53C62C891C0BA7D991964D5F0FB05678A2F00D907A61FAF6394F7E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.h",
+      "sha256": "A19EE72859419AAD6CC42987DBA69587E175E88360428D9E3EA8850503BC2D36"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXIndexBuffer.cpp",
+      "sha256": "73690CE3E88B3C048BDEA51ED2D90D6EE2BE72CB830CCB74840F96B611D333EE"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXIndexBuffer.h",
+      "sha256": "CEA693A707F86FBC89F79A852FA967939BD2B74FA4D7CD2E6332680F711347E3"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXLight.cpp",
+      "sha256": "C6F288D355DBB1AF0F2BDE19CBB19C69C4654A83F54B5C5CC8E77577C6EE815E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXLight.h",
+      "sha256": "1E091AA8FF4EFC96AD51A18C665E1417B94882D47BC98155C08599EC2B74D30B"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMaterial.cpp",
+      "sha256": "7E71DB5B117E2FF3D73BED05306BDA42FA5EAD02FAFFE70C3520D3F0569AC6A3"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMaterial.h",
+      "sha256": "D3ECAE82A63DCABC3DDFF864584E0F3F595A076CBDB0BBD794C207844CD15527"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMaterialSerializer.cpp",
+      "sha256": "FF897800EA497D2360CCAEAC7E39E3BB8EC3DD0B7F6619701120BD8C1A3A20F5"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMaterialSerializer.h",
+      "sha256": "32F7EB24D7004D2AB7A109C7DA62CEDD2BC1D00ADEDBD83552A1E02462114A96"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "sha256": "752B6407CD46847A77B141BEB9EE512E5B55D0C8C40B200B185751B9FED2149A"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.h",
+      "sha256": "226EDFC65304238F441372AE5AC8E7B90D4577A50069CEF0526C187A0900C0F8"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMeshSerializer.h",
+      "sha256": "716BA89DD57B82BCEAA1A5FE372165976A11EBD357E32A2AE0D136131F2C4667"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+      "sha256": "229DAF015BFA507A9A2D1AFB1C2FCFCEA34D8EF1C1A689D3556BB842971F8C5E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.h",
+      "sha256": "58114B2E7425D242A9903ED92AB193E6E03BD8EF0288D50E4CF6A7BAAC3AE191"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer_Init.cpp",
+      "sha256": "FCFACE11944418CE0002D079747CDE0E2341D2E77914709CF1809A07798982B0"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderTarget.cpp",
+      "sha256": "F393FCFAD010558DE09DE45B712D9D6806A9A8D94E63D5E027E5161B20A27FA7"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderTarget.h",
+      "sha256": "43197F28D360A0CFF30C81F0C06FE45D95804832F12305640377238F84352064"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShader.cpp",
+      "sha256": "618143C3ECE1BDC05B20F3D66570A9781DF2CC57D90DED5CF5AAB07AE7125E3C"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShader.h",
+      "sha256": "BD3B1AC8981B1E4EC4EC4E5CA39E339A657C98C4A00E3EB34D67D01ABC4D5F96"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShaderLayer.cpp",
+      "sha256": "28302717F877357E9472FDD40B173ADC053AE85FE2511F7E093076B402CF5A40"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShaderLayer.h",
+      "sha256": "62B1913D26F19CDEC161FA556CB7081BEA73179248E5F431D6EBE5891DB97142"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShaderManager.cpp",
+      "sha256": "A695E5FE83DD1A16748DD1635AA5F1261443D59442BA9E3ABA3928B5946028D6"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShaderManager.h",
+      "sha256": "61EC25F59AA07686C6116E525198319D71D83CF16535B948AF2880E6EDC6C579"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXSharedMeshData.cpp",
+      "sha256": "76C8180DC2F05B822DED22473558DA73BD76FF25F1ADCCBF31FF4559DF051756"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXSharedMeshData.h",
+      "sha256": "B17C031FF3E82F68FA1A0CD17B38C5E1A8776AC982757B05264B5E1597DEB344"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.cpp",
+      "sha256": "E415D479944F0E5D94CC5D2A0279DCD5891B4E7AFF6890079C1411BD432275B2"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.h",
+      "sha256": "90714DE4015759A6F2545283FF9E4A64A1435C843811FBD04E87C26EC0AE3BF1"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTexture.cpp",
+      "sha256": "85866E4B0D480D778313A2F9077BA8F44A9A202F63CD6FE435C56C7BD6E7255F"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTexture.h",
+      "sha256": "70A534DF473DC69782A3C26EDC11F703625225D98D1BC5377BFA0BA816881017"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTextureSerializer.cpp",
+      "sha256": "24ACAD095097DDB17C9D32AEA02AFD4F605684A2A4E4BE068AFD863573788F06"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTextureSerializer.h",
+      "sha256": "C4FDE0C485E9FE25C4CD107505B9624141660CE3023442571427BEC05627A504"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexBuffer.cpp",
+      "sha256": "B773972BEC4A2F0CE3E6B02A73DFEF86CB326E8532B3B939370F96BF96D9B930"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h",
+      "sha256": "4EBE87CEFD5AFD9078D005588A8C446ACD42F462593BBFFC56592EB93BCE4D64"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexDeclaration.cpp",
+      "sha256": "8E2154E902A02A0E248D4C59EC7A182EF5CC06877E972BF7CB911A2474863F12"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexDeclaration.h",
+      "sha256": "AA713645136C5F76C34EBA86C5C1C2890DFD065DF5BD3D0DE3BDBC43FC4110C2"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexShader.cpp",
+      "sha256": "0AE0D6511F195C8F5CD763A6448DAD1506D4ECB07E8E217D578523225623A916"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXVertexShader.h",
+      "sha256": "B01AFCC6233750880AD4907A41E939A4A76A8348D950B6120538FD7CAC18EED6"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spDXInputManager.cpp",
+      "sha256": "9DE213683E1811F3075947C2255DBC4994DAF5CBED0F5AFA6A483D78A930893D"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spDXInputManager.h",
+      "sha256": "4FCD76EF9C1EDF11D4087BA8AAD42F44BF910E91005D14D6476AD927EC818711"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCApp.cpp",
+      "sha256": "A854AEB49489E92DF199DDB344737DE5514497E0913BEE8A46CF7CD79EBE9843"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCApp.h",
+      "sha256": "7A5BF9EAC4D2907BA15F3E7042FC6BFB68AAB326C6773A2F2AC900DA34D7BC1B"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCEffectTemplate.cpp",
+      "sha256": "515F7D05900BAF053DFDCA6D524964C70CB6985785C9C8381B0DCFABFB513C86"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCEffectTemplate.h",
+      "sha256": "C82DFB036D536C1880788F6DE2FF1CBCE987DEAB0FE05ACDAE44A9AD8289F968"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCErrorManager.cpp",
+      "sha256": "B45234CB1650D5F561B9C137213B897CF43DEE5073EB52B45C5DE97E0E2F8D83"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCErrorManager.h",
+      "sha256": "E806275A175D2EBE3060FE3D3B1B4B52C5A7142018A3E54C4C09ADCA4B03F15A"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCFontManager.cpp",
+      "sha256": "0B66C23D4C9F3E556777E6DC9A46A96360D54F0B8B79D76E7AD9DFA0AD19769B"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCFontManager.h",
+      "sha256": "280EF08F72B58113FB4D3B61D3225789C2F3005B80586EBF0097C328F14A281B"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderer.cpp",
+      "sha256": "66B4C94DB2DB2EEC52ECD48ED4CF9BB05EF5CEADCCA9403A5B5B7DD2B3201971"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderer.h",
+      "sha256": "64CD59110F9DC0E3316C3469DF4B9FB7A2C023F3B13450E73EF584BF9730E54E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderTarget.cpp",
+      "sha256": "1E61CA4083DCE99E00F1B1B0E8594E63C1DDDD02776916CA39C270A88F119C58"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderTarget.h",
+      "sha256": "8A06DAC6F6BC5EAC58795F5E6E1C3877589A323BF8320B1F04FD8B4C094E0623"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderTargetManager.cpp",
+      "sha256": "EC83DBF5507ABE209685F7F4E110BA0524950DC61F3E67580D47C7D1E3CB3867"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRenderTargetManager.h",
+      "sha256": "F0AA8A1023B9513B08267E8448AD7229F2C97A9113DD139FA30B7CB4D10204BC"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRFXFileLoader.cpp",
+      "sha256": "FE474EFFE4706E3E7403B3D2E92FF9F8E6A0A26FB929C4FAC9638072D7A8A4CC"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCRFXFileLoader.h",
+      "sha256": "C0FAE40B2364BE843ACA8FF07DDE8171480ECF6A719B4027F380981492211F70"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCShaderManager.cpp",
+      "sha256": "DF7204A62B5467A02E4EDF5B7CF74C8B1832506BAA9C7D039329086558FBB655"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCShaderManager.h",
+      "sha256": "C115A369751D8B1C59732575C6C000812DB40EB327957F0E5835C3E81576E75C"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.cpp",
+      "sha256": "65A65B80D28F5B6A64196CED178E725F5D51EEA4370FB5E7A4D51EF8B5E4DAC4"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.h",
+      "sha256": "944BA9FEEB3B24CE20E3A94BB7B3511DF539679A8C0B1318D1F4E59D280767BB"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCVertexShader.cpp",
+      "sha256": "E0752D955FBB7D7A41CC5B7162E013F7E0A90F46988F02A7C9CB4653FAC7211E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPC/spPCVertexShader.h",
+      "sha256": "A3BBE8ABBC1EE645A56EF47C547BB01685A17B3DCF881A15291B058DE1E804D9"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2App.cpp",
+      "sha256": "B163FEBE1EA918585D82E09BE3CDCA5B9FE4489697662F69B75C0D922DD6C760"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2App.h",
+      "sha256": "9347EA2C683DCCF4ED547E4584D0898133EC2A5F1C112CF4B5F297A0C050FE36"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2Camera.cpp",
+      "sha256": "A805F1E02DDD2BECF7077E0E238B828A38D8DE2D5A9E9747173FA228E3EBE84E"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2Camera.h",
+      "sha256": "3ED937EA7E229D0823F134BB4A29ECAF88C7DB75356938446D2E59DEB2E390C7"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2ErrorManager.cpp",
+      "sha256": "FB5E37582908AAD7DCB126D0439FE91BE8FF070A47CEE27F04AF7E2C85272933"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2ErrorManager.h",
+      "sha256": "7908903EA5DE11601D61E7D08D84802C13FB4F62CFA62114BCCFD32A95E4FB03"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2FontManager.cpp",
+      "sha256": "D77919FD74749A4FC5DFCC14F2B9F12584F3045046FFCBA7C63F838D9D1001F0"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2FontManager.h",
+      "sha256": "6394341656DA8C12DF57FD9863F60817E369F9BF9C70001593AD7802C36B4797"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2InputManager.cpp",
+      "sha256": "08901182A7BAB8DA3B66AD4C39527AF69E9958FA751AE7AE9B6E86178C944E75"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2InputManager.h",
+      "sha256": "F15F31C07342E4AE336F242B093BEEDF7CBA444E2A6F86469BED98FBD99633C4"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2Renderer.cpp",
+      "sha256": "B23493CF23CB0EEC3A49EEB03B6AD9B4D647144B85E18C7B13A0AB56F6FAC37A"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2Renderer.h",
+      "sha256": "0651D660E92082CC8ABFEA0696E79DE308297408676454EFBA36C9BC092B8318"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2RenderTarget.cpp",
+      "sha256": "203FA9F2A50DE83714FA870689304383FD8644C5AB79309CC75CC0B6DD75D597"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2RenderTarget.h",
+      "sha256": "2637606A551FD8BACE5CCF07AB0716BC63541D62D307A767FF31DDD3994784CA"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2RenderTargetManager.cpp",
+      "sha256": "9C764F5E1ECF34B2494611D4AEAC8CAA9EDADD39F18504FADD0E5C6350AEDDA8"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugPS2/spPS2RenderTargetManager.h",
+      "sha256": "E7B7C199120DFAFBADF019115FF8A97BFF87680069A3CE15332A5BC8707CE4A1"
+    },
+    {
+      "path": "Sparkplug/Tests/pcActorControlPipeline.h",
+      "sha256": "E68F9B4B006047CE0198182C96AD6FEF38A66F807F5545F82F418A41F140DEC2"
+    },
+    {
+      "path": "Sparkplug/Tests/pcActorControlScenario.h",
+      "sha256": "504BE4B0718736A5EEA2CEA846B33515EE7F56324A91FDB5429B73602D478C9D"
+    },
+    {
+      "path": "Sparkplug/Tests/pcActorScenario.h",
+      "sha256": "1ACF2764AF5DA1C8B6922CF1E47C0AAF7A4BEC97865B5397A94185C16AAD55F6"
+    },
+    {
+      "path": "Sparkplug/Tests/pcSanFixture.h",
+      "sha256": "CCFFA38706D05C187DE28DF15ED23348B00FCFA6E103BD56EE4BB495CA94ABFD"
+    },
+    {
+      "path": "Sparkplug/Tests/pcSkinLightFixture.h",
+      "sha256": "79FBAC854655ED7E220EEE2ED2463DDEFD33F1D7FFF529702EEF0D3D256CE422"
+    },
+    {
+      "path": "Sparkplug/Tests/pcSkinMaterialFixture.h",
+      "sha256": "3C9F4ACFFA9472E6106E1C29514A67A52CBEF532A29B31767D379193C5D8F6B9"
+    },
+    {
+      "path": "Sparkplug/Tests/pcSkinMeshFixture.h",
+      "sha256": "08603FC068CE7DDC81CC80EB5DB6370F3A2563C7A93C1FBCDD5FA1AC30B5CC09"
+    },
+    {
+      "path": "Sparkplug/Tests/pcSkinTextureFixture.h",
+      "sha256": "980F279D3B7B176EFE2230748C3C65ECC1869B6873A3293383DE89FD8803EDE6"
+    },
+    {
+      "path": "Sparkplug/Tests/spActorBindingTests.cpp",
+      "sha256": "9566D45AD9F5B5DB9065A32256A9698D255063770F668B998947461E1EC3BDB2"
+    },
+    {
+      "path": "Sparkplug/Tests/spActorTests.cpp",
+      "sha256": "B003548C52691AC14EA62115D5AA49266A147F26F1EF96F4B1921186CBF3C98E"
+    },
+    {
+      "path": "Sparkplug/Tests/spAnimationKeyTests.cpp",
+      "sha256": "538B906EFF49796D48FFED634BC3527BFDDC52F04B4A00B3D09185DC5FC56B51"
+    },
+    {
+      "path": "Sparkplug/Tests/spAnimationManagerTests.cpp",
+      "sha256": "502C3DC66D4AC6B693B6D8E9E2CCAE8DE2C9021FAAF665E36A887606F60A4982"
+    },
+    {
+      "path": "Sparkplug/Tests/spAnimationObjectTests.cpp",
+      "sha256": "FD66DDB8CADCAC22302371C3ACA46CA78E8999DD140476A286E93EE230962DA8"
+    },
+    {
+      "path": "Sparkplug/Tests/spAnimationRuntimeTests.cpp",
+      "sha256": "1C29F470E89EFACEA2332DC2190A53D9A8D7DE7E64C58A3B1FD6AB7160D34191"
+    },
+    {
+      "path": "Sparkplug/Tests/spBaseObjectTests.cpp",
+      "sha256": "338005360DF6AF1CA4195B3477BAA3236A6F6254878D400359DE0CCE4438A25E"
+    },
+    {
+      "path": "Sparkplug/Tests/spBspTests.cpp",
+      "sha256": "B20E4006F12DFEDF619BA852467CC3B06B1A662AB6AA064037DAE07D3EDA0107"
+    },
+    {
+      "path": "Sparkplug/Tests/spColorFunctionTests.cpp",
+      "sha256": "F2432D4458EF77E8763AA859B61B51E014A08D2AB556D8B9C137CEF4BEB92592"
+    },
+    {
+      "path": "Sparkplug/Tests/spDataBlockWriterTests.cpp",
+      "sha256": "6C76753417A1CBC27CEA65D1C453A8F7698A2E5746AE332360A7B3145F35AEE4"
+    },
+    {
+      "path": "Sparkplug/Tests/spDXLightTests.cpp",
+      "sha256": "119EFC2938166BC3DA82B7F2EB7236C1B7998BB9342F5EE6F816C389ADA0E4D9"
+    },
+    {
+      "path": "Sparkplug/Tests/spDXRenderStateTests.cpp",
+      "sha256": "2ABC6E71D51843DFE8F60220AB530FAE771A5271D1A7BB37AD58A5333C0A61EF"
+    },
+    {
+      "path": "Sparkplug/Tests/spEffectTemplateTests.cpp",
+      "sha256": "C9EE32978A7C15D264CF4536CA89D0CF92D7F1710031267506D6C5205F625AEF"
+    },
+    {
+      "path": "Sparkplug/Tests/spEngineCoreTests.cpp",
+      "sha256": "0FA196D3EFED276F675878051BCCF2317F6E5A139A65131F3D4CF2EE881BF7B0"
+    },
+    {
+      "path": "Sparkplug/Tests/spFullLoaderTests.cpp",
+      "sha256": "3B77F80A46C96C01FEC1F465B48DCAAABA5AF97FACB9173E273783EF3B98B43F"
+    },
+    {
+      "path": "Sparkplug/Tests/spFunctionEvalTests.cpp",
+      "sha256": "B8AA6D14235C483572E95F4016747EABB4BB394BF20EBE943275DA84A2BAADC8"
+    },
+    {
+      "path": "Sparkplug/Tests/spLightManagerTests.cpp",
+      "sha256": "6E45203E429B6F9532F8F48BF91145B746D31FFFF542E41516E385D179E6A13E"
+    },
+    {
+      "path": "Sparkplug/Tests/spLightSerializationTests.cpp",
+      "sha256": "1C0CE53AC7F855EA60683B47033AA2386A655624EFD518811232454CAD1CDCFD"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialApplyTests.cpp",
+      "sha256": "A3EB6EBCE35F51C319B8A7B3A3AC279DFE8BBCC8A829C079823089529C29075E"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialColorTests.cpp",
+      "sha256": "793F19498F918C2686FE489EB3F1C6B55E47BCC9BF6EE24494CA86EBC999478F"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialControllerTests.cpp",
+      "sha256": "61BF364236464CD258A47A3787B1B9BECECB23C9BB1FA51FE0A4955A47A8E908"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialSerializationTests.cpp",
+      "sha256": "535EFF8667D0663A163976200AD4B400B9EEDD13A7486F1AB9CD981AE2747535"
+    },
+    {
+      "path": "Sparkplug/Tests/spMeshReaderTests.cpp",
+      "sha256": "CB8BCA0DB199802A841913044FA358099FB5362FAD78A8C5D8E0F96381D15A8E"
+    },
+    {
+      "path": "Sparkplug/Tests/spNodeSerializationTests.cpp",
+      "sha256": "75C02FC122E32E4E54DCABD8561F91A8EC38A6F0A4443C25D3C7B44A93148743"
+    },
+    {
+      "path": "Sparkplug/Tests/spNodeWorldTests.cpp",
+      "sha256": "17F67F6E15694FDA14D2495B6DAC8D2146880D9A0BDA3032CE5FA2406615046E"
+    },
+    {
+      "path": "Sparkplug/Tests/spOctreeTests.cpp",
+      "sha256": "559B5C8E71E0D0120612867711229F9477035E80BA9B167F747765B7FF25008C"
+    },
+    {
+      "path": "Sparkplug/Tests/spParserTests.cpp",
+      "sha256": "AD924D9CC650CA2C1D8D041D639D3A5EE13AC17026ECEBBCC94F4EDBE06044F6"
+    },
+    {
+      "path": "Sparkplug/Tests/spPolygonClipTests.cpp",
+      "sha256": "0E655B4304D7D5E75415C4D864A1F518595A5214EF080F24984F823F142C4B57"
+    },
+    {
+      "path": "Sparkplug/Tests/spReadReferenceTests.cpp",
+      "sha256": "3A0122E5803C2FBB18FE567AA0B033BE5CB07D335EF15EA9B6F652751AB73B36"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererCachedDrawTests.cpp",
+      "sha256": "28F5D731924E12584E5B78E1BC41B851EB363ED574DCE1C08AB2B877ACEBEEA5"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererDrawTests.cpp",
+      "sha256": "AB20B3D1FDB41AE2555BB6317D79C1460F0521806194F1F8A4BD8D722FBB6B8A"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererFogTests.cpp",
+      "sha256": "CF94A7A5F072CBA9CF0183E0661BCB1D7D5FDA6BE66F29FAEDD17967269A79BC"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererGeneratedDrawTests.cpp",
+      "sha256": "221E77D6AE1D8861C8A9443ED0591BAD3D4D726D2074E825F634D14F472B1475"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererLightsTests.cpp",
+      "sha256": "B205F8F3BFA54AE585529D7E5B3E37BB32AC8118C256C7BC081A872E372B4085"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererMatricesTests.cpp",
+      "sha256": "092D4BCCBBFB9DF7D6C11A6722F7D3EC01F0CB14537A0204688024795E953435"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererMatrixInputsTests.cpp",
+      "sha256": "D2518BE4077BE6997BF039BFCC1838F94FF20EA0CD5DD59A39167A19A50BD02A"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererProtocolTests.cpp",
+      "sha256": "21F559E7B285B4DAB1B93704F443EAAA5BA2DED88D4F9B9133F66BAD295C6B6F"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererSceneTests.cpp",
+      "sha256": "5A113653603DA0B11EA8C3D48B077D5C153707EB3FC59C7ACF882AB437A202B5"
+    },
+    {
+      "path": "Sparkplug/Tests/spRendererSubmitTests.cpp",
+      "sha256": "DA9B61EFCBB022C6E1773BD7AF49C320B5D412733C82D28D21A8ED71EDDFFADB"
+    },
+    {
+      "path": "Sparkplug/Tests/spRenderNodeTests.cpp",
+      "sha256": "5A60B79BB24BF61D6E2C3ACBC099C00176EED279117522478E525C2216D64F05"
+    },
+    {
+      "path": "Sparkplug/Tests/spRFXFileTests.cpp",
+      "sha256": "3CC5CA9FC9EF315207416325B25D93624316575F5C10C1363EE0921B6B621470"
+    },
+    {
+      "path": "Sparkplug/Tests/spSanReaderTests.cpp",
+      "sha256": "2B3A99793C317DFC7CD9F7638D624B27DF4E6DC7C91014CE06D1C79E38EEA6C4"
+    },
+    {
+      "path": "Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "sha256": "B190C99783DA75F0CBC1F7E48D27AF5136E585DE28E2D5563D1CBF6203CC5AD7"
+    },
+    {
+      "path": "Sparkplug/Tests/spSceneManagerTests.cpp",
+      "sha256": "49AFF0CC58CB9A701BBC2DA26B8F4AA74A150668AB50AC24929A69F403EBBA01"
+    },
+    {
+      "path": "Sparkplug/Tests/spSceneSerializationTests.cpp",
+      "sha256": "59DF5F9DBFE8316D6AC5BA8C4DDA1C59EEB6AF37DE7674D4E0F16D36E73FC691"
+    },
+    {
+      "path": "Sparkplug/Tests/spShaderCompileTests.cpp",
+      "sha256": "397BE24D23FE56F4DE0CB286C77E5C3A49AE57215D6D6719ADB806D6EF2332FA"
+    },
+    {
+      "path": "Sparkplug/Tests/spShaderConstantsTests.cpp",
+      "sha256": "C7B51C18AB9D39EAC6F83B1936A525BEFC14D97727761FD55386AEB151D8A2E1"
+    },
+    {
+      "path": "Sparkplug/Tests/spShaderLayerTests.cpp",
+      "sha256": "DF3885E4EF48F8B686F53B4CCE40B01E0747453A079B3454B65211E83593DEC1"
+    },
+    {
+      "path": "Sparkplug/Tests/spShaderManagerTests.cpp",
+      "sha256": "B182D178991CFC3AF64FA6E5567E93190E86B873EF8467F3C422F7D30C68257F"
+    },
+    {
+      "path": "Sparkplug/Tests/spShaderParameterAppendTests.cpp",
+      "sha256": "8E7C7F7FB996FD224E9D816AC14E3AC0CC4B77DF6261610EDE3BDE5399FFE500"
+    },
+    {
+      "path": "Sparkplug/Tests/spSkinRenderTests.cpp",
+      "sha256": "096C43A4887968A808D78AE9D91150F860C31E77829C18A17F467445EA7F17AB"
+    },
+    {
+      "path": "Sparkplug/Tests/spSkinSerializationTests.cpp",
+      "sha256": "0AA97CC31A89CC26B55655BB727804BA9A9DE687C29CB353277407E707250993"
+    },
+    {
+      "path": "Sparkplug/Tests/spTaskTimerTests.cpp",
+      "sha256": "1931985DB7EA3D0B1AF6EEA769D8574AD9ABECBA2782A8ED49E68003C4133B49"
+    },
+    {
+      "path": "Sparkplug/Tests/spTextureSerializationTests.cpp",
+      "sha256": "E9F826DC5203492A6FCD83302FDD100F19C23F4BDA13B3773DB0EA9E5942F509"
+    },
+    {
+      "path": "Sparkplug/Tests/spTransformInputTests.cpp",
+      "sha256": "B5A5CB6B4EE70BD36F0342A40B2DF458ABFAE868FDBBBBE1727806E9AA810A93"
+    },
+    {
+      "path": "Sparkplug/Tests/spUVFunctionTests.cpp",
+      "sha256": "1D5BF1690E4C45EE7242AF3ECADD438478C1F667A21950C9932635BD1715087F"
+    },
+    {
+      "path": "Sparkplug/Tests/spVertexDeclarationTests.cpp",
+      "sha256": "7CC4C0BB0C7ED5E7F5AF09DAE5125E7C543E7913015A44E6E455AFDC805A67DF"
+    },
+    {
+      "path": "Sparkplug/Tests/spVertexShaderTests.cpp",
+      "sha256": "179355AD48402C9DA3186FFB59375727723EEE1B4DDF69AA3C43A034C5E79365"
+    },
+    {
+      "path": "Sparkplug/Tests/spVisibilityPlaneStorageTests.cpp",
+      "sha256": "C6317AA9CE6943ABA7B88B5C0FCC94D16FD8BA30DFDB94B8DAADCE5162FF006A"
+    },
+    {
+      "path": "Sparkplug/Tests/spVisibilityTests.cpp",
+      "sha256": "941AC34FD15A771DEFC1000541B702B4F68A387EA4A5A70C098CE58B5E39C5B5"
+    },
+    {
+      "path": "Sparkplug/Tests/spZonePortalTests.cpp",
+      "sha256": "62C3768673E32D47764D885752339E4A71FE8A0155BD2FEC7F0951AA639DBBCE"
+    },
+    {
+      "path": "research/analyze_smo_anim_tex_controller.py",
+      "sha256": "034AC25F75E9B74E5CC7AEFE809048EDEB977448907E969C935E05D0FA9E9D2E"
+    },
+    {
+      "path": "research/analyze_smo_bsp_node.py",
+      "sha256": "7C452C8BE10E88FAB8FBFEDEC7037E9DC309430E92F2F7CD986272A24C9A322D"
+    },
+    {
+      "path": "research/analyze_smo_collision_info.py",
+      "sha256": "837C2648D151F58A2621F7DA4567F1228C1C876A12299670AEBC69027298AEE6"
+    },
+    {
+      "path": "research/analyze_smo_header_word08.py",
+      "sha256": "A0B094917FF8950C37A17B9184BCDC830286E2C292D65F24B8A5A64086E96761"
+    },
+    {
+      "path": "research/analyze_smo_material_data.py",
+      "sha256": "5B51144CB9412EE177E162D6918B254413BD795B06E65921924767B058ADDD47"
+    },
+    {
+      "path": "research/analyze_smo_mesh_bv.py",
+      "sha256": "DB5AA0B6220E4DED96C3440F6E4BA512F79B8F1AF46ABE4EE72F9EC7D0057E15"
+    },
+    {
+      "path": "research/analyze_smo_mesh_data.py",
+      "sha256": "BFA40912B40031C9ED8B31CFE2815F47A1BC7759E7E6FC72D149AD567A0D87A3"
+    },
+    {
+      "path": "research/analyze_smo_mesh_navigation_set.py",
+      "sha256": "B53EE1D50194AF57C2F615DF146E6A51A343AD1C32168225F6052FB552E6FE63"
+    },
+    {
+      "path": "research/analyze_smo_model.py",
+      "sha256": "1D788522F56B301DC30E92CE27565F4814A6BB93165F902C0D035F397511A68A"
+    },
+    {
+      "path": "research/analyze_smo_navigation_graph.py",
+      "sha256": "F03FC4FBBA4E353C936579DFB86F6A5046BC0840D57634B669113827F2A230B9"
+    },
+    {
+      "path": "research/analyze_smo_navigation_portal.py",
+      "sha256": "7AE11A1024F1F8EE550221F14374536A9D066AE78F8275A8A0595939656047E1"
+    },
+    {
+      "path": "research/analyze_smo_occlusion_volume.py",
+      "sha256": "E771702F22960C8FEAA67E66B5BAE6040036061B5479FF1DA6EE66FDE27603A1"
+    },
+    {
+      "path": "research/analyze_smo_octree_node.py",
+      "sha256": "D70D1CAC16421BBF8AE9E5AF3E643C9B9BDDF380DBF82A60640223AC59CE436A"
+    },
+    {
+      "path": "research/analyze_smo_particle_system.py",
+      "sha256": "4D3E18B07B139DBB1AC4B3989DEBB09C7A9EAA917A02BBC486D3EB3491E6D60D"
+    },
+    {
+      "path": "research/analyze_smo_partition_node.py",
+      "sha256": "580037306E29CB015F41A552AE9CC681B5FBA32009856D1286C58AE1FA5F9E69"
+    },
+    {
+      "path": "research/analyze_smo_partition_renderable.py",
+      "sha256": "F7BEE406346BE71BA57E452E403A9E9A2903B803160EDD112B5683A65CC21CE7"
+    },
+    {
+      "path": "research/analyze_smo_partition_system.py",
+      "sha256": "CB92668658673F9DD0573CD5991B48FB5C5CFA67CC4C6858FCD5B92EAD2F0872"
+    },
+    {
+      "path": "research/analyze_smo_skin.py",
+      "sha256": "DDC1B7CE9C3D75A7756E0AFC7AAC9540776E88A1896B86E90D0F6C653C1B044D"
+    },
+    {
+      "path": "research/analyze_smo_sky_box.py",
+      "sha256": "23BD9C414DB041BC96D740D4EF734604B6C23FA3153BE3154742FCBCA7469769"
+    },
+    {
+      "path": "research/analyze_smo_static_render_object.py",
+      "sha256": "D090F2E4A538FFEBFBE08101EA9752004E4A3AFF8D46B75902713C48E8066939"
+    },
+    {
+      "path": "research/analyze_smo_texture_data.py",
+      "sha256": "521D190366AE41E1DB10435A8FB6DDFCA616CD473DF21801E6FADE48D3EFDEF6"
+    },
+    {
+      "path": "research/analyze_smo_zone.py",
+      "sha256": "B90BFEF4BF4850BAE5782CF054B8476025AC4D5FE516B2F0DDC31F0734B66AE2"
+    },
+    {
+      "path": "research/analyze_smo_zone_portal.py",
+      "sha256": "A807611C65916A7C46C365F7A83130CBDC34D32134F813EBF91ECAB4F396EF7B"
+    },
+    {
+      "path": "research/analyze_smo_zone_portal_node.py",
+      "sha256": "FF5BBAA5ABE97F0B15DA9AB0786D45D980193DAE01C9B9B06941139312226AC4"
+    },
+    {
+      "path": "research/audit_native_cycle_20260906.py",
+      "sha256": "834CC5EF36AEFEAD963BE0D33998A65E1B71B017810D0451116657B4913F79B4"
+    },
+    {
+      "path": "research/audit_native_cycle_20260907_1900.py",
+      "sha256": "2FC5ABF42E258025AB6139E35AECE550CA32D513F6C1F98249A40929EC75E402"
+    },
+    {
+      "path": "research/audit_native_platform_cycle.py",
+      "sha256": "0DB115865F368D9DB2D9F1C7EC03E34D089A69FB7BAEE398E6D9F3878733B919"
+    },
+    {
+      "path": "research/audit_native_scope_dependencies.py",
+      "sha256": "84D1671C0E9567A67BA36893D3408AD20F9319D262B898DC379E1007671816D4"
+    },
+    {
+      "path": "research/audit_smo_corpus.py",
+      "sha256": "8CE08E7D6C9082B6777030A3A65AEA60B892C1F532CEB8601D5018E537861F6B"
+    },
+    {
+      "path": "research/compare_pc_actor_binding.py",
+      "sha256": "6A684861798ADE7502792FE0D490EF31977EA375124C7A66CF224E915396618C"
+    },
+    {
+      "path": "research/compare_pc_actor_control_pipeline.py",
+      "sha256": "22B4EA5F44BF4B6AE7A87B1B512BE9CBD3703CF544C9E64DF6B1364C27DFBE7D"
+    },
+    {
+      "path": "research/compare_pc_actor_controls.py",
+      "sha256": "B5893E8C970C13F9EB7FCABCADF21857B2499CFB510D6980E46CBDC77302F859"
+    },
+    {
+      "path": "research/compare_pc_actor_tick.py",
+      "sha256": "4AF21E5D17F0F8C877B32D2E6E1CA09D1C6267C52ABDAADEAFB11E59886B768B"
+    },
+    {
+      "path": "research/compare_pc_anim_texture_track.py",
+      "sha256": "2EBCCC47A3A1693B68FD897321F3272BE06DEA7AF42F1CCA9C3EEE71957F9857"
+    },
+    {
+      "path": "research/compare_pc_animation_keys.py",
+      "sha256": "8F4A5E12EEE78046DCEF9D63F6AF2D436B254B8105340A33D2D4C29194538E04"
+    },
+    {
+      "path": "research/compare_pc_block_writer.py",
+      "sha256": "416709413D884DB58959DC7BFA6C5A3E16FB3ADAAA8371E5146999E2BF972BC3"
+    },
+    {
+      "path": "research/compare_pc_bsp_queries.py",
+      "sha256": "274339B4912D556008E26E6BC3632D1E9501E4FDE24D281A03E1C59026FE808D"
+    },
+    {
+      "path": "research/compare_pc_color_functions.py",
+      "sha256": "32C96B6EBCAE1E69A648EF4E5FFD6CC7634C54D1D3D56BCBC2889A42BCDBEE7E"
+    },
+    {
+      "path": "research/compare_pc_cubic_preparation.py",
+      "sha256": "4BD4E1FE3D27E906B87504A14C9ED00699BB8AA1400BE9D0511842707EF8EC72"
+    },
+    {
+      "path": "research/compare_pc_dx_light.py",
+      "sha256": "E9440DC5CF97B3400BA2D2593A7025C82AA7025C64947B4C6854228AADDCF190"
+    },
+    {
+      "path": "research/compare_pc_dx_render_state.py",
+      "sha256": "BC5DCF9ED2D253373C378CF8BAE5F392F09F7EDB73E432B334972C0D78FB6485"
+    },
+    {
+      "path": "research/compare_pc_effect_template.py",
+      "sha256": "9F18D7BC22B85F3ABDFE4780D60DB25BF24C086F674C358A19E5F770F0438B5A"
+    },
+    {
+      "path": "research/compare_pc_fog_sections.py",
+      "sha256": "D1FD0675FC57DC4AAE0019E63EF5BE202CB4D704301A103A72ED0DA18BA6E18B"
+    },
+    {
+      "path": "research/compare_pc_full_loader.py",
+      "sha256": "E545E471D3F622457CE170EDE84E8CFC128EEF4C2B49515955C98C4B1310DE5A"
+    },
+    {
+      "path": "research/compare_pc_function_eval.py",
+      "sha256": "477EC61A250C910B3278852AEE54F6DA4B3F8A5A79A4B4ED823B60F829E3995C"
+    },
+    {
+      "path": "research/compare_pc_light_corpus.py",
+      "sha256": "EC93B6BC66C66F6CA66E1C5C97A18AE2E2CC7DBD8C8B7BAD1AC9A09053466581"
+    },
+    {
+      "path": "research/compare_pc_light_graph_roundtrip.py",
+      "sha256": "DFD4B0D635276EC778689FF37D1934366260A7C41385C151E5E781BECEE9C042"
+    },
+    {
+      "path": "research/compare_pc_light_scene_world.py",
+      "sha256": "811E2F6EFC4693CDB0B51219ABFE7434579C9FD2212510D1F865C6F4D1D1638E"
+    },
+    {
+      "path": "research/compare_pc_light_serializer.py",
+      "sha256": "6F321A965D44C3F31C55E138FE2AE67CD7773C963FB0CFE4968601F27DB6247C"
+    },
+    {
+      "path": "research/compare_pc_light_world.py",
+      "sha256": "EEF0DF674113F9AB62667CF4B9D970E3A8EBDDAF6DEF9B0054D6F5BBCA1FDC09"
+    },
+    {
+      "path": "research/compare_pc_material_animation_links.py",
+      "sha256": "39DF19A24C49117411D4AA377264279D4535F384C8AB4AC557FA58A3E17E954A"
+    },
+    {
+      "path": "research/compare_pc_material_apply.py",
+      "sha256": "5536FE74C748C7B3CCCA0E24B9070B14F828639268E3AD54623593A7A726C258"
+    },
+    {
+      "path": "research/compare_pc_material_color.py",
+      "sha256": "BA503800EF83B18BBE64E3501FA7E8B32362DD6157615E81DB4F738991C30CF5"
+    },
+    {
+      "path": "research/compare_pc_material_color_corpus.py",
+      "sha256": "D5EBDE02B68BCA30F12A0280EB29D7897B9817353D577A29ACA19B4F3457A5B6"
+    },
+    {
+      "path": "research/compare_pc_material_color_graph.py",
+      "sha256": "CA112FA0050279A568F5616474E8F50275FF4EE46258634DF66850945C8FEE56"
+    },
+    {
+      "path": "research/compare_pc_material_install.py",
+      "sha256": "572393C6C33E4182FC55C3588A519DD2B270C717CD1EC99E4754EF4D1B574E52"
+    },
+    {
+      "path": "research/compare_pc_material_layers.py",
+      "sha256": "1C13D8F6DF65D5EFDDB6073C1F1624E1CD937382C9D6EBB158AD8B03C2F23EC1"
+    },
+    {
+      "path": "research/compare_pc_material_lighting.py",
+      "sha256": "FDE3B58C2DB5D4742A7AA19D81E757F6933A7AAACBD11FF03D8E981B238A1B39"
+    },
+    {
+      "path": "research/compare_pc_material_links.py",
+      "sha256": "038CC286119EDAFECC59116917BFDF4BC43B0B219E88BD9526AD36416BE72D0C"
+    },
+    {
+      "path": "research/compare_pc_material_pass_states.py",
+      "sha256": "AC5C92C086163CC810B92AD17C0AADF63881C64D752F3A83E25BFEE57E70D680"
+    },
+    {
+      "path": "research/compare_pc_material_pass_update.py",
+      "sha256": "D60BFCC46DC8A3C4B2E3782A7D01B070692B2EAF545A2A216966071B64DE51F2"
+    },
+    {
+      "path": "research/compare_pc_material_scalar.py",
+      "sha256": "6A1C146822EAF91C319C60171E06A3E06837609E32AAA3E8A1EB363B64645538"
+    },
+    {
+      "path": "research/compare_pc_material_texture_links.py",
+      "sha256": "1167DBE5C35303D2568B155416A1432EAFC6C1DD33E67F738CA1E56EE15384A2"
+    },
+    {
+      "path": "research/compare_pc_material_uv_links.py",
+      "sha256": "FE66EB37444B3BD5D9DD9D5ED1C0EDF72A016B67A73D8D522BD35F7AFE7FE901"
+    },
+    {
+      "path": "research/compare_pc_matrix_quaternion.py",
+      "sha256": "A3B36B08B0096BCCAED92F0187911C5C4BA10EC69D27642282B1CFB67404240C"
+    },
+    {
+      "path": "research/compare_pc_mesh_base_writer.py",
+      "sha256": "E25528DABA94093E868BCBFD6DDAC8B8E4511AEFCDEB5FA4DA501A779AA24835"
+    },
+    {
+      "path": "research/compare_pc_mesh_bounds.py",
+      "sha256": "A67CC595D5279F2F97D19E345DCD93DD8374F78893D4BC0D42335F5106203F4F"
+    },
+    {
+      "path": "research/compare_pc_mesh_graph_writer.py",
+      "sha256": "F85622A603743DDD98C1C0B642523E89D8573CA937C4C3A6D355C1A02E9B4EF9"
+    },
+    {
+      "path": "research/compare_pc_mesh_readers.py",
+      "sha256": "CAAD3C3894FAD73B755B41431D96A1F1BD8B8A0537C48F62E0DC06EE22050120"
+    },
+    {
+      "path": "research/compare_pc_mesh_writer.py",
+      "sha256": "B8D4AB3DADAFD7D2AFB040616062062CE202750B7EAAA47547073979360D589B"
+    },
+    {
+      "path": "research/compare_pc_mesh_writer_roundtrip.py",
+      "sha256": "243A7E5AB9D530D6E19925FD3677FA03AD1E53A1A6CA88C0C7C45CCFD1AA9AE2"
+    },
+    {
+      "path": "research/compare_pc_model_render_world.py",
+      "sha256": "5CB0F0DA75BB03DB76CD528EACF5C7932F977A9B51FD3607D516CB6C238DE691"
+    },
+    {
+      "path": "research/compare_pc_node_corpus.py",
+      "sha256": "D6DFF5223954A57655CB29BD31DE3B5298339A8473F52068FFEA31B5BEB488DD"
+    },
+    {
+      "path": "research/compare_pc_node_sections.py",
+      "sha256": "2142FB165922689973FD3B2486D47BA525B3B6F84EA1712858932EB925B8DBE3"
+    },
+    {
+      "path": "research/compare_pc_octree_queries.py",
+      "sha256": "DC5F4BDB2AF5A95FC592B75C85387B362F75D682E977F1151C590ADDA1A5469E"
+    },
+    {
+      "path": "research/compare_pc_parser.py",
+      "sha256": "8374F57AF6949706B7961D43BD3770A0E6851313A821B73EBF587C453A111102"
+    },
+    {
+      "path": "research/compare_pc_parser_file_text.py",
+      "sha256": "DBFB4680822D1F3B78420E32C35C1C29B73AF5C6C18CE6296084555CD07E6C71"
+    },
+    {
+      "path": "research/compare_pc_polygon_clip.py",
+      "sha256": "220B0C325812B42FF40066F9509C092E4AC0A225C0BA51C0A319E74F2A15D891"
+    },
+    {
+      "path": "research/compare_pc_read_reference.py",
+      "sha256": "112B7BD7BF1E7CEA7C41DFC85BA5E227AB027CDE4C47CAF7D207D5EBCEDDE376"
+    },
+    {
+      "path": "research/compare_pc_render_node.py",
+      "sha256": "D4B444A60611A81D71F10B157CF4FCBDDC2346EBEE2DC4DD85A340D4F1046128"
+    },
+    {
+      "path": "research/compare_pc_renderer_cached_draw.py",
+      "sha256": "EA5C4E109AAB60572297ADAC0992F1D493B8D0E6E0D5E01BFD8505CBAAF42E6C"
+    },
+    {
+      "path": "research/compare_pc_renderer_draw.py",
+      "sha256": "F4A2AD366774747B2C768111607ED4293B5696071455168B20772A0755044293"
+    },
+    {
+      "path": "research/compare_pc_renderer_fixed_draw.py",
+      "sha256": "3A96C7A4694DE7B0804B9EA60CE06DF774851AF56DFD5BEE42FEC01829D5CAE7"
+    },
+    {
+      "path": "research/compare_pc_renderer_fog.py",
+      "sha256": "2A6E9B233C054AB024E53D56295762807086AC70F608EA007F12C5846A1AD275"
+    },
+    {
+      "path": "research/compare_pc_renderer_generated_draw.py",
+      "sha256": "B8100EC86B1C13F6FED91154937FF68A0875150BB8288EFE5FD0AA5CB7F4CD2A"
+    },
+    {
+      "path": "research/compare_pc_renderer_lights.py",
+      "sha256": "9FE9CEF6D9459BE6385EE0A6DC7E4962AF91B633AC933E3309A0FD6D4F0911F3"
+    },
+    {
+      "path": "research/compare_pc_renderer_matrices.py",
+      "sha256": "83D38B7F9BB9350B9D7B8A49060CF6857207FFE13130639FFEE493C598B67369"
+    },
+    {
+      "path": "research/compare_pc_renderer_matrix_inputs.py",
+      "sha256": "9921315331863E10EB075F8C2D9C499174A4A7550E9453BB2F5CF66851E92ADF"
+    },
+    {
+      "path": "research/compare_pc_renderer_present_clear.py",
+      "sha256": "5F03C2FD7EE2652121D9E962A4A769EB1911DC1B7929D3EA313E910F20DF98F1"
+    },
+    {
+      "path": "research/compare_pc_renderer_protocol.py",
+      "sha256": "8DCB3D54AB2E617871841DB1D37B4CB47A671F5A3BD31B7DDBC0230CF77F0610"
+    },
+    {
+      "path": "research/compare_pc_renderer_scene.py",
+      "sha256": "B4EC69A1AD49CC7423E6C3AA2B7CB680F11C43F6BCE8E46AAE07292475FEAD43"
+    },
+    {
+      "path": "research/compare_pc_renderer_submit.py",
+      "sha256": "C5D98F754E4AFECAFB583B8E903A56D25B62CA355A5A6A36B7FAFD052ADF16AB"
+    },
+    {
+      "path": "research/compare_pc_rfx_corpus.py",
+      "sha256": "F112256B9CCF1C4BA651E171C6DA8CED976F8E438D2C5189FB899AC522620275"
+    },
+    {
+      "path": "research/compare_pc_rfx_events.py",
+      "sha256": "E8D2A5BFA52CAADFBFDAD296EA9CA654861662EEB4D1F9E1D2654A477579A217"
+    },
+    {
+      "path": "research/compare_pc_rfx_file.py",
+      "sha256": "8F8ED0CA46670D0B8D060A4609C1E7ED1F37066619152DFD6FD722D2B00F1F45"
+    },
+    {
+      "path": "research/compare_pc_rfx_pipeline.py",
+      "sha256": "8E17689A3C801062258EE6702EB1EF48619F6A20DF1FC584500C4DE998AF6C49"
+    },
+    {
+      "path": "research/compare_pc_rfx_variables.py",
+      "sha256": "A31CC1EDE5031EFBF5995DA0E2F95D1177FA02AAEBC7657CF161ADBCFF8EAA17"
+    },
+    {
+      "path": "research/compare_pc_san_loader.py",
+      "sha256": "2AF7F1B45D226503151123EAC3507E94F24DB5E49510F451E5FFD4B70AFCE2D8"
+    },
+    {
+      "path": "research/compare_pc_san_reader.py",
+      "sha256": "DB721EF745AB7D4F1CD06A3F3C8CEA153FA9A38007438BFED17DCC5644266C96"
+    },
+    {
+      "path": "research/compare_pc_san_registry.py",
+      "sha256": "2ADC6471FB42F96AB3C086FB9D8480DB50A576E81FD8706FB0D0234B46EBEB53"
+    },
+    {
+      "path": "research/compare_pc_san_writer.py",
+      "sha256": "8513F2841CE81376EFEBB5F3DBCAB845C32FDC6EC5F2B7C24981E63A5A23067F"
+    },
+    {
+      "path": "research/compare_pc_save_reference.py",
+      "sha256": "D0ED7E873844B6790861C9AF0C7706EB5C74835147D28E7E779B392D30A57D08"
+    },
+    {
+      "path": "research/compare_pc_scene_lights.py",
+      "sha256": "4D01FD1D29D23CC6629DC84B004742D81E4D37C93745AADBB05B55480D04E751"
+    },
+    {
+      "path": "research/compare_pc_scene_manager_world.py",
+      "sha256": "E593B21CBCF3B0AE1AF4A1EE8A04C47DAD7B4742077BF3F6051A0C73BC2A54F3"
+    },
+    {
+      "path": "research/compare_pc_scene_sections.py",
+      "sha256": "AC5C82B15D1ABF9C6280019D5B828730DE836E1B19A2D1F2281B1D6F9B9A70CB"
+    },
+    {
+      "path": "research/compare_pc_shader_compile.py",
+      "sha256": "0EAD3101186BEDEA95BF87C3B64B916CDDBCE88E620AD23F6E26CEBA313AAB67"
+    },
+    {
+      "path": "research/compare_pc_shader_constants.py",
+      "sha256": "341A357FA5637640F33586AB98B13727A65F72EF1AC377EAAD8E042056187D3A"
+    },
+    {
+      "path": "research/compare_pc_shader_generation.py",
+      "sha256": "80DE762161DB6BE2B94E7CDAA80D5C460EADD92A3ADB09D2A9B5B3DE29ABEC56"
+    },
+    {
+      "path": "research/compare_pc_shader_layer.py",
+      "sha256": "691161E607412155D09FC440FBBD8C926C74E285CA8C740316A24F482322CE55"
+    },
+    {
+      "path": "research/compare_pc_shader_manager.py",
+      "sha256": "8B946BD864B2930D6B194FD98F46C49D368D126824C81C8DC6E8D2A7FEA22BB7"
+    },
+    {
+      "path": "research/compare_pc_shader_parameter_append.py",
+      "sha256": "5B9CD6FC40626824EA7180E1E1D32C249CDB9086C7841404387708A31F264D76"
+    },
+    {
+      "path": "research/compare_pc_skin_alpha_flush.py",
+      "sha256": "F9E51A73A8A1C82A30E098695D45B154889DF9FA812F0DBAB07D9EA34E2910F3"
+    },
+    {
+      "path": "research/compare_pc_skin_alpha_queue.py",
+      "sha256": "C58AE0E5B29EEC845EB9891E7B7527AE80C052995A1EC97A5BBBD9617512F528"
+    },
+    {
+      "path": "research/compare_pc_skin_clone.py",
+      "sha256": "ECE128EFE55D91D32FCEECEC1E0540ABD5140817E33DEE6A2014C2EF46405351"
+    },
+    {
+      "path": "research/compare_pc_skin_decoded_light.py",
+      "sha256": "D8446C739F1FBC99A3D24B7F0460D2D8E44BB17760E867BECAB5DEE816675801"
+    },
+    {
+      "path": "research/compare_pc_skin_decoded_light_generated.py",
+      "sha256": "55B08130010ED60F01E363CF0E12E4D524FEA375E1FC447FDEBD0C20AA3DADC6"
+    },
+    {
+      "path": "research/compare_pc_skin_fog_generated_render.py",
+      "sha256": "AD1810D968960FD0BE63913726C96E3F2D3E6B9524C2D9D4CE20B6D4D2F950F6"
+    },
+    {
+      "path": "research/compare_pc_skin_fog_render.py",
+      "sha256": "6F96DF5FC118EDA841AC7E9D49181D996ED3E3D3A7AB6291C7D632D315DD51C3"
+    },
+    {
+      "path": "research/compare_pc_skin_generated_render.py",
+      "sha256": "29A6A3D635292ACA4C7C3B2CABAD9EE35FF7E252F0CACBF0FBF1C52DD217599A"
+    },
+    {
+      "path": "research/compare_pc_skin_light_constants.py",
+      "sha256": "7F1EA3C84493CF332904D7EC32AC63225DEEF4AF7164F645AAC01E34D105EE71"
+    },
+    {
+      "path": "research/compare_pc_skin_lights_render.py",
+      "sha256": "7703F6E4320501061FB2D0CD5F0E1F61D720E74FAE312D0DA8E8E270C870668D"
+    },
+    {
+      "path": "research/compare_pc_skin_loaded_render.py",
+      "sha256": "185C5398A748D682A7F283A8C3D745759FD5A2865068002FFE5EBF26994FC624"
+    },
+    {
+      "path": "research/compare_pc_skin_material_mesh_render.py",
+      "sha256": "C973EC32400732E5B42348D9CD60A8D6FC69374B281BC349F4F9E28F0D0940E5"
+    },
+    {
+      "path": "research/compare_pc_skin_material_protocol.py",
+      "sha256": "BA0B665E7778A2BE052406E26714EB8EA9FA89D0416124F69AE2215114B07F25"
+    },
+    {
+      "path": "research/compare_pc_skin_mesh_generated_render.py",
+      "sha256": "72A5B41FE781065E27D20E16F1ABB5DDF7157F25B7E0208DE097659541B02EE3"
+    },
+    {
+      "path": "research/compare_pc_skin_owned_material_render.py",
+      "sha256": "C7F000BAFCFCEE1F652B90FCE07CE50FC81442C4E5F64513422484D292BFD856"
+    },
+    {
+      "path": "research/compare_pc_skin_queued_generated_render.py",
+      "sha256": "E8E40D49EB84AD1F5E58DF4020B1F8A3770E5F1734A507323D20F156435085DA"
+    },
+    {
+      "path": "research/compare_pc_skin_queued_mesh_render.py",
+      "sha256": "B167528D09FDABC1BB6F47DB5EE478B659A06D3E06B0F9D17C6823E09E9CA8EC"
+    },
+    {
+      "path": "research/compare_pc_skin_render.py",
+      "sha256": "F91D2EFFF02C78DD674F41056018B80AE470C7702660E9B54D651A4D85B3B8DB"
+    },
+    {
+      "path": "research/compare_pc_skin_san_generated_render.py",
+      "sha256": "A90BB9703EFBF8DAC6547E61D7480CF07C789DC5BCF1677381D8E0C7023B59A8"
+    },
+    {
+      "path": "research/compare_pc_skin_san_render.py",
+      "sha256": "AFF96B4AF7BF5A3244A0AA1DA9DC90D0E28CED35142B0426E4C7ED662BF3D9A0"
+    },
+    {
+      "path": "research/compare_pc_skin_scene_generated_render.py",
+      "sha256": "50EFC504AD0B830C104794EA211408804318B39053AEB46B0618C49E09FE4231"
+    },
+    {
+      "path": "research/compare_pc_skin_scene_mesh_render.py",
+      "sha256": "C81FA0923A07D3EC9E7C8DC97E636FE1F7DCCEE4C3407433F5BB605DB1B502EF"
+    },
+    {
+      "path": "research/compare_pc_skin_selected_light.py",
+      "sha256": "248BE504F5388B58E5A93A9DEC8664756AD1DDE39D809267767AC272A76A4D17"
+    },
+    {
+      "path": "research/compare_pc_skin_serializer.py",
+      "sha256": "9F53F72C0E5C5715F257479E3F8A788FC31712AF01FB0FAFA0188B4859CB5C48"
+    },
+    {
+      "path": "research/compare_pc_skin_texture_generated_render.py",
+      "sha256": "189018F7F2E10271FB4B748063E3C24244BE6C440126AFCE02F42F6A0F25E6A4"
+    },
+    {
+      "path": "research/compare_pc_skin_texture_render.py",
+      "sha256": "B4C25FDA4F7513F248106D554DC34FE2D5A10A58DFAB2B226303F56945D525A9"
+    },
+    {
+      "path": "research/compare_pc_task_timer.py",
+      "sha256": "EF49F176F5C4562B0F12551C10E814704D447C0385B8821433106732446D941C"
+    },
+    {
+      "path": "research/compare_pc_texture_binding.py",
+      "sha256": "EBB9206DBF9BE2121806BE4CF0666558E81E3B10888707445DACDDD91DD812D3"
+    },
+    {
+      "path": "research/compare_pc_texture_cross.py",
+      "sha256": "B5763A03B2A77D9CDB78571B7C887EB060C74CBE3E2967F704706E7F232C4A2B"
+    },
+    {
+      "path": "research/compare_pc_texture_native_mip.py",
+      "sha256": "8531345A34DDF827772825039DC5B5856C3702FE651AEA09533DF79707B625FB"
+    },
+    {
+      "path": "research/compare_pc_texture_native_writer.py",
+      "sha256": "AE565C8F8B7A2B9E0EA9706A1983B1BB1631B7D12A408351880170858A46B897"
+    },
+    {
+      "path": "research/compare_pc_texture_palette_codec.py",
+      "sha256": "A969D4180E7C91D06A1BC9361E3DD6092F53B1A60233337123D91B4157FFE2E1"
+    },
+    {
+      "path": "research/compare_pc_texture_runtime_codec.py",
+      "sha256": "84E8205DCEF9AD373315C585AF1E6E9680F386E425E8BF1C884578B08C2DA15C"
+    },
+    {
+      "path": "research/compare_pc_texture_state_map.py",
+      "sha256": "6654408CC37939A8658A9C27E7E2E91A9EE7BFE2E25A33378E5414D68A01032D"
+    },
+    {
+      "path": "research/compare_pc_transform_inputs.py",
+      "sha256": "447E8C0C31C25420FE8886D3DC1007321B1349CFF7BC2F331455D9E11407B610"
+    },
+    {
+      "path": "research/compare_pc_uv_functions.py",
+      "sha256": "66413FC09BF5E517F3A35DB13F1ABA2D80624B559A9E6A4B556D4417EC451AAE"
+    },
+    {
+      "path": "research/compare_pc_uv_renderer.py",
+      "sha256": "2C11B7B1DFFE209B942A2A4E097A9B889FEA618A1D1CC49D9702367D9981CD18"
+    },
+    {
+      "path": "research/compare_pc_vertex_declarations.py",
+      "sha256": "31727D3980BEBBDF576E31F3B33570E6B4F64495A4140998EF874EB17834D5CD"
+    },
+    {
+      "path": "research/compare_pc_vertex_shader.py",
+      "sha256": "602B92312C409F19338AC51F00A91F525A22142B2AD173F43A0168B28843BDC6"
+    },
+    {
+      "path": "research/compare_pc_visibility_plane_storage.py",
+      "sha256": "A7563014AF0BC1B87FCEFCC0A9EBA130765ECE47B461B405F47A2988C35E3F76"
+    },
+    {
+      "path": "research/compare_pc_visibility_runtime.py",
+      "sha256": "2E864ACCB3FAADE8E3E1A528BFB17980DCEC9B483EFA4E55AB7D15ACFEB0BBC7"
+    },
+    {
+      "path": "research/compare_pc_zone_portal_math.py",
+      "sha256": "412F531F4BF9765E348CE9C0CB8E50DCCEE11DFA1F5FF9BD56DBF6AFE9F63A4D"
+    },
+    {
+      "path": "research/inspect_animation.py",
+      "sha256": "8F1AC5AF44059DADF5FEEB3124ED67FC93566C82013F14B8D3764280680EA45E"
+    },
+    {
+      "path": "research/inspect_animation_keys.py",
+      "sha256": "2FED49CDCDA17E55FF80C1B91EBBD2300447E9A334A464E5A389A2FB996EC74A"
+    },
+    {
+      "path": "research/inspect_animation_lifecycle.py",
+      "sha256": "E559988A7ACC01CCE82696164E48913D894C924B03EC0F2BDA9D2A04D3818CA1"
+    },
+    {
+      "path": "research/inspect_animation_manager.py",
+      "sha256": "AB51825EBCE70CB5D906BA6F63A5FAFDB40122FF0ED656360CBF99DDACB05486"
+    },
+    {
+      "path": "research/inspect_animation_runtime.py",
+      "sha256": "2EB1FBD496BA61C9205872E73C5D1778FA716107AA35B79B8B97E4D5C2B33A14"
+    },
+    {
+      "path": "research/inspect_cameras.py",
+      "sha256": "4CD969A0BA5AF6FA9767F46534720EEB4399273F0B2BACCC641905367B82F16B"
+    },
+    {
+      "path": "research/inspect_data_block_serializer.py",
+      "sha256": "8B407DD765D3CE41DC90798B1E8B9040E7A0C49DAD5AD6071D495DF6784FE41C"
+    },
+    {
+      "path": "research/inspect_dx_buffers.py",
+      "sha256": "EF56C1980ED731289A82ED5D42404D8EF2DE6D9CC472BE360DF37977FC3FA9AF"
+    },
+    {
+      "path": "research/inspect_dx_combined_vb.py",
+      "sha256": "0E31556D5B50003C36C542B7D53067A221E688916B675CB37EACA5439D0925C3"
+    },
+    {
+      "path": "research/inspect_dx_mesh.py",
+      "sha256": "DA8B2F407E82C2401B435735E27BCBB4F6762765856CAD0A0C831802707738FD"
+    },
+    {
+      "path": "research/inspect_dx_mesh_combiner.py",
+      "sha256": "6FADFCD8B481151897EBEA1BBC19988507F999D5D930A9EC7C3092BE459210B4"
+    },
+    {
+      "path": "research/inspect_dx_mesh_serializer.py",
+      "sha256": "B33115416D62BB78953AF7A9C0B638161367A791B76DDA4161562AD1DE14E36D"
+    },
+    {
+      "path": "research/inspect_dx_serializer_hook.py",
+      "sha256": "A362392F2A2B32170F592E06867DB6D1572A168CC4D6D11B9DDE968CCD3F1295"
+    },
+    {
+      "path": "research/inspect_dx_shared_mesh_data.py",
+      "sha256": "D193704519213B68742D06907820304C08FEC2B992AD5148B9456EA0A1E6AFC8"
+    },
+    {
+      "path": "research/inspect_dx_shared_mesh_data_serializer.py",
+      "sha256": "383B70C7F6B889463BCECA2226B848AAD17519270BFF5C35BCF167B98320447D"
+    },
+    {
+      "path": "research/inspect_elf_physics.py",
+      "sha256": "A3F1D9F5843C2C688F24B558876CDA21DC216FF75FD9E34EFFBA6391F61142BF"
+    },
+    {
+      "path": "research/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "research/inspect_material_layers.py",
+      "sha256": "E518C45C92B34D3489727757BCD73F3AF960D20139DD177C3A843544947428ED"
+    },
+    {
+      "path": "research/inspect_material_render_target_textures.py",
+      "sha256": "80DB12DDB931D7367A28BE4EA44D0E240431DB8AE64311EFF5BF0413A3A197F0"
+    },
+    {
+      "path": "research/inspect_material_runtime.py",
+      "sha256": "998CFF31577D864CC15E516849FBD3018E6EE6F55559270E50EDE48AB07FB640"
+    },
+    {
+      "path": "research/inspect_pc_bsp_runtime.py",
+      "sha256": "38B9D75376F21C80C85A78D93012C7B60038D5B3489CC1BA2EEE66F795F94B66"
+    },
+    {
+      "path": "research/inspect_pc_dx_materialization.py",
+      "sha256": "3A7B64FE39C5CACF22321734CABCF4BB481C1F2B3B3F318870DDC0000BDB714C"
+    },
+    {
+      "path": "research/inspect_pc_engine_frame.py",
+      "sha256": "D39A56D7BF8F8B40D3C562F302CA2DF7C596244FD624F27B90BAC2415BF83F13"
+    },
+    {
+      "path": "research/inspect_pc_loader_runtime.py",
+      "sha256": "BFEB775CBF6BA331FA021335320723315CC15A18C0AF6EEE9F1EAEEF67AB9BDE"
+    },
+    {
+      "path": "research/inspect_pc_materialization.py",
+      "sha256": "150C06240BEAE8119F36940CEB5F87A7E905793DEF85A24B4AD001F7EE081BD9"
+    },
+    {
+      "path": "research/inspect_pc_model_runtime.py",
+      "sha256": "B07ABBA69270C7BF80B17A5A3FFE99F8DB4E19DCC4F4A49EB0AFFC88581E0398"
+    },
+    {
+      "path": "research/inspect_pc_occlusion_runtime.py",
+      "sha256": "F69346C323EA0AA6A0ACE712EFE6ACE65031D3F1928BD9B725C17C13DC15F4B1"
+    },
+    {
+      "path": "research/inspect_pc_octree_runtime.py",
+      "sha256": "0BCAF0A252BC199F2D2002E18E9C1BA8DB91A2F99F48F42A39D0156C4616CD2A"
+    },
+    {
+      "path": "research/inspect_pc_partition_runtime.py",
+      "sha256": "41EF42BF9D87E27534F0C0308144E1428514CD9E39E1F8ACC4A232004579C7FD"
+    },
+    {
+      "path": "research/inspect_pc_polygon_clip.py",
+      "sha256": "E9804D67494D6393C4CA4ECACA5280A178957501E33A8EF361D77755A039E1BC"
+    },
+    {
+      "path": "research/inspect_pc_read_reference.py",
+      "sha256": "6AFF4186118FE0E3C02EE9F4F57007787A1B4870A8751CB0C7FE151718CACB5B"
+    },
+    {
+      "path": "research/inspect_pc_render_node.py",
+      "sha256": "D9223961174747B782D130FFAAAA6F5D4197F6C617762B60270FA60C41E777F6"
+    },
+    {
+      "path": "research/inspect_pc_renderer_protocol.py",
+      "sha256": "EDF5CD89FEDB2C063FC29EFA47019841CAD32E9670B7BA56446BE90B1A3D1D45"
+    },
+    {
+      "path": "research/inspect_pc_san_keys.py",
+      "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+    },
+    {
+      "path": "research/inspect_pc_save_reference.py",
+      "sha256": "BF5C623613896559F9ECD32D0AE06A409A02AA26FE389AF47365AB7757B62D91"
+    },
+    {
+      "path": "research/inspect_pc_scene_lights.py",
+      "sha256": "809C59D23D5530C2C29E5E5F55D090807A43C833CE30E079E9B75ED75178BEDC"
+    },
+    {
+      "path": "research/inspect_pc_scene_render_runtime.py",
+      "sha256": "B0122A50FC16238AD60AC1A57AEBDABE99FF51F05BF79FE303C899B414B5261E"
+    },
+    {
+      "path": "research/inspect_pc_scene_special.py",
+      "sha256": "7FA13DFE4001E12D4C0426EC679BCF21F9BC48077C9446156FDD74FF22D291AE"
+    },
+    {
+      "path": "research/inspect_pc_scene_world.py",
+      "sha256": "50F26E5EDEACFFB8389745565FB1858B6F93AB3B6541D31C9725EE9504118612"
+    },
+    {
+      "path": "research/inspect_pc_serializer_writers.py",
+      "sha256": "23DE356175448BB4AE1F2F01D8280EE15819C05C79210AEA67DE96124C4C8F0D"
+    },
+    {
+      "path": "research/inspect_pc_spatial_consumers.py",
+      "sha256": "7433CC46DE43EC104FC222D5498DC03F5AF2090D8937BFE8A2CF509B82363550"
+    },
+    {
+      "path": "research/inspect_pc_visibility_plane_storage.py",
+      "sha256": "AD8D764AE064F353FA0897D5C74357EDF1AFA5B42EE8E2F344800FFB0EF95CE6"
+    },
+    {
+      "path": "research/inspect_pc_visibility_runtime.py",
+      "sha256": "E278BF64E21DFBB700CADC8DE5C1614C12C3D5446E61CF4B6C01750A96E9BE54"
+    },
+    {
+      "path": "research/inspect_pc_zone_portal_runtime.py",
+      "sha256": "40DAD68406BDDDFAD022C0C4DAC23FDB3C84D99F38A8C776BF656896A257F2EE"
+    },
+    {
+      "path": "research/inspect_pck.py",
+      "sha256": "40E8AEDD6DA9E670950277745060360F72D81A42A9A0884A993E1F137D8868C7"
+    },
+    {
+      "path": "research/inspect_pe_physics.py",
+      "sha256": "CADF234AF2FD695373EF06A0F1C4DB84B2DEFC8169D8293ECEA8F92170795AEA"
+    },
+    {
+      "path": "research/inspect_pe_string_comparators.py",
+      "sha256": "8403C0E3AF14C4E3E7ADC64483EE42E4987DAC5F378395233FA8FB846D65480A"
+    },
+    {
+      "path": "research/inspect_ps2_material.py",
+      "sha256": "6F55507C5AA63CE44966C67A25AA5B634C990E47426B0A01107DEE098B582D0A"
+    },
+    {
+      "path": "research/inspect_ps2_mesh.py",
+      "sha256": "6A4FA32A0BE7AA02D381BEB7964921D1FF29645145482D50C6240DBDD63F93E6"
+    },
+    {
+      "path": "research/inspect_render_mesh.py",
+      "sha256": "16937F77A1B73BF56D324383CDF7DABF162A400BA30155DB11CC8EC3746900E4"
+    },
+    {
+      "path": "research/inspect_render_node.py",
+      "sha256": "65FB04CE7583939380728DB12395BBF74D8F8D0983D2682542060B647A97DF2D"
+    },
+    {
+      "path": "research/inspect_render_node_serializer.py",
+      "sha256": "5A30DF07A8E1C3650C22B3A4BD4803B2A24F7FF02E1FC296707A0CDD061BEAEA"
+    },
+    {
+      "path": "research/inspect_render_submission.py",
+      "sha256": "6A0993A99A581356B3EEEBCCFD4EA7EE9177AE757B8B2CD7ED0A032EA36CAFB2"
+    },
+    {
+      "path": "research/inspect_render_targets.py",
+      "sha256": "65C093833283FF85CA20357928B5CCC5603DB26898D0D9D7C30EC362070AE514"
+    },
+    {
+      "path": "research/inspect_renderers.py",
+      "sha256": "8E62544AA7754A80B32AF4C88ED6325FC6AF7E1AE1C4548E5D387A0367DE8AE5"
+    },
+    {
+      "path": "research/inspect_resource_manager.py",
+      "sha256": "027395A8EF7C78F39D2028A8D6AE18EAE44777574ED59477C994C2BCA7A3C8B4"
+    },
+    {
+      "path": "research/inspect_resource_pipeline.py",
+      "sha256": "715280254E3076A56EFD9EE827FD89A035314678718392F05249B5E94B642F03"
+    },
+    {
+      "path": "research/inspect_san_reader.py",
+      "sha256": "F1E613A6E15F7CC55A4746716FC39B0559DD1242A9D67E302235BE6036ACCD79"
+    },
+    {
+      "path": "research/inspect_scene_graph_optimizer.py",
+      "sha256": "0F811F4BA7E322E8942031E18F5DFBFA14D3F0D8BB7A54726EF3AEAE0B83A86C"
+    },
+    {
+      "path": "research/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "research/inspect_skin.py",
+      "sha256": "CCA194EB6A109A88FF058D2E5DC945D80350B7F87DEF97032A2EE58A21DBEAB5"
+    },
+    {
+      "path": "research/inspect_transform_track_eval.py",
+      "sha256": "8ACEBCA5DB62704D82EAE3964C34F48140A5FD1C0829299EF1A3311F0707D272"
+    },
+    {
+      "path": "research/native_goal_coverage.py",
+      "sha256": "7F17B8AEE42E9A1055F55BE166D6FFCF1791ED8D8DD4E21F78D8BDADB99783FB"
+    },
+    {
+      "path": "research/native_knowledge.py",
+      "sha256": "837561095ACA1B256F0ACAC323BD357D5EC3C47DB548988E567962997FA1380D"
+    },
+    {
+      "path": "research/native_platform_knowledge.py",
+      "sha256": "5976F565DC275629CA032EDDFC422E7D5E1CAE35B323D299984E036851BAB92C"
+    },
+    {
+      "path": "research/native_specimens.py",
+      "sha256": "799334685DBFF92B6049C52A0BF32092AFC878618E4585141C5E60B0D89362AA"
+    },
+    {
+      "path": "research/native_workbench.py",
+      "sha256": "1E7BDB97EB4BF9B2A2FF8495F77B8138DE3AB1408B519F063D416AFC4AE74185"
+    },
+    {
+      "path": "research/pc_compact_mesh_device.py",
+      "sha256": "6E6B9871C5A366FE55582685623EDBC49C11C8005B8EFCA038AE52AC166FF2B8"
+    },
+    {
+      "path": "research/pc_compact_texture_device.py",
+      "sha256": "C72EBE6D341E7ADD864EB43C16B6321582C135634BB2ABD68E7184AF2812A142"
+    },
+    {
+      "path": "research/pc_crt_format_fixtures.py",
+      "sha256": "2DCE4CE11D9FA7CF9C1295DA078EB807680AB33CACC5A9CC1672D0FF6F3B3760"
+    },
+    {
+      "path": "research/pc_crt_memory_fixtures.py",
+      "sha256": "002BD60FCDF3E6F8512D67C348B005A12FE5D96F0604F6ACC39B9102E55F4AB7"
+    },
+    {
+      "path": "research/pc_crt_numeric_fixtures.py",
+      "sha256": "70C18418BD2FE8FEBC1E361579DC030161333D79340D131FD39383E48EF4E88E"
+    },
+    {
+      "path": "research/pc_crt_string_fixtures.py",
+      "sha256": "6680089154CF017648A9B7AE42F87277707E480E08F938D976EFFC3A90924EA0"
+    },
+    {
+      "path": "research/pc_declaration_fixture.py",
+      "sha256": "D52429DFEDE05ED5348EE1803D8C3DE962DD51FEF18220314A9A29EB4BCA17CD"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "sha256": "36C64F9E48DE1C86690513A981DCA6F5B394A7543E95A2A06ACB4F6F008052B3"
+    },
+    {
+      "path": "research/pc_loader_fixtures.py",
+      "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+    },
+    {
+      "path": "research/pc_locale_input_fixtures.py",
+      "sha256": "35FC943C2BFA1AB5566B56941EF0AC152842DA45529DBEF6EBE41DEA22E9BCF7"
+    },
+    {
+      "path": "research/pc_msvc_string_fixtures.py",
+      "sha256": "8AA7F2AD0A2916046C4100F7FE37223A674879761CB8FF716637DF72F7007CA4"
+    },
+    {
+      "path": "research/pc_palette_fixtures.py",
+      "sha256": "017A07647E4CF67AD862788E77B40FBEF0DD6CB5646C175258D79B0CC0073724"
+    },
+    {
+      "path": "research/pc_qsort_u16_fixture.py",
+      "sha256": "4D313D7A5EA9C879CDCE621D1A96AD27568E616EF5230312E0DA8A681049F8F7"
+    },
+    {
+      "path": "research/pc_reusing_arena_fixtures.py",
+      "sha256": "CF1100B17B73589F16A05C91E76225F12B663D3DA190911249C286D0D63AB4E9"
+    },
+    {
+      "path": "research/pc_rfx_corpus_fixtures.py",
+      "sha256": "393E72211BF8F66725C4087B3E60C73427098F3A1B12803FFBBE34ECB7A844B0"
+    },
+    {
+      "path": "research/pc_rfx_regex_fixtures.py",
+      "sha256": "5B81032953E728D9C19B331AED5BF2CA336B328BF975D7D2AA663D68D4017F76"
+    },
+    {
+      "path": "research/pc_serializer_fixtures.py",
+      "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+    },
+    {
+      "path": "research/pc_shader_compiler_fixtures.py",
+      "sha256": "2E19014F80B812CE925C386B54DEFF8A66FFC195B20C91379BB2EB8E1145F9E8"
+    },
+    {
+      "path": "research/pc_stl_fixtures.py",
+      "sha256": "B9F9339542C48DAFB7669EB24BB5FD5D887A2A4323776A612F410A27E5AC6AF4"
+    },
+    {
+      "path": "research/pc_texture_fixtures.py",
+      "sha256": "83ECA73C44973009850B7BAD2C5B27F3BF99E258BCABEC3DFAB59ACDDACF877A"
+    },
+    {
+      "path": "research/pc_texture_mip_fixtures.py",
+      "sha256": "5821AC09D5C2B1F92BD48691488C0FC432E8CC2A6A8219809839A7F3710EB956"
+    },
+    {
+      "path": "research/pc_win32_file_fixtures.py",
+      "sha256": "D71E1F2C0DA5D7FA24A460CFC185F72718E2119060936C9C886E35B170C4A059"
+    },
+    {
+      "path": "research/pc_xml_event_fixtures.py",
+      "sha256": "B187E671EA3C2277FC16B1272EF07D2204766B357B3A272E7FDC90D4C603AD9D"
+    },
+    {
+      "path": "research/probe_pc_actor_binding.py",
+      "sha256": "2B712DD6221AAC139DA38136E5AA198D7E23BBB5ED6D3DB25B06E46AD334CF55"
+    },
+    {
+      "path": "research/probe_pc_actor_control_pipeline.py",
+      "sha256": "77D6A6484E2C641A64D224A4C88AA10CC898EC17D7775A906C695D62321F1999"
+    },
+    {
+      "path": "research/probe_pc_actor_controls.py",
+      "sha256": "F103B801E1D4328420D53884111132CDA7D5CA3466A821AA5AB6959958C07AAF"
+    },
+    {
+      "path": "research/probe_pc_actor_lifecycle.py",
+      "sha256": "FE64FBC494867F2D053E7206CE4B35A6F033E4D460F1B3FDB54EA6E710F6FC1A"
+    },
+    {
+      "path": "research/probe_pc_actor_start.py",
+      "sha256": "AC26BE873714CB8C3742E104B4B8434994103FE32FC3E87E3DD089981781A04E"
+    },
+    {
+      "path": "research/probe_pc_actor_tick.py",
+      "sha256": "9D3B9C327199E772F09932B4C06A0114CDED287A5568ED627AA9171B5D4AF654"
+    },
+    {
+      "path": "research/probe_pc_actor_tree_stop.py",
+      "sha256": "5098BA049FE703AA198F40257CE2B4C29E55CC7BA7FF0F0FC449B25A66D6C06E"
+    },
+    {
+      "path": "research/probe_pc_anim_texture_track.py",
+      "sha256": "11BC697C2AAFC07800CD1BA35CF77FB50CF66DA326B13364092C9CC2C3624502"
+    },
+    {
+      "path": "research/probe_pc_animation.py",
+      "sha256": "DD68F3ED38CB6D28B75ABC76AEF08EBA389A2457C61FCE19E1B2C049ADA02578"
+    },
+    {
+      "path": "research/probe_pc_animation_keys.py",
+      "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+    },
+    {
+      "path": "research/probe_pc_animation_lifecycle.py",
+      "sha256": "8ACD2F521AE78576BF3BB6304E64E7882332380B1A4F41A214972B705A77037C"
+    },
+    {
+      "path": "research/probe_pc_animation_manager.py",
+      "sha256": "4DEA1F483D5040FB15718D516F641F6724E406DFD4A29D797028160488767A5A"
+    },
+    {
+      "path": "research/probe_pc_animation_scene_frame.py",
+      "sha256": "D9582AFE082815281153F242E680564ACF2C1078C2BB0E4276C2CEBF8AD1A7C6"
+    },
+    {
+      "path": "research/probe_pc_block_writer.py",
+      "sha256": "CE46C9F91E7D0A4F0EE365A4C1E7C44EFEBEAE1DE6428E2ECD2A7261D27FABFE"
+    },
+    {
+      "path": "research/probe_pc_bsp_runtime.py",
+      "sha256": "33076711B13A48D628C3AE6A422CE9E8970F58BB97B9617D6E72206ED43CF68B"
+    },
+    {
+      "path": "research/probe_pc_camera_matrix_boundary.py",
+      "sha256": "951315A4FDF3A32FA6127E79B31C1F7CF9920E25ECDC7DAAA93FECA715234068"
+    },
+    {
+      "path": "research/probe_pc_color_functions.py",
+      "sha256": "362B21004FC3A647DE2C8B8751A56A1845C050DB44C60C0342BEB6A8AC5CC3C6"
+    },
+    {
+      "path": "research/probe_pc_declaration_device.py",
+      "sha256": "385CA78B40F8FA3F49A6A0E1E23A21B84710FF0897F4BF4C25B41A96B9810FEA"
+    },
+    {
+      "path": "research/probe_pc_declaration_lifecycle.py",
+      "sha256": "931B5C35347D4FA8FF5817BEBD5AF49CD34A3A51A75F638D6C53DF2F8A46DB46"
+    },
+    {
+      "path": "research/probe_pc_dx_batch_scan.py",
+      "sha256": "FB600FA8CBC109238D2DEA671624FCB27ADEA7860503B02CF479E11D500094F3"
+    },
+    {
+      "path": "research/probe_pc_dx_buffers.py",
+      "sha256": "16B19F04F6D6BC1F267B75D93CFE8E2C400C5C12838D36B70E76D350DC1377AD"
+    },
+    {
+      "path": "research/probe_pc_dx_hook_cache.py",
+      "sha256": "4540ADD5CC2CB4243083800BFD18BC1A03EABC01194671F819CB85576DCA807B"
+    },
+    {
+      "path": "research/probe_pc_dx_hook_materialize.py",
+      "sha256": "768878C2BE5E69DCFE555551889FCF848C7DC0B7F0BBA4D5AA6EFA3F82997DD1"
+    },
+    {
+      "path": "research/probe_pc_dx_light.py",
+      "sha256": "1BBD0D8EBE24EEE4E1207993501D0D9405D65749B4FE9E3A7A158811818A8028"
+    },
+    {
+      "path": "research/probe_pc_dx_light_scout.py",
+      "sha256": "D7401BE61CF0EDA7CEE7508AEE3CF97445FC7E60BF2F6FE2BC1280FFBB09647C"
+    },
+    {
+      "path": "research/probe_pc_dx_material.py",
+      "sha256": "BD2278B62D09183D3FE124D104248ECEB4E1FBE9C8A8F0C56AE981C662A501C3"
+    },
+    {
+      "path": "research/probe_pc_dx_mesh_metadata.py",
+      "sha256": "BCB5B44C31E4DF38946FF4D633608A02A6A4777D2AD3B6EECEAE2558FD1EEEB5"
+    },
+    {
+      "path": "research/probe_pc_dx_mesh_payload.py",
+      "sha256": "4FBAA0DD76671A975B8E9F4F5CA46076EDFFF14D33F387D97E76AC04ED3891FF"
+    },
+    {
+      "path": "research/probe_pc_effect_template.py",
+      "sha256": "6BCE270204AEC30DD9C84AC7CF85A7ECBCCDA4081DA6228241F050E0ECB8AB36"
+    },
+    {
+      "path": "research/probe_pc_engine_frame.py",
+      "sha256": "D17F9920054124C5F9ECC7855C3388B6A2F89198D06790A8D4854B52EDC399FC"
+    },
+    {
+      "path": "research/probe_pc_engine_render_frame.py",
+      "sha256": "AA7F232ED34943EEABEB95AA230264D9F6F0705C1B46482B634D3B807B4D6A22"
+    },
+    {
+      "path": "research/probe_pc_engine_scene_init.py",
+      "sha256": "CBD530FFCE1FDDDBDEC22BC00423993530DAC9DFB48D094CAFFF343E7591804C"
+    },
+    {
+      "path": "research/probe_pc_fat_runtime.py",
+      "sha256": "CF115CE31F46413CFB61F05E94C237B74D078FB30843217F7995B6BE4951F17B"
+    },
+    {
+      "path": "research/probe_pc_fog_lifecycle.py",
+      "sha256": "4A3E5ACEB9AFBF7DA273E4B61E3A6B12B0A6E4AC80BCE224062BB23CB3D2BEA1"
+    },
+    {
+      "path": "research/probe_pc_fog_links.py",
+      "sha256": "4CD9969BF7A362FE29B498DEEACFC5A1AA02FE3BD632C52E6312AAC2F119EC83"
+    },
+    {
+      "path": "research/probe_pc_fog_named_prefix.py",
+      "sha256": "E7F3733F31E71801B7AAF63D2C87D3AEF63EC4E98C492D9C04DC49748F82C244"
+    },
+    {
+      "path": "research/probe_pc_fog_serializer.py",
+      "sha256": "B78B3C162C109A3FB999F1EF7268DB47DE16C61AAF3E014346781FEA78F1E5FE"
+    },
+    {
+      "path": "research/probe_pc_function_eval.py",
+      "sha256": "B32332D4222597C0C555A1585F8FC2E51A0DF7DB470412BA6FFEF4E514DE8D48"
+    },
+    {
+      "path": "research/probe_pc_light_corpus.py",
+      "sha256": "C2ED99519A8EF1FA850095F00615D00180AC30DF448CFD76852B2F7F72321296"
+    },
+    {
+      "path": "research/probe_pc_light_graph_roundtrip.py",
+      "sha256": "9AB1338AA868D3435D3EA7FBC9BFD593EC510424A774211B2353FECD63EFBCF1"
+    },
+    {
+      "path": "research/probe_pc_light_scene_world.py",
+      "sha256": "E419B988708934EADBFDF4176283FD20961EC14B378B10ACBC09B5DF9C0C22A7"
+    },
+    {
+      "path": "research/probe_pc_light_serializer.py",
+      "sha256": "06F23DA9057D04D6A170D6DD0AE0344C83D4A2FF93FDE9F09266E99112E2FFAF"
+    },
+    {
+      "path": "research/probe_pc_light_world.py",
+      "sha256": "4EB8C985F50594FC4E1B7593E306557E9655646D2CAC9D0DB01DD5225A2BDD42"
+    },
+    {
+      "path": "research/probe_pc_loader_registry.py",
+      "sha256": "AC3F3261DAF6DB575CE7EA23AD1F78639B0557AD8968AD80E648FFD661E7E3C9"
+    },
+    {
+      "path": "research/probe_pc_material_animation_links.py",
+      "sha256": "D92F0E400F9B273C4F93351667850BD0C127C76119FBCDB2E9D53D4E88D2E428"
+    },
+    {
+      "path": "research/probe_pc_material_apply.py",
+      "sha256": "8A8DCF4732165F27739DCFFF030AE9EC816F75FECB66F593FAAE14C6200164D8"
+    },
+    {
+      "path": "research/probe_pc_material_color.py",
+      "sha256": "552245D712B877AF49939CC17CCD698573574CAC7C983E447C75314DA0D8769F"
+    },
+    {
+      "path": "research/probe_pc_material_color_copy.py",
+      "sha256": "C31BE2D64AF29A62FB4013E68568A79E822303CA5914F4A1D425E2A222211300"
+    },
+    {
+      "path": "research/probe_pc_material_color_corpus.py",
+      "sha256": "267E791F2161E8AC32A46ADB86AF159A1395F1AE47404077BDE3B5A74B44CD5A"
+    },
+    {
+      "path": "research/probe_pc_material_color_frame.py",
+      "sha256": "A6F7DBC5C7DDF24DAB40040911F4A240E2BB365958D438EBE752C1616D5AE592"
+    },
+    {
+      "path": "research/probe_pc_material_color_links.py",
+      "sha256": "624A65660DA5746B028897EA505FDA764267DC60442B762D4771FBA639E53A9A"
+    },
+    {
+      "path": "research/probe_pc_material_controllers.py",
+      "sha256": "98D5F9C032D11ECC0909CEF568D63117B52259F4A5C2F45D3F81261ACB7CCAFB"
+    },
+    {
+      "path": "research/probe_pc_material_factories.py",
+      "sha256": "436710B57AA37834C14D688D1CDE726F47C1E4E1025C326B744FDEA10EE0D182"
+    },
+    {
+      "path": "research/probe_pc_material_install.py",
+      "sha256": "CDC409D9D3E2B740E07D75FCE461E96AADC52A6E1C3C11F341C723E74E4319B4"
+    },
+    {
+      "path": "research/probe_pc_material_layer_owners.py",
+      "sha256": "3E70992DF18595260A26C45F105EF4F6E1A39C11B3D39092D858B247739DA2B9"
+    },
+    {
+      "path": "research/probe_pc_material_layers.py",
+      "sha256": "ED061B519E8338508395D5185E5385DC40A9D6F20FB1299D6C7E4037E20D9461"
+    },
+    {
+      "path": "research/probe_pc_material_lighting.py",
+      "sha256": "3456E9F3FBF9E3A66B32A1BC70B0B293BF64C097D210148AA1CB7D4BB04B45CB"
+    },
+    {
+      "path": "research/probe_pc_material_links.py",
+      "sha256": "15338449E89F9DFA55742A22FD6F182739EF79A4C9B184C0E8A99F48990B1E1B"
+    },
+    {
+      "path": "research/probe_pc_material_pass_states.py",
+      "sha256": "7141EA8503A5F0E16D21FC2E22610EC4693B722D3FDD3B902D71E0BF5599C016"
+    },
+    {
+      "path": "research/probe_pc_material_pass_update.py",
+      "sha256": "EA0D32BABD5818CCAA4291992F9271C25A5251AA20005C7813591D1976D78011"
+    },
+    {
+      "path": "research/probe_pc_material_runtime.py",
+      "sha256": "AC66ABED4837942DA2547AB46FCB2AEF2F41503EB49E3D562001AF760B00CA33"
+    },
+    {
+      "path": "research/probe_pc_material_scalar.py",
+      "sha256": "9782E28400D3340945818881B7201EE43BC83E2043249EA4764C8FF35E4F425C"
+    },
+    {
+      "path": "research/probe_pc_material_texture_links.py",
+      "sha256": "1419109DB9AA13407A2E2283C60336C8D89111BE1F8B13A911B489E62EF3AECB"
+    },
+    {
+      "path": "research/probe_pc_material_texture_ownership.py",
+      "sha256": "2D7A6FA3EE18A2BF754FEA1197E5115DD996DE1A7D1EC58CE6251F9DCE70A1D0"
+    },
+    {
+      "path": "research/probe_pc_material_uv_links.py",
+      "sha256": "42AC07721DCB867A8580CD98E6AAD3D51F9FA142FAD7ED701B8ED0E10D768313"
+    },
+    {
+      "path": "research/probe_pc_materialization.py",
+      "sha256": "6EF8BF7EBC1625FAC50942C2FDCB73433700417B50DD15ADA91E26B65737F286"
+    },
+    {
+      "path": "research/probe_pc_mesh_bounds.py",
+      "sha256": "4F55BAEB13A0837B9F278E1EF93ED994C59FFAE2D5CD15D08D49CA0589E49C72"
+    },
+    {
+      "path": "research/probe_pc_mesh_full_loader.py",
+      "sha256": "51798C1D6976D3B380489E5DBD6744E4141FB56885FA97D31BADA9D8191E8BC2"
+    },
+    {
+      "path": "research/probe_pc_mesh_graph_writer.py",
+      "sha256": "3773AAA8B9DEAB502F7F2AFE017F30766A61F1EF4AF26FC6FED2232A060102A1"
+    },
+    {
+      "path": "research/probe_pc_mesh_serializer.py",
+      "sha256": "D9BFC7272D96FBE9F81CBA825F1058B00414F5BF15139B46FB2649B06B83496E"
+    },
+    {
+      "path": "research/probe_pc_mesh_writer.py",
+      "sha256": "2E93E0D7F6ABCC8D9E43A034E775256F9F59BC38F78C6C17DC2D2BC5754C58A8"
+    },
+    {
+      "path": "research/probe_pc_model_runtime.py",
+      "sha256": "D3C568CF2514425272B1ADB34FC02C88E0ACA707AC57D1BE3F19F8D4843B7CA4"
+    },
+    {
+      "path": "research/probe_pc_node_billboard_fields.py",
+      "sha256": "CC129E7FCD5FDD213DA7FC311F11344A5883EE527C99CD8C8C3B123C652E7060"
+    },
+    {
+      "path": "research/probe_pc_node_corpus.py",
+      "sha256": "FE061B754A6D7D47CA3C23A82C405FAA3A57190983EF283105DFC4F6CF18AF2E"
+    },
+    {
+      "path": "research/probe_pc_node_full_loader.py",
+      "sha256": "3DDF4BEDA4FCCBE42901E3B09C6B260942D4BFD5F3B4A3DE31B757A9C062445D"
+    },
+    {
+      "path": "research/probe_pc_node_lifecycle.py",
+      "sha256": "E12FD7531FFBCACAD322735A718C60510F2860991D745BE1C04E20EE11E469DC"
+    },
+    {
+      "path": "research/probe_pc_node_relationships.py",
+      "sha256": "95D458E32158EB93C96F3596B8327EAC5D4246FE4D61F3580114FC0C2DAF623A"
+    },
+    {
+      "path": "research/probe_pc_node_save_graph.py",
+      "sha256": "8C746B7D478B85E093C9605F5824354E64C9DED383D77E7B4FE2D2F3359A617A"
+    },
+    {
+      "path": "research/probe_pc_node_serializer.py",
+      "sha256": "29FC64755FEB4A1B588CDA7294F5B518E22712B9F962512230146DB7875AB3CF"
+    },
+    {
+      "path": "research/probe_pc_node_world.py",
+      "sha256": "D499C15B6F4F7BBAAE92A63C9568404200879832BC535E0EEEA08DFE45413341"
+    },
+    {
+      "path": "research/probe_pc_node_writer.py",
+      "sha256": "5B620C4AAA44D63FFD61F24F82D09610B6342792442D14A2F6400BD0680A6C25"
+    },
+    {
+      "path": "research/probe_pc_occlusion_runtime.py",
+      "sha256": "D06939E15E56295762DE82E6E95D22F4595BDC11920138EE57FF2D5D013B6B6A"
+    },
+    {
+      "path": "research/probe_pc_octree_runtime.py",
+      "sha256": "66A6CAE7A3540E235448E51EDAABB18A5CF1E9276640DB77B2599157052A40F9"
+    },
+    {
+      "path": "research/probe_pc_palette_factory.py",
+      "sha256": "D0CB0CF3BB1E1AB529A6EB16F25EADCE8CCD59174DCE4AEF23CFF17D8002EAAE"
+    },
+    {
+      "path": "research/probe_pc_palette_lifetime.py",
+      "sha256": "A0DC8B64ADB662848B120965D7FAECFCB3A0C64015A60BCBCA68A2D0D24B1595"
+    },
+    {
+      "path": "research/probe_pc_parser.py",
+      "sha256": "F1CE7932D8FB0A0F652B0F67EF526741314C084FBB7DA64C1B5FB8A07685C02F"
+    },
+    {
+      "path": "research/probe_pc_parser_file_text.py",
+      "sha256": "2FD9886322D4A4C09E0B60E1B096A8A6155AB2A1FDEE88BAB2E694D3257E5C7C"
+    },
+    {
+      "path": "research/probe_pc_parser_scout.py",
+      "sha256": "DC0D25CD4BAAADAB3DC8E15C17656D79348D6369730B14FE57A1A0B050BEB612"
+    },
+    {
+      "path": "research/probe_pc_partition_runtime.py",
+      "sha256": "06ADE8859979DEC00415C7B381F615D374D104CC8BFD8C88BF71936CC1F29A02"
+    },
+    {
+      "path": "research/probe_pc_polygon_clip.py",
+      "sha256": "ADA53E8972DDE53BEB6898A964E27D2BFF062BB48B4C2D2B2F2E47A6ABB1D5A7"
+    },
+    {
+      "path": "research/probe_pc_projection_flare_managers.py",
+      "sha256": "4859D49CA8C7BFD0D83426C671033E16164F78BF3B18789A9F8620BDA539AC18"
+    },
+    {
+      "path": "research/probe_pc_read_reference.py",
+      "sha256": "0545352AFAE6810CE4AC11EC8117BEF61AD4D9503217B9C75BF1DACA127D72EB"
+    },
+    {
+      "path": "research/probe_pc_render_node_callbacks.py",
+      "sha256": "C9944282BC56AF414C2C21D2A2E2F94FA463CF4E939A02AE2945FF5551BF6A67"
+    },
+    {
+      "path": "research/probe_pc_render_node_ownership.py",
+      "sha256": "2D1527F4723D91E34F0F9EC96EBEE7004EEB6F7D391B95E01014B116280D56C2"
+    },
+    {
+      "path": "research/probe_pc_render_node_runtime.py",
+      "sha256": "02C19941AD5F20DA9DE00173D404CDD39DC90A0ED3B1C0826E4B5785B4E876EC"
+    },
+    {
+      "path": "research/probe_pc_render_node_sections.py",
+      "sha256": "20BFC5A15F446202CBDDC970BAEEE43D22B076CC616F38E29766701239792E84"
+    },
+    {
+      "path": "research/probe_pc_renderable_callbacks.py",
+      "sha256": "D3F642450AE1B97B36F0329C6D4D72292773659D2F0D38F9820A418B41281DC1"
+    },
+    {
+      "path": "research/probe_pc_renderer_cached_draw.py",
+      "sha256": "20E49C966EE522846E5F775C0405E98486C9468FF109822D4A4BC45F174F3DD2"
+    },
+    {
+      "path": "research/probe_pc_renderer_draw.py",
+      "sha256": "69630F24CF5566B2992864FF28DEFD994E55EF8E241A3ECF4D9F6A10E857A2D9"
+    },
+    {
+      "path": "research/probe_pc_renderer_fixed_draw.py",
+      "sha256": "E0FD7BBE5E59D05B1BA192A389D78E56CFEF28F4D77BF1DAD9BA7014666DF9C7"
+    },
+    {
+      "path": "research/probe_pc_renderer_fog.py",
+      "sha256": "CEE41E88A7ED5FD9FF81F030107CBADAAE081873583B17B0CA96571F8BDE05C2"
+    },
+    {
+      "path": "research/probe_pc_renderer_generated_draw.py",
+      "sha256": "5C28C0369A3DE9EAB2D72F475838981317EAFDDB9BC7A53D81908A0947D68F44"
+    },
+    {
+      "path": "research/probe_pc_renderer_lights.py",
+      "sha256": "2E42F0D158D95FF230366834AE26A4A5698457F6B05CB7EA8616FF94B3AD17C7"
+    },
+    {
+      "path": "research/probe_pc_renderer_matrices.py",
+      "sha256": "32E5A0756F41C38AA41397C43CA69EF83C0A8EF869D8C8D028338A863DB7D0AE"
+    },
+    {
+      "path": "research/probe_pc_renderer_matrix_inputs.py",
+      "sha256": "B98F7BD3E519D42FA3A7D9EDC94E910E70CBFF7E7543B3F595889F7BE8AF55F5"
+    },
+    {
+      "path": "research/probe_pc_renderer_matrix_scout.py",
+      "sha256": "EC6639A643BA978DC9E478761D29868829763671C6A070882E4F0788F292B364"
+    },
+    {
+      "path": "research/probe_pc_renderer_present_clear.py",
+      "sha256": "066534B2A25A5173132F2FCD0FE727D89DE3F56CAC107C32A085A602617071AB"
+    },
+    {
+      "path": "research/probe_pc_renderer_queues.py",
+      "sha256": "9E9E6BFE8BBF55F418E3E8FC5B9497DB99887E0C1A779631BFB060CE09090C92"
+    },
+    {
+      "path": "research/probe_pc_renderer_scene.py",
+      "sha256": "D0BED5B1132BD3AE274606D3BD495D9E0D72C9413A00286CD1E948BE339D9F74"
+    },
+    {
+      "path": "research/probe_pc_renderer_submit.py",
+      "sha256": "F7623A4D8203FE043C4B5B78A7BF01CA9B2AF2B4EE30AAEB1C774FECA8FA87E4"
+    },
+    {
+      "path": "research/probe_pc_rfx_corpus.py",
+      "sha256": "D9B5A732B606E0A6B21560ECAEA045B747AC0EB0D2F4EE04F1886DD6DC648995"
+    },
+    {
+      "path": "research/probe_pc_rfx_events.py",
+      "sha256": "C36B4348DC57BFE04B3984B6A6283E923701FCAD0888235169FA5914D1118329"
+    },
+    {
+      "path": "research/probe_pc_rfx_file.py",
+      "sha256": "11E41C9389055E0254506697969DFF3C09EB9DA992C2A3D8C219F27173764F94"
+    },
+    {
+      "path": "research/probe_pc_rfx_pipeline.py",
+      "sha256": "887DCF25B100F213D8D44213D5780D3705797EFF40D37D1D233DB6EC922AA897"
+    },
+    {
+      "path": "research/probe_pc_rfx_variables.py",
+      "sha256": "D1C2CD5A0A001036F208FBB255D4AE63D792D1B2314341653DF7F258AD4A36BE"
+    },
+    {
+      "path": "research/probe_pc_san_loader.py",
+      "sha256": "240F72548ACFC4C4CD7AFB70267493A264CD773CD827C22FFE079C10E9872E9F"
+    },
+    {
+      "path": "research/probe_pc_san_reader.py",
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+    },
+    {
+      "path": "research/probe_pc_san_reader_errors.py",
+      "sha256": "3E406699415FBFD82130BC7F7B377FC9720B2875D1E962DD41E04F003455F889"
+    },
+    {
+      "path": "research/probe_pc_san_registry.py",
+      "sha256": "5FDF9CE059AE2EA47983F3307AF9EDAC4CF7478DCFC09BD1CEC02D14317D5E82"
+    },
+    {
+      "path": "research/probe_pc_san_writer.py",
+      "sha256": "188171AB0D636CB3DDB74587FC7AC42FD04FD2E9CBF508B92A070C4EEAE4C14E"
+    },
+    {
+      "path": "research/probe_pc_save_reference.py",
+      "sha256": "4DD16B38D8D75C41082BADAB8BF41DC990602E93E7BD57BEFBD8AAC2340243CF"
+    },
+    {
+      "path": "research/probe_pc_scene_lights.py",
+      "sha256": "FCBE75FA4A50C9A78B26B2210487B2EF46447CAA73B4BB3E5255EFB38D41AB95"
+    },
+    {
+      "path": "research/probe_pc_scene_manager_world.py",
+      "sha256": "5E40A63383A5C39BB74A88F9F98C9CA53B95C1928D7534A1839D40FDFCA084D0"
+    },
+    {
+      "path": "research/probe_pc_scene_partition_init.py",
+      "sha256": "00FE07493547CEA9E85B0D4CEB28BAB0EDC60EA81BFCE3E5AF6B6AB56242AA82"
+    },
+    {
+      "path": "research/probe_pc_scene_render_registry.py",
+      "sha256": "70BA5F1F44B781E401806603BDB1377E6AED7E4EF40D26BF17E41A34C46BA03F"
+    },
+    {
+      "path": "research/probe_pc_scene_render_runtime.py",
+      "sha256": "18741AEC7A5FBB240E2B763AC20544766131F69A3F012EA7935DA011BFF85D7F"
+    },
+    {
+      "path": "research/probe_pc_scene_serializers.py",
+      "sha256": "87017A6C1FE84D6B89F02A7E90C92F64CEC28B9A7CFFDFC79E3AB68807CF7BF8"
+    },
+    {
+      "path": "research/probe_pc_scene_special_registry.py",
+      "sha256": "700B2079A6EE7A658AB7C9E060604ECA1AA7710A988A07ED98A6B7598D0AE843"
+    },
+    {
+      "path": "research/probe_pc_scene_world.py",
+      "sha256": "26459BAC8F3C8B16B8FF43C323D2BF6780B7DCEBE14CA2787943D02865186B3F"
+    },
+    {
+      "path": "research/probe_pc_shader_compile.py",
+      "sha256": "1E199BDDBED14EB9F9EB3BBDF0D9D80C7D01C25D222ABEA3052EE8340F8F2190"
+    },
+    {
+      "path": "research/probe_pc_shader_constants.py",
+      "sha256": "16984D9B75D7684DC4E7B641C6677ED22F4A1617017B21B4E27E8DBCB88C0B18"
+    },
+    {
+      "path": "research/probe_pc_shader_generation.py",
+      "sha256": "96E1E65CB9F8057255033D3DADB76E753D842721CBDF39FD3FEAAD4B2E495564"
+    },
+    {
+      "path": "research/probe_pc_shader_inverse_scout.py",
+      "sha256": "3BC7C9F8D0E319EB6CC6DDC2E9FFE9A4F7BB22C13EFFABF442C96E16C7055D5D"
+    },
+    {
+      "path": "research/probe_pc_shader_key.py",
+      "sha256": "FF557B70684DDCA83572B5F33B3CB223571DED819F9D606C9244018AC6B67C9E"
+    },
+    {
+      "path": "research/probe_pc_shader_layer.py",
+      "sha256": "7E8852EDB7761C371F15D06208125904118C4B2A5516FCDF5C2EBD4EBE6FC584"
+    },
+    {
+      "path": "research/probe_pc_shader_manager.py",
+      "sha256": "BA9CB51E95A1190196222D090E4615176F4EF9B819E4FF354A106F837550AF5E"
+    },
+    {
+      "path": "research/probe_pc_shader_parameter_append.py",
+      "sha256": "88EB6C67DC8689D7FCB71B693BB26794E1AC2DE5408BB3FC3372C9EAED590C8D"
+    },
+    {
+      "path": "research/probe_pc_shadow_manager_runtime.py",
+      "sha256": "327308DEDF8F0C2807CD94AF8593571842C651E3AE27C30A953D0B405FAE2C4F"
+    },
+    {
+      "path": "research/probe_pc_skin_alpha_flush.py",
+      "sha256": "3E6EBD64FF7085CD18A20ED88FE9DCCEAE145E13015F177A8FF996220B2A8057"
+    },
+    {
+      "path": "research/probe_pc_skin_alpha_queue.py",
+      "sha256": "D9EB5BE6B55752C8663CD9E1B26FD28A69955D2A4A2CEF7CAD4F0DBF0E3037FB"
+    },
+    {
+      "path": "research/probe_pc_skin_clone.py",
+      "sha256": "158A6924452C10F6D2D93657C7B1EF89D543CCC037EF7B1EE17EC6BE83F21365"
+    },
+    {
+      "path": "research/probe_pc_skin_decoded_light.py",
+      "sha256": "9B93947BA5DA74F9E2D6D17E8AA6B4833501B98FFFD1AB64FD258482F97734CD"
+    },
+    {
+      "path": "research/probe_pc_skin_decoded_light_generated.py",
+      "sha256": "678BA53E177EAED699F6D2C534DAF7D2EDC3200D2E5BDD3A4555CB3358F7E5FB"
+    },
+    {
+      "path": "research/probe_pc_skin_fog_generated_render.py",
+      "sha256": "95DBB2F227FAFEFF9D25A6C1BA3FDAA3E98A0D07A09A210B5BC1AB20C06C763B"
+    },
+    {
+      "path": "research/probe_pc_skin_fog_render.py",
+      "sha256": "77D9291AEC3E12D17EBBD8E18A3397BAEF6400D3756A00C1855DE8391F2F770B"
+    },
+    {
+      "path": "research/probe_pc_skin_generated_render.py",
+      "sha256": "87F49300C62D85BD9C08A7D3338783D6569D0E5499477A6B9DF77B8EECAC408C"
+    },
+    {
+      "path": "research/probe_pc_skin_light_constants.py",
+      "sha256": "E4D35819350597382376AAF7B6E1028FE7192DFA3B9F9B6A22D437313E9AAC1C"
+    },
+    {
+      "path": "research/probe_pc_skin_lights_render.py",
+      "sha256": "4611AD91E919F8BE4E7728EE519792675E3FD725BEFB671E1A732970E72DA852"
+    },
+    {
+      "path": "research/probe_pc_skin_loaded_render.py",
+      "sha256": "064D9C3CF9346C9F02983E0FE7BEFF9744DE303F24125A8C2AA3DF017D6F1ECC"
+    },
+    {
+      "path": "research/probe_pc_skin_material_mesh_render.py",
+      "sha256": "48A70FE0829EDAF8B3C8AAD888F9B51F9CBC2CCF974914679C2D30692C54057B"
+    },
+    {
+      "path": "research/probe_pc_skin_material_protocol.py",
+      "sha256": "4ED9DD68BA4844FD1A6589F47D9789CDBF51FDF445F21B833F6159FB52E0710C"
+    },
+    {
+      "path": "research/probe_pc_skin_mesh_generated_render.py",
+      "sha256": "997A976BAB084A7F5232AF4977866BB1F52A7FC593ADB43B9383F82716886B4C"
+    },
+    {
+      "path": "research/probe_pc_skin_owned_material_render.py",
+      "sha256": "B8A459A9E7288087F693ECADFAFC498EE711A4BDDE190C498AE5933813F24331"
+    },
+    {
+      "path": "research/probe_pc_skin_queued_generated_render.py",
+      "sha256": "F41B95CB9FE2F781E641934E8CB47726E433DE2E2F260F6E93EE50E3787CFAFF"
+    },
+    {
+      "path": "research/probe_pc_skin_queued_mesh_render.py",
+      "sha256": "4ADBB7A87A4E76525C70C4EFDB04921E06A6F75A019EE26AD3B17AB1FFDA229E"
+    },
+    {
+      "path": "research/probe_pc_skin_render.py",
+      "sha256": "82F1B919E74C4761C43C3EA6663DE50A836B8DF8A463D7C2DA573D1C75BAAE78"
+    },
+    {
+      "path": "research/probe_pc_skin_san_generated_render.py",
+      "sha256": "4E272643EB44BCCB32F9B9546F3A202F4B2A99D02CCB6150AFBAE35CEA722989"
+    },
+    {
+      "path": "research/probe_pc_skin_san_render.py",
+      "sha256": "8B0F0CED05EEFE918F8781C5241E965B9E05A247EC8963F4BB433579EF6C973C"
+    },
+    {
+      "path": "research/probe_pc_skin_scene_generated_render.py",
+      "sha256": "09F193B755D478EC93A0A8B8BDB4AEF9569E5DCC08A04E22467FE8A9C687D40F"
+    },
+    {
+      "path": "research/probe_pc_skin_scene_mesh_render.py",
+      "sha256": "ED277BE60B01412B66347DCC3D7B814EEFD78A19A7F38D41CE4DDA89F1C2C009"
+    },
+    {
+      "path": "research/probe_pc_skin_selected_light.py",
+      "sha256": "80C78FA3319765FB4D3F457F28FF579D2D06E39AAE8481D42FCD72276B9A03E5"
+    },
+    {
+      "path": "research/probe_pc_skin_serializer.py",
+      "sha256": "B1CDE64921279486843EDEA83CED8C2BED1DB8F1DA1AEAC35717887C12F01942"
+    },
+    {
+      "path": "research/probe_pc_skin_texture_generated_render.py",
+      "sha256": "FB0364CD03367CA1DF24EC4654760BD177D6F35049EF8E22B23315950FE1137E"
+    },
+    {
+      "path": "research/probe_pc_skin_texture_render.py",
+      "sha256": "1102FE99C43378EF6A0EB3FA298AB5749BB71B1E6C7C43F965FF0B72E11367AB"
+    },
+    {
+      "path": "research/probe_pc_sky_box_runtime.py",
+      "sha256": "60000C6D295565E98D2727624F3F022BE6256E67E4123533034C3A411460E1C0"
+    },
+    {
+      "path": "research/probe_pc_spatial_consumers.py",
+      "sha256": "EABE8D4080D67F23E07C51D08438A44B9AC919BC3A42BBE8CC0720572A5F7D76"
+    },
+    {
+      "path": "research/probe_pc_static_render_runtime.py",
+      "sha256": "425AE29F275D2773F9B941B3FC63AE9367995B861EF6A8FC5790763CD0FEFACF"
+    },
+    {
+      "path": "research/probe_pc_task_timer.py",
+      "sha256": "5C25282D4A764C6F8401E0A48907455CB20DA3E0CA9ECDA5290F89548D5E75CA"
+    },
+    {
+      "path": "research/probe_pc_texture_binding.py",
+      "sha256": "C3D5FE2ADF79EE9C26DE7AAFDCACC61077DE6DCF273F5B91B6AAEF786E616A51"
+    },
+    {
+      "path": "research/probe_pc_texture_cross.py",
+      "sha256": "DAC2D3E194060E595581CC1B2B4722E7A47C6CB379E8CC1B345E942E278D2BC8"
+    },
+    {
+      "path": "research/probe_pc_texture_factories.py",
+      "sha256": "091C579C2A913638AE60C307065C3B8BD374081D3304B31452FBFD2E7872771E"
+    },
+    {
+      "path": "research/probe_pc_texture_native_mip.py",
+      "sha256": "B8D84B77E3FE8820AE00587DFE1D419642EF512CDFF576299C9E40F4F60A39D2"
+    },
+    {
+      "path": "research/probe_pc_texture_native_writer.py",
+      "sha256": "9F683296FF2FF35A0E00CDA121E899667F2C5469DC8AE3B7056AA8D3942EE2E5"
+    },
+    {
+      "path": "research/probe_pc_texture_palette_codec.py",
+      "sha256": "BB3EBEE6725CC014013B5775AEC297E09FB0B086E832851C7D1A4F149AA97F6B"
+    },
+    {
+      "path": "research/probe_pc_texture_registry.py",
+      "sha256": "239B4D553497AC9AE35B8BD0F6FD91919F2B31B87D0E13C00091FDB85FBE1B02"
+    },
+    {
+      "path": "research/probe_pc_texture_runtime_codec.py",
+      "sha256": "B49677F0136E5842D18D19DAEB479E12C1860B9E3330A4761B046087D5C065A2"
+    },
+    {
+      "path": "research/probe_pc_texture_runtime_failures.py",
+      "sha256": "93ADE72E2A71896D5A35DD8165E733DBACF2776C76884A351973BDB8CC395DF9"
+    },
+    {
+      "path": "research/probe_pc_texture_state_map.py",
+      "sha256": "791DB2C3925327B9663765442BBC896E6EAC5F300A6C75DBA14531CE69BC3B07"
+    },
+    {
+      "path": "research/probe_pc_texture_upload_boundary.py",
+      "sha256": "1FC4507F88234E09957C47C96630D9E71EEC9C034030071B12AA92BA2DFF0574"
+    },
+    {
+      "path": "research/probe_pc_transform_inputs.py",
+      "sha256": "2CE63E9C3480FCFAFB9F04F60E9BC65CC585E8E6F5E936F406472BF6CE7DEB84"
+    },
+    {
+      "path": "research/probe_pc_uv_functions.py",
+      "sha256": "B9D0453CE8775267494AC7D8C2E7F8532E993A569A6B9B7520B19C9F5A7016FE"
+    },
+    {
+      "path": "research/probe_pc_uv_lifetime.py",
+      "sha256": "6874002CBF66CF9DBD32D8F45EC7676DA05338E0ED4B5B79EAA6E09BB7FAE902"
+    },
+    {
+      "path": "research/probe_pc_uv_renderer.py",
+      "sha256": "97D795372BD88D2DEB9532F9BB09E40BF0EF9E8AACEBA1531EDCED64FA54A686"
+    },
+    {
+      "path": "research/probe_pc_vertex_declaration.py",
+      "sha256": "C9B9089F4442721BF7D87DE99ECAFE10C88752BE693F232142907F40F67D7B30"
+    },
+    {
+      "path": "research/probe_pc_vertex_shader.py",
+      "sha256": "8D413A5D6687D39A2C94712BC4B6A7F4D3908836FAB97159419D5A2B5B73870D"
+    },
+    {
+      "path": "research/probe_pc_vertex_shader_scout.py",
+      "sha256": "0B0697664326F571C744BE3282338409F22F7E63FC3D95A8C6DFD50B32704CC8"
+    },
+    {
+      "path": "research/probe_pc_visibility_plane_storage.py",
+      "sha256": "BCA0E338B4AF554CAC0FFD20A34E8FB7FE6AAD91133962C060C17F1C0CD05B8E"
+    },
+    {
+      "path": "research/probe_pc_visibility_runtime.py",
+      "sha256": "1789DCAB1A41A583202B66122763494ABFA5F99BBB1BFD3BE33980585E7F2D49"
+    },
+    {
+      "path": "research/probe_pc_zone_portal_runtime.py",
+      "sha256": "E31A6DADD537596A4F6A8B7171065BA4512C39D95AF15C20F2B00CB46200CD1E"
+    },
+    {
+      "path": "research/test_native_goal_coverage.py",
+      "sha256": "B74A051F2E3C07793B2C1A756AE4ECDCD0FFEDB4DEDABE10EF9F89DCDA949B4F"
+    },
+    {
+      "path": "research/test_native_knowledge_accounting.py",
+      "sha256": "8BD7687AA85C40AA231BC41E6C1C5D95DDF3F56791BA8548624C83008963DFA5"
+    },
+    {
+      "path": "research/test_native_platform_knowledge.py",
+      "sha256": "5C604CD2309E3BEFACAB6A8773608887D71EA82D97D9401409EFDA7C067AE03D"
+    },
+    {
+      "path": "research/test_native_scope_dependencies.py",
+      "sha256": "11D3FA318EB477056FC9E2A1A7F59CDAD66BFE17ECA1A14A894BE3B32388A75F"
+    },
+    {
+      "path": "research/test_native_specimens.py",
+      "sha256": "1C80BB988DB3C87DD396A70A0776A428F1A2A75FC49CD0C2ACFFD82F1B786800"
+    },
+    {
+      "path": "research/test_native_workbench.py",
+      "sha256": "449DA5B37F1E4909EAF2AAEBEB1AD2C575E48B1904A034A0742A3865CCB4C88C"
+    },
+    {
+      "path": "research/test_pc_animation_probe.py",
+      "sha256": "0F4D3D0672D85CB95CE1CEB93BADD25978A8309D5CDACE5EA51EC8085C602996"
+    },
+    {
+      "path": "research/test_pc_instruction_emulator.py",
+      "sha256": "3AB2E5495A3127A8B52F5FAFFF3A4396F6FCB75283A0AC5933E67518A68930D1"
+    }
+  ],
+  "binaries": [
+    {
+      "path": ".codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugMeshReaderTests.exe",
+      "sha256": "CC82EE5D3D73840168BE92AA9DA4E06BF4FCC8495CDF6E743BC64769A935F5FE"
+    },
+    {
+      "path": ".codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugLightSerializationTests.exe",
+      "sha256": "51447699D13710F38A031D6E1B50FA99EB3B4FF110BDF24EFA01D2C8C96AE640"
+    },
+    {
+      "path": ".codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSkinRenderTests.exe",
+      "sha256": "65D73D0A2BD18517F56B0B7D8987A82C9D207DD0F78EFDE9B93B278686920606"
+    },
+    {
+      "path": ".codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugRFXFileTests.exe",
+      "sha256": "64852F5AFA8B9E17DE9B57A175DD396056AEC1AEDEDDCC3D62118A84D3393E96"
+    }
+  ],
+  "limitation": "Current end-of-cycle files only; not transitive provenance for earlier runs, not source authenticity or behavioral coverage."
+}

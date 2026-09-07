@@ -1,0 +1,75 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-palette-lifetime-2026-09-06T19:24:15Z",
+  "createdUtc": "2026-09-06T19:24:15Z",
+  "notes": "Checkpoint17 continuing100%PC goal; new spPalette PC-only grade.8lifetime+3codec+5failure+1factory=17children/114assertions.Original native hazards do not become host implementation requirements. No GPU/OS/caps/assets/publication.",
+  "assessments": [
+    {
+      "className": "spPalette",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 91,
+      "summary": "FirstPC80: exact414 class, constructor, copy constructor copies entries/reset index, virtual clone blank, original renderer registration/reuse and observed ownership. Raw1024 codec/source restored; full device consumers remain.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-palette-lifetime.md",
+          "locator": "checkpoint17; original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;114native assertions/3exact rows",
+          "observation": "Palette class/factory/copy/blank clone, original renderer index registration/reuse, setter alias and destructor leak, complete palette runtime codec and5 observed failure cases.17/17 profile;source813;32/32CTests25.93s."
+        }
+      ],
+      "unknowns": [
+        "Full PC device palette selection/reset/renderer lifetime, all reinit/shared/error variants, external sources, missing-mip/conversion and real scene consumers remain open.",
+        "Native-data writer integration, material/controller links, full FFPS Save/resource-to-render/lossless unknowns remain required. CPU shadow index is unregistered; safe host RAII deliberately differs from original ownership hazards. No PS2 credit."
+      ]
+    },
+    {
+      "className": "spDXTextureSerializer",
+      "coverageScore": 85,
+      "lowerBound": 70,
+      "upperBound": 93,
+      "summary": "70→85: palette-present exact runtime codec plus5 actual failure paths. Create failure may returntrue; failed mip writer ignored; cleanup omissions explicitly documented. Source refuses malformed/invalid data.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-palette-lifetime.md",
+          "locator": "checkpoint17; original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;114native assertions/3exact rows",
+          "observation": "Palette class/factory/copy/blank clone, original renderer index registration/reuse, setter alias and destructor leak, complete palette runtime codec and5 observed failure cases.17/17 profile;source813;32/32CTests25.93s."
+        }
+      ],
+      "unknowns": [
+        "Full PC device palette selection/reset/renderer lifetime, all reinit/shared/error variants, external sources, missing-mip/conversion and real scene consumers remain open.",
+        "Native-data writer integration, material/controller links, full FFPS Save/resource-to-render/lossless unknowns remain required. CPU shadow index is unregistered; safe host RAII deliberately differs from original ownership hazards. No PS2 credit."
+      ]
+    },
+    {
+      "className": "spDXTexture",
+      "coverageScore": 70,
+      "lowerBound": 55,
+      "upperBound": 85,
+      "summary": "65→70: actual palette setter new-argument unregister, same-pointer dangling reference and destructor palette leak confirmed. Source RAII and no GPU registration are explicit safer policies.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-palette-lifetime.md",
+          "locator": "checkpoint17; original PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;114native assertions/3exact rows",
+          "observation": "Palette class/factory/copy/blank clone, original renderer index registration/reuse, setter alias and destructor leak, complete palette runtime codec and5 observed failure cases.17/17 profile;source813;32/32CTests25.93s."
+        }
+      ],
+      "unknowns": [
+        "Full PC device palette selection/reset/renderer lifetime, all reinit/shared/error variants, external sources, missing-mip/conversion and real scene consumers remain open.",
+        "Native-data writer integration, material/controller links, full FFPS Save/resource-to-render/lossless unknowns remain required. CPU shadow index is unregistered; safe host RAII deliberately differs from original ownership hazards. No PS2 credit."
+      ]
+    }
+  ]
+}

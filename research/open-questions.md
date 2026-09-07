@@ -1,8 +1,9 @@
 # Открытые вопросы SMO
 
-Статус: актуализировано 29 августа 2026 года после завершения полного
-структурного/read-only разбора 36/36 классов, наблюдаемых в корпусах
-`pc-pristine`, `pc-working` и `ps2-pristine`.
+Статус: структурная исходная точка — 29 августа 2026 года, полный read-only
+разбор 36/36 классов в `pc-pristine`, `pc-working` и `ps2-pristine`.
+PC runtime-уточнения и текущий приоритет синхронизированы 6 сентября2026;
+это не повторный анализ всего asset-корпуса.
 
 Этот файл является каноническим списком нерешённых вопросов. Подробный порядок
 быстрых игровых проверок вынесен в
@@ -12,13 +13,21 @@
 
 Главный порядок текущего исследования задаёт не этот список полей, а разрывы в
 [`runtime resource pipeline`](../docs/engine/runtime-resource-pipeline.md).
+После цикла 7 сентября до 19:00 первыми идут loader/save, DX mesh
+materialization и Node resource graph; постоянные правила записаны в
+[манифесте исследования](../docs/research/research-manifesto.md).
 Визуальные проверки ниже используются после локализации соответствующего
 consumer в executable либо как явно ограниченный разведочный тест.
 
-Активный pre-release scope теперь содержит только вопросы, обязательные для
+Исторический pre-release scope содержит вопросы, обязательные для
 SmoLVLcreator и production model import; его gate и критерии отказа записаны в
 [`../docs/research/smo-lvlcreator-import-mvp-plan.md`](../docs/research/smo-lvlcreator-import-mvp-plan.md).
-Остальные P0/P1-вопросы ниже не удалены, но считаются post-MVP backlog.
+Он не ограничивает текущие PC-first native-реконструкционные циклы: их порядок
+зависимостей и неизвестное ведутся в
+[`native-reconstruction-plan`](../docs/research/native-reconstruction-plan.md) и
+[`native-open-questions`](../docs/research/native-open-questions.md).
+Игровые проверки ниже — отдельный следующий этап, не автоматически разрешённые
+действия в guest-only цикле; текущие результаты не объявляют приложения готовыми.
 
 ## Подтверждённая исходная точка
 
@@ -107,8 +116,13 @@ SmoLVLcreator и production model import; его gate и критерии отк
 - Runtime-проверка executable-only material sources: их serializer fields и
   layouts (`7`, `13..16`) уже восстановлены, но camera/cubemap/movie branches
   отсутствуют в текущем SMO-корпусе и ещё не проходили authored in-game test.
-- Геометрические имена BSP child slots `0/1`; optional Polygon поддержан обоими
-  executable, но в корпусе отсутствует.
+- BSP optional Polygon поддержан обоими executable, но в корпусе отсутствует;
+  его runtime producers остаются неизвестными. Геометрические стороны PC slots
+  больше не вопрос: original leaf480710 даёт positive→0, negative/zero/NaN→1,
+  отдельные point/sphere queries допускают обе ветви. Independent polygon setter
+  и visibility consumer проверены в
+  [`PC BSP checkpoint`](../docs/research/native-pc-bsp-runtime.md); не путать
+  отсутствие asset sample с отсутствием runtime-поддержки.
 - Runtime-роль `PartitionNode/PartitionRenderable.DebugColor`.
 - Существуют ли реальные `spStaticRenderObject` с несколькими renderables или
   reference-only relationship.

@@ -1,0 +1,36 @@
+{
+  "schemaVersion":1,
+  "manifestId":"native-pc-zone-portal-runtime-2026-09-06T05:08:46Z",
+  "mode":"incremental",
+  "createdUtc":"2026-09-06T05:08:46Z",
+  "notes":"Checkpoint17 PC-first until10:00MSK. Actual Portal38/NodeC4 lifetime, polygon first-three plane/reinit, borrowed references/blank own clones; original-named partial source with five diagnostic getter names. Whole Scene through clipped/closed/backface/outside/partial aperture and cyclic Zone graph63 checks; static32/source19/plane1024 fields256cases all bit-exact for tested finite inputs, tolerance2e-6; CTest19. Explicit CRT dllonexit recording and actual callback cleanup, no unknown native helper stub/cap raise/resume. Near-plane45E870 remains protected gap. Portal25->73, PortalNode25->78, Visibility54->61, no backfill/denominator change. No assets/apps/game/OS/GPU/PS2/publication.",
+  "classes":[
+    {
+      "className":"spZonePortal","coverageScore":73,"lowerBound":61,"upperBound":83,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"Exact38/8-slot Named object, owned polygon/borrowed destination, Open1/uninitialized plane/stamp0. Actual481130 copies all vertices and computes first-three normalized plane, no planarity/convexity validation; reinit/free/Named-only clone tested. Original diagnostic getter names preserved in partial source. Whole Scene portal traversal confirmed; debug/game Open controls and camera-near-plane45E870 route open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_zone_portal_runtime.py","locator":"lifetime/geometry;481370/481130->4E8490/4810A0->13DF7C0/4813F0","observation":"Exact38 defaults and ownership, six3/4/5-vertex init/reinit cases, reversed/nonplanar/concave/collinear inputs, untouched borrowed buffer, Named-only clone and direct polygon free/no destination release. Actual native tests63 total including Scene cases; no full serializer or unsafe short input claim.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/compare_pc_zone_portal_math.py","locator":"471420/426A40/41D2D0;Code/Sparkplug/spZonePortal.cpp;Tests/spZonePortalTests.cpp","observation":"1024 plane fields256 finite quantized/tiny/degenerate cases agree with partial C++ source within2e-6 and all are bit-exact in tested corpus. Original first-three cross/normalization threshold preserved, not a universal x87 claim. Source19 checks, host bounds/finite/self-alias guards explicit, ABI38/C4 compile, CTest19.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"research/inspect_pc_zone_portal_runtime.py","locator":"7614B8/6EBB10/44DF0A/46CA1D/46CA41;docs/research/native-pc-zone-portal-runtime.md","observation":"32 pristine identity/table/call/name checks. Original GetDestinationZone/IsOpen/GetPolygonVertex/GetPolygonVertexCount names survive diagnostics. Implementation/header paths absent in limited ASCII search; only PortalNode serializer .cpp path proven. Near-plane branch45E870 unexecuted/protected gap retained; debug481270 static-only.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spZonePortalNode","coverageScore":78,"lowerBound":65,"upperBound":87,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"ExactC4 Node-derived object with borrowed duplicate-preserving vectorB4. Actual481930 append admits null below reader gate; dtor frees vector without releasing portals, Node-only clone drops vector. Inherited Node world/Enabled do not transform polygons or Open. Partial original-named source/GetZonePortal, exact ABI; game-side toggles and full serializer wiring open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_zone_portal_runtime.py","locator":"lifetime;481810/481550->4AD550/481930->407D70/4814F0/481870","observation":"Actual ctorC4/default Node flags, duplicate/null raw append/no retain, vector-only dtor, inherited-only clone/world/Enabled all checked. Node position80,90,100 leaves portal polygon/plane unchanged. Reader44E670 null gate precedes append, stock cardinality2 not native container limit; portable source preserves borrowed relation and original getter name.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className":"spVisibilityManager","coverageScore":61,"lowerBound":46,"upperBound":73,
+      "researchStatus":"substantial","pcStatus":"substantial","ps2Status":"deferred","priorityTier":1,
+      "summary":"Actual whole Scene executes front/closed/backface/fully clipped/partially intersected portals and synthetic A-B-A cycle. Original scratch clipping and aperture plane rebuild preserve first two camera planes, no portal-as-near substitution. Per-portal marks terminate cycles while root revisits allowed. CRT exit registration explicit/actual cleanup. Full ctor, near-plane45E870 and portable full traversal remain open.",
+      "evidence":[
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_zone_portal_runtime.py","locator":"gates/aperture/cycle;45EC70/46D270/46C4D0/491AA0/471420","observation":"22 actual Scene-related checks through explicit decoded two-Zone graph: Open false skips before stamp/backface after stamp, aperture culls side but not pre-portal member, whole/partial clipping, A-B-A traversal/support dedup across frames. Near/far retained with one camera/edge plane per clipped edge. CPU device recorders only, no game/GPU image claim.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_zone_portal_runtime.py","locator":"PortalSceneFixture;491C43/60DB63/60DFAC->__dllonexit/6D7F90/6D7FA0","observation":"Partial edge case initially stopped at unmapped CRT import. Fresh bounded run registers strictly checked callback6D7F90 using explicit record-only dllonexit boundary, then executes original cleanup before pool shutdown; all native allocations released. No geometry helper success stub, no cap increase/resume. Near-plane protected45E870 gap not bypassed.","confidence":"confirmed"}
+      ]
+    }
+  ]
+}

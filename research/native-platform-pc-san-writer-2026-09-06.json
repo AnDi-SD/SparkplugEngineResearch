@@ -1,0 +1,37 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-san-writer-2026-09-06T10:48:19Z",
+  "createdUtc": "2026-09-06T10:48:19Z",
+  "notes": "Second checkpoint of the open-ended PC SMO/SAN completion goal. Original SAN field writer64 success and17 failure checks; nested block163 checks;8 fixed hashes; native bbush write/read227 captured values. Compiled source matches four SAN outputs64233 bytes and18 block outputs1658 bytes. Native x87 scalar/vector cubic spill schedule correction:96 cases4160 bit-exact values. CTest23/23. PC only, PS2 and legacy immutable ledger unchanged. Heuristic serializer90->92 is NOT tool readiness or a claim that all seven completion criteria passed. Whole FFPS/FAT save and unknown preservation are still open.",
+  "assessments": [
+    {
+      "className": "spAnimationSerializer",
+      "platformKey": "pc",
+      "coverageScore": 92,
+      "lowerBound": 86,
+      "upperBound": 96,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Original complete field writer43DFE0 and key writer43DDC0 now execute on four shipped SANs plus empty. Source uses existing spStream/spDataBlockSerializer, with proven PRS UInt32/tag UInt16 reservations and pool patch-back; output matches64233 native bytes. Owned reader remains. Native partial-write cleanup and block bugs documented, explicit host guards not passed off as native behavior.92 retains uncertainty for indexing/graph/full save, missing descriptors, unknown fields and malformed/error lifetime.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/native-research-2026-09-06-pc-animation-owned-bindings.json","sourceSha256":"FD5F31A4D2D826BFCBB1D0A18462CC3F10263D8E63F7EC44A24998D4FD3FF805","locator":"classes/spAnimationSerializer/evidence[platformKey=pc]","observation":"Previous normal field reader and owned-binding lease acquisition/cleanup evidence retained; field parsing precedes host binding, native partial state is not host rollback."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_san_writer.py","locator":"43DFE0/43DDC0;64success+17failure;bbush native reread227","observation":"Empty47bytes; bbush2492/bflower9102/bw26377 identical to input fields; barrel26262 only adds six-byte field64 logical count.3 stream failures retain partial output and free writer allocations. Whole capped loaders not resumed."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_block_writer.py","locator":"163checks;472710/472D30->44EB66/472E20/4727B0->4F5AD0","observation":"Nested writer shared width24, ignored End ID, all-one reservation/patch/seek/pop; mixed widths/size0/ID31 produce malformed native bytes. Partial begin/end keep open header. Helper has no proven separate RTTI; evidence attached through actual serializer dependency."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_san_writer.py","locator":"four compiled/native output comparisons64233bytes","observation":"Reconstructed canonical field writer is byte-identical to original on four specimens; portable rereads output. This is not FFPS/FAT save or preservation of skipped unknown fields."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_block_writer.py","locator":"18 outputs/1658exactbytes","observation":"Compiled nested writer matches supported original reservations and nesting; native bugs have separate tests and explicit host guards."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_cubic_preparation.py","locator":"493160/493290;96cases/4160bit-exactfloatvalues","observation":"Writer comparison exposed dropped -2^-24 bbush coefficient. Source now models scalar and asymmetric vector X/Y/Z x87 float spills; not blanket IEEE exceptional/FPU-mode equivalence."},
+        {"platformKey":"pc","sourcePath":"research/inspect_pc_serializer_writers.py","locator":"8 exact image/body fingerprints","observation":"Fixed PC executable and writer/key/block entry/bridge byte ranges make findings independently reproducible without decompiler boundary guesses."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-san-writer.md","locator":"scope, output contracts, negative failure boundary and remaining work","observation":"Failed-write30 reached ErrorManager4169A0 formatting IAT6D9328 unmapped; no game/OS forwarding, retry disabled. Complete error path, full save/index/unknown losslessness remain open."}
+      ],
+      "unknowns": [
+        "Whole PC FFPS/FAT save dispatch/indexing/offsets/sizes/recursive references, complete portable generic load/save.",
+        "Missing role descriptors and rep0 producer conventions; original writer dereferences descriptor while portable rejects before output.",
+        "Unknown-field opaque preservation and reordering/duplicate/extension policy; current canonical writer does not preserve skipped payloads.",
+        "Remaining malformed/filled-target/allocation and seek/tell error paths; failed-write30 needs external diagnostic formatting contract, not a fake success seam.",
+        "Original helper/header/container/member names not present in evidence; scalar/vector cubic exceptional float and alternate FPU modes not fully claimed.",
+        "All corpus variants and final asset->scene->PC backend integration; passing field tests is not100percent application readiness."
+      ]
+    }
+  ]
+}

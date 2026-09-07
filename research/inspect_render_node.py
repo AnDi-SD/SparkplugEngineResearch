@@ -115,15 +115,21 @@ def main() -> int:
     check("PC registration object", struct.pack("<I", 0x0075E150) in pc_initializer, True)
     check("PC protected factory", struct.pack("<I", 0x00425520) in pc_initializer, True)
     check(
-        "PC primary vtable",
+        "PC primary vtable (14 callable slots, not adjacent support table)",
         struct.unpack(
-            "<20I", image_slice(
-                pc, pc_sections, 0x006DCAA4 - image_base, 0x50)),
+            "<14I", image_slice(
+                pc, pc_sections, 0x006DCAA4 - image_base, 0x38)),
         (0x004255D0, 0x00420B40, 0x00425580, 0x00424980,
          0x00425030, 0x00408350, 0x00408370, 0x00424760,
          0x004249F0, 0x00424AF0, 0x00420610, 0x00421330,
-         0x004250F0, 0x00424E70, 0x00424B60, 0x004248D0,
-         0x00424C30, 0x00425040, 0x00424790, 0x004247B0),
+         0x004250F0, 0x00424E70),
+    )
+    check(
+        "PC support secondary vtable (this adjusted to +0xb4)",
+        struct.unpack("<6I", image_slice(
+            pc, pc_sections, 0x006DCADC - image_base, 0x18)),
+        (0x00424B60, 0x004248D0, 0x00424C30,
+         0x00425040, 0x00424790, 0x004247B0),
     )
     optimize_node = image_slice(
         pc, pc_sections, 0x004C19D0 - image_base, 0x238)

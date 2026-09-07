@@ -1,0 +1,1296 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-wire-migration-2026-09-06T08:01:30Z",
+  "createdUtc": "2026-09-06T08:01:30Z",
+  "notes": "Historical migration, no new executable work:20 PC direct classes from independently PC-confirmed existing records plus35 PS2 wire-only baselines. Direct denominator37 is the shared project SMO/SAN class set intersected with each platform registration catalog; not a claim of37 observed PS2 asset classes. PS2 spMaterialColorController(no corpus instance/registration vocabulary only) and spAnimation(playback deferred) remain unrated. Overall/game history remains incompletely migrated. Legacy combined snapshots unchanged.",
+  "assessments": [
+    {
+      "className": "spAnimTexController",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 49,
+      "upperBound": 62,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Frame/time/texture relationships and serializer are known; complete runtime update and rollback are open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=285; spAnimTexControllerSerializer and esfAnimTexControllerBase x86 writer/reader",
+          "observation": "The x86 serializer identifies one base field containing a frame count, time sequence and texture sequence. Layer/render-target call sites identify the controller as the material texture-frame source."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spAnimTexController/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Frame/time/texture relationships and serializer are known; complete runtime update and rollback are open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spBoxBV",
+      "platformKey": "pc",
+      "coverageScore": 45,
+      "lowerBound": 39,
+      "upperBound": 52,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Observed payload and serializer are known; owning runtime collision behavior is open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=317; load 0x00439480..0x004396A1; serialize 0x004396C0..0x00439931",
+          "observation": "Field IDs are position=0 and size=1. Position zero is omitted; size is always serialized. Loading stores full dimensions at +0x34/+0x38/+0x3C, multiplies them by 0.5 and stores the half-extents length at +0x24."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spBoxBV/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Observed payload and serializer are known; owning runtime collision behavior is open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spCollisionInfo",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 25,
+      "upperBound": 36,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Observed payload and relationships are decoded; native collision runtime remains mostly open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=221; spCollisionInfo serializer registration, enum names and read/write diagnostics",
+          "observation": "The PC serializer switches over Primitive, Group and Transform. Primitive requests base class 0x21CC76AF (spBoundingVolume); Transform reads position, rotation and scale."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spFog",
+      "platformKey": "pc",
+      "coverageScore": 90,
+      "lowerBound": 86,
+      "upperBound": 94,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Layout, defaults, serializer and PC D3D fog-state endpoint are closed to the current observable boundary.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=309; class ID getter 0x0043B820; load 0x0043B910..0x0043BAE1; serialize 0x0043BCF0..0x0043C074; runtime selector 0x004DF0B9..0x004DF0DC",
+          "observation": "Field 0 transfers type/color/start/end/density between the stream and object members +0x14/+0x18/+0x1C/+0x20/+0x24. Runtime skips fog objects whose type member is zero."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spFog/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Layout, defaults, serializer and PC D3D fog-state endpoint are closed to the current observable boundary."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spFont",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 25,
+      "upperBound": 36,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "PC wire payload and atlas relationships are decoded; native text layout and rendering remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=293; x86 writer RVA 0x00042AB9..0x00042E1D; character loop 0x20..0xFF",
+          "observation": "Executable code confirms image relationship, UInt32 height/baseline and the fixed character loop 0x20..0xFF writing UInt8 width plus UV[0]/UV[1]."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spFont/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. PC wire payload and atlas relationships are decoded; native text layout and rendering remain open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spLensFlare",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=289; x86 spLensFlareSerializer enums and element/glare/occlusion getter assertions",
+          "observation": "The PC executable names all four fields and independently confirms element/glare material, color, relative distance and scale plus occlusion sphere radius/speed and render node."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spMaterialColorController",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 49,
+      "upperBound": 62,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Five serialized evaluators are decoded and the serializer is reconstructed; runtime application remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=305; VA 0x004412E0..0x00441A73; CFESerializer 0x0047E320/0x0047E850; FESerializer 0x0047EE00/0x0047F220",
+          "observation": "Serializer order is ambient, diffuse, specular, emissive, alpha; nested field names and defaults recovered from code and diagnostics."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spMaterialColorController/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Five serialized evaluators are decoded and the serializer is reconstructed; runtime application remains open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spMaterialData",
+      "platformKey": "pc",
+      "coverageScore": 90,
+      "lowerBound": 85,
+      "upperBound": 94,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Wire states, pass/layer graph, colors, clone behavior and renderer edges are known; native error handling and remaining state operations are open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=201; spMaterialData registration, DX/base serializers, layer classes and field-name strings",
+          "observation": "The executable names the render-state, vertex-alpha, color, repeated pass, layer, texture-state, static-UV and controller relationships recovered from the serialized layout."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spMaterialData/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Wire states, pass/layer graph, colors, clone behavior and renderer edges are known; native error handling and remaining state operations are open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spMeshBV",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=225; spMeshBV serializer, esfMeshBV/esfMeshBVFaceData and wxFaceData diagnostics",
+          "observation": "PC writes version-2 indexed geometry and optionally invokes the wxFaceData array serializer. wxFaceData sparse fields are surface type (u8), flags (u16) and surface ID (u8). The ground-string converter maps values 1..9 to stone, dirt, grass, water, snow, swamp, mud, deepwater and carpet."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spMeshNavigationSet",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=265; base reader VA 0x00448800..0x00448E48; base writer VA 0x00447F00..0x004487C1; mesh reader VA 0x00448FE0..0x00449124; mesh writer VA 0x00449130..0x004493AA",
+          "observation": "The x86 serializer identifies spNavigationSet as class 0x74F9013E derived from spNode and spMeshNavigationSet as 0x7297173C. Base fields 0..5 are NodeCount, two UInt32 matrices, byte-addressed links, repeated portal relationships and Enabled. The derived field is one relationship to spMeshBV. Runtime members are NodeCount +0xB4, matrices +0xB8/+0xBC, Enabled +0xE1 and mesh +0xE4."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spNavigationGraph",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=273; writer VA 0x004454F5..0x00445872; reader assertion strings RVA 0x002E32F8",
+          "observation": "The x86 serializer writes repeated set and portal relationships, set count, then a square row-major table. Each path contains UInt32 source/destination indices, UInt8 next portal, UInt8 alternative count and two UInt8 values per alternative. Runtime path records have stride 16."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spNavigationPortal",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=269; registration RVA 0x002D23C0; serializer VA 0x00447000..0x004476D4; field-name/assertion strings RVA 0x002E3430..0x002E3AE4",
+          "observation": "The x86 registration proves direct inheritance from spNode. The writer serializes graph, two endpoint sets, repeated node pairs and repeated three-byte path memberships. Assertion strings independently name m_uSrcSet, m_uDstSet and m_uPathIndex."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spOBBBV",
+      "platformKey": "pc",
+      "coverageScore": 45,
+      "lowerBound": 39,
+      "upperBound": 52,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Observed payload and serializer are known; owning runtime collision behavior is open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=313; load 0x00439BA0..0x00439E61; serialize 0x00439E70..0x0043A151",
+          "observation": "Field IDs are position=0, size=1, rotation=2. Size is copied to +0x58/+0x5C/+0x60; the engine multiplies it by 0.5 and stores the half-extents length at +0x24. Position zero and identity rotation are omitted; rotation is serialized as a quaternion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spOBBBV/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Observed payload and serializer are known; owning runtime collision behavior is open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spParticleSystem",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=281; spParticleSystemSerializer field enums/getter assertions and region-member strings",
+          "observation": "The x86 executable names all fields and confirms acceleration begin/end, velocity/angle minima/maxima, scale/color begin/end, emission/lifetime, Boolean modes, rate, bounding sphere and render node. Region assertions prove exact position/normal/size/radius/height member order."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spSkin",
+      "platformKey": "pc",
+      "coverageScore": 83,
+      "lowerBound": 77,
+      "upperBound": 89,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Dependency bridge from node caches into full affine builder now verified, preserving inverseBind*world palette order. Full frame/render integration, protected construction and serializer transaction remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=217; spSkin/spModel/spRenderable serializer registrations and field enums",
+          "observation": "The PC executable identifies the concrete esfSkin field and both inherited serializer sections."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-05-pc-node-world.json",
+          "sourceSha256": "D0854828F6B40EA4DA23EB0189571450D7D256A1E738EF6366748C0DA5FD3ECF",
+          "locator": "classes/spSkin/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Dependency bridge from node caches into full affine builder now verified, preserving inverseBind*world palette order. Full frame/render integration, protected construction and serializer transaction remain open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spSphereBV",
+      "platformKey": "pc",
+      "coverageScore": 45,
+      "lowerBound": 39,
+      "upperBound": 52,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Observed payload and serializer are known; owning runtime collision behavior is open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=321; load 0x0043A2E0..0x0043A4C1; serialize 0x0043A4D0..0x0043A741",
+          "observation": "Field IDs are position=0 and radius=1. Position zero is omitted; radius is always serialized. Loading copies the field-1 Single to the concrete radius at +0x34 and base bounding radius at +0x24."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spSphereBV/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Observed payload and serializer are known; owning runtime collision behavior is open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spTextNode",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=301; class registration RVA 0x002D1EE0; serializer registration RVA 0x002D30F0",
+          "observation": "Class registration proves spTextNode derives from spRenderNode; its serializer preserves the concrete renderable relationship."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spTextRenderable",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Observed wire layout is decoded; native runtime behavior is not yet directly reconstructed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=297; x86 writer RVA 0x000420C0..0x00042305",
+          "observation": "Executable code confirms font, UTF text, ARGB color, wrap width and UInt32 alignment fields and their getter identities."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spTextureData",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 79,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "All observed storage variants and the PC serializer/materialization path are substantial; backend lifetime and arbitrary repack remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=197; spTextureData registration and serializers near RVA 0x002D1D30; DX factory 0x0042B660, PS2 factory 0x0042C9E0, base factory 0x0042DC30",
+          "observation": "Recovered source fields 2/3/4, representation fields 0/1 and platform field 6. Platform values 6/7 select Direct3D and 8/9 select PS2, with the latter value retaining cross-platform data."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spTextureData/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. All observed storage variants and the PC serializer/materialization path are substantial; backend lifetime and arbitrary repack remain open."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spUVController",
+      "platformKey": "pc",
+      "coverageScore": 55,
+      "lowerBound": 49,
+      "upperBound": 62,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Wire grammar and serializer ABI are known; runtime evaluator update and material consumption remain incomplete.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=325; spUVController load/serialize VA 0x00440BE0..0x00440FD7; spTransFunctionEval diagnostics at VA 0x006EACB0..0x006EB06C",
+          "observation": "Field 0 embeds spTransFunctionEval. Serializer vocabulary confirms translation XYZ, scale XYZ, rotation, UV pivot and rotation axis."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-baseline.json",
+          "sourceSha256": "0F1939BF3124147F16A93C84BBFEA1803AEA653D2A4B071A0654561C4D0CFAF4",
+          "locator": "classes/spUVController/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Wire grammar and serializer ABI are known; runtime evaluator update and material consumption remain incomplete."
+        }
+      ],
+      "unknowns": [
+        "Remaining native runtime/lifetime/error/loader integration gaps retained in existing class dossier; no additional behavior credited by migration."
+      ]
+    },
+    {
+      "className": "spAnimTexController",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=286; independent MIPS class/serializer/base-field and layer call-site identity",
+          "observation": "The PS2 executable contains the same controller, field and layer access; PS2 objects reproduce identical counts and frame times."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spBSPNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=258; reader VA 0x0019F8D0..0x0019FBA8; writer VA 0x0019FBC0..0x0019FEA0",
+          "observation": "The independent PS2 serializer confirms required Plane field 0 at runtime offsets +0x70/+0x7C and optional Polygon field 1 at +0x90/+0x94."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spBoxBV",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=318; load size handling 0x00188934..0x00188988; serialize 0x00188A50..0x00188C58",
+          "observation": "MIPS code uses the same two field IDs, object offsets, optional zero position and full-size 0.5/radius calculation as PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spCollisionInfo",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=222; MIPS spCollisionInfo serializer and matching field enums",
+          "observation": "The PS2 executable independently uses the same three fields, base primitive class and transform order."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spFog",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=310; load 0x0018ADE0..0x0018AFF4; serialize 0x0018B010..0x0018B250; class ID getter 0x0018B270",
+          "observation": "MIPS code uses the same field order and object member offsets as PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spFont",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=294; independent MIPS class, serializer and matching field/assertion strings",
+          "observation": "Executable code confirms image relationship, UInt32 height/baseline and the fixed character loop 0x20..0xFF writing UInt8 width plus UV[0]/UV[1]."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spLensFlare",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=290; MIPS spLensFlareSerializer enums and matching getter assertions",
+          "observation": "The PS2 executable independently exposes the same fields and getters; its platform-specific manager consumes the same logical values."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spLightData",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=330; serialize VA 0x00191FC0..0x001926E0; diagnostics VA 0x004510A0..0x00451480 and 0x00458BB0..0x00459220",
+          "observation": "PS2 writes the same nine IDs with the same bool/UInt32/Single payloads and defaults: type 0, white color, intensity 1, range 200, zero angles and false booleans."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spMaterialData",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=202; MIPS spPS2MaterialDataSerializer and shared material/layer field strings",
+          "observation": "The PS2 executable independently exposes the same material/pass/layer serializer vocabulary and legacy texture-state block name."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spMeshBV",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=226; MIPS spMeshBV and wxFaceData serializers with matching field diagnostics",
+          "observation": "PS2 independently uses the same geometry version, face-data class ID and three sparse wxFaceData members, including the same nine named surface-type strings."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spMeshData",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=206; MIPS spPS2MeshDataSerializer and common field-name strings",
+          "observation": "The PS2 executable independently exposes the same representation container and its native PS2 mesh classes."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spMeshNavigationSet",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=266; mesh reader VA 0x0019A920..0x0019AA34; index VA 0x0019AA40..0x0019AA9C; mesh writer VA 0x0019AAA0..0x0019AC34; base reader VA 0x0019E3C0..0x0019EAA8; base writer VA 0x0019EBE0..0x0019F37C",
+          "observation": "The independent MIPS code returns the same class IDs and repeats the exact field order and scalar widths. Links serialize UInt8 node ID, UInt32 neighbour count and UInt8 neighbour IDs. Runtime members are NodeCount +0xC0, matrices +0xC4/+0xC8, link arrays +0xCC/+0xD0, portals +0xD4/+0xD8, Enabled +0xE9 and mesh +0xF0."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spModel",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=210; MIPS spModel/spRenderable serializer registrations and field-name strings",
+          "observation": "The PS2 executable independently exposes the same two serializer sections and named relationships."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spNavigationGraph",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=274; independent MIPS executable token and serializer-field identity match",
+          "observation": "The PS2 executable names the same class, serializer, fields and path members. All PS2 resources independently reproduce the three sections, row-major table and scalar widths."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spNavigationPortal",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=270; independent MIPS executable token and serializer-field identity match",
+          "observation": "The PS2 executable contains the same portal class, serializer and enum tokens, including the three named path-member bytes; the PS2 corpus uses the same two-section layout and scalar widths."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=335; spNode serializer 0x00196CD0..0x001974B0; class hash at 0x001974C0",
+          "observation": "MIPS serializer independently uses the same nine IDs, defaults, flag bits, relationship loops and billboard values 1/2."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spOBBBV",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=314; load 0x00189960..0x00189BA0; serialize 0x00189BC0..0x0018A03C",
+          "observation": "MIPS code uses the same three IDs, object offsets, full-size 0.5 calculation, optional defaults and quaternion representation as PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spOcclusionVolume",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=262; reader VA 0x001A00B0..0x001A03F8; writer VA 0x001A0410..0x001A0630",
+          "observation": "The independent MIPS serializer confirms the same two required fields and generic buffer members; runtime VertexBuffer/IndexBuffer pointers are +0xD0/+0xD8. It repeats the same convex closed-or-planar shape validation."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spOctreeNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=238; reader/writer VA 0x001A0800..0x001A0BEC",
+          "observation": "The independent PS2 serializer confirms fields 0/1/2 as Pivot/Mins/Maxs at runtime offsets +0x70/+0x9C/+0xA8."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spParticleSystem",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=282; independent MIPS serializer enums/getters and matching region-member strings",
+          "observation": "The PS2 executable independently contains the same 20 enum names, getter assertions and region struct members; scalar widths/order match PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spPartitionNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=234; writer VA 0x001A16D0..0x001A1DEC",
+          "observation": "The independent PS2 writer confirms the same field numbers/order. Runtime offsets expose DebugColor +0x40, Zone +0x50, PartitionSystem +0x60 and PartitionRenderable +0x64."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spPartitionRenderable",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=230; reader VA 0x001A2030..0x001A2220; writer VA 0x001A22E0..0x001A24D0",
+          "observation": "The PS2 serializer independently exposes the same DebugColor and repeated Renderable fields; DebugColor resides at runtime offset +0x80."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spPartitionSystem",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=242; reader/index/writer VA 0x001A2720..0x001A2AB4",
+          "observation": "The independent MIPS serializer calls spRenderNodeSerializer and uses the same required field 0; the runtime pointer is at +0x1E0."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spRenderNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=194; spRenderNode serializer VA 0x001980A0..0x00198278; hash at 0x00198280",
+          "observation": "MIPS serializer independently calls spNodeSerializer and loops the same field-0 relationship with header code 7."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spSkin",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=218; MIPS spSkin/spModel/spRenderable serializer registrations and field enums",
+          "observation": "The PS2 executable independently exposes the same serializer chain and the concrete esfSkin field."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spSkyBox",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=278; independent MIPS spSkyBox/spSkyBoxManager identity and spNode layout",
+          "observation": "The PS2 executable independently contains the same class and manager; all PS2 objects use the same node-plus-model relationship structure."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spSphereBV",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=322; load 0x0018A2D0..0x0018A454; serialize 0x0018A470..0x0018A668",
+          "observation": "MIPS code uses the same two field IDs, optional zero position, mandatory radius output and duplicated radius members as PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spStaticRenderObject",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=214; MIPS spStaticRenderObject serializer registration and matching field enums",
+          "observation": "The PS2 executable independently exposes the same three serializer fields."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spTextNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=302; independent MIPS class, serializer and matching field/assertion strings",
+          "observation": "Class registration proves spTextNode derives from spRenderNode; its serializer preserves the concrete renderable relationship."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spTextRenderable",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=298; independent MIPS class, serializer and matching field/assertion strings",
+          "observation": "Executable code confirms font, UTF text, ARGB color, wrap width and UInt32 alignment fields and their getter identities."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spTextureData",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=198; MIPS spPS2TextureDataSerializer and shared spTextureDataSerializer strings",
+          "observation": "The PS2 executable independently exposes the same source, cross/native and platform-type serializer field names."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spUVController",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=326; nested load 0x00187AE0..0x00187EAC; serialize 0x00187EC0..0x001880F8; wrapper 0x00188350..0x00188640",
+          "observation": "PS2 uses the same seven evaluator calls and writes UV pivot then rotation axis with the same resource framing as PC."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spZone",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=246; reader/index/writer VA 0x001A3B30..0x001A3F70",
+          "observation": "The independent MIPS serializer has the same repeated field-0 contract and spPartitionNode factory hash 0x67672341; its runtime root array/count are at +0xC0/+0xC4."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spZonePortal",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=250; reader/index/writer VA 0x001A3310..0x001A3920",
+          "observation": "The independent MIPS serializer uses the same field switch, spZone factory hash 0x61254AB3, variable polygon count and runtime offsets +0x14/+0x18/+0x1C/+0x20; a null destination is rejected."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    },
+    {
+      "className": "spZonePortalNode",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 20,
+      "upperBound": 30,
+      "researchStatus": "partial",
+      "assessmentOrigin": "wire_baseline",
+      "summary": "Conservative25-point serializer/wire baseline from separately recorded PS2 evidence. Full PS2 runtime behavior is NOT credited from PC.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=254; reader/index/writer VA 0x001A2CC0..0x001A3100",
+          "observation": "The independent MIPS serializer has the same repeated field-0 contract, creates class 0x6523AC37 (spZonePortal), and stores its runtime array/count at +0xC0/+0xC4."
+        }
+      ],
+      "unknowns": [
+        "PS2 full runtime, caller integration, source names and remaining class methods are not audited by this historical wire migration."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-material-controllers-2026-09-06T21:30:00Z",
+  "createdUtc": "2026-09-06T21:30:00Z",
+  "notes": "CP20 timed cycle to07:30MSK;264 native assertions,11 exact comparisons,22/22 profile,393 source,33/33 CTest. PC-only; unchanged safety caps, no closed class/gate.",
+  "assessments": [
+    {
+      "className": "spRenderController",
+      "coverageScore": 85,
+      "lowerBound": 75,
+      "upperBound": 95,
+      "summary": "New PC assessment: original allocation/base clock fields, elapsed accumulation/consumption and verified enabled/time copy. Abstract render-update, exact API names and all exceptional float cases remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spTextureTrack",
+      "coverageScore": 70,
+      "lowerBound": 55,
+      "upperBound": 85,
+      "summary": "New PC assessment: embedded constructor/layout, original frame-array ownership/read/destruction, last-key duration and strict interval-end selection with duplicates/negative/boundary cases. Standalone factory/copy and malformed paths remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spAnimTexController",
+      "coverageScore": 75,
+      "lowerBound": 60,
+      "upperBound": 88,
+      "summary": "55→75: native factory/lifetime, last-bound material backlink, time consumption and strict-greater wrapping, owned track and shared graph read/index/write; clone ownership and malformed loops remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spAnimTexControllerSerializer",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 90,
+      "summary": "60→80: actual shared-core read/index/write, variable packed references, NULL/alias/empty stream contract and eleven exact track/material graphs. Failure rollback, malformed allocation arithmetic and full corpus remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spUVController",
+      "coverageScore": 60,
+      "lowerBound": 50,
+      "upperBound": 72,
+      "summary": "55→60: original factory1FC, embedded evaluator defaults, retain/release binding, alias/rebind/clear and flag8 behavior. Runtime transform math/codec/source class not yet reconstructed at CP20.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spMaterialTexture",
+      "coverageScore": 75,
+      "lowerBound": 55,
+      "upperBound": 88,
+      "summary": "70→75: field11 canonical animated controller ownership, original last-bound update and safe source teardown. UV runtime/color/custom layers and full clone remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    },
+    {
+      "className": "spMaterialSerializer",
+      "coverageScore": 85,
+      "lowerBound": 65,
+      "upperBound": 92,
+      "summary": "80→85: actual animated field11 read/index/write through common reference core, repeated/NULL/two-layer aliases and byte-exact graph outputs. UV/color/custom layers and full failure/lossless save remain open.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-controllers.md",
+          "locator": "checkpoint20; originalPC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "22/22 fresh-child profile;264 native assertions;11 exact native/source track/material graphs;393 source assertions;33/33 CTest25.72s. Original algorithms execute with explicit tiny RTTI/FAT/COM/stream inputs; no cold startup, GPU or whole-file claim."
+        }
+      ],
+      "unknowns": [
+        "UV/function/color runtime dependencies, native controller/track clone ownership, malformed/partial failures, actual application integration and full native FFPS save remain open.",
+        "Host safety guards/RAII/pinned shared contexts are explicit adaptations, not native behavior claims. Capped probes stay disabled; no PS2 transfer or closed class/gate."
+      ]
+    }
+  ]
+}

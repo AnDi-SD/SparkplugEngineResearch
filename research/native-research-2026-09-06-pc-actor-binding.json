@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-actor-binding-2026-09-05T19:48:15Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T19:48:15Z",
+  "notes": "Second checkpoint of PC-first cycle due 2026-09-06 10:00 MSK. Original actor discovery, input binder, start and normal nonempty lifetime; portable evaluator insertion and animation priority field. No original third input executed: Start stopped before binder CALL. No game/app/assets mutation, PS2, push or release. Actor Start/tree/Rebind source still pending. Fixed-denominator class-weighted scores, not byte coverage or readiness.",
+  "classes": [
+    {
+      "className": "spTransformTrackEval",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 86,
+      "lowerBound": 77,
+      "upperBound": 92,
+      "priorityTier": 1,
+      "summary": "Original fixed-two-input insertion and pointer-only clear now executed and reconstructed. Unsigned ordering, duplicate state, physical cache inheritance and asymmetric counters proven. Upstream capacity and borrowed lifetime remain open; host atomic bounds/counter guards explicitly differ from original.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_transform_inputs.py",
+          "locator": "0x005FE9C0;0x005FEB70",
+          "observation": "14 assertions: exclusive priority rejection, slot0 cache retention, no decrement old slot0, decrement physical slot1 even outside former count, pointer-only clear. Nonexclusive retained entries move full caches; new state inherits destination physical cache and inactive tail is retained. Third input preflight prevents native unsafe insertion.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_transform_inputs.py",
+          "locator": "156 deterministic cases;SparkplugTransformInputTests",
+          "observation": "4368 original/portable comparisons cover both physical inputs, all nine cache indices, counters, unsigned/equal priorities, duplicate state and null holes. All pass after header-aware rebuild; separate C++ suite15 checks and CTest10/10. Existing actor differential1857/93 still passes.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spTransformTrackEval.cpp",
+          "locator": "InsertInputForAnalysis;ClearInputForAnalysis;PlaybackForAnalysis",
+          "observation": "Portable array2 plus active count and live counter view implement observed insertion. Incoming by-value avoids physical-slot alias. Host invalid-counter/sampler/index/capacity guards preflight before mutation; literal fixture SetInputs is not original insertion. Borrowed view and prepared sampler snapshot ownership are explicit.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spActor",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 72,
+      "lowerBound": 60,
+      "upperBound": 82,
+      "priorityTier": 1,
+      "summary": "Native discovery, slot map, binder, Start/restart and normal nonempty teardown executed. Duplicate names select last evaluator; priority formula and event payload distinction established. Portable Start/tree/Rebind, full tree wrapper/Stop, upstream capacity, event reentry and outer engine frame remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_actor_binding.py",
+          "locator": "0x005A33F0;0x005A31D0;0x005A1C10;0x005A1C16",
+          "observation": "44 assertions: original controllers/evaluators discovered from animated named nodes, flag2000 prevents rediscovery, native name registry slots feed actor map and real SAN track inputs. Duplicate node names own two controllers but map last evaluator wins. Repeated exclusive increments counter2/4/6; nonexclusive rebind stable. Normal nonempty teardown frees all tracked allocations.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "docs/research/native-pc-actor-binding.md",
+          "locator": "0x005A1C10;0x005A1D26;0x005A1E30",
+          "observation": "Binder clears pointers for zero-use states, processes nonzero-use or selected states ascending by index, maps track14 to evaluator, uses state50 priority and exclusive iff state10==0. Gained4/lost5 events have payload state pointer; binder alone does not flush. Selected unmatched state can remain use0.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_actor_start.py",
+          "locator": "0x005A1E30..0x005A208A;0x005A205B",
+          "observation": "56 assertions: request38 field mapping, fade-dependent request weight mutation, active restart state-weight retention, rates/threshold/progress, inherited sample/stopAfterFade/counter, priority high group byte plus low24 frame, events2/6 animation payload then binder4 state payload and flush. Third candidate executes only to pre-binder CALL5A205B; no local guard before that boundary, inputs unchanged and third insertion never attempted.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spAnimation",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 91,
+      "lowerBound": 85,
+      "upperBound": 95,
+      "priorityTier": 1,
+      "summary": "Previously opaque PC+18 proven as actor priority-group source, default0 and name-only clone semantics retained. Portable analytical accessor added. Original upstream setter/name, resource-loader/writer transaction and portable registry lease ownership remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "research/probe_pc_actor_start.py",
+          "locator": "animation+0x18;actor+state+0x50;0x005A1E30",
+          "observation": "Original Start computes uint32 priority=(animation18<<24)|(managerFrame&0x00FFFFFF), tested group3/frame12345678 gives03345678. Full uint32 storage retained although only low group byte survives shift. This role is not claimed serialized by known SAN fields.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spAnimation.h",
+          "locator": "GetPriorityGroupForAnalysis;spAnimationLayout.priorityGroup",
+          "observation": "Analytical uint32 field/default0 accessor and ABI offset assertion added. Name-only clone still leaves fresh priority0; portable animation object suite54/54 including default/full-word/clone checks, CTest10/10. No invented original API symbol or upstream setter.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNode",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 94,
+      "lowerBound": 89,
+      "upperBound": 97,
+      "priorityTier": 1,
+      "summary": "Original PC node normal factory/constructor now executed as actor dependency, independently confirming exact B4 and70A00 default flags. Actor discovery ownership bit and normal teardown validated; collision callbacks, full render-frame integration and original API names remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_actor_binding.py",
+          "locator": "0x00421E20;0x00421BA0;0x005A33F0;0x005A15C0",
+          "observation": "Real protected PC constructor executed rather than borrowing PS2 default: B4 allocation, default70A00 flags. Actor node retention, flag2000 set/skip and clearing during controller teardown observed, all normal tracked native allocations freed. Shared-name owner operations are explicit fixtures, not full intern-manager execution.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1191 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-bootstrap-2026-09-06T07:41:00Z",
+  "createdUtc": "2026-09-06T07:41:00Z",
+  "notes": "Partial historical migration: independently reviewed PC-only C1-C20 latest48 plus3 existing dual-platform base dossiers. Other historical knowledge remains UNRATED, not absent. Credited/full-catalog percentages are incomplete recorded coverage, not a replacement or split of legacy mixed estimates. All entries reviewed_existing, zero new research credit. PC/PS2 registries329/275 engine,404/406 game,37 direct each.",
+  "assessments": [
+    {
+      "className": "spActor",
+      "platformKey": "pc",
+      "coverageScore": 78,
+      "lowerBound": 67,
+      "upperBound": 86,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Owned descendant discovery, Start/Rebind/Stop/StopAll and full owned Tick now use existing manager, SAN keys and node controller/evaluator. Six original/portable sequences validate input caches/counters, node PRS and event ordering. Remaining public controls, two-input upstream contract, borrowed animation lifetime, event reentry and external engine frame remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-actor-owned-runtime.json",
+          "sourceSha256": "3A3A06D5E577BB09132719414A511C77773B9DA9C2AD3FD2125DCC0CCC846A1A",
+          "locator": "classes/spActor/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Same original-class core now owns controller/name leases and maps last duplicate node name, preserves per-state old-pointer capture order and physical cache/counter semantics. Host working-copy preflight rejects overlapping third input before publishing states/actions/request weight; original unsafe input not executed. Borrowed animation lifetime remains caller precondition, tree and StopAll are not global rollback. C++ owned-binding suite81/81; CTest11/11."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spAnimTrack",
+      "platformKey": "pc",
+      "coverageScore": 88,
+      "lowerBound": 79,
+      "upperBound": 94,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Track now owns optional analytical manager-name lease, released on track destruction/shrink or replacement by manual borrowed slot. Existing native key lifetime/clone semantics preserved. Full actor borrowed-resource invariant, native rename policy and uncommon ownership hazards remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-animation-owned-bindings.json",
+          "sourceSha256": "FD5F31A4D2D826BFCBB1D0A18462CC3F10263D8E63F7EC44A24998D4FD3FF805",
+          "locator": "classes/spAnimTrack/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Acquire new name reference before releasing old; bound-manager identity includes unchanged name. ReleaseKeys leaves name lease alive; name-only clone acquires none; track destruction/shrink releases. Rename requires explicit rebind and stored acquired name avoids mis-release as host safety, not recovered native rename behavior."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spAnimation",
+      "platformKey": "pc",
+      "coverageScore": 91,
+      "lowerBound": 85,
+      "upperBound": 95,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Previously opaque PC+18 proven as actor priority-group source, default0 and name-only clone semantics retained. Portable analytical accessor added. Original upstream setter/name, resource-loader/writer transaction and portable registry lease ownership remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-actor-binding.json",
+          "sourceSha256": "37F89481ED4B67E5F146CA17E892D4086A6156EB63900CA8E7B9511D831DB5FE",
+          "locator": "classes/spAnimation/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Original Start computes uint32 priority=(animation18<<24)|(managerFrame&0x00FFFFFF), tested group3/frame12345678 gives03345678. Full uint32 storage retained although only low group byte survives shift. This role is not claimed serialized by known SAN fields."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spAnimationManager",
+      "platformKey": "pc",
+      "coverageScore": 81,
+      "lowerBound": 71,
+      "upperBound": 89,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Registry/controller/lifetime source unchanged; outer caller now executed from actual PCApp through core41CD50, owner3C and second task-timer deltaB8 established. Full event callbacks/reentry, resource lifetime and portable whole-engine frame remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-engine-frame-timer.json",
+          "sourceSha256": "74BA0B066D40E593328FA256A7E8BDECB7E8B1CB01C11CF8B909C11373866A8A",
+          "locator": "classes/spAnimationManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Bootstrap stores registered manager in engine3C; actual update invokes it after network/physics and before GUI/scene/audio/particles. DeltaB8 comes from inline spTaskTimer90+28. Real manager/actor/key/node execution verified both with explicit clock-stage seam and original linked timers, without native event dispatcher or original core ctor claims."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spAnimationSerializer",
+      "platformKey": "pc",
+      "coverageScore": 90,
+      "lowerBound": 84,
+      "upperBound": 95,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Same reconstructed field core now offers owned-binding reader in addition to unchanged non-owning lookup API. Validated field parse precedes lease acquisition, failed acquisition cleans partial references. Writer/full FFPS/FAT transaction/native malformed and filled-target paths remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-animation-owned-bindings.json",
+          "sourceSha256": "FD5F31A4D2D826BFCBB1D0A18462CC3F10263D8E63F7EC44A24998D4FD3FF805",
+          "locator": "classes/spAnimationSerializer/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Owned wrapper calls existing stream/block/field reader, then binds each track. Failure returns no partial animation/observations and releases acquired references; consumed stream position and issued monotonic IDs are not rolled back. Host transaction safety not claimed as native rollback. Reader117/117, manager68/68, CTest10/10; four prior reader/PRS comparisons2832/2832 repeated after changes."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spBSPNode",
+      "platformKey": "pc",
+      "coverageScore": 72,
+      "lowerBound": 59,
+      "upperBound": 82,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "C19 exactAC/partial query source retained. Actual Static480AD0 Zone-aware placement now confirmed: touching stays current root with Zone, mask48 only without Zone. Actual Occlusion480630 distinguishes Static400 without RenderNode billboard exception. Original reciprocal/owning cleanup and whole Debug21 duplicate Static draw once/frame passed; Collision/debug/ray consumers and normal45E870 remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-spatial-consumers.json",
+          "sourceSha256": "F9CE758DBEB0FC1631200DF30CC45EADD765067199E2AB5B856714BD30EB37B6",
+          "locator": "classes/spBSPNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 47 native checks confirm Zone-aware static root placement versus no-Zone two children, owning duplicate refs/Scene88 publication, borrowed occlusion links/no billboard exemption, actual drain/destruction. Whole real Debug21 path draws one Static support per frame from duplicate registrations; normal clipped path not substituted."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spCamera",
+      "platformKey": "pc",
+      "coverageScore": 78,
+      "lowerBound": 65,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "PC original camera matrix starts corrected D4/114->CC/10C, basis154->14C, untouched viewport170..187. Actual matrix-call arguments/gates and partial cache writes executed; angle setter2D reset fixed. Existing fresh-matrix utility explicitly not stateful native cache; full viewport/view/frustum/culling runtime still open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-world.json",
+          "sourceSha256": "C96201CD95A77B28EA8BBA866EEA816E9634895825E66FF8E3FB9080FB7E1159",
+          "locator": "classes/spCamera/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 32 camera-boundary checks: real factory defaults, exact matrix pointers to renderer secondary18 slots13/12, view-before-projection failure gates, inverse translation cache, orthographic preserves other cells including old perspective23/33, view-angle clears2D without changing branch231. No GPU/backend invoked."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spCameraData",
+      "platformKey": "pc",
+      "coverageScore": 72,
+      "lowerBound": 60,
+      "upperBound": 84,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Previously reconstructed PC concrete leaf now has actual protected factory41A3F0 exact238 allocation,6DEA20/default cache and deleting lifetime evidence. Same common camera runtime boundaries remain; clone remains inherited node-copy contract.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-world.json",
+          "sourceSha256": "C96201CD95A77B28EA8BBA866EEA816E9634895825E66FF8E3FB9080FB7E1159",
+          "locator": "classes/spCameraData/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual camera-data factory and normal deleting destructor execute, share exact corrected CC/10C matrix defaults and base camera storage. Concrete-source prior work not counted twice through backfill."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spCloneManager",
+      "platformKey": "pc",
+      "coverageScore": 82,
+      "lowerBound": 71,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Actual PC map startup, borrowed insert/overwrite, root cleanup and distinct always-clone412BE0 versus map-aware412C40->4D3810 proved. Duplicate RenderNode Model clones independent. Cycles/remaining callers and original singleton-support name open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-model-render-world.json",
+          "sourceSha256": "85795E1E113401CED6890A3B099D402113D86F6900300137804BCB9B459DF2EB",
+          "locator": "classes/spCloneManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 29 ownership checks include real map without pair seam: repeat source overwrites, map-aware hit avoids allocation, public thunk resolves13B342C->74E060, null always-clone keeps map, non-null root clears.4D3800 is unrelated constructor, not lookup."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spController",
+      "platformKey": "pc",
+      "coverageScore": 80,
+      "lowerBound": 70,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Abstract controller normal PC layout/lifetime/copy established and portable slice implemented. Enabled10 and next14/previous18 form exact1C extent. Original TU/API spellings, full startup/callback lifetime invariants and PS2 remain open; standalone host mode is not native fallback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-animation-manager.json",
+          "sourceSha256": "7C38D79E4B0CED2226EE7CF428ABD85C6CB3EB2A5160BADFAFF2F165F1678E12",
+          "locator": "classes/spController/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Original ctor requires live global manager, enabled1 and null links then appends at tail; dtor unregisters. Three original actors validate middle/head/tail removal. Portable ctor auto-registers when manager exists and dtor unregisters through guarded owner; missing manager and reversed lifetime are host-safe deviations."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spDXCamera",
+      "platformKey": "pc",
+      "coverageScore": 72,
+      "lowerBound": 60,
+      "upperBound": 84,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "PC concrete camera4A9120 exact238 allocation and common constructor/dtor now executed; original core creates it as retained Default Camera. This stage alone does not attach/activate camera. Full native camera registry/render runtime remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-world.json",
+          "sourceSha256": "C96201CD95A77B28EA8BBA866EEA816E9634895825E66FF8E3FB9080FB7E1159",
+          "locator": "classes/spDXCamera/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Original core stage creates actual DXCamera, retains one reference, names Default Camera; no root or scene pointer/active engine vector added there. Original deleting lifetime works with explicit engine-storage dependency and native lazy camera manager."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spDXRenderer",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 23,
+      "upperBound": 47,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Older original DX identity/abstract factory/renderer interface/lifetime plus newly executed4B0A90 cached device state. Single-entry portable method ignores HRESULT and updates cache; full E4F4 array extent/startup not assumed. Whole protected renderer ctor/device/material backend still open; conservative zero-credit baseline metadata migration.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-render-runtime.json",
+          "sourceSha256": "555550A03B92CF1892FD5F99B7A2B89E48CF276EDE2CBE5798E60E6813BDE567",
+          "locator": "classes/spDXRenderer/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 960 exact fields/96 two-call cases match native and source: equal suppresses COM; changed calls stdcall3, ignores HRESULT and writes cache, including failed-call retry suppression. Source6 tests/CTest17. Caller supplies cache word; fixture index<=255 is not native capacity claim; null-callback rejection host-only."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spDXShadowVolumeManager",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 23,
+      "upperBound": 48,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Exact3C actual ctor/Named-only clone/destructor/support adjustment and9 slots. Scene executes camera231 early return and perspective empty-light-list pass, state setup/cleanup and current light-cache reset. Init shader/three parameter lookups static only, returns true even missing shader; nonempty volumes/device/shader/source open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-render-runtime.json",
+          "sourceSha256": "555550A03B92CF1892FD5F99B7A2B89E48CF276EDE2CBE5798E60E6813BDE567",
+          "locator": "classes/spDXShadowVolumeManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 14 checks actual3C, primary6EF138/support6EF134, original clone fresh own state including untouched30/34; ctor clone replaces singleton and deleting other instance clears it unconditionally. All native map/object allocations freed. Nonempty name-sharing/shader ownership not claimed."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spEngineCore",
+      "platformKey": "pc",
+      "coverageScore": 81,
+      "lowerBound": 71,
+      "upperBound": 89,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Default scene/camera/timer setup41C300 executed after prior frame analysis, including false-init diagnostics/no rollback and both timer append branches. Actual app/SAN/owned scene/world chain closed. Core constructor, complete portable frame and GPU/event/resource integration remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-world.json",
+          "sourceSha256": "C96201CD95A77B28EA8BBA866EEA816E9634895825E66FF8E3FB9080FB7E1159",
+          "locator": "classes/spEngineCore/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 32 checks: scene created/published before initialize; failure reports original cpp:102 diagnostic and keeps scene without camera/timer wiring. Success creates retained Default Camera but does not activate/attach it, then wires inline task timers. Real camera/scene/subsystem factories and normal teardown; synthetic engine storage explicit."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spLensFlareManager",
+      "platformKey": "pc",
+      "coverageScore": 34,
+      "lowerBound": 23,
+      "upperBound": 46,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Registered CrossPlatform-derived base with native borrowed intrusive flare links58/5C, head18/tail1C/count20 and no-ref append/unlink. PC inherited lifecycle/name-only copy and scene registration boundaries known; full visibility/composition/render/base constructor analysis and source remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spLensFlareManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Two distinct literal flare payloads register/unregister/reparent via actual PC manager methods; intrusive links/count and no extra references verified. No duplicate-corruption inputs or concrete flare geometry constructor claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spLight",
+      "platformKey": "pc",
+      "coverageScore": 84,
+      "lowerBound": 74,
+      "upperBound": 91,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior abstract light source now gains independent PC copy intensity omission, exact descendant allocationF0, intrusive scene linksB8/BC, world dirty8 and named LightManager consumption. Portable payload source retained; original support type, opaqueDC, setter invalidation, full virtual world/backend integration open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-lights.json",
+          "sourceSha256": "955E7E33C82D63482433EB0EE839A5FF367F14080617D2689B2085068B7A3326",
+          "locator": "classes/spLight/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Existing PC destination intensity is preserved, fresh clone keeps1, opaque bits and other tested light fields copied. Native world tests current|inherited8 after base, clears own8 and calls scene34 manager. Borrowed intrusive light membership and unconditional manager debug enumeration closed; point/spot debug GPU path not run."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spLightData",
+      "platformKey": "pc",
+      "coverageScore": 87,
+      "lowerBound": 78,
+      "upperBound": 93,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original protected PC41A330 now proves exactF0; defaults/untouched padding and inherited copy/clone run independently of PS2. Fresh clone retains intensity1 while all tested other payload copies; real typed scene/world/light-manager consumption closed. Native root clone transaction, constructor symbol and portable scene/backend wiring still open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-lights.json",
+          "sourceSha256": "955E7E33C82D63482433EB0EE839A5FF367F14080617D2689B2085068B7A3326",
+          "locator": "classes/spLightData/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. ActualF0 allocation/primary6DE990/support6DE98C, all payload defaults/CC padding, source intensity3.25 versus existing destination9.5 and fresh clone1; membership links remain blank. Pair412F70 is explicit recording seam; lazy CloneManager creation/destruction actual."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spLightManager",
+      "platformKey": "pc",
+      "coverageScore": 72,
+      "lowerBound": 60,
+      "upperBound": 82,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "New PC original24 manager identity/lifetime, borrowed intrusive list, scene registration/reparent, RenderNode/partition eligibility, fixed eight ordinary plus first ambient cache and light world refresh proved. Portable list/selection/blank clone reconstructed; concrete partition types, full scene initialization/wiring, backend upload, original names and property invalidation remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-lights.json",
+          "sourceSha256": "955E7E33C82D63482433EB0EE839A5FF367F14080617D2689B2085068B7A3326",
+          "locator": "classes/spLightManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 90 total probe checks include exact24 allocation, ctor owner20 untouched, blank clone with explicit pair seam, borrowed lifetime, original Attach/reparent across two scenes and world/cache refresh. Scene1C render-list link is literal45D850 assignment, not full scene initialization. All tracked allocations including lazy CloneManager normally freed."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spMeshData",
+      "platformKey": "pc",
+      "coverageScore": 82,
+      "lowerBound": 75,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "PC factory41A270 exact58 independently executed. Owners50/54 and min/max untouched until Init; sphere0/validfalse. Cold teardown uses explicit zero-owner fixture and executes Resource/ResourceManager cleanup, not full native buffer Init transaction.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-model-render-world.json",
+          "sourceSha256": "85795E1E113401CED6890A3B099D402113D86F6900300137804BCB9B459DF2EB",
+          "locator": "classes/spMeshData/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Part of47 native checks proves untouched owners via CC allocator and exact58; explicit fixture zeros only owners before actual destructor. Source safe-null divergence retained; Model uses base Mesh polymorphically."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spModel",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 76,
+      "upperBound": 92,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Actual nonempty callbacks/material state and original alpha queue through flush now exercised via Model pre/render. Failure consequences clear: enqueue failure successful skip, mesh failure no post/restoration; flush ignores Model failures. Source full render/backend method remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-renderer-protocol.json",
+          "sourceSha256": "1487AA1D9D0B9A6DDF73290BE3A2A4656F8AD6AE88EF206C958F329ACD0A2D1B",
+          "locator": "classes/spModel/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Three actual models and two actual supports enqueue via inherited pre, original flush reuses consecutive support and submits all despite matrix/mesh false;44 prevents re-enqueue. Borrowed mesh/material/device and preordered qsort seams explicit, no game/GPU output claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spNode",
+      "platformKey": "pc",
+      "coverageScore": 96,
+      "lowerBound": 91,
+      "upperBound": 98,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior PC tree/world contracts retained. UpdateWorldForAnalysis now virtual so parent recursion invokes actual derived RenderNode cache work; score unchanged. Native reparent/automatic typed Scene effects and collision ownership still open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-model-render-world.json",
+          "sourceSha256": "85795E1E113401CED6890A3B099D402113D86F6900300137804BCB9B459DF2EB",
+          "locator": "classes/spNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Derived world source and plain-parent dispatch tested, finite cache comparison2272/32; no additional class score credited."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spNodeController",
+      "platformKey": "pc",
+      "coverageScore": 74,
+      "lowerBound": 67,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Previously reconstructed direct/blended local PRS controller now exercised through owned actor discovery, SAN registry/key sampling and destruction. No score increase for integration alone. Full const-evaluator path, scene attachment and general runtime ownership remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-actor-owned-runtime.json",
+          "sourceSha256": "3A3A06D5E577BB09132719414A511C77773B9DA9C2AD3FD2125DCC0CCC846A1A",
+          "locator": "classes/spNodeController/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actor-owned node controllers retain shared host nodes, one name lease each, and original transform evaluator. Duplicate slot-map last-wins behavior leaves all controllers in vector; teardown clears mark then releases lease/controller. C++81 checks and original/portable5154 comparisons cover integration, not a new controller algorithm or fully recovered source API."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spOcclusionVolume",
+      "platformKey": "pc",
+      "coverageScore": 59,
+      "lowerBound": 44,
+      "upperBound": 70,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "C15 exact1B8/geometry and cached consumer evidence retained. Actual BSP/Octree nonempty registration adds borrowed reverseB4/forward40, Static400 rule with no billboard exemption, lower-level Enabled ignored, notifying drain and empty-geometry destructor. Full Init/topology/silhouette/real authored load still open; explicit worldSphere input not Init proof.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-spatial-consumers.json",
+          "sourceSha256": "F9CE758DBEB0FC1631200DF30CC45EADD765067199E2AB5B856714BD30EB37B6",
+          "locator": "classes/spOcclusionVolume/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 40 original registration/borrowed reference/reciprocal drain/destruction checks across two concrete trees. Explicit worldSphere and cleared Enabled flag; actual original factory/destructor, no geometry Init or all-upstream Enabled policy claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spOctreeNode",
+      "platformKey": "pc",
+      "coverageScore": 67,
+      "lowerBound": 53,
+      "upperBound": 78,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "C16 query source/quirky sphere mask retained. Actual nonempty Static449A90 always uses sphere mask regardless Zone, including F0 case; Occlusion449D30 Zoned dynamic root/static multileaf/no billboard exception. Whole Debug21 Static with duplicate multileaf memberships draws once per frame and frees all refs. Normal protected plane copy/Collision/remaining methods open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-spatial-consumers.json",
+          "sourceSha256": "F9CE758DBEB0FC1631200DF30CC45EADD765067199E2AB5B856714BD30EB37B6",
+          "locator": "classes/spOctreeNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 47 native checks confirm Zone-independent Static mask route and actual F0 shortcut; borrowed reciprocal Occlusion placement/drain, owning Static duplicate refs/Scene publication. Four Static refs across two leaves produce one draw each of two frames via original Debug21; no normal-copy execution claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPCApp",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 65,
+      "upperBound": 84,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Existing Win32 application shell identity/observed prefix now has executed original Update4C2D60: prehook, unconditional engine update, foreground/owner graphics or1ms throttle, ignored helper returns. Portable app backend still does not invoke full engine stages; full sizeof/window lifecycle and game override remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-engine-frame-timer.json",
+          "sourceSha256": "74BA0B066D40E593328FA256A7E8BDECB7E8B1CB01C11CF8B909C11373866A8A",
+          "locator": "classes/spPCApp/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Real base Update always calls engine41CD50 before foreground check; exact foreground HWND or GetWindow(foreground,4)==HWND calls graphics41C460, otherwise requests Sleep1 through a no-sleep seam. Animation manager advances even in background. Base update returns true even if graphics seam returns false. No original message pump/window/API executed."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPCLensFlareManager",
+      "platformKey": "pc",
+      "coverageScore": 40,
+      "lowerBound": 28,
+      "upperBound": 53,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Actual38 concrete manager, named blank-state clone/lifetime, base list and empty query-map removal proven. Init queries device type9/null output and enables unless exact8876086A capability result; arbitrary failure still capability true. Nonempty query groups, GPU visibility/glare render and portable source open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spPCLensFlareManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual38 allocation/table/defaults/name-only clone and normal teardown. Capability Init invokes explicit D3D interface seam with(device,9,null), distinguishes0/8876086A/80004005, always returns1/enables. No host COM/GPU query called."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPCPartitionRenderable",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 52,
+      "upperBound": 78,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Concrete9CBB56A2->94BBCA2A, factory4CD950 exact8C, primary7/support6, storage-free PC lifetime/clone overrides and actual base factory selection. Own runtime render behavior inherited/common; full writer/source/platform startup open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-partition-runtime.json",
+          "sourceSha256": "20D084E2C7B8D2874F8BB26CD1DA80C82B13048B21382905582808160907087D",
+          "locator": "classes/spPCPartitionRenderable/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual IsExactly(9CBB56A2) true/IsExactly(base) false/IsKindOf(base) true, exact8C and inherited-only clone, secondary deleting adjustment this-10 and full normal teardown. Freshly studied class, not backfill of prior source."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPCProjectionManager",
+      "platformKey": "pc",
+      "coverageScore": 52,
+      "lowerBound": 40,
+      "upperBound": 65,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Actual24 PC concrete factory/table/name-only clone/deleting lifetime; inherited enabled/list algorithms proven. First two PC projection phases are true stubs, late phase inherited. Full projection renderer/helper integration and portable source remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spPCProjectionManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual allocation/default padding, inherited name-copy shares entry with incremented byte refcount, clone leaves state/list default, borrowed payload never released by manager. Explicit shared-name release seam matches observed refcount; no full string manager transaction."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPartitionNode",
+      "platformKey": "pc",
+      "coverageScore": 67,
+      "lowerBound": 51,
+      "upperBound": 78,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior exact84 ownership/registration contracts now support partial original-named portable child/query class and concrete Octree runtime. Native direct child deletion, base leaf-query identity and inherited-only cloning preserved. Full33 slot methods/Zone intrusive/source Scene and specialized object-list wiring not represented by this slice.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-octree-runtime.json",
+          "sourceSha256": "877B9795743B295166A9275AB150E627C12A05A4BA76083F978EA4D8FE3CCA2C",
+          "locator": "classes/spPartitionNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual child direct deletion/leaf identity reused in concrete native tree. Portable unique_ptr direct child ownership and Base-only clone, presence-only Zone analytical input; no full Zone lifetime or Scene association claimed. Host null/index/setup guards explicit; source28 tests plus exact base/derived ABI compile."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPartitionRenderable",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 52,
+      "upperBound": 78,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original base RTTI factory returns concrete PC8C; Base10 + unknown-named support74 + Debug84/Scene88. Shared identity matrices, own Model refs/bounds, blank base-only clone and direct parent ownership. PC support matrix/render failure contracts established; serializer/source, other platform and light integration open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-partition-runtime.json",
+          "sourceSha256": "20D084E2C7B8D2874F8BB26CD1DA80C82B13048B21382905582808160907087D",
+          "locator": "classes/spPartitionRenderable/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual8C ctor/common model append, DebugFF000000 and shared760058 identity, supports model sharing/ref teardown; original draw ignores setup failure but stops Model failure. Original complete Scene88 propagation/root payload direct delete executed."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spPartitionSystem",
+      "platformKey": "pc",
+      "coverageScore": 58,
+      "lowerBound": 44,
+      "upperBound": 69,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior exact physical/RTTI/lifetime plus actual Scene fallback creation/typed attach and48E940 RenderNode transfer-before-old-reset. Direct root cleanup verified through whole Scene teardown. Nonempty Collision/Occlusion transfer, concrete spatial queries and portable class open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-visibility-runtime.json",
+          "sourceSha256": "D3A282D6F795A994B7E075F9D4CFF80341655E716C3D8193B66A03E130F38928",
+          "locator": "classes/spPartitionSystem/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Original selected/fallback refs3 and direct-owned root0; new System attachment uses native typed registration and real Node reciprocal callbacks; old vector clear only after transfer. No inferred universal Clear implementation."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spProjectionManager",
+      "platformKey": "pc",
+      "coverageScore": 48,
+      "lowerBound": 36,
+      "upperBound": 61,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Registered CrossPlatform-derived abstract-factory manager. PC inherited runtime has borrowed sentinel registry with duplicate scan, all-match removal, Init flag, projection-helper initialization and late virtual38 dispatch with no short circuit. Concrete helper implementation/native API and portable source remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spProjectionManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual inherited registry accepts four exact projection IDs, ignores base/neighbor IDs, preserves insertion order/reparent and skips duplicate pointer. Literal borrowed renderables are explicit fixtures, not constructed projections."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spRenderNode",
+      "platformKey": "pc",
+      "coverageScore": 92,
+      "lowerBound": 83,
+      "upperBound": 96,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Score retained: actual reciprocal PartitionNode callbacks now executed with concrete counterparts and duplicate references/both-side destruction. Common support74 shared with Static/Partition, but draw failure semantics differ; automatic portable Scene/Partition wiring remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-partition-runtime.json",
+          "sourceSha256": "20D084E2C7B8D2874F8BB26CD1DA80C82B13048B21382905582808160907087D",
+          "locator": "classes/spRenderNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual RenderNode/Partition registration vectors append duplicates without ref increments, swap-last remove and destructor unlink each other. Native root nonnotifying reset explicitly not safe general clear. No extra RenderNode score."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spRenderable",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 75,
+      "upperBound": 92,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Nonempty PC callback vectors, five-argument cdecl/full-EAX erase/stop, three-argument direct AL gates, shared material save byte and failure/reentry hazards executed. Callback-phase and raw28 copy source restored with explicit host guards. Full pre/post renderer source, original API names and material/backend contract remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-renderer-protocol.json",
+          "sourceSha256": "1487AA1D9D0B9A6DDF73290BE3A2A4656F8AD6AE88EF206C958F329ACD0A2D1B",
+          "locator": "classes/spRenderable/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 75 checks: stable erase/ordinal advancement, group stop does not stop direct/draw, group100 continues/direct100 false, enabled flags preserve buffers, shared saved byte overwritten by interleaved pre, mesh failure skips restoration, queue failure ignored by pre. Device/user callbacks explicit."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spRenderer",
+      "platformKey": "pc",
+      "coverageScore": 72,
+      "lowerBound": 61,
+      "upperBound": 83,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior renderer source/card plus original alpha/general queues, record24/20/8, metrics/priority/particle comparator, real general sort and borrowed flush/failure contracts. PC nine bucket pass slots no-op. Alpha CRT tie order, default75F8E8, full ctor/Scene/backend/source queue integration open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-renderer-protocol.json",
+          "sourceSha256": "1487AA1D9D0B9A6DDF73290BE3A2A4656F8AD6AE88EF206C958F329ACD0A2D1B",
+          "locator": "classes/spRenderer/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 64 checks: alpha2048 capacity/disabled45/no-ref/priority wrap/view231, comparison equality+1, Model pre through alpha flush ignores failures, general actual vector/sort/resize/material key, nine buckets with original PC no-op pass table. Alpha qsort explicit no-op boundary only on preordered inputs; actual comparator independently run."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spResourceManager",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 63,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior cache source/card retained; actual PC lazy factory exact30 and empty teardown proved via MeshData resource destruction. Nonempty PC cache, async/load/FAT transaction, original names and14/1C semantics remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-model-render-world.json",
+          "sourceSha256": "85795E1E113401CED6890A3B099D402113D86F6900300137804BCB9B459DF2EB",
+          "locator": "classes/spResourceManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Original Resource teardown lazily creates exact30 manager, publishes75DB78 and empty deleting destructor clears it, all tracked allocations freed. No nonempty PC cache/loader success claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spScene",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 56,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Whole render now also executes actual nonempty Occlusion path on explicit cached silhouette/CPU buffers. Occluded support output null and stamp decrement confirmed; builder false ignored and previous plane cache can be reused. Real authored occluder Init, paired-occluder geometry, nonempty shadow shaders and portable Scene remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-occlusion-runtime.json",
+          "sourceSha256": "5250EE3F586373AB9EEB9BCD0853103A7CACBE7F2A35F34A1E64A364F4C93DCC",
+          "locator": "classes/spScene/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Whole Scene selects real occluder and three real RenderNode supports: behind omitted, foreground/side drawn, hidden mark=Scene40-1. Original geometry clear resets Init but preserves planes; Scene still consumes cache after4702E0 false. Explicit test state is not proof stock game draws between clear/reinit; no GPU image claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spSceneManager",
+      "platformKey": "pc",
+      "coverageScore": 74,
+      "lowerBound": 62,
+      "upperBound": 84,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Specialized45A810/45A8C0 now executed with actual PC scene managers, original RenderNode/SkyBox and explicit borrowed renderables. Exact-ID switch, SkyBox early return and specialized list differences proven. Partition/Occlusion and full portable Scene/typed reparent source remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spSceneManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 81 checks: original special dispatch calls actual sky/projection/flare registries, reparent clears old scene and preserves new order; all four projection IDs matched, base and neighbor ignored.58DA4026 deliberately unnamed; minimal borrowed geometry ID leaves explicit."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spShadowVolumeManager",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 18,
+      "upperBound": 42,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original abstract63FEA321->CrossPlatform, singleton support14/Enabled18/option19 prefix and concrete DX lifetime ancestry. Scene selected actual provider4A9030. Full original base size/control semantics and nonempty shadow geometry/source class not complete.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-render-runtime.json",
+          "sourceSha256": "555550A03B92CF1892FD5F99B7A2B89E48CF276EDE2CBE5798E60E6813BDE567",
+          "locator": "classes/spShadowVolumeManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 14 shared lifetime checks: original IsKindOf follows Shadow->Cross->Named->Base, fresh controls, singleton publish/unconditional clear. Base registration factory null independently pinned by static inspector; observed1C prefix not invented exact base sizeof."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spSkyBox",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 53,
+      "upperBound": 77,
+      "researchStatus": "partial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "PC exact1D4, actual RenderNode RTTI/C++ base, two tables, original scene/camera ownership and local-orientation world override proved. Dedicated draw releases fog then calls base support, ordinary support true/no-op. Full nonempty clone, portable derived world/runtime and model/GPU submission remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spSkyBox/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual SkyBox constructor/RTTI and same-scene/cross-scene borrowed registration run among81 specialized checks; exact RenderNode parent corrects old wire-card direct-Node statement."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spSkyBoxManager",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 58,
+      "upperBound": 81,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original24 factory/ctor/defaults, borrowed sentinel list, duplicate append/all-match removal, Init/blank clone, snapshot attachment and detach-until-list-empty, separate render pass AND/flush semantics closed. Root assigned by original game to DefaultCamera. Source class, original names and full scene lifecycle remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-special.json",
+          "sourceSha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59",
+          "locator": "classes/spSkyBoxManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual24 lifecycle, duplicate list entries, all-match removal, borrowed no-ref/Init clear, blank clone with pair seam, temporary snapshot survives own scene-list mutation, detach actual nodes under explicit external references."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spStaticRenderObject",
+      "platformKey": "pc",
+      "coverageScore": 71,
+      "lowerBound": 57,
+      "upperBound": 83,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "C12 exact10C/Model/render contracts retained. Actual concrete tree placement retains once per occurrence, publishes Scene88, duplicate multileaf memberships do not duplicate draw within frame because support78 stamp. Owning graph teardown releases object after all refs. Whole proof uses real Debug21 unclipped path, not normal clipped/render-ready source.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-spatial-consumers.json",
+          "sourceSha256": "F9CE758DBEB0FC1631200DF30CC45EADD765067199E2AB5B856714BD30EB37B6",
+          "locator": "classes/spStaticRenderObject/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 54 native Static placement/Scene88/refcount and Debug21 frame checks. BSP Zoned touching root vs Octree multileaf, repeat registration takes more refs without dedup; visibility mark emits one support draw per frame, next frame repeats; actual recursive destruction releases all. Portable class remains partial/unimplemented as documented."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spTaskTimer",
+      "platformKey": "pc",
+      "coverageScore": 83,
+      "lowerBound": 72,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original core41C300 closes inline54/90 source connection and append protocol:10 previous,14 next,30 head,34 tail,38 count. Portable source-replacing append added with host graph guards. Native detach/reparent/general source lifetime, hardware clock and wxGameTimer remain open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-world.json",
+          "sourceSha256": "C96201CD95A77B28EA8BBA866EEA816E9634895825E66FF8E3FB9080FB7E1159",
+          "locator": "classes/spTaskTimer/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 32 setup checks including empty/nonempty append and failed scene initialization. Root active/relative set directly; child source overwritten/root list appended; no Start/timestamp initialization. Native initializer internals are explicit seam, not whole engine constructor."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spTransformTrackEval",
+      "platformKey": "pc",
+      "coverageScore": 86,
+      "lowerBound": 77,
+      "upperBound": 92,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Original fixed-two-input insertion and pointer-only clear now executed and reconstructed. Unsigned ordering, duplicate state, physical cache inheritance and asymmetric counters proven. Upstream capacity and borrowed lifetime remain open; host atomic bounds/counter guards explicitly differ from original.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-actor-binding.json",
+          "sourceSha256": "37F89481ED4B67E5F146CA17E892D4086A6156EB63900CA8E7B9511D831DB5FE",
+          "locator": "classes/spTransformTrackEval/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 14 assertions: exclusive priority rejection, slot0 cache retention, no decrement old slot0, decrement physical slot1 even outside former count, pointer-only clear. Nonexclusive retained entries move full caches; new state inherits destination physical cache and inactive tail is retained. Third input preflight prevents native unsafe insertion."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spVisibilityManager",
+      "platformKey": "pc",
+      "coverageScore": 67,
+      "lowerBound": 51,
+      "upperBound": 77,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Actual whole Scene with BSP and two Zone leaves confirms root.v40(camera,stopAtZone) selects Zone then local roots, including zero-plane negative side. This does not require or resolve protected recursive child plane-copy45E870; full ctor/normal recursion gaps preserved.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-bsp-runtime.json",
+          "sourceSha256": "3AFF2D5AA719CD6CEA8E928E768A995D71AE10D89029F1506EBA878702B0751B",
+          "locator": "classes/spVisibilityManager/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. 5 checks: actual Node world registration places two nodes in separate BSP leaves; whole Scene frames cameraX+1/-1/0 draw only chosen Zone local root, actual graph destruction clean. Explicit decoded graph, not whole SMO reader. No45E870 seam, continuation, or cap increase; no game/GPU/image validation."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spZone",
+      "platformKey": "pc",
+      "coverageScore": 68,
+      "lowerBound": 51,
+      "upperBound": 79,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Prior borrowed root vector now populated by actual SceneInit and consumed by normal Visibility across two roots; Debug21 repeats system root despite Zone vector length. C4/portal transitions and full source remain open; wire-complete wording explicitly limited to serializer.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-visibility-runtime.json",
+          "sourceSha256": "D3A282D6F795A994B7E075F9D4CFF80341655E716C3D8193B66A03E130F38928",
+          "locator": "classes/spZone/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Camera leaf60 resolves Zone, two borrowed local roots output both normal supports; Debug path only selected root and second-root mark remains previous frame. Zone does not acquire root ownership. SceneInit/teardown separately executes real parent/root intrusive graph."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spZonePortal",
+      "platformKey": "pc",
+      "coverageScore": 73,
+      "lowerBound": 61,
+      "upperBound": 83,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Exact38/8-slot Named object, owned polygon/borrowed destination, Open1/uninitialized plane/stamp0. Actual481130 copies all vertices and computes first-three normalized plane, no planarity/convexity validation; reinit/free/Named-only clone tested. Original diagnostic getter names preserved in partial source. Whole Scene portal traversal confirmed; debug/game Open controls and camera-near-plane45E870 route open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-zone-portal-runtime.json",
+          "sourceSha256": "8FBD5A57419BAD0766164D31E61FE1822466BC9908B7EA001664219B7D157D43",
+          "locator": "classes/spZonePortal/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Exact38 defaults and ownership, six3/4/5-vertex init/reinit cases, reversed/nonplanar/concave/collinear inputs, untouched borrowed buffer, Named-only clone and direct polygon free/no destination release. Actual native tests63 total including Scene cases; no full serializer or unsafe short input claim."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spZonePortalNode",
+      "platformKey": "pc",
+      "coverageScore": 78,
+      "lowerBound": 65,
+      "upperBound": 87,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "ExactC4 Node-derived object with borrowed duplicate-preserving vectorB4. Actual481930 append admits null below reader gate; dtor frees vector without releasing portals, Node-only clone drops vector. Inherited Node world/Enabled do not transform polygons or Open. Partial original-named source/GetZonePortal, exact ABI; game-side toggles and full serializer wiring open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-zone-portal-runtime.json",
+          "sourceSha256": "8FBD5A57419BAD0766164D31E61FE1822466BC9908B7EA001664219B7D157D43",
+          "locator": "classes/spZonePortalNode/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Actual ctorC4/default Node flags, duplicate/null raw append/no retain, vector-only dtor, inherited-only clone/world/Enabled all checked. Node position80,90,100 leaves portal polygon/plane unchanged. Reader44E670 null gate precedes append, stock cardinality2 not native container limit; portable source preserves borrowed relation and original getter name."
+        }
+      ],
+      "unknowns": [
+        "Remaining behavior and source-name gaps are retained in the source manifest and canonical native-open-questions; this is accounting migration, not new reverse engineering."
+      ]
+    },
+    {
+      "className": "spCrossPlatform",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 50,
+      "upperBound": 75,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-cross-platform.md",
+          "locator": "PC layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "PC protected constructor/destructor and original source path remain open; PS2 exact constructor and destructor documented."
+      ]
+    },
+    {
+      "className": "spCrossPlatform",
+      "platformKey": "ps2",
+      "coverageScore": 90,
+      "lowerBound": 75,
+      "upperBound": 100,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-class-sp-cross-platform.md",
+          "locator": "PS2 layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "PC protected constructor/destructor and original source path remain open; PS2 exact constructor and destructor documented."
+      ]
+    },
+    {
+      "className": "spStream",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 70,
+      "upperBound": 95,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-stream.md",
+          "locator": "PC layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "Original source path, source names, exact overload math types, complete error enum and PC protected constructor entry remain open."
+      ]
+    },
+    {
+      "className": "spStream",
+      "platformKey": "ps2",
+      "coverageScore": 90,
+      "lowerBound": 75,
+      "upperBound": 100,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-class-sp-stream.md",
+          "locator": "PS2 layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "Original source path, source names, exact overload math types, complete error enum and PC protected constructor entry remain open."
+      ]
+    },
+    {
+      "className": "spResource",
+      "platformKey": "pc",
+      "coverageScore": 75,
+      "lowerBound": 60,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-resource.md",
+          "locator": "PC layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "Native unregister lazy-singleton integration and original source/API names remain open; portable lifecycle differs explicitly."
+      ]
+    },
+    {
+      "className": "spResource",
+      "platformKey": "ps2",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "reviewed_existing",
+      "summary": "Independent review of existing platform-addressed class dossier; conservative behavioral estimate, not executable instruction coverage.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-class-sp-resource.md",
+          "locator": "PS2 layout/lifetime/vtable/native address sections",
+          "observation": "Platform-specific addresses and behavior were reviewed in this document independently; no new executable analysis or copied other-platform credit."
+        }
+      ],
+      "unknowns": [
+        "Native unregister lazy-singleton integration and original source/API names remain open; portable lifecycle differs explicitly."
+      ]
+    }
+  ]
+}

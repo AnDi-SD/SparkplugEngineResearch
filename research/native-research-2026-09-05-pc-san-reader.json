@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-san-reader-2026-09-05T15:39:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T15:39:00Z",
+  "notes": "Fourth checkpoint of PC-first cycle ending 21:00 MSK. Full original SAN field reader on four pristine assets, original sampling comparison, malformed header/payload observations and portable spAnimationSerializer on existing stream/block core. No whole FFPS/FAT loader, registry implementation, writer, game launch, application edits, PS2 work, release or push. Fixed class-weighted denominators unchanged.",
+  "classes": [
+    {
+      "className": "spAnimationSerializer",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 90,
+      "lowerBound": 84,
+      "upperBound": 95,
+      "priorityTier": 1,
+      "summary": "Exact PC 0x4C serializer and complete field reader executed on four SANs; tags, hints, fourteen reset counters and header-success/payload-failure asymmetry proven. Portable strict reader uses original stream/block classes. Writer, full loader/registry and uncommon malformed/filled-target lifetime paths remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "identity_and_layout",
+          "sourcePath": "research/probe_pc_san_reader.py",
+          "locator": "0x0043DAB0;0x0043ECC0;serializer+0x10;0x006E0B00",
+          "observation": "Original factory allocates exactly 0x4C. Reader receives the secondary interface at object+0x10 and ret8 removes stream/target args. Six value counts at14, six used indices at2C, time index44/count48. Direct spSerializer ID is 0x42429877; earlier AD77 wording was a documentation typo.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_san_reader.py",
+          "locator": "0x0043ECC0 full field loop;0x0043D9D0 tag name;bbush/bflower/barrel/bw.san",
+          "observation": "1034 assertions cover full original field reader on four pristine single-object SANs, all descriptors/times/prepared values, tag name/time/ordinal and destruction. Envelope/stream/name registry/allocator/acos remain explicit fixtures; original code and assets are unchanged.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "wire_contract",
+          "sourcePath": "research/inspect_san_reader.py",
+          "locator": "0x0043EFEE..0x0043F00C;field64",
+          "observation": "Optional field64 reserves hint+1, not hint or actual completed count. bbush/bflower/bw capacities6/18/21 versus tracks5/17/20; barrel omits field64 and append reaches capacity20. Hash anchors and native results agree.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "research/probe_pc_san_reader_errors.py",
+          "locator": "0x0043ED4A;0x0043EE80;0x0043ED5B;0x0043F25A",
+          "observation": "137 assertions: empty/truncated headers and missing terminator can return true with diagnostics; trailing bytes ignored after terminator; truncated time payload returns false and preserves earlier target mutation. Same serializer resets all fourteen scratch counters on two fresh targets. Not a proof of safe reuse of a filled target or allocation-failure rollback.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_san_reader.py",
+          "locator": "full fields->0x00478E30 duration->0x00479290 PRS sampler",
+          "observation": "2832 native/portable leaf comparisons across four SANs: counts/capacity/names/fixture slots/duration/tags/used pools plus PRS and flags at start/mid/end. Float tolerance4e-5; unchanged native instructions, not in-game validation.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spAnimationSerializer.cpp",
+          "locator": "ReadFieldsForAnalysis;spStream;spDataBlockSerializer;spAnimation/spAnimTrack",
+          "observation": "Original-named portable serializer added under proven TU. Strict extent/pool/key/terminator policy and partial-object ownership are explicit host guards; optional non-owning name lookup is deferred until field validation. 84 synthetic C++ assertions. Writer and full resource loader are not claimed.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

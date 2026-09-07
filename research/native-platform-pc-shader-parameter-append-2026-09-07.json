@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-shader-parameter-append-2026-09-07T03:56:46Z",
+  "createdUtc":"2026-09-07T03:56:46Z",
+  "notes":"CP49;3 exact37 native;35 source,51CTest; PC DXShader60 to65; upstream template observations static only, no PS2/gate closure.",
+  "assessments":[{
+    "className":"spDXShader","coverageScore":65,"lowerBound":51,"upperBound":77,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"CP49 verifies original4AF940 parameter append:32-byte name, exact resolver, by-value44 vector insertion and sum-not-max register count including unknown types and uint32 wrap.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-parameter-append.md","locator":"CP49;4AF940/45A6C0/4AE660/4AF850","observation":"3 exact37 native;35 source; upstream4CFFE0 call sites statically located, not executed compiler proof."}],
+    "unknowns":["Full RFX/template/compiler population and bytecode load/export, repeated/error ownership, constant-table lifetime, malformed names and all exceptional math remain incomplete.","Original append is tested independently of generated shader creation; complete cached weighted submission and dirty matrix wiring have separate CP45–48 evidence. No live GPU or PS2 credit."]
+  }]
+}

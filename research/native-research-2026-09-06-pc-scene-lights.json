@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-scene-lights-2026-09-05T23:19:35Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T23:19:35Z",
+  "notes": "Checkpoint8 ongoing cycle due10:00 MSK. Original LightManager24 borrowed list, scene reparent/world propagation, cache28 eight-plus-ambient selection, LightData exactF0 and protected PC copy/clone executed. Portable LightManager list/selection and Node100 helper added; full Scene/partition/backend integration still open. New LightManager72, LightData80->87, SceneManager66->70, RenderNode87->88; Node96 unchanged. Previously reconstructed Light missing individual row conservatively baseline_backfilled84 with zero aggregate delta. Fixed sets/PC priority unchanged; no game/GPU/PS2/app/assets/publication.",
+  "classes": [
+    {
+      "className": "spLightManager",
+      "coverageScore": 72,
+      "lowerBound": 60,
+      "upperBound": 82,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "New PC original24 manager identity/lifetime, borrowed intrusive list, scene registration/reparent, RenderNode/partition eligibility, fixed eight ordinary plus first ambient cache and light world refresh proved. Portable list/selection/blank clone reconstructed; concrete partition types, full scene initialization/wiring, backend upload, original names and property invalidation remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "46AB80->13BBBD0;46A830;46ABF0;45A780;45A6B0;46AA80;46AC40;46AC60",
+          "observation": "90 total probe checks include exact24 allocation, ctor owner20 untouched, blank clone with explicit pair seam, borrowed lifetime, original Attach/reparent across two scenes and world/cache refresh. Scene1C render-list link is literal45D850 assignment, not full scene initialization. All tracked allocations including lazy CloneManager normally freed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "46A850;46A950;490B20;490B50->441210;490BA0;46AB20;46A7E0;46AAF0",
+          "observation": "Light enabledED/hierarchy100/shadow gates, tangent sphere test, direction/ambient bypass, capacity8/first ambient/duplicate/swap-last/stale tail, literal partition payload recursion and actual directional debug-dispatch no-op. Concrete partition class and GPU/debug geometry not claimed executed. Malformed count>8 never run.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "static_analysis",
+          "sourcePath": "research/inspect_pc_scene_lights.py",
+          "locator": "6E8CA4;760580;6FCD243A;46A86B;46A87B;46AC46",
+          "observation": "22 PC-only hash/RTTI/tables/CALL/flag anchors across Light family and manager; no PS2 inference for PC selection. Cache original type remains unnamed; analytical ABI/helper names explicitly separate.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_scene_lights.py",
+          "locator": "Sparkplug/Code/Sparkplug/spLightManager.cpp;SparkplugLightManagerTests",
+          "observation": "1800/1800 exact discrete results across540 original/portable finite eligibility and full raw-cache history cases;29 C++ assertions, CTest14/14. Host stable vector list and duplicate/4096 guards explicit; not full portable Scene/light-world dispatch or bit-identical intermediate x87 math.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spLightData",
+      "coverageScore": 87,
+      "lowerBound": 78,
+      "upperBound": 93,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Original protected PC41A330 now proves exactF0; defaults/untouched padding and inherited copy/clone run independently of PS2. Fresh clone retains intensity1 while all tested other payload copies; real typed scene/world/light-manager consumption closed. Native root clone transaction, constructor symbol and portable scene/backend wiring still open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "41A330;41ACA0;428EB0->505CB0;435430",
+          "observation": "ActualF0 allocation/primary6DE990/support6DE98C, all payload defaults/CC padding, source intensity3.25 versus existing destination9.5 and fresh clone1; membership links remain blank. Pair412F70 is explicit recording seam; lazy CloneManager creation/destruction actual.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "421A60;45A970;45AB30;428C30;46ACE0",
+          "observation": "Actual light objects in owned scene trees register/reparent/unregister without manager refs; source dirty8/inherited8 updates RenderNode cache when moving Point light in/out of range. Node Enabled200 does not substitute for lightED and hierarchy100.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spLight",
+      "coverageScore": 84,
+      "lowerBound": 74,
+      "upperBound": 91,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "coverageAccounting": "baseline_backfill",
+      "baselineBackfillReason": "Existing native-class-sp-light.md and portable spLight source/tests predate this cycle and were represented by the aggregate audited engine baseline, but individual progress row was absent. Conservatively persist current84 with zero aggregate delta instead of counting all prior light reconstruction again; this cycle's extra Light work is not separately credited.",
+      "summary": "Prior abstract light source now gains independent PC copy intensity omission, exact descendant allocationF0, intrusive scene linksB8/BC, world dirty8 and named LightManager consumption. Portable payload source retained; original support type, opaqueDC, setter invalidation, full virtual world/backend integration open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "428EB0->505CB0;428C30;46AAF0->428DD0;lightB8/BC",
+          "observation": "Existing PC destination intensity is preserved, fresh clone keeps1, opaque bits and other tested light fields copied. Native world tests current|inherited8 after base, clears own8 and calls scene34 manager. Borrowed intrusive light membership and unconditional manager debug enumeration closed; point/spot debug GPU path not run.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spSceneManager",
+      "coverageScore": 70,
+      "lowerBound": 58,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Typed Light branch now executed alongside RenderNode with original owned Attach/reparent, stable borrowed light lists and cache removal before unlink. Specialized exact renderable IDs, Partition/Occlusion and full portable scene classes remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "45A970/45AB30;45A780/45A6B0;46AA80;45A7D0",
+          "observation": "Actual typed Light scene registration plus cache refresh via original SceneManager world traversal; three lights/two scenes cover middle transfer and final owned tree destruction. Render-list link seeded from exact SceneInit assignment, not whole initializer execution.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spRenderNode",
+      "coverageScore": 88,
+      "lowerBound": 79,
+      "upperBound": 94,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Prior runtime math/dispatch evidence now gains actual nonempty light-cache consumer. F0 fixed cache28 and byte121 shadow-volume-light exclusion closed. Native support original name/remaining flags, partition/geometry/queue and full portable class world wiring remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_scene_lights.py",
+          "locator": "4250F0->46AC40;nodeF0/110/114/121;490B50/490BA0",
+          "observation": "Original scene world fills nonempty cache; explicit Light changes remove/append and scene unlink clears borrowed cache entry. Eligibility confirms121 conditional shadow-light exclusion; cache8 plus ambient exact fields and stale unused tail recorded in PC ABI.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNode",
+      "coverageScore": 96,
+      "lowerBound": 91,
+      "upperBound": 98,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Prior native owned tree/world evidence retained;420DE0 recursive bit100 toggle now independently tested and ported without scene detach/cache refresh side effects. Collision ownership, original names, portable reparent/typed scene effects and derived virtual world dispatch still incomplete.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spNode.cpp",
+          "locator": "420DE0;SetHierarchyActiveForAnalysis;probe_pc_scene_lights.py",
+          "observation": "Original true/false recursively sets/clears100 while preserving200, links/list membership and caches until explicit rebuild. Portable helper and borrowed light eligibility use distinct100/200 concepts; no class-score gain for this narrow integration.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

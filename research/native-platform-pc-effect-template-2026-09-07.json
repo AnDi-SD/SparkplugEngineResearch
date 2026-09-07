@@ -1,0 +1,22 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-effect-template-2026-09-07T05:30:00Z",
+  "createdUtc":"2026-09-07T05:30:00Z",
+  "notes":"CP52 first PC assessments;18 exact captures plus native RFX clone,171 native and39 C++ assertions. Native tiny XML parser executes fully; reconstructed engine receives decoded XML events at an explicit external-library boundary.",
+  "assessments":[
+    {
+      "className":"spPCEffectTemplate","coverageScore":20,"lowerBound":12,"upperBound":30,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Constructor document/identity/kind, null clone/no RTTI factory, independent owned strings, populated pass lifetime and kind dispatch reconstructed. Repeated successful XML initialization appends duplicate passes.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-class-sp-pc-effect-template.md","locator":"CP52;4D0960->4AE520;4D0650->13CADF0;4D0A10/4D07D0","observation":"18 exact original/source captures across constructor/type/XML cases; original destruction frees tracked allocations."}],
+      "unknowns":["Full RFX filename/name/ID loading, populated variable/child ownership, source specialization and compiler/reflection behavior remain open.","Source XML decoding is supplied by an external event boundary; malformed/namespace/reload behavior is not fully reconstructed. Header/API names remain inferred."]
+    },
+    {
+      "className":"spPCRFXFileLoader","coverageScore":20,"lowerBound":12,"upperBound":30,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Actual factory728/base-parser constructor, blank clone and embedded pass lifetime confirmed. Reconstructed decoded XML callbacks for HLSL/assembly text, stage selection, version flags and end-pass append/reset.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-class-sp-pc-effect-template.md","locator":"CP52;4D5410/4D54B0/4D5510;4D6090->52FF90;4D3A80/4D6050","observation":"Original in-image XML library executes eleven tiny documents, including entity/newline decoding; exact captures match reconstructed event callbacks. CRT imports only are memory fixture boundaries."}],
+      "unknowns":["Full RFX file/regex path, variables, constants, metadata and error contracts remain open; source callback API is analytical.","Parameter vectors survive pass reset statically, but populated behavior is not covered in CP52. No full shader-generating miss or render closure."]
+    }
+  ]
+}

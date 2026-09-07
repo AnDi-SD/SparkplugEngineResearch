@@ -1,0 +1,29 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-shader-manager-key-2026-09-07T01:59:31Z",
+  "createdUtc":"2026-09-07T01:59:31Z",
+  "notes":"CP38;10 exact/401 counted native;363 source/42CTest; no compiled shader or automatic draw claim.",
+  "assessments":[
+    {
+      "className":"spPCShaderManager","coverageScore":45,"lowerBound":30,"upperBound":60,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"First PC assessment: actual50-byte factory, RTTI/base, byte-ordered owned cache, low-weight bypass, successful hits, missing find sentinel, blank clone and populated cache destruction.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-manager-key.md","locator":"CP38;4C9680/4C8980/4C87A0/4C7F40/4C80F0/4C96E0/4C9370","observation":"4 exact captures70 native checks; actual PCVertexShader cache objects, all allocations freed. Source incomplete on generating miss, not fake NULL success."}],
+      "unknowns":["Template40 loading/ownership, Fixed.rfx parser/script/compiler, shader source generation and failed compile paths remain incomplete.","Source omits process-global singleton lifetime and rejects duplicate insertion as a host guard. Cache object validity is not shader compilation or GPU proof. PS2 unassessed."]
+    },
+    {
+      "className":"spDXShaderManager","coverageScore":20,"lowerBound":10,"upperBound":30,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"First PC assessment: original abstract registration/base and empty base storage/lifetime through PC manager, unconditional singleton reset; source abstract foundation.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-manager-key.md","locator":"CP38;763A80/6D5130/4B0740","observation":"Actual PC-derived construction/destruction and RTTI; owned vectors/base map statically traced, not populated in native profile."}],
+      "unknowns":["Base4B0890 initialization/file scan, shader list operations/name map, nonempty vector ownership and compilation are not reconstructed.","Portable foundation has no process singleton; inherited empty-container evidence does not complete base implementation."]
+    },
+    {
+      "className":"spDXRenderer","coverageScore":66,"lowerBound":54,"upperBound":78,
+      "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"65→66: original4BE310 key formation, all 256 UV flag combinations, raw overlapping inputs, x87 power comparisons and actual no-weight selection.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-manager-key.md","locator":"CP38;4BE310/4BE495/4C8980","observation":"6 exact groups331 native checks; prefix stops before dispatch, separate no-weight cases execute actual manager and returnNULL. Source key guard for >8 lights explicit."}],
+      "unknowns":["Full automatic draw4BC290/4BE2B0, shader constants, full buffers/mesh submission, non-NULL full-pass integration, renderer lifecycle/reset and whole-file save/display remain incomplete.","Generating nonzero-key miss, compiler, live GPU and PS2 behavior are not claimed."]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-renderer-cached-draw-2026-09-07T03:31:57Z",
+  "createdUtc":"2026-09-07T03:31:57Z",
+  "notes":"CP45;3 exact15 native plus8 regression60 native;17 source,48CTest; PC Renderer72 to74, no PS2/gate closure.",
+  "assessments":[{
+    "className":"spDXRenderer","coverageScore":74,"lowerBound":62,"upperBound":84,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"CP45 adds whole automatic weighted cache-hit path through actual manager, bone/material constant evaluation, upload and draw; automatic selection cleared after draw while bound cache persists.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-renderer-cached-draw.md","locator":"CP45;4BC290/4BE2B0/4BE210/4BC3EC","observation":"3 exact15 native;17 source; common reconstructed core, descriptor write-coverage guard and no generating-miss seam."}],
+    "unknowns":["Generating shader miss, full weighted mesh/material/pass composition, dirty matrix invalidation, startup/reset, remaining formats and live GPU remain incomplete.","Bounded cached consumer input is not full descriptor production/compiler or all x87 behavior; original member/header/API names partly inferred. No PS2 credit."]
+  }]
+}

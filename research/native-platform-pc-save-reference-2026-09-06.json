@@ -1,0 +1,34 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-save-reference-2026-09-06T11:21:27Z",
+  "createdUtc": "2026-09-06T11:21:27Z",
+  "notes": "Third checkpoint of the ongoing PC SMO/SAN completion goal. PC generic save index/header/reference:86 directed native checks,9 fingerprints,75 exact native/portable bytes; CTest24/24, portable reference65 checks. First separate PC spSerializer assessment includes previously established identity/header evidence, NOT a fresh gain from zero. Legacy ledger and PS2 unchanged. Full FFPS save, recursive read and complete graph/error handling remain open; no100percent claim.",
+  "assessments": [
+    {
+      "className": "spSerializer",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 55,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Previously established RTTI/base/dual-vptr/header reader plus newly executed PC IndexResource/IndexReference, FAT save-entry indexing and WriteReference. Real Animation serializer dispatch, first/repeat/null and unchecked backpatch failures independently confirmed. Portable generic save protocol implemented; recursive reader, full save orchestration, error manager and nontrivial graph ownership remain open. This is a first separate PC assessment, not a new70-point discovery.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"docs/research/native-class-sp-serializer.md","locator":"PC identity, object-header reader467550 and dual interface","observation":"Established PC RTTI/abstract callbacks and header+factory boundary retained. Source-level interface name and exact allocation evidence remain incomplete; PS2 resolver is not PC runtime proof."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_save_reference.py","locator":"86 checks;466FA0/4672C0/467300/467260/467350/422530","observation":"Actual PC index and write dispatch with real Animation factory/serializer; FAT name copy and empty normalization; duplicate skips relationship indexing; first63/repeat8/null4 byte grammar; early one-shot flag and no rollback. All tracked allocations freed on supported paths."},
+        {"platformKey":"pc","sourcePath":"research/inspect_pc_save_reference.py","locator":"9 fixed PC image/body fingerprints","observation":"Index/entry/header/reference/lookup/no-op callback bodies tied to exact executable hash, no decompiler-boundary assumption."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_save_reference.py","locator":"75 exact bytes from original and compiled reconstruction","observation":"The same first/repeat/null protocol uses existing stream, FAT and serializer core. This is not root FFPS/FAT file output or a cyclic graph test."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Tests/spSaveReferenceTests.cpp","locator":"65 directed portable checks and CTest24/24","observation":"Host checks missing index/serializer and all final patch operations. Source preserves early payloadWritten but reports failure and requires discarding save context; unsupported generic callbacks never silently succeed."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-save-reference.md","locator":"failure matrix and remaining contracts","observation":"Native ignores SAN final seek, outer patch/restore seeks and final size write failures. Native byte corruption/incorrect success is not inherited as useful behavior. ErrorManager formatting and full reference graph remain unclaimed."}
+      ],
+      "unknowns": [
+        "PC recursive read-reference/cache/inline/external-file/alias and cyclic ownership contracts; PS2 evidence alone is insufficient.",
+        "Whole FFPS/FAT save orchestration and index wire writer, root-object dispatch, nullable-name wire preservation and lossless unknown fields.",
+        "Complete failure and error-manager diagnostic paths, allocation/tell/header/payload failures, missing-index behavior and recovery policy.",
+        "Original secondary-interface name, exact callback signatures/enums and PC allocation/constructor remainder.",
+        "Nontrivial SMO serializer relationships and full resource-to-PC backend integration; generic reference tests are not application readiness."
+      ]
+    }
+  ]
+}

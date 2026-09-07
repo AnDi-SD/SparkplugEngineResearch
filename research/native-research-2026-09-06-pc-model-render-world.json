@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-model-render-world-2026-09-06T01:05:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-06T01:05:00Z",
+  "notes": "Checkpoint10 ongoing cycle due10:00 MSK. Actual PC Model factory/default3/bounds/render protocol, RenderNode append/copy and real CloneManager static map transaction. Portable virtual world/getters/lazy caches integrated; duplicate Model alias preservation corrected, shared Mesh retained. Model75->83/RenderNode88->92/MeshData80->82:0.140 units and direct0.140. Prior Renderable72/CloneManager82/ResourceManager75 persisted as zero-delta baseline backfills, never counted anew. Node96 unchanged. Fixed sets, PC-first, no game/GPU/PS2/app/assets/publication.",
+  "classes": [
+    {
+      "className": "spModel",
+      "coverageScore": 83,
+      "lowerBound": 74,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Exact PC60/default group3 and full actual ownership/getters/pre-mesh-post return protocol. Source getters and PC no-op invalidation fixed; downstream nonempty callbacks/material/renderer queue not yet executed, projection enum/original names open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_model_runtime.py",
+          "locator": "479ED0->13D09F0;479E60;479D20/479D40/479DA0;479DC0",
+          "observation": "47 checks: exact factory60/group3, base versus Model invalidation, copied/shared mesh, getters independent of valid28, direct cdecl callbacks, fog return ignored, pre false successful skip/mesh false skips post/post normalized. Backend explicit seam.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_model_render_world.py",
+          "locator": "spModel.cpp;spRenderNode.cpp;SparkplugRenderNodeTests --runtime-batch",
+          "observation": "2272/2272 fields over32 complete Model getter/append/world/lazy matrix/cache sequences, signed nonuniform scale and rotation, tolerance3e-5.34 C++ checks and CTest14/14. No D3D execution.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spRenderNode",
+      "coverageScore": 92,
+      "lowerBound": 83,
+      "upperBound": 96,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Source world virtual dispatch, native sphere getters, immediate append bounds and lazy matrix/inverse cache now integrated, explicit LightManager binding. Actual copy appends to destination and clones each duplicate separately; matrix/light caches not copied. Full automatic Scene/Partition/backend and individual native detach open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_render_node_ownership.py",
+          "locator": "469ED0;424980->13B95D0;469FB0->13BF570;412BE0",
+          "observation": "29 checks: immediate append no dirty bits; duplicate model references; nonempty destination append not replace, independent clones/shared mesh; spheres copied twice, controls/cull copied, destination caches untouched; real static clone map no pair seam.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_model_render_world.py",
+          "locator": "Model->RenderNode->world/matrix;32 finite sequences",
+          "observation": "2272 cache fields match actual original; prior compare_pc_render_node1504/144 remains passing. Explicit host detach/self-copy guards and LightManager binding are not full Scene recreation.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNode",
+      "coverageScore": 96,
+      "lowerBound": 91,
+      "upperBound": 98,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "Prior PC tree/world contracts retained. UpdateWorldForAnalysis now virtual so parent recursion invokes actual derived RenderNode cache work; score unchanged. Native reparent/automatic typed Scene effects and collision ownership still open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_validation",
+          "sourcePath": "research/compare_pc_model_render_world.py",
+          "locator": "spNode.h virtual UpdateWorldForAnalysis;SparkplugRenderNodeTests",
+          "observation": "Derived world source and plain-parent dispatch tested, finite cache comparison2272/32; no additional class score credited.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spMeshData",
+      "coverageScore": 82,
+      "lowerBound": 75,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "summary": "PC factory41A270 exact58 independently executed. Owners50/54 and min/max untouched until Init; sphere0/validfalse. Cold teardown uses explicit zero-owner fixture and executes Resource/ResourceManager cleanup, not full native buffer Init transaction.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_model_runtime.py",
+          "locator": "41A270;434EA0;424130;467960;458D00",
+          "observation": "Part of47 native checks proves untouched owners via CC allocator and exact58; explicit fixture zeros only owners before actual destructor. Source safe-null divergence retained; Model uses base Mesh polymorphically.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spRenderable",
+      "coverageScore": 72,
+      "lowerBound": 61,
+      "upperBound": 83,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "coverageAccounting": "baseline_backfill",
+      "baselineBackfillReason": "Existing native-class-sp-renderable.md, source and tests predate this cycle and were included in the audited aggregate baseline, but no individual progress row existed. Persist conservative72 with zero aggregate delta; do not credit all old reconstruction or this extra work twice.",
+      "summary": "Prior source/card plus independent PC ctor word28 from DebugManager, pre/post flag mapping and cdecl direct callback protocol. Base sphere/minmax/virtual invalidation source added. Nonempty group/alpha queue/material restore and original callback typedef names remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_model_runtime.py",
+          "locator": "423F10->13C7260;423B50/423BF0/423B60;423FD0/4240D0",
+          "observation": "Actual constructor raw DWORD from Debug41D4E0, pre direct cdecl(model,camera,support), fallback/override caches and ignored fog return executed. Model override no-op preserves destination mode.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "static_analysis",
+          "sourcePath": "research/inspect_pc_model_runtime.py",
+          "locator": "6DC9B0/6EAA58;423E30/423EA0;raw model28",
+          "observation": "23 PC-only SHA/RTTI/full-table/call/allocation/group/clone-entry anchors; pre vector44 enabled54 and post vector34 enabled55 corrected in PC ABI. No claim nonempty callback groups executed.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spCloneManager",
+      "coverageScore": 82,
+      "lowerBound": 71,
+      "upperBound": 90,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "coverageAccounting": "baseline_backfill",
+      "baselineBackfillReason": "Existing spBaseObject/spCloneManager source and native-class-sp-base-object.md clone section predate this cycle and were represented in aggregate baseline; absent individual row is backfilled82 at zero delta. PC map evidence is not counted as a new82-percent class.",
+      "summary": "Actual PC map startup, borrowed insert/overwrite, root cleanup and distinct always-clone412BE0 versus map-aware412C40->4D3810 proved. Duplicate RenderNode Model clones independent. Cycles/remaining callers and original singleton-support name open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_render_node_ownership.py",
+          "locator": "6D14C0->52FD90(755588);412F70;412BE0;412C40->4D3810;6D7DB0",
+          "observation": "29 ownership checks include real map without pair seam: repeat source overwrites, map-aware hit avoids allocation, public thunk resolves13B342C->74E060, null always-clone keeps map, non-null root clears.4D3800 is unrelated constructor, not lookup.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spResourceManager",
+      "coverageScore": 75,
+      "lowerBound": 63,
+      "upperBound": 85,
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "priorityTier": 1,
+      "coverageAccounting": "baseline_backfill",
+      "baselineBackfillReason": "Existing native-class-sp-resource-manager.md and portable cache source/tests predate this cycle and were included in aggregate baseline. Backfill individual75 with zero delta, rather than crediting previously reconstructed PS2/common cache again.",
+      "summary": "Prior cache source/card retained; actual PC lazy factory exact30 and empty teardown proved via MeshData resource destruction. Nonempty PC cache, async/load/FAT transaction, original names and14/1C semantics remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_model_runtime.py",
+          "locator": "467960;458D00;6E703C/6E7038;75DB78",
+          "observation": "Original Resource teardown lazily creates exact30 manager, publishes75DB78 and empty deleting destructor clears it, all tracked allocations freed. No nonempty PC cache/loader success claim.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

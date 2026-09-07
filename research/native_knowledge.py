@@ -376,6 +376,16 @@ def apply_manifest(
             (native_type_id,)).fetchone()
         old_score = float(old[0]) if old else 0.0
         score = float(record["coverageScore"])
+        accounting = record.get("coverageAccounting", "incremental")
+        if accounting not in ("incremental", "baseline_backfill"):
+            raise RuntimeError(f"Unknown coverage accounting policy: {accounting}")
+        if accounting == "baseline_backfill":
+            # The audited aggregate baseline already includes older native
+            # cards which were not all migrated to per-class progress rows.
+            # Adding such a row must not count its entire score a second time.
+            if old is not None or not record.get("baselineBackfillReason", "").strip():
+                raise RuntimeError("Baseline backfill requires a missing progress row and an explicit reason")
+            old_score = score  # metadata/evidence only; fixed aggregate unchanged
         connection.execute("""
             INSERT INTO native_research_progress(
                 native_type_id,research_status,pc_status,ps2_status,coverage_score,
@@ -498,15 +508,31 @@ def report(connection: sqlite3.Connection, as_json: bool) -> None:
         FROM native_types
         """).fetchone())
     result = {"nativeTypes": counts, "coverage": coverage, "assetQueue": queue}
+    has_platform_ledger = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='view' AND name='latest_native_platform_coverage'").fetchone()
+    if has_platform_ledger:
+        from native_platform_knowledge import report as platform_report
+        result['platformCoverage'] = platform_report(connection)
+        result['coverageNote'] = ('coverage/assetQueue are historical mixed-platform estimates; '
+                                 'platformCoverage is independently evidenced but historical migration remains incomplete. '
+                                 'Unrated is not unstudied; use native_workbench.py for dependency queue.')
     if as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
     print("Native catalog: total={total} engine={engine} game={game} pc={pc} ps2={ps2}".format(**counts))
+    if has_platform_ledger:
+        print('Historical MIXED coverage below; not a current PC/PS2 split. See each snapshot timestamp in --json.')
     for item in coverage:
         print(f"{item['scope_key']:7} {item['coverage_percent']:6.2f}% "
               f"[{item['lower_bound']:.2f}, {item['upper_bound']:.2f}] "
               f"units={item['numerator']:.3f}/{item['denominator']:.0f}")
-    print("PC-first SMO/SAN queue:")
+    if has_platform_ledger:
+        print('Independent platform ledger (recorded coverage, incomplete historical migration):')
+        for item in result['platformCoverage']:
+            credit = f"{item['credited_percent']:.2f}%" if item['assessed_count'] else 'UNRATED'
+            print(f"  {item['platform_key']} {item['scope_key']}: {credit}; "
+                  f"assessed={item['assessed_count']}/{item['denominator']} unrated={item['unrated_count']}")
+    print("Historical PC-first SMO/SAN queue (use native_workbench.py queue for current dependency order):" if has_platform_ledger else "PC-first SMO/SAN queue:")
     for item in queue:
         print(f"  P{item['priority_tier']} {item['class_name']:<30} "
               f"{item['coverage_score']:5.1f}% pc={item['pc_status']:<11} "

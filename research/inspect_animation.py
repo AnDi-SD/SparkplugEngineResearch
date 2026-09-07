@@ -116,7 +116,7 @@ def main() -> int:
     check("six owned auxiliary arrays begin at +0x38",
           bytes.fromhex("8D 7E 38") in destructor
           and bytes.fromhex("BB 06 00 00 00") in destructor, True)
-    check("spAnimation destructor returns through spBaseObject body",
+    check("spAnimation destructor returns through spNamedObject body",
           bytes.fromhex("E8 28 2E FE FF") in destructor, True)
 
     resize = pc_slice(0x00430010, 0xC3)

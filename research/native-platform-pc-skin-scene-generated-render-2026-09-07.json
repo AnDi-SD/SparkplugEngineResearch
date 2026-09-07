@@ -1,0 +1,141 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-skin-scene-generated-render-2026-09-07T10:12:57Z",
+  "createdUtc": "2026-09-07T10:12:57Z",
+  "notes": "CP72 four exact retained SAN/scene-world/Skin/generated-draw captures,189 native assertions,65440-byte peak,98 owners freed; whole source build59/59. Existing scores retained for composition.",
+  "assessments": [
+    {
+      "className": "spSkin",
+      "platformKey": "pc",
+      "coverageScore": 93,
+      "lowerBound": 87,
+      "upperBound": 96,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP72 same decoded SAN bone receives inherited world through original SceneManager45A7D0 and plain parent, then same Skin first generating draw. Prepared scene view explicit; previous score retained.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-wire-evidence-2026-09-06.json",
+          "sourceSha256": "D37FFC95756EE72397290C6BEC85C29C554A80803A9985D24320055AECE6BE8D",
+          "locator": "records: evidence.id=217; spSkin/spModel/spRenderable serializer registrations and field enums",
+          "observation": "The PC executable identifies the concrete esfSkin field and both inherited serializer sections."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-05-pc-node-world.json",
+          "sourceSha256": "D0854828F6B40EA4DA23EB0189571450D7D256A1E738EF6366748C0DA5FD3ECF",
+          "locator": "classes/spSkin/evidence[platformKey=pc]",
+          "observation": "Existing independently PC-addressed record supports retained score; historical migration only. Dependency bridge from node caches into full affine builder now verified, preserving inverseBind*world palette order. Full frame/render integration, protected construction and serializer transaction remain open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-serialization.md",
+          "locator": "CP62;46A120/490C50/491170/490D30/490DA0",
+          "observation": "10 exact144 native assertions,20 source guards; complete tracked cleanup or precise two-array native leaks followed by explicit fixture reclamation; unchanged caps."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-clone.md",
+          "locator": "CP63;46A1A0/46A650/412C40/412BE0/412F70/52FD90/6D7DB0",
+          "observation": "8 exact81 native assertions; unchanged caps,75460 maximum instructions,1856-byte arena; all allocations freed. Source shared-owner bridge explicit, arbitrary cycles excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-render.md",
+          "locator": "CP64;46A240/461D70/426B00/462680/4BBB60/4BC670/4BC4A0/4BC290/4AE930",
+          "observation": "5 exact41 native and70 source assertions; pre/post failure and negative device HRESULT semantics; full device traces;15288 instructions,64576-byte arena including teardown."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-loaded-render.md",
+          "locator": "CP65;466B90/491170/4678B0/463A70/4C3430/46A240",
+          "observation": "3 exact57 native assertions;50702 read instructions,15288 render,64944-byte peak fixed arena,35 freed engine generations. Source actual readers consume identical bytes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-san-render.md",
+          "locator": "CP66;43ECC0/5A33F0/5A1E30/4535A0/5A2380/479290/421420/46A240",
+          "observation": "4 exact129 native assertions, fixed64KiB peak64896,75 fully released owner generations; source real readers and actual manager dispatch, no tolerance for selected captures."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-generated-render.md",
+          "locator": "CP69;491170/46A240/4BC670/4BC4A0/4C8980/4CFFE0/4AF940/4CA030/4C87A0/4AE930/4BE210",
+          "observation": "2 exact56 native assertions;read50702/render42407 instructions,65488-byte peak same64KiB arena,52 owner generations fully released. External COM data compacted within existing page; raw reader inputs retired after actual entry clear."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-san-generated-render.md",
+          "locator": "CP70;43ECC0/5A1E30/4535A0/5A2380/421420/46A240/4CFFE0/4CA030/4AE930/4BE210",
+          "observation": "4 exact173 native assertions,65440-byte peak fixed arena,92 released owner generations. Same decoded objects across completed phases; explicit world call, prepared template/geometry and external SDK data."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-scene-generated-render.md",
+          "locator": "CP72;421A60/45A7D0/421420/46A240/4CFFE0/4AE930",
+          "observation": "4 exact189 native assertions, scene world373 instructions; parent translation reaches raw constants. No explicit bone world call, but view/list input remains prepared. Fixed65440-byte peak,98 owners freed."
+        }
+      ],
+      "unknowns": [
+        "Full SMO mesh/material acquisition, simultaneous frame and full typed Scene construction/membership remain open. Whole manager world caller is now executed, on a prepared scene view and real plain parent.",
+        "Template/geometry/fallback material and SDK/device outputs remain explicit. SDK bytecode is opaque, not GPU-validity evidence.",
+        "Caller-owned raw reader inputs retire after actual clear, allocator placement is external fixture policy; no cap increase."
+      ]
+    },
+    {
+      "className": "spDXRenderer",
+      "coverageScore": 80,
+      "lowerBound": 68,
+      "upperBound": 89,
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP72 same decoded SAN bone receives inherited world through original SceneManager45A7D0 and plain parent, then same Skin first generating draw. Prepared scene view explicit; previous score retained.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-matrix-inputs.md",
+          "locator": "CP49; matrix input producers and lazy refresh",
+          "observation": "Prior verified matrix inputs and cached geometry consumers."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-generated-draw.md",
+          "locator": "CP58;4BC290/4BE310/4C8980/4CFFE0/4CA030/4AE930/4BE210",
+          "observation": "Two exact22 native captures join entire generating miss and repeated automatic draw, including ignored device HRESULTs and cleanup."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-render.md",
+          "locator": "CP64;46A240/461D70/426B00/462680/4BBB60/4BC670/4BC4A0/4BC290/4AE930",
+          "observation": "5 exact41 native and70 source assertions; pre/post failure and negative device HRESULT semantics; full device traces;15288 instructions,64576-byte arena including teardown."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-generated-render.md",
+          "locator": "CP69;491170/46A240/4BC670/4BC4A0/4C8980/4CFFE0/4AF940/4CA030/4C87A0/4AE930/4BE210",
+          "observation": "2 exact56 native assertions;read50702/render42407 instructions,65488-byte peak same64KiB arena,52 owner generations fully released. External COM data compacted within existing page; raw reader inputs retired after actual entry clear."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-san-generated-render.md",
+          "locator": "CP70;43ECC0/5A1E30/4535A0/5A2380/421420/46A240/4CFFE0/4CA030/4AE930/4BE210",
+          "observation": "4 exact173 native assertions,65440-byte peak fixed arena,92 released owner generations. Same decoded objects across completed phases; explicit world call, prepared template/geometry and external SDK data."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-scene-generated-render.md",
+          "locator": "CP72;421A60/45A7D0/421420/46A240/4CFFE0/4AE930",
+          "observation": "4 exact189 native assertions, scene world373 instructions; parent translation reaches raw constants. No explicit bone world call, but view/list input remains prepared. Fixed65440-byte peak,98 owners freed."
+        }
+      ],
+      "unknowns": [
+        "Full SMO mesh/material acquisition, simultaneous frame and full typed Scene construction/membership remain open. Whole manager world caller is now executed, on a prepared scene view and real plain parent.",
+        "Template/geometry/fallback material and SDK/device outputs remain explicit. SDK bytecode is opaque, not GPU-validity evidence.",
+        "Caller-owned raw reader inputs retire after actual clear, allocator placement is external fixture policy; no cap increase."
+      ]
+    }
+  ]
+}

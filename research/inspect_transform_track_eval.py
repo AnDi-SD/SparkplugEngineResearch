@@ -13,7 +13,7 @@ from inspect_serializer_manager import PC_SHA256, image_slice, read_pe, sha256
 
 VTABLE = (
     0x005FF070, 0x005B7A00, 0x005FF0F0, 0x0040ECE0,
-    0x005FEBA0, 0x00408350, 0x00408370,
+    0x005FEBA0, 0x00408350, 0x00408370, 0x004D6550, 0x005FEBB0,
 )
 
 BODIES = {
@@ -61,7 +61,8 @@ def main() -> int:
     for label, (address, size, expected) in BODIES.items():
         check(label, digest(pc_slice(address, size)), expected)
 
-    check("vtable", struct.unpack("<7I", pc_slice(0x00711404, 28)), VTABLE)
+    check("complete nine-slot vtable", struct.unpack("<9I", pc_slice(0x00711404, 36)), VTABLE)
+    check("vtable ends at class string", pc_slice(0x00711428, 21), b"spTransformTrackEval\x00")
     check("registration getter", pc_slice(0x005FEBA0, 6),
           bytes.fromhex("B8 90 8E 76 00 C3"))
     factory = pc_slice(0x005FF090, 0x57)

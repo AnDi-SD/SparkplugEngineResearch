@@ -1,0 +1,43 @@
+{
+  "kind":"native-platform-research",
+  "schemaVersion":1,
+  "manifestId":"native-platform-pc-full-loader-2026-09-06T12:32:00Z",
+  "createdUtc":"2026-09-06T12:32:00Z",
+  "notes":"Checkpoint5 of ongoing PC SMO/SAN goal.42 outer materialization checks,48 DX hook checks,4 fingerprints; portable full loader160/reference266; whole native/portable bbush227; portable composed corpus4 files62tracks. CTest26/26. PS2 and immutable legacy history unchanged. New independent DX hook assessment includes earlier metadata/ABI/plan evidence; not65 points of fresh research. Earlier whole bbush platform1 invokes4AAB80 gate but skips4AA870 body. No whole-original claim for capped bflower/barrel/bw, no mesh materialization or100percent claim.",
+  "assessments":[
+    {
+      "className":"spSerializerManager","platformKey":"pc","coverageScore":80,"lowerBound":68,"upperBound":90,
+      "researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"Full portable SAN FFPS loader uses existing header/FAT/RTTI/serializer/name core. Original422940 root selection, prepublished objects, short FAT size ignored, discarded external file lookup and failed payload retained independently executed. Whole unchanged bbush original/portable227 values; two live loads and independent teardown. Whole save, nonempty DX and concrete SMO payload/lifetime/error remainder remain open.",
+      "evidenceRefs":[
+        {"platformKey":"pc","sourcePath":"research/probe_pc_materialization.py","locator":"422940;42 checks/8 modes","observation":"Prebound entries skipped including root choice; external first entry consumes first flag with null root; file lookup result discarded; size1 reads55; partial payload retained. Outer registers before SetName, unlike resolver."},
+        {"platformKey":"pc","sourcePath":"research/inspect_pc_materialization.py","locator":"4 exact fingerprints","observation":"Authoritative image plus outer materializer, DX gate and batch traversal bodies bound by hashes."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_full_loader.py","locator":"227 whole bbush;4 portable files/62 tracks","observation":"Both original and portable read unchanged complete bbush FFPS. Separate composed full-file/owned-field comparison on4 files, explicitly not original whole-load evidence on three capped assets."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Tests/spFullLoaderTests.cpp","locator":"160 checks;CTest26/26","observation":"Full existing-core loader with owned context, two-live resource teardown, strict host extents/read/seek guards and explicit unsupported nonempty DX batch. No fake partial success."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-full-loader.md","locator":"native contracts versus host safeguards","observation":"FAT RAII cleanup on errors and poisoned context are explicit host policies, not native general rollback/cyclic lifetime proof."}
+      ],
+      "unknowns":[
+        "Whole native FFPS save orchestration, fileID origin and declared size fields usage.",
+        "Manager/FAT full constructor, RTTI startup, helper identity and unknown44, original enum and method names.",
+        "All concrete SMO payload adapters and nonempty DX mesh batch-to-PC backend integration.",
+        "Remaining error formatting, allocation/header/factory failures, external file handling and arbitrary cyclic graph ownership.",
+        "Cold whole loaders bflower/barrel/bw remain capped and disabled; portable success is not native proof."
+      ]
+    },
+    {
+      "className":"spDXSerializerHook","platformKey":"pc","coverageScore":65,"lowerBound":50,"upperBound":80,
+      "researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"First separate PC assessment combines preexisting exact TU/identity/vtable/metadata/batch-plan evidence with new48 native gate/cache checks. Only platform bit2 enables4AA870; bit4 alone does not. Only exact serialized MeshData ID is prefilled; Mesh base category cache success does not qualify. Portable broad prefill/gateless behavior corrected; nonempty combiner/GPU tail still explicitly unsupported.",
+      "evidenceRefs":[
+        {"platformKey":"pc","sourcePath":"research/probe_pc_dx_hook_cache.py","locator":"4AAB80/4AA870;48 checks/6 modes","observation":"Actual factory/register/cache lookup/destruction on explicit empty MeshData owner fixture; masks1/2/3/4/6 and exact versus base class. No metadata/combiner/GPU operations on cache-hit or excluded entries; all tracked allocations freed."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Tests/spReadReferenceTests.cpp","locator":"266 checks including six gate cases","observation":"Portable hook respects platform and exact serialized ID; field-reader bounds account for logical origin; generic reference regression retained."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-class-sp-serializer-hook.md","locator":"preexisting ABI/parser/plan plus checkpoint5 gate/cache evidence","observation":"Earlier whole bbush headerplatform1 skips4AA870 despite hook slot call. Metadata parser and plan do not imply native nonempty materialization."}
+      ],
+      "unknowns":[
+        "Nonempty4AA870 metadata aggregation, combiner initialization/ownership, mesh buffer materialization and GPU tail.",
+        "Protected full construction/startup dependencies and original slot/interface/optimizer helper names.",
+        "All malformed/split/cache-duplicate/error/rollback cases and reproducible whole real SMO integration."
+      ]
+    }
+  ]
+}

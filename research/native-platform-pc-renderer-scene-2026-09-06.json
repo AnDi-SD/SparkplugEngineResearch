@@ -1,0 +1,75 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-renderer-scene-2026-09-06T23:45:00Z",
+  "createdUtc": "2026-09-06T23:45:00Z",
+  "notes": "CP27;46 native/9 exact;scene/corpus sources27+225;38CTest. No PS2, startup or whole-rendering credit.",
+  "assessments": [
+    {
+      "className": "spDXRenderer",
+      "coverageScore": 44,
+      "lowerBound": 32,
+      "upperBound": 57,
+      "summary": "42→44: actual Begin/EndScene device/cache ordering, ignored HRESULT, duplicates/counter-wrap and material stamp linkage; full backend still open.",
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-scene.md",
+          "locator": "CP27;4BB950,4BB9D0,4A9530;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "8 scene cases/35 native plus real pristine payload11 native,9 exact captures;27 scene/225 color source,38 CTest. COM observer not GPU; controller factory excluded."
+        }
+      ],
+      "unknowns": [
+        "Full native construction/destruction, backend reset/device loss/shaders/pass draw, whole-file save/display and exceptional errors remain open.",
+        "MaterialColorController factory41A580 capped88CD04 and calling clone41AF70 remain disabled. PC real wire does not prove missing-type constructor defaults; no PS2 transfer."
+      ]
+    },
+    {
+      "className": "spMatColorControllerSerializer",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 90,
+      "summary": "80 retained; actual pristine54-byte object payload read/write and declared-state runtime match common source. No new constructor/whole-file/lossless credit.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-scene.md",
+          "locator": "CP27;4BB950,4BB9D0,4A9530;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "8 scene cases/35 native plus real pristine payload11 native,9 exact captures;27 scene/225 color source,38 CTest. COM observer not GPU; controller factory excluded."
+        }
+      ],
+      "unknowns": [
+        "Full native construction/destruction, backend reset/device loss/shaders/pass draw, whole-file save/display and exceptional errors remain open.",
+        "MaterialColorController factory41A580 capped88CD04 and calling clone41AF70 remain disabled. PC real wire does not prove missing-type constructor defaults; no PS2 transfer."
+      ]
+    },
+    {
+      "className": "spMaterialColorController",
+      "coverageScore": 75,
+      "lowerBound": 60,
+      "upperBound": 88,
+      "summary": "75 retained; genuine scene-counter propagation and real wire on explicit type0 input, not inferred protected factory defaults.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-scene.md",
+          "locator": "CP27;4BB950,4BB9D0,4A9530;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "8 scene cases/35 native plus real pristine payload11 native,9 exact captures;27 scene/225 color source,38 CTest. COM observer not GPU; controller factory excluded."
+        }
+      ],
+      "unknowns": [
+        "Full native construction/destruction, backend reset/device loss/shaders/pass draw, whole-file save/display and exceptional errors remain open.",
+        "MaterialColorController factory41A580 capped88CD04 and calling clone41AF70 remain disabled. PC real wire does not prove missing-type constructor defaults; no PS2 transfer."
+      ]
+    }
+  ]
+}

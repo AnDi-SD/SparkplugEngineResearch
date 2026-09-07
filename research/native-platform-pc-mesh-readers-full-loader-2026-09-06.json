@@ -1,0 +1,149 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-mesh-readers-full-loader-2026-09-06T14:43:08Z",
+  "createdUtc": "2026-09-06T14:43:08Z",
+  "notes": "Checkpoint8 of active PC SMO/SAN completion goal, not terminal. Original readers156 checks/6 cases plus whole FFPS44/1; source-native60 exact compared fields including all input/output bytes. Source131 checks and all28 CTests pass18.69s. Host deferred static RTTI and target linkage corrections are NOT native protected startup evidence. Native COM/name/stream/initialized containers remain explicit fixtures. No cap increases/new caps, PS2 and legacy untouched. First PC serializer assessments include previously known identity/layout/plans, not wholly new percentage-point work.",
+  "assessments": [
+    {
+      "className": "spMeshDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 60,
+      "lowerBound": 45,
+      "upperBound": 77,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First separate PC assessment: original factory exact14, specialized header42AFD0 always DXMesh, full base field0 reader42B420 using actual CPU buffers and DX initialization. Common source header/payload adapter and byte differential implemented; full native writer/relationship/lifetime/error contracts not closed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_serializer.py",
+          "locator": "base-cross26checks;42AEF0/42AFD0/42B420",
+          "observation": "Actual factory and original header/reader ignore object ID/marker, consume cross-platform field0 and materialize standalone DX buffers/declaration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/compare_pc_mesh_readers.py",
+          "locator": "base-cross10exactfields",
+          "observation": "Compiled source and original match identical input, cursor, FVF/stride/sizes/count and exact vertex/index bytes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spMeshDataSerializer.cpp",
+          "locator": "ReadObjectHeaderAndCreateForAnalysis/ReadMeshFieldsForAnalysis",
+          "observation": "Existing CPU codecs and initializer reused with explicit extent/allocation guards and optional renderer/active combiner; no separate import core."
+        }
+      ],
+      "unknowns": [
+        "Complete native write/index/optimizer paths and malformed/allocation/rollback variants remain open.",
+        "Real scene SMO graph, texture/material/skin dependencies, native renderer lifetime and GPU integration are not proved by COM fixtures.",
+        "Original unresolved method/header names and lossless unknown payload preservation remain open."
+      ]
+    },
+    {
+      "className": "spDXMeshDataSerializer",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 50,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First separate PC assessment: actual exact14 factory, full429BC0 dispatch field0 for cross platform and field1 on bit2, unknown skip/coexisting fields/packed expansion; whole original loader composition and CPU-only source path. Native Save and remaining branches are open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_serializer.py",
+          "locator": "fiveDXcases130checks;4297C0/429BC0/429A40",
+          "observation": "Platform selection materializes once when fields0/1 coexist, specialized header ignores both words, standalone packed stores84 rather than combiner120."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/compare_pc_mesh_readers.py",
+          "locator": "fiveDXcases50exactfields",
+          "observation": "Native and compiled source compare identical inputs, cursor, metadata and all geometry bytes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_full_loader.py",
+          "locator": "422B50->4AA870->429BC0;44checks",
+          "observation": "Full generic native loader with empty Animation root and one mesh executes actual nonempty hook and keeps root independent of prebound mesh; constructed FFPS only."
+        }
+      ],
+      "unknowns": [
+        "Complete native write/index/optimizer paths and malformed/allocation/rollback variants remain open.",
+        "Real scene SMO graph, texture/material/skin dependencies, native renderer lifetime and GPU integration are not proved by COM fixtures.",
+        "Original unresolved method/header names and lossless unknown payload preservation remain open."
+      ]
+    },
+    {
+      "className": "spDXSerializerHook",
+      "platformKey": "pc",
+      "coverageScore": 85,
+      "lowerBound": 70,
+      "upperBound": 92,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Previous82 extended through original whole422B50 containing nonempty mesh hook, root selection and FAT clear. Portable normal second-pass materializer now uses common registry/header/payload and scoped combiner; whole scene/GPU/lifetime/error closure remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_full_loader.py",
+          "locator": "44checks;78325instructions/65040heap",
+          "observation": "292byte test FFPS executes header/FAT/file index/hook/actual geometry/declaration/root reader/clear; final cursor138 at root end, resources and combiner survive."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+          "locator": "MaterializePreparedForAnalysis",
+          "observation": "Explicit CPU renderer, batch budgets, common dispatch and post-payload FAT publication; temporary combiner ownership is a safer host difference."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Tests/spMeshReaderTests.cpp",
+          "locator": "131checks;two whole files simultaneously alive",
+          "observation": "Two meshes share ranges/declaration; releasing first context preserves second. Malformed extents reject before huge allocation;28/28 CTests pass."
+        }
+      ],
+      "unknowns": [
+        "Native whole real SMO scene graph, external/cache/error/rollback/allocation variants and writer/optimizer remaining paths.",
+        "Full native combiner/renderer lifetime and PC GPU/device-loss/reset validation; explicit fixture teardown does not close ownership.",
+        "Original interface/method/header names remain partially unknown."
+      ]
+    },
+    {
+      "className": "spDXMesh",
+      "platformKey": "pc",
+      "coverageScore": 77,
+      "lowerBound": 63,
+      "upperBound": 88,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Previous75 extended with standalone full reader and nonempty whole native FFPS composition. Standalone packed size is84; component80 label corrected from erroneous UV-count to mask-derived analytical count without changing algorithm. Source exact differential plus repeated whole-load lifetime.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/probe_pc_mesh_serializer.py",
+          "locator": "6cases156checks;4AA000 standalone",
+          "observation": "Actual standalone Create/Lock/Unlock index then vertex, wrapper refcounts1, exact packed expansion without combiner double-add, actual declaration pointer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/compare_pc_mesh_readers.py",
+          "locator": "6cases60comparedfields",
+          "observation": "Exact input/output buffers and metadata including component80=0 on840 despite one UV."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "Sparkplug/Tests/spMeshReaderTests.cpp",
+          "locator": "131checks;whole compositions and malformed buffers",
+          "observation": "Common reader/batch/cache integration and independent two-file owned buffers; source stricter extents and COM-free storage explicitly separated."
+        }
+      ],
+      "unknowns": [
+        "Complete native write/index/optimizer paths and malformed/allocation/rollback variants remain open.",
+        "Real scene SMO graph, texture/material/skin dependencies, native renderer lifetime and GPU integration are not proved by COM fixtures.",
+        "Original unresolved method/header names and lossless unknown payload preservation remain open."
+      ]
+    }
+  ]
+}

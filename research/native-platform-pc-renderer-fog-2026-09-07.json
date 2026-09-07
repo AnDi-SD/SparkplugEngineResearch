@@ -1,0 +1,101 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-renderer-fog-2026-09-07T11:11:50Z",
+  "createdUtc": "2026-09-07T11:11:50Z",
+  "notes": "CP78 nine exact160 native and123 source assertions,164 maximum instructions,62640-byte arena. Source identity/fallback/raw Fog state consumer.",
+  "assessments": [
+    {
+      "className": "spFog",
+      "platformKey": "pc",
+      "coverageScore": 92,
+      "lowerBound": 88,
+      "upperBound": 96,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP78 original Fog codec-to-renderer state consumer and source identity/fallback/raw-state cache; bounded external COM.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-material-scalar.md",
+          "locator": "checkpoint12 exact PC ABI;14/14 material profile;31/31 CTests8.89s after ABI rebuild",
+          "observation": "26 factory+27 runtime+20 scalar original checks, five exact source rows; Fog adds5 physical-name+9 named-graph checks and exact row. Source Material136/Scene401."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-work-items.json",
+          "locator": "pc-material-scalar, pc-fog-sections",
+          "observation": "Bounded native factories and shared source codecs. Full logo material mode disabled after32KiB allocation guard, never retried; no game/GPU/PS2 credit."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-fog.md",
+          "locator": "CP78;43B910/4AD390/4B0A90",
+          "observation": "9 exact160 native and123 source assertions. Identity cache before invalid type rejection; same-pointer mutation suppression, raw IEEE/ARGB, fallback and ignored HRESULT.164 maxinstructions,62640 arena all freed."
+        }
+      ],
+      "unknowns": [
+        "Whole Skin Fog relationship/render composition, complete scene/frame and live GPU remain open. Renderer object backing and COM are explicit inputs.",
+        "Unknown original names/paths, full NameManager/reentry/lifetime and arbitrary malformed/native memory faults remain open; source NULL/device guards are explicit."
+      ]
+    },
+    {
+      "className": "spDXRenderer",
+      "platformKey": "pc",
+      "coverageScore": 81,
+      "lowerBound": 69,
+      "upperBound": 90,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP78 original Fog codec-to-renderer state consumer and source identity/fallback/raw-state cache; bounded external COM.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-matrix-inputs.md",
+          "locator": "CP49; matrix input producers and lazy refresh",
+          "observation": "Prior verified matrix inputs and cached geometry consumers."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-generated-draw.md",
+          "locator": "CP58;4BC290/4BE310/4C8980/4CFFE0/4CA030/4AE930/4BE210",
+          "observation": "Two exact22 native captures join entire generating miss and repeated automatic draw, including ignored device HRESULTs and cleanup."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-render.md",
+          "locator": "CP64;46A240/461D70/426B00/462680/4BBB60/4BC670/4BC4A0/4BC290/4AE930",
+          "observation": "5 exact41 native and70 source assertions; pre/post failure and negative device HRESULT semantics; full device traces;15288 instructions,64576-byte arena including teardown."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-generated-render.md",
+          "locator": "CP69;491170/46A240/4BC670/4BC4A0/4C8980/4CFFE0/4AF940/4CA030/4C87A0/4AE930/4BE210",
+          "observation": "2 exact56 native assertions;read50702/render42407 instructions,65488-byte peak same64KiB arena,52 owner generations fully released. External COM data compacted within existing page; raw reader inputs retired after actual entry clear."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-san-generated-render.md",
+          "locator": "CP70;43ECC0/5A1E30/4535A0/5A2380/421420/46A240/4CFFE0/4CA030/4AE930/4BE210",
+          "observation": "4 exact173 native assertions,65440-byte peak fixed arena,92 released owner generations. Same decoded objects across completed phases; explicit world call, prepared template/geometry and external SDK data."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-scene-generated-render.md",
+          "locator": "CP72;421A60/45A7D0/421420/46A240/4CFFE0/4AE930",
+          "observation": "4 exact189 native assertions, scene world373 instructions; parent translation reaches raw constants. No explicit bone world call, but view/list input remains prepared. Fixed65440-byte peak,98 owners freed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-renderer-fog.md",
+          "locator": "CP78;43B910/4AD390/4B0A90",
+          "observation": "9 exact160 native and123 source assertions. Identity cache before invalid type rejection; same-pointer mutation suppression, raw IEEE/ARGB, fallback and ignored HRESULT.164 maxinstructions,62640 arena all freed."
+        }
+      ],
+      "unknowns": [
+        "Whole Skin Fog relationship/render composition, complete scene/frame and live GPU remain open. Renderer object backing and COM are explicit inputs.",
+        "Unknown original names/paths, full NameManager/reentry/lifetime and arbitrary malformed/native memory faults remain open; source NULL/device guards are explicit."
+      ]
+    }
+  ]
+}

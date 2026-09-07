@@ -1,0 +1,13 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-renderer-matrix-inputs-2026-09-07T03:43:00Z",
+  "createdUtc":"2026-09-07T03:43:00Z",
+  "notes":"CP47;5 exact35 native;31 source,50CTest; PC Renderer75 to76, no PS2/gate closure.",
+  "assessments":[{
+    "className":"spDXRenderer","coverageScore":76,"lowerBound":64,"upperBound":86,
+    "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+    "summary":"CP47 adds original matrix input setters/raw getters, copy and dirty flag before SetTransform, repeat/alias behavior and ignored HRESULT/unused world argument.",
+    "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-renderer-matrix-inputs.md","locator":"CP47;4BBAE0/4BBB20/4BBB60/4AD350/4AD360/4AD370","observation":"5 exact35 native;31 source; raw NaN copy and same-input calls preserved."}],
+    "unknowns":["Camera/skinning/matrix-stack producers, generating shader miss, complete weighted/lit mesh/pass composition, startup/reset and live GPU remain incomplete.","Matrix role labels analytical, original APIs/member paths partially inferred. PC results are not PS2 credit or exhaustive backend readiness."]
+  }]
+}

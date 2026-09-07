@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-animation-runtime-2026-09-05T11:43:46Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T11:43:46Z",
+  "notes": "One-hour PC-first animation dependency cycle: actor/controller/evaluator to local node PRS, cached-world consumers and skin palette. No PS2 analysis, executable rescan, in-game integration, release or push. Fixed catalog and direct-SMO/SAN denominator retained; scores are reviewed logic coverage, not byte coverage.",
+  "classes": [
+    {
+      "className": "spTransformTrackEval",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 70,
+      "lowerBound": 62,
+      "upperBound": 77,
+      "priorityTier": 1,
+      "summary": "PC nine-slot vtable, complete input roles, sampled PRS blending, native key-cache/time/weight behavior and actor insertion caller are established and reconstructed as a bounded portable slice. Full input ownership/capacity, key decoder, protected constructor and outer frame integration remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_layout",
+          "sourcePath": "docs/research/native-class-sp-transform-track-eval.md",
+          "locator": "0x00711404;0x005FEBB0;input+0x00..0x2F",
+          "observation": "Corrected earlier seven-slot scout to nine slots, ending at 0x00711428 class string. Each 0x30 input holds playback, track, unsigned priority and three 3-index caches. Sampling uses playback+0x34 time and +0x0C weight, not the outer time argument.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_binding",
+          "sourcePath": "docs/research/native-class-sp-transform-track-eval.md",
+          "locator": "0x005FE9C0;0x005FEB70;0x005A1D26",
+          "observation": "Native insertion orders priority and mutates playback+0x48; clear zeroes only pointers. No local capacity guard is established; the third-input case is deliberately not executed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "isolated_native_replay",
+          "sourcePath": "research/probe_pc_animation.cpp",
+          "locator": "evaluator PRS/cache and actual quaternion chain",
+          "observation": "Whitelisted PC evaluator instructions reproduce empty/single/two-input validity, persistent caches, time source, weighted vectors, null-track hole and weighted quaternion through real slerp. Sampling is an explicit synthetic seam, not full SAN decoding.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spTransformTrackEval.cpp",
+          "locator": "EvaluateForAnalysis;SetInputsForAnalysis;vfunc_10",
+          "observation": "Portable finite-input PRS blending and blank clone are built/tested; sampling and caller-driven insertion remain seams with explicit two-input safety guard.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNodeController",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 68,
+      "lowerBound": 60,
+      "upperBound": 75,
+      "priorityTier": 1,
+      "summary": "PC exact 0x18 ownership layout, complete 12-slot vtable, default track evaluator, blank clone, direct and transition local PRS application reconstructed. Const evaluator, protected rotation tail, world propagation and original names remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_layout",
+          "sourcePath": "docs/research/native-class-sp-node-controller.md",
+          "locator": "0x005FF400;0x005FF4D0;0x005FF550;0x00711444",
+          "observation": "Native factory allocates 0x18; +0x10 is intrusive-owned node and +0x14 directly deleted transform evaluator. Constructor kind 0 creates track evaluator, kind 1 const evaluator. Clone uses no-payload copy.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "docs/research/native-class-sp-node-controller.md",
+          "locator": "0x005FF1B0;0x005FF250;0x00420640",
+          "observation": "Controller calls evaluator +0x20. Valid local position/scale writes set node flags bit 1. Transition interpolates changed position/quaternion with epsilon 0.001 but copies scale directly. Rotation setter enters protected tail after matrix conversion.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "isolated_native_replay",
+          "sourcePath": "research/probe_pc_animation.cpp",
+          "locator": "direct/blend and actual matrix-to-quaternion/slerp chain",
+          "observation": "Native apply/blend bodies pass controlled fixtures, including the joined native quaternion conversion/interpolation path; protected rotation setter remains an explicit recording seam.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spNodeController.cpp",
+          "locator": "ApplyForAnalysis;BlendForAnalysis;vfunc_10",
+          "observation": "Built local PRS/ownership/blank-clone slice, with inferred file placement, shared_ptr substitute for intrusive ownership and documented host null guards.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spActor",
+      "researchStatus": "partial",
+      "pcStatus": "partial",
+      "ps2Status": "deferred",
+      "coverageScore": 32,
+      "lowerBound": 24,
+      "upperBound": 41,
+      "priorityTier": 1,
+      "summary": "PC identity, exact 0x54 allocation, observed playback 0x60 layout, node discovery/binding and tick-to-controller dispatch established. Full state machine, callbacks, outer frame caller, teardown and protected copy are not reconstructed.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_layout",
+          "sourcePath": "docs/research/native-class-sp-actor.md",
+          "locator": "0x00766480;0x00703F80;0x005A3500;0x005A3620",
+          "observation": "Actor factory allocates 0x54, vtable has nine slots. Playback storage has 0x60 stride and controllers vector lies at +0x40/+0x44/+0x48; unnamed fields remain opaque.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_scheduler",
+          "sourcePath": "docs/research/native-class-sp-actor.md",
+          "locator": "0x005A2380;0x005A2D4D;0x005A2D5F",
+          "observation": "Actor tick updates playback then dispatches controller +0x20(sampleTime, elapsed/duration) when duration positive, otherwise +0x1C(sampleTime). This is static call-path proof; full actor tick was not executed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_binding",
+          "sourcePath": "docs/research/native-class-sp-actor.md",
+          "locator": "0x005A33F0;0x005A34D0;0x005A35C0;0x005A1D26",
+          "observation": "Tree binding selects named animated nodes not already marked 0x2000, attaches node controller and performs exact-name slot binding; visible protected-binder tail connects actor state and animation tracks into evaluator.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spSubController",
+      "researchStatus": "partial",
+      "pcStatus": "partial",
+      "ps2Status": "deferred",
+      "coverageScore": 35,
+      "lowerBound": 27,
+      "upperBound": 43,
+      "priorityTier": 1,
+      "summary": "Concrete PC actor/controller callers establish the extra abstract +0x1C slot as time-driven application. Minimal portable dependency interface added, without claiming original method name or full controller ABI.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_call_contract",
+          "sourcePath": "docs/research/native-class-sp-controller.md",
+          "locator": "0x005A2D5F -> controller+0x1C -> 0x005FF1B0",
+          "observation": "The previously unnamed abstract slot has a float time argument and local-transform consumer. Protected spController copy and physical-vs-engine hierarchy remain distinct.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spAnimation",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 72,
+      "lowerBound": 65,
+      "upperBound": 79,
+      "priorityTier": 1,
+      "summary": "Existing SAN storage/serializer evidence is joined to actor playback and evaluator consumers. Key-descriptor memory prefix and real linear-position sampling established; all encodings/tags/time padding, protected defaults and full serializer remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_sampling",
+          "sourcePath": "docs/research/native-pc-animation-runtime.md",
+          "locator": "0x00479290;0x00478F90;0x00479060",
+          "observation": "PRS track pointers at +0x18/+0x24/+0x30 refer to descriptors with count, representation, times and values. In/out caches and linear packed Vector3 sampling verified on synthetic native tracks.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "native_edge_case",
+          "sourcePath": "docs/research/native-pc-animation-runtime.md",
+          "locator": "two-key endpoint at time=last",
+          "observation": "Native two-key interval helper returns index 0/fraction 0 at and after last time; the endpoint reaches the real track sampler output. Three-key endpoint reaches the final key. No in-game bug claim: upstream time/padding invariants remain unknown.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spNode",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 87,
+      "lowerBound": 81,
+      "upperBound": 92,
+      "priorityTier": 1,
+      "summary": "Local controller writes establish dirty bit 1; native consumers establish cached-world PRS and orthonormal transform convention. World-update virtual +0x30 and its visible parent/child/dirty tail are located; protected preamble, frame caller and complete collision/billboard contract remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_layout",
+          "sourcePath": "docs/research/native-class-sp-node.md",
+          "locator": "0x00420660;0x00420710;0x0046A240",
+          "observation": "PC cached world fields are position +0x74, scale +0x80 and orientation +0x8C. Independent point consumers and skin accesses agree; ABI opaque block replaced with asserted fields.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "isolated_native_replay",
+          "sourcePath": "docs/research/native-pc-animation-runtime.md",
+          "locator": "world point forward/inverse;local dirty",
+          "observation": "Native forward scales then row-rotates then translates; inverse uses transpose/divide for orthonormal nonzero scale. Node controller position/scale writes set flags bit 1; protected quaternion setter tail is not guessed.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_world_update_tail",
+          "sourcePath": "docs/research/native-pc-animation-runtime.md",
+          "locator": "0x00421420;0x0042142E..0x00421633;0x00420C00",
+          "observation": "Node virtual +0x30 enters a protected preamble then visible tail: inherited dirty bit 1 gates recomputation, masks 0x10000/0x20000/0x40000 gate parent PRS, collision entries refresh, children receive combined flags with bit 2 cleared, final flags clear bits 1/2/4. This is tail-only static evidence, not proof of protected entry or whole updater execution. Native Matrix3 multiplication independently confirms local times parent orientation order.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spSkin",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 80,
+      "lowerBound": 73,
+      "upperBound": 86,
+      "priorityTier": 1,
+      "summary": "Exact row-indexed inverseBind times boneWorld product and native cleanup branch established, with portable matrix helper and native replay. Protected builder entry, cached-world update and complete stream/failure lifecycle remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "matrix_convention",
+          "sourcePath": "docs/research/native-pc-animation-runtime.md",
+          "locator": "0x0046A2AA;0x00426B00;0x0041D330",
+          "observation": "Skin passes inverse-bind as this and bone-world as argument; native 4x4 product and copy reproduce C[r,c]=sum inverseBind[r,k]*boneWorld[k,c], verified by noncommuting and 64 matrix cases.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "error_path_correction",
+          "sourcePath": "docs/research/native-class-sp-skin.md",
+          "locator": "0x0046A382;0x0046A38B",
+          "observation": "Corrected former unconditional-cleanup description: renderer bone count +0xC9BC is reset only along successful completion, not all error exits.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spSkin.cpp",
+          "locator": "ComposePaletteMatrixForAnalysis",
+          "observation": "Added tested inverse-bind times bone-world helper without inventing node world-cache update or protected builder prologue.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

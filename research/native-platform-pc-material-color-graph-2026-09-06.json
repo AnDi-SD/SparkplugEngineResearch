@@ -1,0 +1,31 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-material-color-graph-2026-09-06T23:34:00Z","createdUtc":"2026-09-06T23:34:00Z",
+  "notes":"CP26;91 native/9 exact/213 source/37 CTest. Prebound controller, not factory/inline-load; renderer stamp, not EngineCore. No PS2 transfer.",
+  "assessments":[
+    {
+      "className":"spDXMaterial","platformKey":"pc","coverageScore":60,"lowerBound":45,"upperBound":75,"researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"55→60: actual secondary4A9530 frame stamp/force/clock consumer through original color runtime on declared controller, with shared-holder/random source comparison.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-color-graph.md","locator":"CP26;4A9530/75DB68 renderer+40/material70;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"5 frame cases,57 native assertions, exact finite source captures; force does not bypass equal clocks. Separate4BB9D0 static counter increment."}],
+      "unknowns":["Full backend/pass/shader/render application, live draw, whole-file load/save and unknown clone graph remain open.","MaterialColorController construction/destruction/registration is not inferred from declared consumer inputs."]
+    },
+    {
+      "className":"spMaterial","platformKey":"pc","coverageScore":75,"lowerBound":60,"upperBound":88,"researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"70→75: original field6 prebound/repeat/NULL/shared setter and recursive index/writer, complete canonical source edge through common resource core.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-color-graph.md","locator":"CP26;4774D0,4678B0,423A50,423650,4672C0;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"4 prebound graph cases,34 native assertions, exact source states/output; actual edges retain above declared external input pin, no fake-owner destructor."}],
+      "unknowns":["All nonstandard layer/pass policies, native base-copy graph, malformed failures, unknown fields and live backend remain required.","Protected controller factory41A580/virtualclone41AF70 remain banned; source factoryNULL prevents invented inline load."]
+    },
+    {
+      "className":"spMaterialColorController","platformKey":"pc","coverageScore":75,"lowerBound":60,"upperBound":88,"researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"70→75: connects bounded runtime to real material resource references/index/writer and DX frame consumer, including shared-holder and NULL preserve.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-color-graph.md","locator":"CP26;423A50,4A9530,4373E0,441740;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"9 exact consumer/reference cases,91 native assertions,213 source,37 CTest. Declared controller allocation/explicit pin; never factory/lifetime closure."}],
+      "unknowns":["Capped41A580 at88CD04 and calling clone41AF70 remain disabled. Actual constructor/destructor, registration, unmapped clone/full inline load unresolved.","Source copy graph, native malformed/exceptional behavior and whole-file live rendering remain open."]
+    },
+    {
+      "className":"spMaterialSerializer","platformKey":"pc","coverageScore":85,"lowerBound":70,"upperBound":94,"researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"85 retained: canonical field6 prebound reference/index/writer verified without granting broader whole-material/lossless/native-startup credit.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-color-graph.md","locator":"CP26;4774D0/field6;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"Four exact source/native material-color graph captures using common FAT/ReadRef/WriteRef and nested serializers."}],
+      "unknowns":["Nonstandard layer codecs, full inline controller construction, malformed native failure side effects, rollback/lossless unknowns and whole-file save remain open."]
+    }
+  ]
+}

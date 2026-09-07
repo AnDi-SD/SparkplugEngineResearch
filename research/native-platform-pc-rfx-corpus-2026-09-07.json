@@ -1,0 +1,22 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-rfx-corpus-2026-09-07T05:56:00Z",
+  "createdUtc":"2026-09-07T05:56:00Z",
+  "notes":"CP55 two exact complete original RFX engine event streams,184 native assertions. External XML decode is explicit; original file/regex/library wrapper is not claimed. Correction: CP54 actual native assertions total23, not24 in its initial immutable note.",
+  "assessments":[
+    {
+      "className":"spPCRFXFileLoader","coverageScore":46,"lowerBound":33,"upperBound":58,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Prior factory/lifetime, pass/shader/constants and five variable producers now compared exactly for all76/106 engine events from hash-verified Fixed.rfx/Bumpmap.rfx, including full shader text and metadata branch behavior.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-class-sp-pc-effect-template.md","locator":"CP52","observation":"Factory/lifetime and small full original XML parse."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-constants.md","locator":"CP53","observation":"Constant producer and persistence."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-variables.md","locator":"CP54","observation":"Five variable producers and lifetime."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-corpus.md","locator":"CP55;4D4750/4D3A80/4D6050","observation":"All original corpus engine callbacks, exact full semantic captures and expected ownership deltas, unchanged guest bounds."}],
+      "unknowns":["Original filename/name/ID regex loading, malformed XML, mandatory-attribute error objects and complete template/compiler generating miss remain open.","Corpus decoding is a declared external-library boundary. Full original XML-library parse is only verified on small documents. Header/API spelling and overflow/nonfinite behavior remain unclaimed."]
+    },
+    {
+      "className":"spPCEffectTemplate","coverageScore":30,"lowerBound":20,"upperBound":41,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Actual corpus-generated variable/pass/shader/constant containers and teardown now match source, retaining previously confirmed constructor/type dispatch and unknown flags. Confirms two native Bumpmap texture tail leaks with safe source ownership.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-class-sp-pc-effect-template.md","locator":"CP52","observation":"Constructor/type/pass ownership."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-constants.md","locator":"CP53","observation":"Filled pass/constant ownership."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-variables.md","locator":"CP54","observation":"Populated variable destruction."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-corpus.md","locator":"CP55;4D5FC0/4D36C0/4D07D0","observation":"Exact complete containers on both original RFX document event streams."}],
+      "unknowns":["File acquisition/name/ID, child64 ownership, source specialization/compiler/reflection and integrated shader generation remain open.","Source XML decoding is external; native tail leaks are documented and avoided in portable ownership. Unknown fields are not assigned invented defaults."]
+    }
+  ]
+}

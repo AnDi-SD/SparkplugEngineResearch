@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-animation-lifecycle-2026-09-05T14:56:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T14:56:00Z",
+  "notes": "Third checkpoint of cycle ending 21:00 MSK: original animation/track factories, exact types and ownership. Corrects previous root-base/no-op-copy interpretation: animation physically inherits spNamedObject and copies name. Three portable original classes added, with explicit host safety deviations. No game/app edits, PS2, release or push. Fixed class-weighted denominators unchanged.",
+  "classes": [
+    {
+      "className": "spAnimation",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 89,
+      "lowerBound": 82,
+      "upperBound": 94,
+      "priorityTier": 1,
+      "summary": "Exact PC 0x84 factory/constructor, physical named base, debug cycle dependency, append/resize/destruction and tag order now established and reconstructed. Full SAN transaction, registry/frame integration and field18 remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_animation_lifecycle.py",
+          "locator": "0x0041A090->0x013D1E00;0x00430290->0x013C64B0",
+          "observation": "Original factory requests 0x84; constructor calls spNamedObject, initializes arrays/pool and samples real lazy spDebugManager cycle table into +0x54. Field28 and padding remain unwritten. No Windows loader or exception dispatch is provided.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "corrected_interpretation",
+          "sourcePath": "docs/research/native-pc-animation-lifecycle.md",
+          "locator": "0x00413060;0x00413090;0x00413120;animation+0x10",
+          "observation": "Previous root-base/no-op-copy wording was incorrect: 0x413090 is spNamedObject destructor and 0x413120 retains shared name. Physical C++ named ancestry remains distinct from engine controller RTTI. Immutable earlier manifests preserved.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "research/probe_pc_animation_lifecycle.py",
+          "locator": "0x0042FED0->0x013C91A0;0x00430010;0x00430130",
+          "observation": "Append grows capacity by one and relocates 0x44 track bytes; owner remains animation. Shrink uses old capacity rather than constructed count; only fully constructed shrink fixture is executed. Normal unbound destruction releases tracks/shared buffers/pool.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spAnimation.cpp",
+          "locator": "name-only clone;AppendTrackForAnalysis;ResizeTrackCapacityForAnalysis",
+          "observation": "Original class object slice added with distinct engine RTTI and physical named base, explicit debug value seam, stable host track pointees and safe shrink guards. It is not a full SAN loader/registry or ABI-compatible allocator.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spTrack",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 90,
+      "lowerBound": 84,
+      "upperBound": 95,
+      "priorityTier": 1,
+      "summary": "Concrete named base with exact 0x14 PC allocation, nine-slot vtable, zero duration/no-op release and name-only clone. Original method/path names and non-animation consumers remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "identity_and_layout",
+          "sourcePath": "research/inspect_animation_lifecycle.py",
+          "locator": "0x006D4980;0x006ECBA4;0x00493070->0x0049EE20",
+          "observation": "spTrack ID 0x60C839C5, direct spNamedObject base, registration 0x762B68. Original factory allocates 0x14, not 0x18; nine slots end at spTrack string. Concrete duration and release slots are not pure.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spTrack.cpp",
+          "locator": "StaticRTTI;GetDurationForAnalysis;ReleaseKeysForAnalysis;vfunc_10",
+          "observation": "Original base class reconstructed with executable-backed empty duration/release behavior and name-only clone; inferred source paths and analytical APIs marked.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spAnimTrack",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 88,
+      "lowerBound": 79,
+      "upperBound": 94,
+      "priorityTier": 1,
+      "summary": "Embedded SAN track identity now proven: exact 0x44, original spTrack base, PRS descriptors, binding and owner defaults, duration and ownership release. Sampling adapter integrated; registry and lifetime safety invariants remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "identity_and_layout",
+          "sourcePath": "research/probe_pc_animation_lifecycle.py",
+          "locator": "0x006D3EB0;0x006EAA24;0x004791B0;0x00478DE0",
+          "observation": "spAnimTrack ID 0x33B61869 has spTrack base and exact 0x44 extent. Binding -1, descriptors zero, ownership false; standalone owner+0x40 is not initialized. Animation append initializes that owner.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "research/probe_pc_animation_lifecycle.py",
+          "locator": "0x00479830;0x00479760->0x013D2850",
+          "observation": "All four old/new ownership combinations verified: attach uses incoming flag to decide old-buffer release; flag applies track-wide. Release returns descriptors but leaves stale track pointers, so it is not idempotent Reset.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "docs/research/native-pc-animation-lifecycle.md",
+          "locator": "0x00478E30;animation+0x58 descriptor pool",
+          "observation": "Duration is max final time across present descriptors starting at zero. Native pool has 64 slots/block; last release retires block to one spare cache, which animation destruction frees.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Code/Sparkplug/spAnimTrack.cpp",
+          "locator": "SetKeysForAnalysis;GetSamplerForAnalysis;vfunc_10",
+          "observation": "Original type wraps prepared key sampler and provides name-only clone, owner and binding. Null standalone owner, immutable snapshots, transactional replacement and idempotent release are explicit host safety deviations.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spAnimationSerializer",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 83,
+      "lowerBound": 75,
+      "upperBound": 89,
+      "priorityTier": 1,
+      "summary": "Tag record extent, ordinal and stable-time ownership established alongside already verified key reader. Tag name helper and complete data-block/error transaction remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "wire_contract",
+          "sourcePath": "docs/research/native-pc-animation-lifecycle.md",
+          "locator": "0x0043F194..0x0043F222;0x006E0AE4",
+          "observation": "Field5 creates a 0x1C root-RTTI tag object with owned name+0x10, time+0x14 and reader ordinal+0x18. It has a distinct vtable but no proven separate original class name.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_animation_lifecycle.py",
+          "locator": "0x004305F0;0x0043DA60;0x00430130",
+          "observation": "Five synthetic tags verify stable ascending-time insertion with wire ordinals retained; animation deleting-destroys all owned tags. Empty names only in this checkpoint; full malformed-tag/name transaction not claimed.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

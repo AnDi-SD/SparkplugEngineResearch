@@ -1,0 +1,75 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-uv-renderer-2026-09-06T22:39:00Z",
+  "createdUtc": "2026-09-06T22:39:00Z",
+  "notes": "CP23 connected boundary;87native/11exact/386source/35CTest. No actual GPU, startup or PS2 transfer.",
+  "assessments": [
+    {
+      "className": "spDXRenderer",
+      "coverageScore": 42,
+      "lowerBound": 30,
+      "upperBound": 55,
+      "summary": "40→42: actual PC slots23/24 matrix3/4 expansion, cache writes and COM SetTransform HRESULT behavior, finite source comparison. Most backend/shader/startup remains open.",
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-uv-renderer.md",
+          "locator": "CP23;467B70,4BB4B0,4BB590;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "11bounded/87native/11exact,386source,35CTest2.71s. Actual internal calls with declared COM observer only. Stage0/1 caches and combined UV/AnimTex ordering."
+        }
+      ],
+      "unknowns": [
+        "Full renderer startup/device loss/shaders/pass/texture binding, whole-file load/save/display and invalid stage/exceptional arithmetic remain open.",
+        "MaterialColorController factory41A580 capped at88CD04; disabled without native factory credit. No class100 or global gate passed."
+      ]
+    },
+    {
+      "className": "spMaterialTexture",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 92,
+      "summary": "75→80: complete bounded467B70 UV/equal-clock/static/AnimTex ordering and shared-holder rendering through actual PC backend, with existing ownership and common codec.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-uv-renderer.md",
+          "locator": "CP23;467B70,4BB4B0,4BB590;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "11bounded/87native/11exact,386source,35CTest2.71s. Actual internal calls with declared COM observer only. Stage0/1 caches and combined UV/AnimTex ordering."
+        }
+      ],
+      "unknowns": [
+        "Full renderer startup/device loss/shaders/pass/texture binding, whole-file load/save/display and invalid stage/exceptional arithmetic remain open.",
+        "MaterialColorController factory41A580 capped at88CD04; disabled without native factory credit. No class100 or global gate passed."
+      ]
+    },
+    {
+      "className": "spRenderer",
+      "coverageScore": 72,
+      "lowerBound": 61,
+      "upperBound": 83,
+      "summary": "72 retained; PC UV3x3 slot24 and4x4 slot23 independently corrected/verified. No increased whole-common-renderer or PS2 credit.",
+      "platformKey": "pc",
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-uv-renderer.md",
+          "locator": "CP23;467B70,4BB4B0,4BB590;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+          "observation": "11bounded/87native/11exact,386source,35CTest2.71s. Actual internal calls with declared COM observer only. Stage0/1 caches and combined UV/AnimTex ordering."
+        }
+      ],
+      "unknowns": [
+        "Full renderer startup/device loss/shaders/pass/texture binding, whole-file load/save/display and invalid stage/exceptional arithmetic remain open.",
+        "MaterialColorController factory41A580 capped at88CD04; disabled without native factory credit. No class100 or global gate passed."
+      ]
+    }
+  ]
+}

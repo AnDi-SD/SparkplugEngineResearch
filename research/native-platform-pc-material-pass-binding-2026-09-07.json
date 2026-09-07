@@ -1,0 +1,29 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-material-pass-binding-2026-09-07T01:09:24Z",
+  "createdUtc":"2026-09-07T01:09:24Z",
+  "notes":"CP34–35;11 unique exact cases/69 counted native checks;123 source/40CTest. No PS2/full GPU/alternate RTTI binding credit.",
+  "assessments":[
+    {
+      "className":"spMaterialPassLayer","coverageScore":76,"lowerBound":65,"upperBound":87,
+      "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"70→76: actual45F570→4596B0 pass traversal, auto ordinal versus fixed texture stage, empty/eight-layer and original common UV update delegation.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-pass-binding.md","locator":"CP34;45F570/4596B0/423460/467B70","observation":"6 exact captures plus original layer-order assertions; forced stages/repeats/failure; source delegates original classes, no parallel update core."}],
+      "unknowns":["Complete pass rendering/clone graph with nonstandard layers, malformed sparse/NULL inputs and original API/member/path spellings remain open; source safe rejection is explicit. No PS2 transfer."]
+    },
+    {
+      "className":"spMaterialTextureLayer","coverageScore":74,"lowerBound":63,"upperBound":85,
+      "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"72→74: actual423460 tail delegation from native pass iteration to the existing MaterialTexture UV/animation consumer.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-pass-binding.md","locator":"CP34;423460/467B70","observation":"Native pass-driven stage routing and exact device matrices, including repeated forced same-stage layers. Original return void, source bool host guard."}],
+      "unknowns":["Nonstandard derived-layer runtime/codec behavior, complete renderer integration and original API/member/path names remain open. No PS2 transfer."]
+    },
+    {
+      "className":"spDXRenderer","coverageScore":58,"lowerBound":46,"upperBound":71,
+      "platformKey":"pc","researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"57→58: actual DX texture identity-cache binding and global palette selection, debug suppression, old/new cache call ordering and HRESULT failures.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-material-pass-binding.md","locator":"CP35;4BB650/4BB1C0/COM104/124","observation":"5 exact captures/51 counted native checks; actual DX factory/RTTI/getter/teardown. Source explicitly limited to resolved-resource consumer portion."}],
+      "unknowns":["Alternate texture RTTI resources5C542AD9/5D982205, shader selection/generation, pass/mesh submission, full renderer lifecycle/reset and whole-file save/display remain required.","Resolved source tokens are not live COM/factory support. Unsafe malformed inputs and original names/defaults remain open. No PS2 transfer."]
+    }
+  ]
+}

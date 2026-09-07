@@ -1,0 +1,22 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-color-functions-2026-09-06T23:03:00Z",
+  "createdUtc":"2026-09-06T23:03:00Z",
+  "notes":"CP24;142 native/20 exact/118 source/36 CTest. No PS2, capped material factory or whole-pipeline credit.",
+  "assessments":[
+    {
+      "className":"spColorFuncEval","platformKey":"pc","coverageScore":80,"lowerBound":65,"upperBound":92,
+      "researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"New80: actual PC factory/defaults/blank clone, scalar-driven four-byte blending and matching common codec. Finite bounded cases, not all x87/exception/lifetime contexts.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-color-functions.md","locator":"CP24;478A60,478AC0,478990,478920,60DB90;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"20 bounded cases,142 native assertions,20 exact captures,118 source checks,36 CTest. Separate byte truncation and shared MT19937 verified."}],
+      "unknowns":["Exceptional arithmetic/x87 exhaustive behavior, full-file dispatch/save, rollback and live material/render context remain open.","MaterialColorController41A580 factory capped at88CD04 and disabled; no factory/startup success inferred from leaf evaluator."]
+    },
+    {
+      "className":"spColorFuncEvalSerializer","platformKey":"pc","coverageScore":80,"lowerBound":65,"upperBound":90,
+      "researchStatus":"substantial","assessmentOrigin":"new_research",
+      "summary":"60→80: original reader/writer/default/repeated/unknown/zero/NaN behavior compared byte-exact with the executable common source codec, not schema alone.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-color-functions.md","locator":"CP24;47E240,47E320,47E850;PC3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F","observation":"Five finite/raw codec cases among20 exact native/source captures; shared scalar raw field updater and common section/block core."}],
+      "unknowns":["Full resource dispatch, all malformed/native failure side effects, lossless unknown fields and whole-file save remain open.","Original API/header names remain partly unknown; PC defaults not transferred to PS2."]
+    }
+  ]
+}

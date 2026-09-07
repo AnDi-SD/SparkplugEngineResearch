@@ -1,0 +1,75 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-smo-san-loader-2026-09-06T10:00:00Z",
+  "createdUtc": "2026-09-06T10:00:00Z",
+  "notes": "First checkpoint of the open-ended PC SMO/SAN completion goal.259 directed native checks,34 byte anchors,227 native-whole-loader versus portable fields/owned-binding/PRS output comparisons. Whole422B50 bbush two simultaneous loads passed79064/11949 instructions, all tracked native allocations freed. Initial manager/FAT/RTTI containers explicit, not native startup. Other three cold whole-SAN scouts capped and disabled, no resumption or cap increase. PC-only; legacy31/1667/124 retained, PS2 unchanged. SerializerManager and RTTIManager receive their FIRST separate PC assessments: their score credit is not a before/after research delta from zero. Animation score91 retained; new integration evidence does not imply native writer or complete portable loader. Scores are heuristic, not the seven completion criteria or tool readiness.",
+  "assessments": [
+    {
+      "className": "spSerializerManager",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 50,
+      "upperBound": 80,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "First explicit PC assessment: actual register/lookup/unique teardown, FFPS generic load on one SAN, owned FAT index/cursor/clear consumer contracts now have native proof.65 is a partial-behavior estimate covering dispatch/load/index, not the unresolved writer/recursive graph/error/startup remainder. Unknown helper type is attached here by proven manager ownership, not assigned fictional RTTI.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/probe_pc_loader_registry.py","locator":"registry78;file-index60;422D90/4224F0->42C9F0/4228A0;465CD0->13BCA90","observation":"Native insertion-order masked lookup including null/high bits; shared pointer teardown exactly once. File index allocates/consumes without storing/freeing; strict-read malformed cases explicitly not PC short-read claims."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_fat_runtime.py","locator":"index61;466B90/465F00/465F20/466760","observation":"PC resource index24, maps20/2C, list48/cursor54; insertion order/unsigned-ID clear, duplicate-map overwrite and leaked prior entry, uninitialized1C, borrowed runtime object20 preserved on index destruction."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_san_loader.py","locator":"bbush.san;422B50 whole call;50 checks;79064/11949 instructions","observation":"Original header/FAT/DX no-mesh hook/RTTI factory/animation reader/real name registry/clear; two live resources, exact teardown. Explicit prepared manager/FAT/RTTI startup and OS/allocator boundaries; not all SMO or a game run."},
+        {"platformKey":"pc","sourcePath":"research/inspect_pc_loader_runtime.py","locator":"34 exact-byte anchors;13D6E7F push58;PC hook slot1C","observation":"Independent PC FAT allocation58, loader calls/secondary slots, constructor remains stopped before protected body. Corrects any PS2 ABI slot/layout projection."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-smo-san-loader.md","locator":"full evidence boundary / negative results / next fronts","observation":"Consumer-derived PC ABI recorded in Sparkplug/Analysis/PC/SparkplugAbi.h. Full portable loader/write/mesh hook and malformed materialization remain open; no hidden unknown-field completion."}
+      ],
+      "unknowns": [
+        "Complete manager/FAT constructor, original unnamed helper type/header/method names, FAT unknown44.",
+        "Directed cache-hit/external-file/pre-materialized/null/error branches and recursive relationship resolver; transactional cleanup versus original partial state.",
+        "PC save dispatch/index offsets/sizes/payload flag, serialization policy producer and native SAN writer.",
+        "SMO mesh-containing DX hook and native resource->scene/backend integration; complete portable generic loader absent.",
+        "Whole bflower/barrel/bw scouts capped100k at472923/41FB28/13D7892 and are disabled, not completed or resumed."
+      ]
+    },
+    {
+      "className": "spRTTIManager",
+      "platformKey": "pc",
+      "coverageScore": 40,
+      "lowerBound": 30,
+      "upperBound": 60,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First separate PC estimate: membership/create consumers and tree head/pointer factory contracts now independently executed; full registration/constructor/destructor/startup remain incomplete.40 reflects the limited two-operation runtime slice plus fixed identity/allocation, not PS2 evidence transfer.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/probe_pc_fat_runtime.py","locator":"rtti10;4143F0->4423F0;414420->41A090","observation":"Original membership on prepared valid one-node RB tree; absent class/null factory return null, concrete factory creates real84 Animation and is torn down. No seam for membership/create or fabricated original startup."},
+        {"platformKey":"pc","sourcePath":"research/inspect_pc_loader_runtime.py","locator":"41442E/414436/414442/414445/414451;6D1C10..6D1C30","observation":"PC tree14/head18, node10 registration, record4C cdecl factory with class ID; actual Animation initializer starts6D1C10, prior6D1C30 was its callsite."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-smo-san-loader.md","locator":"RTTI/startup boundary and negative scout outcomes","observation":"PC allocation20 vs PS224; no universal cross-platform layout. Uninitialized startup reached allocator guardE000; explicit empty-registry initializer capped889BB8. Neither is scored as successful registration or PropertySystem recovery."}
+      ],
+      "unknowns": [
+        "Original protected registration insertion and full manager ctor/dtor/clone semantics; Animation initializer6D1C10 capped889BB8, not resumed.",
+        "PropertySystem/startup allocation E000 exact role and initialization order; no inferred property record size is credited.",
+        "Duplicate registration/overwrite/lifetime/error semantics and complete portable/native differential for those methods."
+      ]
+    },
+    {
+      "className": "spAnimation",
+      "platformKey": "pc",
+      "coverageScore": 91,
+      "lowerBound": 85,
+      "upperBound": 95,
+      "researchStatus": "substantial",
+      "assessmentOrigin": "new_research",
+      "summary": "Score91 unchanged. New complete generic SAN load on bbush reaches real RTTI factory/reader/shared-name ownership/FAT cleanup twice.227 result fields match portable owned-binding reader/PRS. Engine RTTI excludes NamedObject although physical prefix is named; initializer address corrected. This closes a concrete integration witness, not all writer/startup/graph branches.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/native-research-2026-09-06-pc-actor-binding.json","sourceSha256":"37F89481ED4B67E5F146CA17E892D4086A6156EB63900CA8E7B9511D831DB5FE","locator":"classes/spAnimation/evidence[platformKey=pc]","observation":"Prior confirmed actor priority-group field18 and name-only clone remain supported; native group setter/original names remain open."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_san_loader.py","locator":"bbush two whole422B50 calls;50 checks","observation":"Factory->reader->FAT teardown leaves live animations, real track-name registry shared across two resources, all tracked native allocations freed. No fake full startup and no whole-render claim."},
+        {"platformKey":"pc","sourcePath":"research/compare_pc_san_loader.py","locator":"227 captured output values vs SparkplugSanReaderTests --inspect-owned","observation":"Duration/capacity/track names/owned slot IDs/PRS/tag output match portable field reader. Portable side is NOT a complete FFPS/FAT loader; parser-derived usedPools excluded from comparison."},
+        {"platformKey":"pc","sourcePath":"research/pc_loader_fixtures.py","locator":"animation_rtti / PCFileBytesFixture","observation":"Declared actual engine parent chain Animation->Controller->SubController->Base, not physical NamedObject chain. PC stream origin/size/short-read semantics explicit; initial containers do not confer startup coverage."}
+      ],
+      "unknowns": [
+        "Native SAN writer and lossless save/default policy; whole loader failures/aliases/remaining corpus variants.",
+        "Original field18 upstream setter/name; complete native startup registration and property-system dependency.",
+        "Cold whole-load bflower/barrel/bw capped100k; existing independent reader/PRS tests still valid, whole-load success not claimed.",
+        "Full portable FFPS/FAT loader and resource->scene->PC backend integration remain open."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-animation-keys-2026-09-05T14:12:00Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-05T14:12:00Z",
+  "notes": "Second checkpoint of cycle ending 21:00 MSK: PC SAN representations 1..4, shared buffers, reader attach, cubic preparation and PRS sampling. Bounded original-instruction execution and portable comparison; no game launch, application edits or PS2 work. Full animation lifecycle/loader rollback remain open. Fixed class-weighted denominators unchanged.",
+  "classes": [
+    {
+      "className": "spAnimation",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 84,
+      "lowerBound": 77,
+      "upperBound": 90,
+      "priorityTier": 1,
+      "summary": "Track representations, descriptors/shared buffers, coefficient preparation and all finite PRS sampling branches reconstructed. Constructor, tags, mixed ownership and complete loader lifecycle remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_animation_keys.py",
+          "locator": "0x00479290;0x00478F90",
+          "observation": "Representations 1..4 use packed vector/quaternion or independent scalar descriptors/caches. PRS flags, cache movement, two-key endpoint quirk and scalar radians qZ*qY*qX behavior verified. Probe totals 396 checks including preparation and reader chain.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "runtime_behavior",
+          "sourcePath": "docs/research/native-pc-animation-keys.md",
+          "locator": "0x00493160;0x00493290;0x004933C0->0x013C1220;0x00464DE0",
+          "observation": "Cubic scalar/vector records contain value, incoming/outgoing tangents and rewritten c2/c3. Quaternion controls use conjugate multiply, Log/Exp and squad; protected resolver initializes constant 0x013B354C=1. Math does not normalize or clamp by assumption.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Analysis/PC/spAnimationKeySampling.h",
+          "locator": "PreparedTrackForAnalysis;MakeSampler",
+          "observation": "Analytical prepared-key adapter reconstructs checked PRS behavior without inventing an original class name. Host finite/bounds guards and safe one-key endpoint handling are explicit deviations; not a full SAN loader or ABI-compatible spAnimation class.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "differential_test",
+          "sourcePath": "research/compare_pc_animation_keys.py",
+          "locator": "4 representations x 10 times x PRS/cache/validity",
+          "observation": "120/120 comparisons of portable output with original guest instructions pass; CRT acos is an explicit math seam. 60 portable assertions include original two-key endpoint and keys-to-node-world dependency chain.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spAnimationSerializer",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 80,
+      "lowerBound": 72,
+      "upperBound": 87,
+      "priorityTier": 1,
+      "summary": "PC key wire representations, shared-array hints, optional track reserve and protected reader-to-attach path established. Tags and complete transaction/failure rollback remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "bounded_x86_emulation",
+          "sourcePath": "research/probe_pc_animation_keys.py",
+          "locator": "0x0043DB90->0x013B11B4->0x00450D51->0x0043DBA3;0x00479830",
+          "observation": "Original protected reader executes through descriptor attach, cubic preparation and sampling. Stream source and pool allocation are explicit fixtures. Reader passes ownership false and draws values/times from animation shared arrays with serializer cursors.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "wire_contract",
+          "sourcePath": "docs/research/native-pc-animation-keys.md",
+          "locator": "0x0043ECC0;0x0043DDC0;fields 6..12,64",
+          "observation": "Fields 6..11 reserve six value pools with strides 4,20,12,60,16,32; field12 reserves float times. Field64 is an optional track-capacity hint, not a terminator. Field1 names/ends a track; field5 tags remains separate.",
+          "confidence": "confirmed"
+        },
+        {
+          "platformKey": "pc",
+          "evidenceKind": "corpus_validation",
+          "sourcePath": "research/inspect_pc_san_keys.py",
+          "locator": "barrel.san;bbush.san;bflower.san;bw.san",
+          "observation": "Bounded read-only scan matches all seven pool hints on four pristine SAN assets. Barrel omits field64; bbush contains cubic vector scale; bflower has one-key quaternions. Current viewer decoder cannot represent the cubic scale payload; application code was not changed.",
+          "confidence": "confirmed"
+        }
+      ]
+    },
+    {
+      "className": "spTransformTrackEval",
+      "researchStatus": "substantial",
+      "pcStatus": "substantial",
+      "ps2Status": "deferred",
+      "coverageScore": 80,
+      "lowerBound": 74,
+      "upperBound": 87,
+      "priorityTier": 1,
+      "summary": "Sampling dependency now backed by prepared keys for all four representations and connected to controller/world tests. Input lifetime/capacity and external actor scheduling remain open.",
+      "evidence": [
+        {
+          "platformKey": "pc",
+          "evidenceKind": "portable_reconstruction",
+          "sourcePath": "Sparkplug/Tests/spAnimationKeyTests.cpp",
+          "locator": "prepared keys -> evaluator -> controller -> world",
+          "observation": "Prepared track sampler plugs into existing evaluator without replacing its time/weight contract. Linked test proves playback time overrides outer evaluator time and computed PRS reaches node world cache. Full actor/renderer integration is not claimed.",
+          "confidence": "confirmed"
+        }
+      ]
+    }
+  ]
+}

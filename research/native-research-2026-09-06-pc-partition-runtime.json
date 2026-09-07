@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "native-pc-partition-runtime-2026-09-06T02:16:39Z",
+  "mode": "incremental",
+  "createdUtc": "2026-09-06T02:16:39Z",
+  "notes": "Checkpoint12 ongoing cycle due10:00 MSK. Original PC spatial lifetime/reciprocal registrations, physical-vs-RTTI PartitionSystem graph, actual static/partition render support and Matrix4 startup. Native38+38/static30, ABI build/CTest15. Portable spatial classes/Scene/Visibility/loader not complete. PartitionNode25->58/System25->52/Zone25->65/PartitionRenderable25->65/Static30->70/new PCPartition65 =2.450 class units, direct1.800; fixed scopes, no backfill. Scene45/RenderNode92 retained. Visibility whole ctor capped100k/2s; no raised budgets, OS/GPU/game/assets/apps/publication.",
+  "classes": [
+    {
+      "className": "spPartitionNode",
+      "coverageScore": 58, "lowerBound": 42, "upperBound": 70,
+      "researchStatus": "partial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Actual84/Base/33 slots, five vector ownership contracts, direct child/payload delete vs intrusive Zone/portal/static refs, blank own clone, reciprocal RenderNode links and nonnotifying reset, recursive Scene80->payload/static88. Query/debug/child geometry, collisions/occlusion concrete lifecycle, own7C and portable source open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_partition_runtime.py","locator":"426910/426890/426970;426690/425B60/425BC0;4269C0;4259E0","observation":"38 spatial checks: actual ctor/clone/dtor, reciprocal duplicate borrowed registration and both-side teardown; root v80 frees vectors without reverse unlink. Direct root/child deletion ignores nonzero intrusive refs, Zone release intrusive. Literal child graph separately marked; unsafe raw-reset scout fault corrected by original reverse clear before teardown.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_static_render_runtime.py","locator":"426740;4264D0;4259E0;Static88/PCPartition88","observation":"Actual duplicate StaticRenderObject append retains twice; root destructor releases twice but direct-deletes PartitionRenderable despite ref7. Scene propagation reaches exact constructed payload/static classes; earlier light payload78 now named spPartitionRenderable.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spPartitionSystem",
+      "coverageScore": 52, "lowerBound": 40, "upperBound": 65,
+      "researchStatus": "partial", "pcStatus": "partial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Exact1D8 physical RenderNode prefix/support+B4 and root1D4 direct ownership; registered RTTI direct Node skips RenderNode, serializer physical hierarchy unchanged. Inherited clone leaves root null, world forwards RenderNode. Transfer48E940 statically traced; whole Scene typed attach/Visibility and portable source open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_partition_runtime.py","locator":"48E7C0/48E870/48E820;6EC528/6EC510;762730","observation":"Original factory1D8/flags70E00, concrete root deletion, blank root clone and actual IsKindOf(Node)=true/IsKindOf(RenderNode)=false despite physical RenderNode calls. Static inspector independently pins RTTI/table; no fabricated inheritance repair.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spZone",
+      "coverageScore": 65, "lowerBound": 48, "upperBound": 77,
+      "researchStatus": "substantial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "ActualC8 Node prefix, borrowed B4 root vector, duplicate append481080, vector-only destructor and Node-only clone. TrailingC4 untouched. Wire inline containment does not imply runtime owning root vector. Visibility/portal use, fieldC4 and source open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_partition_runtime.py","locator":"480FD0/480FB0/481030;481080->406A50->4255F0","observation":"Duplicate roots without ref increments; Zone destruction frees vector not roots; real graph root->Zone intrusive release. ExactC8/defaultCC/RTTI and inherited-only clone verified. Common B4 append also used by occlusion callbacks, not assumed exclusive original Zone API.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spStaticRenderObject",
+      "coverageScore": 70, "lowerBound": 56, "upperBound": 82,
+      "researchStatus": "substantial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Exact10C Named14/support74/Scene88/world8C/inverseCC. Original Matrix4 CRT prerequisite and two copied defaults, common model append/bounds/ref ownership and name-only clone. Prepare submits distinct stored matrix pointers; draw ignores matrix false but stops first model false. Full serializer/upstream/backend inverse semantics and source open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_static_render_runtime.py","locator":"41A7C0/44FB80/41B150;6D38C0;469ED0;44FBA0/44FC00","observation":"38 shared runtime checks: cold globals yield zero copies until actual startup; started ctor identity; independent inverse submitted unchanged, native append/clone/refs, light publication before setup failure, immediate Model failure stop and actual general queues. Recording renderer leaves only; no loader or GPU claim.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"research/inspect_pc_partition_runtime.py","locator":"6E65E8/6E6604;44FC5A/44FC8B;PC ABI10C","observation":"30 shared SHA/RTTI/full bounded tables/CALL/AL-gate anchors. Primary has7 slots, adjacent support6 not extended primary table. Exact ABI static assertions compiled, CTest15/15; no portable Static class yet.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spPartitionRenderable",
+      "coverageScore": 65, "lowerBound": 52, "upperBound": 78,
+      "researchStatus": "substantial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Original base RTTI factory returns concrete PC8C; Base10 + unknown-named support74 + Debug84/Scene88. Shared identity matrices, own Model refs/bounds, blank base-only clone and direct parent ownership. PC support matrix/render failure contracts established; serializer/source, other platform and light integration open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_static_render_runtime.py","locator":"4CD950/4CDA10/4D71B0;469ED0;4D7260/4D72C0","observation":"Actual8C ctor/common model append, DebugFF000000 and shared760058 identity, supports model sharing/ref teardown; original draw ignores setup failure but stops Model failure. Original complete Scene88 propagation/root payload direct delete executed.","confidence":"confirmed"},
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"research/inspect_pc_partition_runtime.py","locator":"765938;6F4528;4D731A/4D734B;spRenderSupportObservedLayout","observation":"Base factory identical to PC leaf; full support6 and original failure gates verified. Shared embedded74-byte layout is analytical, not invented original RTTI class name. PC ABI compiled; source runtime class absent.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spPCPartitionRenderable",
+      "coverageScore": 65, "lowerBound": 52, "upperBound": 78,
+      "researchStatus": "substantial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Concrete9CBB56A2->94BBCA2A, factory4CD950 exact8C, primary7/support6, storage-free PC lifetime/clone overrides and actual base factory selection. Own runtime render behavior inherited/common; full writer/source/platform startup open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_static_render_runtime.py","locator":"7651F0;4CD950/4CDA10;4D7390/4D73A0/4D73C0/4D73D0","observation":"Actual IsExactly(9CBB56A2) true/IsExactly(base) false/IsKindOf(base) true, exact8C and inherited-only clone, secondary deleting adjustment this-10 and full normal teardown. Freshly studied class, not backfill of prior source.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spScene",
+      "coverageScore": 45, "lowerBound": 33, "upperBound": 57,
+      "researchStatus": "partial", "pcStatus": "partial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Score retained: SceneInit fallback now exact PartitionSystem/Zone/PartitionNode graph; visibility global75E1B0 is spVisibilityManager3D7F4387 and shadow75DB7C spDXShadowVolumeManager04680BC1. Full SceneInit/render/Visibility still open; no success substituted for missing managers.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"static_analysis","sourcePath":"docs/research/native-pc-partition-runtime.md","locator":"45D850;45F4D0;45EC70;46D1C0/4A9030","observation":"Factory RTTI ties exact dependencies to previously decoded Scene callers. Visibility allocAC scout capped100k/2s without budget increase; Shadow actual3C ctor scout succeeds, render requires further device/shader research. Native graph ownership tested separately, not whole scene invocation.","confidence":"confirmed"}
+      ]
+    },
+    {
+      "className": "spRenderNode",
+      "coverageScore": 92, "lowerBound": 83, "upperBound": 96,
+      "researchStatus": "substantial", "pcStatus": "substantial", "ps2Status": "deferred", "priorityTier": 1,
+      "summary": "Score retained: actual reciprocal PartitionNode callbacks now executed with concrete counterparts and duplicate references/both-side destruction. Common support74 shared with Static/Partition, but draw failure semantics differ; automatic portable Scene/Partition wiring remains open.",
+      "evidence": [
+        {"platformKey":"pc","evidenceKind":"bounded_x86_emulation","sourcePath":"research/probe_pc_partition_runtime.py","locator":"426690->425660;425B60->424D60;4255D0/426890","observation":"Actual RenderNode/Partition registration vectors append duplicates without ref increments, swap-last remove and destructor unlink each other. Native root nonnotifying reset explicitly not safe general clear. No extra RenderNode score.","confidence":"confirmed"}
+      ]
+    }
+  ]
+}

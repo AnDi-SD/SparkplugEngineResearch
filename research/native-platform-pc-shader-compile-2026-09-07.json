@@ -1,0 +1,22 @@
+{
+  "kind":"native-platform-research","schemaVersion":1,
+  "manifestId":"native-platform-pc-shader-compile-2026-09-07T06:10:00Z",
+  "createdUtc":"2026-09-07T06:10:00Z",
+  "notes":"CP56 fifteen exact native/source source/descriptor/bytecode captures,90 native assertions and6 C++ unit assertions. Whole engine4CFFE0 executes; D3DX compiler/COM results are declared library fixtures, not compiler/GPU implementation proof.",
+  "assessments":[
+    {
+      "className":"spPCEffectTemplate","coverageScore":42,"lowerBound":30,"upperBound":55,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Adds complete bounded source specialization and successful assembly/HLSL compiler-output consumer, parameter producer/reflection, code copy, activity flag and returned object/string ownership to prior RFX/template lifecycle slice.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-class-sp-pc-effect-template.md","locator":"CP52","observation":"Constructor/type/lifetime and small native XML parse."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-constants.md","locator":"CP53","observation":"Constants and pass persistence."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-variables.md","locator":"CP54","observation":"Populated variable ownership."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-rfx-corpus.md","locator":"CP55","observation":"Complete original resource event streams."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-compile.md","locator":"CP56;4CFFE0..4D063F;4CFE40->13B96C0;4CFCD0","observation":"15 exact bounded successful engine compiler-consumer cases with explicit SDK output and complete cleanup."}],
+      "unknowns":["File/regex name/ID acquisition, child64, compile error/report/file-write paths, repeated/occupied output ownership and complete shader-manager generating miss remain open.","Compiler/reflection outputs are external-library contracts; exact SDK build and full original shader compiler execution are not claimed. Oversized names and malformed/missing outputs remain guarded analytical gaps."]
+    },
+    {
+      "className":"spDXShader","coverageScore":68,"lowerBound":55,"upperBound":80,
+      "platformKey":"pc","researchStatus":"partial","assessmentOrigin":"new_research",
+      "summary":"Prior22 constant families and actual parameter append now receive metadata from the original template assembly/HLSL result consumer; populated owned bytecode is copied and released by the native object.",
+      "evidenceRefs":[{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-parameter-append.md","locator":"CP49;4AF940/45A6C0/4AE660/4AF850","observation":"Actual parameter names, append/count behavior and prior constant-family evidence."},{"platformKey":"pc","sourcePath":"docs/research/native-pc-shader-compile.md","locator":"CP56;4D0139/4D0499->4AF940;4D04C0..4D0537","observation":"Original metadata producer reaches recovered append; code48/4C is populated from SDK buffer, exact bytes match source and original destructor frees it."}],
+      "unknowns":["Repeated/error code-buffer ownership, full shader cache miss integration, caller invariants for all constant math and lit/textured whole-scene/display lifecycle remain open.","Compiler/library/GPU outputs remain explicit external contracts; source/header/member naming is partly inferred. No complete render/startup claim."]
+    }
+  ]
+}

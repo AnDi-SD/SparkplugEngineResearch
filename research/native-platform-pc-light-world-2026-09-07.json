@@ -1,0 +1,108 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-light-world-2026-09-07T14:11:55Z",
+  "createdUtc": "2026-09-07T14:11:55Z",
+  "notes": "CP90 six exact86 native assertions: whole decoded Light virtual world/dirty/device chain and actual owning Node inheritance; all owners released; full CTest61/61.",
+  "assessments": [
+    {
+      "className": "spDXLight",
+      "platformKey": "pc",
+      "coverageScore": 83,
+      "lowerBound": 72,
+      "upperBound": 91,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP90 six exact86 native assertions: whole decoded Light virtual world/dirty/device chain and actual owning Node inheritance; all owners released; full CTest61/61.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-dx-light.md",
+          "locator": "CP44;4AC000/4AC240/4B5910/4B53C0/4B58D0",
+          "observation": "8 exact47 native; no fake clone or internal math; source optionals preserve untouched device fields and copy intensity omission."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-lights-render.md",
+          "locator": "CP86;4AC000/4B53C0/4BDB10/4BDE50/46A240/4BC4A0/4BE310/4BE210",
+          "observation": "16 exact1213 native assertions; peak64312,99 freed owners. Mutable73FE98/C194 restore raw material output; raw modes0..7 and disabled/unlit light keys. World/light list explicitly prepared; no GPU/first-generation lighting claim."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-light-constants.md",
+          "locator": "CP87;421420/4B53C0/4AF940/45A6C0/46A240/4AE930",
+          "observation": "10 exact796 native assertions; peak64488,102 freed owners. Actual base Node world, explicit view, ordinary/special light constants, disabled groups and whole draw agree. Full CTest60/60,52.80s."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-light-serialization.md",
+          "locator": "CP88;43FFD0/471590/4400B0/440640/471670/440110/471AF0/43FF20/41D150",
+          "observation": "CP88 actual Light/Data factories, header, complete scalar codecs and writer/fresh read:19 exact184 native assertions plus4 native-only38 boundary assertions;165 source guards."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-light-corpus.md",
+          "locator": "CP89;4400B0/440640/440110/463F10/464CB0",
+          "observation": "CP89 nineteen exact92 native assertions:9 unchanged pristine SMO light slices and10 whole matrix-to-quaternion cases. Found/fixed premature FromMatrix float stores; Node11 and Skin light10 regressions;full CTest61/61."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-light-world.md",
+          "locator": "CP90;440640/4B58D0/428C30/421420/4B53C0/421A60",
+          "observation": "CP90 six exact86 native assertions: whole decoded Light virtual world/dirty/device chain and actual owning Node inheritance; all owners released; full CTest61/61."
+        }
+      ],
+      "unknowns": [
+        "Scene LightManager46ACE0 refresh/registration,renderer light-list selection,first lit shader generation and whole SMO frame remain separate; no live GPU or PS2 credit.",
+        "No-scene finite source bool guards, explicit default-vector/ambient global inputs and canonical shared parent ownership are documented; arbitrary native faults/exceptional floats and source names remain incomplete."
+      ]
+    },
+    {
+      "className": "spLight",
+      "platformKey": "pc",
+      "coverageScore": 88,
+      "lowerBound": 79,
+      "upperBound": 94,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "CP90 six exact86 native assertions: whole decoded Light virtual world/dirty/device chain and actual owning Node inheritance; all owners released; full CTest61/61.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-research-2026-09-06-pc-scene-lights.json",
+          "sourceSha256": "955E7E33C82D63482433EB0EE839A5FF367F14080617D2689B2085068B7A3326",
+          "locator": "classes/spLight/evidence[platformKey=pc]",
+          "observation": "Reviewed original PC-only C1-C20 record; this score describes PC behavior, no PS2 transfer. Existing PC destination intensity is preserved, fresh clone keeps1, opaque bits and other tested light fields copied. Native world tests current|inherited8 after base, clears own8 and calls scene34 manager. Borrowed intrusive light membership and unconditional manager debug enumeration closed; point/spot debug GPU path not run."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-lights-render.md",
+          "locator": "CP86;4AC000/4B53C0/4BDB10/4BDE50/46A240/4BC4A0/4BE310/4BE210",
+          "observation": "16 exact1213 native assertions; peak64312,99 freed owners. Mutable73FE98/C194 restore raw material output; raw modes0..7 and disabled/unlit light keys. World/light list explicitly prepared; no GPU/first-generation lighting claim."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-skin-light-constants.md",
+          "locator": "CP87;421420/4B53C0/4AF940/45A6C0/46A240/4AE930",
+          "observation": "10 exact796 native assertions; peak64488,102 freed owners. Actual base Node world, explicit view, ordinary/special light constants, disabled groups and whole draw agree. Full CTest60/60,52.80s."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-light-serialization.md",
+          "locator": "CP88;43FFD0/471590/4400B0/440640/471670/440110/471AF0/43FF20/41D150",
+          "observation": "CP88 actual Light/Data factories, header, complete scalar codecs and writer/fresh read:19 exact184 native assertions plus4 native-only38 boundary assertions;165 source guards."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-light-world.md",
+          "locator": "CP90;440640/4B58D0/428C30/421420/4B53C0/421A60",
+          "observation": "CP90 six exact86 native assertions: whole decoded Light virtual world/dirty/device chain and actual owning Node inheritance; all owners released; full CTest61/61."
+        }
+      ],
+      "unknowns": [
+        "Scene LightManager46ACE0 refresh/registration,renderer light-list selection,first lit shader generation and whole SMO frame remain separate; no live GPU or PS2 credit.",
+        "No-scene finite source bool guards, explicit default-vector/ambient global inputs and canonical shared parent ownership are documented; arbitrary native faults/exceptional floats and source names remain incomplete."
+      ]
+    }
+  ]
+}

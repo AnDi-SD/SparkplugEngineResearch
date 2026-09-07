@@ -1,0 +1,75 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-texture-native-source-2026-09-06T19:03:03Z",
+  "createdUtc": "2026-09-06T19:03:03Z",
+  "notes": "Checkpoint16 continues active100%PC goal. No cap/retry/OS/GPU/assets/publication. New palette factory observation saved as dependency evidence, not a completed/graded class.",
+  "assessments": [
+    {
+      "platformKey": "pc",
+      "assessmentOrigin": "new_research",
+      "researchStatus": "substantial",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-native-source.md",
+          "locator": "checkpoint16; PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;117 native mip+5 palette assertions;11 exact source comparisons",
+          "observation": "Shared CPU/DX recursive field3 source wrapper; full-chain DX native-data reader preserves native base state and leaves runtime44/48 unchanged. Profile12/12, regression24/24, source719, CTests32/32 (23.03s), workbench10/platform12."
+        }
+      ],
+      "unknowns": [
+        "Native-data writer, external source, cross conversion60FDB4/61039A, missing mip generation, palette and material/controller references, clone/reinit/error completeness, lossless unknowns and live PC backend remain open.",
+        "Source CPU shadow and explicit pitch are not live GPU or full FFPS Save evidence. Old direct37 is not completion denominator; no PS2 credit."
+      ],
+      "className": "spDXTextureDataSerializer",
+      "coverageScore": 75,
+      "lowerBound": 55,
+      "upperBound": 87,
+      "summary": "70→75: shared native-data reader now reconstructed and byte/state-exact on11 cases including recursive source; native-data writer/conversion/missing-mip/external paths remain open."
+    },
+    {
+      "platformKey": "pc",
+      "assessmentOrigin": "new_research",
+      "researchStatus": "substantial",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-native-source.md",
+          "locator": "checkpoint16; PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;117 native mip+5 palette assertions;11 exact source comparisons",
+          "observation": "Shared CPU/DX recursive field3 source wrapper; full-chain DX native-data reader preserves native base state and leaves runtime44/48 unchanged. Profile12/12, regression24/24, source719, CTests32/32 (23.03s), workbench10/platform12."
+        }
+      ],
+      "unknowns": [
+        "Native-data writer, external source, cross conversion60FDB4/61039A, missing mip generation, palette and material/controller references, clone/reinit/error completeness, lossless unknowns and live PC backend remain open.",
+        "Source CPU shadow and explicit pitch are not live GPU or full FFPS Save evidence. Old direct37 is not completion denominator; no PS2 credit."
+      ],
+      "className": "spTextureDataSerializer",
+      "coverageScore": 80,
+      "lowerBound": 65,
+      "upperBound": 90,
+      "summary": "Retain80: shared same-serializer source field3 implemented and verified without new headers; CPU and DX readers reuse it. External paths still unclosed."
+    },
+    {
+      "platformKey": "pc",
+      "assessmentOrigin": "new_research",
+      "researchStatus": "substantial",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-texture-native-source.md",
+          "locator": "checkpoint16; PC SHA3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F;117 native mip+5 palette assertions;11 exact source comparisons",
+          "observation": "Shared CPU/DX recursive field3 source wrapper; full-chain DX native-data reader preserves native base state and leaves runtime44/48 unchanged. Profile12/12, regression24/24, source719, CTests32/32 (23.03s), workbench10/platform12."
+        }
+      ],
+      "unknowns": [
+        "Native-data writer, external source, cross conversion60FDB4/61039A, missing mip generation, palette and material/controller references, clone/reinit/error completeness, lossless unknowns and live PC backend remain open.",
+        "Source CPU shadow and explicit pitch are not live GPU or full FFPS Save evidence. Old direct37 is not completion denominator; no PS2 credit."
+      ],
+      "className": "spDXTexture",
+      "coverageScore": 65,
+      "lowerBound": 47,
+      "upperBound": 83,
+      "summary": "Retain65: compiled native mip shadow matches11 original row/base-state captures and preserves44/48 difference; source guards stale runtime writer state. Palette factory/layout confirmed separately; lifetime/backend still incomplete."
+    }
+  ]
+}

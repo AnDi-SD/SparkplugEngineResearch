@@ -1,0 +1,68 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-dx-hook-declarations-2026-09-06T13:43:31Z",
+  "createdUtc": "2026-09-06T13:43:31Z",
+  "notes": "Checkpoint7 of active PC SMO/SAN completion goal, not terminal. Whole original DX hook91 checks/3 children, declaration lifecycle59/4, original/source emitter106 masks8656 bytes/1 child. Source338 checks and all27 CTests pass. COM/name/startup fixtures and explicit host lifetime guards are not GPU/full-FFPS/native rollback evidence. One scout omitted required RTTI startup and hit known cold414C60 allocation guard; discarded, then separate explicit validated-tree fixture, no cap increase/resumption. PS2 and legacy untouched.",
+  "assessments": [
+    {
+      "className": "spDXSerializerHook", "platformKey": "pc",
+      "coverageScore": 82, "lowerBound": 68, "upperBound": 90,
+      "researchStatus": "substantial", "assessmentOrigin": "new_research",
+      "summary": "Previous75 metadata/first scan extended to whole4AA870: triangle, two live meshes and unchanged logo_screen field. Actual registry/header/secondary payload/declaration/name dispatch, post-payload publication, shared ranges and live surviving combiner established. Still not whole mesh-containing FFPS or GPU/source adapter closure.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/probe_pc_dx_hook_materialize.py","locator":"3modes/91checks;4AA870;max53284instructions/65152heap","observation":"Original whole hook returns normally with actual MeshDataSerializer factory/header/CPU/DX chain. Pair shares wrappers/declaration but not objects; local indices and disjoint ranges, active global cleared while combiner remains allocated."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-pc-dx-materialization.md","locator":"Checkpoint7 whole hook, fixture provenance and cold RTTI stop","observation":"Post-payload FAT publication, real193byte corpus payload inside explicit envelope, COM and named storage seams; fixture cleans surviving combiner without claiming original ownership recovery."}
+      ],
+      "unknowns": ["Whole FFPS graph/root interplay, nonempty external/cache variants and errors/rollback/allocation failures.","Complete source batch materializer and native full renderer startup/teardown, real PC backend validation.","Original interface/method/header names; remaining batch/native save contracts."]
+    },
+    {
+      "className": "spDXMesh", "platformKey": "pc",
+      "coverageScore": 75, "lowerBound": 60, "upperBound": 87,
+      "researchStatus": "substantial", "assessmentOrigin": "new_research",
+      "summary": "Previous70 plus whole batch integration on two live meshes and unchanged logo geometry. Source numeric84 stub replaced by declaration object from explicit renderer cache; wrong comparison of planning component mask to converted FVF removed while capacity guards retained.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/probe_pc_dx_hook_materialize.py","locator":"triangle-pair35checks, logo-field28checks","observation":"Two DXMesh objects share wrappers/declaration, wrapper intrusive counts3, second ranges3/3, stored indices not rebased. Logo planning940 and mesh152 differ legitimately at CPU boundary."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Code/SparkplugDX/spDXMesh.cpp","locator":"InitializeFromBuffersForAnalysis/GetVertexDeclarationForAnalysis","observation":"CPU-only explicit renderer argument supplies actual reconstructed declaration object. Shared host ownership intentionally differs from native borrowed84; without renderer remains limited buffer-only analysis."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Tests/spVertexDeclarationTests.cpp","locator":"338checks including cache/two ranges","observation":"Shared object identity, planning/raw-mask versus FVF distinction and two disjoint source ranges; all27 CTests passed."}
+      ],
+      "unknowns": ["Whole FFPS and native writer/optimizer integration; remaining standalone/shared/CPU initialization branches and all lifetime/error variants.","Native draw/GPU/device-loss/reset and original interface/API names.","Portable COM adapter and exact packed stored-byte-size anomaly remain explicitly distinct from safer host representation."]
+    },
+    {
+      "className": "spPCVertexDeclaration", "platformKey": "pc",
+      "coverageScore": 85, "lowerBound": 70, "upperBound": 94,
+      "researchStatus": "substantial", "assessmentOrigin": "new_research",
+      "summary": "Previous65 plus full identified emitter branches reconstructed and differentially checked106masks8656bytes. Actual clone/map/name copy, reinitialize leak and stale cache key, failed Create and failed Bind behaviors confirmed. CPU-only source class and renderer cache exist; real backend integration remains open.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/compare_pc_vertex_declarations.py","locator":"106masks/8656bytes;4C9A00->13D6F00,4B23C0","observation":"All32 singleton bits, directed priority masks and64 deterministic mixed inputs agree exactly on FVF, allocation capacity, used records and uninitialized tail; not exhaustive2^32 proof."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_declaration_lifecycle.py","locator":"4modes/59checks","observation":"Actual clone registry/body copies shared name, not opaque baseC/FVF/COM. Reinitialize overwrites old COM pointer without release, leaves prior cache key; Bind ignores failed HRESULT. Separate fixture cleanup of leaks labelled."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.cpp","locator":"BuildElementsForAnalysis/clone","observation":"Original class/base IDs, emitter weights/UV priority and bit400 offset gap. Source CPU-only; paths inferred and host allocation/vector lifetime guarded."}
+      ],
+      "unknowns": ["Original TU/header/API/enum names, complete base/string ownership boundary.","Full native renderer startup/teardown and device reset/loss; source COM/GPU integration.","All failure out-pointer/allocation semantics and runtime validity of every emitted D3D declaration."]
+    },
+    {
+      "className": "spDXVertexDeclaration", "platformKey": "pc",
+      "coverageScore": 75, "lowerBound": 60, "upperBound": 87,
+      "researchStatus": "substantial", "assessmentOrigin": "new_research",
+      "summary": "Previous55 plus reconstructed registered CrossPlatform base and null-factory/null-clone contract,106 exact FVF comparisons through original base Init. Derived native clone confirms inherited name-only copy, opaqueC unchanged. Base constructor/storage-only and complete API remain partial.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/compare_pc_vertex_declarations.py","locator":"106 calls4B23C0 + source FVF","observation":"All32 singleton bits and mixed masks preserve exact base14 FVF; component/emitter weight priorities remain separate."},
+        {"platformKey":"pc","sourcePath":"research/probe_pc_declaration_lifecycle.py","locator":"actual4A1BF0 null clone and inherited413120","observation":"Abstract clone returns null; concrete clone does not transfer opaqueC/FVF/COM and increments shared name count."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Code/SparkplugDX/spDXVertexDeclaration.cpp","locator":"registered source base, InitializeForAnalysis","observation":"Original-name source class uses existing CrossPlatform/NamedObject machinery and established FVF converter; no invented factory or native COM support."}
+      ],
+      "unknowns": ["Exact standalone base construction/destruction extent and original API/path names.","Remaining inherited ownership/errors and full renderer/backend/device lifecycle integration."]
+    },
+    {
+      "className": "spDXRenderer", "platformKey": "pc",
+      "coverageScore": 40, "lowerBound": 28, "upperBound": 52,
+      "researchStatus": "partial", "assessmentOrigin": "new_research",
+      "summary": "Previous35 plus actual declaration cache consumer in whole hook and CPU-only source object cache. Full renderer remains largely open; this small method does not close scene/GPU pipeline.",
+      "evidenceRefs": [
+        {"platformKey":"pc","sourcePath":"research/probe_pc_dx_hook_materialize.py","locator":"actual4AE0E0 across whole batch","observation":"Two meshes reuse one cached declaration selected by engine mask; not FVF number. Actual map factory/init/insertion boundaries, COM fixture only."},
+        {"platformKey":"pc","sourcePath":"Sparkplug/Code/SparkplugDX/spDXRenderer.cpp","locator":"GetVertexDeclarationForAnalysis","observation":"Reconstructed CPU-only cache by component mask, explicit safe shared ownership; not complete native renderer lifetime or COM adapter."},
+        {"platformKey":"pc","sourcePath":"docs/research/native-class-sp-vertex-declaration.md","locator":"reinitialization cache-key hazard and ownership","observation":"Cached object may be mutated independently of key; native overwritten COM resource leak documented separately from host allocation ownership."}
+      ],
+      "unknowns": ["Complete rendering/shader/texture/material/cache pipeline and nonempty submissions.","Full constructor/startup/destructor/device-loss/reset, shared GPU ownership and remaining virtual/API contracts.","Real PC backend integration and full scene visibility remain required, not bypassed by isolated mesh cache work."]
+    }
+  ]
+}

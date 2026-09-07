@@ -1,0 +1,125 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-pc-rfx-pipeline-2026-09-07T07:26:00Z",
+  "createdUtc": "2026-09-07T07:26:00Z",
+  "notes": "CP61 three exact linked file->original XML->compiler captures,27 native and18 source-harness assertions. Same retained objects; three complete API calls, not full manager/cold startup. Explicit SDK outputs and source XML decoder.",
+  "assessments": [
+    {
+      "className": "spPCRFXFileLoader",
+      "coverageScore": 62,
+      "lowerBound": 47,
+      "upperBound": 74,
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Prior file/events/compiler evidence now joined on the same original template: full file/regex metadata, original XML initialization and file-produced shader compile consumer. Assembly, HLSL reflection and XML constant variants match source.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-pc-effect-template.md",
+          "locator": "CP52",
+          "observation": "Factory/lifetime and small full original XML parse."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-constants.md",
+          "locator": "CP53",
+          "observation": "Constant producer and persistence."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-variables.md",
+          "locator": "CP54",
+          "observation": "Five variable producers and lifetime."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-corpus.md",
+          "locator": "CP55;4D4750/4D3A80/4D6050",
+          "observation": "All original corpus engine callbacks, exact full semantic captures and expected ownership deltas, unchanged guest bounds."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-parser-file-text.md",
+          "locator": "CP59;4D0A30/6BD580/45C4E0/6BD710/6BDB60/416D70/416F30/465540",
+          "observation": "6 exact36 native cases; unchanged bytes/capacity/I/O, real diagnostic path and complete tracked cleanup; original RFX regex wrapper remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-file.md",
+          "locator": "CP60;4D56D0/4D5560->476550/4D27B0/4D0960/417090",
+          "observation": "14 exact78 native cases, original regex compile/search and all tracked cleanup except two established file-error leaks; 100k/2s/64KiB caps unchanged."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-pipeline.md",
+          "locator": "CP61;4D56D0->4D0650->4CFFE0;6B52D0/4D4750/4D6050/4AF940",
+          "observation": "3 exact27 native retained-graph captures;18 source assertions; complete tracked engine/library/SDK cleanup; unchanged caps."
+        }
+      ],
+      "unknowns": [
+        "Cold regex, whole manager startup, live SDK/device/scene and large corpus file/XML pipeline remain open. Three small ASCII documents and three complete API calls do not prove one full initialization caller.",
+        "Remaining errors, scanf EOF, archive lookup, repeated ownership, all locales and arbitrary XML variants remain incomplete. Source XML decoder/SDK are external contracts; ownership/pointer guards and inferred names documented."
+      ]
+    },
+    {
+      "className": "spPCEffectTemplate",
+      "coverageScore": 48,
+      "lowerBound": 36,
+      "upperBound": 61,
+      "platformKey": "pc",
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Prior file/events/compiler evidence now joined on the same original template: full file/regex metadata, original XML initialization and file-produced shader compile consumer. Assembly, HLSL reflection and XML constant variants match source.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-pc-effect-template.md",
+          "locator": "CP52",
+          "observation": "Constructor/type/lifetime and small native XML parse."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-constants.md",
+          "locator": "CP53",
+          "observation": "Constants and pass persistence."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-variables.md",
+          "locator": "CP54",
+          "observation": "Populated variable ownership."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-corpus.md",
+          "locator": "CP55",
+          "observation": "Complete original resource event streams."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-shader-compile.md",
+          "locator": "CP56;4CFFE0..4D063F;4CFE40->13B96C0;4CFCD0",
+          "observation": "15 exact bounded successful engine compiler-consumer cases with explicit SDK output and complete cleanup."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-file.md",
+          "locator": "CP60;4D56D0/4D5560->476550/4D27B0/4D0960/417090",
+          "observation": "14 exact78 native cases, original regex compile/search and all tracked cleanup except two established file-error leaks; 100k/2s/64KiB caps unchanged."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-pc-rfx-pipeline.md",
+          "locator": "CP61;4D56D0->4D0650->4CFFE0;6B52D0/4D4750/4D6050/4AF940",
+          "observation": "3 exact27 native retained-graph captures;18 source assertions; complete tracked engine/library/SDK cleanup; unchanged caps."
+        }
+      ],
+      "unknowns": [
+        "Cold regex, whole manager startup, live SDK/device/scene and large corpus file/XML pipeline remain open. Three small ASCII documents and three complete API calls do not prove one full initialization caller.",
+        "Remaining errors, scanf EOF, archive lookup, repeated ownership, all locales and arbitrary XML variants remain incomplete. Source XML decoder/SDK are external contracts; ownership/pointer guards and inferred names documented."
+      ]
+    }
+  ]
+}
