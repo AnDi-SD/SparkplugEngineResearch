@@ -8,6 +8,7 @@
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Analysis/PC/spTextureMipFilter.h"
 #include "Analysis/PC/spTextureBlockCodec.h"
+#include "Analysis/PC/spTextureBlockOptimizer.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -153,6 +154,31 @@ namespace
             Check(!spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(data.size()),texture,&error)&&context.failed,"malformed/unrestored native texture rejected");
         }
     }
+    void OptimizeBlocks(bool capture=false)
+    {
+        unsigned steps=0,count=0;
+        while(std::cin>>steps)
+        {
+            Check(++count<=128,"bounded optimizer batch");sparkplug::evidence::pc::texture_blocks::Block block{};
+            for(auto& color:block)for(unsigned c=0;c<3;++c)
+            {std::uint32_t bits=0;Check(bool(std::cin>>bits),"complete optimizer block");std::memcpy(&color[c],&bits,4);}
+            sparkplug::evidence::pc::texture_blocks::RGB a,b;
+            std::vector<sparkplug::evidence::pc::texture_blocks::OptimizerStep> trace;
+            Check(sparkplug::evidence::pc::texture_blocks::OptimizeRGB(block,steps,a,b,capture?&trace:nullptr),"bounded weighted block");
+            if(capture)std::cout<<"{\"result\":";
+            std::cout<<'[';bool first=true;for(const auto& endpoint:{a,b})for(float value:endpoint)
+            {if(!first)std::cout<<',';first=false;std::uint32_t bits;std::memcpy(&bits,&value,4);std::cout<<bits;}
+            std::cout<<']';if(capture)
+            {
+                std::cout<<",\"trace\":[";bool rowFirst=true;
+                for(const auto& row:trace){if(!rowFirst)std::cout<<',';rowFirst=false;std::cout<<'[';bool valueFirst=true;
+                    for(float value:row){if(!valueFirst)std::cout<<',';valueFirst=false;std::uint32_t bits;std::memcpy(&bits,&value,4);std::cout<<bits;}std::cout<<']';}
+                std::cout<<"]}";
+            }
+            std::cout<<'\n';
+        }
+        Check(std::cin.eof()&&count,"complete optimizer input");
+    }
     void DecodeBlocks()
     {
         unsigned flags=0,count=0;std::string hex;
@@ -179,6 +205,17 @@ namespace
         const auto previous=block;
         Check(!codec::Decode(0,bytes.data(),bytes.size(),block)&&block==previous,"invalid codec preserves output");
         Check(!codec::Decode(1,bytes.data(),bytes.size(),block)&&block==previous,"invalid packed extent preserves output");
+    }
+    void BlockOptimizerGuards()
+    {
+        namespace codec=sparkplug::evidence::pc::texture_blocks;
+        const float updated=sparkplug::evidence::pc::float80_rtz::UpdateEndpoint(0,codec::Constant(0xBCCE6730),.75F);
+        std::uint32_t bits;std::memcpy(&bits,&updated,4);
+        Check(bits==0x3D099A1F,"native extended reciprocal residual survives until truncate float store");
+        codec::Block block{};codec::RGB a{1,2,3},b{4,5,6};
+        Check(!codec::OptimizeRGB(block,2,a,b)&&a==codec::RGB{1,2,3}&&b==codec::RGB{4,5,6},"unknown palette size preserves outputs");
+        block[0][0]=codec::Constant(0x7FC00000);
+        Check(!codec::OptimizeRGB(block,4,a,b)&&a==codec::RGB{1,2,3},"nonfinite optimizer input rejected");
     }
     std::string MissingMips()
     {
@@ -346,6 +383,8 @@ int main(int argc,char** argv)
 {
     try
     {
+        if(argc==2&&std::string(argv[1])=="--optimize-blocks"){OptimizeBlocks();return 0;}
+        if(argc==2&&std::string(argv[1])=="--optimize-blocks-trace"){OptimizeBlocks(true);return 0;}
         if(argc==2&&std::string(argv[1])=="--decode-blocks"){DecodeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--cross"){std::cout<<Cross(argv[2])<<'\n';return 0;}
@@ -360,6 +399,7 @@ int main(int argc,char** argv)
         NativeBounds();
         MissingMipGuards();
         BlockDecodeGuards();
+        BlockOptimizerGuards();
         for(const auto* mode:{"raw","indexed","indexed-upload-fail"})(void)Palette(mode);
         PaletteBounds();
         for(const auto* mode:{"raw","raw-2","dxt1-4","raw-both","raw-auto","raw-4-partial"})(void)NativeWrite(mode);

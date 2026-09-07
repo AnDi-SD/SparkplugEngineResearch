@@ -30,7 +30,8 @@
         "4AAC50 protected prefix404BC6 resets size48 before summing surface sizes; raw uses pitch*height, DXT uses native floor width/4 and height/4 with minimum1.",
         "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs.",
         "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released.",
-        "CP111 original64C493/64C5D5/64C65A block decoders match438 C++ cases/28032 binary32 words without seams. DXT3/5 reuse DXT1 color branches before replacing alpha."
+        "CP111 original64C493/64C5D5/64C65A block decoders match438 C++ cases/28032 binary32 words without seams. DXT3/5 reuse DXT1 color branches before replacing alpha.",
+        "CP112 original64B5C0 weighted RGB endpoints match392 unique input/steps cases, including exact x87 reciprocal/product/add truncation for the localized binary64 mismatch."
       ],
       "unknowns": [
         {
@@ -56,7 +57,8 @@
         "docs/research/native-pc-skin-texture-generated-render.md",
         "docs/research/native-pc-texture-missing-mips.md",
         "docs/research/native-pc-whole-textured-scene.md",
-        "docs/research/native-pc-texture-compressed-blocks.md"
+        "docs/research/native-pc-texture-compressed-blocks.md",
+        "docs/research/native-pc-texture-block-optimizer.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -68,7 +70,8 @@
         "pc-skin-texture-generated-render",
         "pc-texture-missing-mips",
         "pc-scene-file-profile",
-        "pc-texture-compressed-blocks"
+        "pc-texture-compressed-blocks",
+        "pc-texture-block-optimizer"
       ]
     },
     {
@@ -11343,6 +11346,56 @@
           "4",
           "transparent",
           "profile"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-block-optimizer": [
+      {
+        "id": "pc-block-optimizer-0",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_optimizer.py",
+        "args": [
+          "--guest",
+          "profile-0",
+          "48",
+          "0"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-optimizer-1",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_optimizer.py",
+        "args": [
+          "--guest",
+          "profile-1",
+          "48",
+          "1"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-optimizer-2",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_optimizer.py",
+        "args": [
+          "--guest",
+          "profile-2",
+          "48",
+          "2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-optimizer-3",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_optimizer.py",
+        "args": [
+          "--guest",
+          "profile-3",
+          "48",
+          "3"
         ],
         "parallelSafe": true
       }
