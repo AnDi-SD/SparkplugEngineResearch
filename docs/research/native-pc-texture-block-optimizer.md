@@ -1,5 +1,8 @@
 # CP112: original RGB endpoint optimizer
 
+[CP113](native-pc-texture-compressed-mips.md) использует этот optimizer в
+проверенных block encoders и общем compressed mip reader.
+
 8 сентября 2026. Перенесён PC `64B5C0`: выбор двух концов цветовой палитры
 из 16 взвешенных RGB pixels. Четыре batches по 104 случая совпали по всем
 2496 endpoint float words; это 392 уникальных пары input/steps и 24 повторения

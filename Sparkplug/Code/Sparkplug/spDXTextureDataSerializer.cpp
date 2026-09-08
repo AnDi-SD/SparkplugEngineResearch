@@ -5,6 +5,7 @@
 #include "spDataBlockSerializer.h"
 #include "Analysis/PC/spSectionCursor.h"
 #include "Analysis/PC/spTextureMipFilter.h"
+#include "Analysis/PC/spTextureCompressedMipFilter.h"
 #include <algorithm>
 
 #include <limits>
@@ -127,9 +128,10 @@ namespace sparkplug::reconstruction
             if(!terminated||!prefix||mips.empty())return native.Fail("Incomplete native mip section");
             while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
             {
-                if(flags)return native.Fail("Missing compressed mip conversion is not restored");
                 spDXTexture::MipForAnalysis generated;
-                if(!sparkplug::evidence::pc::texture_mips::GenerateNext(mips.back(),generated))return native.Fail("Cannot generate bounded raw native mip");
+                const bool created=flags?sparkplug::evidence::pc::texture_mips::GenerateNextCompressed(mips.back(),flags,generated)
+                    :sparkplug::evidence::pc::texture_mips::GenerateNext(mips.back(),generated);
+                if(!created)return native.Fail("Cannot generate bounded native mip");
                 if(context.pcTexturePitchForAnalysis)generated.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),generated.rowBytes);
                 if(generated.physicalPitch<generated.rowBytes||std::uint64_t(generated.physicalPitch)*generated.rows>16u*1024u*1024u)return native.Fail("Invalid declared generated mip surface pitch");
                 mips.push_back(std::move(generated));

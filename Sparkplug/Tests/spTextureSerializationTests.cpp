@@ -9,6 +9,8 @@
 #include "Analysis/PC/spTextureMipFilter.h"
 #include "Analysis/PC/spTextureBlockCodec.h"
 #include "Analysis/PC/spTextureBlockOptimizer.h"
+#include "Analysis/PC/spTextureBlockEncoder.h"
+#include "Analysis/PC/spTextureCompressedMipFilter.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -154,6 +156,18 @@ namespace
             Check(!spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(data.size()),texture,&error)&&context.failed,"malformed/unrestored native texture rejected");
         }
     }
+    void EncodeBlocks()
+    {
+        unsigned flags=0,count=0;while(std::cin>>flags)
+        {
+            Check(++count<=128,"bounded encoder batch");sparkplug::evidence::pc::texture_blocks::Block block{};
+            for(auto& color:block)for(float& value:color)
+            {std::uint32_t bits=0;Check(bool(std::cin>>bits),"complete encoder block");std::memcpy(&value,&bits,4);}
+            std::vector<std::byte> packed;Check(sparkplug::evidence::pc::texture_blocks::EncodeNoDither(flags,block,packed),"restored block encoder input");
+            Bytes bytes;for(auto b:packed)bytes.push_back(static_cast<std::uint8_t>(b));std::cout<<'"'<<Hex(bytes)<<"\"\n";
+        }
+        Check(std::cin.eof()&&count,"complete encoder input");
+    }
     void OptimizeBlocks(bool capture=false)
     {
         unsigned steps=0,count=0;
@@ -216,6 +230,18 @@ namespace
         Check(!codec::OptimizeRGB(block,2,a,b)&&a==codec::RGB{1,2,3}&&b==codec::RGB{4,5,6},"unknown palette size preserves outputs");
         block[0][0]=codec::Constant(0x7FC00000);
         Check(!codec::OptimizeRGB(block,4,a,b)&&a==codec::RGB{1,2,3},"nonfinite optimizer input rejected");
+    }
+    void CompressedMipGuards()
+    {
+        namespace filter=sparkplug::evidence::pc::texture_mips;
+        spDXTexture::MipForAnalysis input,output;Check(spDXTexture::DescribeMipForAnalysis(4,4,0,input),"compressed source layout");
+        for(unsigned byte:{0u,248u,31u,0u,0u,0u,0u,0u})input.packedBytes.push_back(std::byte(byte));
+        const std::vector<std::byte> red{std::byte{0},std::byte{248},std::byte{0},std::byte{248},std::byte{0},std::byte{0},std::byte{0},std::byte{0}};
+        Check(filter::GenerateNextCompressed(input,1,output)&&output.width==2&&output.height==2&&output.packedBytes==red,"original canonical red DXT1 generated block");
+        auto next=output;Check(filter::GenerateNextCompressed(output,1,next)&&next.width==1&&next.packedBytes==red,"partial block wrap fills final1x1");
+        input.packedBytes.pop_back();Check(!filter::GenerateNextCompressed(input,1,next)&&next.packedBytes==red,"truncated compressed input preserves destination");
+        sparkplug::evidence::pc::texture_blocks::Block block{};auto bytes=red;
+        Check(!sparkplug::evidence::pc::texture_blocks::EncodeNoDither(4,block,bytes)&&bytes==red,"unknown block format does not mutate output");
     }
     std::string MissingMips()
     {
@@ -383,6 +409,7 @@ int main(int argc,char** argv)
 {
     try
     {
+        if(argc==2&&std::string(argv[1])=="--encode-blocks"){EncodeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--optimize-blocks"){OptimizeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--optimize-blocks-trace"){OptimizeBlocks(true);return 0;}
         if(argc==2&&std::string(argv[1])=="--decode-blocks"){DecodeBlocks();return 0;}
@@ -400,6 +427,7 @@ int main(int argc,char** argv)
         MissingMipGuards();
         BlockDecodeGuards();
         BlockOptimizerGuards();
+        CompressedMipGuards();
         for(const auto* mode:{"raw","indexed","indexed-upload-fail"})(void)Palette(mode);
         PaletteBounds();
         for(const auto* mode:{"raw","raw-2","dxt1-4","raw-both","raw-auto","raw-4-partial"})(void)NativeWrite(mode);

@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+import random
 import struct
 import sys
 import time
@@ -42,13 +43,15 @@ class CompressedMissingMipFixture(MissingMipFixture):
 
 def specimen(kind,dimension,pattern='red'):
     assert kind in ('dxt1','dxt3','dxt5') and dimension in (4,8,16)
-    assert pattern in ('red','indices','transparent')
+    assert pattern in ('red','indices','transparent','random')
     flags={'dxt1':1,'dxt3':2,'dxt5':3}[kind]
     colors=struct.pack('<HHI',0xf800,0x001f,0 if pattern=='red' else 0xe4e4e4e4)
     if pattern=='transparent':colors=struct.pack('<HHI',0,0xffff,0xffffffff)
     alpha=b'\xff'*8 if kind=='dxt3' else b'\xff\0'+b'\0'*6 if kind=='dxt5' else b''
     block=alpha+colors
     stride=dimension//4*len(block);rows=dimension//4;pixels=block*(dimension//4)**2
+    if pattern=='random':
+        rng=random.Random(0x64c493+flags);pixels=bytes(rng.randrange(256) for _ in range(len(pixels)))
     native=field(0,b'\1'+struct.pack('<3I',dimension,dimension,flags)+b'\1'+struct.pack('<3I',dimension,stride,rows)+pixels)+b'\0'
     data=field(2,b'\0')+b'\0'+field(6,struct.pack('<I',6))+field(1,native)+b'\0'
     return data,pixels
@@ -69,6 +72,13 @@ def main(kind='dxt1',dimension='4',pattern='red',label='first',*,return_capture=
             codecs.append({'kind':p.uint(codec+8),'methods':[f'{p.uint(table+i):08X}' for i in (0,4,8)],
                            'decodeBlock':f'{p.uint(codec+0x8c):08X}','encodeBlock':f'{p.uint(codec+0x90):08X}'})
     p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_codecs,begin=0x61c647,end=0x61c647)
+    encoded_blocks=[]
+    def observe_encoding(mu,address,size,user):
+        destination,source,dither=f.args(p,3);assert len(encoded_blocks)<16
+        encoded_blocks.append({'entry':f'{address:08X}','dither':dither,
+                               'inputWords':list(struct.unpack('<64I',p.mu.mem_read(source,256)))})
+    for entry in (0x64c798,0x64c8bc,0x64c9eb):
+        p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_encoding,begin=entry,end=entry)
     report={'kind':'original-compressed-missing-mips','codec':kind,'dimension':dimension,'pattern':pattern,
             'payloadSha256':hashlib.sha256(data).hexdigest().upper(),'payloadHex':data.hex(),
             'executionProfile':'file','arenaLimitBytes':p.arena_size,'maxSurfaceBytes':2048,'maxLevels':5}
@@ -99,10 +109,10 @@ def main(kind='dxt1',dimension='4',pattern='red',label='first',*,return_capture=
                       instructions=sum(p.visits.values()),tail=[f'{a:08X}' for a in p.tail],events=f.events.copy())
         raise
     finally:
-        report.update(cursor=f.position,arenaReservedBytes=p.allocated,seconds=time.monotonic()-started,ftolCalls=f.ftol_calls)
+        report.update(cursor=f.position,arenaReservedBytes=p.allocated,seconds=time.monotonic()-started,ftolCalls=f.ftol_calls,encodedBlocks=encoded_blocks)
         target=ROOT/f'local-data/results/cycle-20260908-0700/cp111-compressed-{kind}-{dimension}-{pattern}-{label}.json'
         target.write_text(json.dumps(report,indent=2)+'\n')
-        print(json.dumps({k:v for k,v in report.items() if k not in ('events','payloadHex')},sort_keys=True),flush=True)
+        print(json.dumps({k:v for k,v in report.items() if k not in ('events','payloadHex','encodedBlocks')},sort_keys=True),flush=True)
     return report if return_capture else 0
 
 

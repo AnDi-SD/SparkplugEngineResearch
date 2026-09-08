@@ -1,5 +1,8 @@
 # CP111: PC DXT block decode и original missing-mip путь
 
+[CP113](native-pc-texture-compressed-mips.md) впоследствии добавил no-dither
+encoders и C++ compressed missing-mip generation; ниже сохранены границы CP111.
+
 8 сентября 2026. Восстановлены три декодера сжатых блоков: 438 native/source
 случаев совпали по 28 032 binary32 словам. Проверены оба порядка цветовых и
 альфа-концов, все индексы палитр, крайние значения и 384 seeded random блока.

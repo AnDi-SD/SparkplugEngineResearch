@@ -67,6 +67,13 @@ namespace sparkplug::evidence::pc::float80_rtz
         auto wide=Wide::Shifted(extended.mantissa,0);wide.Multiply(significand);
         return Normalize(wide,extended.exponent+int(field?field:1)-150,extended.negative!=bool(bits>>31));
     }
+    inline Number DividePositiveFloat(Number extended,float positive)
+    {
+        std::uint32_t bits;std::memcpy(&bits,&positive,4);const auto field=(bits>>23)&255;
+        const auto significand=(bits&0x7fffff)|(field?0x800000:0);
+        auto wide=Wide::Shifted(extended.mantissa,24);wide.Divide(significand);
+        return Normalize(wide,extended.exponent-int(field?field:1)+150-24,extended.negative);
+    }
     inline Number Add(Number a,Number b)
     {
         if(!a.mantissa)return b;if(!b.mantissa)return a;
@@ -95,4 +102,6 @@ namespace sparkplug::evidence::pc::float80_rtz
     }
     inline float UpdateEndpoint(float endpoint,float gradient,float positiveCurvature)
     {return ToFloat(Add(FromFloat(endpoint),MultiplyFloat(NegativeReciprocal(positiveCurvature),gradient)));}
+    inline float SubtractQuotient(float endpoint,float numerator,float positiveDenominator)
+    {auto quotient=DividePositiveFloat(FromFloat(numerator),positiveDenominator);quotient.negative=!quotient.negative;return ToFloat(Add(FromFloat(endpoint),quotient));}
 }

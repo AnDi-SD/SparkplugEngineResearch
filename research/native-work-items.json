@@ -20,7 +20,7 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP108 raw missing mips and CP109 whole loading.smo pass exact comparisons. CP111 adds original compressed missing-mip execution and 438 exact C++ block decode cases. Restore color/alpha encoders next; compressed C++ synthesis, DX cross conversion, external source and live backend remain open.",
+      "summary": "CP108/113 reconstruct raw and DXT1/3/5 power-of-two missing mips with filter4/no dithering; CP109 verifies whole loading.smo. CP111/112/113 establish exact block decode, RGB optimization and packed encoding. Continue real SMO consumers, DX cross conversion, external source, remaining failures and live backend.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
@@ -31,12 +31,13 @@
         "Original4AB030/61039A/60FDB4/61C44F generates missing raw mips; source matches six16x16 patterns and four rectangular/small cases with declared COM/CRT inputs.",
         "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released.",
         "CP111 original64C493/64C5D5/64C65A block decoders match438 C++ cases/28032 binary32 words without seams. DXT3/5 reuse DXT1 color branches before replacing alpha.",
-        "CP112 original64B5C0 weighted RGB endpoints match392 unique input/steps cases, including exact x87 reciprocal/product/add truncation for the localized binary64 mismatch."
+        "CP112 original64B5C0 weighted RGB endpoints match392 unique input/steps cases, including exact x87 reciprocal/product/add truncation for the localized binary64 mismatch.",
+        "CP113 encoders match708 original packed cases/9440 bytes and compressed reader15/15 cases/1560 mip bytes, including640 generated; all609 original allocations freed."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Compressed C++ missing-mip encoding, DX cross upload conversion, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, source controller clone graph, reinit/errors and live PC backend remain required. Raw missing mips and known writer/reference/palette-bind slices are already restored."
+          "text": "Other filters/dithering, DX cross upload conversion, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, source controller clone graph, reinit/errors and live PC backend remain required. Default raw and compressed missing mips are restored."
         },
         {
           "kind": "behavior",
@@ -58,7 +59,8 @@
         "docs/research/native-pc-texture-missing-mips.md",
         "docs/research/native-pc-whole-textured-scene.md",
         "docs/research/native-pc-texture-compressed-blocks.md",
-        "docs/research/native-pc-texture-block-optimizer.md"
+        "docs/research/native-pc-texture-block-optimizer.md",
+        "docs/research/native-pc-texture-compressed-mips.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -71,7 +73,9 @@
         "pc-texture-missing-mips",
         "pc-scene-file-profile",
         "pc-texture-compressed-blocks",
-        "pc-texture-block-optimizer"
+        "pc-texture-block-optimizer",
+        "pc-texture-block-encode",
+        "pc-texture-compressed-mips"
       ]
     },
     {
@@ -11396,6 +11400,361 @@
           "profile-3",
           "48",
           "3"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-block-encode": [
+      {
+        "id": "pc-block-encode-1-0",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "1",
+          "profile-0",
+          "48",
+          "0"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-1-1",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "1",
+          "profile-1",
+          "48",
+          "1"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-1-2",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "1",
+          "profile-2",
+          "48",
+          "2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-1-3",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "1",
+          "profile-3",
+          "48",
+          "3"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-2-0",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "2",
+          "profile-0",
+          "48",
+          "0"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-2-1",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "2",
+          "profile-1",
+          "48",
+          "1"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-2-2",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "2",
+          "profile-2",
+          "48",
+          "2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-2-3",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "2",
+          "profile-3",
+          "48",
+          "3"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-3-0",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "3",
+          "profile-0",
+          "48",
+          "0"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-3-1",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "3",
+          "profile-1",
+          "48",
+          "1"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-3-2",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "3",
+          "profile-2",
+          "48",
+          "2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-block-encode-3-3",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_block_encode.py",
+        "args": [
+          "--guest",
+          "3",
+          "profile-3",
+          "48",
+          "3"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-compressed-mips": [
+      {
+        "id": "pc-compressed-mips-dxt1-4-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "4",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt1-8-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "8",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt1-16-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "16",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt3-4-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "4",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt3-8-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "8",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt3-16-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "16",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt5-4-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "4",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt5-8-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "8",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt5-16-random",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "16",
+          "random",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt1-4-red",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "4",
+          "red",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt1-4-transparent",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "4",
+          "transparent",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt3-4-red",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "4",
+          "red",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt3-4-transparent",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt3",
+          "4",
+          "transparent",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt5-4-red",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "4",
+          "red",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-compressed-mips-dxt5-4-transparent",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_compressed_missing.py",
+        "args": [
+          "--guest",
+          "dxt5",
+          "4",
+          "transparent",
+          "profile"
         ],
         "parallelSafe": true
       }
