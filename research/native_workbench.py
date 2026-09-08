@@ -36,12 +36,17 @@ def validate_config(config):
     for item in items.values():
         if item['platform'] not in ('pc', 'ps2'):
             raise ValueError('Explicit platform required')
+        if item.get('planningStatus', 'active') not in ('active', 'deferred'):
+            raise ValueError('Unknown planning status')
         for unknown in item['unknowns']:
             if unknown['kind'] not in ('behavior', 'name', 'path', 'abi'):
                 raise ValueError('Unknown gap kind')
         for dep in item['dependsOn']:
             if dep not in items or items[dep]['platform'] != item['platform']:
                 raise ValueError('Missing or cross-platform dependency')
+            if (item.get('planningStatus', 'active') == 'active'
+                    and items[dep].get('planningStatus', 'active') == 'deferred'):
+                raise ValueError('Active work item depends on deferred work')
         for profile in item['testProfiles']:
             if profile not in config['testProfiles']:
                 raise ValueError('Missing test profile')
@@ -108,12 +113,13 @@ def dossier(db, config, name, platform):
     return result
 
 
-def queue(db, config, platform):
+def queue(db, config, platform, *, include_deferred=False):
     if platform not in ('pc', 'ps2'):
         raise ValueError('Explicit platform required')
     direct = {r[0] for r in db.execute("SELECT t.class_name FROM native_types t JOIN native_type_scopes s ON s.native_type_id=t.id WHERE s.scope_key='smo_san' AND t.on_" + platform + '=1')}
     items = [dict(item, directConsumers=sorted(direct.intersection(item['classes'])))
-             for item in config['items'] if item['platform'] == platform]
+             for item in config['items'] if item['platform'] == platform
+             and (include_deferred or item.get('planningStatus', 'active') == 'active')]
     # Investigation order is dependency-aware, without requiring a partially
     # studied dependency to be100% before independently testing its consumer.
     # Priority alone could put a new mesh item before its loader prerequisite.
@@ -196,6 +202,8 @@ def main():
     parser.add_argument('--platform', choices=('pc', 'ps2'), default='pc')
     parser.add_argument('--database', type=Path, default=DATABASE)
     parser.add_argument('--json', action='store_true')
+    parser.add_argument('--include-deferred', action='store_true',
+                        help='Include long-term engine backlog in queue output')
     parser.add_argument('--deadline-utc', help='UTC ISO timestamp, e.g.2026-09-06T09:00:00Z')
     parser.add_argument('--workers',type=int,choices=range(1,MAX_WORKERS+1),default=1,
                         help='Independent fresh children per wave; audited profiles only, default1')
@@ -224,14 +232,14 @@ def main():
                 parser.error('A class name is required')
             result = dossier(db, config, args.target, args.platform)
         else:
-            result = queue(db, config, args.platform)
+            result = queue(db, config, args.platform, include_deferred=args.include_deferred)
     finally:
         db.close()
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     elif args.command == 'queue':
         for item in result:
-            print(f"P{item['priority']} {item['id']} | direct consumers {len(item['directConsumers'])} | {item['status']}")
+            print(f"P{item['priority']} {item['id']} | direct consumers {len(item['directConsumers'])} | {item['status']} | {item.get('planningStatus', 'active')}")
             print('  ' + item['summary'])
         if not result:
             print('No independently structured work items for this platform; not a claim of no remaining work.')

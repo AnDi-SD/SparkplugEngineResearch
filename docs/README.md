@@ -4,6 +4,7 @@
 
 ## Навигация
 
+- [Текущая цель: инструменты и необходимые части реальных классов](research/tool-driven-research-scope.md)
 - [Полный SAN producer: source FFPS принят оригинальным PC reader](research/native-pc-san-file-roundtrip.md)
 - [SAN → VMD: скелет Bloom, референсы MMD и простой Python-конвертер](research/san-to-vmd-feasibility.md)
 - [Манифест исследования: приоритет SMO/SAN, оптимизация, память и commits](research/research-manifesto.md)
@@ -14,7 +15,7 @@
 - [Общая база файлов, ресурсов и native-прогресса](research/game-resource-database.md)
 - [Ускоренный исследовательский цикл и независимые PC/PS2 оценки](research/native-research-workbench.md)
 - [Исторический аудит процентов от 6 сентября: переход к рабочему контуру SMO/SAN](research/native-coverage-recalculation-2026-09-06.md)
-- [Критерии завершения PC SMO/SAN и текущая область исследования](research/pc-smo-san-completion-contract.md)
+- [Долгосрочный контракт полного PC SMO/SAN исследования](research/pc-smo-san-completion-contract.md)
 - [Общий PC loader: FFPS/FAT, RTTI factory, целый SAN load и lifetime](research/native-pc-smo-san-loader.md)
 - [PC SAN writer и nested block writer: запись, patch-back, native quirks](research/native-pc-san-writer.md)
 - [PC save-reference: индексация, общие объекты, one-shot payload и отказы](research/native-pc-save-reference.md)

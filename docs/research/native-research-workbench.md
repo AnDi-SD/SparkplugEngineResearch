@@ -1,15 +1,16 @@
 # PC-first workbench и независимый учёт PC/PS2
 
+Текущая цель: [необходимые контракты для инструментов](tool-driven-research-scope.md).
 Постоянные правила: [манифест исследования](research-manifesto.md).
-После цикла 7 сентября до 19:00 очередь переупорядочена: loader/save,
-DX mesh materialization, Node resource graph. Реализован отдельный профиль
+По уточнению 8 сентября default queue показывает активные операции софта;
+полное исследование движка сохранено отдельно. Реализован отдельный профиль
 `pc-skin-lit-generation-128k`; [результаты опыта](native-research-strategy-2026-09-07.md).
 Общий разрешённый бюджет RAM — около 1 ГиБ на все исследовательские процессы;
 существующие ограничения отдельных утилит описаны ниже и сами не меняются.
 
-С 8 сентября PC остаётся главным направлением, а PS2 получает отдельную
-сопутствующую очередь: общая сериализация/save, spatial/collision/navigation
-и частицы. Связи `companionPcItems` указывают PC-задачи, которым полезно
+PC остаётся главным направлением. Активный PS2-срез — serializer-вопросы
+нужной операции; spatial/collision/navigation runtime и симуляция частиц
+сохранены в deferred backlog. Связи `companionPcItems` указывают PC-задачи, которым полезно
 сопоставление. Они не являются `dependsOn` и не переносят evidence или scores.
 Планирование двух платформ и подбор коротких выборок описаны в манифесте;
 автоматического планировщика PC/PS2 и универсального cache результатов нет.
@@ -39,6 +40,7 @@ python research/native_workbench.py dossier spOctreeNode --platform pc
 python research/native_workbench.py dossier spOctreeNode --platform ps2 --json
 python research/native_workbench.py queue --platform pc
 python research/native_workbench.py queue --platform ps2
+python research/native_workbench.py queue --platform pc --include-deferred
 ```
 
 Паспорт берёт из SQLite уже зарегистрированные ID/base/registration locator,
@@ -53,7 +55,14 @@ payload для этого **не сканируются**. Историческ�
 assessments и знаменатели каталога считаются отдельно от этих corpus counts.
 
 [native-work-items.json](../../research/native-work-items.json) — reviewed
-очередь из 21 участка: 18 PC и 3 PS2. Первоначальные четыре: plane storage, concrete spatial
+22 участка: 19 PC и 3 PS2. Активны 6 PC и 1 PS2; остальные 15 отложены.
+`planningStatus` управляет default queue; `status` сохраняет степень исследования.
+У активных участков указаны инструменты, `requiredParts`, `deferredParts` и
+`doneWhen`. Прежние scheduling dependencies и широкие profile lists сохранены
+как исторический контекст. Профили не удалены и запускаются только явной командой.
+Активный участок не может зависеть от скрытой deferred-задачи: validator
+отклоняет такую конфигурацию. Список всех задач доступен через `--include-deferred`.
+Первоначальные четыре: plane storage, concrete spatial
 membership, occluder topology, native mesh submission. Очередь хранит ссылки,
 проверенные факты, отдельные неизвестные **behavior/name/path/ABI**, наборы
 проверок и исследовательский порядок. `dependsOn` здесь не означает доказанный

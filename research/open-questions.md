@@ -11,23 +11,22 @@ PC runtime-уточнения и текущий приоритет синхро�
 Долгие задачи, которые разумнее выполнять вместе с разработкой writer/importer,
 отделены от текущего runtime-этапа.
 
-Главный порядок текущего исследования задаёт не этот список полей, а разрывы в
-[`runtime resource pipeline`](../docs/engine/runtime-resource-pipeline.md).
-После цикла 7 сентября до 19:00 первыми идут loader/save, DX mesh
-materialization и Node resource graph; постоянные правила записаны в
-[манифесте исследования](../docs/research/research-manifesto.md).
-Визуальные проверки ниже используются после локализации соответствующего
-consumer в executable либо как явно ограниченный разведочный тест.
+По уточнению 8 сентября порядок задаёт [конкретная функция инструмента](../docs/research/tool-driven-research-scope.md),
+её дефект и необходимая часть реального класса. Сначала используется уже
+полученное evidence и проверяется интеграция в shared code. Разрывы в
+[`runtime resource pipeline`](../docs/engine/runtime-resource-pipeline.md)
+исследуются, только когда влияют на такую операцию. Постоянные правила записаны
+в [манифесте исследования](../docs/research/research-manifesto.md).
 
 Исторический pre-release scope содержит вопросы, обязательные для
 SmoLVLcreator и production model import; его gate и критерии отказа записаны в
 [`../docs/research/smo-lvlcreator-import-mvp-plan.md`](../docs/research/smo-lvlcreator-import-mvp-plan.md).
-Он не ограничивает текущие PC-first native-реконструкционные циклы: их порядок
-зависимостей и неизвестное ведутся в
+Он остаётся evidence для уже проверенных операций. Остальные зависимости
+движка и неизвестное сохраняются как долгосрочный backlog в
 [`native-reconstruction-plan`](../docs/research/native-reconstruction-plan.md) и
 [`native-open-questions`](../docs/research/native-open-questions.md).
-Игровые проверки ниже — отдельный следующий этап, не автоматически разрешённые
-действия в guest-only цикле; текущие результаты не объявляют приложения готовыми.
+Новая операция получает собственную необходимую native/visual/gameplay проверку;
+полная реконструкция движка не становится условием её выпуска.
 
 ## Подтверждённая исходная точка
 

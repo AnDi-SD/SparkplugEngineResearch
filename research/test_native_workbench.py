@@ -31,6 +31,8 @@ class WorkbenchTests(unittest.TestCase):
         self.assertIs(validate_config(self.config), self.config)
 
     def test_cycle_rejected(self):
+        self.config['items'][0]['planningStatus'] = 'active'
+        self.config['items'][1]['planningStatus'] = 'active'
         self.config['items'][0]['dependsOn'] = [self.config['items'][1]['id']]
         self.config['items'][1]['dependsOn'] = [self.config['items'][0]['id']]
         with self.assertRaisesRegex(ValueError, 'cycle'):
@@ -57,17 +59,39 @@ class WorkbenchTests(unittest.TestCase):
             dossier(self.db, self.config, 'spOctreeNode', 'ps2')
 
     def test_ps2_queue_not_copied(self):
-        self.assertEqual(queue(self.db, self.config, 'ps2'), [])
+        ps2 = queue(self.db, self.config, 'ps2')
+        self.assertEqual({item['id'] for item in ps2},
+                         {item['id'] for item in self.config['items']
+                          if item['platform'] == 'ps2' and item.get('planningStatus', 'active') == 'active'})
+        self.assertTrue(all(item['platform'] == 'ps2' for item in ps2))
         pc = queue(self.db, self.config, 'pc')
         self.assertTrue(pc)
         self.assertEqual({item['id'] for item in pc},
-                         {item['id'] for item in self.config['items'] if item['platform'] == 'pc'})
+                         {item['id'] for item in self.config['items']
+                          if item['platform'] == 'pc' and item.get('planningStatus', 'active') == 'active'})
         self.assertTrue(all(item['platform'] == 'pc' for item in pc))
+
+    def test_deferred_work_retained_but_not_scheduled(self):
+        active = queue(self.db, self.config, 'pc')
+        complete = queue(self.db, self.config, 'pc', include_deferred=True)
+        active_ids = {item['id'] for item in active}
+        self.assertNotIn('pc-shader-template-generation', active_ids)
+        self.assertIn('pc-texture-codec-backend', active_ids)
+        self.assertEqual({item['id'] for item in complete},
+                         {item['id'] for item in self.config['items'] if item['platform'] == 'pc'})
+        self.assertGreater(len(complete), len(active))
+
+    def test_active_dependency_cannot_disappear_into_deferred_backlog(self):
+        items = {item['id']: item for item in self.config['items']}
+        items['pc-node-resource-graph']['dependsOn'] = ['pc-smo-san-loader-save']
+        items['pc-smo-san-loader-save']['planningStatus'] = 'deferred'
+        with self.assertRaisesRegex(ValueError, 'depends on deferred'):
+            validate_config(self.config)
 
     def test_queue_respects_dependencies_before_priority(self):
         items={item['id']:item for item in self.config['items']}
         items['pc-mesh-native-submission']['priority']=-10
-        ordered=queue(self.db,self.config,'pc');position={item['id']:i for i,item in enumerate(ordered)}
+        ordered=queue(self.db,self.config,'pc',include_deferred=True);position={item['id']:i for i,item in enumerate(ordered)}
         for item in ordered:
             for dependency in item['dependsOn']:
                 self.assertLess(position[dependency],position[item['id']])

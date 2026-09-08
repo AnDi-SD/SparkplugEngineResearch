@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "notes": "Reviewed PC-first sequence with a standing PS2 companion queue; not an exhaustive call graph. PC remains the main delivery target. dependsOn records same-platform investigation ordering, not required runtime edges. companionPcItems records useful cross-platform research pairings only, never ABI equivalence, score transfer or a scheduling dependency. Unnamed helper labels are analytical, never original classes. Policy: docs/research/research-manifesto.md. No automatic two-platform scheduler or universal result cache is implemented.",
+  "notes": "Current objective: reliable existing tools, PC first, with focused PS2 comparison. Default queue contains only active tool contracts; full-engine work is retained as deferred and can be listed explicitly. A class may be partial when the methods/fields required by a tool operation are evidenced and integrated. Class scores and the279PC/245PS2 research envelope are historical knowledge metrics, not software readiness gates. See docs/research/tool-driven-research-scope.md. dependsOn is scheduling only; companionPcItems is cross-platform research context, never automatic evidence credit. Unnamed labels remain analytical.",
   "items": [
     {
       "id": "pc-texture-codec-backend",
       "platform": "pc",
-      "priority": 5,
+      "priority": 0,
       "status": "partial",
       "classes": [
         "spTexture",
@@ -17,10 +17,8 @@
         "spDXTextureSerializer",
         "spPalette"
       ],
-      "dependsOn": [
-        "pc-node-resource-graph"
-      ],
-      "summary": "CP108/113 restore raw and DXT1/3/5 missing mips; CP114 verifies whole gem.smo with two textures and loaded UV updates. CP115 reconstructs common RGBA -> DX upload, normalized wrapped resize and ordered dithering, shared by common and DX serializers. CP116 adds XRGB, default-palette P8, RGB565 and ARGB4444 (70 exact comparisons). CP118 restores external texture source through an explicit owned stream factory (20 comparisons and native Open failure). Continue other filters, arbitrary palettes, package-backed sources, remaining failures and live backend.",
+      "dependsOn": [],
+      "summary": "Validate and integrate the supported embedded texture replacement/resize/repack contract in shared tool code; GUI enablement requires its actual output validation, not only an isolated C++ codec test.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
@@ -72,6 +70,17 @@
         "docs/research/native-pc-texture-corpus32.md"
       ],
       "testProfiles": [
+        "pc-texture-native-writer",
+        "pc-texture-cross-upload",
+        "pc-texture-missing-mips",
+        "pc-texture-compressed-mips"
+      ],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [
+        "pc-node-resource-graph"
+      ],
+      "historicalTestProfiles": [
         "pc-texture-codec-boundaries",
         "pc-texture-runtime-mips",
         "pc-texture-native-source",
@@ -87,7 +96,23 @@
         "pc-texture-compressed-mips",
         "pc-texture-cross-upload",
         "pc-texture-external-source"
-      ]
+      ],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SMOTextureTool",
+        "SmoImporter",
+        "SmoExporter"
+      ],
+      "requiredParts": [
+        "Payload boundaries, dimensions, formats, mips, alpha and ownership of edited/shared textures",
+        "Container sizes/references for the exact supported replacement operation"
+      ],
+      "deferredParts": [
+        "Complete DX device/reset/backend",
+        "Unused palette/filter/package modes",
+        "Reconstructing the original complete texture class"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "pc-particle-parameters",
@@ -130,7 +155,9 @@
         "pc-particle-parameters",
         "pc-scene-file-profile",
         "pc-particle-sampling"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-node-resource-graph",
@@ -158,10 +185,8 @@
         "spStdLayer",
         "spMaterialTexture"
       ],
-      "dependsOn": [
-        "pc-smo-san-loader-save"
-      ],
-      "summary": "CP101-120 verify whole Node and eight representative scene graphs, including borrowed Skin/UV/particle backlinks and exact loaded UV updates. Continue additional level/collision families, reparenting, rollback, native whole Save and remaining ownership.",
+      "dependsOn": [],
+      "summary": "Apply proven node transforms, instances and ownership to the actual preview/export/placement operations; fix concrete shared-core integration gaps before expanding native scene runtime.",
       "originalName": "spNodeSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spNodeSerializer.cpp",
       "known": [
@@ -203,6 +228,17 @@
       "testProfiles": [
         "pc-node-output",
         "pc-node-boundaries",
+        "pc-node-math-bits",
+        "pc-scene-file-profile"
+      ],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [
+        "pc-smo-san-loader-save"
+      ],
+      "historicalTestProfiles": [
+        "pc-node-output",
+        "pc-node-boundaries",
         "pc-scene-sections",
         "pc-fog-sections",
         "pc-material-scalar",
@@ -212,7 +248,24 @@
         "pc-whole-file-profile",
         "pc-scene-file-profile",
         "pc-node-math-bits"
-      ]
+      ],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SmoViewer",
+        "SmoExporter",
+        "SmoImporter",
+        "SmoLVLcreator"
+      ],
+      "requiredParts": [
+        "Hierarchy and local/world/inverse transforms used by tools",
+        "Shared instances, references and affected collision placement data"
+      ],
+      "deferredParts": [
+        "Full SceneManager/game update",
+        "All scene registrations and live renderer lifecycle",
+        "Collision query/navigation simulation"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "pc-visibility-plane-storage",
@@ -261,7 +314,9 @@
         "spatial-static",
         "visibility-native",
         "spatial-differential"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-spatial-membership",
@@ -298,7 +353,9 @@
         "spatial-static",
         "membership-native",
         "spatial-differential"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-occlusion-topology",
@@ -329,7 +386,9 @@
       ],
       "testProfiles": [
         "spatial-static"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-mesh-native-submission",
@@ -365,12 +424,14 @@
       "testProfiles": [
         "pc-renderer-submit",
         "pc-renderer-weighted-submit"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-dx-mesh-materialization",
       "platform": "pc",
-      "priority": 1,
+      "priority": 3,
       "status": "partial",
       "classes": [
         "spDXSerializerHook",
@@ -381,10 +442,8 @@
         "spDXVertexDeclaration",
         "spPCVertexDeclaration"
       ],
-      "dependsOn": [
-        "pc-smo-san-loader-save"
-      ],
-      "summary": "CP103-120 verify complete real scene loaders across mesh/material/light/skin/texture/particle graphs under explicit startup/COM inputs. Continue runtime DX mesh graph writing and native whole Save, standalone/shared/backend reset and remaining ownership/failure variants.",
+      "dependsOn": [],
+      "summary": "Verify the mesh data representation actually read, exported or written by current tools; preserve shared-resource relationships and supported vertex/index formats.",
       "originalName": null,
       "sourcePath": null,
       "known": [
@@ -424,6 +483,16 @@
         "docs/research/native-pc-particle-parameters.md"
       ],
       "testProfiles": [
+        "pc-mesh-readers-output",
+        "pc-mesh-bounds",
+        "pc-dx-shared-payload"
+      ],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [
+        "pc-smo-san-loader-save"
+      ],
+      "historicalTestProfiles": [
         "pc-dx-metadata",
         "pc-dx-batch",
         "pc-dx-buffers",
@@ -439,12 +508,28 @@
         "pc-skin-queued-mesh-render",
         "pc-scene-file-profile",
         "pc-dx-shared-payload"
-      ]
+      ],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SmoViewer",
+        "SmoExporter",
+        "SmoImporter",
+        "SmoLVLcreator"
+      ],
+      "requiredParts": [
+        "Vertex/index layout, bounds, supported shared-mesh ranges and material links",
+        "Targeted output acceptance for a reproduced import/export mismatch"
+      ],
+      "deferredParts": [
+        "Original optimizer/combiner reconstruction unless generated output requires it",
+        "Complete runtime GPU mesh lifecycle and device reset"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "pc-smo-san-loader-save",
       "platform": "pc",
-      "priority": 0,
+      "priority": 1,
       "status": "partial",
       "classes": [
         "spSerializerManager",
@@ -455,7 +540,7 @@
         "spDXSerializerHook"
       ],
       "dependsOn": [],
-      "summary": "CP99-120 verify source-produced SAN accepted by original whole reader and eight representative mesh/material/light/skin/texture/particle scenes, plus simple Node files. Next: locate original whole Save dispatch and complete runtime DX graph writing; full CRT/startup, unknown-field preservation and remaining failures stay open. CP123 retains manager80 with refreshed evidence.",
+      "summary": "Support the actual tool-produced SMO/SAN read/edit/write operation. Reuse proven container/reference contracts; seek original outer whole Save only when an unresolved output behavior requires it.",
       "originalName": null,
       "sourcePath": null,
       "known": [
@@ -504,6 +589,15 @@
         "docs/research/native-pc-particle-parameters.md"
       ],
       "testProfiles": [
+        "pc-full-loader-output",
+        "pc-save-reference-output",
+        "pc-read-reference-output",
+        "pc-san-file-roundtrip"
+      ],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [],
+      "historicalTestProfiles": [
         "pc-loader-contracts",
         "pc-loader-output",
         "pc-writer-contracts",
@@ -517,7 +611,23 @@
         "pc-san-file-roundtrip",
         "pc-whole-file-profile",
         "pc-scene-file-profile"
-      ]
+      ],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SmoImporter",
+        "SmoLVLcreator",
+        "SMOTextureTool"
+      ],
+      "requiredParts": [
+        "Exact unchanged payloads and supported reference/size/offset rewrites",
+        "Reload and targeted original-loader acceptance of generated output"
+      ],
+      "deferredParts": [
+        "Original full startup/registry initialization",
+        "Universal whole Save dispatch as a prerequisite",
+        "All unused serializer variants"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "pc-material-controllers",
@@ -577,7 +687,9 @@
         "pc-uv-functions",
         "pc-uv-graph-lifetime",
         "pc-uv-renderer"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-material-color",
@@ -628,7 +740,9 @@
         "pc-material-color-graph",
         "pc-material-color-corpus",
         "pc-renderer-scene"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-material-state-application",
@@ -688,7 +802,9 @@
         "pc-texture-binding",
         "pc-material-pass-states",
         "pc-renderer-draw"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-shader-selection",
@@ -750,7 +866,9 @@
         "pc-renderer-produced-submit",
         "pc-shader-generation",
         "pc-renderer-generated-draw"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-shader-template-generation",
@@ -811,7 +929,9 @@
         "pc-parser-file-text",
         "pc-rfx-file",
         "pc-rfx-pipeline"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-renderer-light-integration",
@@ -852,12 +972,14 @@
         "pc-dx-light",
         "pc-renderer-lights",
         "pc-skin-lights-render"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-skin-serialization",
       "platform": "pc",
-      "priority": 3,
+      "priority": 4,
       "status": "partial",
       "classes": [
         "spSkin",
@@ -866,7 +988,7 @@
       "dependsOn": [],
       "originalName": "spSkinSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spSkinSerializer.cpp",
-      "summary": "CP107 whole droid_trail matches 13 objects/16 bone bindings; loaded palettes borrow graph/context owners and avoid ancestor ownership cycles. Original/source read/write, clone and loaded render remain verified.",
+      "summary": "Use proven bone indices, weights, inverse binds and deformation in the shared preview/import/export path; existing successful native/game cases remain evidence rather than a new requirement to replay every case.",
       "known": [
         "Factory sizes/default four weights; borrowed bones; raw matrices; repeated field/null error array leaks; source lifetime guards explicit."
       ],
@@ -893,6 +1015,13 @@
       ],
       "testProfiles": [
         "pc-skin-serialization",
+        "pc-node-math-bits"
+      ],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [],
+      "historicalTestProfiles": [
+        "pc-skin-serialization",
         "pc-skin-clone",
         "pc-skin-render",
         "pc-skin-loaded-render",
@@ -907,7 +1036,22 @@
         "pc-skin-lights-render",
         "pc-scene-file-profile",
         "pc-node-math-bits"
-      ]
+      ],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SmoViewer",
+        "SmoImporter",
+        "SmoExporter",
+        "SmoLVLcreator"
+      ],
+      "requiredParts": [
+        "Palette/reference order, weights, inverse-bind matrices and deformation for supported models"
+      ],
+      "deferredParts": [
+        "Native Skin draw and generated shaders",
+        "Whole actor/game runtime and general clone lifecycle"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "pc-actor-controls",
@@ -939,7 +1083,9 @@
       "testProfiles": [
         "pc-actor-controls",
         "pc-actor-control-pipeline"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "pc-scene-manager-world-source",
@@ -966,7 +1112,9 @@
       ],
       "testProfiles": [
         "pc-scene-manager-world"
-      ]
+      ],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "ps2-shared-serialization-save",
@@ -983,7 +1131,7 @@
         "pc-smo-san-loader-save",
         "pc-dx-mesh-materialization"
       ],
-      "summary": "Use accessible PS2 shared serialization/registration code to locate outer whole-save dispatch and resolve common contracts needed by PC. Preserve independent PS2 evidence and verify actual PC differences before implementation credit.",
+      "summary": "Use PS2 shared serializer bodies to answer a concrete field/reference/write question blocking a current tool; validate corresponding PC behavior independently. Whole-engine PS2 save is not the default deliverable.",
       "known": [
         "Existing PS2 serializer and manager dossiers provide registration, constructor, stream and reference-contract anchors; this queue addition records no new binary execution."
       ],
@@ -1003,7 +1151,26 @@
         "docs/research/native-pc-san-file-roundtrip.md",
         "docs/engine/original-architecture.md"
       ],
-      "testProfiles": []
+      "testProfiles": [],
+      "planningStatus": "active",
+      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "historicalDependsOn": [],
+      "historicalTestProfiles": [],
+      "planningStage": "integration-review",
+      "toolConsumers": [
+        "SmoViewer",
+        "SmoImporter",
+        "SmoLVLcreator",
+        "SMOTextureTool"
+      ],
+      "requiredParts": [
+        "Only the paired operation fields, defaults, ownership and references needed by a PC or supported PS2 tool workflow"
+      ],
+      "deferredParts": [
+        "Full PS2 engine or universal save reconstruction",
+        "Independent platform-wide class completion"
+      ],
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
     },
     {
       "id": "ps2-spatial-collision-navigation",
@@ -1043,7 +1210,9 @@
         "docs/research/native-pc-visibility-plane-storage.md",
         "docs/research/native-pc-zone-portal-runtime.md"
       ],
-      "testProfiles": []
+      "testProfiles": [],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
     },
     {
       "id": "ps2-particle-runtime",
@@ -1078,7 +1247,61 @@
         "docs/research/native-pc-particle-parameters.md",
         "docs/research/native-pc-particle-sampling.md"
       ],
-      "testProfiles": []
+      "testProfiles": [],
+      "planningStatus": "deferred",
+      "planningReason": "Long-term engine reconstruction; reactivate only for a named current-tool operation or reproduced defect. Existing evidence and incomplete class assessments are retained."
+    },
+    {
+      "id": "pc-animation-tool-compatibility",
+      "platform": "pc",
+      "priority": 5,
+      "status": "partial",
+      "planningStatus": "active",
+      "planningStage": "integration-review",
+      "classes": [
+        "spAnimation",
+        "spAnimationSerializer",
+        "spAnimTrack",
+        "spTrack",
+        "spSkin",
+        "spUVController"
+      ],
+      "dependsOn": [],
+      "summary": "Apply existing SAN/key/sampling and binding evidence to current Viewer/Exporter/SanToVmd capabilities. For any unsupported clip first identify whether the gap is source decoding, tool integration or an output-format limitation.",
+      "toolConsumers": [
+        "SmoViewer",
+        "SmoExporter",
+        "SanToVmd"
+      ],
+      "requiredParts": [
+        "Supported key encodings, timing, interpolation and bone binding",
+        "Explicit behavior for genuinely unrepresentable output channels"
+      ],
+      "deferredParts": [
+        "Actor scheduler and complete game animation manager",
+        "Reconstructing all controllers or renderer shaders"
+      ],
+      "known": [
+        "Existing PC animation/SAN and skin dossiers provide tested contracts. This planning change adds no new binary behavior or application feature."
+      ],
+      "unknowns": [
+        {
+          "kind": "behavior",
+          "text": "Audit current tool integration for the specifically requested clip/encoding. SanToVmd documents rare packed cubic/scalar rotation limitations; no blanket claim of a newly fixed decoder."
+        }
+      ],
+      "evidencePaths": [
+        "docs/research/native-pc-animation-keys.md",
+        "docs/research/native-pc-animation-runtime.md",
+        "docs/research/native-pc-san-file-roundtrip.md",
+        "tools/SanToVmd/README.md",
+        "tools/SmoExporter/README.md"
+      ],
+      "testProfiles": [
+        "san-real-files",
+        "pc-san-file-roundtrip"
+      ],
+      "doneWhen": "The specific supported animation operation works in its actual tool on representative clips. Output-format limitations are stated accurately; unrelated native runtime remains deferred."
     }
   ],
   "testProfiles": {

@@ -23,10 +23,13 @@ Sparkplug/
 
 ## Статусы путей и имён
 
-Текущая цель — [проверяемое завершение PC SMO/SAN](../docs/research/pc-smo-san-completion-contract.md).
+Текущая цель — [проверенные части классов для инструментов](../docs/research/tool-driven-research-scope.md).
+Полный исходник каждого класса не является условием применения доказанного
+метода/поля в софте. [Широкий PC SMO/SAN контракт](../docs/research/pc-smo-san-completion-contract.md)
+сохраняется для долгосрочного исследования, отдельно от готовности приложений.
 Постоянные правила — [манифест исследования](../docs/research/research-manifesto.md).
-Последний итог: [цикл CP51–CP98 до 19:00 МСК 7 сентября](../docs/research/native-cycle-report-2026-09-07-1900.md),
-61 CTest suite; PC workflow-v2 45,19%, критерии готовности 0/7 passed.
+Последний итог: [цикл CP99–CP123 до 07:00 МСК 8 сентября](../docs/research/native-cycle-report-2026-09-08-0700.md),
+63 CTest suite; PC workflow-v2 45,62%, широкие engine gates 0/7 passed.
 [Общий PC loader](../docs/research/native-pc-smo-san-loader.md) уже исполнен на
 bbush.san целиком и сопоставлен с portable fields/bindings/PRS. PC FAT58 и RTTI
 consumer layouts добавлены в Analysis/PC. [SAN field writer и nested blocks](../docs/research/native-pc-san-writer.md)
