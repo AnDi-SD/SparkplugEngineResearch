@@ -6,10 +6,11 @@
 
 - [Текущая цель: инструменты и необходимые части реальных классов](research/tool-driven-research-scope.md)
 - [Готовность функций: фиксированный список операций и проверяемые этапы](research/tool-readiness-meter.md)
+- [Цикл инструментов до 19:00: результат, ускорения и локальные сборки](research/tool-cycle-report-2026-09-08-1900.md)
 - [Полный SAN producer: source FFPS принят оригинальным PC reader](research/native-pc-san-file-roundtrip.md)
 - [SAN → VMD: скелет Bloom, референсы MMD и простой Python-конвертер](research/san-to-vmd-feasibility.md)
 - [Манифест исследования: приоритет SMO/SAN, оптимизация, память и commits](research/research-manifesto.md)
-- [Последний цикл: 8 сентября, 07:00 МСК, CP99–CP123](research/native-cycle-report-2026-09-08-0700.md)
+- [Предыдущий цикл: 8 сентября, 07:00 МСК, CP99–CP123](research/native-cycle-report-2026-09-08-0700.md)
 - [Оптимизация после цикла и первый опыт с heap 128 КиБ](research/native-research-strategy-2026-09-07.md)
 - [Обзор движка и границы исследования](engine/overview.md)
 - [Оригинальная архитектура: граница Sparkplug/Winx и исходные модули](engine/original-architecture.md)
