@@ -1,0 +1,124 @@
+{
+  "kind": "tool-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP137",
+  "createdUtc": "2026-09-08T15:58:24.239577+00:00",
+  "scheduledEndUtc": "2026-09-08T16:00:00+00:00",
+  "cycleStatus": "completed",
+  "documentation": "docs/research/tool-cycle-report-2026-09-08-1900.md",
+  "scopeId": "tools-pc-operations-v1",
+  "scopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "assessment": {
+    "path": "research/tool-readiness-assessment-2026-09-08-cp134.json",
+    "sha256": "3EDA57D250A5B74FF0695A18ED0FD78172E0F317711F648DC924C6E31F1C3585"
+  },
+  "snapshot": {
+    "path": "local-data/results/tool-cycle-20260908-1900/readiness-final.json",
+    "sha256": "76D1198D2949B8BA37F8B3E5CC7844D8F9E47C86821C48CDC0D0BBCB3394764A"
+  },
+  "readyCount": 16,
+  "totalCount": 16,
+  "readyPercent": 100.0,
+  "stagePassedCounts": {
+    "contract": 16,
+    "integration": 16,
+    "validation": 16
+  },
+  "cycleDelta": {
+    "readyCountDelta": 5,
+    "newlyReady": [
+      "export.fbx-alpha",
+      "san.rare-keys",
+      "texture.inspect",
+      "texture.replace-gui",
+      "texture.resize-repack"
+    ],
+    "noLongerReady": [],
+    "percentagePointDelta": 31.25
+  },
+  "implementedOperations": [
+    "texture.replace-gui",
+    "texture.resize-repack",
+    "export.fbx-alpha",
+    "san.rare-keys"
+  ],
+  "existingWorkflowRevalidated": [
+    "texture.inspect"
+  ],
+  "priorCheckpoints": [
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp124.json",
+      "sha256": "BB6D4865495F0B31C596EC097A05EB059D2867F044D552CFE9778BC7D035AB3C"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp125.json",
+      "sha256": "B7C1F68239AA1FA017DC2CE7BDBF4D28E735EC5AAB7638229815F7BE4C86C420"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp126.json",
+      "sha256": "7A26E0A4AAD3D22F98C798AFD64AC85B29F0DB9A42299A05AF30120024F3423B"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp127.json",
+      "sha256": "1DF273F62CCF6FA0A6EAD2082B13D8C5AC753A9E537D075893F702CF6DC5635F"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp128.json",
+      "sha256": "DFCEF31BA50D13AC26E56CD7AEAE47D194CBA293A55059157D72CC8C62958F08"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp129.json",
+      "sha256": "E27DBE1C0B00B6A11693111DCCA9975B65CB2D0E170AC53AB239A0300071B977"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp130.json",
+      "sha256": "1A60F55276D96828657A35B9821E181B5137E71F1CADEA4346408B47438DFAC6"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp131.json",
+      "sha256": "4699AB6331E863A6D5AC17D767065C026D7A12D4B3699AA1DE1A123F05C070CA"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp132.json",
+      "sha256": "F224D527031EA8C1F551A3979F8CA1D97622F31DE3DE573FBC50D4E9A6C8764B"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp133.json",
+      "sha256": "B63FB3041D3CDEB5A33ADD5C63A06A3E6631D3DCB2AC85BF8E079498C1FC5474"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp134.json",
+      "sha256": "13F408BA55A02815FFBE82F31AFA8BBD8AE411183140597438E5291332827BEB"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp135.json",
+      "sha256": "0F169859BB5396439D5E36C2CA70ACE4C6274CBCE4A922B5BCDEC5869216B63C"
+    },
+    {
+      "path": "research/tool-cycle-checkpoint-2026-09-08-cp136.json",
+      "sha256": "D9A0EDB600AC3F3882455B96A05EBB83186BFC52E3FA8DEEC005F830F4D35A74"
+    }
+  ],
+  "packages": {
+    "path": "research/tool-release-packages-validation-2026-09-08.json",
+    "sha256": "BC0093E1235F3428AE14DAD9372053CD91475807688EF457F20DA10788D6563E"
+  },
+  "packageArchiveHashesStillExact": true,
+  "unchangedNativeClassLedger": true,
+  "publishStatus": "local-commits-and-candidates; exact-destination confirmation still pending after automatic approval review rejected public push",
+  "documentationAudit": {
+    "status": "passed",
+    "markdownFiles": 450,
+    "jsonFiles": 214,
+    "relativeLinks": 1714,
+    "errors": 0,
+    "report": {
+      "path": "local-data/results/tool-cycle-20260908-1900/docs-audit-final.json",
+      "sha256": "1E3512AD1B9FEBA61F8C36B6649BE3234AF621DF6E7537CB15604E26E3158FEE"
+    }
+  },
+  "finalReport": {
+    "path": "docs/research/tool-cycle-report-2026-09-08-1900.md",
+    "sha256": "704706DAE2679678F965DA0E9F0E5D8F5DFB4EAAFAC20D964CA377B2BFE64CF2"
+  }
+}
