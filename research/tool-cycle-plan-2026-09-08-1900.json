@@ -1,0 +1,28 @@
+{
+  "kind": "tool-research-cycle-plan",
+  "schemaVersion": 1,
+  "status": "active",
+  "createdUtc": "2026-09-08T05:34:48.686682+00:00",
+  "cycleStartUtc": "2026-09-08T05:31:00Z",
+  "scheduledEndUtc": "2026-09-08T16:00:00Z",
+  "baseCommit": "d98a0fc7bd530f04194a52b91e54929f429d0a49",
+  "goal": "Reliable current tools using only evidenced parts of real engine classes; PC first, focused PS2 support. Add an operation-based readiness meter, establish baseline, then resolve concrete tool gaps until19:00 Moscow.",
+  "policyPath": "docs/research/tool-driven-research-scope.md",
+  "aggregateMemoryBudgetBytes": 1073741824,
+  "priorities": [
+    "tool-readiness-baseline",
+    "texture-writer-resize-repack-integration",
+    "other-reproduced-tool-operation-gaps"
+  ],
+  "checkpoints": [
+    {
+      "id": "CP124",
+      "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp124.json"
+    }
+  ],
+  "readinessScopePath": "research/tool-readiness-scope-v1.json",
+  "baselinePath": "local-data/results/tool-cycle-20260908-1900/baseline-readiness.json",
+  "initialReadyCount": 11,
+  "initialTotalCount": 16,
+  "initialReadyPercent": 68.75
+}

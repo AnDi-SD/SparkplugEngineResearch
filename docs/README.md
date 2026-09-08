@@ -5,6 +5,7 @@
 ## Навигация
 
 - [Текущая цель: инструменты и необходимые части реальных классов](research/tool-driven-research-scope.md)
+- [Готовность функций: фиксированный список операций и проверяемые этапы](research/tool-readiness-meter.md)
 - [Полный SAN producer: source FFPS принят оригинальным PC reader](research/native-pc-san-file-roundtrip.md)
 - [SAN → VMD: скелет Bloom, референсы MMD и простой Python-конвертер](research/san-to-vmd-feasibility.md)
 - [Манифест исследования: приоритет SMO/SAN, оптимизация, память и commits](research/research-manifesto.md)
