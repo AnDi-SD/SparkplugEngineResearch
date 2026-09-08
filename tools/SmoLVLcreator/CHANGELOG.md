@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 — кандидат, 2026-09-08
+
+- Обновлены общие decoder/renderer и Importer dependencies, включая структурный
+  PC texture writer. Версия отделяет текущую сборку от опубликованной0.1.0.
+- Подготовлены актуальные release notes и инструкция в архиве.
+
 ## Unreleased — 2026-08-29
 
 - Финальный Gate 7 пройден: Gardenia, Alfea и крупный Domino выдержали mixed

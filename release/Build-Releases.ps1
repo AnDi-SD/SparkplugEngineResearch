@@ -2,6 +2,8 @@
 param(
     [string[]]$Product,
     [string]$OutputDirectory,
+    [string]$PackageSource,
+    [string]$NativeFbxManifest,
     [switch]$NoArchive
 )
 
@@ -10,7 +12,8 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $manifestPath = Join-Path $PSScriptRoot 'release-manifest.json'
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($manifest.schemaVersion -notin @(1, 2)) { throw 'Unsupported release manifest schema.' }
 $runtimeIdentifier = [string]$manifest.runtimeIdentifier
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $repositoryRoot 'artifacts\release\current'
@@ -25,17 +28,6 @@ $stagingRoot = Join-Path $releaseArtifactsRoot ('.staging\' + [Guid]::NewGuid().
 $nativeFbxBuild = Join-Path $repositoryRoot 'tools\FbxBridge.Native\Build-Native.ps1'
 $nativeFbxOutput = Join-Path $repositoryRoot 'tools\FbxBridge.Native\build\bin\Release'
 $nativeFbxFiles = @('SmoFbxBridge.exe', 'libfbxsdk.dll', 'FBX_SDK_License.rtf')
-Write-Host 'Building bundled native FBX bridge...'
-if ([string]::IsNullOrWhiteSpace($env:FBX_SDK_ROOT)) {
-    & $nativeFbxBuild
-}
-else {
-    & $nativeFbxBuild -FbxSdkRoot $env:FBX_SDK_ROOT
-}
-if ($LASTEXITCODE -ne 0) {
-    throw "Native FBX bridge build exited with code $LASTEXITCODE."
-}
-
 function Assert-PathUnderRoot([string]$Path, [string]$Root, [string]$Description) {
     $fullPath = [IO.Path]::GetFullPath($Path)
     $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
@@ -47,6 +39,58 @@ function Assert-PathUnderRoot([string]$Path, [string]$Root, [string]$Description
 
 $outputRoot = Assert-PathUnderRoot $outputRoot $releaseArtifactsRoot 'Output directory'
 $stagingRoot = Assert-PathUnderRoot $stagingRoot $releaseArtifactsRoot 'Staging directory'
+$publishedApplications = @{}
+if (-not [string]::IsNullOrWhiteSpace($PackageSource)) {
+    $PackageSource = (Resolve-Path -LiteralPath $PackageSource).Path
+    if (-not (Test-Path -LiteralPath $PackageSource -PathType Container)) {
+        throw "PackageSource must be an existing local package directory: $PackageSource"
+    }
+}
+
+$selectedProducts = @($manifest.products)
+if ($null -ne $Product -and $Product.Count -gt 0) {
+    $requested = @($Product | ForEach-Object { $_.ToLowerInvariant() })
+    $selectedProducts = @($selectedProducts | Where-Object { $requested -contains ([string]$_.id).ToLowerInvariant() })
+    $missing = @($Product | Where-Object { $name = $_; -not ($selectedProducts | Where-Object { $_.id -ieq $name }) })
+    if ($missing.Count -gt 0) {
+        throw "Unknown products: $($missing -join ', '). Available: $(($manifest.products.id) -join ', ')."
+    }
+}
+$needsNativeFbx = @($selectedProducts | Where-Object {
+    $null -ne $_.PSObject.Properties['nativeFbx'] -and [bool]$_.nativeFbx
+}).Count -gt 0
+
+if ($needsNativeFbx -and -not [string]::IsNullOrWhiteSpace($NativeFbxManifest)) {
+    $nativePin = Get-Content -LiteralPath $NativeFbxManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($nativePin.kind -ne 'native-fbx-reuse-manifest' -or $nativePin.schemaVersion -ne 1) {
+        throw 'Invalid native FBX reuse manifest.'
+    }
+    $nativeRoot = Split-Path $nativeFbxBuild -Parent
+    $pinnedPaths = @{}
+    foreach ($file in $nativePin.files) {
+        $path = Assert-PathUnderRoot (Join-Path $repositoryRoot ([string]$file.path)) $nativeRoot 'Pinned native FBX file'
+        if ($pinnedPaths.ContainsKey($path) -or [string]$file.sha256 -notmatch '^[0-9A-Fa-f]{64}$' -or
+            (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne [string]$file.sha256) {
+            throw "Native FBX reuse hash mismatch or duplicate: $path"
+        }
+        $pinnedPaths[$path] = $true
+    }
+    $requiredNativePaths = @($nativeFbxBuild, (Join-Path $nativeRoot 'CMakeLists.txt'))
+    $requiredNativePaths += @(Get-ChildItem -LiteralPath (Join-Path $nativeRoot 'src') -File -Recurse | ForEach-Object FullName)
+    $requiredNativePaths += @($nativeFbxFiles | ForEach-Object { Join-Path $nativeFbxOutput $_ })
+    foreach ($path in $requiredNativePaths) {
+        if (-not $pinnedPaths.ContainsKey([IO.Path]::GetFullPath($path))) {
+            throw "Native FBX reuse manifest is incomplete: $path"
+        }
+    }
+    Write-Host 'Reused pinned native FBX sources and runtime files.'
+}
+elseif ($needsNativeFbx) {
+    Write-Host 'Building bundled native FBX bridge...'
+    if ([string]::IsNullOrWhiteSpace($env:FBX_SDK_ROOT)) { & $nativeFbxBuild }
+    else { & $nativeFbxBuild -FbxSdkRoot $env:FBX_SDK_ROOT }
+    if ($LASTEXITCODE -ne 0) { throw "Native FBX bridge build exited with code $LASTEXITCODE." }
+}
 
 function Invoke-DotNet([string[]]$Arguments, [string]$WorkingDirectory = $repositoryRoot) {
     Write-Host "dotnet $($Arguments -join ' ')"
@@ -120,12 +164,25 @@ using System.Reflection;
 }
 
 function Publish-Application($Application, [string]$Destination) {
-    $projectPath = Join-Path $repositoryRoot ([string]$Application.project)
+    $Destination = Assert-PathUnderRoot $Destination $outputRoot 'Application destination'
+    $projectPath = Assert-PathUnderRoot (Join-Path $repositoryRoot ([string]$Application.project)) $repositoryRoot 'Application project'
     if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
         throw "Project not found: $projectPath"
     }
 
-    $publishDirectory = Join-Path $stagingRoot ([Guid]::NewGuid().ToString('N'))
+    $cacheKey = $projectPath + '|' + [string]$Application.executable
+    if ($publishedApplications.ContainsKey($cacheKey)) {
+        $cached = $publishedApplications[$cacheKey]
+        if ((Get-FileHash -LiteralPath $cached.Path -Algorithm SHA256).Hash -ne $cached.Sha256) {
+            throw "Published application cache changed: $($Application.id)."
+        }
+        New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+        Copy-Item -LiteralPath $cached.Path -Destination (Join-Path $Destination ([string]$Application.executable))
+        Write-Host "Reused verified publish for $($Application.id)."
+        return
+    }
+
+    $publishDirectory = Assert-PathUnderRoot (Join-Path $stagingRoot ([Guid]::NewGuid().ToString('N'))) $stagingRoot 'Publish directory'
     New-Item -ItemType Directory -Path $publishDirectory -Force | Out-Null
     try {
         $commonProperties = @(
@@ -138,10 +195,18 @@ function Publish-Application($Application, [string]$Destination) {
             '-p:DebugType=embedded',
             '-p:DebugSymbols=false',
             '-p:SatelliteResourceLanguages=ru',
-            '-p:IncludeSourceRevisionInInformationalVersion=false'
+            '-p:IncludeSourceRevisionInInformationalVersion=false',
+            '-p:UseSharedCompilation=false',
+            '-p:NuGetAudit=false',
+            '-maxcpucount:2',
+            '-nodeReuse:false'
         )
 
-        Invoke-DotNet (@('restore', $projectPath, '-r', $runtimeIdentifier, '--ignore-failed-sources') + $commonProperties)
+        $restoreArguments = @('restore', $projectPath, '-r', $runtimeIdentifier, '--ignore-failed-sources')
+        if (-not [string]::IsNullOrWhiteSpace($PackageSource)) {
+            $restoreArguments += @('--source', $PackageSource)
+        }
+        Invoke-DotNet ($restoreArguments + $commonProperties)
         Invoke-DotNet (@('clean', $projectPath, '-c', 'Release', '-r', $runtimeIdentifier) + $commonProperties)
         $publishArguments = @('publish', $projectPath, '-c', 'Release', '-r', $runtimeIdentifier,
             '--no-restore', '-o', $publishDirectory) + $commonProperties
@@ -164,6 +229,14 @@ function Publish-Application($Application, [string]$Destination) {
         }
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
         Copy-Item -LiteralPath $applicationFiles[0].FullName -Destination (Join-Path $Destination $applicationFiles[0].Name)
+        # Reuse only within this invocation, with identical publish properties.
+        # A later invocation always restores, cleans and publishes again.
+        $cachedPath = Join-Path $stagingRoot ([Guid]::NewGuid().ToString('N') + '.exe')
+        Copy-Item -LiteralPath $applicationFiles[0].FullName -Destination $cachedPath
+        $publishedApplications[$cacheKey] = @{
+            Path = $cachedPath
+            Sha256 = (Get-FileHash -LiteralPath $cachedPath -Algorithm SHA256).Hash
+        }
     }
     finally {
         if (Test-Path -LiteralPath $publishDirectory) {
@@ -189,12 +262,17 @@ function Copy-Documents($Application, [string]$Destination) {
     $docsDirectory = Join-Path $Destination 'docs'
     New-Item -ItemType Directory -Path $docsDirectory -Force | Out-Null
     $usedNames = @{}
-    foreach ($relativePath in $Application.documents) {
-        $source = Join-Path $repositoryRoot ([string]$relativePath)
+    foreach ($document in $Application.documents) {
+        $relativePath = if ($document -is [string]) { $document } else { [string]$document.source }
+        $source = Assert-PathUnderRoot (Join-Path $repositoryRoot ([string]$relativePath)) $repositoryRoot 'Release document source'
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
             throw "Release document not found: $source"
         }
-        $name = Split-Path $source -Leaf
+        $name = if ($document -is [string]) { Split-Path $source -Leaf } else { [string]$document.name }
+        if ([string]::IsNullOrWhiteSpace($name) -or $name -ne [IO.Path]::GetFileName($name) -or
+            $name.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $name -in @('.', '..')) {
+            throw "Release document name must be a file name: $name"
+        }
         if ($usedNames.ContainsKey($name)) {
             throw "Duplicate document name '$name' in $($Application.id)."
         }
@@ -218,16 +296,6 @@ function Assert-ReleaseLayout([string]$ReleaseDirectory, [string]$ExecutableName
     if ($duplicateGroups.Count -gt 0) {
         $duplicates = $duplicateGroups | ForEach-Object { ($_.Group.Path -join ' = ') }
         throw "Duplicate file contents found in ${ReleaseDirectory}:`n$($duplicates -join "`n")"
-    }
-}
-
-$selectedProducts = @($manifest.products)
-if ($null -ne $Product -and $Product.Count -gt 0) {
-    $requested = @($Product | ForEach-Object { $_.ToLowerInvariant() })
-    $selectedProducts = @($selectedProducts | Where-Object { $requested -contains ([string]$_.id).ToLowerInvariant() })
-    $missing = @($Product | Where-Object { $name = $_; -not ($selectedProducts | Where-Object { $_.id -ieq $name }) })
-    if ($missing.Count -gt 0) {
-        throw "Unknown products: $($missing -join ', '). Available: $(($manifest.products.id) -join ', ')."
     }
 }
 

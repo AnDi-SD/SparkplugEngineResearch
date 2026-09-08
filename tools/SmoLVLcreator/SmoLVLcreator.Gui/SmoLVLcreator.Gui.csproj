@@ -9,7 +9,7 @@
     <StartupObject>SmoLVLcreator.Gui.App</StartupObject>
     <AssemblyName>SmoLVLcreator</AssemblyName>
     <Product>SmoLVLcreator</Product>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

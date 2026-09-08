@@ -55,15 +55,60 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./release/Build-Releases
 Build selected packages without ZIP compression:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./release/Build-Releases.ps1 `
-    -Product SmoViewer,WinxHairPatcher -NoArchive
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command `
+    "& ./release/Build-Releases.ps1 -Product @('SmoViewer','WinxHairPatcher') -NoArchive"
 ```
 
-The script always cleans each project before publishing. This is required:
+The script cleans each distinct application project before publishing. This is required:
 switching between self-contained and framework-dependent publishing can leave
 stale intermediate runtime assets in `obj/`. Packaging fails unless publish
 produces exactly one executable. It also validates the root allowlist and
-rejects exact duplicate files inside a package.
+rejects exact duplicate files inside a package. When the same project occurs in
+a suite and as a standalone product, its verified single-file payload is reused
+within that invocation. The temporary cache is hash-checked and removed after
+the build; later invocations publish from clean intermediates again.
+
+Use `-PackageSource <local-directory>` for an offline build from an available
+NuGet package cache, for example the `.nuget/packages` directory in the user's
+profile. Shared compilation is disabled and MSBuild concurrency is
+limited to two workers. Package generation never publishes to GitHub.
+
+Manifest schema 2 accepts both source-path strings and `{ "source": "...",
+"name": "README.md" }` document entries. The mapped form installs a concise
+package guide while the full research README stays in the source repository.
+Release notes and guide links remain local to the package's `docs/` directory.
+Prepared candidates are written to a separate output directory; their notes
+identify them as unpublished.
+
+`-NativeFbxManifest <json>` reuses an already validated native bridge only when
+the manifest has kind `native-fbx-reuse-manifest`, schema 1, and exact SHA-256
+entries for `Build-Native.ps1`, `CMakeLists.txt`, every file under `src/`, and all
+three runtime files. Each `files` entry has repository-relative `path` and
+`sha256`. Changed or missing inputs stop packaging. Without this option the
+bridge is built normally.
+
+Only selected products that declare `nativeFbx` require the bridge. An unknown
+product is rejected before any native build starts.
+
+Check an unpacked candidate against the current source manifest:
+
+```powershell
+python release/audit_packages.py artifacts/release/candidates-20260908-1900 `
+    --report local-data/results/package-audit.json
+```
+
+The audit checks exact file inventories, document copies and local links,
+Windows file versions, native runtime hashes and suite/standalone payload
+identity. Add `--archives` to stream-compare every ZIP member as well. It does
+not launch applications or verify remote links.
+
+`research/smoke_release_packages.py <packages> <new-local-output>` checks
+startup on a private Windows desktop using copies of the packages. Launches
+are sequential, limited to 512 MiB of aggregate process commit and four owned
+processes each; the startup polling deadline is 25 seconds, with bounded
+window-message calls and three seconds for graceful close. The installed
+.NET 8 Desktop Runtime is required. The probe never confirms an installer
+dialog and does not exercise editing, export or rendering workflows.
 
 Only products listed in `release-manifest.json` receive user-facing packages.
 `SmoNativeValidator.Core`, its CLI harness, and its tests remain available in

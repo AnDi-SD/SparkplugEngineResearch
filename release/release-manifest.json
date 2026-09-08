@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "runtimeIdentifier": "win-x64",
   "products": [
     {
@@ -9,9 +9,12 @@
       "suite": true,
       "nativeFbx": true,
       "documents": [
-        "tools/SmoViewer/README.md",
+        {
+          "source": "tools/SmoViewer/PACKAGE_README.md",
+          "name": "README.md"
+        },
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.5.0.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.6.1.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
@@ -22,9 +25,12 @@
           "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
           "executable": "SmoExporter.Gui.exe",
           "documents": [
-            "tools/SmoExporter/README.md",
+            {
+              "source": "tools/SmoExporter/PACKAGE_README.md",
+              "name": "README.md"
+            },
             "tools/SmoExporter/CHANGELOG.md",
-            "tools/SmoExporter/RELEASE_NOTES_0.5.0.md"
+            "tools/SmoExporter/RELEASE_NOTES_0.7.0.md"
           ]
         },
         {
@@ -32,9 +38,12 @@
           "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
           "executable": "SmoImporter.Gui.exe",
           "documents": [
-            "tools/SmoImporter/README.md",
+            {
+              "source": "tools/SmoImporter/PACKAGE_README.md",
+              "name": "README.md"
+            },
             "tools/SmoImporter/CHANGELOG.md",
-            "tools/SmoImporter/RELEASE_NOTES_0.6.0.md"
+            "tools/SmoImporter/RELEASE_NOTES_0.6.1.md"
           ]
         },
         {
@@ -55,10 +64,12 @@
       "executable": "SmoLVLcreator.exe",
       "nativeFbx": true,
       "documents": [
-        "tools/SmoLVLcreator/README.md",
+        {
+          "source": "tools/SmoLVLcreator/PACKAGE_README.md",
+          "name": "README.md"
+        },
         "tools/SmoLVLcreator/CHANGELOG.md",
-        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.0.md",
-        "tools/SmoLVLcreator/ROADMAP.md"
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.1.md"
       ]
     },
     {
@@ -67,9 +78,12 @@
       "executable": "SmoExporter.Gui.exe",
       "nativeFbx": true,
       "documents": [
-        "tools/SmoExporter/README.md",
+        {
+          "source": "tools/SmoExporter/PACKAGE_README.md",
+          "name": "README.md"
+        },
         "tools/SmoExporter/CHANGELOG.md",
-        "tools/SmoExporter/RELEASE_NOTES_0.5.0.md"
+        "tools/SmoExporter/RELEASE_NOTES_0.7.0.md"
       ]
     },
     {
@@ -78,9 +92,12 @@
       "executable": "SmoImporter.Gui.exe",
       "nativeFbx": true,
       "documents": [
-        "tools/SmoImporter/README.md",
+        {
+          "source": "tools/SmoImporter/PACKAGE_README.md",
+          "name": "README.md"
+        },
         "tools/SmoImporter/CHANGELOG.md",
-        "tools/SmoImporter/RELEASE_NOTES_0.6.0.md"
+        "tools/SmoImporter/RELEASE_NOTES_0.6.1.md"
       ]
     },
     {
@@ -98,9 +115,12 @@
       "project": "tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj",
       "executable": "SMOTextureTool.exe",
       "documents": [
-        "tools/SMOTextureTool/README.md",
+        {
+          "source": "tools/SMOTextureTool/PACKAGE_README.md",
+          "name": "README.md"
+        },
         "tools/SMOTextureTool/CHANGELOG.md",
-        "tools/SMOTextureTool/RELEASE_NOTES_2.1.0.md",
+        "tools/SMOTextureTool/RELEASE_NOTES_2.2.0.md",
         "tools/SMOTextureTool/LICENSE.txt",
         "tools/SMOTextureTool/COPYRIGHT.txt"
       ]

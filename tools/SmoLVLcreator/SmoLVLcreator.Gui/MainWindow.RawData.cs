@@ -199,7 +199,7 @@ public partial class MainWindow
     private void About_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(
             this,
-            "SmoLVLcreator 0.1.0\nРедактор уровней Sparkplug SMO\n\n" +
+            $"SmoLVLcreator {App.VersionText}\nРедактор уровней Sparkplug SMO\n\n" +
             "Использует общие ядра SmoViewer, SmoImporter и SmoExporter.",
             "О программе",
             MessageBoxButton.OK,

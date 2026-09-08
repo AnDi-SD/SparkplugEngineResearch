@@ -5,6 +5,10 @@ namespace SmoLVLcreator.Gui;
 
 public partial class App : Application
 {
+    public static string VersionText => typeof(App).Assembly.GetName().Version?.ToString(3) ?? "dev";
+
+    public static string WorkspaceTitle => "SMO LEVEL WORKSPACE · " + VersionText;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
