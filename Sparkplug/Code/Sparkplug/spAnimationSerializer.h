@@ -29,7 +29,11 @@ namespace sparkplug::reconstruction
             std::optional<std::uint32_t> trackReserveHint;
             std::vector<std::uint32_t> unknownFields;
         };
-        spAnimationSerializer();
+        // Host integration policy, not an original field/constructor argument.
+        // blwalk.san omits pool declarations; owned portable vectors can read
+        // those bounded keys without claiming the original allocation path.
+        enum class KeyPoolPolicyForAnalysis { RequireDeclared, AllowMissingWithOwnedKeys };
+        explicit spAnimationSerializer(KeyPoolPolicyForAnalysis policy = KeyPoolPolicyForAnalysis::RequireDeclared);
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(
@@ -76,6 +80,7 @@ namespace sparkplug::reconstruction
             std::uint32_t byteCount, spBaseObject& object, std::string* error) const override;
 
       private:
+        KeyPoolPolicyForAnalysis keyPoolPolicy_;
         // Populates a newly factory-created object without replacing its
         // address; generic reference readers publish that address first.
         [[nodiscard]] bool ReadFieldsIntoForAnalysis(spStream& source,

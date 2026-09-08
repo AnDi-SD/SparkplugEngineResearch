@@ -48,8 +48,11 @@ namespace sparkplug::evidence::pc::animation_math
     }
     inline Quaternion Interpolate(const Quaternion& first, Quaternion second, const float factor)
     {
-        float dot = first[2] * second[2] + first[1] * second[1] + first[0] * second[0] +
-                    first[3] * second[3];
+        // PC4648C0 accumulates on x87, then spills ONCE at464901 before
+        // acos. Rounding each product (or never spilling the sum) changes
+        // the sine<0.001 branch on Icy L_Index_02 at t=1.
+        float dot = static_cast<float>(double(first[2]) * second[2] + double(first[1]) * second[1] +
+                                      double(first[0]) * second[0] + double(first[3]) * second[3]);
         if (dot < 0.0F)
         {
             for (auto& value : second)
@@ -58,18 +61,21 @@ namespace sparkplug::evidence::pc::animation_math
         }
         if (dot > 1.0F)
             dot = 1.0F;
-        const float theta = std::acos(dot);
-        const float sine = std::sin(theta);
+        const float theta = static_cast<float>(std::acos(double(dot))); //46497D
+        const double sine = std::sin(double(theta));
         // The native helper copies first here; it does not use nlerp.
         if (sine < 0.001F)
             return first;
-        const float inverse = 1.0F / sine;
-        const float a = std::sin((1.0F - factor) * theta) * inverse;
-        const float b = std::sin(factor * theta) * inverse;
-        Quaternion result{};
-        for (std::size_t i = 0; i < 4; ++i)
-            result[i] = first[i] * a + second[i] * b;
-        return result;
+        const float inverse = static_cast<float>(1.0 / sine); //4649BA
+        const float angleA = static_cast<float>((1.0-double(factor))*theta);
+        const float angleB = static_cast<float>(double(factor)*theta);
+        const float a = static_cast<float>(std::sin(double(angleA))*inverse); //4649DA
+        const double b = std::sin(double(angleB))*inverse;
+        // XY spill both products, Z retains the second, W retains the first.
+        return {static_cast<float>(double(static_cast<float>(double(first[0])*a))+static_cast<float>(second[0]*b)),
+                static_cast<float>(double(static_cast<float>(double(first[1])*a))+static_cast<float>(second[1]*b)),
+                static_cast<float>(double(static_cast<float>(double(first[2])*a))+second[2]*b),
+                static_cast<float>(double(first[3])*a+static_cast<float>(second[3]*b))};
     }
     inline Matrix3 ToMatrix(const Quaternion& q)
     {

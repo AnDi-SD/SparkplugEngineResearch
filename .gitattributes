@@ -8,3 +8,5 @@
 # SAN/VMD validation manifests also record exact Python source hashes.
 /tools/SanToVmd/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
 /tools/SanToVmd/tests/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
+# The native viewing bridge is also pinned by exact source hashes.
+/tools/SparkplugViewer.Native/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

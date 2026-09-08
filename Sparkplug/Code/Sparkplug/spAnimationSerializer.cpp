@@ -7,7 +7,7 @@
 
 namespace sparkplug::reconstruction
 {
-    spAnimationSerializer::spAnimationSerializer()
+    spAnimationSerializer::spAnimationSerializer(KeyPoolPolicyForAnalysis policy) : keyPoolPolicy_(policy)
     {
         // Host registration/linkage adapter, like MeshDataSerializer: merely
         // constructing a serializer must make its wire target available even
@@ -367,9 +367,11 @@ namespace sparkplug::reconstruction
                                           : rep == 4  ? 1U
                                           : role == 1 ? (rep == 1 ? 4U : 5U)
                                                       : (rep == 1 ? 2U : 3U);
-                        if (count > observed.declaredPools[pool].value_or(0) -
+                        const auto missingPoolLimit = keyPoolPolicy_ == KeyPoolPolicyForAnalysis::AllowMissingWithOwnedKeys
+                            ? MaximumFieldBytesForAnalysis / 4 : 0U;
+                        if (count > observed.declaredPools[pool].value_or(missingPoolLimit) -
                                         observed.usedPools[pool] ||
-                            count > observed.declaredPools[6].value_or(0) - observed.usedPools[6])
+                            count > observed.declaredPools[6].value_or(missingPoolLimit) - observed.usedPools[6])
                             return fail("Key payload exceeds declared shared pools");
                         std::uint32_t consumed = 0;
                         if (!payload.GetCurrentPosition(consumed) ||

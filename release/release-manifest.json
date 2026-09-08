@@ -6,6 +6,7 @@
       "id": "SmoViewer",
       "project": "tools/SmoViewer/SmoViewer/SmoViewer.csproj",
       "executable": "SmoViewer.exe",
+      "companionFiles": ["SparkplugViewerNative.dll"],
       "suite": true,
       "nativeFbx": true,
       "documents": [
@@ -14,7 +15,7 @@
           "name": "README.md"
         },
         "tools/SmoViewer/CHANGELOG.md",
-        "tools/SmoViewer/RELEASE_NOTES_0.6.1.md",
+        "tools/SmoViewer/RELEASE_NOTES_0.7.0.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"

@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using SmoViewer;
 using SmoViewer.Core;
+using SmoViewer.Sparkplug;
 
 internal static class Program
 {
@@ -39,7 +40,7 @@ internal static class Program
                 Call(window,"AddAnimationFile",san,null,"Benchmark");Call(window,"RefreshAnimationList");
                 var list=(ListBox)window.FindName("AnimationList");
                 list.SelectedItem=list.Items.Cast<object>().Single(item=>(string)item.GetType().GetProperty("Path")!.GetValue(item)! == san);
-                var animation=(SmoAnimationClip)Field(window,"_selectedAnimation")!;
+                var animation=(SparkplugAnimationClip)Field(window,"_selectedAnimation")!;
                 var timeField=typeof(MainWindow).GetField("_animationTime",Flags)!;
                 var pose=typeof(MainWindow).GetMethod("ApplyAnimationPoseCore",Flags)!;
                 var geometries=(IDictionary)Field(window,"_sceneGeometry")!;

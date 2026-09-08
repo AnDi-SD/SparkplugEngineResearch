@@ -47,7 +47,7 @@ def file_version(path: Path) -> str:
     return ".".join(map(str, (words[2] >> 16, words[2] & 65535, words[3] >> 16, words[3] & 65535)))
 
 
-def audit(output: Path, archives: bool) -> dict:
+def audit(output: Path, archives: bool, products: list[str] | None = None) -> dict:
     manifest = json.loads((ROOT / "release/release-manifest.json").read_text(encoding="utf-8-sig"))
     errors, packages, payloads = [], [], {}
     markdown_count = link_count = 0
@@ -57,6 +57,8 @@ def audit(output: Path, archives: bool) -> dict:
             errors.append(message)
 
     for product in manifest["products"]:
+        if products and product['id'] not in products:
+            continue
         candidates = [p for p in output.iterdir() if p.is_dir() and p.name.startswith(product["id"] + "-")]
         if len(candidates) != 1:
             errors.append(f"{product['id']}: expected one package, got {len(candidates)}")
@@ -73,6 +75,9 @@ def audit(output: Path, archives: bool) -> dict:
         applications += [(tool, package / "tools" / tool["id"], "tools/" + tool["id"] + "/" + tool["executable"]) for tool in product.get("tools", [])]
         for app, directory, executable in applications:
             expected.add(executable)
+            for companion in app.get('companionFiles', []):
+                require(bool(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.dll', companion)), 'Invalid companion filename')
+                expected.add((Path(executable).parent / companion).as_posix())
             payload = package / executable
             fingerprint = digest(payload)
             if app["id"] in payloads:
@@ -149,9 +154,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
     parser.add_argument("--archives", action="store_true")
+    parser.add_argument("--product", action="append", choices=[p['id'] for p in json.loads((ROOT/'release/release-manifest.json').read_text(encoding='utf-8-sig'))['products']])
     parser.add_argument("--report", required=True, type=Path)
     args = parser.parse_args()
-    report = audit(args.directory.resolve(), args.archives)
+    report = audit(args.directory.resolve(), args.archives, args.product)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in report.items() if k not in {"packages", "payloads"}}))

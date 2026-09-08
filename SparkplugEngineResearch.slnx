@@ -33,6 +33,8 @@
     <Project Path="tools/SmoViewer/SmoNativeValidator.Core/SmoNativeValidator.Core.csproj" />
     <Project Path="tools/SmoViewer/SmoNativeValidator.Tests/SmoNativeValidator.Tests.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Core/SmoViewer.Core.csproj" />
+    <Project Path="tools/SmoViewer/SmoViewer.Sparkplug/SmoViewer.Sparkplug.csproj" />
+    <Project Path="tools/SmoViewer/SmoViewer.Sparkplug.Tests/SmoViewer.Sparkplug.Tests.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Corpus/SmoViewer.Corpus.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoViewer.Rendering.Wpf.csproj" />
     <Project Path="tools/SmoViewer/SmoViewer.Scene/SmoViewer.Scene.csproj" />

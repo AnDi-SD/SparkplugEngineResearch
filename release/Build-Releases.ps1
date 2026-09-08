@@ -170,14 +170,25 @@ function Publish-Application($Application, [string]$Destination) {
         throw "Project not found: $projectPath"
     }
 
-    $cacheKey = $projectPath + '|' + [string]$Application.executable
+    $expectedNames = @([string]$Application.executable)
+    if ($null -ne $Application.PSObject.Properties['companionFiles']) {
+        foreach ($name in @($Application.companionFiles)) {
+            if ([string]$name -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*\.dll$' -or $expectedNames -contains $name -or $nativeFbxFiles -contains $name) {
+                throw "Invalid/duplicate companion file for $($Application.id): $name"
+            }
+            $expectedNames += [string]$name
+        }
+    }
+    $cacheKey = $projectPath + '|' + ($expectedNames -join '|')
     if ($publishedApplications.ContainsKey($cacheKey)) {
         $cached = $publishedApplications[$cacheKey]
-        if ((Get-FileHash -LiteralPath $cached.Path -Algorithm SHA256).Hash -ne $cached.Sha256) {
-            throw "Published application cache changed: $($Application.id)."
+        foreach ($file in $cached.Files) {
+            if ((Get-FileHash -LiteralPath $file.Path -Algorithm SHA256).Hash -ne $file.Sha256) {
+                throw "Published application cache changed: $($Application.id)/$($file.Name)."
+            }
         }
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-        Copy-Item -LiteralPath $cached.Path -Destination (Join-Path $Destination ([string]$Application.executable))
+        foreach ($file in $cached.Files) { Copy-Item -LiteralPath $file.Path -Destination (Join-Path $Destination $file.Name) }
         Write-Host "Reused verified publish for $($Application.id)."
         return
     }
@@ -222,21 +233,25 @@ function Publish-Application($Application, [string]$Destination) {
         $applicationFiles = @($files | Where-Object {
             $nativeFbxFiles -notcontains $_.Name
         })
-        if ($applicationFiles.Count -ne 1 -or
-            $applicationFiles[0].Name -ne [string]$Application.executable) {
+        if ($applicationFiles.Count -ne $expectedNames.Count -or
+            @($applicationFiles | Where-Object { $expectedNames -notcontains $_.Name -or $_.DirectoryName -ne $publishDirectory }).Count -ne 0 -or
+            @($applicationFiles.Name | Select-Object -Unique).Count -ne $expectedNames.Count) {
             $names = ($applicationFiles | ForEach-Object { $_.FullName.Substring($publishDirectory.Length + 1) }) -join ', '
-            throw "Publish contract violation for $($Application.id): expected only $($Application.executable), got [$names]. Run from a clean tree and keep framework-dependent single-file enabled."
+            throw "Publish contract violation for $($Application.id): expected [$($expectedNames -join ', ')], got [$names]. Run from a clean tree and keep framework-dependent single-file enabled."
         }
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-        Copy-Item -LiteralPath $applicationFiles[0].FullName -Destination (Join-Path $Destination $applicationFiles[0].Name)
         # Reuse only within this invocation, with identical publish properties.
         # A later invocation always restores, cleans and publishes again.
-        $cachedPath = Join-Path $stagingRoot ([Guid]::NewGuid().ToString('N') + '.exe')
-        Copy-Item -LiteralPath $applicationFiles[0].FullName -Destination $cachedPath
-        $publishedApplications[$cacheKey] = @{
-            Path = $cachedPath
-            Sha256 = (Get-FileHash -LiteralPath $cachedPath -Algorithm SHA256).Hash
+        $cachedDirectory = Join-Path $stagingRoot ([Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $cachedDirectory | Out-Null
+        $cachedFiles = @()
+        foreach ($file in $applicationFiles) {
+            Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $Destination $file.Name)
+            $cachedPath = Join-Path $cachedDirectory $file.Name
+            Copy-Item -LiteralPath $file.FullName -Destination $cachedPath
+            $cachedFiles += @{ Name = $file.Name; Path = $cachedPath; Sha256 = (Get-FileHash -LiteralPath $cachedPath -Algorithm SHA256).Hash }
         }
+        $publishedApplications[$cacheKey] = @{ Files = $cachedFiles }
     }
     finally {
         if (Test-Path -LiteralPath $publishDirectory) {

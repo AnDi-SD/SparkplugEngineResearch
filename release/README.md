@@ -30,8 +30,9 @@ Only the product executable and configuration/manifest files may be present in
 the package root. Documentation belongs in `docs/`; suite applications belong
 in `tools/<name>/`. The Autodesk FBX SDK bridge is stored once in `native/`, so a
 Viewer suite does not duplicate the same executable, DLL and license under both
-Importer and Exporter. Other runtime or managed dependencies, symbols and
-satellite assemblies must not be loose files in a release.
+Importer and Exporter. Explicit `companionFiles` may accompany the application
+inside `app/`; Viewer 0.7 uses `SparkplugViewerNative.dll` there. Undeclared
+dependencies, symbols and satellite assemblies must not be loose files.
 
 The application payload is a clean, framework-dependent, single-file Windows
 x64 publish. The root executable is a small .NET Framework-based bootstrapper,
@@ -62,9 +63,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command `
 The script cleans each distinct application project before publishing. This is required:
 switching between self-contained and framework-dependent publishing can leave
 stale intermediate runtime assets in `obj/`. Packaging fails unless publish
-produces exactly one executable. It also validates the root allowlist and
+produces exactly the executable and its declared companion DLLs. It also validates the root allowlist and
 rejects exact duplicate files inside a package. When the same project occurs in
-a suite and as a standalone product, its verified single-file payload is reused
+a suite and as a standalone product, its verified payload and companion DLLs are reused
 within that invocation. The temporary cache is hash-checked and removed after
 the build; later invocations publish from clean intermediates again.
 
