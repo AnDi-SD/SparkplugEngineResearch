@@ -112,7 +112,8 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                     opacity,
                     context.BoneRemap,
                     context.TargetInverseBind);
-            current = SmoDocument.Parse(result.Data, target.SourcePath);
+            // This fresh builder buffer belongs to the current operation.
+            current = SmoDocument.ParseOwned(result.Data, target.SourcePath);
             if (current.HasErrors)
             {
                 throw new InvalidDataException(
@@ -262,20 +263,6 @@ internal static partial class SmoSkinnedVisualGraphPipeline
             .OrderByDescending(entry => entry.PhysicalOffset)
             .ToArray();
 
-        foreach (SmoObjectEntry render in removableRenderRoots)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            current = RemoveOriginalBranchIfPresent(current, render.Id);
-        }
-
-        foreach (SmoObjectEntry skin in targetSkins
-                     .Where(entry => !skeletonCarrierSkinIds.Contains(entry.Id))
-                     .OrderByDescending(entry => entry.PhysicalOffset))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            current = RemoveOriginalBranchIfPresent(current, skin.Id);
-        }
-
         uint[] originalVisualLeafIds = target.Objects
             .Where(entry => entry.TypeHash is SmoClassIds.MaterialData or
                 SmoClassIds.MeshData or SmoClassIds.TextureData)
@@ -284,11 +271,17 @@ internal static partial class SmoSkinnedVisualGraphPipeline
             .ThenByDescending(entry => entry.PhysicalOffset)
             .Select(entry => entry.Id)
             .ToArray();
-        foreach (uint objectId in originalVisualLeafIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            current = RemoveOriginalBranchIfPresent(current, objectId);
-        }
+        HashSet<uint> requestedRemovals = removableRenderRoots.Select(entry => entry.Id)
+            .Concat(targetSkins.Where(entry => !skeletonCarrierSkinIds.Contains(entry.Id))
+                .Select(entry => entry.Id))
+            .Concat(originalVisualLeafIds).ToHashSet();
+        uint[] presentRemovals = current.Objects.Where(entry => requestedRemovals.Contains(entry.Id))
+            .Select(entry => entry.Id).ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        current = ParseCleanRebuildStep(
+            SmoVisualForestInjector.RemoveInlineBranches(current, presentRemovals),
+            current.SourcePath,
+            "remove old visual resources");
 
         HashSet<uint> retainedIds = current.Objects.Select(entry => entry.Id).ToHashSet();
         HashSet<uint> removedIds = target.Objects
@@ -412,7 +405,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         string? sourcePath,
         string operation)
     {
-        SmoDocument parsed = SmoDocument.Parse(data, sourcePath);
+        SmoDocument parsed = SmoDocument.ParseOwned(data, sourcePath);
         if (parsed.HasErrors)
         {
             throw new InvalidDataException(
@@ -507,34 +500,6 @@ internal static partial class SmoSkinnedVisualGraphPipeline
             vertex + layout.BlendWeightsOffset.Value,
             Vector4.UnitX);
         result.AsSpan(vertex + layout.BlendIndicesOffset.Value, 4).Clear();
-        return result;
-    }
-
-    private static SmoDocument RemoveOriginalBranchIfPresent(
-        SmoDocument current,
-        uint childObjectId)
-    {
-        SmoObjectEntry? child = current.Objects.SingleOrDefault(entry =>
-            entry.Id == childObjectId);
-        if (child is null)
-            return current;
-        if (child.ParentIndex is not int parentIndex)
-        {
-            throw new InvalidDataException(
-                $"Old visual object {childObjectId} has no inline owner.");
-        }
-        uint ownerId = current.Objects[parentIndex].Id;
-        byte[] data = SmoVisualForestInjector.RemoveInlineBranch(
-            current,
-            ownerId,
-            childObjectId);
-        SmoDocument result = SmoDocument.Parse(data, current.SourcePath);
-        if (result.HasErrors)
-        {
-            throw new InvalidDataException(
-                $"Removing old visual branch {childObjectId} produced an " +
-                "invalid SMO container.");
-        }
         return result;
     }
 

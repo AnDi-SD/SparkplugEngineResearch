@@ -1410,7 +1410,9 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
         int expectedMaterialRunCount)
     {
-        SmoDocument output = SmoDocument.Parse(result.Data, target.SourcePath);
+        // Verification reads the fresh result before it is returned to callers;
+        // this temporary document does not escape or mutate the result buffer.
+        SmoDocument output = SmoDocument.ParseOwned(result.Data, target.SourcePath);
         var errors = new List<string>();
         if (output.HasErrors)
             errors.Add("strict parser reported errors");

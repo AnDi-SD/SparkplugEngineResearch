@@ -1,5 +1,17 @@
 using SmoImporter.Core;
 
+if (args.Length == 1 && args[0] == "--texture-pixel-comparison-regression")
+{
+    try { return TexturePixelComparisonRegression.Run(); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args.Length >= 3 && args[0] == "--bulk-visual-removal-regression")
+{
+    try { return BulkVisualRemovalRegression.Run(args.Skip(1).ToArray()); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args.Length >= 4 && args[0] == "--clean-skinned-pose-input")
 {
     try { return CleanSkinnedPoseRegression.Prepare(args.Skip(1).ToArray()); }

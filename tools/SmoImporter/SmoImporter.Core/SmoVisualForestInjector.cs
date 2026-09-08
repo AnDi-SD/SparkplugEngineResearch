@@ -386,6 +386,94 @@ internal static class SmoVisualForestInjector
             removedObjectIds: removedIds);
     }
 
+    /// <summary>
+    /// Removes selected inline subtrees in one container rewrite. Nested
+    /// selections collapse to their outermost branch; retained object bytes
+    /// change only at the same ancestor sizes/prefixes as sequential removal.
+    /// </summary>
+    internal static byte[] RemoveInlineBranches(
+        SmoDocument current,
+        IEnumerable<uint> childObjectIds)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(childObjectIds);
+        SmoObjectEntry[] selected = childObjectIds.Distinct()
+            .Select(id => current.Objects.Single(entry => entry.Id == id))
+            .ToArray();
+        if (selected.Length == 0)
+            return current.Data.ToArray();
+        SmoObjectEntry[] roots = selected.Where(entry => !selected.Any(parent =>
+                parent.Id != entry.Id && parent.LogicalOffset <= entry.LogicalOffset &&
+                entry.LogicalEnd <= parent.LogicalEnd))
+            .OrderBy(entry => entry.LogicalOffset).ToArray();
+        var ranges = new List<(int Start, int End)>();
+        foreach (SmoObjectEntry child in roots)
+        {
+            if (child.ParentIndex is not int ownerIndex)
+                throw new InvalidOperationException($"Inline branch {child.Id} has no owner.");
+            SmoObjectEntry owner = current.Objects[ownerIndex];
+            SmoDataBlockHeader field = FindInlineField(current, owner, child);
+            int start = checked((int)owner.LogicalOffset + field.Offset);
+            int end = checked((int)(owner.LogicalOffset + field.PayloadEnd));
+            if (start < 0 || end <= start || end > current.Header.DataSize ||
+                ranges.Count > 0 && start < ranges[^1].End)
+                throw new InvalidDataException("Inline removal intervals overlap or exceed the data section.");
+            ranges.Add((start, end));
+        }
+        int RemovedWithin(long start, long end) => ranges
+            .Where(range => start <= range.Start && range.End <= end)
+            .Sum(range => range.End - range.Start);
+        int Map(int offset) => checked(offset - ranges
+            .Where(range => range.End <= offset).Sum(range => range.End - range.Start));
+        SmoObjectEntry[] retained = current.Objects.Where(entry => !roots.Any(root =>
+            root.LogicalOffset <= entry.LogicalOffset && entry.LogicalEnd <= root.LogicalEnd)).ToArray();
+        DirectoryEntry[] directory = retained.Select(entry => new DirectoryEntry(
+            entry.Id, entry.RawName.ToArray(), entry.TypeHash,
+            checked((uint)Map((int)entry.LogicalOffset)),
+            checked((uint)(entry.SerializedSize - RemovedWithin(entry.LogicalOffset, (long)entry.LogicalEnd)))))
+            .OrderBy(entry => entry.LogicalOffset).ToArray();
+        ReadOnlySpan<byte> source = current.Data.Span.Slice(
+            checked((int)current.Header.DataStart), checked((int)current.Header.DataSize));
+        int newSize = checked(source.Length - ranges.Sum(range => range.End - range.Start));
+        byte[] container = CreateContainer(current, newSize, directory, out int dataStart);
+        Span<byte> rewritten = container.AsSpan(dataStart, newSize);
+        int sourceCursor = 0, destinationCursor = 0;
+        foreach (var range in ranges)
+        {
+            int length = range.Start - sourceCursor;
+            source.Slice(sourceCursor, length).CopyTo(rewritten[destinationCursor..]);
+            destinationCursor += length;
+            sourceCursor = range.End;
+        }
+        source[sourceCursor..].CopyTo(rewritten[destinationCursor..]);
+        foreach (SmoObjectEntry entry in retained)
+        {
+            ReadOnlySpan<byte> serialized = ObjectBytes(current, entry);
+            int offset = ObjectSignatureSize;
+            while (offset < serialized.Length &&
+                   SmoDataBlockReader.TryReadHeader(serialized, offset, out SmoDataBlockHeader field))
+            {
+                int header = checked((int)entry.LogicalOffset + field.Offset);
+                if (!ranges.Any(range => range.Start <= header && header < range.End))
+                {
+                    int removed = RemovedWithin(entry.LogicalOffset + field.PayloadOffset,
+                        entry.LogicalOffset + field.PayloadEnd);
+                    if (removed > 0)
+                        WritePayloadSize(rewritten, Map(header), field, checked((uint)(field.PayloadSize - removed)));
+                }
+                offset = checked((int)field.PayloadEnd);
+            }
+            int removedBytes = RemovedWithin(entry.LogicalOffset, (long)entry.LogicalEnd);
+            if (removedBytes == 0)
+                continue;
+            int prefix = checked((int)entry.LogicalOffset - ObjectReferenceSize);
+            if (prefix >= 0 && BinaryPrimitives.ReadUInt32LittleEndian(source[prefix..]) == entry.Id &&
+                BinaryPrimitives.ReadUInt32LittleEndian(source[(prefix + 4)..]) == entry.SerializedSize)
+                WriteUInt32(rewritten, Map(prefix) + sizeof(uint), checked((uint)(entry.SerializedSize - removedBytes)));
+        }
+        return container;
+    }
+
     internal static byte[] ReplaceDirectFieldPayloadAndRelocateInlineObjects(
         SmoDocument current,
         uint ownerId,

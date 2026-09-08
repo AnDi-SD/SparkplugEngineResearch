@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -63,29 +64,26 @@ internal static class ImportedTextureImageTools
                     $"expected {expectedBytes}";
             return false;
         }
-        byte[] serialized = serializedBgra.ToArray();
         int offset = 0;
-        bool matches = true;
-        image.ProcessPixelRows(accessor =>
+        // Keep row memory local to the live image so the caller's BGRA span can
+        // be compared directly, without a full texture copy for a callback.
+        for (int y = 0; y < image.Height; y++)
         {
-            for (int y = 0; y < accessor.Height && matches; y++)
+            foreach (Rgba32 pixel in image.DangerousGetPixelRowMemory(y).Span)
             {
-                foreach (Rgba32 pixel in accessor.GetRowSpan(y))
+                if (serializedBgra[offset] != pixel.B ||
+                    serializedBgra[offset + 1] != pixel.G ||
+                    serializedBgra[offset + 2] != pixel.R ||
+                    serializedBgra[offset + 3] != pixel.A)
                 {
-                    if (serialized[offset] != pixel.B ||
-                        serialized[offset + 1] != pixel.G ||
-                        serialized[offset + 2] != pixel.R ||
-                        serialized[offset + 3] != pixel.A)
-                    {
-                        matches = false;
-                        break;
-                    }
-                    offset += 4;
+                    error = $"RGBA pixels differ at byte offset {offset}";
+                    return false;
                 }
+                offset += 4;
             }
-        });
-        error = matches ? string.Empty : $"RGBA pixels differ at byte offset {offset}";
-        return matches;
+        }
+        error = string.Empty;
+        return true;
     }
 
     private static Image<Rgba32> LoadAndValidate(ImportedTexture texture)

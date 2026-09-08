@@ -46,6 +46,10 @@
     {
       "id": "CP131",
       "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp131.json"
+    },
+    {
+      "id": "CP132",
+      "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp132.json"
     }
   ],
   "readinessScopePath": "research/tool-readiness-scope-v1.json",
@@ -57,6 +61,6 @@
   "currentReadyPercent": 100.0,
   "nextOperations": [],
   "nextQualityFixes": [
-    "Measure the current Importer with a real multi-material donor; target duplicated work or newly reproduced failures using bounded focused evidence."
+    "Measure actual automatic skinning preparation and its GUI consumer on a focused real donor; act only on reproduced bottlenecks or failures."
   ]
 }
