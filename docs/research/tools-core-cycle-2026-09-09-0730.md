@@ -144,3 +144,14 @@ PS2 native packet metadata пока требует переноса. Досье:
 standalone mesh загрузка совпала с оригиналом; выдача комбинированного cached
 member за точное native состояние приостановлена, рекомендация разделения
 игрового member и host storage size записана в досье.
+
+### Восьмой блок: PS2 mesh metadata
+
+PS2 header/bounds byte parser перенесён из C# в spPS2MeshDataSerializer.
+Два original-PC prefix observations до packet allocation и полный bounds-only
+field reader прошли, все3/3,3/3,5/5 allocations освобождены; PS2 операции
+сопоставлены статически. ABI сохранил40/40/24 bytes. C#2 960/9 833/9 285
+на двух PS2 меню и одном PC меню прошли. Убраны вымышленные ограничения
+counter/format и запрет reverse bounds; DMA runtime не реализуется.
+Оставшаяся C# metadata aggregation и другие resource readers ещё в работе.
+Досье: `docs/research/tool-ps2-mesh-metadata-core-2026-09-09.md`.

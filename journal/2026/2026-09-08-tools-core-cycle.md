@@ -63,3 +63,10 @@ C#9 282/2 957/1 505 на трёх файлах и два graphs прошли. Н
 packed combiner cached size; standalone path свежей проверкой совпал, перенос
 combined cached member отложен отдельно. Досье:
 `docs/research/tool-render-mesh-shared-core-2026-09-09.md`.
+
+Восьмой блок: PS2 mesh prefix/bounds читаются общим serializer. Два original
+prefix probes остановлены до allocation, отдельный bounds-only reader прошёл
+полностью;3/3,3/3,5/5 owners освобождены. PS2 сопоставление статическое. C ABI
+сохранил40/40/24 bytes, C#2 960/9 833/9 285 на трёх меню прошли. DMA остаётся
+opaque, header numeric relationships не подгоняются под старые C# ожидания.
+Досье: `docs/research/tool-ps2-mesh-metadata-core-2026-09-09.md`.

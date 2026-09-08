@@ -7,6 +7,7 @@
 #include "spMeshDataSerializer.h"
 
 #include <cstdint>
+#include <array>
 #include <vector>
 
 namespace sparkplug::reconstruction
@@ -30,6 +31,17 @@ namespace sparkplug::reconstruction
         // visible instead of folding it into a guessed common enum.
         static constexpr std::uint32_t PCNativeLoadFlagMask = 0x00000002;
         static constexpr std::uint32_t PS2NativeLoadFlagMask = 0x00000008;
+
+        // Host snapshots of the actual serialized prefix/field, not RTTI game
+        // objects or executable PS2 packets. PC42A420/42AC2A, PS2163160/1635C8.
+        struct NativePayloadHeaderForAnalysis {
+            std::array<float,4> sphere{};
+            std::uint32_t primitiveCount=0,vertexCount=0,componentFlags=0,
+                packetQwords=0,additionalUVCount=0,weightCount=0;
+        };
+        struct BoundingBoxForAnalysis {std::array<float,3> minimum{},maximum{};};
+        [[nodiscard]] static bool ReadNativeHeaderForAnalysis(spStream&,NativePayloadHeaderForAnalysis&);
+        [[nodiscard]] static bool ReadBoundingBoxForAnalysis(spStream&,BoundingBoxForAnalysis&);
 
         spPS2MeshDataSerializer() noexcept = default;
         ~spPS2MeshDataSerializer() override;

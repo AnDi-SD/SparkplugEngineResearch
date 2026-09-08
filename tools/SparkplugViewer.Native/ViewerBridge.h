@@ -32,6 +32,11 @@ struct SpvMeshInfo {
     std::uint32_t planningWords[4],planningByte;
 };
 struct SpvMeshVertex {float position[3],normal[3],uv0[2],uv1[2],weights[4];std::uint32_t color,bones;};
+struct SpvPs2MeshHeader {float sphere[4];std::uint32_t primitives,vertices,componentFlags,packetQwords,additionalUVCount,weightCount;};
+// Bounded inspection only. Header reads the original prefix and checks the
+// opaque packet extent; it neither materializes nor executes a DMA packet.
+SPV_API int spv_ps2_mesh_header(const std::uint8_t*,std::uint32_t,SpvPs2MeshHeader*) noexcept;
+SPV_API int spv_mesh_bounds(const std::uint8_t*,std::uint32_t,float* minimumMaximum) noexcept;
 // kind0: complete MeshData field stream; kind1: portable field; kind2: PC field.
 // kind3/4: same portable/PC reader, metadata only (no host attribute validation).
 // platformMask controls the original whole-field selector, without fallback.

@@ -1,6 +1,7 @@
 #include "spPS2MeshDataSerializer.h"
 
 #include "spPS2MeshData.h"
+#include "../SparkBase/spStream.h"
 
 #include <memory>
 #include <utility>
@@ -28,6 +29,22 @@ namespace sparkplug::reconstruction
     }
 
     spPS2MeshDataSerializer::~spPS2MeshDataSerializer() = default;
+
+    bool spPS2MeshDataSerializer::ReadNativeHeaderForAnalysis(spStream& source,NativePayloadHeaderForAnalysis& header)
+    {
+        // The prefix ends before packet allocation, factory and attachment.
+        // Original code does not validate these numeric relationships. Host
+        // callers reject incomplete reads instead of using uninitialized locals.
+        return source.ReadData(header.sphere.data(),16)
+            &&source.Read(header.primitiveCount)&&source.Read(header.vertexCount)
+            &&source.Read(header.componentFlags)&&source.Read(header.packetQwords)
+            &&source.Read(header.additionalUVCount)&&source.Read(header.weightCount);
+    }
+    bool spPS2MeshDataSerializer::ReadBoundingBoxForAnalysis(spStream& source,BoundingBoxForAnalysis& bounds)
+    {
+        // Two original 12-byte reads; no invented finite/ordering correction.
+        return source.ReadData(bounds.minimum.data(),12)&&source.ReadData(bounds.maximum.data(),12);
+    }
 
     const spRTTIRecord& spPS2MeshDataSerializer::StaticRTTI() noexcept
     {

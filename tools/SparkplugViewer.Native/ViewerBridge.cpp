@@ -11,6 +11,7 @@
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
+#include "Code/Sparkplug/spPS2MeshDataSerializer.h"
 #include "Code/wxFaceData.h"
 #include "Analysis/PC/spAnimationMath.h"
 #include <algorithm>
@@ -193,6 +194,25 @@ std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
 }
 SPV_API std::uint32_t spv_abi_version() noexcept { return 2; }
 SPV_API const char* spv_last_error() noexcept { return lastError; }
+SPV_API int spv_ps2_mesh_header(const std::uint8_t* bytes,std::uint32_t size,SpvPs2MeshHeader* output) noexcept {
+    return guarded([&]{
+        require(bytes&&output&&size>=40&&size<=32u*1024u*1024u,"Invalid bounded PS2 mesh packet envelope");
+        BorrowedInput input(bytes,size);spPS2MeshDataSerializer::NativePayloadHeaderForAnalysis header;
+        require(spPS2MeshDataSerializer::ReadNativeHeaderForAnalysis(input,header),"Truncated PS2 mesh header");
+        // Inspector extent guard, not original hardware-packet validation.
+        require(std::uint64_t(header.packetQwords)*16==size-40,"PS2 packet qword extent differs from its field");
+        std::copy(header.sphere.begin(),header.sphere.end(),output->sphere);
+        output->primitives=header.primitiveCount;output->vertices=header.vertexCount;output->componentFlags=header.componentFlags;
+        output->packetQwords=header.packetQwords;output->additionalUVCount=header.additionalUVCount;output->weightCount=header.weightCount;
+    });
+}
+SPV_API int spv_mesh_bounds(const std::uint8_t* bytes,std::uint32_t size,float* output) noexcept {
+    return guarded([&]{require(bytes&&output&&size==24,"Mesh bounding box requires exactly 24 bytes");
+        BorrowedInput input(bytes,size);spPS2MeshDataSerializer::BoundingBoxForAnalysis bounds;
+        require(spPS2MeshDataSerializer::ReadBoundingBoxForAnalysis(input,bounds),"Truncated mesh bounds");
+        std::copy(bounds.minimum.begin(),bounds.minimum.end(),output);std::copy(bounds.maximum.begin(),bounds.maximum.end(),output+3);
+    });
+}
 SPV_API void* spv_mesh_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind,std::uint32_t platformMask) noexcept {
     std::unique_ptr<spvhost::RenderMeshView> result;
     if(!guarded([&]{require(bytes&&size,"Missing render mesh input");BorrowedInput input(bytes,size);
