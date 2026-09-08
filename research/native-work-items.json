@@ -102,13 +102,14 @@
         "pc-node-resource-graph",
         "pc-texture-codec-backend"
       ],
-      "summary": "CP120 restores all particle parameter fields, native omission/framing rules, seven regions and borrowed RenderNode backlink. Complete non-looping read/initial-state and writer match20 cases; whole pickup_ptc.smo matches6 objects/6088 bytes with all138 allocations released.",
+      "summary": "CP120 restores all particle parameter fields, native omission/framing rules, seven regions and borrowed RenderNode backlink. Complete non-looping read/initial-state and writer match20 cases; whole pickup_ptc.smo matches6 objects/6088 bytes with all138 allocations released. CP121 adds exact seven-region position sampling and MT state; fixes Viewer cylinder/cone height/radius labels.",
       "originalName": "spParticleSystem",
       "known": [
         "48D8D0/48D6F0 factory and manager registration,49BBB0 serializer factory,49BCE0 complete reader,49C8D0 writer and48D360 destruction executed.",
         "Original non-looping48C340/48BE50 pool initialization and4B97F0 render support execute through actual4AD4D0 with external D3D9 GetDeviceCaps input.",
         "Writer omits scale1..1 and null RenderNode; acceleration/direction comparisons use float0.001 tolerance.",
-        "Native RenderNode pointer is borrowed; portable weak pointer avoids ancestor ownership cycles."
+        "Native RenderNode pointer is borrowed; portable weak pointer avoids ancestor ownership cycles.",
+        "CP121 restores413270/4132B0 MT19937 and48C100 with all7 native region samplers:252 cases,130032 position bytes and630000 complete RNG-state bytes exact, zero seams. Plane ignores normal; cone uses physical Y without height normalization; cylinder/cone wire begins with height."
       ],
       "unknowns": [
         {
@@ -122,11 +123,13 @@
       ],
       "evidencePaths": [
         "docs/research/native-pc-particle-parameters.md",
-        "docs/research/smo-class-sp-particle-system.md"
+        "docs/research/smo-class-sp-particle-system.md",
+        "docs/research/native-pc-particle-sampling.md"
       ],
       "testProfiles": [
         "pc-particle-parameters",
-        "pc-scene-file-profile"
+        "pc-scene-file-profile",
+        "pc-particle-sampling"
       ]
     },
     {
@@ -13782,6 +13785,78 @@
           "--guest",
           "direction-negative",
           "12"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-particle-sampling": [
+      {
+        "id": "pc-particle-sampling-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "1"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-2",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-3",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "3"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-4",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "4"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-5",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "5"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-6",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "6"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-sampling-7",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_sampling.py",
+        "args": [
+          "--guest",
+          "7"
         ],
         "parallelSafe": true
       }

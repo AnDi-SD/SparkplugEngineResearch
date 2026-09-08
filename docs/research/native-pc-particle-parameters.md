@@ -4,6 +4,7 @@ CP120, 8 сентября 2026. Проверяемый PC EXE:
 `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F`.
 Это самостоятельное нативное подтверждение поверх старого
 [разбора wire layout](smo-class-sp-particle-system.md), без переноса PC credit на PS2.
+Следующий шаг выполнен в [CP121 — семь sampler functions и MT19937](native-pc-particle-sampling.md).
 
 ## Выполненные оригинальные функции
 

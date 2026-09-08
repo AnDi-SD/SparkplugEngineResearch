@@ -4,6 +4,9 @@
 Указанная ниже обязательность fields относится к исследованным authored файлам.
 Оригинальный writer пропускает default scale и нулевой render node; это отдельно
 подтверждено исполнением, как и допуск0,001 при сравнении векторов с default.
+В [CP121](native-pc-particle-sampling.md) выполнены все7 native sampler functions;
+по writer diagnostics и вычислениям исправлены прежние ошибочные метки порядка
+height/radii у cylinder/cone. Это PC runtime evidence, не новый PS2 runtime test.
 
 ## Layout
 
@@ -34,8 +37,8 @@ fields 0..19:
 | 14 | box | `Vector3 position, size` | 15 |
 | 15 | sphere | `Vector3 position; Single radius` | 646 |
 | 16 | disk | `Vector3 position; Single radius` | 110 |
-| 17 | cylinder | `Vector3 position; Single radius, height` | 5 |
-| 18 | cone | `Vector3 position; Single radius1, radius2, height` | 372 |
+| 17 | cylinder | `Vector3 position; Single height, radius` | 5 |
+| 18 | cone | `Vector3 position; Single height, radius1, radius2` | 372 |
 
 Порядок и ширина членов подтверждены не только корпусом, но и именами/getter
 assertions в PC и PS2 executable. Все PC working/pristine объекты совпадают

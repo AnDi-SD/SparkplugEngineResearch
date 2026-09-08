@@ -3,6 +3,8 @@
 // the lost source ABI and the particle simulation are not reconstructed here.
 #include "spRenderable.h"
 
+namespace sparkplug::evidence::pc {struct ParticleRandomForAnalysis;}
+
 namespace sparkplug::reconstruction
 {
     class spRenderNode;
@@ -37,6 +39,8 @@ namespace sparkplug::reconstruction
         // Only the non-looping initial state of native48C340/48BE50 is supported.
         // Looping initialization calls48D1C0 and already emits live particles.
         bool PrepareNonLoopingForAnalysis() noexcept;
+        bool SampleEmissionRegionForAnalysis(sparkplug::evidence::pc::ParticleRandomForAnalysis&,
+            std::uint32_t count,std::vector<Vector3>& output) const;
         const std::array<std::uint32_t,5>& GetPoolStateForAnalysis() const noexcept {return poolState_;}
     private:
         ParametersForAnalysis parameters_;

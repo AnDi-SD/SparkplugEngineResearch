@@ -136,6 +136,7 @@ add_library(SparkplugEngine STATIC
     Analysis/PC/spAnimationMath.h
     Analysis/PC/spAnimationKeySampling.h
     Analysis/PC/spNodeTransformMath.h
+    Analysis/PC/spParticleSampling.h
     Code/Sparkplug/spGameLevel.cpp
     Code/Sparkplug/spGameLevel.h
     Code/Sparkplug/spGameLevelSerializer.cpp

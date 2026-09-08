@@ -1,4 +1,5 @@
 #include "spParticleSystem.h"
+#include "Analysis/PC/spParticleSampling.h"
 #include <cmath>
 
 namespace sparkplug::reconstruction
@@ -14,6 +15,9 @@ namespace sparkplug::reconstruction
     const spRTTIRecord& spParticleSystem::vfunc_18() const noexcept {return Record;}
     std::unique_ptr<spBaseObject> spParticleSystem::vfunc_10(spCloneManager&) const {return nullptr;}
     bool spParticleSystem::vfunc_14(spBaseObject&,spCloneManager&) const {return false;}
+    bool spParticleSystem::SampleEmissionRegionForAnalysis(sparkplug::evidence::pc::ParticleRandomForAnalysis& random,
+        std::uint32_t count,std::vector<Vector3>& output) const
+    {return sparkplug::evidence::pc::SampleParticleRegionForAnalysis(parameters_.regionType,parameters_.region,random,count,output);}
     bool spParticleSystem::PrepareNonLoopingForAnalysis() noexcept
     {
         if(parameters_.flags[0])return false;

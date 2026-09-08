@@ -1,4 +1,5 @@
 #include "spParticleCapture.h"
+#include "Analysis/PC/spParticleSampling.h"
 #include "Code/Sparkplug/spParticleSystemSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
@@ -34,6 +35,26 @@ namespace
     }
     void Guards()
     {
+        using sparkplug::evidence::pc::ParticleRandomForAnalysis;
+        ParticleRandomForAnalysis random;
+        for(auto expected:{3499211612u,581869302u,3890346734u,3586334585u,545404204u})
+            Check(random.Next()==expected,"Original unseeded MT19937 default sequence");
+        const std::array<const char*,3> golden{
+            "de489040000020c0f7029240fef09b40000020c02c290c416a04e13f000020c0e5021941",
+            "bc912040147860bf9fae1240005b093ef71b51c026f18840bc3cb8be57b458c0a6167c40",
+            "c0fbd8be91db0bc0b9699140bcc4943ffe462cc0803cb1404cab054034c80cc0931ab040"};
+        unsigned goldenIndex=0;
+        for(auto tag:{4u,6u,7u})
+        {
+            spParticleSystem sampled;sampled.Parameters().regionType=tag;
+            sampled.Parameters().region=tag==4?std::vector<float>{1.25f,-2.5f,3.75f,0,1,0,4,6}:
+                tag==6?std::vector<float>{1.25f,-2.5f,3.75f,4,2}:std::vector<float>{1.25f,-2.5f,3.75f,1,2,3};
+            random.Seed(5489);std::vector<spParticleSystem::Vector3> positions;
+            Check(sampled.SampleEmissionRegionForAnalysis(random,3,positions),"Native region sample fixture");
+            const auto* begin=reinterpret_cast<const std::uint8_t*>(positions.data());
+            Check(Hex(Bytes(begin,begin+36))==golden[goldenIndex++],"Original plane/cylinder/cone capture including member order and rounding");
+            Check(!sampled.SampleEmissionRegionForAnalysis(random,129,positions),"Native caller batch128 host bound");
+        }
         spParticleSystem object;spParticleSystemSerializer serializer;spMemoryStream output;Open(output);std::string error;
         Check(object.IsKindOf(spRenderable::ClassID)&&serializer.GetTargetClassIDForAnalysis()==object.ClassID,"Particle RTTI and serializer target");
         Check(serializer.WritePayloadForAnalysis(output,object,&error),error.c_str());
@@ -57,7 +78,20 @@ int main(int argc,char** argv)
 {
     try
     {
-        if(argc==2&&std::string(argv[1])=="--payload")
+        if(argc==5&&std::string(argv[1])=="--sample")
+        {
+            spParticleSystem object;auto& p=object.Parameters();p.regionType=std::stoul(argv[2]);
+            sparkplug::evidence::pc::ParticleRandomForAnalysis random;random.Seed(std::stoul(argv[3]));
+            const auto count=std::stoul(argv[4]);Check(count<=128,"Bounded sample count");
+            std::string text;std::getline(std::cin,text);const auto bytes=Unhex(text);
+            Check(bytes.size()%4==0&&bytes.size()<=32,"Region extent");p.region.resize(bytes.size()/4);std::memcpy(p.region.data(),bytes.data(),bytes.size());
+            std::vector<spParticleSystem::Vector3> positions;Check(object.SampleEmissionRegionForAnalysis(random,std::uint32_t(count),positions),"Bounded region sampling");
+            Bytes state;const auto append=[&](const void* data,std::size_t size){const auto* b=static_cast<const std::uint8_t*>(data);state.insert(state.end(),b,b+size);};
+            for(const auto& position:positions)append(position.data(),12);
+            const auto positionsHex=Hex(state);state.clear();append(random.state.data(),random.state.size()*4);
+            std::cout<<"{\"positionsHex\":\""<<positionsHex<<"\",\"randomIndex\":"<<random.index<<",\"randomStateHex\":\""<<Hex(state)<<"\"}\n";
+        }
+        else if(argc==2&&std::string(argv[1])=="--payload")
         {
             std::string text,error;std::getline(std::cin,text);spParticleSystem object;
             if(text!="default")Check(Read(object,Unhex(text),error),error.c_str());
