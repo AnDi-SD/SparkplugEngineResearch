@@ -28,6 +28,8 @@ namespace sparkplug::reconstruction
             std::uint32_t runtimeFormat,std::vector<MipForAnalysis>);
         [[nodiscard]] bool InitializeNativeMipShadowForAnalysis(std::uint32_t width,std::uint32_t height,
             std::uint32_t nativeFlags,std::uint8_t field1C,std::vector<MipForAnalysis>);
+        [[nodiscard]] bool InitializeCrossMipShadowForAnalysis(std::uint32_t sourceWidth,std::uint32_t sourceHeight,
+            std::uint32_t pixelFormat,std::vector<MipForAnalysis>);
         [[nodiscard]] bool HasInitializedRuntimeFormatForAnalysis() const noexcept{return formatInitialized_;}
         [[nodiscard]] std::uint32_t GetRuntimeFormatForAnalysis() const noexcept{return runtimeFormat_;}
         [[nodiscard]] std::uint32_t GetSurfaceFormatForAnalysis() const noexcept{return surfaceFormat_;}

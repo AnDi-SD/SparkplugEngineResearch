@@ -5,6 +5,7 @@
 #include "spSerializerManager.h"
 #include "spDataBlockSerializer.h"
 #include "Analysis/PC/spSectionCursor.h"
+#include "Analysis/PC/spTextureResizeFilter.h"
 
 #include <limits>
 #include <memory>
@@ -51,7 +52,8 @@ namespace sparkplug::reconstruction
         using sparkplug::evidence::pc::serialization::SectionCursor;
         if(error)error->clear();SectionCursor wrapper(context,source,byteCount,false,error);
         auto* texture=dynamic_cast<spTextureData*>(&object);
-        if(!IsExactly(ClassID)||!texture||!object.IsExactly(spTextureData::ClassID))return wrapper.Fail("Only actual compared CPU TextureData payload is restored");
+        auto* runtime=dynamic_cast<spDXTexture*>(&object);
+        if(!IsExactly(ClassID)||(!texture&&!runtime))return wrapper.Fail("Compared CPU TextureData or runtime DXTexture target required");
         std::uint32_t remaining=0;bool handled=false;
         if(!ReadSourceWrapperForAnalysis(context,source,byteCount,object,remaining,handled,error))return false;
         if(handled)return remaining==0?true:wrapper.Fail("Trailing bytes after embedded source section");
@@ -61,27 +63,64 @@ namespace sparkplug::reconstruction
             if(header->IsTerminator())return initialized?true:local.Fail("No restored texture pixels");
             if(header->fieldID==1)return local.Fail("Native DX texture payload is not yet restored");
             if(header->fieldID!=0){if(!local.Skip())return local.Fail("Cannot skip local texture field");continue;}
-            SectionCursor pixelsSection(context,source,header->payloadSize,true,error);bool terminated=false;
-            while(const auto* pixelsHeader=pixelsSection.Next())
-            {
-                if(pixelsHeader->IsTerminator()){terminated=true;break;}
-                if(pixelsHeader->fieldID!=5){if(!pixelsSection.Skip())return pixelsSection.Fail("Cannot skip texture pixel field");continue;}
-                struct Raw{std::uint32_t width,height,format,pixelSize;};Raw raw{};
-                if(pixelsHeader->payloadSize<sizeof(raw)||!source.ReadData(&raw,sizeof(raw)))return pixelsSection.Fail("Truncated four-word raw texture header");
-                const auto expectedSize=spTextureBuffer::PixelSizeForFormatForAnalysis(raw.format);
-                const auto size=std::uint64_t(raw.width)*raw.height*raw.pixelSize;
-                if(!raw.width||!raw.height||raw.width>65535||raw.height>65535||!expectedSize||raw.pixelSize!=expectedSize
-                    ||size>16u*1024u*1024u||size!=pixelsHeader->payloadSize-sizeof(raw))return pixelsSection.Fail("Raw pixel extent/format exceeds safe native-compatible bounds");
-                std::vector<std::byte> bytes(static_cast<std::size_t>(size));
-                if(!source.ReadData(bytes.data(),static_cast<std::uint32_t>(size)))return pixelsSection.Fail("Truncated raw pixels");
-                spTextureBuffer buffer;
-                if(!buffer.InitializeForAnalysis(static_cast<std::uint16_t>(raw.width),static_cast<std::uint16_t>(raw.height),1,raw.format)
-                    ||!buffer.SetDataForAnalysis(bytes)||!texture->InitializeFromTextureBufferForAnalysis(buffer,1,0,true))return pixelsSection.Fail("Cannot initialize CPU texture buffer");
-                initialized=true;
-            }
-            if(!terminated)return false;
+            if(!ReadCrossSectionForAnalysis(context,source,header->payloadSize,
+                [&](const spTextureBuffer& buffer){return texture?texture->InitializeFromTextureBufferForAnalysis(buffer,1,0,true)
+                    :InitializeCrossDXForAnalysis(context,buffer,*runtime);},initialized,error))return false;
         }
         return false;
+    }
+
+    bool spTextureDataSerializer::InitializeCrossDXForAnalysis(spSerializerReadContextForAnalysis& context,
+        const spTextureBuffer& buffer,spDXTexture& texture)
+    {
+        const auto w=buffer.GetWidthForAnalysis(),h=buffer.GetHeightForAnalysis();
+        if(buffer.GetPixelFormatForAnalysis()!=0)return false;
+        const auto width=spTexture::NormalizeDimensionForAnalysis(w),height=spTexture::NormalizeDimensionForAnalysis(h);
+        spDXTexture::MipForAnalysis base;
+        if(!spDXTexture::DescribeMipForAnalysis(w,h,3,base))return false;
+        base.packedBytes=buffer.GetBufferForAnalysis();
+        if(w!=width||h!=height)
+        {
+            spDXTexture::MipForAnalysis resized;
+            if(!sparkplug::evidence::pc::texture_mips::ResizeRGBA(base,width,height,resized))return false;
+            base=std::move(resized);
+        }
+        std::vector<spDXTexture::MipForAnalysis> mips;mips.push_back(std::move(base));
+        while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
+        {
+            spDXTexture::MipForAnalysis next;
+            if(!sparkplug::evidence::pc::texture_mips::GenerateNext(mips.back(),next))return false;
+            mips.push_back(std::move(next));
+        }
+        for(std::size_t i=0;i<mips.size();++i)if(context.pcTexturePitchForAnalysis)
+            mips[i].physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(i),mips[i].rowBytes);
+        return texture.InitializeCrossMipShadowForAnalysis(w,h,0,std::move(mips));
+    }
+
+    bool spTextureDataSerializer::ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t byteCount,const std::function<bool(const spTextureBuffer&)>& initialize,
+        bool& initialized,std::string* error)
+    {
+        using sparkplug::evidence::pc::serialization::SectionCursor;
+        SectionCursor pixelsSection(context,source,byteCount,true,error);bool terminated=false;
+        while(const auto* pixelsHeader=pixelsSection.Next())
+        {
+            if(pixelsHeader->IsTerminator()){terminated=true;break;}
+            if(pixelsHeader->fieldID!=5){if(!pixelsSection.Skip())return pixelsSection.Fail("Cannot skip texture pixel field");continue;}
+            struct Raw{std::uint32_t width,height,format,pixelSize;};Raw raw{};
+            if(pixelsHeader->payloadSize<sizeof(raw)||!source.ReadData(&raw,sizeof(raw)))return pixelsSection.Fail("Truncated four-word raw texture header");
+            const auto expectedSize=spTextureBuffer::PixelSizeForFormatForAnalysis(raw.format);
+            const auto size=std::uint64_t(raw.width)*raw.height*raw.pixelSize;
+            if(!raw.width||!raw.height||raw.width>65535||raw.height>65535||!expectedSize||raw.pixelSize!=expectedSize
+                ||size>16u*1024u*1024u||size!=pixelsHeader->payloadSize-sizeof(raw))return pixelsSection.Fail("Raw pixel extent/format exceeds safe native-compatible bounds");
+            std::vector<std::byte> bytes(static_cast<std::size_t>(size));
+            if(!source.ReadData(bytes.data(),static_cast<std::uint32_t>(size)))return pixelsSection.Fail("Truncated raw pixels");
+            spTextureBuffer buffer;
+            if(!buffer.InitializeForAnalysis(static_cast<std::uint16_t>(raw.width),static_cast<std::uint16_t>(raw.height),1,raw.format)
+                ||!buffer.SetDataForAnalysis(bytes)||!initialize(buffer))return pixelsSection.Fail("Cannot initialize texture from common pixel buffer");
+            initialized=true;
+        }
+        return terminated;
     }
 
     bool spTextureDataSerializer::ReadSourceWrapperForAnalysis(spSerializerReadContextForAnalysis& context,

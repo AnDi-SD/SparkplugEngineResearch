@@ -7,11 +7,14 @@
 #include "spSerializer.h"
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 namespace sparkplug::reconstruction
 {
     class spTextureData;
+    class spTextureBuffer;
+    class spDXTexture;
 
     class spTextureDataSerializer : public spSerializer
     {
@@ -84,6 +87,10 @@ namespace sparkplug::reconstruction
             BuildCrossPlatformPayloadHeaderForAnalysis(
                 const spTextureData& textureData) noexcept;
     protected:
+        [[nodiscard]] static bool InitializeCrossDXForAnalysis(spSerializerReadContextForAnalysis&,
+            const spTextureBuffer&,spDXTexture&);
+        [[nodiscard]] static bool ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,const std::function<bool(const spTextureBuffer&)>& initialize,bool& initialized,std::string*);
         [[nodiscard]] static bool WriteSourceNoneForAnalysis(spStream&,const spTextureData&);
         [[nodiscard]] static bool WriteCrossSectionForAnalysis(spStream&,const spTextureData&);
         // Actual42EA50: same selected virtual reader recurses for field3;

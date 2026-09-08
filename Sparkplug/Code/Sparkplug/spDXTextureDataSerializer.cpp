@@ -92,7 +92,14 @@ namespace sparkplug::reconstruction
         {
             if(field->IsTerminator())return initialized?true:local.Fail("No restored native DX mip payload");
             if(field->fieldID==6){if(!local.Read(platform))return local.Fail("Invalid DX platform field");continue;}
-            if(field->fieldID==0&&!(platform&PCNativeLoadFlagMask))return local.Fail("DX cross-pixel conversion backend is not restored");
+            if(field->fieldID==0&&!(platform&PCNativeLoadFlagMask))
+            {
+                if(!ReadCrossSectionForAnalysis(context,stream,field->payloadSize,[&](const spTextureBuffer& buffer)
+                {
+                    return InitializeCrossDXForAnalysis(context,buffer,*texture);
+                },initialized,error))return false;
+                continue;
+            }
             if(field->fieldID!=1||!(platform&PCNativeLoadFlagMask))
             {if(!local.Skip())return local.Fail("Cannot skip inactive DX texture field");continue;}
             SectionCursor native(context,stream,field->payloadSize,true,error);

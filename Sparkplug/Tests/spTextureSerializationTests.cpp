@@ -7,6 +7,7 @@
 #include "Code/SparkplugDX/spDXTextureSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Analysis/PC/spTextureMipFilter.h"
+#include "Analysis/PC/spTextureResizeFilter.h"
 #include "Analysis/PC/spTextureBlockCodec.h"
 #include "Analysis/PC/spTextureBlockOptimizer.h"
 #include "Analysis/PC/spTextureBlockEncoder.h"
@@ -243,7 +244,23 @@ namespace
         sparkplug::evidence::pc::texture_blocks::Block block{};auto bytes=red;
         Check(!sparkplug::evidence::pc::texture_blocks::EncodeNoDither(4,block,bytes)&&bytes==red,"unknown block format does not mutate output");
     }
-    std::string MissingMips()
+    void CrossUploadGuards()
+    {
+        namespace filter=sparkplug::evidence::pc::texture_mips;
+        spDXTexture::MipForAnalysis source,output;
+        Check(spDXTexture::DescribeMipForAnalysis(1,8,3,source),"cross regression source layout");
+        for(unsigned value:{135u,251u,246u,100u,165u,138u,30u,212u,15u,56u,83u,62u,1u,9u,128u,211u,
+            213u,171u,121u,111u,187u,82u,68u,6u,132u,82u,116u,140u,209u,55u,253u,9u})source.packedBytes.push_back(std::byte(value));
+        Check(filter::ResizeRGBA(source,2,8,output),"original wrapped resize with ordered dither");
+        Bytes pixels;for(auto value:output.packedBytes)pixels.push_back(std::uint8_t(value));
+        Check(Hex(pixels)=="94d5dc6794d4dc678f8e40b38e8e3fb3203d5264203c52631d237ab41d2379b3b88c746fb78c736eb85d5124b75d5024954f7f6b944e7f6bbe53eb25be52eb24",
+            "native1x8 resize filters unchanged height and dithers alternating scan rows");
+        const auto before=output.packedBytes;source.packedBytes.pop_back();
+        Check(!filter::ResizeRGBA(source,2,8,output)&&output.packedBytes==before,"truncated cross pixels preserve output");
+        filter::AxisRows rows{{{7u,.5F}}};
+        Check(!filter::BuildWrappedAxis(0,2,rows)&&rows.size()==1&&rows[0][0].first==7,"invalid coefficient dimensions preserve output");
+    }
+    std::string MissingMips(bool cross=false,bool common=false)
     {
         std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=4096&&hex.size()%2==0,"bounded native payload hex");
         const auto nibble=[](char c)->unsigned
@@ -252,11 +269,16 @@ namespace
         spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
         context.pcTexturePitchForAnalysis=[](void*,std::uint32_t,std::uint32_t row) noexcept{return row+4;};
         spMemoryStream stream;Open(stream,data);spDXTexture texture;std::string error;
-        Check(spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(data.size()),texture,&error),error.c_str());
+        spDXTextureDataSerializer dxSerializer;spTextureDataSerializer commonSerializer;
+        const spTextureDataSerializer& serializer=common?commonSerializer:dxSerializer;
+        Check(serializer.ReadPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(data.size()),texture,&error),error.c_str());
         std::uint32_t cursor=0;Check(stream.GetCurrentPosition(cursor)&&cursor==data.size()&&!context.failed&&!context.depth,"complete missing mip payload consumed");
-        Check(!texture.HasInitializedRuntimeFormatForAnalysis()&&!texture.GetNativeByteCountForAnalysis(),"missing mip path leaves runtime44/48 untouched");
+        if(cross)Check(texture.HasInitializedRuntimeFormatForAnalysis()&&texture.GetNativeByteCountForAnalysis(),"cross upload initializes runtime44/48");
+        else Check(!texture.HasInitializedRuntimeFormatForAnalysis()&&!texture.GetNativeByteCountForAnalysis(),"missing mip path leaves runtime44/48 untouched");
         std::ostringstream out;out<<"{\"state\":["<<texture.GetField18ForAnalysis()<<','<<unsigned(texture.GetField1CForAnalysis())<<','
-            <<texture.GetTextureFlagsForAnalysis()<<','<<texture.IsInitializedForAnalysis()<<','<<texture.GetWidthForAnalysis()<<','<<texture.GetHeightForAnalysis()<<"],\"levels\":[";
+            <<texture.GetTextureFlagsForAnalysis()<<','<<texture.IsInitializedForAnalysis()<<','<<texture.GetWidthForAnalysis()<<','<<texture.GetHeightForAnalysis();
+        if(cross)out<<','<<texture.GetRuntimeFormatForAnalysis()<<','<<texture.GetNativeByteCountForAnalysis();
+        out<<"],\"levels\":[";
         bool first=true;for(const auto& mip:texture.GetMipsForAnalysis())
         {
             Check(mip.physicalPitch==mip.rowBytes+4,"generated surfaces use declared pitch callback");
@@ -414,6 +436,8 @@ int main(int argc,char** argv)
         if(argc==2&&std::string(argv[1])=="--optimize-blocks-trace"){OptimizeBlocks(true);return 0;}
         if(argc==2&&std::string(argv[1])=="--decode-blocks"){DecodeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
+        if(argc==2&&std::string(argv[1])=="--cross-upload"){std::cout<<MissingMips(true)<<'\n';return 0;}
+        if(argc==2&&std::string(argv[1])=="--cross-upload-common"){std::cout<<MissingMips(true,true)<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--cross"){std::cout<<Cross(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--runtime"){std::cout<<Runtime(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--native"){std::cout<<Native(argv[2])<<'\n';return 0;}
@@ -425,6 +449,7 @@ int main(int argc,char** argv)
         for(const auto* mode:{"raw","dxt1","dxt3","dxt5","raw-2","raw-4","dxt1-4","dxt3-2","dxt5-4","raw-2-embedded","dxt1-4-embedded"})(void)Native(mode);
         NativeBounds();
         MissingMipGuards();
+        CrossUploadGuards();
         BlockDecodeGuards();
         BlockOptimizerGuards();
         CompressedMipGuards();

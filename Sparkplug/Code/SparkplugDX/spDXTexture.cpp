@@ -68,4 +68,15 @@ namespace sparkplug::reconstruction
         ApplyNativeMipStateForAnalysis(width,height,static_cast<std::uint32_t>(validated.mips_.size()),flags,field1C);
         surfaceFormat_=format;mips_=std::move(validated.mips_);return true;
     }
+    bool spDXTexture::InitializeCrossMipShadowForAnalysis(std::uint32_t sourceWidth,std::uint32_t sourceHeight,
+        std::uint32_t pixelFormat,std::vector<MipForAnalysis> mips)
+    {
+        if(!sourceWidth||!sourceHeight||sourceWidth>65535||sourceHeight>65535||pixelFormat>=5)return false;
+        spDXTexture validated;
+        if(!validated.InitializeRuntimeMipShadowForAnalysis(NormalizeDimensionForAnalysis(sourceWidth),
+            NormalizeDimensionForAnalysis(sourceHeight),pixelFormat+3,std::move(mips)))return false;
+        (void)ApplyBufferStateForAnalysis(sourceWidth,sourceHeight,1,0,true);
+        runtimeFormat_=surfaceFormat_=validated.runtimeFormat_;formatInitialized_=true;
+        byteCount_=validated.byteCount_;mips_=std::move(validated.mips_);return true;
+    }
 }

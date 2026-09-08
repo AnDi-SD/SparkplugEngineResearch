@@ -20,7 +20,7 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP108/113 reconstruct raw and DXT1/3/5 power-of-two missing mips with filter4/no dithering; CP109 verifies whole loading.smo. CP111/112/113 establish exact block decode, RGB optimization and packed encoding. Continue real SMO consumers, DX cross conversion, external source, remaining failures and live backend.",
+      "summary": "CP108/113 restore raw and DXT1/3/5 missing mips; CP114 verifies whole gem.smo with two textures and loaded UV updates. CP115 reconstructs common RGBA -> DX upload, normalized wrapped resize and ordered dithering, shared by common and DX serializers. Continue other cross formats, external source, remaining failures and live backend.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
@@ -32,16 +32,18 @@
         "CP109 whole loading.smo matches11 objects/13 edges/2956 bytes, including generated mip chain and two meshes; all177 native allocations released.",
         "CP111 original64C493/64C5D5/64C65A block decoders match438 C++ cases/28032 binary32 words without seams. DXT3/5 reuse DXT1 color branches before replacing alpha.",
         "CP112 original64B5C0 weighted RGB endpoints match392 unique input/steps cases, including exact x87 reciprocal/product/add truncation for the localized binary64 mismatch.",
-        "CP113 encoders match708 original packed cases/9440 bytes and compressed reader15/15 cases/1560 mip bytes, including640 generated; all609 original allocations freed."
+        "CP113 encoders match708 original packed cases/9440 bytes and compressed reader15/15 cases/1560 mip bytes, including640 generated; all609 original allocations freed.",
+        "CP114 whole gem.smo matches9 objects/4414 bytes plus288 bytes after loaded UV updates; two textures, all197 native allocations freed.",
+        "CP115 common and DX readers match33 RGBA upload cases/16004 mip bytes;619219 wrapped coefficients and61F153 alternating-row ordered dither reproduce normalized resize; all1399 native allocations freed."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Other filters/dithering, DX cross upload conversion, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, source controller clone graph, reinit/errors and live PC backend remain required. Default raw and compressed missing mips are restored."
+          "text": "Other cross formats and filters, error diffusion/gamma, compressed cross output, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, controller clone graph, reinit/errors and live PC backend remain required. Default raw/compressed missing mips and common RGBA normalized upload are restored."
         },
         {
           "kind": "behavior",
-          "text": "Source42DD10 creates correct DXTexture CPU shadow. DX cross conversion remains unavailable; native-data reader and runtime flat codec preserve different state contracts. Runtime palette codec works; host RAII deliberately avoids proven native palette leaks/alias deletion. Unknown fields not lossless; CPU pitch/index policy is not live device evidence."
+          "text": "Source42DD10 creates the correct DXTexture CPU shadow. Native-data, runtime flat codec and common pixel upload preserve three different state contracts. Runtime palette codec works; host RAII avoids proven native palette leaks/alias deletion. Unknown fields are not lossless; declared pitch/index inputs are not live device evidence. Legacy unwrapped star_currency texture is skipped with a native diagnostic and no pixels."
         },
         {
           "kind": "name",
@@ -60,7 +62,9 @@
         "docs/research/native-pc-whole-textured-scene.md",
         "docs/research/native-pc-texture-compressed-blocks.md",
         "docs/research/native-pc-texture-block-optimizer.md",
-        "docs/research/native-pc-texture-compressed-mips.md"
+        "docs/research/native-pc-texture-compressed-mips.md",
+        "docs/research/native-pc-whole-uv-scene.md",
+        "docs/research/native-pc-texture-cross-upload.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -75,7 +79,8 @@
         "pc-texture-compressed-blocks",
         "pc-texture-block-optimizer",
         "pc-texture-block-encode",
-        "pc-texture-compressed-mips"
+        "pc-texture-compressed-mips",
+        "pc-texture-cross-upload"
       ]
     },
     {
@@ -11777,6 +11782,470 @@
           "4",
           "transparent",
           "profile"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-cross-upload": [
+      {
+        "id": "pc-cross-upload-0-1x1-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "1x1",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-1x1-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "1x1",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-2x2-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "2x2",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-2x2-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "2x2",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-4x4-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "4x4",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-4x4-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "4x4",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-8x8-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "8x8",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-8x8-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "8x8",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x16-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x16",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x16-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x16",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-1x8-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "1x8",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-1x8-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "1x8",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-8x1-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "8x1",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-8x1-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "8x1",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-2x4-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "2x4",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-2x4-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "2x4",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-3x5-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "3x5",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-3x5-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "3x5",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-5x3-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "5x3",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-5x3-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "5x3",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-7x9-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "7x9",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-7x9-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "7x9",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-9x7-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "9x7",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-9x7-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "9x7",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-15x16-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "15x16",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-15x16-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "15x16",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x15-random-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x15",
+          "random",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x15-ramp-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x15",
+          "ramp",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x16-corpus-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x16",
+          "corpus",
+          "profile",
+          "dx"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-2x2-random-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "2x2",
+          "random",
+          "profile",
+          "common"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-1x8-random-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "1x8",
+          "random",
+          "profile",
+          "common"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-3x5-random-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "3x5",
+          "random",
+          "profile",
+          "common"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-cross-upload-0-16x16-corpus-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_cross_upload.py",
+        "args": [
+          "--guest",
+          "0",
+          "16x16",
+          "corpus",
+          "profile",
+          "common"
         ],
         "parallelSafe": true
       }

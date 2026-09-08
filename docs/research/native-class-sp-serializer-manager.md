@@ -1,7 +1,8 @@
 # `spSerializerManager`: реестр сериализаторов и вход в FAT
 
-Статус: manager и основной FAT index-срез перенесены; полный
-object-materialization/fixup-конвейер ещё не восстановлен. Класс выбран не по
+Статус на8 сентября: manager, основной FAT index и bounded whole-file
+object materialization перенесены. Полный startup и все failure/fixup branches
+остаются открытыми. Класс выбран не по
 простоте, а как ближайший узел, соединяющий
 уже разобранные `spStream`, `spPCKManager`, `spSerializer`, `spNode` и
 конкретные serializers.
@@ -13,6 +14,12 @@ object-materialization/fixup-конвейер ещё не восстановле
 serializer reader, shared-name registry, повторную загрузку и FAT clear.
 Начальный manager/FAT/RTTI state пока явно задан fixture-ом; полный startup,
 SMO mesh hook, все failure/fixup branches и writer не закрыты.
+
+Дополнение8 сентября: [whole-file profile CP101](native-pc-whole-file-profile.md)
+расширил реальные SAN/SMO; [CP114](native-pc-whole-uv-scene.md) проверил целый
+SMO с DX mesh hook, двумя textures и обновлением UV после загрузки. Managers,
+RTTI и COM остаются явно заданными. [Whole SAN host roundtrip](native-pc-san-file-roundtrip.md)
+собирает файл из проверенных частей; original outer save entry пока не найден.
 
 | Платформа | Файл | SHA-256 |
 |---|---|---|

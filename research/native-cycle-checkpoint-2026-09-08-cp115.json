@@ -1,0 +1,972 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP115",
+  "createdUtc": "2026-09-08T01:11:49.301613+00:00",
+  "documentation": "docs/research/native-pc-texture-cross-upload.md",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "classScoresChanged": false,
+  "nativeSourceComparisons": [
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "15x16",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "7E8A9EED609F41E32572058E325E52F62F61205948544B8A0D277BF97A563E3C",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 276747,
+      "releasedAllocations": 58,
+      "arenaReservedBytes": 65120,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.9053606999950716
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "15x16",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "24577A9C60098C70B7998071979B54A8861BE62CCC6B54CF8AE230C8C6D84BE8",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 276747,
+      "releasedAllocations": 58,
+      "arenaReservedBytes": 65120,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.91074849999859
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x15",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "AA02CED5ECAF51A0F10F10786E54FF870E7481346CE7285EFAFD6A0771D06B33",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 276989,
+      "releasedAllocations": 59,
+      "arenaReservedBytes": 65392,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.941545399997267
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x15",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "ECBE4E40AAA9CB80D48A358D6AB0FBCDD19759B1F2978EF2A8C1BC1420850E52",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 276989,
+      "releasedAllocations": 59,
+      "arenaReservedBytes": 65392,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.8873912999988534
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x16",
+      "pattern": "corpus",
+      "reader": "common",
+      "status": "passed",
+      "inputSha256": "B91CAC5BA40408891AD471FE73DF095EB5CCB23269F9EB99795950FD453CA02E",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 125594,
+      "releasedAllocations": 49,
+      "arenaReservedBytes": 61552,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 2.7798765000043204
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x16",
+      "pattern": "corpus",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "B91CAC5BA40408891AD471FE73DF095EB5CCB23269F9EB99795950FD453CA02E",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 125628,
+      "releasedAllocations": 49,
+      "arenaReservedBytes": 61552,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 2.9672862000006717
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x16",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "83AA9DEEAA102A51845412C465BF9185F2720715DAFC92E3BC61E3E8324995D7",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 125458,
+      "releasedAllocations": 49,
+      "arenaReservedBytes": 61552,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.5246984000114026
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "16x16",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "F6D57B577D423177F8F49F9454C6455171D1C67CD45AB9ACC9311091D02BE49C",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 125458,
+      "releasedAllocations": 49,
+      "arenaReservedBytes": 61552,
+      "exactMipBytes": 1364,
+      "elapsedSeconds": 3.8597995000018273
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "1x1",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "CB93A256F5A534CBB56CCE49077012958872D7997DFBBEE50D938CFD7DF32F42",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 18094,
+      "releasedAllocations": 24,
+      "arenaReservedBytes": 53984,
+      "exactMipBytes": 20,
+      "elapsedSeconds": 3.7513444000069285
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "1x1",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "BBCF69108FDBFAAFB4D708ABF640BA3EB805193073647756429CBBAABFBDC458",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 18099,
+      "releasedAllocations": 24,
+      "arenaReservedBytes": 53984,
+      "exactMipBytes": 20,
+      "elapsedSeconds": 3.6817224000114948
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "1x8",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "7261F6180B5030AC0929DE45C3406CFD7953C2E77F9052D8AE3059C444CFED33",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 42188,
+      "releasedAllocations": 47,
+      "arenaReservedBytes": 56272,
+      "exactMipBytes": 92,
+      "elapsedSeconds": 2.7390386999904877
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "1x8",
+      "pattern": "random",
+      "reader": "common",
+      "status": "passed",
+      "inputSha256": "069893A3E66BBD3E567579C6ABA18E6BDF21B14D4492FD6A157F702B61E8F415",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 42154,
+      "releasedAllocations": 47,
+      "arenaReservedBytes": 56272,
+      "exactMipBytes": 92,
+      "elapsedSeconds": 2.4239091999916127
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "1x8",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "069893A3E66BBD3E567579C6ABA18E6BDF21B14D4492FD6A157F702B61E8F415",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 42188,
+      "releasedAllocations": 47,
+      "arenaReservedBytes": 56272,
+      "exactMipBytes": 92,
+      "elapsedSeconds": 2.811452599999029
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "2x2",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "ABD3161D0B39A09B87024F275F508E59889B931951E2EF27A2ECF401E10C2BD2",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 15109,
+      "releasedAllocations": 18,
+      "arenaReservedBytes": 53680,
+      "exactMipBytes": 20,
+      "elapsedSeconds": 3.614712899987353
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "2x2",
+      "pattern": "random",
+      "reader": "common",
+      "status": "passed",
+      "inputSha256": "5D7A9DA7A61FCAE5857266025993B98811BA1C7699B2CAF2665FB178C6AB641A",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 15075,
+      "releasedAllocations": 18,
+      "arenaReservedBytes": 53680,
+      "exactMipBytes": 20,
+      "elapsedSeconds": 2.2925632999977097
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "2x2",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "5D7A9DA7A61FCAE5857266025993B98811BA1C7699B2CAF2665FB178C6AB641A",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 15109,
+      "releasedAllocations": 18,
+      "arenaReservedBytes": 53680,
+      "exactMipBytes": 20,
+      "elapsedSeconds": 3.6356941999983974
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "2x4",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "8BA654A77DC2A0E0DCBFF2E9A99AF5F4FF7C1A6D6DF559D2E61E6ACF963FE604",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 20774,
+      "releasedAllocations": 27,
+      "arenaReservedBytes": 54400,
+      "exactMipBytes": 44,
+      "elapsedSeconds": 2.4118733999930555
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "2x4",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "F29CED572C186113AC3357B6720DC9C453B090037886824AB4E81D9F61CC0AEE",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 20774,
+      "releasedAllocations": 27,
+      "arenaReservedBytes": 54400,
+      "exactMipBytes": 44,
+      "elapsedSeconds": 2.427334099993459
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "3x5",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "D48C670443E3FE1D322354152B8191A0D42D5A3C1E8DE7087738591760CF4606",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 55121,
+      "releasedAllocations": 48,
+      "arenaReservedBytes": 56848,
+      "exactMipBytes": 172,
+      "elapsedSeconds": 2.735461200005375
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "3x5",
+      "pattern": "random",
+      "reader": "common",
+      "status": "passed",
+      "inputSha256": "689013D2F6CAEF872D051212B1B16B2DD43E2E4F915FB23255DBFA0DA26EA9E6",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 55087,
+      "releasedAllocations": 48,
+      "arenaReservedBytes": 56848,
+      "exactMipBytes": 172,
+      "elapsedSeconds": 2.5145443999936106
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "3x5",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "689013D2F6CAEF872D051212B1B16B2DD43E2E4F915FB23255DBFA0DA26EA9E6",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 55121,
+      "releasedAllocations": 48,
+      "arenaReservedBytes": 56848,
+      "exactMipBytes": 172,
+      "elapsedSeconds": 2.7747587999911048
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "4x4",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "234B9C887A75C9F953A9025E4928ADE28C6EE43FF796328FA469F3F751EF7E82",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 24340,
+      "releasedAllocations": 27,
+      "arenaReservedBytes": 54720,
+      "exactMipBytes": 84,
+      "elapsedSeconds": 2.5119154999993043
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "4x4",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "7CE21D980C973C4124526556E6ED3544983C49F3B67E052B469FD901FDC1BECC",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 24340,
+      "releasedAllocations": 27,
+      "arenaReservedBytes": 54720,
+      "exactMipBytes": 84,
+      "elapsedSeconds": 2.4350317000062205
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "5x3",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "FFF8D41AE16E82BC7A7887465FBD3E7C0E393161909705BCBAC5D193914A296A",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 52623,
+      "releasedAllocations": 43,
+      "arenaReservedBytes": 57120,
+      "exactMipBytes": 172,
+      "elapsedSeconds": 2.609420799999498
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "5x3",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "D2F1E19575909FEF562C0A4BDD6CFB981049EACE0F9F64C4253E313132326915",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 52623,
+      "releasedAllocations": 43,
+      "arenaReservedBytes": 57120,
+      "exactMipBytes": 172,
+      "elapsedSeconds": 2.672304499996244
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "7x9",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "AB8306F7991CA5E83AA723F367C88AEE7DE8764672A3FDE56D55C4C42C69EEC8",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 147374,
+      "releasedAllocations": 60,
+      "arenaReservedBytes": 60784,
+      "exactMipBytes": 684,
+      "elapsedSeconds": 3.0985004999965895
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "7x9",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "254B3017B76E624B8BA826B5C0DF593A08D6D7971247AC33AF9CF46E6946AF22",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 147374,
+      "releasedAllocations": 60,
+      "arenaReservedBytes": 60784,
+      "exactMipBytes": 684,
+      "elapsedSeconds": 3.121885899992776
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "8x1",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "09A1C766DC63A55A84C4D40B26A848B878224968E1B8C656783B0FC1367C8941",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 38350,
+      "releasedAllocations": 40,
+      "arenaReservedBytes": 56640,
+      "exactMipBytes": 92,
+      "elapsedSeconds": 2.5081758000014815
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "8x1",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "3D763271C412F0300BABCE13DE7CFC491EF1A117D815E34AE2ECC3B84B568D78",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 38350,
+      "releasedAllocations": 40,
+      "arenaReservedBytes": 56640,
+      "exactMipBytes": 92,
+      "elapsedSeconds": 2.4969956999993883
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "8x8",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "86837E3DDD7175F148CAB5EFEE7F7909C8716A45C7FA44278DB0A4F9F5774FE9",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 48525,
+      "releasedAllocations": 38,
+      "arenaReservedBytes": 56816,
+      "exactMipBytes": 340,
+      "elapsedSeconds": 2.6404695000092033
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "8x8",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "2AB86F23C7549F3C5140F15445D884758C7746CE802EA1B47A27637229C333DD",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 48525,
+      "releasedAllocations": 38,
+      "arenaReservedBytes": 56816,
+      "exactMipBytes": 340,
+      "elapsedSeconds": 2.5375313999975333
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "9x7",
+      "pattern": "ramp",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "698B71F1BBDCF681529445C2E3A2D63F14085E9ECA4001B9F587CEFEB1AAA57A",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 142108,
+      "releasedAllocations": 56,
+      "arenaReservedBytes": 61952,
+      "exactMipBytes": 684,
+      "elapsedSeconds": 3.101214099995559
+    },
+    {
+      "kind": "native-source-cross-texture-upload",
+      "format": 0,
+      "shape": "9x7",
+      "pattern": "random",
+      "reader": "dx",
+      "status": "passed",
+      "inputSha256": "1A1EF33C183544F8451CF9354CD21C1383CFF7C405F50269E6A0CD71371BFC5A",
+      "sourceExecutableSha256": "7323044D08933A58441712F98BC1CAE3DEAF536EC281B149579E36312A457C65",
+      "nativeInstructions": 142108,
+      "releasedAllocations": 56,
+      "arenaReservedBytes": 61952,
+      "exactMipBytes": 684,
+      "elapsedSeconds": 3.1442236000002595
+    }
+  ],
+  "matrix": {
+    "cases": [
+      {
+        "case": [
+          0,
+          "1x1",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.937847999986843,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "1x1",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.003919399998267,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "2x2",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.8986849000066286,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "2x2",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.867120100010652,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "4x4",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.6868530999927316,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "4x4",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.763213400001405,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "8x8",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.8027883999893675,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "8x8",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.0123654999915743,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x16",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.1427308000129415,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x16",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.944253999987268,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "1x8",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.426610399998026,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "1x8",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.2822181999945315,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "8x1",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.756277600012254,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "8x1",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.7886488999938592,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "2x4",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.6847914999962086,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "2x4",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.6833404999924824,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "3x5",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.059052900003735,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "3x5",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.0136522999964654,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "5x3",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.9895767999987584,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "5x3",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 2.905739199995878,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "7x9",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.3677826000057394,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "7x9",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.3722724999970524,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "9x7",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.408773500006646,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "9x7",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.3698594000015873,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "15x16",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.161803899987717,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "15x16",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.167303700000048,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x15",
+          "random",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.217842199999723,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x15",
+          "ramp",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 4.193537700004526,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x16",
+          "corpus",
+          "dx"
+        ],
+        "exit": 0,
+        "seconds": 3.1957742999948096,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "2x2",
+          "random",
+          "common"
+        ],
+        "exit": 0,
+        "seconds": 2.5145617999951355,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "1x8",
+          "random",
+          "common"
+        ],
+        "exit": 0,
+        "seconds": 2.6501158000028227,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "3x5",
+          "random",
+          "common"
+        ],
+        "exit": 0,
+        "seconds": 2.734389100005501,
+        "tail": ""
+      },
+      {
+        "case": [
+          0,
+          "16x16",
+          "corpus",
+          "common"
+        ],
+        "exit": 0,
+        "seconds": 2.979577399994014,
+        "tail": ""
+      }
+    ],
+    "seconds": 29.136737499997253,
+    "passed": 33,
+    "total": 33
+  },
+  "legacyDiagnostic": {
+    "kind": "native-cross-texture-upload",
+    "format": 0,
+    "shape": [
+      16,
+      16
+    ],
+    "pattern": "legacy",
+    "inputSha256": "266AD07A4DF0225A24245CB850C411E6FF2B90C7C4874E2ECFBF70D255D57B5A",
+    "inputBytes": 1052,
+    "phase": "cleanup",
+    "executionProfile": "file",
+    "arenaLimitBytes": 131072,
+    "maxSurfaceBytes": 2048,
+    "maxLevels": 5,
+    "result": 1,
+    "cursor": 1052,
+    "instructions": 3677,
+    "visitedStages": {
+      "0042EA50": 1,
+      "0042E100": 0,
+      "00423250": 0,
+      "004AB650": 0,
+      "0060FDB4": 0,
+      "0061039A": 0,
+      "004AAC50": 0
+    },
+    "errors": [
+      "pStream->Read( uTmp8 ) ERROR: 0x%08X"
+    ],
+    "state": [
+      3435973836,
+      0,
+      0,
+      0,
+      3435973836,
+      3435973836,
+      3435973836,
+      0
+    ],
+    "status": "passed",
+    "nativeAssertions": 5,
+    "releasedAllocations": 5,
+    "arenaReservedBytes": 52656,
+    "elapsedSeconds": 0.1520713999925647
+  },
+  "ctest": {
+    "passed": 62,
+    "total": 62,
+    "elapsedSeconds": 47.5
+  },
+  "pythonRegression": {
+    "passed": 96,
+    "total": 96,
+    "elapsedSeconds": 15.175
+  },
+  "initialFailures": {
+    "replicatedAxis": {
+      "passed": 13,
+      "total": 17,
+      "cause": "Resize filters both axes when either dimension changes."
+    },
+    "noDither": {
+      "passed": 16,
+      "total": 29,
+      "cause": "DEFAULT expands to0x80004;61F153 uses ordered dither with alternating row scan."
+    }
+  },
+  "limits": {
+    "executionProfile": "file",
+    "instructionLimit": 1000000,
+    "callTimeoutSeconds": 8,
+    "processTimeoutSeconds": 30,
+    "arenaBytes": 131072,
+    "allocationBytes": 32768,
+    "maxSurfaceBytes": 2048,
+    "maxMipLevels": 5,
+    "parallelWorkers": 4,
+    "aggregateAdmissionMiB": 832
+  },
+  "limitations": [
+    "Only cross RGBA format0 reconstructed here; original scouts of formats1..4 are not source parity.",
+    "One corpus pixel array is wrapped in synthetic valid source-none input; no whole star_currency.smo load credit.",
+    "Explicit COM/RTTI/external CRT fixtures; full startup, live backend, all errors and original whole save remain open."
+  ],
+  "sourceFiles": {
+    "Sparkplug/Analysis/PC/spTextureResizeFilter.h": "8697EAA78E334D76F17EBB14E7894C36F3EB8A5E69CDFD30789B5FAEF4960C2F",
+    "Sparkplug/Code/Sparkplug/spTextureDataSerializer.cpp": "A260AD9C05DF1B5415914A3AEB084EE12C742249ACE2159A0149A835A8BB3AF0",
+    "Sparkplug/Code/Sparkplug/spTextureDataSerializer.h": "82D43CEC166522AB4ADA774B1103F693E95DA99DE6F7DE4530D84D3577237E2D",
+    "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.cpp": "FF529042F9B65B04C064E1C082E5C4878CDC5B0FDE42CD58873658C1C3861B86",
+    "Sparkplug/Code/SparkplugDX/spDXTexture.cpp": "DCECBDE047DAB0EC91933C5C9D2E926E917B390AF99AF6369D8B77550CDA778B",
+    "Sparkplug/Code/SparkplugDX/spDXTexture.h": "C225A648D50A3EDFEEF113A3B3DC10AE976600E55DBFB13661059E3E694F841E",
+    "Sparkplug/Tests/spTextureSerializationTests.cpp": "93EFE19D2747B713E29F216FC1502F542876F123D3F105A303F72697066CB19B",
+    "research/probe_pc_texture_cross_upload.py": "CB736FD2E6512E3E7AC0FA76F0A087EAA13EDA7821F5FCB12C19C42DB01F659A",
+    "research/compare_pc_texture_cross_upload.py": "DD3316A6F79B753F742DEB710C9A6C19111B1157F5446114EFFB01A187D72A8A"
+  }
+}

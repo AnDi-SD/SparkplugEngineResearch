@@ -1,5 +1,8 @@
 # PC native texture data: shared source wrapper and reconstructed reader
 
+CP115 adds [common RGBA upload and normalized resize](native-pc-texture-cross-upload.md)
+through the same source wrapper. Other cross formats remain open.
+
 Checkpoint 16, 2026-09-06. Continuing research, **not complete SMO/SAN support**.
 Primary executable SHA256:
 `3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F`.
