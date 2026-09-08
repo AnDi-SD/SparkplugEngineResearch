@@ -1,4 +1,5 @@
 #include "spNode.h"
+#include "spCollisionInfo.h"
 #include "../../Analysis/PC/spNodeTransformMath.h"
 
 #include <algorithm>
@@ -28,6 +29,7 @@ namespace sparkplug::reconstruction
 
     spNode::~spNode()
     {
+        ClearCollisionsForAnalysis();
         ClearChildrenForAnalysis();
     }
 
@@ -55,6 +57,7 @@ namespace sparkplug::reconstruction
         }
 
         auto& nodeDestination = static_cast<spNode&>(destination);
+        nodeDestination.ClearCollisionsForAnalysis();
         nodeDestination.ClearChildrenForAnalysis();
         nodeDestination.parent_ = nullptr;
 
@@ -69,6 +72,16 @@ namespace sparkplug::reconstruction
         nodeDestination.orientation_ = orientation_;
         nodeDestination.position_ = position_;
         nodeDestination.scale_ = scale_;
+
+        for(const auto& collision:collisions_)
+        {
+            auto raw=collision->vfunc_10(manager);
+            auto* typed=dynamic_cast<spCollisionInfo*>(raw.get());
+            if(!typed)return false;
+            std::shared_ptr<spCollisionInfo> owner(static_cast<spCollisionInfo*>(raw.release()));
+            manager.RegisterSharedCloneForAnalysis(*collision,owner);
+            if(!nodeDestination.AttachCollisionForAnalysis(std::move(owner)))return false;
+        }
 
         for (const auto& child : children_)
         {
@@ -95,8 +108,6 @@ namespace sparkplug::reconstruction
             }
         }
 
-        // Collision objects are not exposed until spCollisionInfo is
-        // reconstructed. Native copy deep-clones that separate vector too.
         return true;
     }
 
@@ -197,8 +208,8 @@ namespace sparkplug::reconstruction
                 worldScale_ = scale_;
                 if (!billboard) worldOrientation_ = orientation_;
             }
-            // Native collision-vector updates occur here, before descendants.
-            // That subsystem is intentionally outside this transform-only slice.
+            for(const auto& collision:collisions_)
+                if(!collision->UpdateWorldForAnalysis())return false;
         }
         for (const auto& child : children_)
             if (child && !child->UpdateWorldForAnalysis((flags_ | inheritedFlags) & ~2U, cameraOrientation))
@@ -210,6 +221,30 @@ namespace sparkplug::reconstruction
     bool spNode::IsEnabledForAnalysis() const noexcept
     {
         return (flags_ & EnabledMask) != 0;
+    }
+
+    spCollisionInfo* spNode::GetCollisionForAnalysis(std::size_t index) const noexcept
+    {return index<collisions_.size()?collisions_[index].get():nullptr;}
+    bool spNode::AttachCollisionForAnalysis(std::shared_ptr<spCollisionInfo> collision)
+    {
+        // Host guard: native blindly overwrites the back pointer and appends.
+        // Reject a duplicate/reparent to avoid two direct deletion owners.
+        if(!collision||collision->node_)return false;
+        collisions_.push_back(collision);collision->node_=this;return true;
+    }
+    std::shared_ptr<spCollisionInfo> spNode::DetachCollisionForAnalysis(spCollisionInfo& collision) noexcept
+    {
+        const auto at=std::find_if(collisions_.begin(),collisions_.end(),
+            [&](const auto& entry){return entry.get()==&collision;});
+        if(at==collisions_.end())return {};
+        auto owner=*at;
+        *at=std::move(collisions_.back());collisions_.pop_back(); // native swap-with-last
+        collision.node_=nullptr;return owner;
+    }
+    void spNode::ClearCollisionsForAnalysis() noexcept
+    {
+        for(const auto& collision:collisions_)collision->node_=nullptr;
+        collisions_.clear();
     }
 
     bool spNode::IsHierarchyActiveForAnalysis() const noexcept

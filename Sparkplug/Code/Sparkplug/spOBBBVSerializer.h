@@ -96,5 +96,9 @@ namespace sparkplug::reconstruction
             const Vector3& fullSize) noexcept;
         [[nodiscard]] static bool IsKnownReadFieldForAnalysis(
             std::uint32_t fieldID) noexcept;
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const override;
     };
 }

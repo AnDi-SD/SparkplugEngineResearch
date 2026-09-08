@@ -222,6 +222,9 @@ namespace sparkplug::reconstruction
         friend class spSphereBVSerializer;
         friend class spBoxBVSerializer;
         friend class spOBBBVSerializer;
+        friend class spOBBBV;
+        friend class spCollisionInfo;
+        friend class spCollisionInfoSerializer;
         friend class spRenderableSerializer;
         friend class spModelSerializer;
         friend class spSkin;

@@ -14,6 +14,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spCollisionInfo;
     class spNode : public spNamedObject
     {
         friend class spLight; // PC Light serializers share the native Node dirty word.
@@ -71,8 +72,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] Matrix4 GetWorldMatrixForAnalysis() const noexcept;
 
         // PC vslot +0x30. Reconstructs represented transform/cache/child state.
-        // Collision objects and scene registrations are not represented by
-        // this host class. Camera is an explicit cache input, not a singleton.
+        // Represented collision transforms update before descendants. Scene
+        // registrations/queries are outside the tools slice. Camera is explicit.
         // Returns false for a degenerate camera (host safety). A failure in a
         // descendant can occur after earlier nodes were updated.
         [[nodiscard]] virtual bool UpdateWorldForAnalysis(
@@ -110,6 +111,14 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::shared_ptr<spNode> DetachChildForAnalysis(
             spNode& child) noexcept;
 
+        // PC421ED0/421690: Node owns each collision directly; the collision
+        // retains its primitive separately. Shared ownership bridges the host
+        // file cache, with one Node back pointer and no implicit reparenting.
+        [[nodiscard]] std::size_t GetCollisionCountForAnalysis() const noexcept{return collisions_.size();}
+        [[nodiscard]] spCollisionInfo* GetCollisionForAnalysis(std::size_t index) const noexcept;
+        [[nodiscard]] bool AttachCollisionForAnalysis(std::shared_ptr<spCollisionInfo> collision);
+        [[nodiscard]] std::shared_ptr<spCollisionInfo> DetachCollisionForAnalysis(spCollisionInfo& collision) noexcept;
+
     private:
         friend class spActor; // original discovery sets ownership bit2000
         friend class spRenderNode; // PC world/bounds dirty bits in the common B0 word
@@ -118,6 +127,7 @@ namespace sparkplug::reconstruction
             std::uint32_t mask,
             bool value) noexcept;
         void ClearChildrenForAnalysis() noexcept;
+        void ClearCollisionsForAnalysis() noexcept;
 
         Vector3 position_{0.0F, 0.0F, 0.0F};
         Matrix3 orientation_{
@@ -132,5 +142,6 @@ namespace sparkplug::reconstruction
         std::uint32_t flags_ = NativeDefaultFlags;
         spNode* parent_ = nullptr;
         std::vector<std::shared_ptr<spNode>> children_;
+        std::vector<std::shared_ptr<spCollisionInfo>> collisions_;
     };
 }

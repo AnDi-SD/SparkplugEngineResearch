@@ -104,8 +104,7 @@ namespace sparkplug::reconstruction
     bool spRenderNodeSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
     {
         auto* node=dynamic_cast<spRenderNode*>(&object);if(!node||!object.IsExactly(spRenderNode::ClassID))return false;
-        for(std::size_t i=0;i<node->GetChildCountForAnalysis();++i)
-            if(!IndexReferenceForAnalysis(manager,node->GetChildForAnalysis(i)))return false;
+        if(!IndexNodeRelationshipsForAnalysis(manager,*node))return false;
         for(std::size_t i=0;i<node->GetRenderableCountForAnalysis();++i)
             if(!IndexReferenceForAnalysis(manager,node->GetRenderableForAnalysis(i)))return false;
         return true;

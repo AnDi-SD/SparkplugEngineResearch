@@ -129,9 +129,7 @@ namespace sparkplug::reconstruction
     bool spLightDataSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
     {
         auto* light=dynamic_cast<spLight*>(&object);if(!light)return false;
-        for(std::size_t i=0;i<light->GetChildCountForAnalysis();++i)
-            if(!IndexReferenceForAnalysis(manager,light->GetChildForAnalysis(i)))return false;
-        return true;
+        return IndexNodeRelationshipsForAnalysis(manager,*light);
     }
 
     std::unique_ptr<spBaseObject> spLightDataSerializer::ReadObjectHeaderAndCreateForAnalysis(

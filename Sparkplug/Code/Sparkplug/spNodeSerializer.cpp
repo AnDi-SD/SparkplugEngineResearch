@@ -1,6 +1,7 @@
 #include "spNodeSerializer.h"
 
 #include "spNode.h"
+#include "spCollisionInfo.h"
 #include "spDataBlockSerializer.h"
 #include "spSerializerManager.h"
 #include "../../Analysis/PC/spAnimationMath.h"
@@ -126,6 +127,9 @@ namespace sparkplug::reconstruction
             fields.push_back(Field::BillboardAxis);
         }
 
+        for(std::size_t index=0;index<node.GetCollisionCountForAnalysis();++index)
+            fields.push_back(Field::Collision);
+
         return fields;
     }
 
@@ -213,7 +217,14 @@ namespace sparkplug::reconstruction
                 break;
             }
             case Field::Collision:
-                return fail("spCollisionInfo ownership/payload is not reconstructed yet");
+            {
+                auto* raw=ReadFieldReferenceForAnalysis(context,spCollisionInfo::ClassID,source,*header,error);
+                if(context.failed)return false;
+                auto collision=std::dynamic_pointer_cast<spCollisionInfo>(context.ShareObjectForAnalysis(raw));
+                if(!collision||!node.AttachCollisionForAnalysis(std::move(collision)))
+                    return fail("Collision is null, has no owner, or is already attached");
+                break;
+            }
             default:
                 if(!spDataBlockSerializer::SkipDataForAnalysis(source,*header))return fail("Cannot skip unknown Node field");
                 break;
@@ -229,9 +240,16 @@ namespace sparkplug::reconstruction
     {
         if(GetTargetClassIDForAnalysis()!=spNode::ClassID||!object.IsExactly(spNode::ClassID))return false;
         auto* node=dynamic_cast<spNode*>(&object);if(!node)return false;
-        for(std::size_t i=0;i<node->GetChildCountForAnalysis();++i)
-            if(!IndexReferenceForAnalysis(manager,node->GetChildForAnalysis(i)))return false;
-        return true; // Collision cannot be silently dropped: reader rejects it.
+        return IndexNodeRelationshipsForAnalysis(manager,*node);
+    }
+
+    bool spNodeSerializer::IndexNodeRelationshipsForAnalysis(spSerializerManager& manager,spNode& node) const
+    {
+        for(std::size_t i=0;i<node.GetChildCountForAnalysis();++i)
+            if(!IndexReferenceForAnalysis(manager,node.GetChildForAnalysis(i)))return false;
+        for(std::size_t i=0;i<node.GetCollisionCountForAnalysis();++i)
+            if(!IndexReferenceForAnalysis(manager,node.GetCollisionForAnalysis(i)))return false;
+        return true;
     }
 
     bool spNodeSerializer::WritePayloadForAnalysis(spStream& destination,
@@ -262,10 +280,11 @@ namespace sparkplug::reconstruction
         const auto finite=[](const auto& values){return std::all_of(values.begin(),values.end(),[](float v){return std::isfinite(v);});};
         if(!finite(node.GetPositionForAnalysis())||!finite(node.GetScaleForAnalysis())||!finite(node.GetOrientationForAnalysis()))
             return fail("Nonfinite Node transform cannot be safely written");
-        if(node.GetChildCountForAnalysis()&&!manager)return fail("Node graph writer requires explicit serializer manager");
+        if((node.GetChildCountForAnalysis()||node.GetCollisionCountForAnalysis())&&!manager)
+            return fail("Node graph writer requires explicit serializer manager");
         spDataBlockSerializer blocks;
         if(!blocks.BeginObjectForAnalysis(destination,&node))return fail("Cannot begin Node section");
-        std::size_t childIndex=0;
+        std::size_t childIndex=0,collisionIndex=0;
         for(auto field:BuildKnownWritePlanForAnalysis(node))
         {
             const auto write=[&](const auto& value){return blocks.WriteFieldForAnalysis(destination,static_cast<std::uint32_t>(field),&value,sizeof(value));};
@@ -288,6 +307,10 @@ namespace sparkplug::reconstruction
                 written=blocks.WriteBeginForAnalysis(5,spDataBlockSerializer::SizeCode::UInt32)
                     &&WriteReferenceForAnalysis(*manager,destination,node.GetChildForAnalysis(childIndex++),error)
                     &&blocks.WriteEndForAnalysis(5);break;
+            case Field::Collision:
+                written=blocks.WriteBeginForAnalysis(7,spDataBlockSerializer::SizeCode::UInt32)
+                    &&WriteReferenceForAnalysis(*manager,destination,node.GetCollisionForAnalysis(collisionIndex++),error)
+                    &&blocks.WriteEndForAnalysis(7);break;
             default:return fail("Unsupported Node write field");
             }
             if(!written){if(error&&error->empty())*error="Cannot write Node field";return false;}

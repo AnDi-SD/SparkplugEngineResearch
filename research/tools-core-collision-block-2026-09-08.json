@@ -1,0 +1,166 @@
+{
+  "kind": "tools-core-collision-block",
+  "status": "verified-scoped-core",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "sources": [
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "F655196976C30F2F380C14A953B4C8912219243703B425250566D85752B7D6E4"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.h",
+      "sha256": "88BAA76EE30FDC81E5D58BF94D88EA1822DF2D9254BBB6977E4246E9C6EFF917"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.cpp",
+      "sha256": "F47FD7B01D72770ED7182E04DD75D366BCCFB63D9167619186E2A753A1115BB6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.h",
+      "sha256": "08060436E765BD237E88304FC71C1D46325963AEA998047BDDC1D9F4D58FCEE8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionInfo.cpp",
+      "sha256": "24F50210F708FF0B7A629ACE4B8E378467CC65D292B3C12D55F84F4D4FA18D32"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionInfo.h",
+      "sha256": "EA75AAE43B637A70AD75C301836F13349D3E4C7BBF250BC3200080482D9D73C8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionInfoSerializer.cpp",
+      "sha256": "4378059E1F59EADD8C66F918EB4DBDD1336F73B5A77FC0EDC88D58164B8BECBC"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionInfoSerializer.h",
+      "sha256": "73C521D6F4900F230E075AC25023AF717402015C5D1ADCAF32431E254BC110F4"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightDataSerializer.cpp",
+      "sha256": "2EC9429B1B76BBCC63A346D0BF6CC6AB2419C868E31023F48D2BD4FDC8F32603"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightSerializer.cpp",
+      "sha256": "FE17B2D2ABCA88A2D8DF6BB3E00871E9763CB504540E23781B1EC3FF7E38D159"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.cpp",
+      "sha256": "C72B607BF7C22134EF9334F0B0CCB90C6E280B47BF80870EC7BD7DEAA956A631"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.h",
+      "sha256": "2847F11B67B0E47C4AF3E16BBB85456AB3800C9C940ED3A2562E21CD8F0A35A2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeSerializer.cpp",
+      "sha256": "C07B487165604DF77B57E3A06586430AEB0C3CF738DCA362738527B28D06AFA0"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeSerializer.h",
+      "sha256": "138F5822A29C6008A736890A16BE858C376C185375DA0C5D206615D3BC803FEA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBV.cpp",
+      "sha256": "E3D1BEB903EEFDB5D29A2B0E1FB05E8F6E56C7619FF05BE69B96B55709DA8151"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBV.h",
+      "sha256": "675BD68D276959F9C611A86A14C925EB44CE2B2F2A446B7AFC80668D0E00B8DF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.cpp",
+      "sha256": "C85FC64ED7B1B4EC5FB905C84C0C6C1C46F0C59EABBE4422A74CFA397A12E27F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.h",
+      "sha256": "4D4A57D35AAB72F95951CCB8D53FDB66EAB5CBBF3E905825EF85F9A5E758DF55"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNodeSerializer.cpp",
+      "sha256": "D255701A2C7D6DC49033F4D63F0210AEE832E7D525535B24EEBBD365F15677B8"
+    },
+    {
+      "path": "Sparkplug/Tests/spCollisionCoreTests.cpp",
+      "sha256": "108F09867029C227B2F3001A74C00F1EC2095A1DA7987F5FDC98340199A7A6F0"
+    },
+    {
+      "path": "docs/research/native-pc-collision-tools-core-2026-09-08.md",
+      "sha256": "E2E26F5A74348E83A7E58EE7139E3B2ED6BB3FE9E5C1A5AE1F70550EF2D184AF"
+    },
+    {
+      "path": "research/probe_pc_collision_core.py",
+      "sha256": "4C319E250C58768DEBA1E3A56DBD52E328EE97D790E5B56F166079DFC55F0D39"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "2058FCE80D198A1633365D6C36F00BCE7AA3040B924A203A709208E9E7A4D003"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "3F7B2ADB581E3F56C0E577CEF8D877F530F1A4C2FD637337E16AC05EBBF60F10"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/clone.json",
+      "sha256": "EB1994D015734DF1A34AF9F27DA46C540F9CB47110FEAB85D7C051694C712B28"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/defaults.json",
+      "sha256": "663B1610DEB746980A4CF7BE09710F2002B1AA09D66359AC58B19C8D9590AE36"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/graph.json",
+      "sha256": "D5FE6E10CC09D195F8C56F017A5C2FB884CA4BBD8A273C9F8D4C51BE9FB48082"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/node-rotation.json",
+      "sha256": "A963DD56EA8D22EE380BFC32240C41DB573AA6C377DBA1170494FEA7179F85A1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/node.json",
+      "sha256": "214ED78AAC79E65C5E9476499AA7631621B9D051641B4173603E96D55C431C81"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/obb.json",
+      "sha256": "52FEE308F71D0E9265753C45EA88767B674D5761D735A39458D6170F3903D0D8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/primitive.json",
+      "sha256": "DBAE184A650B0D230A237EC56C42C76B3AB701130FB0D4309C8EA3F8BA7943E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/replace.json",
+      "sha256": "DAF123E0C59EEB7F6198A3B0AC6905A50F6B1DA43B17519225FD868C6B924B5E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/transform.json",
+      "sha256": "B285E017D80C762A602354ACDD867F2A8CAF7D40B5B14BB463D662565DCABA1E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision/collision-core.smo",
+      "sha256": "76A00B49686B3C8F845089421716A43A2067E2547F5F0241AE142726D8090253"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerCollisionCoreChecks.exe",
+      "sha256": "40EF80C0B266AF4002C71BDB412994ABD63BCF79C3532C1F70D53C948315E099"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "sha256": "013811BB251EE6466618E20D83235D5C5D386B2DEB03F0925D8675E396F00AC4"
+    }
+  ],
+  "validation": {
+    "originalPcMicroCases": 8,
+    "originalPcWholeFileCases": 1,
+    "wholeLoadInstructions": 89984,
+    "nativeWholeLoadReleasedAllocations": 31,
+    "cppChecksWithArtifact": 55,
+    "selectedCppSuitesPassed": 6
+  },
+  "limitations": [
+    "No collision queries/contact/broadphase API",
+    "No claim of full BV or corpus support",
+    "Applications still need the shared SMO graph interface"
+  ]
+}

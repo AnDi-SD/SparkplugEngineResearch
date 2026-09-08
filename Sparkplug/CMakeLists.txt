@@ -51,6 +51,14 @@ target_compile_features(SparkBase PUBLIC cxx_std_17)
 # The original source path places this layer in Code/Sparkplug rather than
 # SparkBase.  Keep the reconstructed target boundary explicit as well.
 add_library(SparkplugEngine STATIC
+    Code/Sparkplug/spBoundingVolume.cpp
+    Code/Sparkplug/spBoundingVolume.h
+    Code/Sparkplug/spOBBBV.cpp
+    Code/Sparkplug/spOBBBV.h
+    Code/Sparkplug/spCollisionInfo.cpp
+    Code/Sparkplug/spCollisionInfo.h
+    Code/Sparkplug/spCollisionInfoSerializer.cpp
+    Code/Sparkplug/spCollisionInfoSerializer.h
     Code/Sparkplug/spSceneManager.cpp
     Code/Sparkplug/spSceneManager.h
     Code/SparkplugDX/spDXLight.cpp
@@ -567,6 +575,10 @@ if(BUILD_TESTING)
     add_test(NAME SparkplugMeshReaderTests COMMAND SparkplugMeshReaderTests)
     set_tests_properties(SparkplugMeshReaderTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugNodeSerializationTests Tests/spNodeSerializationTests.cpp)
+    add_executable(SparkplugCollisionCoreTests Tests/spCollisionCoreTests.cpp)
+    target_link_libraries(SparkplugCollisionCoreTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCollisionCoreTests COMMAND SparkplugCollisionCoreTests)
+    set_tests_properties(SparkplugCollisionCoreTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugLightSerializationTests Tests/spLightSerializationTests.cpp)
     target_link_libraries(SparkplugLightSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLightSerializationTests COMMAND SparkplugLightSerializationTests)

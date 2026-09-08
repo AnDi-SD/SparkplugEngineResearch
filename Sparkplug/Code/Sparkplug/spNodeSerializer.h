@@ -48,8 +48,6 @@ namespace sparkplug::reconstruction
         [[nodiscard]] virtual spClassID GetTargetClassIDForAnalysis() const noexcept;
 
         // Reconstructs the proven native write order and default suppression.
-        // Collision fields are intentionally absent until spCollisionInfo is
-        // represented by the portable spNode facade.
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             const spNode& node) const;
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
@@ -62,6 +60,7 @@ namespace sparkplug::reconstruction
             spBaseObject& object) const override;
 
     protected:
+        [[nodiscard]] bool IndexNodeRelationshipsForAnalysis(spSerializerManager& manager,spNode& node) const;
         // Derived native serializers contain sequential base/derived sections.
         // Only the final section must consume the complete bounded object.
         [[nodiscard]] bool ReadNodeFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
