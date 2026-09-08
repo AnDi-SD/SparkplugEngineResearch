@@ -12,11 +12,15 @@ public:
     const spRTTIRecord& vfunc_18() const noexcept override;
     std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
     const spCollisionMesh* GetDataForAnalysis() const noexcept{return data_.get();}
+    // Read-only wire observations for inspectors; not original game members.
+    std::uint32_t GetSerializedFieldMaskForAnalysis() const noexcept{return serializedFieldMask_;}
+    std::uint32_t GetVertexPayloadOffsetForAnalysis() const noexcept{return vertexPayloadOffset_;}
     // Explicitly the ownership/bounds portion of SetData, not its OPCODE result.
     bool SetDataAndBoundsForAnalysis(std::unique_ptr<spCollisionMesh> data);
     void UpdateCollisionTransformForAnalysis(Vector3&,Matrix3&,const Vector3&) const noexcept override;
 private:
     friend class spMeshBVSerializer;
     std::unique_ptr<spCollisionMesh> data_;
+    std::uint32_t serializedFieldMask_=0,vertexPayloadOffset_=0;
 };
 }

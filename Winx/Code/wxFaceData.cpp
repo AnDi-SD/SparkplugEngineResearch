@@ -20,7 +20,7 @@ void wxFaceData::CopyFromForAnalysis(const spCustomAppData& source) {
     }
 }
 bool wxFaceData::ReadForAnalysis(spStream& stream,std::uint32_t maximumBytes) {
-    surfaceType_=surfaceID_=0;flags_=0;
+    surfaceType_=surfaceID_=0;flags_=0;serializedFieldMask_=0;
     std::uint32_t consumed=0;
     const auto read=[&](void* out,std::uint32_t size) {
         if(size>maximumBytes-consumed||!stream.ReadData(out,size))return false;
@@ -42,9 +42,9 @@ bool wxFaceData::ReadForAnalysis(spStream& stream,std::uint32_t maximumBytes) {
         if(!small(size)||size>maximumBytes-consumed)return false;
         // Native known members read their fixed width regardless of advertised
         // size. Preserve that behavior while keeping the enclosing byte bound.
-        if(id==1){if(!read(&surfaceType_,1))return false;}
-        else if(id==2){if(!read(&flags_,2))return false;}
-        else if(id==3){if(!read(&surfaceID_,1))return false;}
+        if(id==1){if(!read(&surfaceType_,1))return false;serializedFieldMask_|=1;}
+        else if(id==2){if(!read(&flags_,2))return false;serializedFieldMask_|=2;}
+        else if(id==3){if(!read(&surfaceID_,1))return false;serializedFieldMask_|=4;}
         else {
             if(size>0x7fffffff||!stream.Seek(spStream::SeekSource::essCurrent,static_cast<std::int32_t>(size)))return false;
             consumed+=size;

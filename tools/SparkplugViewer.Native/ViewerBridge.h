@@ -22,6 +22,15 @@ struct SpvGraphNode {std::uint32_t parentID,flags,children,collisions;float posi
 // No runtime resource factories are invoked or substituted for unknown types.
 struct SpvContainerInfo {std::uint32_t signature,version,exportTag,fileSize,platformMask,dataOffset,dataSize,objectCount,headerStatus;};
 struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,classID,offset,size,signatureClassID,signatureFlags;};
+struct SpvMeshBVInfo {std::uint32_t primitiveType,vertices,indices,faces,hasFaces,fieldMask,vertexPayloadOffset,faceClassID;};
+struct SpvFaceData {std::uint32_t surfaceType,flags,surfaceID,fieldMask;};
+// kind 0: MeshBV field stream (no SBOO header), 1: geometry field, 2: face field.
+// Leaf readers invoke the same actual serializers as whole resource loading.
+SPV_API void* spv_mesh_bv_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind) noexcept;
+SPV_API void spv_mesh_bv_destroy(void*) noexcept;
+SPV_API int spv_mesh_bv_info(void*,SpvMeshBVInfo*) noexcept;
+SPV_API int spv_mesh_bv_geometry(void*,float* positions,std::uint32_t floats,std::int32_t* indices,std::uint32_t count) noexcept;
+SPV_API int spv_mesh_bv_faces(void*,SpvFaceData*,std::uint32_t count) noexcept;
 SPV_API void* spv_container_inspect(const std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void spv_container_destroy(void*) noexcept;
 SPV_API int spv_container_info(void*,SpvContainerInfo*) noexcept;

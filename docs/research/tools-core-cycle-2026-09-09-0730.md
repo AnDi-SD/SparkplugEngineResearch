@@ -119,3 +119,14 @@ resource decoders. Введён адресный выбор C++ suites чере�
 включая два с настоящими PS2 payloads; полные resource graphs на меню/SFX/Bloom
 сохранили результат. Досье: `docs/research/tool-container-shared-core-2026-09-09.md`.
 Отдельный финальный C# прогон PS2-меню прошёл2 937 assertions.
+
+### Шестой блок: MeshBV reader в приложениях
+
+C# геометрия MeshBV и wxFaceData теперь используют общие восстановленные
+классы через leaf ABI, без самостоятельных byte parsers. Native stream сообщает
+смещение вершин редактору; повторное чтение ради смещения удалено. Приложение
+теперь принимает native unknown/repeated face fields и независимый face count.
+83 C++ checks, C#9 271/2 946/1 504 на PC menu/PS2 menu/tile_bad прошли;
+два полных resource graphs сохранили результат. Досье:
+`docs/research/tool-mesh-bv-shared-core-2026-09-09.md`.
+Следующий приоритет — общий render mesh reader и его typed buffer view.

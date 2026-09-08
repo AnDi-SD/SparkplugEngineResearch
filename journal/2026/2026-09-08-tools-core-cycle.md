@@ -48,3 +48,10 @@ query tree не объявлен восстановленным/доступны
 с двумя PS2 payloads и три прежних resource graphs прошли. Добавлен выбор
 CheckSuites для адресной сборки/проверки. Подробности:
 `docs/research/tool-container-shared-core-2026-09-09.md`.
+
+Шестой блок: удалён самостоятельный C# MeshBV/wxFaceData parser. Прямое
+чтение поля и whole-resource loader вызывают один C++ geometry helper;
+смещение вершин наблюдается при чтении. Исправлены прежние C# запреты на
+native unknown/repeated face fields и независимый count. C++83 checks,
+C#9 271/2 946/1 504 на трёх файлах и два whole graphs прошли. Досье:
+`docs/research/tool-mesh-bv-shared-core-2026-09-09.md`.

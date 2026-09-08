@@ -15,8 +15,11 @@ public:
     std::uint8_t GetSurfaceTypeForAnalysis() const noexcept{return surfaceType_;}
     std::uint16_t GetFlagsForAnalysis() const noexcept{return flags_;}
     std::uint8_t GetSurfaceIDForAnalysis() const noexcept{return surfaceID_;}
+    // Inspector observation only; native CopyFrom copies just the three values.
+    std::uint8_t GetSerializedFieldMaskForAnalysis() const noexcept{return serializedFieldMask_;}
 private:
     std::uint8_t surfaceType_=0,surfaceID_=0;
     std::uint16_t flags_=0;
+    std::uint8_t serializedFieldMask_=0;
 };
 }

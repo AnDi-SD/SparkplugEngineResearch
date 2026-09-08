@@ -46,6 +46,8 @@ void Case(int faceMode) {
     Check(mesh.GetBoundingRadiusForAnalysis()==2.2360680103302f,"PC exact float radius");
     Check(mesh.GetDataForAnalysis()->GetIndicesForAnalysis()->GetIndexCountForAnalysis()==3,"shared index reader");
     Check(mesh.GetDataForAnalysis()->GetVerticesForAnalysis()->GetVertexCountForAnalysis()==3,"shared vertex reader");
+    Check(mesh.GetSerializedFieldMaskForAnalysis()==(faceMode?3u:1u)
+        &&mesh.GetVertexPayloadOffsetForAnalysis()==32,"wire observations preserve actual reader position and fields");
     const auto* faces=mesh.GetDataForAnalysis()->GetFacesForAnalysis();
     Check(bool(faces)==bool(faceMode),"optional face owner remains distinguishable");
     if(faces) {
@@ -53,8 +55,10 @@ void Case(int faceMode) {
         const auto* face=dynamic_cast<const wxFaceData*>(faces->GetElementsForAnalysis()[0].get());
         Check(face&&face->GetSurfaceTypeForAnalysis()==(faceMode==1?7:0)&&face->GetFlagsForAnalysis()==(faceMode==1?43981:0)
             &&face->GetSurfaceIDForAnalysis()==(faceMode==1?222:0),"PC numeric face fields and defaults");
+        Check(face->GetSerializedFieldMaskForAnalysis()==(faceMode==1?7:0),"face wire presence observation");
         auto copyBase=face->Clone();const auto* copy=dynamic_cast<const wxFaceData*>(copyBase.get());
         Check(copy&&copy->GetFlagsForAnalysis()==face->GetFlagsForAnalysis()&&copy->GetSurfaceIDForAnalysis()==face->GetSurfaceIDForAnalysis(),"PC face clone copy dispatch");
+        Check(copy->GetSerializedFieldMaskForAnalysis()==0,"wire observations are not invented native clone members");
     }
     spMeshBV::Vector3 p{7,8,9};spMeshBV::Matrix3 r{1,0,0,0,1,0,0,0,1};const auto oldP=p;const auto oldR=r;
     mesh.UpdateCollisionTransformForAnalysis(p,r,{2,3,4});Check(p==oldP&&r==oldR,"PC MeshBV transform slot is no-op");

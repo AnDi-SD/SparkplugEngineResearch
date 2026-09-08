@@ -8,6 +8,9 @@
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
+#include "Code/Sparkplug/spMeshBV.h"
+#include "Code/Sparkplug/spMeshBVSerializer.h"
+#include "Code/wxFaceData.h"
 #include "Analysis/PC/spAnimationMath.h"
 #include <algorithm>
 #include <cmath>
@@ -100,6 +103,53 @@ struct ContainerIndex {
     }
 };
 static_assert(sizeof(SpvContainerInfo)==36&&sizeof(SpvContainerEntry)==36);
+struct MeshBVView {
+    std::unique_ptr<spMeshBV> mesh;
+    std::unique_ptr<spFaceDataContainer> standaloneFaces;
+    SpvMeshBVInfo info{};
+    const spFaceDataContainer* faces() const {
+        if(standaloneFaces)return standaloneFaces.get();
+        const auto* data=mesh?mesh->GetDataForAnalysis():nullptr;
+        return data?data->GetFacesForAnalysis():nullptr;
+    }
+    MeshBVView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
+        require(bytes&&size&&size<=16u*1024u*1024u&&kind<=2,"Invalid bounded MeshBV inspection input");
+        (void)winx::reconstruction::wxFaceData::StaticRTTI();
+        BorrowedInput input(bytes,size);std::string error;
+        if(kind==2) {
+            standaloneFaces=std::make_unique<spFaceDataContainer>();
+            require(standaloneFaces->ReadForAnalysis(input,size),"Invalid or unregistered face data");
+        } else {
+            mesh=std::make_unique<spMeshBV>();
+            if(kind==0) {
+                spSerializerManager manager;spResourceManager resources;
+                spSerializerReadContextForAnalysis context(manager,resources);
+                if(!spMeshBVSerializer().ReadPayloadForAnalysis(context,input,size,*mesh,&error))throw std::runtime_error(error);
+                info.fieldMask=mesh->GetSerializedFieldMaskForAnalysis();
+                info.vertexPayloadOffset=mesh->GetVertexPayloadOffsetForAnalysis();
+            } else {
+                auto geometry=spMeshBVSerializer::ReadGeometryForAnalysis(input,size,&info.vertexPayloadOffset,&error);
+                require(geometry!=nullptr,error.c_str());
+                require(mesh->SetDataAndBoundsForAnalysis(std::move(geometry)),"Unsupported or invalid MeshBV geometry");
+                info.fieldMask=1;
+            }
+            const auto* data=mesh->GetDataForAnalysis();
+            require(data&&data->GetIndicesForAnalysis()&&data->GetVerticesForAnalysis(),"MeshBV contains no geometry to inspect");
+            info.primitiveType=static_cast<std::uint32_t>(data->GetIndicesForAnalysis()->GetTypeForAnalysis());
+            info.indices=data->GetIndicesForAnalysis()->GetIndexCountForAnalysis();
+            info.vertices=data->GetVerticesForAnalysis()->GetVertexCountForAnalysis();
+        }
+        std::uint32_t position=0;
+        require(input.GetCurrentPosition(position)&&position==size,"Trailing MeshBV inspection bytes");
+        if(const auto* container=faces()) {
+            info.hasFaces=1;info.faceClassID=container->GetElementClassForAnalysis();
+            info.faces=static_cast<std::uint32_t>(container->GetElementsForAnalysis().size());
+            for(const auto& element:container->GetElementsForAnalysis())
+                require(dynamic_cast<const winx::reconstruction::wxFaceData*>(element.get())!=nullptr,"Face data has no wxFaceData view");
+        }
+    }
+};
+static_assert(sizeof(SpvMeshBVInfo)==32&&sizeof(SpvFaceData)==16);
 struct Binding {
     Sampler sampler;
     spTransformTrackEval::PlaybackForAnalysis playback;
@@ -142,6 +192,39 @@ std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
 }
 SPV_API std::uint32_t spv_abi_version() noexcept { return 2; }
 SPV_API const char* spv_last_error() noexcept { return lastError; }
+SPV_API void* spv_mesh_bv_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) noexcept {
+    std::unique_ptr<MeshBVView> result;
+    if(!guarded([&]{result=std::make_unique<MeshBVView>(bytes,size,kind);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_mesh_bv_destroy(void* handle) noexcept {guarded([&]{delete static_cast<MeshBVView*>(handle);});}
+SPV_API int spv_mesh_bv_info(void* handle,SpvMeshBVInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing MeshBV info input/output");*output=static_cast<MeshBVView*>(handle)->info;});
+}
+SPV_API int spv_mesh_bv_geometry(void* handle,float* positions,std::uint32_t floats,std::int32_t* indices,std::uint32_t count) noexcept {
+    return guarded([&]{
+        require(handle,"Missing MeshBV handle");const auto& view=*static_cast<MeshBVView*>(handle);
+        require(view.mesh&&floats==std::uint64_t(view.info.vertices)*3&&count==view.info.indices
+            &&(positions||!floats)&&(indices||!count),"MeshBV geometry output size mismatch");
+        const auto* data=view.mesh->GetDataForAnalysis();
+        const auto& vertices=data->GetVerticesForAnalysis()->GetDataForAnalysis();
+        require(vertices.size()==std::uint64_t(floats)*sizeof(float),"MeshBV position buffer layout mismatch");
+        if(floats)std::memcpy(positions,vertices.data(),vertices.size());
+        for(std::uint32_t i=0;i<count;++i)indices[i]=static_cast<std::int32_t>(*data->GetIndicesForAnalysis()->GetIndexForAnalysis(i));
+    });
+}
+SPV_API int spv_mesh_bv_faces(void* handle,SpvFaceData* output,std::uint32_t count) noexcept {
+    return guarded([&]{
+        require(handle,"Missing MeshBV handle");const auto& view=*static_cast<MeshBVView*>(handle);
+        require(count==view.info.faces&&(output||!count),"MeshBV face output size mismatch");
+        if(!count)return;
+        const auto& faces=view.faces()->GetElementsForAnalysis();
+        for(std::uint32_t i=0;i<count;++i) {
+            const auto& face=static_cast<const winx::reconstruction::wxFaceData&>(*faces[i]);
+            output[i]={face.GetSurfaceTypeForAnalysis(),face.GetFlagsForAnalysis(),face.GetSurfaceIDForAnalysis(),face.GetSerializedFieldMaskForAnalysis()};
+        }
+    });
+}
 SPV_API void* spv_container_inspect(const std::uint8_t* data,std::uint32_t count) noexcept {
     std::unique_ptr<ContainerIndex> result;
     if(!guarded([&]{result=std::make_unique<ContainerIndex>(data,count);}))return nullptr;

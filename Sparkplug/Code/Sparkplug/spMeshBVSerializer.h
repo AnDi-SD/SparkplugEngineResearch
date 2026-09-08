@@ -1,6 +1,7 @@
 #pragma once
 #include "spSerializer.h"
 namespace sparkplug::reconstruction {
+class spCollisionMesh;
 class spMeshBVSerializer final : public spSerializer {
 public:
     static constexpr spClassID ClassID=0x6C662708;
@@ -11,6 +12,10 @@ public:
     spClassID GetTargetClassIDForAnalysis() const noexcept{return TargetClassID;}
     bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
     bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
+    // The geometry branch of PC438490, shared with tools inspecting that field.
+    // Optional position is a host observation, relative to the field payload.
+    static std::unique_ptr<spCollisionMesh> ReadGeometryForAnalysis(
+        spStream&,std::uint32_t,std::uint32_t* vertexPayloadOffset=nullptr,std::string* error=nullptr);
     bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject& object) const override{return object.IsExactly(TargetClassID);}
 };
 }
