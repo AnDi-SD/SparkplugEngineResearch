@@ -78,11 +78,11 @@ internal static class GeneratedSkinningSemanticHandRegression
                 ReplacementTransform.Identity,
                 fixture.BodySelection);
         if (preparation.Analysis.SemanticResolutionPassCount != 1 ||
-            preparation.Analysis.InternalPreparationPassCount is < 2 or > 5)
+            preparation.Analysis.InternalPreparationPassCount != 1)
         {
             throw new InvalidOperationException(
-                "One public Prepare must use 1-3 adaptive legacy palette passes " +
-                "and exactly one final semantic-resolution pass.");
+                "One public Prepare must use exactly one preparation and " +
+                "one semantic-resolution pass.");
         }
 
         SideResult left = AssertSide(

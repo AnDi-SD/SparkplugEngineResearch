@@ -210,9 +210,8 @@ public sealed record GeneratedSkinningAnalysis(
             string.Empty);
 
     /// <summary>
-    /// Bounded internal instrumentation for proving that adaptive palette
-    /// probes do not repeat the heavy semantic-region resolution. Lightweight
-    /// separation-plane filtering is intentionally repeated in every probe.
+    /// Internal instrumentation for the single preparation and semantic-region
+    /// resolution performed by one public call.
     /// </summary>
     internal int InternalPreparationPassCount { get; init; }
 
@@ -253,7 +252,6 @@ public static partial class GeneratedSkinningPreparer
     // conservative retry. One is an emergency, palette-proven fallback for an
     // otherwise unwritable pose and is selected only after 4/3/2 all fail.
     private const int TopFourComparisonInfluences = 4;
-    private const int MinimumGeneratedInfluences = 1;
     private const float PositionEpsilon = 0.000001f;
     private const float WeightEpsilon = 0.000001f;
     private const float MainComponentAmbiguityRatio = 0.85f;
@@ -287,15 +285,14 @@ public static partial class GeneratedSkinningPreparer
             cancellationToken.ThrowIfCancellationRequested();
             ValidateRuntimeMemoryHeadroom();
             PreparationPassCount++;
-            if (PreparationPassCount >
-                TopFourComparisonInfluences - MinimumGeneratedInfluences + 2)
+            if (PreparationPassCount > 1)
             {
                 throw new InvalidOperationException(
-                    "Generated-skinning exceeded its bounded adaptive pass count.");
+                    "Generated-skinning repeated its preparation pass.");
             }
             Report(
-                0.06 + (PreparationPassCount - 1) * 0.22,
-                $"Расчёт весов: проход {PreparationPassCount} из максимум 5");
+                0.06,
+                "Расчёт весов и semantic regions");
         }
 
         public void RecordSemanticResolution()
@@ -812,9 +809,9 @@ public static partial class GeneratedSkinningPreparer
     }
 
     /// <summary>
-    /// Cancellable full-contract entry point used by interactive previews.  The
-    /// cancellation is observed before every expensive adaptive pass so stale
-    /// revisions cannot start another complete scene build.
+    /// Cancellable full-contract entry point used by interactive previews.
+    /// Cancellation is observed before preparation, during bounded processing
+    /// stages and before final plan analysis.
     /// </summary>
     public static GeneratedSkinningPreparationResult PrepareCancellable(
         SmoDocument target,
@@ -907,71 +904,19 @@ public static partial class GeneratedSkinningPreparer
         ValidatePreparationResourceBudget(target, donor);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Select the palette-compatible influence limit from a baseline result
-        // with semantic replacement disabled. Semantic cores can
-        // remove palette pressure; allowing that to raise the global limit would
-        // silently change weights on vertices outside every captured region.
-        // Once selected, the same limit is used for the semantic result.
+        // The clean writer allocates additional 16-slot palettes. A triangle
+        // has at most 3 * 4 distinct generated influences, so the former search
+        // against a fixed number of target palettes cannot constrain this path.
+        // A fixed four-influence limit also keeps vertices outside semantic
+        // regions independent of how those regions change palette pressure.
+        if (3 * TopFourComparisonInfluences > SmoSkinnedBranchSplitBuilder.PaletteCapacity)
+        {
+            throw new InvalidOperationException(
+                "Generated influences exceed the clean writer's per-triangle palette guarantee.");
+        }
         progress?.Report(new GeneratedSkinningProgress(
             0.01, "Проверка модели и бюджета расчёта"));
         var passState = new PreparationPassState(cancellationToken, progress);
-        var paletteFailures = new List<string>();
-        int selectedInfluenceLimit = MinimumGeneratedInfluences;
-        bool palettePlanFits = false;
-        for (int maximumInfluences = TopFourComparisonInfluences;
-             maximumInfluences >= MinimumGeneratedInfluences;
-             maximumInfluences--)
-        {
-            GeneratedSkinningPreparationResult baselineCandidate =
-                PrepareWithInfluenceLimit(
-                    target,
-                    donor,
-                    fittingPose,
-                    alignmentOverride,
-                    bodySelection,
-                    componentOverrides,
-                    regionOverrides,
-                    maximumInfluences,
-                    applySemanticRegions: false,
-                    passState: passState,
-                    enableAutomaticBackExtraction);
-            cancellationToken.ThrowIfCancellationRequested();
-            passState.Report(
-                0.17 + (passState.PreparationPassCount - 1) * 0.22,
-                $"Проверка palettes после прохода " +
-                $"{passState.PreparationPassCount}");
-            GlbSkinTransferPlan plan;
-            try
-            {
-                plan = SmoSkinnedGlbReplacer.Analyze(
-                    target,
-                    baselineCandidate.PreparedScene,
-                    cancellationToken: passState.CancellationToken);
-            }
-            catch (PaletteSearchLimitException exception)
-            {
-                // A bounded exact-search refusal is a capacity result for this
-                // influence count, not a fatal preparation failure. Retrying with
-                // one fewer influence makes the palette problem strictly simpler
-                // while every individual search remains protected by its own hard
-                // state and wall-clock budgets.
-                paletteFailures.Add($"max {maximumInfluences}: {exception.Message}");
-                continue;
-            }
-            string[] capacityFailures = plan.Messages
-                .Where(IsPaletteCapacityFailure)
-                .ToArray();
-            if (capacityFailures.Length == 0)
-            {
-                selectedInfluenceLimit = maximumInfluences;
-                palettePlanFits = true;
-                break;
-            }
-
-            paletteFailures.Add(
-                $"max {maximumInfluences}: {string.Join(" | ", capacityFailures)}");
-        }
-
         GeneratedSkinningPreparationResult candidate = PrepareWithInfluenceLimit(
             target,
             donor,
@@ -980,59 +925,22 @@ public static partial class GeneratedSkinningPreparer
             bodySelection,
             componentOverrides,
             regionOverrides,
-            selectedInfluenceLimit,
+            TopFourComparisonInfluences,
             applySemanticRegions: true,
             passState: passState,
             enableAutomaticBackExtraction);
         cancellationToken.ThrowIfCancellationRequested();
         passState.Report(0.88, "Финальная проверка semantic regions и palettes");
-        if (!palettePlanFits)
+        // Preserve the final analysis and its validation/cancellation behavior.
+        // The GUI and writer still decide whether the complete plan can be used.
+        _ = SmoSkinnedGlbReplacer.Analyze(
+            target,
+            candidate.PreparedScene,
+            cancellationToken: passState.CancellationToken);
+        if (passState.SemanticResolutionCount != 1 || passState.PreparationPassCount != 1)
         {
             throw new InvalidOperationException(
-                "Even the minimum generated influence limit is incompatible " +
-                "with the clean visual-graph palette plan. " +
-                string.Join(" | ", paletteFailures));
-        }
-        else if (selectedInfluenceLimit < TopFourComparisonInfluences)
-        {
-            candidate = AppendAnalysisWarning(
-                candidate,
-                $"The clean visual-graph palette plan rejected higher " +
-                $"influence limits and selected {selectedInfluenceLimit} as the " +
-                "highest compatible mode-3 limit. Semantic regions retain that " +
-                "same limit so every outside vertex stays bit-identical. " +
-                string.Join(" | ", paletteFailures));
-        }
-
-        string[] semanticCapacityFailures;
-        try
-        {
-            GlbSkinTransferPlan semanticPlan = SmoSkinnedGlbReplacer.Analyze(
-                target,
-                candidate.PreparedScene,
-                cancellationToken: passState.CancellationToken);
-            semanticCapacityFailures = semanticPlan.Messages
-                .Where(IsPaletteCapacityFailure)
-                .ToArray();
-        }
-        catch (PaletteSearchLimitException exception)
-        {
-            semanticCapacityFailures = [exception.Message];
-        }
-        if (semanticCapacityFailures.Length > 0)
-        {
-            throw new InvalidOperationException(
-                "Semantic rigid regions cannot fit the clean visual-graph " +
-                $"palette plan at the stable {selectedInfluenceLimit}-influence " +
-                "limit. Adjust the reported regions before writing. " +
-                string.Join(" | ", semanticCapacityFailures));
-        }
-        if (passState.SemanticResolutionCount != 1 ||
-            passState.PreparationPassCount is < 2 or > 5)
-        {
-            throw new InvalidOperationException(
-                "Generated-skinning adaptive preparation violated its bounded " +
-                "one-semantic-final-pass contract.");
+                "Generated-skinning violated its single preparation/semantic pass contract.");
         }
         passState.Report(1, "Создание весов завершено");
         return candidate;
@@ -1846,9 +1754,8 @@ public static partial class GeneratedSkinningPreparer
             "share that ownership, so their lower portions cannot fall through " +
             "to Back/Spine; distant rear islands remain independent.");
 
-        // Imported scenes are immutable by contract.  Reusing encoded texture
-        // resources avoids cloning every PNG on each of the bounded adaptive
-        // weight passes; geometry and skin arrays remain independently owned.
+        // Imported scenes are immutable by contract. Reuse encoded texture
+        // resources while geometry and skin arrays remain independently owned.
         ImportedTexture[] preparedTextures = donor.Textures.ToArray();
         ImportedMaterial[] preparedMaterials = donor.Materials.ToArray();
         var fittingScene = new ImportedScene(
@@ -1941,27 +1848,6 @@ public static partial class GeneratedSkinningPreparer
                 "root rotation and translation require an explicit donor-alignment " +
                 "space contract.");
         }
-    }
-
-    private static bool IsPaletteCapacityFailure(string message) =>
-        message.Contains(
-            "Material group needs more than",
-            StringComparison.Ordinal);
-
-    private static GeneratedSkinningPreparationResult AppendAnalysisWarning(
-        GeneratedSkinningPreparationResult preparation,
-        string warning)
-    {
-        string[] warnings = preparation.Analysis.Warnings
-            .Append(warning)
-            .ToArray();
-        return preparation with
-        {
-            Analysis = preparation.Analysis with
-            {
-                Warnings = new ReadOnlyCollection<string>(warnings)
-            }
-        };
     }
 
     private static FittingDeformationComparison

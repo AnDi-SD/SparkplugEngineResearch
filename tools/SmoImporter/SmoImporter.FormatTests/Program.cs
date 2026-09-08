@@ -1,5 +1,23 @@
 using SmoImporter.Core;
 
+if (args.Length == 3 && args[0] == "--generated-cancellation-regression")
+{
+    try { GeneratedResourceSafetyRegression.RunCancellation(args[1], args[2]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args.Length == 4 && args[0] == "--grouped-preparation-control")
+{
+    try { return GroupedPreparationControl.Run(args[1], args[2], args[3]); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args.Length == 2 && args[0] == "--palette-selection-trace")
+{
+    try { return PaletteSelectionTrace.Run(args[1]); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args.Length == 1 && args[0] == "--texture-pixel-comparison-regression")
 {
     try { return TexturePixelComparisonRegression.Run(); }
@@ -223,20 +241,20 @@ if (args.Length == 2 && args[0] == "--semantic-region-regression")
 
 if (args.Length == 2 && args[0] == "--semantic-head-topology-regression")
 {
-    GeneratedSkinningSemanticRegionRegression.RunBoundedHeadTopology(args[1]);
-    return 0;
+    try { GeneratedSkinningSemanticRegionRegression.RunBoundedHeadTopology(args[1]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 2 && args[0] == "--semantic-hand-topology-regression")
 {
-    GeneratedSkinningSemanticHandRegression.Run(args[1]);
-    return 0;
+    try { GeneratedSkinningSemanticHandRegression.Run(args[1]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 3 && args[0] == "--daphne-semantic-coverage-audit")
 {
-    DaphneSemanticCoverageAudit.Run(args[1], args[2]);
-    return 0;
+    try { DaphneSemanticCoverageAudit.Run(args[1], args[2]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 8 && args[0] == "--semantic-head-donor-audit")
@@ -255,14 +273,14 @@ if (args.Length is 4 or 5 && args[0] == "--daphne-semantic-region-regression")
 
 if (args.Length == 2 && args[0] == "--generated-resource-safety-regression")
 {
-    GeneratedResourceSafetyRegression.Run(args[1]);
-    return 0;
+    try { GeneratedResourceSafetyRegression.Run(args[1]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 4 && args[0] == "--daphne-mode3-regression")
 {
-    DaphneMode3Regression.Run(args[1], args[2], args[3]);
-    return 0;
+    try { DaphneMode3Regression.Run(args[1], args[2], args[3]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 4 && args[0] == "--material-group-native-integration")

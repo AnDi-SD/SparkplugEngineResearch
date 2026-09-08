@@ -153,3 +153,11 @@ Bloom_body/Tecna и survey Flora/Icy. Исторические gate4/gate7 не 
 −25–27%; peak около 200 МиБ существенно не изменился. Пять контрольных outputs
 совпадают с CP131, поэтому их native/SAN proofs переиспользованы по точному SHA.
 [Assessment CP132](../../research/tool-readiness-assessment-2026-09-08-cp132.json).
+
+## CP133 — один проход подготовки весов
+
+[Подготовка Importer](tool-importer-preparation-2026-09-08.md): **16/16**,
+без нового прироста. Два настоящих донора: время −48–50%, суммарные выделения
+−53–54%. Публичная подготовка и outputs совпадают; финальные проверки и отмена
+сохранены. Неактуальный аудит старого Head volume выделен отдельно, не считается
+passed. [Assessment CP133](../../research/tool-readiness-assessment-2026-09-08-cp133.json).

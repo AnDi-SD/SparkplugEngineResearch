@@ -1,0 +1,68 @@
+{
+  "kind": "tool-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP133",
+  "createdUtc": "2026-09-08T13:46:28.605837+00:00",
+  "documentation": "docs/research/tool-importer-preparation-2026-09-08.md",
+  "scopeId": "tools-pc-operations-v1",
+  "scopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "assessmentPath": "research/tool-readiness-assessment-2026-09-08-cp133.json",
+  "assessmentManifestSha256": "90F2076F51EDE6AA41CD1BEC81C35478A40E44691AD1975DFD83BFBEBB9D9EE6",
+  "validationPath": "research/tool-importer-preparation-validation-2026-09-08.json",
+  "validationSha256": "5C1B4C99B7E0F1DDA5583D8918CAD59272BA8276978EAD5BE6A934BB2C693108",
+  "snapshotPath": "local-data/results/tool-cycle-20260908-1900/readiness-cp133.json",
+  "snapshotSha256": "E07B35A1E43B682F3D33D924C157537F2D1CE4F5D6991EF26B66DF1FE0C6DA21",
+  "readyCount": 16,
+  "totalCount": 16,
+  "readyPercent": 100.0,
+  "stagePassedCounts": {
+    "contract": 16,
+    "integration": 16,
+    "validation": 16
+  },
+  "cycleDelta": {
+    "readyCountDelta": 5,
+    "newlyReady": [
+      "export.fbx-alpha",
+      "san.rare-keys",
+      "texture.inspect",
+      "texture.replace-gui",
+      "texture.resize-repack"
+    ],
+    "noLongerReady": [],
+    "percentagePointDelta": 31.25
+  },
+  "newlyDeliveredOperations": [],
+  "evidence": {
+    "paletteCases": 5,
+    "paletteChecksPerCore": 44,
+    "exactPreparationSettings": 3,
+    "exactGroupedPose": true,
+    "currentHeadHandTests": true,
+    "fullDaphneMode3": true,
+    "budgetAndCancellation": true,
+    "cleanChecks": 65,
+    "unchangedNativeValidatedOutputs": 5
+  },
+  "optimization": {
+    "preparationWallTimeReductionPercent": [
+      48.26857964832764,
+      50.20716243583476
+    ],
+    "allocationReductionPercent": [
+      52.55132634492553,
+      54.29673366486517
+    ],
+    "scope": "Actual preparation on two donors; fixed pose/alignment; same outputs. Whole-GUI speed and lower peak resident memory not claimed."
+  },
+  "staleAudit": "Old Daphne semantic-volume audit excluded; topology limit32 experiment reverted, current limit4. Exact grouped old/new result and current Head/hand/full mode3 checks recorded separately.",
+  "unchangedNativeClassLedger": true,
+  "publishStatus": "local-checkpoint; public push still awaits previously requested exact-destination approval",
+  "documentationAudit": {
+    "markdownFiles": 440,
+    "jsonFiles": 205,
+    "relativeLinks": 1673,
+    "errors": 0,
+    "scope": "Full audit before this checkpoint JSON; checkpoint/plan separately parsed."
+  }
+}

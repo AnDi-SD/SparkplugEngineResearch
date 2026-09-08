@@ -115,7 +115,7 @@ internal static class SmoSkinnedBranchSplitBuilder
 {
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
-    private const int PaletteCapacity = 16;
+    internal const int PaletteCapacity = 16;
     private const float WeightEpsilon = 0.000001f;
     private const uint SharedFogClassId = SmoClassIds.Fog;
     private const uint OpaqueOverlayFinalBlendOperation = 0;
@@ -789,16 +789,30 @@ internal static class SmoSkinnedBranchSplitBuilder
             var bins = new List<PalettePlan>();
             foreach (TrianglePlan triangle in branchTriangles)
             {
-                PalettePlan? selected = bins
-                    .Where(bin => bin.MaterialFamily == triangle.MaterialFamily &&
-                                  bin.Bones.Union(
-                                      triangle.Bones,
-                                      StringComparer.Ordinal).Count() <= PaletteCapacity)
-                    .OrderBy(bin => triangle.Bones.Count(
-                        name => !bin.Bones.Contains(name)))
-                    .ThenBy(bin => bin.Triangles.Count)
-                    .ThenBy(bin => bin.Ordinal)
-                    .FirstOrDefault();
+                PalettePlan? selected = null;
+                int selectedAddedBones = int.MaxValue;
+                foreach (PalettePlan bin in bins)
+                {
+                    if (bin.MaterialFamily != triangle.MaterialFamily)
+                        continue;
+                    int addedBones = 0;
+                    foreach (string name in triangle.Bones)
+                        if (!bin.Bones.Contains(name))
+                            addedBones++;
+                    if (bin.Bones.Count + addedBones > PaletteCapacity)
+                        continue;
+                    // Preserve the old greedy ordering exactly, without a
+                    // temporary union set and ordered enumeration per triangle.
+                    if (selected is null || addedBones < selectedAddedBones ||
+                        addedBones == selectedAddedBones &&
+                        (bin.Triangles.Count < selected.Triangles.Count ||
+                         bin.Triangles.Count == selected.Triangles.Count &&
+                         bin.Ordinal < selected.Ordinal))
+                    {
+                        selected = bin;
+                        selectedAddedBones = addedBones;
+                    }
+                }
                 if (selected is null)
                 {
                     selected = new PalettePlan(

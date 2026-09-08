@@ -123,11 +123,11 @@ internal static class DaphneSemanticCoverageAudit
                 DaphneAlignment,
                 body);
         if (preparation.Analysis.SemanticResolutionPassCount != 1 ||
-            preparation.Analysis.InternalPreparationPassCount is < 2 or > 5)
+            preparation.Analysis.InternalPreparationPassCount != 1)
         {
             throw new InvalidOperationException(
-                "Daphne's single public Prepare repeated semantic resolution " +
-                "inside adaptive legacy palette probes.");
+                "Daphne's single public Prepare repeated preparation or " +
+                "semantic resolution.");
         }
 
         GeneratedSkinningRegionResolution head = preparation.Analysis

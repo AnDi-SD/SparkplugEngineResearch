@@ -1,0 +1,400 @@
+{
+  "kind": "tool-importer-preparation-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP133",
+  "createdUtc": "2026-09-08T13:44:58.694432+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/GeneratedSkinningPreparer.cs",
+      "sha256": "D50973625870B6274D5A22E89CF6F896FDF7B8DEABC75CAF2DEAA76F91126A73"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedBranchSplitBuilder.cs",
+      "sha256": "ADE5C497DD8358AF5B4CA0A0B61E0FD5FF79E348ED73435B8A6755C3A93A757B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedGlbReplacer.cs",
+      "sha256": "BCE119C501A46914593271C6DE80C82E0EC114D4F14A19FD26F128A8460263B1"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Gui/MainWindow.xaml.cs",
+      "sha256": "212B79416AA6F3CCF73C767BE390DD4371B4D1447A6261291DFEE94E4398E2B9"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/TargetRigAutomaticPoseFitter.cs",
+      "sha256": "C45AB9A4714DAD2F6AFE95FAEE0749E5240C6771413FB26548214C41A6CEFA1A"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/GeneratedSkinningSemanticRegionResolver.cs",
+      "sha256": "C5F3D8E0AE39A63FF754A97101A18BC1A928349A9DCE1E9BA7D25C3BCA6C0ABF"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "1BAD24178AD793BCC0CA919576D8C2D2939D74751CAADE3322F52A8701BA1B91"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/PaletteSelectionTrace.cs",
+      "sha256": "5D39CA1F0ABE009F532CED15C1555F59C98875291C7EFE7C925AA70E7D259F6B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/GroupedPreparationControl.cs",
+      "sha256": "E35169DCB812612E887C8E7A6469D20707249C4E56F5E01F5628423E6503D2D7"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/GeneratedResourceSafetyRegression.cs",
+      "sha256": "323342712A3D8157AB804B23E35CEF32B452BDC36719108F03E5F859FD1C76B7"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/GeneratedSkinningSemanticHandRegression.cs",
+      "sha256": "90F902274024A8B80A2EFBCC843EFB175CF620E98BFF6B939E26CAA35A67F466"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/DaphneSemanticCoverageAudit.cs",
+      "sha256": "8592DFD6C8A426BA1A9B38B5C29E92B1244C609AC1909050400C72C4057A77BA"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/DaphneMode3Regression.cs",
+      "sha256": "ED4EDE1889375AD48602084ED4253479109E309ED521AC4A6FD142F94A4C5C74"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/GeneratedSkinningSemanticRegionRegression.cs",
+      "sha256": "23454CCF995575EBFF7BF1AB42EB38528827AF56D4D618B2E29D580D69525C03"
+    },
+    {
+      "path": "research/ImporterPreparationBench/Program.cs",
+      "sha256": "448E4C8E7D9A8E535047985D7E741B818982616E5972D982B8F7D0F0D39F82C3"
+    },
+    {
+      "path": "research/ImporterPreparationBench/ImporterPreparationBench.csproj",
+      "sha256": "E79CE7EF4E8D7E08CD73237DAB5F87DD24F8566A870AC95880666A75C93BEA6D"
+    },
+    {
+      "path": "research/validate_importer_preparation.py",
+      "sha256": "138DFA088DBFF35E9E9E359A90E37EDF8A0F3A8D17F3BDBDA79CF9DFB8A57501"
+    },
+    {
+      "path": "research/validate_importer_performance.py",
+      "sha256": "6CDE804BE4746A3B37227C4F2360DFBE1C4490321B4F8F2DC2F06E908D13B447"
+    },
+    {
+      "path": "tools/SmoImporter/README.md",
+      "sha256": "C959CCBC1956DB0C5EC3489C23194C019FEC8B1A084463278D9DB29A3A6B291B"
+    }
+  ],
+  "sourceHashNote": "Comment updates and CRLF normalization after functional checks; final GUI built from normalized reviewed code. Benchmark DLL/core identities remain pinned separately in reports.",
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-comparison.json",
+      "sha256": "0FCFB154B777791B5C2148B5E5FCF03DF9DB5F09D3D3F548D4650BF5B40A691C"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/reboot-comparison.json",
+      "sha256": "6DE4F2C236B3FF58624FE2F9190051B8034675274F97491CB6C5F86BDF9BD189"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-back-comparison.json",
+      "sha256": "859DCC06276F15B7FCEDFA1F1CD10678B30D636BE84D4835F08A265AD5B23208"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-before/report.json",
+      "sha256": "108D564C1DDDB286EDA1B5847C712A2CA0AD4101333FEB6A3B9A7C3F716C49F6"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-after/report.json",
+      "sha256": "344E096043E449D8AAC864740FF2D7CB5523A6CDE400422AAEA6AFFAEA843920"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/reboot-before/report.json",
+      "sha256": "CE9A351A85C42CECA02943815698D0C54520D0654FCB244E5F16D140CC456A49"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/reboot-after/report.json",
+      "sha256": "AF82E969A559B3693FE709A2E494EE170867C72228E732053BEB32E8282A40B7"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-back-before/report.json",
+      "sha256": "98E1F461CDA50E05C6437178ADC893BC0C057E8834AB2E7AEA10CCF915546BF6"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-back-after/report.json",
+      "sha256": "6F546C1BEB961E25104021592E982AB41716FE861B57F0F6A6CEEF1DAC25B607"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/palette-baseline.json",
+      "sha256": "1598D7658082DD6AA0E2384622578CDFCC00DFE9A01E842F7CD40131C24A1BA5"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/palette-final.json",
+      "sha256": "123D10BD2096EC48735C19D18CECC106B5A25F38D4F9ED69FF6874BFB0986933"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/grouped-baseline.json",
+      "sha256": "19892B03BBADCF70E1735677BE3A5ED5D253B44CDD9FBE506079851A1A18B52D"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/grouped-final.json",
+      "sha256": "D84DF324349F548D912992600C1AD17C36461A851CB49E68F0AD2D98E6CA6D57"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/focused-regressions-v1.json",
+      "sha256": "316DC9E1EC9813A5AA651F9326840885058212FE2D1323EC64C060AC08CFCE90"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/focused-regressions-v2.json",
+      "sha256": "7E7F81B4D1C9BFE3A3187F2D4B419C4F2416AA9AFF83E0FBEFA8177A1B359C8C"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/focused-regressions-v3.json",
+      "sha256": "1140A587EB010DFF97E356B1C7A6E51513E666A8FC2263410041120684DA2788"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/clean-targets-final/report.json",
+      "sha256": "55FBBA1745AEA6D30F6A2FF170C5BE7D6315CAD302CF87EA4E9FBA165264CD5F"
+    }
+  ],
+  "logs": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/hand-final.txt",
+      "sha256": "F7CD6E800989D39764723CAE925E98232EDB24B54890AF147DB3C1C21705435C"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-coverage-final.txt",
+      "sha256": "2672E9DB5A1258060E4B583BC05894A5239538C918D8421BED31C4E673BDC0F3"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-coverage-final-v2.txt",
+      "sha256": "3A5AE67025DCBA33993F0A93E6624F635380E307334976DA69B622D571ECD3CC"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/head-final-v3.txt",
+      "sha256": "7F7FE77863FB2E1304436806952B5A2FB4258D6366C07877EA44AA5CB64F8B28"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/resource-guard-final-v3.txt",
+      "sha256": "5E3BECB04565BEA3BD98BEB4EEB662BA327BC8489333086AEAC2666DE8165314"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-mode3-final-v3.txt",
+      "sha256": "71984646D1D9E0CB06717B6EECBFF6C71406DACA2F1ECBF4B11622482D724063"
+    }
+  ],
+  "comparisons": [
+    {
+      "kind": "importer-preparation-comparison",
+      "status": "passed",
+      "metrics": {
+        "prepareMs": {
+          "before": 274.1131,
+          "after": 141.8026,
+          "reductionPercent": 48.26857964832764
+        },
+        "prepareCpuMs": {
+          "before": 281.25,
+          "after": 140.625,
+          "reductionPercent": 50.0
+        },
+        "prepareBytes": {
+          "before": 118338448,
+          "after": 56150024,
+          "reductionPercent": 52.55132634492553
+        }
+      },
+      "before": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-before/report.json",
+        "sha256": "108D564C1DDDB286EDA1B5847C712A2CA0AD4101333FEB6A3B9A7C3F716C49F6"
+      },
+      "after": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-after/report.json",
+        "sha256": "344E096043E449D8AAC864740FF2D7CB5523A6CDE400422AAEA6AFFAEA843920"
+      },
+      "peakBefore": 227172352,
+      "peakAfter": 207802368,
+      "benchmarkAssemblySha256": "926639B3C1806FA89FA170D36213A78667A2FE640A5DABAF4048DF9905AC8164",
+      "beforeCoreSha256": "DB7ECB3B64FE1505959087EEA244AB7B32DA84B3A57F939255E0301F670EB9BA",
+      "afterCoreSha256": "0A9504823C01D0208E528E2870926C09C027D1B800801C6F9982563813D17361",
+      "publicPreparationSha256": "FB9266134FA24B395044D848006BADC19C153D99A58C29D16C665351071099D8",
+      "outputSha256": "FDB21440755D903C14FCBCFDD1E4631B71BD15F83537EFB3BC38AC8A93D52E74",
+      "limits": [
+        "Shared host and quantized Windows CPU counters.",
+        "Cumulative allocation reductions do not imply lower peak resident memory.",
+        "Preparation only: separate GUI plan analysis, drawing and writing are outside the timed section.",
+        "Equal public preparation and SMO bytes establish unchanged behavior for these cases, not artistic weight quality."
+      ]
+    },
+    {
+      "kind": "importer-preparation-comparison",
+      "status": "passed",
+      "metrics": {
+        "prepareMs": {
+          "before": 1405.9016,
+          "after": 700.0383,
+          "reductionPercent": 50.20716243583476
+        },
+        "prepareCpuMs": {
+          "before": 1390.625,
+          "after": 687.5,
+          "reductionPercent": 50.56179775280899
+        },
+        "prepareBytes": {
+          "before": 511107872,
+          "after": 233592992,
+          "reductionPercent": 54.29673366486517
+        }
+      },
+      "before": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/reboot-before/report.json",
+        "sha256": "CE9A351A85C42CECA02943815698D0C54520D0654FCB244E5F16D140CC456A49"
+      },
+      "after": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/reboot-after/report.json",
+        "sha256": "AF82E969A559B3693FE709A2E494EE170867C72228E732053BEB32E8282A40B7"
+      },
+      "peakBefore": 324218880,
+      "peakAfter": 362352640,
+      "benchmarkAssemblySha256": "926639B3C1806FA89FA170D36213A78667A2FE640A5DABAF4048DF9905AC8164",
+      "beforeCoreSha256": "DB7ECB3B64FE1505959087EEA244AB7B32DA84B3A57F939255E0301F670EB9BA",
+      "afterCoreSha256": "0A9504823C01D0208E528E2870926C09C027D1B800801C6F9982563813D17361",
+      "publicPreparationSha256": "92551AC05277F87D20196A9AF6E9AA2D2EA4C12A3C736030B1495D78A904E971",
+      "outputSha256": "1DD3B4BFB63F6F5AF8D2B3DB25390EC5B0E6ABEB244B29C3B1098055A5CE212A",
+      "limits": [
+        "Shared host and quantized Windows CPU counters.",
+        "Cumulative allocation reductions do not imply lower peak resident memory.",
+        "Preparation only: separate GUI plan analysis, drawing and writing are outside the timed section.",
+        "Equal public preparation and SMO bytes establish unchanged behavior for these cases, not artistic weight quality."
+      ]
+    },
+    {
+      "kind": "importer-preparation-comparison",
+      "status": "passed",
+      "metrics": {
+        "prepareMs": {
+          "before": 265.0947,
+          "after": 134.4044,
+          "reductionPercent": 49.299476753024486
+        },
+        "prepareCpuMs": {
+          "before": 265.625,
+          "after": 140.625,
+          "reductionPercent": 47.05882352941176
+        },
+        "prepareBytes": {
+          "before": 114020040,
+          "after": 53928720,
+          "reductionPercent": 52.7024196799089
+        }
+      },
+      "before": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-back-before/report.json",
+        "sha256": "98E1F461CDA50E05C6437178ADC893BC0C057E8834AB2E7AEA10CCF915546BF6"
+      },
+      "after": {
+        "path": "local-data/results/tool-cycle-20260908-1900/importer-preparation/daphne-back-after/report.json",
+        "sha256": "6F546C1BEB961E25104021592E982AB41716FE861B57F0F6A6CEEF1DAC25B607"
+      },
+      "peakBefore": 268795904,
+      "peakAfter": 197939200,
+      "benchmarkAssemblySha256": "926639B3C1806FA89FA170D36213A78667A2FE640A5DABAF4048DF9905AC8164",
+      "beforeCoreSha256": "DB7ECB3B64FE1505959087EEA244AB7B32DA84B3A57F939255E0301F670EB9BA",
+      "afterCoreSha256": "0A9504823C01D0208E528E2870926C09C027D1B800801C6F9982563813D17361",
+      "publicPreparationSha256": "44E091E3C37B3E8080A0FD44BC2E372262143A693B460E829DD61C7EB16C1FC0",
+      "outputSha256": "ED09DF28E0074A2F4EA4AA9D90EF43C7E57A483EF88AA31D31ED38FBFEE12BB3",
+      "limits": [
+        "Shared host and quantized Windows CPU counters.",
+        "Cumulative allocation reductions do not imply lower peak resident memory.",
+        "Preparation only: separate GUI plan analysis, drawing and writing are outside the timed section.",
+        "Equal public preparation and SMO bytes establish unchanged behavior for these cases, not artistic weight quality."
+      ]
+    }
+  ],
+  "paletteTrace": {
+    "cases": 5,
+    "checksPerCore": 44,
+    "traceSha256": "C54C47F9AA9CB5C4943756C29025C3FFAA79321162FFBA5BC859A80345734A41",
+    "exactOldNew": true,
+    "largestFixtureVertices": 65538
+  },
+  "groupedPose": {
+    "publicPreparationSha256": "0A820C81EAB0B0868891AED3DBF1BF43861B2FF57A044AC6991D6660C80A2892",
+    "oldPasses": 2,
+    "newPasses": 1,
+    "semanticResolutions": 1,
+    "selectedComponents": 23,
+    "headUsesPlaneAndNoResolvedVolume": true
+  },
+  "focused": {
+    "handVertices": 180,
+    "handTriangles": 304,
+    "headPlanes": true,
+    "fullDaphneMode3": true,
+    "resourceBudgetGuard": true,
+    "cancellationThresholds": [
+      -1,
+      0.01,
+      0.88
+    ],
+    "cancellationExitCode": 0,
+    "cancellationStdout": "GENERATED CANCELLATION PASS: before start, initial progress, before final analysis; inputs unchanged.",
+    "cleanTargets": 5,
+    "cleanChecks": 65,
+    "cleanOutputHashesUnchanged": true,
+    "cleanElapsedSeconds": 1.3388034,
+    "cleanPeakWorkingSet": 78258176
+  },
+  "outputs": [
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\Bloom_body.smo",
+      "inputSha256": "3316BCE73A9F4098A4BC813E1231A81C4BEEC46FAB9C5BC34E6E9B5D1817E8F2",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-preparation\\clean-targets-final\\Bloom_body-clean.smo",
+      "outputSha256": "6C08EC63304CAFDBE7CB64F65DEC24C1FFBE060345A84CDB7DFD4D2D3C1BE944"
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\bloom_jeans.smo",
+      "inputSha256": "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-preparation\\clean-targets-final\\bloom_jeans-clean.smo",
+      "outputSha256": "8041C51801E6F7C462A96525FFB82314C082824CED91437251F93D88B14FBB3C"
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Tecna\\Tecna.smo",
+      "inputSha256": "B20E8C8A29F31F64CB6E65A712D237ECCD75D5A07DE8A5C07A25E08497C2C7EE",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-preparation\\clean-targets-final\\Tecna-clean.smo",
+      "outputSha256": "7097D278C5C24C262E44B53EA9D4EFB6CB8230372A1FBC66A164FED8D38B18C5"
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "inputSha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-preparation\\clean-targets-final\\Icy-clean.smo",
+      "outputSha256": "63D554FE8C3149DC5113F53FA4A1421507DA5F9D964BB25DDF2B74D6D8944003"
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Flora\\Flora.smo",
+      "inputSha256": "982BAC3C629FCEB230B904C5110B11474EFB6B77627B588021AE7CFBD4B0ECA5",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-preparation\\clean-targets-final\\Flora-clean.smo",
+      "outputSha256": "3374527AF4D252A420D38109DCE3516B26D3EACCCEE9FBDD997A90EEB9E46027"
+    }
+  ],
+  "reusedNative": {
+    "path": "research/tool-importer-clean-targets-validation-2026-09-08.json",
+    "sha256": "1AD8466FEC2F37D9CAF8386E5CAE48175D6AFF0A4E943BA5CC0F2CF314CAA542",
+    "observation": "Exact five outputs retain original-PC loader/teardown,19 palettes/304 matrices and30 stock SAN pose evidence. Not rerun."
+  },
+  "build": {
+    "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
+    "configuration": "Release",
+    "version": "0.6.1",
+    "warnings": 0,
+    "errors": 0,
+    "elapsedSeconds": 15.62,
+    "coreAssemblySha256": "DEB13A91209B53CD19FE5B6FBBBFC88980C680486D25873FE266EABECDAB8197"
+  },
+  "invariant": "Current clean writer creates new16-slot palettes and splits at65535 vertices; generated triangle has at most3x4=12 distinct bone references. Four-influence output is independent of semantic palette pressure.",
+  "newOperations": [],
+  "newClassCredit": false,
+  "published": false,
+  "exclusions": [
+    "Topology-cache prototype removed after no useful timing gain.",
+    "DaphneSemanticCoverageAudit retained as failed/stale:23 selected components exceeds old4 and Head now uses plane, not resolved volume. Temporary diagnostic32 limit reverted. Grouped result is exact under old and new Core.",
+    "Automatic pose fit for Bloom reboot rejected arm landmarks; identity pose/coarse alignment is explicitly recorded, no production guard was changed.",
+    "Artistic weight quality and whole-GUI speed are not measured; resident memory did not consistently decrease.",
+    "Large donor outputs equal CP132 outputs but are not new original-PC whole-file validations."
+  ]
+}
