@@ -161,14 +161,15 @@
       "dependsOn": [
         "pc-smo-san-loader-save"
       ],
-      "summary": "CP101 whole object/gameover and CP103-107 mesh/material/light/Skin SMOs verified under explicit startup/COM fixtures. Continue texture/level resources, collision, rollback and remaining ownership.",
+      "summary": "CP101-120 verify whole Node and eight representative scene graphs, including borrowed Skin/UV/particle backlinks and exact loaded UV updates. Continue additional level/collision families, reparenting, rollback, native whole Save and remaining ownership.",
       "originalName": "spNodeSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spNodeSerializer.cpp",
       "known": [
         "ExactPC14 allocation, original scalar/child/index/write rules; false Static/Animated do not clear defaults, duplicate same-parent child no-op.",
         "Canonical host shared owners, explicit prebound owners; common core reused. Source whole object.smo equals staged native outer, not native whole422B50.",
         "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged.",
-        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device."
+        "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
+        "CP107-120 extend real whole SMO evidence to droid_trail, loading, gem, rock and pickup_ptc; final scene profile11 variants. Gem loaded UV updates match4x72 bytes; rock7 objects/7675 bytes; pickup6 objects/6088 bytes with all138 allocations released. These are bounded original/source graph comparisons under explicit startup/COM inputs, not full CRT startup, native whole Save or live GPU display."
       ],
       "unknowns": [
         {
@@ -194,7 +195,10 @@
         "docs/research/native-pc-skin-alpha-flush.md",
         "docs/research/native-pc-whole-file-profile.md",
         "docs/research/native-pc-whole-scene-file.md",
-        "docs/research/native-pc-whole-skin-scene.md"
+        "docs/research/native-pc-whole-skin-scene.md",
+        "docs/research/native-pc-whole-uv-scene.md",
+        "docs/research/native-pc-texture-corpus32.md",
+        "docs/research/native-pc-particle-parameters.md"
       ],
       "testProfiles": [
         "pc-node-output",
@@ -380,7 +384,7 @@
       "dependsOn": [
         "pc-smo-san-loader-save"
       ],
-      "summary": "Normal concrete PC mesh readers and constructed whole FFPS now execute in native/source paths. Extend through real scene graph adapters, writer/optimizer and remaining ownership/backend variants.",
+      "summary": "CP103-120 verify complete real scene loaders across mesh/material/light/skin/texture/particle graphs under explicit startup/COM inputs. Continue runtime DX mesh graph writing and native whole Save, standalone/shared/backend reset and remaining ownership/failure variants.",
       "originalName": null,
       "sourcePath": null,
       "known": [
@@ -390,12 +394,13 @@
         "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
         "CP104 original shared writer/reader/Init:110 exact bytes;cursor8;10 completed protocol cases/115 assertions/22 allocations released;actual factory sizes28/20. COM Create failure separately stops at4C2AB6 with null read and is never resumed. Host readers now bound sizes before allocation;contiguous helper is zero-origin and not generic graph wiring.",
         "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants.",
-        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes."
+        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes.",
+        "CP107-120 extend real whole SMO evidence to droid_trail, loading, gem, rock and pickup_ptc; final scene profile11 variants. Gem loaded UV updates match4x72 bytes; rock7 objects/7675 bytes; pickup6 objects/6088 bytes with all138 allocations released. These are bounded original/source graph comparisons under explicit startup/COM inputs, not full CRT startup, native whole Save or live GPU display."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Real scene FFPS with Node/RenderNode/Model/material/skin/texture adapters, native save and all error/ownership variants. Constructed whole FFPS and source mesh adapters now have checkpoint8 evidence."
+          "text": "Additional whole level/collision/other scene families, original whole Save with runtime DX shared-graph wiring, and remaining error/ownership variants. Eight selected real scene graphs now have CP103-120 evidence; that does not prove all resource families."
         },
         {
           "kind": "behavior",
@@ -413,7 +418,10 @@
         "docs/research/native-pc-whole-scene-file.md",
         "docs/research/native-pc-dx-shared-payload.md",
         "docs/research/native-pc-whole-light-scene.md",
-        "docs/research/native-pc-whole-scene-identities.md"
+        "docs/research/native-pc-whole-scene-identities.md",
+        "docs/research/native-pc-whole-uv-scene.md",
+        "docs/research/native-pc-texture-corpus32.md",
+        "docs/research/native-pc-particle-parameters.md"
       ],
       "testProfiles": [
         "pc-dx-metadata",
@@ -447,7 +455,7 @@
         "spDXSerializerHook"
       ],
       "dependsOn": [],
-      "summary": "Complete PC FFPS/FAT load/save chain before expanding SMO mesh materialization; independent of capped visibility assignments.",
+      "summary": "CP99-120 verify source-produced SAN accepted by original whole reader and eight representative mesh/material/light/skin/texture/particle scenes, plus simple Node files. Next: locate original whole Save dispatch and complete runtime DX graph writing; full CRT/startup, unknown-field preservation and remaining failures stay open. CP123 retains manager80 with refreshed evidence.",
       "originalName": null,
       "sourcePath": null,
       "known": [
@@ -459,7 +467,8 @@
         "CP101 fresh file profile (1M instructions/8s,128KiB arena) completes original whole422B50 for bflower/barrel/bw and source-written barrel, plus object/gameover Node SMOs:3479 SAN values,8 exact Node records,221 assertions,all recorded allocations freed. Old micro snapshots unchanged.",
         "CP103 whole original422B50 on unchanged703-byte logo_screen.smo matches C++:6 runtime objects,5 graph edges,430 state bytes,85 layer bytes,192 buffer/declaration bytes,50 assertions;all81 native allocations freed with explicit leaked-combiner cleanup. File profile189653 instructions/128KiB arena; no live D3D device.",
         "CP105 whole common-platform bloom_projectile.smo:6 exact runtime objects,476 state+412 buffer/declaration bytes,56 native assertions,all78 allocations freed;204841 instructions. Host LightDataSerializer now retains wire RTTI registration;native fixture includes runtime DXMesh/DXLight records with checked RB invariants.",
-        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes."
+        "CP106 whole g_crystal.smo:26 exact objects/25 edges/7551 state-layer-buffer bytes by FAT object IDs,175 assertions,all272 allocations freed;856194 instructions/89296-byte arena. Optional host borrowed ID snapshot is off by default;logo and bloom projectile compare in both old class and new ID modes.",
+        "CP107-120 extend real whole SMO evidence to droid_trail, loading, gem, rock and pickup_ptc; final scene profile11 variants. Gem loaded UV updates match4x72 bytes; rock7 objects/7675 bytes; pickup6 objects/6088 bytes with all138 allocations released. These are bounded original/source graph comparisons under explicit startup/COM inputs, not full CRT startup, native whole Save or live GPU display."
       ],
       "unknowns": [
         {
@@ -489,7 +498,10 @@
         "docs/research/native-pc-whole-file-profile.md",
         "docs/research/native-pc-whole-scene-file.md",
         "docs/research/native-pc-whole-light-scene.md",
-        "docs/research/native-pc-whole-scene-identities.md"
+        "docs/research/native-pc-whole-scene-identities.md",
+        "docs/research/native-pc-whole-uv-scene.md",
+        "docs/research/native-pc-texture-corpus32.md",
+        "docs/research/native-pc-particle-parameters.md"
       ],
       "testProfiles": [
         "pc-loader-contracts",

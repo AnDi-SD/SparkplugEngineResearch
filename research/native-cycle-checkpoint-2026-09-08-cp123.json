@@ -1,0 +1,116 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP123",
+  "createdUtc": "2026-09-08T03:51:08.802393+00:00",
+  "documentation": "docs/research/native-cycle-report-2026-09-08-0700.md",
+  "classScoresChanged": true,
+  "scopeId": "smo-san-workflow-v2",
+  "scopeSha256": "33762062D5FDF41EDA13C2FCEE369D513D9D7106543DED0D827509CD2EA214A2",
+  "assessmentManifestPath": "research/native-platform-pc-cycle-2026-09-08-0700.json",
+  "assessmentManifestSha256": "D57AC4F2A60B44E61716E0FDF2F7EEFB357A822A8FC57AD604B4424F4057C810",
+  "assessmentLedgerSha256": "FAC39C96774AB9BA52D6CAF14B44F225857EFFB21B3A6A74800075C42AAE1167",
+  "assessmentSha256": "0FDA471CC2050A4B05D136A1AEE5DD2F1B912D439EC8B01BDCF6959B6ED83C86",
+  "evidenceAsOfUtc": "2026-09-08T03:40:39Z",
+  "assessmentsImported": 7,
+  "scoresRaisedOrAdded": 6,
+  "retainedScores": {
+    "spSerializerManager": 80
+  },
+  "pcWorkflowBefore": {
+    "denominator": 279,
+    "assessedCount": 190,
+    "unratedCount": 89,
+    "numerator": 126.09,
+    "creditedPercent": 45.193548387096776,
+    "recordedLowerPercent": 36.31182795698925,
+    "possibleUpperPercent": 83.73476702508961,
+    "closedCount": 0
+  },
+  "pcWorkflowAfter": {
+    "denominator": 279,
+    "assessedCount": 191,
+    "unratedCount": 88,
+    "numerator": 127.29,
+    "creditedPercent": 45.623655913978496,
+    "recordedLowerPercent": 36.68817204301075,
+    "possibleUpperPercent": 83.85304659498208,
+    "closedCount": 0
+  },
+  "pcWorkflowGainPercentagePoints": 0.43010752688172005,
+  "ps2Workflow": {
+    "denominator": 245,
+    "assessedCount": 135,
+    "unratedCount": 110,
+    "numerator": 76.35,
+    "creditedPercent": 31.163265306122447,
+    "recordedLowerPercent": 24.0,
+    "possibleUpperPercent": 81.01224489795918,
+    "closedCount": 0
+  },
+  "gates": {
+    "passed": 0,
+    "partial": 6,
+    "open": 1,
+    "ready": false
+  },
+  "verifiedEvidenceFiles": {
+    "docs/research/native-pc-texture-missing-mips.md": "77E6CA73A5B6BFB0D4AF4AE00443574C1976EDC9A76646E51F8A16B6678ED3BF",
+    "docs/research/native-pc-texture-compressed-mips.md": "9D81F830D26A6F23E87438CD3FD3A5876E46785575ED3918647F6B98C9234512",
+    "docs/research/native-pc-texture-cross-upload.md": "85EA9526FE86417A8EDCBA8AC4F59569D8DAA7458ED54CEB1BA55AD53A7858F4",
+    "docs/research/native-pc-texture-external-source.md": "E3BD9599ADDBDDBD3A93B1076DA133CD1609F811F42751DC2DCB965A9719191F",
+    "docs/research/native-pc-texture-corpus32.md": "87C7A39B98B1AB656CC73ACC79BAF862F16ABAA2F8669F33BC29030A4D4E5100",
+    "docs/research/native-pc-particle-parameters.md": "456C0E22564374BD33CE20E92068A66226B1C0818713AFC0257E2D36810BC18C",
+    "docs/research/native-pc-particle-sampling.md": "BFE7D60DCA35FF2DEA3933B9E29587F09E2B4241577B1C1B1272BA9BB24C31A1",
+    "docs/research/native-pc-san-file-roundtrip.md": "E60C129FE3EB6D97A0CAE791BEEF12DCB320445D1B61AA0BE6A441F867AB19FF",
+    "docs/research/native-pc-whole-uv-scene.md": "964C0A4B6F953934718CE1EB77E221E72892B2BD87AABE1E85A30531959EFDEC"
+  },
+  "publication": {
+    "rootRemote": "https://github.com/AnDi-SD/SparkplugEngineResearch.git",
+    "rootBranch": "main",
+    "lastPublishedCommit": "7d7e112",
+    "pendingRootCommitsBeforeThisCheckpoint": 7,
+    "viewerCommit": "0d35badf3c45145167d975187850c0caa95e8798",
+    "viewerRemote": "https://github.com/AnDi-SD/SmoViewer.git",
+    "viewerBranch": "master",
+    "status": "pending-explicit-destination-confirmation",
+    "reason": "Automatic approval review rejected public root push twice and required explicit user confirmation of this destination; query pending. Local Viewer commit must be published before root gitlink."
+  },
+  "validation": {
+    "fullCTestPassed": 63,
+    "fullCTestCheckpoint": "CP121",
+    "fullCTestSeconds": 49.94,
+    "pythonPassed": 102,
+    "pythonCheckpoint": "CP121",
+    "viewerAssertions": 644,
+    "particleAssertions": 46,
+    "batchFailureGuards": 3,
+    "nativeSamplingCases": 252,
+    "docsAudit": {
+      "markdownFiles": 426,
+      "jsonFiles": 175,
+      "relativeLinks": 1571,
+      "errors": 0,
+      "localOnlyLinks": 0
+    },
+    "scopeAudit": {
+      "classPlatformPairs": 83,
+      "missingScope": 0,
+      "invalidCatalog": 0
+    },
+    "currentEvidenceHashesVerified": 9,
+    "publicationInventory": {
+      "pathsReviewedSincePublishedCommit": 54,
+      "unexpectedExtensions": 0,
+      "localOnlyPaths": 0,
+      "filesOverOneMB": 0,
+      "checkpointChainEntries": 25
+    }
+  },
+  "workQueueRefreshed": [
+    "pc-smo-san-loader-save",
+    "pc-node-resource-graph",
+    "pc-dx-mesh-materialization"
+  ],
+  "finalizedUtc": "2026-09-08T03:54:39.059741+00:00"
+}
