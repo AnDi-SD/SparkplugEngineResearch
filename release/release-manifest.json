@@ -25,6 +25,7 @@
           "id": "SmoExporter",
           "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
           "executable": "SmoExporter.Gui.exe",
+          "companionFiles": ["SparkplugViewerNative.dll"],
           "documents": [
             {
               "source": "tools/SmoExporter/PACKAGE_README.md",
@@ -38,6 +39,7 @@
           "id": "SmoImporter",
           "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
           "executable": "SmoImporter.Gui.exe",
+          "companionFiles": ["SparkplugViewerNative.dll"],
           "documents": [
             {
               "source": "tools/SmoImporter/PACKAGE_README.md",
@@ -63,6 +65,7 @@
       "id": "SmoLVLcreator",
       "project": "tools/SmoLVLcreator/SmoLVLcreator.Gui/SmoLVLcreator.Gui.csproj",
       "executable": "SmoLVLcreator.exe",
+      "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
         {
@@ -77,6 +80,7 @@
       "id": "SmoExporter",
       "project": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
       "executable": "SmoExporter.Gui.exe",
+      "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
         {
@@ -91,6 +95,7 @@
       "id": "SmoImporter",
       "project": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
       "executable": "SmoImporter.Gui.exe",
+      "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
         {
@@ -115,6 +120,7 @@
       "id": "SMOTextureTool",
       "project": "tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj",
       "executable": "SMOTextureTool.exe",
+      "companionFiles": ["SparkplugViewerNative.dll"],
       "documents": [
         {
           "source": "tools/SMOTextureTool/PACKAGE_README.md",

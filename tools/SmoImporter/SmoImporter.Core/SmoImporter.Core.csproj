@@ -9,4 +9,7 @@
     <ProjectReference Include="..\..\SmoExporter\SmoExporter.Core\SmoExporter.Core.csproj" />
     <ProjectReference Include="..\..\SMOTextureTool\SMOTextureTool.Core\SMOTextureTool.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../SmoViewer/SmoViewer.Editing/SmoViewer.Editing.csproj" />
+  </ItemGroup>
 </Project>

@@ -13,4 +13,7 @@
     <ProjectReference Include="..\..\SmoViewer\SmoViewer.Scene\SmoViewer.Scene.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../SmoViewer/SmoViewer.Editing/SmoViewer.Editing.csproj" />
+  </ItemGroup>
 </Project>

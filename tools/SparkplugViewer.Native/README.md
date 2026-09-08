@@ -24,13 +24,30 @@ an observed localized MSVC include-prefix encoding mismatch so changed headers
 are tracked. `-Fresh` regenerates CMake configuration. `-RunChecks` runs five
 selected existing engine suites; no game corpus is scanned.
 
-ABI version 1 is declared in [ViewerBridge.h](ViewerBridge.h). Node/palette
+ABI version 2 is declared in [ViewerBridge.h](ViewerBridge.h). Node/palette
 ordinals are host indices, not original pointers or file IDs. C++ exceptions
 are caught at the ABI; buffer lengths are checked. Managed SafeHandle owners
 use a serialized native gate. Bound scenes retain their own animation owner;
 disposing/replacing the managed clip cannot leave dangling evaluator pointers.
 Seeking resets authored PRS before applying the requested time. Failed binding
 leaves the old binding intact.
+
+ABI 2 also exposes channel metadata, key times, tool-created linear keys,
+`spDataBlockSerializer` headers, local `spNode` matrices and static `spSkin`
+palette composition. `BorrowedInput` is an application memory adapter over a
+pinned span; it avoids copying or allocating a buffer for each header. Encoded
+terminator IDs remain available for the raw field inspector; engine semantics
+still treat a terminator as an invalid field ID. Core references the interop
+project; the interop project has no dependency on Core. The SMO scene adapter
+lives in Core, retaining its existing `SmoViewer.Sparkplug` namespace.
+
+The duplicate C# SAN decoder/sampler has been removed. All Core consumers now
+need this DLL, including the editor, importer, exporter and TextureTool.
+Their development builds require the complete workspace and Visual Studio
+C++/CMake, or an explicitly supplied prebuilt bridge. The current
+[Viewer audit](../../docs/research/viewer-core-audit-2026-09-08.md) lists the
+remaining C# SMO readers and unresolved Viewer heuristics. This does not mean
+the whole Viewer has been migrated, and no new release package was made.
 
 Limits: 16,384 nodes, depth 256, one-object PC SAN up to 64 MiB and existing
 serializer/key bounds. Events, actor scheduling/blending, camera-dependent

@@ -151,6 +151,10 @@ writer-у. Автоматический запуск игры при сохра�
 
 ## Сборка и запуск
 
+Рабочее дерево использует общий Core и `SmoViewer.Editing`. Для сборки нужны
+Windows x64, полный workspace и Visual Studio C++/CMake: автоматически собирается
+`SparkplugViewerNative.dll`, необходимая рядом с приложением.
+
 ```powershell
 dotnet build tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj
 dotnet run --project tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj

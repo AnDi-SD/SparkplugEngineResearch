@@ -10,6 +10,10 @@ placement filtering, shared geometry, and format writing remain in
 
 Отдельные ядро, CLI и WPF-приложение для экспорта PC-моделей Sparkplug без изменения исходного SMO.
 
+В текущем рабочем дереве общий SAN reader/sampler вызывает C++ Sparkplug.
+Сборка требует Windows x64, полного workspace и Visual Studio C++/CMake;
+`SparkplugViewerNative.dll` собирается автоматически и нужна рядом с приложением.
+
 - `GLB` — самодостаточная сцена с meshes, normals, UV0/UV1, vertex colors, материалами, PNG-текстурами, skeleton/skin и выбранными SAN-анимациями.
 - `FBX` — бинарный FBX со скелетом, skin weights, bind pose, материалами, встроенными текстурами и выбранными animations. Файл создаётся напрямую Autodesk FBX SDK через поставляемый вместе с программой `SmoFbxBridge.exe`; Blender, Python и промежуточный GLB не используются.
 - `OBJ + MTL + PNG` — статический compatibility export.
