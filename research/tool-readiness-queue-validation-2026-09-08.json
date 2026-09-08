@@ -1,0 +1,137 @@
+{
+  "kind": "tool-readiness-queue-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP136",
+  "createdUtc": "2026-09-08T15:07:48.974573+00:00",
+  "baseCommit": "9628974",
+  "sourceFiles": [
+    {
+      "path": "research/native_workbench.py",
+      "sha256": "278F367FC534078977F68AB27D2886D3424BDA2B2557BD550AE2D002DBC0D9BE"
+    },
+    {
+      "path": "research/native-work-items.json",
+      "sha256": "F78AB96D4822AA8F7F242C1142339D6F22C20A002182E577299BB831F9919838"
+    },
+    {
+      "path": "research/test_native_workbench.py",
+      "sha256": "EC1BC5E5BDCC910F97B8E581F047A8C02A0BB31D2EB901FCF62EACD1980DF753"
+    },
+    {
+      "path": "research/tool_readiness.py",
+      "sha256": "232B3EDBFA2ACAB3DF59D52D8116A22A3AA130085B98DB9022519B4F163325AB"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "sha256": "B64084E27AF15E684D64CFDB6870D1D976C4499ADD09CDB8271AD1C3B3D94089"
+    },
+    {
+      "path": "docs/research/tool-driven-research-scope.md",
+      "sha256": "718A17BD8B9E414392D6C91DEF13B5FF900B00B8274CFF5ABA306CCB3B486B10"
+    },
+    {
+      "path": "docs/research/tool-readiness-meter.md",
+      "sha256": "B9037FCCDEA98FF4767E938DA5D5CAC330483CD1F3FC1496B36729D0081CBB19"
+    }
+  ],
+  "documentation": {
+    "path": "docs/research/tool-readiness-queue-2026-09-08.md",
+    "sha256": "FC2CF6D1EB83DCD68C42B53F3006B319576D1EB06D0734338BDC0A0F59D8173C"
+  },
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/queue-readiness/comparison.json",
+      "sha256": "24FDEF531382E16CB9C61ECC9ACCB5197FD3AF935D44398AE7AD697F859C2239"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/queue-readiness/tests.json",
+      "sha256": "0481DA8157DA6B384FB087B83A3D21059D6938093F7F5A95397B402831E40B0D"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/queue-readiness/tests.stdout.log",
+      "sha256": "6077C3FC4C75411AC1C96026DD35790FC03FADB9806D8FCE549EAB9D81F18D7A"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/queue-readiness/tests.stderr.log",
+      "sha256": "4B343BAB681EC1E0CA8EC60252A941A155BA9E7B3506064DCC21D24A66D8CAD4"
+    }
+  ],
+  "priorConfiguration": {
+    "path": "local-data/results/tool-cycle-20260908-1900/queue-readiness/native-work-items-before.json",
+    "sha256": "719CF3ABA80776E5DEF72A61BAD8709DF38BC4A3298125A2B5EE66094A187EC4"
+  },
+  "assessment": {
+    "path": "research/tool-readiness-assessment-2026-09-08-cp134.json",
+    "sha256": "3EDA57D250A5B74FF0695A18ED0FD78172E0F317711F648DC924C6E31F1C3585"
+  },
+  "planning": {
+    "beforeActive": {
+      "pc": [
+        "pc-texture-codec-backend",
+        "pc-smo-san-loader-save",
+        "pc-node-resource-graph",
+        "pc-dx-mesh-materialization",
+        "pc-skin-serialization",
+        "pc-animation-tool-compatibility"
+      ],
+      "ps2": [
+        "ps2-shared-serialization-save"
+      ]
+    },
+    "afterActive": {
+      "pc": [],
+      "ps2": []
+    },
+    "retainedWorkItems": {
+      "pc": [
+        "pc-texture-codec-backend",
+        "pc-smo-san-loader-save",
+        "pc-node-resource-graph",
+        "pc-dx-mesh-materialization",
+        "pc-particle-parameters",
+        "pc-scene-manager-world-source",
+        "pc-skin-serialization",
+        "pc-animation-tool-compatibility",
+        "pc-material-controllers",
+        "pc-material-color",
+        "pc-material-state-application",
+        "pc-renderer-light-integration",
+        "pc-shader-selection",
+        "pc-shader-template-generation",
+        "pc-actor-controls",
+        "pc-visibility-plane-storage",
+        "pc-spatial-membership",
+        "pc-occlusion-topology",
+        "pc-mesh-native-submission"
+      ],
+      "ps2": [
+        "ps2-shared-serialization-save",
+        "ps2-spatial-collision-navigation",
+        "ps2-particle-runtime"
+      ]
+    },
+    "itemsSemanticFieldsUnchanged": true,
+    "profilesUnchanged": true,
+    "explicitActiveDefectOverridesReadiness": true,
+    "missingEvidenceReopens": true,
+    "scopeChangesRejected": true
+  },
+  "unitTests": {
+    "count": 22,
+    "seconds": 1.768,
+    "actualNativeChildren": 0
+  },
+  "cost": {
+    "medianMs": 1662.1797999978298,
+    "warmups": 1,
+    "iterations": 5,
+    "evidenceFilesRead": 77,
+    "scope": "In-process config validation, current evidence hashing, read-only database connect and both platform queues; one warmup/five measures. Not cold CLI startup."
+  },
+  "limitations": [
+    "Queue scheduling only; no new engine/tool functionality or native proof.",
+    "Current source hashes are checked, no cross-run result cache or corpus scan.",
+    "PS2 links indicate potential relevance to a PC operation, never platform credit.",
+    "Current16/16 scope and class ledger are unchanged."
+  ]
+}

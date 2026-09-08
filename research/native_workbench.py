@@ -30,6 +30,20 @@ MEMORY_BUDGET_MIB = 1024
 def validate_config(config):
     if config['schemaVersion'] != 1:
         raise ValueError('Unknown work-item schema')
+    scope_features = None
+    if any('resumeForOperations' in item for item in config['items']):
+        path = (ROOT / config.get('readinessScopePath', '')).resolve()
+        if not path.is_relative_to(ROOT / 'research') or path.suffix != '.json' or not path.is_file():
+            raise ValueError('Readiness scope must be a repository research JSON file')
+        if path.stat().st_size > 1024 * 1024:
+            raise ValueError('Readiness scope exceeds bounded size')
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest().upper() != config.get('readinessScopeSha256'):
+            raise ValueError('Planning readiness scope hash mismatch')
+        from tool_readiness import validate_scope
+        scope = json.loads(raw)
+        validate_scope(scope)
+        scope_features = {feature['id'] for feature in scope['features']}
     items = {item['id']: item for item in config['items']}
     if len(items) != len(config['items']):
         raise ValueError('Duplicate work item')
@@ -38,6 +52,12 @@ def validate_config(config):
             raise ValueError('Explicit platform required')
         if item.get('planningStatus', 'active') not in ('active', 'deferred'):
             raise ValueError('Unknown planning status')
+        if 'resumeForOperations' in item:
+            linked = item['resumeForOperations']
+            if (not isinstance(linked, list) or not linked or
+                    any(not isinstance(identity, str) or identity not in scope_features for identity in linked) or
+                    len(linked) != len(set(linked))):
+                raise ValueError('Unknown, empty or duplicate linked readiness operation')
         for unknown in item['unknowns']:
             if unknown['kind'] not in ('behavior', 'name', 'path', 'abi'):
                 raise ValueError('Unknown gap kind')
@@ -113,13 +133,40 @@ def dossier(db, config, name, platform):
     return result
 
 
-def queue(db, config, platform, *, include_deferred=False):
+def current_readiness(config):
+    if not any('resumeForOperations' in item for item in config['items']):
+        return None
+    from tool_readiness import build_report, latest_assessment
+    path = ROOT / config['readinessScopePath']
+    raw = path.read_bytes()
+    assessment = latest_assessment(path)
+    return build_report(json.loads(raw), json.loads(assessment.read_bytes()),
+                        hashlib.sha256(raw).hexdigest().upper())
+
+
+def queue(db, config, platform, *, include_deferred=False, readiness=None):
     if platform not in ('pc', 'ps2'):
         raise ValueError('Explicit platform required')
-    direct = {r[0] for r in db.execute("SELECT t.class_name FROM native_types t JOIN native_type_scopes s ON s.native_type_id=t.id WHERE s.scope_key='smo_san' AND t.on_" + platform + '=1')}
-    items = [dict(item, directConsumers=sorted(direct.intersection(item['classes'])))
-             for item in config['items'] if item['platform'] == platform
-             and (include_deferred or item.get('planningStatus', 'active') == 'active')]
+    if readiness is not None and readiness.get('scopeSha256') != config.get('readinessScopeSha256'):
+        raise ValueError('Queue readiness report belongs to a different scope')
+    states = {row['id']: row['state'] for row in readiness['features']} if readiness else {}
+    items = []
+    for item in config['items']:
+        if item['platform'] != platform:
+            continue
+        recorded = item.get('planningStatus', 'active')
+        # Missing/unreviewed evidence reopens investigation; it cannot silently
+        # hide a task. This is planning only, never class/platform evidence credit.
+        reopened = [identity for identity in item.get('resumeForOperations', [])
+                    if states.get(identity) != 'ready'] if recorded == 'deferred' else []
+        if include_deferred or recorded == 'active' or reopened:
+            candidate = dict(item, recordedPlanningStatus=recorded)
+            if reopened:
+                candidate.update(planningStatus='active', planningStage='operation-review',
+                                 reopenedOperations=reopened)
+            items.append(candidate)
+    direct = {r[0] for r in db.execute("SELECT t.class_name FROM native_types t JOIN native_type_scopes s ON s.native_type_id=t.id WHERE s.scope_key='smo_san' AND t.on_" + platform + '=1')} if items else set()
+    items = [dict(item, directConsumers=sorted(direct.intersection(item['classes']))) for item in items]
     # Investigation order is dependency-aware, without requiring a partially
     # studied dependency to be100% before independently testing its consumer.
     # Priority alone could put a new mesh item before its loader prerequisite.
@@ -209,6 +256,7 @@ def main():
                         help='Independent fresh children per wave; audited profiles only, default1')
     args = parser.parse_args()
     config = validate_config(json.loads(WORK_ITEMS.read_text(encoding='utf-8')))
+    readiness = current_readiness(config) if args.command == 'queue' else None
     if args.command == 'run':
         if args.target not in config['testProfiles']:
             parser.error('A known test profile is required')
@@ -232,7 +280,8 @@ def main():
                 parser.error('A class name is required')
             result = dossier(db, config, args.target, args.platform)
         else:
-            result = queue(db, config, args.platform, include_deferred=args.include_deferred)
+            result = queue(db, config, args.platform, include_deferred=args.include_deferred,
+                           readiness=readiness)
     finally:
         db.close()
     if args.json:
@@ -241,8 +290,12 @@ def main():
         for item in result:
             print(f"P{item['priority']} {item['id']} | direct consumers {len(item['directConsumers'])} | {item['status']} | {item.get('planningStatus', 'active')}")
             print('  ' + item['summary'])
+            if item.get('reopenedOperations'):
+                print('  Review operations: ' + ', '.join(item['reopenedOperations']))
         if not result:
-            print('No independently structured work items for this platform; not a claim of no remaining work.')
+            print('No active work items for this platform. Deferred class work remains available with --include-deferred.')
+        if readiness is not None:
+            print(f"Current scoped operations: {readiness['readyCount']}/{readiness['totalCount']} ready; not whole-engine or PS2 coverage.")
     else:
         print(f"# {result['className']} — {args.platform.upper()} — {result['classHash']}\n")
         print(f"Catalog registration: {result['registration']}; base candidates: {result['baseCandidates']}\n")

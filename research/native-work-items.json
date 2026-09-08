@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "notes": "Current objective: reliable existing tools, PC first, with focused PS2 comparison. Default queue contains only active tool contracts; full-engine work is retained as deferred and can be listed explicitly. A class may be partial when the methods/fields required by a tool operation are evidenced and integrated. Class scores and the279PC/245PS2 research envelope are historical knowledge metrics, not software readiness gates. See docs/research/tool-driven-research-scope.md. dependsOn is scheduling only; companionPcItems is cross-platform research context, never automatic evidence credit. Unnamed labels remain analytical.",
+  "notes": "Current objective: reliable existing tools, PC first, with focused PS2 comparison. Default queue contains only active tool contracts; full-engine work is retained as deferred and can be listed explicitly. A class may be partial when the methods/fields required by a tool operation are evidenced and integrated. Class scores and the279PC/245PS2 research envelope are historical knowledge metrics, not software readiness gates. See docs/research/tool-driven-research-scope.md. dependsOn is scheduling only; companionPcItems is cross-platform research context, never automatic evidence credit. Unnamed labels remain analytical. CP136 links deferred scoped work to current operation readiness; current source evidence is checked on each queue request. Explicitly active defect work still takes priority.",
   "items": [
     {
       "id": "pc-texture-codec-backend",
@@ -75,8 +75,8 @@
         "pc-texture-missing-mips",
         "pc-texture-compressed-mips"
       ],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
       "historicalDependsOn": [
         "pc-node-resource-graph"
       ],
@@ -97,7 +97,7 @@
         "pc-texture-cross-upload",
         "pc-texture-external-source"
       ],
-      "planningStage": "integration-review",
+      "planningStage": "scoped-operations-covered",
       "toolConsumers": [
         "SMOTextureTool",
         "SmoImporter",
@@ -112,7 +112,14 @@
         "Unused palette/filter/package modes",
         "Reconstructing the original complete texture class"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "texture.inspect",
+        "texture.replace-gui",
+        "texture.resize-repack",
+        "import.texture-fixed",
+        "export.fbx-alpha"
+      ]
     },
     {
       "id": "pc-particle-parameters",
@@ -231,8 +238,8 @@
         "pc-node-math-bits",
         "pc-scene-file-profile"
       ],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
       "historicalDependsOn": [
         "pc-smo-san-loader-save"
       ],
@@ -249,7 +256,7 @@
         "pc-scene-file-profile",
         "pc-node-math-bits"
       ],
-      "planningStage": "integration-review",
+      "planningStage": "scoped-operations-covered",
       "toolConsumers": [
         "SmoViewer",
         "SmoExporter",
@@ -265,7 +272,15 @@
         "All scene registrations and live renderer lifecycle",
         "Collision query/navigation simulation"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "viewer.scene",
+        "export.geometry",
+        "import.rigid",
+        "level.placements",
+        "level.collision",
+        "level.roundtrip"
+      ]
     },
     {
       "id": "pc-visibility-plane-storage",
@@ -487,8 +502,8 @@
         "pc-mesh-bounds",
         "pc-dx-shared-payload"
       ],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
       "historicalDependsOn": [
         "pc-smo-san-loader-save"
       ],
@@ -509,7 +524,7 @@
         "pc-scene-file-profile",
         "pc-dx-shared-payload"
       ],
-      "planningStage": "integration-review",
+      "planningStage": "scoped-operations-covered",
       "toolConsumers": [
         "SmoViewer",
         "SmoExporter",
@@ -524,7 +539,13 @@
         "Original optimizer/combiner reconstruction unless generated output requires it",
         "Complete runtime GPU mesh lifecycle and device reset"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "viewer.scene",
+        "export.geometry",
+        "import.rigid",
+        "import.skin"
+      ]
     },
     {
       "id": "pc-smo-san-loader-save",
@@ -594,8 +615,8 @@
         "pc-read-reference-output",
         "pc-san-file-roundtrip"
       ],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
       "historicalDependsOn": [],
       "historicalTestProfiles": [
         "pc-loader-contracts",
@@ -612,7 +633,7 @@
         "pc-whole-file-profile",
         "pc-scene-file-profile"
       ],
-      "planningStage": "integration-review",
+      "planningStage": "scoped-operations-covered",
       "toolConsumers": [
         "SmoImporter",
         "SmoLVLcreator",
@@ -627,7 +648,15 @@
         "Universal whole Save dispatch as a prerequisite",
         "All unused serializer variants"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "import.rigid",
+        "import.skin",
+        "import.texture-fixed",
+        "level.roundtrip",
+        "texture.replace-gui",
+        "texture.resize-repack"
+      ]
     },
     {
       "id": "pc-material-controllers",
@@ -1017,8 +1046,8 @@
         "pc-skin-serialization",
         "pc-node-math-bits"
       ],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
       "historicalDependsOn": [],
       "historicalTestProfiles": [
         "pc-skin-serialization",
@@ -1037,7 +1066,7 @@
         "pc-scene-file-profile",
         "pc-node-math-bits"
       ],
-      "planningStage": "integration-review",
+      "planningStage": "scoped-operations-covered",
       "toolConsumers": [
         "SmoViewer",
         "SmoImporter",
@@ -1051,7 +1080,12 @@
         "Native Skin draw and generated shaders",
         "Whole actor/game runtime and general clone lifecycle"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "viewer.san",
+        "export.skin-animation",
+        "import.skin"
+      ]
     },
     {
       "id": "pc-actor-controls",
@@ -1152,11 +1186,11 @@
         "docs/engine/original-architecture.md"
       ],
       "testProfiles": [],
-      "planningStatus": "active",
-      "planningReason": "First inspect current shared tool code and existing evidence, identify one concrete operation gap, and research only that gap. No class100 prerequisite.",
+      "planningStatus": "deferred",
+      "planningReason": "No current paired PC operation is blocked on a PS2 serializer question. Keep the PS2 research item and evidence; reopen with a concrete paired gap, never infer PS2 completeness from PC readiness.",
       "historicalDependsOn": [],
       "historicalTestProfiles": [],
-      "planningStage": "integration-review",
+      "planningStage": "awaiting-paired-operation-gap",
       "toolConsumers": [
         "SmoViewer",
         "SmoImporter",
@@ -1170,7 +1204,14 @@
         "Full PS2 engine or universal save reconstruction",
         "Independent platform-wide class completion"
       ],
-      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately."
+      "doneWhen": "The named supported operation is integrated in the shared tool path, passes a small representative and boundary set, preserves unrelated data and has the appropriate parser/native/visual acceptance evidence. Record remaining class unknowns separately.",
+      "resumeForOperations": [
+        "import.rigid",
+        "import.skin",
+        "level.roundtrip",
+        "texture.replace-gui",
+        "texture.resize-repack"
+      ]
     },
     {
       "id": "ps2-spatial-collision-navigation",
@@ -1256,8 +1297,8 @@
       "platform": "pc",
       "priority": 5,
       "status": "partial",
-      "planningStatus": "active",
-      "planningStage": "integration-review",
+      "planningStatus": "deferred",
+      "planningStage": "scoped-operations-covered",
       "classes": [
         "spAnimation",
         "spAnimationSerializer",
@@ -1301,7 +1342,14 @@
         "san-real-files",
         "pc-san-file-roundtrip"
       ],
-      "doneWhen": "The specific supported animation operation works in its actual tool on representative clips. Output-format limitations are stated accurately; unrelated native runtime remains deferred."
+      "doneWhen": "The specific supported animation operation works in its actual tool on representative clips. Output-format limitations are stated accurately; unrelated native runtime remains deferred.",
+      "planningReason": "CP124-135 cover the named current PC operations. Reopen only linked operations that lose current readiness or an explicitly reproduced new tool gap. This does not complete the native class or its deferred methods.",
+      "resumeForOperations": [
+        "viewer.san",
+        "export.skin-animation",
+        "san.vmd",
+        "san.rare-keys"
+      ]
     }
   ],
   "testProfiles": {
@@ -14208,5 +14256,13 @@
         "parallelSafe": true
       }
     ]
+  },
+  "readinessScopePath": "research/tool-readiness-scope-v1.json",
+  "readinessScopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "toolPlanningReview": {
+    "checkpoint": "CP136",
+    "assessmentPath": "research/tool-readiness-assessment-2026-09-08-cp134.json",
+    "assessmentSha256": "3EDA57D250A5B74FF0695A18ED0FD78172E0F317711F648DC924C6E31F1C3585",
+    "note": "Current scoped operations covered. Native class status/unknowns are retained. Queue reopens linked work when current evidence needs review, an operation is blocked, or an explicit new task is activated."
   }
 }

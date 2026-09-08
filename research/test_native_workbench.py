@@ -18,6 +18,9 @@ from native_workbench import WORK_ITEMS, dossier, queue, run_profile, validate_c
 class WorkbenchTests(unittest.TestCase):
     def setUp(self):
         self.config = json.loads(WORK_ITEMS.read_text(encoding='utf-8'))
+        self.ready = {'scopeSha256': self.config['readinessScopeSha256'], 'features': [
+            {'id': identity, 'state': 'ready'} for identity in sorted({
+                identity for item in self.config['items'] for identity in item.get('resumeForOperations', [])})]}
         self.db = sqlite3.connect(':memory:')
         self.db.row_factory = sqlite3.Row
         self.db.executescript(DDL)
@@ -59,12 +62,15 @@ class WorkbenchTests(unittest.TestCase):
             dossier(self.db, self.config, 'spOctreeNode', 'ps2')
 
     def test_ps2_queue_not_copied(self):
-        ps2 = queue(self.db, self.config, 'ps2')
+        items = {item['id']: item for item in self.config['items']}
+        items['pc-texture-codec-backend']['planningStatus'] = 'active'
+        items['ps2-shared-serialization-save']['planningStatus'] = 'active'
+        ps2 = queue(self.db, self.config, 'ps2', readiness=self.ready)
         self.assertEqual({item['id'] for item in ps2},
                          {item['id'] for item in self.config['items']
                           if item['platform'] == 'ps2' and item.get('planningStatus', 'active') == 'active'})
         self.assertTrue(all(item['platform'] == 'ps2' for item in ps2))
-        pc = queue(self.db, self.config, 'pc')
+        pc = queue(self.db, self.config, 'pc', readiness=self.ready)
         self.assertTrue(pc)
         self.assertEqual({item['id'] for item in pc},
                          {item['id'] for item in self.config['items']
@@ -72,21 +78,60 @@ class WorkbenchTests(unittest.TestCase):
         self.assertTrue(all(item['platform'] == 'pc' for item in pc))
 
     def test_deferred_work_retained_but_not_scheduled(self):
-        active = queue(self.db, self.config, 'pc')
-        complete = queue(self.db, self.config, 'pc', include_deferred=True)
+        active = queue(self.db, self.config, 'pc', readiness=self.ready)
+        complete = queue(self.db, self.config, 'pc', include_deferred=True, readiness=self.ready)
         active_ids = {item['id'] for item in active}
         self.assertNotIn('pc-shader-template-generation', active_ids)
-        self.assertIn('pc-texture-codec-backend', active_ids)
+        self.assertNotIn('pc-texture-codec-backend', active_ids)
         self.assertEqual({item['id'] for item in complete},
                          {item['id'] for item in self.config['items'] if item['platform'] == 'pc'})
         self.assertGreater(len(complete), len(active))
 
     def test_active_dependency_cannot_disappear_into_deferred_backlog(self):
         items = {item['id']: item for item in self.config['items']}
+        items['pc-node-resource-graph']['planningStatus'] = 'active'
         items['pc-node-resource-graph']['dependsOn'] = ['pc-smo-san-loader-save']
         items['pc-smo-san-loader-save']['planningStatus'] = 'deferred'
         with self.assertRaisesRegex(ValueError, 'depends on deferred'):
             validate_config(self.config)
+
+    def test_lost_operation_reopens_only_linked_work_without_mutation(self):
+        before = copy.deepcopy(self.config)
+        states = copy.deepcopy(self.ready)
+        next(row for row in states['features'] if row['id'] == 'import.skin')['state'] = 'needs_review'
+        pc = queue(self.db, self.config, 'pc', readiness=states)
+        ps2 = queue(self.db, self.config, 'ps2', readiness=states)
+        self.assertEqual({row['id'] for row in pc}, {
+            'pc-dx-mesh-materialization', 'pc-smo-san-loader-save', 'pc-skin-serialization'})
+        self.assertEqual({row['id'] for row in ps2}, {'ps2-shared-serialization-save'})
+        self.assertTrue(all(row['reopenedOperations'] == ['import.skin'] for row in pc + ps2))
+        self.assertTrue(all(row['recordedPlanningStatus'] == 'deferred' and row['planningStatus'] == 'active' for row in pc + ps2))
+        self.assertEqual(self.config, before)
+        self.assertEqual(queue(self.db, self.config, 'pc', readiness=self.ready), [])
+
+    def test_ready_operations_do_not_hide_explicit_new_defect(self):
+        item = next(item for item in self.config['items'] if item['id'] == 'pc-skin-serialization')
+        item['planningStatus'] = 'active'
+        self.assertEqual([row['id'] for row in queue(self.db, self.config, 'pc', readiness=self.ready)], [item['id']])
+
+    def test_missing_readiness_does_not_silently_hide_work(self):
+        pc = queue(self.db, self.config, 'pc')
+        self.assertEqual(len(pc), 6)
+        self.assertTrue(all(row['reopenedOperations'] for row in pc))
+
+    def test_unknown_operation_and_scope_changes_rejected(self):
+        invalid = copy.deepcopy(self.config)
+        invalid['items'][0]['resumeForOperations'].append('invented.operation')
+        with self.assertRaisesRegex(ValueError, 'linked readiness operation'):
+            validate_config(invalid)
+        invalid = copy.deepcopy(self.config)
+        invalid['readinessScopeSha256'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'scope hash mismatch'):
+            validate_config(invalid)
+        states = copy.deepcopy(self.ready)
+        states['scopeSha256'] = 'different-scope'
+        with self.assertRaisesRegex(ValueError, 'different scope'):
+            queue(self.db, self.config, 'pc', readiness=states)
 
     def test_queue_respects_dependencies_before_priority(self):
         items={item['id']:item for item in self.config['items']}
