@@ -22,6 +22,8 @@
 #include "Code/Sparkplug/spMaterialPassLayer.h"
 #include "Code/Sparkplug/spMaterialTextureLayer.h"
 #include "Code/Sparkplug/spMaterialTexture.h"
+#include "Code/Sparkplug/spUVController.h"
+#include "Code/Sparkplug/spUVControllerSerializer.h"
 #include "Code/SparkplugDX/spDXMesh.h"
 #include "Code/SparkplugDX/spDXMaterial.h"
 #include "Code/SparkplugDX/spDXIndexBuffer.h"
@@ -47,7 +49,7 @@ namespace sparkplug::reconstruction::scene_file_test
     template<class T>std::string Hex(const T& values){return Hex(values.data(),values.size()*sizeof(values[0]));}
     inline std::uint32_t Identity(const spBaseObject* object){return object?object->vfunc_18().classID:0;}
 
-    inline std::string Capture(const char* path,bool byFileID=false)
+    inline std::string Capture(const char* path,bool byFileID=false,bool animateUV=false)
     {
         std::ifstream file(path,std::ios::binary|std::ios::ate);Require(bool(file),"Cannot open scene fixture");
         const auto length=file.tellg();Require(length>=36&&length<=65536,"Scene fixture must fit 64 KiB");
@@ -63,6 +65,7 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spDXMeshDataSerializer>(),2,1),"DX mesh binding");
         Require(manager.RegisterForAnalysis(spMeshDataSerializer::TargetClassID,std::make_shared<spMeshDataSerializer>(),1,1),"Common mesh binding");
         Require(manager.RegisterForAnalysis(spTextureDataSerializer::TargetClassID,std::make_shared<spDXTextureDataSerializer>(),6,1),"Native TextureData binding");
+        Require(manager.RegisterForAnalysis(spUVController::ClassID,std::make_shared<spUVControllerSerializer>(),255,3),"UV controller binding");
         spSerializerReadContextForAnalysis context(manager,resources);context.pcRenderer=&renderer;
         context.captureFileObjectIDsForAnalysis=byFileID;
         spMemoryStream input;Require(input.ResizeAndSetSize(static_cast<std::uint32_t>(bytes.size())),"Fixture stream capacity");
@@ -145,7 +148,8 @@ namespace sparkplug::reconstruction::scene_file_test
                         for(std::size_t k=0;k<spMaterialTexture::PCTextureStateCount;++k)Add(row,texture->GetTextureStatesForAnalysis()[k]);
                         Add(row,texture->GetUVTransformForAnalysis());Add(row,std::uint8_t(texture->HasStaticTransformForAnalysis()));
                         if(texture->GetTextureForAnalysis())edges.push_back(Reference(texture->GetTextureForAnalysis()));
-                        Require(!texture->GetAnimTextureControllerForAnalysis()&&!texture->GetUVControllerForAnalysis(),"This capture has no texture/controller animation edges");
+                        Require(!texture->GetAnimTextureControllerForAnalysis(),"This capture has no animated texture track edges");
+                        if(texture->GetUVControllerForAnalysis())edges.push_back(Reference(texture->GetUVControllerForAnalysis()));
                     }
                     layers.push_back(Hex(row));
                 }
@@ -158,6 +162,27 @@ namespace sparkplug::reconstruction::scene_file_test
                 Add(state,mesh->GetIndexByteSizeForAnalysis());Add(state,mesh->GetVertexByteSizeForAnalysis());Add(state,mesh->GetFVFCodeForAnalysis());Add(state,mesh->GetVertexStrideForAnalysis());Add(state,mesh->GetIndexBeginForAnalysis());Add(state,mesh->GetVertexBeginForAnalysis());
                 Require(mesh->GetDXIndexBufferForAnalysis()&&mesh->GetDXVertexBufferForAnalysis()&&mesh->GetVertexDeclarationForAnalysis(),"Complete mesh buffers and declaration");
                 buffers={Hex(mesh->GetDXIndexBufferForAnalysis()->GetDataForAnalysis()),Hex(mesh->GetDXVertexBufferForAnalysis()->GetDataForAnalysis()),Hex(mesh->GetVertexDeclarationForAnalysis()->GetElementsForAnalysis())};
+            }
+            else if(const auto* uv=dynamic_cast<const spUVController*>(object))
+            {
+                Add(state,std::uint8_t(uv->IsEnabledForAnalysis()));Add(state,uv->GetAppliedTimeForAnalysis());Add(state,uv->GetAccumulatedTimeForAnalysis());
+                Add(state,uv->GetSavedTransformForAnalysis());const auto& trans=uv->GetTransformForAnalysis();
+                for(const auto& function:trans.GetFunctionsForAnalysis())
+                {
+                    const auto& s=function.GetStateForAnalysis();
+                    Add(state,s.time);Add(state,s.frequency);Add(state,s.reciprocal);Add(state,s.amplitude);
+                    Add(state,s.xOffset);Add(state,s.yOffset);Add(state,s.pitch);Add(state,s.clampLimit);
+                    Add(state,std::uint8_t(s.clampEnabled));Add(state,s.functionType);
+                }
+                Add(state,trans.GetPivotForAnalysis());Add(state,trans.GetAxisForAnalysis());
+                unsigned bindings=0;
+                for(const auto& [materialID,candidate]:objects)if(const auto* material=dynamic_cast<const spDXMaterial*>(candidate))
+                    for(std::uint32_t i=0;i<material->GetPassCountForAnalysis();++i)
+                        if(const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material->GetPassForAnalysis(i)))
+                            for(std::uint32_t j=0;j<pass->GetLayerCountForAnalysis();++j)
+                                if(pass->GetLayerForAnalysis(j)->GetMaterialTextureForAnalysis().get()==uv->GetMaterialForAnalysis())
+                                {edges.push_back(materialID);Add(state,i);Add(state,j);++bindings;}
+                Require(bindings==1,"UV backlink identifies one captured material layer");
             }
             else if(const auto* texture=dynamic_cast<const spDXTexture*>(object))
             {
@@ -172,6 +197,21 @@ namespace sparkplug::reconstruction::scene_file_test
             out<<"],\"buffers\":[";for(std::size_t i=0;i<buffers.size();++i){if(i)out<<',';out<<'"'<<buffers[i]<<'"';}
             out<<"],\"layers\":[";for(std::size_t i=0;i<layers.size();++i){if(i)out<<',';out<<'"'<<layers[i]<<'"';}out<<"]}";
         }
-        out<<"}}";return out.str();
+        out<<'}';
+        if(animateUV)
+        {
+            out<<",\"uvFrames\":[";bool firstFrame=true;unsigned count=0;
+            for(float delta:{0.0F,0.25F,0.75F,-0.5F})for(const auto& [id,object]:objects)
+                if(auto* uv=dynamic_cast<spUVController*>(const_cast<spBaseObject*>(object)))
+                {
+                    uv->ApplyForAnalysis(delta);Require(uv->UpdateForRenderForAnalysis(),"Loaded UV update");
+                    Bytes frame;Add(frame,uv->GetMaterialForAnalysis()->GetUVTransformForAnalysis());
+                    Add(frame,uv->GetAppliedTimeForAnalysis());Add(frame,uv->GetAccumulatedTimeForAnalysis());
+                    for(const auto& function:uv->GetTransformForAnalysis().GetFunctionsForAnalysis())Add(frame,function.GetStateForAnalysis().time);
+                    if(!firstFrame)out<<',';firstFrame=false;out<<'['<<id<<",\""<<Hex(frame)<<"\"]";++count;
+                }
+            Require(count>0&&count<=16,"Bounded loaded UV frame count");out<<']';
+        }
+        out<<'}';return out.str();
     }
 }

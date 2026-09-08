@@ -1,5 +1,7 @@
 # PC: whole loading.smo с текстурой и общей геометрией
 
+Продолжение CP114: [целый gem.smo с двумя текстурами и UV runtime](native-pc-whole-uv-scene.md).
+
 CP109, 8 сентября 2026. Неизменённый `Menus/loading.smo` полностью прочитан
 original `422B50` и C++: совпали11 объектов,13 ссылок и2956 байт состояния,
 material layers, buffers/declarations и mip pixels. Впервые в whole scene

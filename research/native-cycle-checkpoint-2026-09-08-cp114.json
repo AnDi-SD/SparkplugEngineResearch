@@ -1,0 +1,299 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP114",
+  "createdUtc": "2026-09-08T00:38:09.568494+00:00",
+  "documentation": "docs/research/native-pc-whole-uv-scene.md",
+  "pcExeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "classScoresChanged": false,
+  "wholeScene": {
+    "kind": "native-scene-whole-file-comparison",
+    "asset": "gem.smo",
+    "executionProfile": "file",
+    "inputSha256": "4F192B68087AF09AFBBE4688CDCED49B279611E16780AEA824E7C640033F813F",
+    "sourceExecutableSha256": "1A01A56E2FE8C1A1375F59D611FD38B4495F9637F78C3CC44B0BC03D6FB8D4A1",
+    "arenaLimitBytes": 131072,
+    "maxAllocationBytes": 32768,
+    "maxCOMBufferBytes": 8192,
+    "identityMode": "file-id",
+    "processTimeoutSeconds": 30,
+    "phase": "cleanup",
+    "maxTextureSurfaceBytes": 2048,
+    "maxTextureLevels": 5,
+    "textureDimensions": [
+      [
+        8,
+        8
+      ],
+      [
+        16,
+        16
+      ]
+    ],
+    "maxTextures": 2,
+    "wholeLoadInstructions": 395857,
+    "wholeLoadSeconds": 2.809840300003998,
+    "executionLimits": {
+      "profile": "file",
+      "instructionLimit": 1000000,
+      "timeoutUs": 8000000
+    },
+    "visitedStages": {
+      "00422260": 1,
+      "00466B90": 1,
+      "00465CD0": 1,
+      "004AA870": 1,
+      "00422940": 1,
+      "00463A70": 2,
+      "004938F0": 1,
+      "00429A40": 1,
+      "0043B910": 1,
+      "00466760": 2,
+      "0042DD10": 2,
+      "0042C640": 4,
+      "004ABBA0": 2,
+      "004AB030": 2,
+      "0061039A": 7,
+      "0060FDB4": 7,
+      "00440BE0": 1,
+      "0041A210": 1,
+      "00467D90": 1
+    },
+    "status": "passed",
+    "nativeAssertions": 83,
+    "exactObjects": 9,
+    "releasedAllocations": 197,
+    "stateBytes": 802,
+    "bufferAndDeclarationBytes": 3442,
+    "materialLayerBytes": 170,
+    "arenaReservedBytes": 91600,
+    "elapsedSeconds": 3.4782886000029976
+  },
+  "animatedScene": {
+    "kind": "native-scene-whole-file-comparison",
+    "asset": "gem.smo",
+    "executionProfile": "file",
+    "inputSha256": "4F192B68087AF09AFBBE4688CDCED49B279611E16780AEA824E7C640033F813F",
+    "sourceExecutableSha256": "1A01A56E2FE8C1A1375F59D611FD38B4495F9637F78C3CC44B0BC03D6FB8D4A1",
+    "arenaLimitBytes": 131072,
+    "maxAllocationBytes": 32768,
+    "maxCOMBufferBytes": 8192,
+    "identityMode": "file-id",
+    "processTimeoutSeconds": 30,
+    "phase": "cleanup",
+    "maxTextureSurfaceBytes": 2048,
+    "maxTextureLevels": 5,
+    "textureDimensions": [
+      [
+        8,
+        8
+      ],
+      [
+        16,
+        16
+      ]
+    ],
+    "maxTextures": 2,
+    "wholeLoadInstructions": 395857,
+    "wholeLoadSeconds": 2.6788360999926226,
+    "executionLimits": {
+      "profile": "file",
+      "instructionLimit": 1000000,
+      "timeoutUs": 8000000
+    },
+    "visitedStages": {
+      "00422260": 1,
+      "00466B90": 1,
+      "00465CD0": 1,
+      "004AA870": 1,
+      "00422940": 1,
+      "00463A70": 2,
+      "004938F0": 1,
+      "00429A40": 1,
+      "0043B910": 1,
+      "00466760": 2,
+      "0042DD10": 2,
+      "0042C640": 4,
+      "004ABBA0": 2,
+      "004AB030": 2,
+      "0061039A": 7,
+      "0060FDB4": 7,
+      "00440BE0": 1,
+      "0041A210": 1,
+      "00467D90": 1
+    },
+    "uvFrames": 4,
+    "uvFrameBytes": 288,
+    "maxUVUpdateInstructions": 1938,
+    "status": "passed",
+    "nativeAssertions": 84,
+    "exactObjects": 9,
+    "releasedAllocations": 197,
+    "stateBytes": 802,
+    "bufferAndDeclarationBytes": 3442,
+    "materialLayerBytes": 170,
+    "arenaReservedBytes": 91600,
+    "elapsedSeconds": 3.462533199999598
+  },
+  "regression": {
+    "schemaVersion": 2,
+    "kind": "bounded-native-profile-run",
+    "profile": "pc-scene-file-profile",
+    "startedUtc": "2026-09-08T00:35:27.050539+00:00",
+    "updatedUtc": "2026-09-08T00:35:48.026559+00:00",
+    "deadlineUtc": "2026-09-08T04:00:00+00:00",
+    "status": "passed",
+    "exitCode": 0,
+    "expectedChildren": 9,
+    "completedChildren": 9,
+    "childTimeoutSeconds": 30,
+    "results": [
+      {
+        "id": "pc-whole-logo-scene-comparison",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 4.539
+      },
+      {
+        "id": "pc-whole-bloom-projectile-comparison",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "bloom-projectile"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 4.647
+      },
+      {
+        "id": "pc-whole-g-crystal-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "g-crystal",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 8.701
+      },
+      {
+        "id": "pc-whole-logo-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "logo",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 4.537
+      },
+      {
+        "id": "pc-whole-bloom-projectile-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "bloom-projectile",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 4.614
+      },
+      {
+        "id": "pc-whole-droid-trail-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "droid-trail",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 6.168
+      },
+      {
+        "id": "pc-whole-loading-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "loading",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 6.098
+      },
+      {
+        "id": "pc-whole-gem-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "gem",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 6.267
+      },
+      {
+        "id": "pc-whole-gem-animated-file-ids",
+        "platform": "pc",
+        "exitCode": 0,
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "gem-animated",
+          "--file-ids"
+        ],
+        "scriptSha256": "92bf83d63a8e77622a957ebd350e134b14bb25545d56caf8dbc0b7bb96fd490e",
+        "elapsedSeconds": 5.994
+      }
+    ],
+    "configurationSha256": "17af58905c60b946a4ab5a10fcbfaf8b4a20999a9e9455615f21c96590ff4015",
+    "workers": 4,
+    "memoryBudgetMiB": 1024,
+    "memoryAdmissionEstimateMiB": 832,
+    "memoryAdmissionIsOSLimit": false,
+    "configurationHashMethod": "sha256-of-startup-json-sort-keys-compact-ensure-ascii",
+    "notes": "Exit results and script hashes only; NOT class coverage, native startup, binary completeness or live display proof."
+  },
+  "ctest": {
+    "passed": 1,
+    "total": 1,
+    "profile": "SparkplugSceneSerializationTests",
+    "elapsedSeconds": 0.07,
+    "previousFullCheckpoint": "CP113"
+  },
+  "pythonRegression": {
+    "passed": 16,
+    "total": 16,
+    "profile": "test_native_workbench.py",
+    "elapsedSeconds": 1.541,
+    "previousFullCheckpoint": "CP113"
+  },
+  "limitations": [
+    "Declared RTTI, manager and bounded COM inputs, not full CRT/device startup.",
+    "Whole UV updates do not submit a renderer frame.",
+    "Whole native save and controller clone parity remain open."
+  ],
+  "sourceFiles": {
+    "Sparkplug/Tests/spSceneFileCapture.h": "5298FECA8D031B484202A6A9EDCB27098FB3BDB59DE87853FE6561163CF447DF",
+    "Sparkplug/Tests/spSceneSerializationTests.cpp": "456A404750752A3CACEF1C96D308FD52B382FD7233CE2686AFC26F274C47DCC8",
+    "research/probe_pc_scene_file_profile.py": "92BF83D63A8E77622A957EBD350E134B14BB25545D56CAF8DBC0B7BB96FD490E",
+    "research/probe_pc_texture_missing_mips.py": "31936181D91BDDA47C0D62A79BA8AB1AE908F8789795CAFEBA483043A0739B5C"
+  }
+}

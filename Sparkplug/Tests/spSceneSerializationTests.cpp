@@ -166,6 +166,7 @@ int main(int argc,char** argv)
     {
         if(argc==3&&std::string(argv[1])=="--asset-file"){std::cout<<scene_file_test::Capture(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--asset-file-ids"){std::cout<<scene_file_test::Capture(argv[2],true)<<'\n';return 0;}
+        if(argc==3&&std::string(argv[1])=="--asset-file-uv"){std::cout<<scene_file_test::Capture(argv[2],true,true)<<'\n';return 0;}
         if(argc==4&&std::string(argv[1])=="--capture"){std::cout<<Scalar(argv[2],argv[3])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--graph"){std::cout<<Graph(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--fog"){std::cout<<Fog(argv[2])<<'\n';return 0;}

@@ -11049,6 +11049,28 @@
           "--file-ids"
         ],
         "parallelSafe": true
+      },
+      {
+        "id": "pc-whole-gem-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "gem",
+          "--file-ids"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-whole-gem-animated-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "gem-animated",
+          "--file-ids"
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-dx-shared-payload": [

@@ -50,6 +50,37 @@ class MissingMipFixture(TextureMipChainFixture):
         io=fixture.texture_io;io.dimensions=dimensions;io.levels=[];io.surfaces={}
         io.install_external_inputs();return io
 
+    @classmethod
+    def install_many_on_scene(cls,fixture,dimensions):
+        """One real device identity, at most two declared independent textures."""
+        import copy
+        assert 1<=len(dimensions)<=2
+        assert all(len(shape)==2 and all(n in (1,2,4,8,16) for n in shape) for shape in dimensions)
+        first=cls.install_on_scene(fixture,dimensions[0]);p=fixture.p
+        instances=[first]
+        if len(dimensions)==2:
+            io=copy.copy(first);base=0x34070000
+            io.texture=base+0xa00;io.surface=base+0xa50
+            texture_table=base+0xa80;surface_table=base+0xb00
+            p.put_uint(io.texture,texture_table);p.put_uint(io.surface,surface_table)
+            io.dimensions=dimensions[1];io.levels=[];io.surfaces={};io.events=[]
+            entries=[(texture_table+4,0x210,io.addref_texture),(texture_table+8,0x220,io.release_texture),
+                (texture_table+0x34,0x230,io.get_level_count),(texture_table+0x48,0x240,io.get_surface),
+                (surface_table+4,0x250,io.addref_surface),(surface_table+8,0x260,io.release_surface),
+                (surface_table+0x30,0x270,io.get_desc),(surface_table+0x34,0x280,io.lock_surface),
+                (surface_table+0x38,0x290,io.unlock_surface)]
+            for slot,offset,callback in entries:p.put_uint(slot,base+offset);p.seams[base+offset]=callback
+            instances.append(io)
+        created=set()
+        def create(p):
+            args=first.args(p,9)
+            candidates=[io for io in instances if io.texture not in created and io.dimensions==tuple(args[1:3])]
+            assert candidates,'CreateTexture must match an unused declared texture'
+            io=candidates[0];io.create_texture(p);created.add(io.texture)
+        p.seams[0x34070030]=create
+        fixture.texture_ios=instances
+        return instances
+
     @staticmethod
     def text(p,address):
         result=bytearray()
