@@ -1,0 +1,147 @@
+{
+  "kind": "tool-viewer-performance-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP129",
+  "createdUtc": "2026-09-08T10:39:51.721171+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.xaml.cs",
+      "sha256": "D050AD9B99E5677B1F0C79369708E4B4E982F261119F0F5DD83AF12D9FADA6F5"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.AnimationVisuals.cs",
+      "sha256": "3E1AD056B8D6F8C79D98194F70B024C644023C34926D4A4DD5983DA9B02561EA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "sha256": "4718F40C6AE81C3B2541A819AEA6D49EFC7E9505D57FB58907AC45B554915FD4"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/AnimationVisualRegression.cs",
+      "sha256": "FAF760CD9594D01813988EB0DB2777E30EC92264124F0748F0A5A90B03DD1E50"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/SmoViewer.csproj",
+      "sha256": "A37D8F7EC5EECC75C5299C733AF4B2C692E0E592D4D401BF0635477FFC3AF9C0"
+    },
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "6AD924A81BB089602E8A05493659FA5E41D0DAAF6CF4173EAA7958C591DA602A"
+    },
+    {
+      "path": "research/ViewerAnimationBench/Program.cs",
+      "sha256": "140042DB70A65E90F6C774586260487E317A9F8B1E62E00A99CA6C07534828D9"
+    },
+    {
+      "path": "research/ViewerAnimationBench/ViewerAnimationBench.csproj",
+      "sha256": "0A10B05698C8E4D181565EC38A0B3B9F743EBEB53DE13CE25694FF171191F74E"
+    },
+    {
+      "path": "research/validate_shared_san_gui.py",
+      "sha256": "01840C5842DD3886FAAC451577361F811DAFE170C7A0C0D1B3A09A5DEF8DFCDE"
+    },
+    {
+      "path": "research/san_pose_reference.py",
+      "sha256": "37282149E1BD7A2458D15396C24FE517E56B10AA2E941998751572452AB55EF7"
+    }
+  ],
+  "sourceHashNote": "Changed tool text normalized to CRLF after checks, same code. Viewer version-only Release build passed after capture. Promoted benchmark source bytes exactly match measured temporary project.",
+  "viewerBaselineCommit": "4c5b207",
+  "viewerVersion": "0.6.1-worktree",
+  "published": false,
+  "baselineAndFinalConfiguration": "Release",
+  "warmupFramesPerCase": 60,
+  "measuredFramesPerCase": 240,
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/viewer-performance/baseline.json",
+      "sha256": "E6A54B9E1ECA04F7D3026C86B842586B229B884CED89E9ECEF01A1125BA2038F",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/viewer-performance/cached-skeleton.json",
+      "sha256": "539ACB4F0CDE219E5A7560BFA60F333D8432AE0CB5A6E363BF1F10F1C77B9EB4",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/viewer-performance/cached-skeleton-no-normal-copy.json",
+      "sha256": "AF91F464BCBC722081B057C8548B4A147BD0BDF35CE82FD7E9BD9C942F4E696D",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/viewer-performance/gui-final/capture.json",
+      "sha256": "95DA8620EF92AA165B95CDE853EB7EAAC8F5A1429D8C8C8C1BA636EB758949DF",
+      "status": "captured"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/viewer-performance/gui-final/report.json",
+      "sha256": "36E7E56DF88A796A13B4C4EAF292DC080AB46E4A207C236EB4CA2537334038F6",
+      "status": "passed"
+    }
+  ],
+  "sharedSanInput": {
+    "path": "local-data/results/tool-cycle-20260908-1900/shared-san-export-v4/input.json",
+    "sha256": "3B08FCBF56D635149033829F952AC36CF6DEA4BA6763840E74DC7C13B484080E"
+  },
+  "previousContract": {
+    "path": "research/tool-shared-san-validation-2026-09-08.json",
+    "sha256": "28BCACCEA37FDC79050593201CA3406289BB7E0018D845018D9B176C6AB7560A"
+  },
+  "comparison": [
+    {
+      "model": "Characters/Icy/Icy.smo",
+      "mode": "default-full",
+      "medianSpeedup": 3.143255362986305,
+      "allocatedBytesReductionPercent": 62.41098308888058
+    },
+    {
+      "model": "Characters/Icy/Icy.smo",
+      "mode": "hidden-bones",
+      "medianSpeedup": 2.0820503531968844,
+      "allocatedBytesReductionPercent": 40.42814098521477
+    },
+    {
+      "model": "Characters/Icy/Icy.smo",
+      "mode": "world-only",
+      "medianSpeedup": 1.3995943204868153,
+      "allocatedBytesReductionPercent": 6.040892193308545
+    },
+    {
+      "model": "Characters/Knut/knut.smo",
+      "mode": "default-full",
+      "medianSpeedup": 3.54220832647688,
+      "allocatedBytesReductionPercent": 69.78919054172401
+    },
+    {
+      "model": "Characters/Knut/knut.smo",
+      "mode": "hidden-bones",
+      "medianSpeedup": 0.9677633765370556,
+      "allocatedBytesReductionPercent": 32.85851612339421
+    },
+    {
+      "model": "Characters/Knut/knut.smo",
+      "mode": "world-only",
+      "medianSpeedup": 0.9216018048505357,
+      "allocatedBytesReductionPercent": 6.162440611893283
+    }
+  ],
+  "finalPeakWorkingSet": 191422464,
+  "correctness": {
+    "handlerChecks": 8359,
+    "clips": 7,
+    "poses": 43,
+    "meshTimeChecks": 419,
+    "maximumError": 6.269157593809065e-05,
+    "elapsedSeconds": 2.5490236,
+    "peakWorkingSet": 203517952,
+    "actualRayChecks": 6,
+    "foreignModelSelectionChecks": 1
+  },
+  "build": "Viewer Release, zero warnings/errors; metadata-only version change after measured code.",
+  "limitations": [
+    "CPU handler only; no displayed/composited frame, upload, GPU timing or FPS guarantee.",
+    "One baseline and final pass per case; same host, 60 warmup +240 measured frames; GC/JIT/background load affect timings.",
+    "CPU positions retained for picking; visible WPF normals retain old path. GPU/Core/export algorithms unchanged.",
+    "Original-PC poses reused by SHA; GPU pixels and OS dialogs not asserted. Existing SAN/target interpolation limits remain."
+  ]
+}

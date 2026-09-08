@@ -34,6 +34,10 @@
     {
       "id": "CP128",
       "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp128.json"
+    },
+    {
+      "id": "CP129",
+      "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp129.json"
     }
   ],
   "readinessScopePath": "research/tool-readiness-scope-v1.json",
@@ -45,6 +49,6 @@
   "currentReadyPercent": 100.0,
   "nextOperations": [],
   "nextQualityFixes": [
-    "Measure Viewer animation CPU allocations and GPU/CPU mirror costs; optimize only measured current-tool bottlenecks."
+    "Check remaining texture template selection/rebuild guards in current Importer paths using targeted files; reuse existing shared writer contracts."
   ]
 }

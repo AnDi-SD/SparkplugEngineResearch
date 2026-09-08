@@ -118,3 +118,11 @@ skeleton и texture cache входят в качество существующ�
 ограничение. [PS2 leaf](tool-ps2-san-2026-09-08.md) даёт независимое частичное
 свидетельство без увеличения class ledger.
 [Assessment CP128](../../research/tool-readiness-assessment-2026-09-08-cp128.json).
+
+## CP129 — измеренная оптимизация Viewer
+
+[Viewer 0.6.1](tool-viewer-performance-2026-09-08.md): тот же scope 16/16.
+CPU pose handler Icy/Knut в Release ускорен в 3,14/3,54 раза, allocations
+снижены на 62–70%; это не измерение общего FPS. Cached visuals, выбор костей
+разных файлов и picking проверены вместе с прежними 43 позами/419 mesh-time
+сравнениями. [Assessment CP129](../../research/tool-readiness-assessment-2026-09-08-cp129.json).
