@@ -69,7 +69,20 @@ def main(fmt=0,shape='2x2',pattern='random',label='first',reader='dx',*,return_c
             coefficients.append({'args':pending.pop(),'hex':bytes(p.mu.mem_read(table,count)).hex()})
     p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_coefficients,begin=0x619219,end=0x619219)
     p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_coefficients,begin=0x6194d0,end=0x6194d0)
-    codec_rows=[]
+    codec_rows=[];filter_codecs=[]
+    def observe_filter(mu,address,size,user):
+        filter=p.reg('ECX');source,destination=p.uint(filter),p.uint(filter+4)
+        filter_codecs.append({'flags':p.uint(filter+8),'source':bytes(p.mu.mem_read(source,0x80)).hex(),
+            'destination':bytes(p.mu.mem_read(destination,0x80)).hex(),
+            'decode':f'{p.uint(p.uint(source)+4):08X}','encode':f'{p.uint(p.uint(destination)+8):08X}'})
+        if fmt==2:
+            for name,codec in (('sourcePalette',source),('destinationPalette',destination)):
+                palette=p.uint(codec+0x38)
+                assert any(a<=palette and palette+4096<=a+size for a,size in f.allocations.items())
+                values=bytes(p.mu.mem_read(palette,4096))
+                filter_codecs[-1][name]={'sha256':hashlib.sha256(values).hexdigest().upper(),
+                    'uniqueColors':sorted({values[i:i+16].hex() for i in range(0,4096,16)})}
+    if label.startswith('trace'):p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_filter,begin=0x61c44f,end=0x61c44f)
     def observe_encoder(mu,address,size,user):
         codec=p.reg('ECX');width=p.uint(codec+0x68)
         if width!=normalized[0]:return
@@ -100,7 +113,7 @@ def main(fmt=0,shape='2x2',pattern='random',label='first',reader='dx',*,return_c
             mips.append(packed.hex())
         if pattern=='legacy':check(not mips and not state[3],'legacy section is skipped without initializing a texture')
         else:check(state[3]==1 and len(mips)==len(f.levels)>0,'native initialized full texture chain')
-        report.update(state=state,mips=mips,events=f.events,coefficientTables=coefficients,codecRows=codec_rows,phase='cleanup')
+        report.update(state=state,mips=mips,events=f.events,coefficientTables=coefficients,codecRows=codec_rows,filterCodecs=filter_codecs,phase='cleanup')
         f.call(0x4abb50,this=obj,args=(1,));f.call(p.uint(p.uint(serializer)),this=serializer,args=(1,));f.call(0x4228a0,this=manager)
         for address in (0x75db78,0x75526c,0x755264):
             owned=p.uint(address)
@@ -117,7 +130,7 @@ def main(fmt=0,shape='2x2',pattern='random',label='first',reader='dx',*,return_c
         suffix='-common' if reader=='common' else ''
         target=ROOT/f'local-data/results/cycle-20260908-0700/cp115-cross-{fmt}-{shape}-{pattern}-{label}{suffix}.json'
         target.write_text(json.dumps(report,indent=2)+'\n')
-        print('CAPTURE',json.dumps({k:v for k,v in report.items() if k not in ('mips','events','coefficientTables','codecRows')}),flush=True)
+        print('CAPTURE',json.dumps({k:v for k,v in report.items() if k not in ('mips','events','coefficientTables','codecRows','filterCodecs')}),flush=True)
     return report if return_capture else 0
 
 

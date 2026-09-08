@@ -1,4 +1,4 @@
-# PC: общие RGBA pixels → DXTexture (CP115)
+# PC: общие raw pixels → DXTexture (CP115–116)
 
 8 сентября 2026. Общая ветка TextureData теперь создаёт runtime DXTexture,
 нормализует размеры, переносит RGBA pixels и строит полный mip chain.
@@ -78,9 +78,29 @@ mutation при неправильном extent/размере.
 random/ramp, стороны1×1…16×16, включая1×8/8×1,3×5/5×3,7×9/9×7,15×16/16×15.
 Captures и assets остаются локальными.
 
-Native scouts также завершили CPU formats1–4, включая P8. Их conversion в C++
-ещё не перенесён; эта версия принимает RGBA format0. Палитры, compressed output,
-gamma/error diffusion, другие filters и все failure branches остаются открытыми.
+CP116 переносит CPU formats1–4: XRGB, P8 без входной палитры, RGB565 и ARGB4444.
+Общий resize сохраняет порядок накопления и dither CP115. XRGB decode задаёт
+alpha=1, encode записывает X=0; при прямом копировании исходный X сохраняется.
+RGB565 использует float reciprocals1/31 и1/63, ARGB4444 —1/15; упаковка
+повторяет toward-zero stores и quantization по соответствующим bit widths.
+
+Readonly capture actual codecs до `61C44F` подтвердил обе P8 palette tables:
+256 одинаковых белых RGBA записей, четыре float32=1 в каждой. SHA-256 каждой
+4096-byte таблицы:
+`E9BAC255F4ADC7CB4ADA9298E193A5FF66B434D15AFABD458505325F29C398C7`.
+Decoder `626332` читает эту таблицу; encoder `62274A` меняет ближайший индекс
+только при строго меньшей ошибке, поэтому все filtered pixels получают index0.
+Source использует этот доказанный частный случай без перебора256 одинаковых
+цветов. Исходные индексы при прямом base copy сохраняются. Это не реализация
+квантизатора произвольной пользовательской палитры.
+
+Новая matrix прошла70/70 за57,30 с при4 workers: форматы1/3/4, девять размеров,
+random/ramp; P8, пять размеров, random/ramp; четыре common-reader случая и
+два RGBA regression. Fixed C++ cases проверяют упаковку четырёх новых форматов.
+Native decoder/encoder pairs: XRGB `6257F5/61F502`, P8 `626332/62274A`,
+RGB565 `62589D/61F818`, ARGB4444 `625AAC/6201AA`. Format44 теперь равен CPU
+format+3. Произвольные палитры, compressed cross output, gamma/error diffusion,
+другие filters и все failure branches остаются открытыми.
 Caps прежние:1 млн инструкций/8 с, fresh process30 с, arena128 КиБ,
 allocation32 КиБ,≤5 mip levels,≤2048 bytes/surface.
 
@@ -91,3 +111,5 @@ python research/probe_pc_texture_cross_upload.py 0 16x16 legacy diagnostic
 
 [Манифест CP115](../../research/native-cycle-checkpoint-2026-09-08-cp115.json)
 хранит fingerprints, результаты и ограничения. Class scores не повышены.
+[Манифест CP116](../../research/native-cycle-checkpoint-2026-09-08-cp116.json)
+добавляет70 сравнений raw formats; прежние caps и границы whole-file evidence сохранены.

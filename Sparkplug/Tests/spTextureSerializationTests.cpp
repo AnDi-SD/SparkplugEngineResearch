@@ -259,6 +259,17 @@ namespace
         Check(!filter::ResizeRGBA(source,2,8,output)&&output.packedBytes==before,"truncated cross pixels preserve output");
         filter::AxisRows rows{{{7u,.5F}}};
         Check(!filter::BuildWrappedAxis(0,2,rows)&&rows.size()==1&&rows[0][0].first==7,"invalid coefficient dimensions preserve output");
+        struct PixelCase{unsigned format;const char* input;const char* output;};
+        for(const auto& test:std::initializer_list<PixelCase>{{1,"8bd88685ad2954a8f236585fff67e8e4","ca688700"},
+            {2,"867daf3d","00"},{3,"8cda02cda83fcbdb","c8ac"},{4,"4e5e937068b4fbad","8988"}})
+        {
+            Check(spDXTexture::DescribeMipForAnalysis(2,2,test.format+3,source),"raw format regression layout");
+            source.packedBytes.clear();const std::string input=test.input;
+            for(std::size_t i=0;i<input.size();i+=2)source.packedBytes.push_back(std::byte(std::stoul(input.substr(i,2),nullptr,16)));
+            Check(filter::ResampleRaw(source,test.format,1,1,false,output),"native additional raw format filter");
+            pixels.clear();for(auto value:output.packedBytes)pixels.push_back(std::uint8_t(value));
+            Check(Hex(pixels)==test.output,"exact native XRGB/P8/RGB565/ARGB4444 generated pixels");
+        }
     }
     std::string MissingMips(bool cross=false,bool common=false)
     {

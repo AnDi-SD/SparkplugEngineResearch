@@ -74,27 +74,30 @@ namespace sparkplug::reconstruction
         const spTextureBuffer& buffer,spDXTexture& texture)
     {
         const auto w=buffer.GetWidthForAnalysis(),h=buffer.GetHeightForAnalysis();
-        if(buffer.GetPixelFormatForAnalysis()!=0)return false;
+        const auto format=buffer.GetPixelFormatForAnalysis();if(format>4)return false;
         const auto width=spTexture::NormalizeDimensionForAnalysis(w),height=spTexture::NormalizeDimensionForAnalysis(h);
         spDXTexture::MipForAnalysis base;
-        if(!spDXTexture::DescribeMipForAnalysis(w,h,3,base))return false;
+        if(!spDXTexture::DescribeMipForAnalysis(w,h,format+3,base))return false;
         base.packedBytes=buffer.GetBufferForAnalysis();
         if(w!=width||h!=height)
         {
             spDXTexture::MipForAnalysis resized;
-            if(!sparkplug::evidence::pc::texture_mips::ResizeRGBA(base,width,height,resized))return false;
+            if(!sparkplug::evidence::pc::texture_mips::ResampleRaw(base,format,width,height,true,resized))return false;
             base=std::move(resized);
         }
         std::vector<spDXTexture::MipForAnalysis> mips;mips.push_back(std::move(base));
         while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
         {
             spDXTexture::MipForAnalysis next;
-            if(!sparkplug::evidence::pc::texture_mips::GenerateNext(mips.back(),next))return false;
+            const auto& previous=mips.back();
+            const bool generated=format==0?sparkplug::evidence::pc::texture_mips::GenerateNext(previous,next)
+                :sparkplug::evidence::pc::texture_mips::ResampleRaw(previous,format,std::max(1u,previous.width/2),std::max(1u,previous.height/2),false,next);
+            if(!generated)return false;
             mips.push_back(std::move(next));
         }
         for(std::size_t i=0;i<mips.size();++i)if(context.pcTexturePitchForAnalysis)
             mips[i].physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(i),mips[i].rowBytes);
-        return texture.InitializeCrossMipShadowForAnalysis(w,h,0,std::move(mips));
+        return texture.InitializeCrossMipShadowForAnalysis(w,h,format,std::move(mips));
     }
 
     bool spTextureDataSerializer::ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis& context,
