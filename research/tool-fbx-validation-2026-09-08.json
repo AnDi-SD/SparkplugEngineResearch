@@ -1,0 +1,1184 @@
+{
+  "kind": "tool-fbx-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP126",
+  "createdUtc": "2026-09-08T08:04:21.904253+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/FbxBridge.Native/src/export.cpp",
+      "sha256": "DB9209D8BD34604775ACF975692DBC7622702EEEC35E54A4A28991CEA93167B0"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/FbxExporter.cs",
+      "sha256": "F17125259300779DA36D0DFEB2A63AACD9C2590E293A8DD6ECBA50C734C99A33"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/FbxExportPayloadWriter.cs",
+      "sha256": "F4DCB1C7E9AF6B415C4385901541904897455ACD3ED7043DF5860CC23FDFE926"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/PngEncoder.cs",
+      "sha256": "034DD3EE336229BCADFCCE201C6337CC5472E0A22564DA3FD0811C0BFFBE5F8C"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/SmoExportModels.cs",
+      "sha256": "42B177BB578B9767D3D5145945D32468BAF7AE2014C4D7CF399EF089F09BC0E6"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/SmoSceneBuilder.cs",
+      "sha256": "6A722D3AFCA8B12E36C4B13ADCC50F67C9D051B0146FAEEF1AC980AA013A8389"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/AssemblyInfo.cs",
+      "sha256": "6BA83AC291D45DBC89C13DAE36FCE0280F4443C0427286583A24E13A9639FADB"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Cli/Program.cs",
+      "sha256": "4F2D91B83221B695AF3E1F0B2DFB22644380685DA5FA61B48EA52BDADECC608F"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Gui/MainWindow.xaml.cs",
+      "sha256": "52747BC83FE747BC513FD4A5E213A09637FAC8C9293037A01C95D6DA21461A07"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Gui/SmoExporter.Gui.csproj",
+      "sha256": "53B2D7593CD817571E23F6DDC457542FDF970ECC1B2C9E1A079A6DFAE058C898"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/Program.cs",
+      "sha256": "028FB97F2C9159C9A6D475E0312BCEC5C1BADBAADDA4BE7F57AB69B20221E2D5"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/FbxAlphaRegression.cs",
+      "sha256": "B6A5038220105AF1DBF586CB7BDF7F18F68EB6940795C8D251351D47E8114BE8"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/FbxPoseRegression.cs",
+      "sha256": "F90CF5F4AB0C4B1BD6CC9555B89477FD9C8B7F11E93FF17CB143E7BE4C7F2F63"
+    },
+    {
+      "path": "research/inspect_fbx_alpha_blender.py",
+      "sha256": "10090C7E2ADBCC88DC23F8AEAC494D6C8022B7A8745742E31D507B04E88AF6D2"
+    },
+    {
+      "path": "research/compare_fbx_glb_pose_blender.py",
+      "sha256": "E1187EC9A786D21C7F61C61208B0C6E0AD38AAE070C8726FF1A176D501F8E2CB"
+    },
+    {
+      "path": "research/render_fbx_alpha_blender.py",
+      "sha256": "5D64D37E99AA5834A29E56F85F9932BA040C04E39734C166B0A2917BA457DB1A"
+    }
+  ],
+  "sourceHashNote": "Tool text files normalized to CRLF before sealing; normalized code content unchanged from tested builds.",
+  "nativeBridge": {
+    "path": "tools/FbxBridge.Native/build/bin/Release/SmoFbxBridge.exe",
+    "sha256": "649F0E3124778CB6628468639F2256FF24537DB33783BEB835063546EFFC00CC",
+    "exportProtocol": 3,
+    "importProtocol": 1
+  },
+  "receiver": {
+    "name": "Blender",
+    "version": "4.5.3 LTS",
+    "sources": [
+      {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\4.5\\scripts\\addons_core\\io_scene_fbx\\import_fbx.py",
+        "sha256": "786918DB29B627EB702CDD5D551A8F9213A60DFE475D3B0940B14FA05FDCC04E"
+      },
+      {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\4.5\\scripts\\modules\\bpy_extras\\node_shader_utils.py",
+        "sha256": "6D42D58588DDFD93B9BC88C18CDF49E61F8B97F2373FA9F29D019DA4F92E023F"
+      },
+      {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\4.5\\scripts\\addons_core\\io_scene_gltf2\\blender\\imp\\animation_node.py",
+        "sha256": "5FCDA6905C3C60912366973153518B1E10A9FB30F221F7D3A51876B306AE3845"
+      },
+      {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 4.5\\4.5\\scripts\\addons_core\\io_scene_gltf2\\blender\\imp\\animation_utils.py",
+        "sha256": "BC244BF4263D0378673424B3A11F1000A45FDD18E168ADDE35ADE6D040832444"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-alpha-v6/expected.json",
+      "sha256": "C2BD88EBEE72AD3707334DD604928C89DAEF662D6E4B27EED6FF8C10F57E7D70",
+      "status": "prepared"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-alpha-v6/blender-report.json",
+      "sha256": "F0F3E27B7CF18B7635A40B0280E7708D0B8A60323CBB703D4A9242933D894937",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-pose-knut-final/pairs.json",
+      "sha256": "F32B5DC2CB73B37A16F0AED2A84F2A7B8BF3BA3C6DA6E4785EB050CE3BA2EA6E",
+      "status": "prepared"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-pose-knut-final/blender-report.json",
+      "sha256": "1E2E20423965E967AB3D720CFE98842974D38890B4EE18768B43D6CF3EE18EC7",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-pose-icy-final/pairs.json",
+      "sha256": "06BC1C19DE6380408BB6B56AD7262F05D0EBA199DEDB2EB262BAA7F9A9E9139A",
+      "status": "prepared"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-pose-icy-final/blender-report.json",
+      "sha256": "BBDDD8963F9C35924810C915E06C77ED683ED8647789F19597355426E00CC17B",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/fbx-alpha-v5/gpu-render/render-report.json",
+      "sha256": "E5DDB3EF5B12E4A7AFE6FB28C57C7EAEB6A0A649894B0DC2117C111EF12BB9A3",
+      "status": "rendered"
+    }
+  ],
+  "alpha": {
+    "inputAssertions": 70,
+    "realSmos": 3,
+    "fbxFiles": 6,
+    "materials": 67,
+    "skinnedMeshes": 26,
+    "comparisons": 489071,
+    "maximumError": 7.644120384675546e-06,
+    "tolerance": 7.729510948348212e-06,
+    "maximumWeightError": 0.0,
+    "exporterSeconds": 2.818018,
+    "exporterPeakWorkingSet": 57544704,
+    "receiverSeconds": 1.918602000005194
+  },
+  "poses": [
+    {
+      "sourceSmo": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Knut\\knut.smo",
+      "sourceSmoSha256": "B11426A418F4E7EC5D8227395CF9ABA5EC42A86BF22FBA08874FD79379D1BA08",
+      "sourceSan": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Knut\\Knwa.san",
+      "sourceSanSha256": "5F5E06BD3E5DED091EC2EC95CB914B59D2D62614F421A593F0697DDEEB3A896C",
+      "measuredPairs": [
+        {
+          "fbx": "bind.fbx",
+          "glb": "bind.glb",
+          "samples": [
+            {
+              "seconds": 0,
+              "mesh": "placement_6",
+              "vertices": 64,
+              "maxPositionError": 1.9765774532545306e-05,
+              "extent": 35.53145804913535,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_11",
+              "vertices": 356,
+              "maxPositionError": 6.0591056078722866e-05,
+              "extent": 244.39881896972656,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_70",
+              "vertices": 213,
+              "maxPositionError": 8.845632154477244e-05,
+              "extent": 265.9027557373047,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_72",
+              "vertices": 127,
+              "maxPositionError": 7.352999240775659e-05,
+              "extent": 311.74969482421875,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_74",
+              "vertices": 94,
+              "maxPositionError": 7.392436452145454e-05,
+              "extent": 318.15968322753906,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_76",
+              "vertices": 315,
+              "maxPositionError": 8.385413418413947e-05,
+              "extent": 210.2254295349121,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_78",
+              "vertices": 65,
+              "maxPositionError": 6.403453090880751e-05,
+              "extent": 66.0828857421875,
+              "sceneExtent": 320.7817077636719,
+              "tolerance": 0.002576253662109375,
+              "passed": true
+            }
+          ],
+          "maxPositionError": 8.845632154477244e-05
+        },
+        {
+          "fbx": "motion.fbx",
+          "glb": "motion.glb",
+          "samples": [
+            {
+              "seconds": 0,
+              "mesh": "placement_6",
+              "vertices": 64,
+              "maxPositionError": 1.6170785872045847e-05,
+              "extent": 37.342723863358515,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_11",
+              "vertices": 356,
+              "maxPositionError": 0.00022628555144379664,
+              "extent": 231.71437967908747,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_70",
+              "vertices": 213,
+              "maxPositionError": 0.0002475321360563535,
+              "extent": 180.075770448927,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_72",
+              "vertices": 127,
+              "maxPositionError": 0.0003294304013735947,
+              "extent": 198.07999710349696,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_74",
+              "vertices": 94,
+              "maxPositionError": 0.00030584353354295117,
+              "extent": 185.34901370276413,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_76",
+              "vertices": 315,
+              "maxPositionError": 0.0002302521843452168,
+              "extent": 215.38796057695382,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_78",
+              "vertices": 65,
+              "maxPositionError": 0.00033877821260881,
+              "extent": 68.40262740468916,
+              "sceneExtent": 253.88055986267074,
+              "tolerance": 0.0020410444789013657,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_6",
+              "vertices": 64,
+              "maxPositionError": 1.6340095524317114e-05,
+              "extent": 37.82206112892802,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_11",
+              "vertices": 356,
+              "maxPositionError": 0.00022233316387994606,
+              "extent": 229.5731604653342,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_70",
+              "vertices": 213,
+              "maxPositionError": 0.00021965210505160332,
+              "extent": 182.63341867924197,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_72",
+              "vertices": 127,
+              "maxPositionError": 0.0002847208986357653,
+              "extent": 199.5559460914598,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_74",
+              "vertices": 94,
+              "maxPositionError": 0.00026042945652856935,
+              "extent": 185.80639869258349,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_76",
+              "vertices": 315,
+              "maxPositionError": 0.00018185486506650333,
+              "extent": 214.73114383292986,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_78",
+              "vertices": 65,
+              "maxPositionError": 0.00028013745839190507,
+              "extent": 67.83559105972645,
+              "sceneExtent": 251.62537678313166,
+              "tolerance": 0.0020230030142650533,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_6",
+              "vertices": 64,
+              "maxPositionError": 1.6198538135397374e-05,
+              "extent": 36.062333593970635,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_11",
+              "vertices": 356,
+              "maxPositionError": 0.0001461831808386098,
+              "extent": 227.9713525043005,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_70",
+              "vertices": 213,
+              "maxPositionError": 0.000171367855741815,
+              "extent": 197.59186157254695,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_72",
+              "vertices": 127,
+              "maxPositionError": 0.00022829860365867862,
+              "extent": 222.04097557247943,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_74",
+              "vertices": 94,
+              "maxPositionError": 0.00021829992804089725,
+              "extent": 206.71648208394072,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_76",
+              "vertices": 315,
+              "maxPositionError": 0.0001389305811382356,
+              "extent": 195.3834553380388,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_78",
+              "vertices": 65,
+              "maxPositionError": 0.00023266281997351442,
+              "extent": 73.02010900237367,
+              "sceneExtent": 255.6108322030649,
+              "tolerance": 0.002054886657624519,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_6",
+              "vertices": 64,
+              "maxPositionError": 1.6085422896027332e-05,
+              "extent": 37.34267387626237,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_11",
+              "vertices": 356,
+              "maxPositionError": 0.00025476028040471164,
+              "extent": 231.7144087678662,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_70",
+              "vertices": 213,
+              "maxPositionError": 0.0002367180007991103,
+              "extent": 180.07595487946622,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_72",
+              "vertices": 127,
+              "maxPositionError": 0.0003447991462914966,
+              "extent": 198.08018402159686,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_74",
+              "vertices": 94,
+              "maxPositionError": 0.0002885257420632206,
+              "extent": 185.34917800518792,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_76",
+              "vertices": 315,
+              "maxPositionError": 0.00022152639162546228,
+              "extent": 215.3879435037702,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_78",
+              "vertices": 65,
+              "maxPositionError": 0.00032027264488877305,
+              "extent": 68.40260916414202,
+              "sceneExtent": 253.880553021938,
+              "tolerance": 0.002041044424175504,
+              "passed": true
+            }
+          ],
+          "maxPositionError": 0.0003447991462914966
+        }
+      ]
+    },
+    {
+      "sourceSmo": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "sourceSmoSha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+      "sourceSan": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\xiwa.san",
+      "sourceSanSha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC",
+      "measuredPairs": [
+        {
+          "fbx": "bind.fbx",
+          "glb": "bind.glb",
+          "samples": [
+            {
+              "seconds": 0,
+              "mesh": "placement_6",
+              "vertices": 36,
+              "maxPositionError": 2.4078237122991966e-05,
+              "extent": 9.497852325439453,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_66",
+              "vertices": 12,
+              "maxPositionError": 1.3333797693950757e-05,
+              "extent": 1.960906982421875,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_68",
+              "vertices": 12,
+              "maxPositionError": 3.22191698374647e-05,
+              "extent": 1.9609107971191406,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_70",
+              "vertices": 36,
+              "maxPositionError": 1.9025713106205398e-05,
+              "extent": 5.498657703399658,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_74",
+              "vertices": 1133,
+              "maxPositionError": 3.178604889017408e-05,
+              "extent": 119.05502510070801,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_77",
+              "vertices": 12,
+              "maxPositionError": 5.066835312074022e-05,
+              "extent": 17.405960083007812,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_79",
+              "vertices": 782,
+              "maxPositionError": 2.7241821886957193e-05,
+              "extent": 68.62637138366699,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_81",
+              "vertices": 120,
+              "maxPositionError": 5.066835312074022e-05,
+              "extent": 111.37174224853516,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_83",
+              "vertices": 228,
+              "maxPositionError": 4.400235898608815e-05,
+              "extent": 87.06343841552734,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_85",
+              "vertices": 350,
+              "maxPositionError": 3.4101526529978686e-05,
+              "extent": 35.44574451446533,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_87",
+              "vertices": 341,
+              "maxPositionError": 4.0441152623526774e-05,
+              "extent": 13.137304663658142,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_89",
+              "vertices": 667,
+              "maxPositionError": 3.1156900639076865e-05,
+              "extent": 46.6403694152832,
+              "sceneExtent": 171.89423370361328,
+              "tolerance": 0.0013851538696289063,
+              "passed": true
+            }
+          ],
+          "maxPositionError": 5.066835312074022e-05
+        },
+        {
+          "fbx": "motion.fbx",
+          "glb": "motion.glb",
+          "samples": [
+            {
+              "seconds": 0,
+              "mesh": "placement_6",
+              "vertices": 36,
+              "maxPositionError": 3.2884254215029695e-05,
+              "extent": 9.944297790527344,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_66",
+              "vertices": 12,
+              "maxPositionError": 1.9728352319757697e-05,
+              "extent": 2.6310348510742188,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_68",
+              "vertices": 12,
+              "maxPositionError": 3.84746077475026e-05,
+              "extent": 2.0169315338134766,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_70",
+              "vertices": 36,
+              "maxPositionError": 3.90226425534325e-05,
+              "extent": 5.498456001281738,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_74",
+              "vertices": 1133,
+              "maxPositionError": 4.8507756252676e-05,
+              "extent": 117.75056076049805,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_77",
+              "vertices": 12,
+              "maxPositionError": 4.321707313577634e-05,
+              "extent": 17.409385681152344,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_79",
+              "vertices": 782,
+              "maxPositionError": 5.1701524558247654e-05,
+              "extent": 78.80241012573242,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_81",
+              "vertices": 120,
+              "maxPositionError": 4.321707313577634e-05,
+              "extent": 110.91371536254883,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_83",
+              "vertices": 228,
+              "maxPositionError": 4.6950822158025284e-05,
+              "extent": 37.438045501708984,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_85",
+              "vertices": 350,
+              "maxPositionError": 3.185950191714337e-05,
+              "extent": 43.60558891296387,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_87",
+              "vertices": 341,
+              "maxPositionError": 4.9616045994407204e-05,
+              "extent": 12.256362915039062,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0,
+              "mesh": "placement_89",
+              "vertices": 667,
+              "maxPositionError": 5.24733390621945e-05,
+              "extent": 47.07455635070801,
+              "sceneExtent": 172.53646087646484,
+              "tolerance": 0.0013902916870117187,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_6",
+              "vertices": 36,
+              "maxPositionError": 4.8036418526374025e-05,
+              "extent": 9.946418762207031,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_66",
+              "vertices": 12,
+              "maxPositionError": 3.105494237818846e-05,
+              "extent": 2.636049270629883,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_68",
+              "vertices": 12,
+              "maxPositionError": 4.216170593787188e-05,
+              "extent": 2.01104736328125,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_70",
+              "vertices": 36,
+              "maxPositionError": 2.7084067939505283e-05,
+              "extent": 5.4985222816467285,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_74",
+              "vertices": 1133,
+              "maxPositionError": 6.37491213847314e-05,
+              "extent": 118.17892456054688,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_77",
+              "vertices": 12,
+              "maxPositionError": 2.4779343160153818e-05,
+              "extent": 17.410079956054688,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_79",
+              "vertices": 782,
+              "maxPositionError": 5.9753341292532954e-05,
+              "extent": 78.80436325073242,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_81",
+              "vertices": 120,
+              "maxPositionError": 5.537297850685741e-05,
+              "extent": 110.90756225585938,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_83",
+              "vertices": 228,
+              "maxPositionError": 5.253231677930439e-05,
+              "extent": 37.48254203796387,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_85",
+              "vertices": 350,
+              "maxPositionError": 4.551048157621543e-05,
+              "extent": 43.5659294128418,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_87",
+              "vertices": 341,
+              "maxPositionError": 5.211320960106049e-05,
+              "extent": 12.23433804512024,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.033333335,
+              "mesh": "placement_89",
+              "vertices": 667,
+              "maxPositionError": 6.01110792541659e-05,
+              "extent": 47.12168312072754,
+              "sceneExtent": 172.95596313476562,
+              "tolerance": 0.001393647705078125,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_6",
+              "vertices": 36,
+              "maxPositionError": 4.381753383712027e-05,
+              "extent": 9.944282531738281,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_66",
+              "vertices": 12,
+              "maxPositionError": 2.9637403185775766e-05,
+              "extent": 2.0169239044189453,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_68",
+              "vertices": 12,
+              "maxPositionError": 4.45003126596048e-05,
+              "extent": 2.6310482025146484,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_70",
+              "vertices": 36,
+              "maxPositionError": 3.809120955438855e-05,
+              "extent": 5.498456001281738,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_74",
+              "vertices": 1133,
+              "maxPositionError": 3.719150709436776e-05,
+              "extent": 117.75125503540039,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_77",
+              "vertices": 12,
+              "maxPositionError": 5.7962651437720124e-05,
+              "extent": 17.409385681152344,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_79",
+              "vertices": 782,
+              "maxPositionError": 5.243103641447224e-05,
+              "extent": 70.30427551269531,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_81",
+              "vertices": 120,
+              "maxPositionError": 5.7962651437720124e-05,
+              "extent": 110.91371154785156,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_83",
+              "vertices": 228,
+              "maxPositionError": 6.0748676736219006e-05,
+              "extent": 37.43766975402832,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_85",
+              "vertices": 350,
+              "maxPositionError": 4.203570720474906e-05,
+              "extent": 38.63446044921875,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_87",
+              "vertices": 341,
+              "maxPositionError": 5.935691596754509e-05,
+              "extent": 15.063209533691406,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 0.5,
+              "mesh": "placement_89",
+              "vertices": 667,
+              "maxPositionError": 7.047858897105358e-05,
+              "extent": 51.08664321899414,
+              "sceneExtent": 172.5371551513672,
+              "tolerance": 0.0013902972412109375,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_6",
+              "vertices": 36,
+              "maxPositionError": 4.368928055966062e-05,
+              "extent": 9.944282531738281,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_66",
+              "vertices": 12,
+              "maxPositionError": 1.9598770467144085e-05,
+              "extent": 2.631032943725586,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_68",
+              "vertices": 12,
+              "maxPositionError": 3.821287532847404e-05,
+              "extent": 2.0169296264648438,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_70",
+              "vertices": 36,
+              "maxPositionError": 3.90197384967148e-05,
+              "extent": 5.498456001281738,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_74",
+              "vertices": 1133,
+              "maxPositionError": 4.957365873887674e-05,
+              "extent": 117.75054550170898,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_77",
+              "vertices": 12,
+              "maxPositionError": 3.892146565776597e-05,
+              "extent": 17.409385681152344,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_79",
+              "vertices": 782,
+              "maxPositionError": 5.2071808541219854e-05,
+              "extent": 78.80240631103516,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_81",
+              "vertices": 120,
+              "maxPositionError": 4.107086038383744e-05,
+              "extent": 110.91371154785156,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_83",
+              "vertices": 228,
+              "maxPositionError": 4.563731771800857e-05,
+              "extent": 37.43802452087402,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_85",
+              "vertices": 350,
+              "maxPositionError": 3.829858599122526e-05,
+              "extent": 43.605581283569336,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_87",
+              "vertices": 341,
+              "maxPositionError": 4.915713445261704e-05,
+              "extent": 12.256361961364746,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            },
+            {
+              "seconds": 1,
+              "mesh": "placement_89",
+              "vertices": 667,
+              "maxPositionError": 6.358527682857801e-05,
+              "extent": 47.07454967498779,
+              "sceneExtent": 172.53644561767578,
+              "tolerance": 0.0013902915649414063,
+              "passed": true
+            }
+          ],
+          "maxPositionError": 7.047858897105358e-05
+        }
+      ]
+    }
+  ],
+  "poseReference": "Test-only GLB inserts System.Numerics SLERP keys at probe times. Production GLB unchanged. Tolerance 1e-5 + sceneExtent*8e-6; interframe equivalence not asserted.",
+  "existingRegression": {
+    "knutAssertions": 68,
+    "alfea03Assertions": 16,
+    "alfeaMeshes": 510,
+    "alfeaPlacements": 1267
+  },
+  "builds": {
+    "gui": "passed, zero warnings/errors",
+    "cli": "passed, zero warnings/errors",
+    "native": "MSVC19.51, FBXSDK2020.3.10, Ninja Release; VS FileTracker unavailable in sandbox"
+  },
+  "gpu": {
+    "status": "rendered",
+    "engine": "BLENDER_EEVEE_NEXT",
+    "blenderVersion": "4.5.3 LTS",
+    "file": "alpha-ramp.png",
+    "resolution": [
+      1024,
+      88
+    ],
+    "elapsedSeconds": 50.987893199999235,
+    "gpuRenderer": "NVIDIA GeForce RTX 3070/PCIe/SSE2",
+    "gpuVendor": "NVIDIA Corporation",
+    "imageSha256": "1D818879BD28337CDFF453787C00CB3E6340BB2D5F33842AB1A0DB02304D839A",
+    "observedBlenderPeakWorkingSet": 798408704,
+    "visuallyInspected": true,
+    "scope": "Unskinned synthetic material scene from v5; later native changes affect skeleton only. Numerical alpha acceptance uses the independent importer, not stochastic render pixels."
+  },
+  "limits": [
+    "Blender4.5.3 receiver; other FBX readers require their own acceptance.",
+    "Blend material texture*scalar alpha only; no MASK/additive/game-shader/animated-material guarantee.",
+    "RGBA vertex colors remain data; receiver multiplication by vertex alpha is not asserted.",
+    "No game/GPU original-code comparison added; this checkpoint validates tool target output.",
+    "Full parent transform chains are represented as bones; no original SMO class or object is changed."
+  ]
+}

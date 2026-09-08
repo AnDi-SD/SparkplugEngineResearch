@@ -820,6 +820,7 @@ public partial class MainWindow : Window
                         string fbx = Path.Combine(outputDirectory, fileStem + ".fbx");
                         FbxExporter.Export(exportScene, fbx, _blenderPath);
                         files.Add(fbx);
+                        warnings.AddRange(FbxExporter.GetConversionNotes(exportScene));
                     }
                     if (format is "obj" or "all")
                     {

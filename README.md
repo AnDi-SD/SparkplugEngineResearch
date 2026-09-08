@@ -14,8 +14,10 @@
 [Новый измеритель](docs/research/tool-readiness-meter.md) считает подтверждённые
 операции инструментов: начальный срез — 11/16 (68,75%). Контракт, внедрение и
 проверка результата показываются отдельно; это переучёт существующих функций.
-Первый checkpoint нового цикла: **14/16 (87,5%)** —
-[TextureTool replacement/resize и актуальная PNG-проверка](docs/research/tool-texture-writer-2026-09-08.md).
+Текущий checkpoint: **15/16 (93,75%)**. После
+[TextureTool replacement/resize и PNG-проверки](docs/research/tool-texture-writer-2026-09-08.md)
+добавлена [совместная FBX alpha](docs/research/tool-fbx-alpha-2026-09-08.md),
+исправлен импорт skeleton в Blender. Остались редкие SAN-ключи конвертера.
 
 Последний цикл — [PC SMO/SAN до 07:00 МСК, 8 сентября 2026](docs/research/native-cycle-report-2026-09-08-0700.md):
 PC workflow-v2 45,62%, целые сцены, текстурные преобразования и генераторы

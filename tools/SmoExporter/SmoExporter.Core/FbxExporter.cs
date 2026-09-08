@@ -49,12 +49,28 @@ public static class FbxExporter
     public static string? FindNativeBridgeExecutable(string? preferredPath = null) =>
         NativeFbxBridge.ResolveExecutable(preferredPath);
 
+    public static IReadOnlyList<string> GetConversionNotes(SmoExportScene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        int count = scene.Meshes.Count(mesh => RequiresTextureAlphaBake(scene, mesh));
+        return count == 0 ? [] :
+        [
+            $"FBX: совместная alpha текстуры и материала для {count} мешей " +
+            "сохраняется в 16-битной карте; погрешность alpha не более 0,000008. " +
+            "Совместимость проверена в Blender 4.5."
+        ];
+    }
+
+    internal static bool RequiresTextureAlphaBake(SmoExportScene scene, SmoExportMesh mesh) =>
+        (scene.Resources & (SmoExportResourceTypes.Materials | SmoExportResourceTypes.Textures)) ==
+        (SmoExportResourceTypes.Materials | SmoExportResourceTypes.Textures) &&
+        mesh.UsesAlphaBlend && mesh.Texture?.OpacityMaskPngBytes is not null &&
+        mesh.MaterialColor.W < 1f;
+
     private static void ValidateAlphaCompatibility(SmoExportScene scene)
     {
         bool includeMaterials =
             (scene.Resources & SmoExportResourceTypes.Materials) != 0;
-        bool includeTextures = includeMaterials &&
-            (scene.Resources & SmoExportResourceTypes.Textures) != 0;
         foreach (SmoExportMesh mesh in scene.Meshes)
         {
             if (mesh.Colors.Length == mesh.Positions.Length)
@@ -64,13 +80,14 @@ public static class FbxExporter
             }
             if (!includeMaterials) continue;
             ValidateAlpha(mesh.MaterialColor.W, "material factor", mesh);
-            if (includeTextures && mesh.Texture?.OpacityMaskPngBytes is not null &&
-                mesh.MaterialColor.W < 1f)
+            if (RequiresTextureAlphaBake(scene, mesh) && mesh.Texture is { } texture &&
+                (texture.Width is <= 0 or > 16384 || texture.Height is <= 0 or > 16384 ||
+                 (long)texture.Width * texture.Height * 4 != texture.Bgra32Pixels.Length))
             {
                 throw new InvalidDataException(
-                    $"FBX cannot preserve both texture alpha and a translucent material " +
-                    $"factor on mesh [{mesh.ObjectIndex}] {mesh.Name}; " +
-                    "export this model as GLB instead.");
+                    $"FBX combined alpha on mesh [{mesh.ObjectIndex}] {mesh.Name} " +
+                    "requires the original BGRA32 pixels. Build the export scene " +
+                    "with SmoSceneBuilder or supply the texture pixel buffer.");
             }
         }
     }

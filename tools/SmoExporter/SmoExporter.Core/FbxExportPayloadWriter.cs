@@ -7,7 +7,8 @@ namespace SmoExporter.Core;
 internal static class FbxExportPayloadWriter
 {
     private static readonly byte[] Magic = "SMOFBXE1"u8.ToArray();
-    private const uint ProtocolVersion = 2;
+    // v3 textures with material alpha < 1 contain the combined opacity already.
+    private const uint ProtocolVersion = 3;
 
     public static void Write(SmoExportScene scene, string path)
     {
@@ -18,7 +19,30 @@ internal static class FbxExportPayloadWriter
         writer.Write((uint)scene.Resources);
         writer.Write((uint)scene.SceneMode);
         WriteString(writer, scene.SourcePath);
-        WriteItems(writer, scene.Meshes, WriteMesh);
+        var variants = new Dictionary<(SmoExportTexture Texture, float Alpha), SmoExportTexture>();
+        WriteItems(writer, scene.Meshes, (output, mesh) =>
+        {
+            SmoExportTexture? texture = mesh.Texture;
+            if (FbxExporter.RequiresTextureAlphaBake(scene, mesh) && texture is not null)
+            {
+                var key = (texture, mesh.MaterialColor.W);
+                if (!variants.TryGetValue(key, out SmoExportTexture? variant))
+                {
+                    byte[] opacity = PngEncoder.EncodeMultipliedOpacity(
+                        texture.Width, texture.Height, texture.Bgra32Pixels.Span,
+                        mesh.MaterialColor.W);
+                    variant = texture with
+                    {
+                        PngBytes = texture.OpaqueRgbPngBytes ?? PngEncoder.EncodeBgr24(
+                            texture.Width, texture.Height, texture.Bgra32Pixels.Span),
+                        OpacityMaskPngBytes = opacity
+                    };
+                    variants.Add(key, variant);
+                }
+                mesh = mesh with { Texture = variant };
+            }
+            WriteMesh(output, mesh);
+        });
         WriteItems(writer, scene.MeshPlacements, WritePlacement);
         WriteItems(writer, scene.Nodes, WriteNode);
         WriteItems(writer, scene.Skins, WriteSkin);

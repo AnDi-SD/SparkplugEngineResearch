@@ -24,6 +24,16 @@ public static class SmoSceneBuilder
 
         var warnings = new List<string>();
         var meshes = new List<SmoExportMesh>();
+        var exportTextures = new Dictionary<int, SmoExportTexture>();
+        SmoExportTexture GetExportTexture(SmoTexture texture)
+        {
+            if (!exportTextures.TryGetValue(texture.ObjectIndex, out SmoExportTexture? exported))
+            {
+                exported = BuildExportTexture(texture);
+                exportTextures.Add(texture.ObjectIndex, exported);
+            }
+            return exported;
+        }
         var meshPlacements = new List<SmoExportMeshPlacement>();
         IReadOnlyDictionary<int, SmoTextureBinding> materialBindings =
             includeMaterials
@@ -169,11 +179,11 @@ public static class SmoSceneBuilder
                 else if (binding.Texture is not null)
                 {
                     SmoTexture source = binding.BaseTexture ?? binding.Texture;
-                    texture = BuildExportTexture(source);
+                    texture = GetExportTexture(source);
                     if (binding.BaseTexture is not null)
                     {
                         SmoTexture effect = binding.Texture;
-                        effectTexture = BuildExportTexture(effect);
+                        effectTexture = GetExportTexture(effect);
                         if (binding.AnimationFrames is { Count: > 1 })
                         {
                             warnings.Add(
@@ -700,7 +710,8 @@ public static class SmoSceneBuilder
             opacityMask is null
                 ? null
                 : PngEncoder.EncodeBgr24(
-                    source.Width, source.Height, source.Bgra32Pixels.Span));
+                    source.Width, source.Height, source.Bgra32Pixels.Span),
+            source.Bgra32Pixels);
     }
 
     private static Vector4 DecodeArgb(uint argb) => new(

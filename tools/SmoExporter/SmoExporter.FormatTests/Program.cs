@@ -6,6 +6,11 @@ using SmoViewer.Core;
 
 int checks = 0;
 
+if (args.Length >= 2 && args[0] == "--fbx-alpha-regression")
+    return FbxAlphaRegression.Run(args[1], args.Skip(2).ToArray());
+if (args is ["--fbx-pose-regression", string poseOutput, string poseSmo, string poseSan])
+    return FbxPoseRegression.Run(poseOutput, poseSmo, poseSan);
+
 if (args is ["--native-fbx-path-tests"])
     return TestNativeFbxPathResolution();
 
@@ -572,7 +577,7 @@ void TestUnsupportedAlphaCases(SmoExportScene scene, string outputDirectory)
             },
             Path.Combine(outputDirectory, "compounded-alpha.fbx"),
             Path.Combine(outputDirectory, "missing-blender.exe")),
-        "FBX rejects compounded texture and material alpha before invoking the native bridge");
+        "FBX rejects combined alpha with missing original pixels before invoking the native bridge");
 
     SmoExportMesh invalidAlphaMesh = source with
     {

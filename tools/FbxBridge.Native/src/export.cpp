@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -22,7 +23,7 @@ namespace fs = std::filesystem;
 namespace
 {
 constexpr std::array<char, 8> ExportMagic{'S', 'M', 'O', 'F', 'B', 'X', 'E', '1'};
-constexpr std::uint32_t ProtocolVersion = 2;
+constexpr std::uint32_t ProtocolVersion = 3;
 constexpr std::uint32_t ResourceSkeleton = 2;
 constexpr std::uint32_t ResourceMaterials = 4;
 constexpr std::uint32_t ResourceTextures = 8;
@@ -483,10 +484,31 @@ struct SceneState
 
 void BuildLogicalNodes(SceneState& state)
 {
+    std::unordered_map<std::int32_t, const NodeData*> nodeData;
+    for (const NodeData& node : state.data->nodes)
+        if (!nodeData.emplace(node.objectIndex, &node).second)
+            throw std::runtime_error("Duplicate FBX node object index.");
     for (const SkinData& skin : state.data->skins)
     {
         state.skins.emplace(skin.objectIndex, &skin);
-        state.jointObjects.insert(skin.joints.begin(), skin.joints.end());
+        // Preserve the full transform chain, including unweighted helpers.
+        // This prevents nested armatures and avoids deriving armature bind
+        // space from a non-bone ancestor's parent-relative matrix.
+        for (std::int32_t joint : skin.joints)
+        {
+            std::unordered_set<std::int32_t> visited;
+            auto cursor = nodeData.find(joint);
+            if (cursor == nodeData.end())
+                throw std::runtime_error("FBX skin references a missing joint node.");
+            while (cursor != nodeData.end())
+            {
+                if (!visited.insert(cursor->first).second)
+                    throw std::runtime_error("FBX skeleton hierarchy contains a cycle.");
+                // Earlier completed paths are already validated to the root.
+                if (!state.jointObjects.insert(cursor->first).second) break;
+                cursor = nodeData.find(cursor->second->parentObjectIndex);
+            }
+        }
     }
     for (const NodeData& source : state.data->nodes)
     {
@@ -515,11 +537,8 @@ void BuildLogicalNodes(SceneState& state)
         FbxNode* node = state.nodes.at(source.objectIndex);
         auto parent = state.nodes.find(source.parentObjectIndex);
         (parent == state.nodes.end() ? state.scene->GetRootNode() : parent->second)->AddChild(node);
-        if (state.jointObjects.contains(source.objectIndex) &&
-            (parent == state.nodes.end() || !state.jointObjects.contains(source.parentObjectIndex)))
-        {
-            static_cast<FbxSkeleton*>(node->GetNodeAttribute())->SetSkeletonType(FbxSkeleton::eRoot);
-        }
+        // Keep weighted roots as LimbNode too. Blender treats FBX Root as an
+        // armature object and would skip that node's skin clusters/weights.
     }
 }
 
@@ -533,22 +552,38 @@ FbxSurfaceMaterial* BuildMaterial(
     material->DiffuseFactor.Set(1.0);
     material->Specular.Set(FbxDouble3(0.0, 0.0, 0.0));
     material->Shininess.Set(0.0);
-    material->TransparencyFactor.Set(1.0 - std::clamp<double>(source.materialColor.w, 0.0, 1.0));
+    const bool includeTextures = (state.data->resources & ResourceTextures) != 0;
+    const bool combinedAlpha = includeTextures && source.usesAlpha && source.texture &&
+        !source.texture->opacity.empty() && source.materialColor.w < 1.0f;
+    // Protocol v3 bakes texture * material alpha into 16-bit PNGs. Applying the
+    // scalar again would square it in consumers which multiply both inputs.
+    const double alpha = combinedAlpha ? 1.0 :
+        std::clamp<double>(source.materialColor.w, 0.0, 1.0);
+    material->TransparencyFactor.Set(1.0 - alpha);
+    material->TransparentColor.Set(FbxDouble3(1.0 - alpha, 1.0 - alpha, 1.0 - alpha));
+    // Some importers use Opacity when TransparencyFactor is exactly 0 or 1.
+    FbxProperty opacityProperty = FbxProperty::Create(material, FbxDoubleDT, "Opacity");
+    opacityProperty.Set(alpha);
     if ((state.data->resources & ResourceTextures) != 0 && source.texture)
     {
         const TextureData& data = *source.texture;
+        const std::string variant = combinedAlpha ?
+            "_alpha_" + std::to_string(std::bit_cast<std::uint32_t>(source.materialColor.w)) : "";
         const std::vector<std::uint8_t>& colorBytes =
             !source.usesAlpha && !data.opaqueRgb.empty() ? data.opaqueRgb : data.png;
         FbxFileTexture* texture = CreateTexture(
             state.scene, colorBytes, state.mediaDirectory,
             "texture_" + std::to_string(data.objectIndex) +
-                (!source.usesAlpha && !data.opaqueRgb.empty() ? "_opaque" : "_base"),
+                (!source.usesAlpha && !data.opaqueRgb.empty() ? "_opaque" : "_base") + variant,
             "UVSet0");
         if (texture != nullptr) material->Diffuse.ConnectSrcObject(texture);
-        FbxFileTexture* opacity = CreateTexture(
-            state.scene, data.opacity, state.mediaDirectory,
-            "texture_" + std::to_string(data.objectIndex) + "_opacity", "UVSet0");
-        if (opacity != nullptr) material->TransparentColor.ConnectSrcObject(opacity);
+        if (source.usesAlpha)
+        {
+            FbxFileTexture* opacity = CreateTexture(
+                state.scene, data.opacity, state.mediaDirectory,
+                "texture_" + std::to_string(data.objectIndex) + "_opacity" + variant, "UVSet0");
+            if (opacity != nullptr) material->TransparentColor.ConnectSrcObject(opacity);
+        }
     }
     if ((state.data->resources & ResourceTextures) != 0 && source.effectTexture)
     {
@@ -718,6 +753,16 @@ void BindSkin(
     {
         if (added.insert(links[slot]).second) pose->Add(links[slot], linkBinds[slot]);
     }
+    // Bind poses must also contain the ancestors of the mesh and its joints.
+    // Keep parent transforms explicit instead of relying on importer defaults.
+    auto addAncestors = [&](FbxNode* node)
+    {
+        for (FbxNode* parent = node->GetParent();
+             parent != nullptr && parent != state.scene->GetRootNode(); parent = parent->GetParent())
+            if (added.insert(parent).second) pose->Add(parent, parent->EvaluateGlobalTransform());
+    };
+    addAncestors(meshNode);
+    for (FbxNode* link : links) addAncestors(link);
     state.scene->AddPose(pose);
 }
 

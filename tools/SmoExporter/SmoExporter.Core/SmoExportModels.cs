@@ -39,7 +39,8 @@ public sealed record SmoExportTexture(
     int Height,
     byte[] PngBytes,
     byte[]? OpacityMaskPngBytes = null,
-    byte[]? OpaqueRgbPngBytes = null);
+    byte[]? OpaqueRgbPngBytes = null,
+    ReadOnlyMemory<byte> Bgra32Pixels = default);
 
 public sealed record SmoExportMesh(
     int ObjectIndex,

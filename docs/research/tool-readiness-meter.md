@@ -86,3 +86,12 @@ python research/tool_readiness.py report --baseline local-data/results/tool-cycl
 Остались FBX texture×material alpha и редкие SAN-ключи конвертера.
 Знаменатель и первоначальный assessment не изменены.
 [Assessment CP125](../../research/tool-readiness-assessment-2026-09-08-cp125.json).
+
+## CP126 — FBX alpha
+
+[Совместная alpha и исправления skeleton](tool-fbx-alpha-2026-09-08.md):
+**15/16 (93,75%)**, все три этапа 15/16. Относительно baseline +4 подтверждённые
+операции, +25 п.п.; новая возможность этого checkpoint — одна. Исправления
+skeleton и texture cache входят в качество существующего экспорта и не
+увеличивают знаменатель или число добавленных возможностей. Осталась
+`san.rare-keys`. [Assessment CP126](../../research/tool-readiness-assessment-2026-09-08-cp126.json).

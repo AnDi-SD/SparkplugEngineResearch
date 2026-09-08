@@ -84,6 +84,8 @@ try
             string path = Path.Combine(outputDirectory, fileStem + ".fbx");
             FbxExporter.Export(exportScene, path);
             Console.WriteLine($"FBX: {path}");
+            foreach (string note in FbxExporter.GetConversionNotes(exportScene))
+                Console.WriteLine(note);
         }
     }
     if (sceneMode == SmoExportSceneMode.SeparateMeshes)
