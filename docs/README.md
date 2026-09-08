@@ -4,6 +4,7 @@
 
 ## Навигация
 
+- [Обязательные основы разработки: игра как источник истины, общие классы и современный backend](engine/software-development-rules.md)
 - [Viewer 0.7.0: прямое подключение C++-классов Sparkplug и границы переноса](research/tool-viewer-sparkplug-core-2026-09-08.md)
 - [Текущая цель: инструменты и необходимые части реальных классов](research/tool-driven-research-scope.md)
 - [Готовность функций: фиксированный список операций и проверяемые этапы](research/tool-readiness-meter.md)
