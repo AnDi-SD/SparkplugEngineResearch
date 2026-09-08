@@ -84,13 +84,16 @@ class ConverterTests(unittest.TestCase):
 
     def test_child_relationship_instead_of_physical_nesting(self):
         q = (0, 0, math.sqrt(0.5), math.sqrt(0.5))
-        root = field(1, struct.pack("<4f", *q)) + field(5, struct.pack("<I", 12))
+        root = field(1, struct.pack("<4f", *q)) + field(5, struct.pack("<II", 12, 0))
         child = field(0, struct.pack("<3f", 1, 0, 0))
-        raw = container([(11, "parent", 0x695C0F65, root), (12, "child", 0x695C0F65, child)])
+        # A previous physical child is already materialized; the parent then
+        # references it with zero inline extent, as the native resolver expects.
+        raw = container([(12, "child", 0x695C0F65, child), (11, "parent", 0x695C0F65, root)])
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder)/"example.smo"
             path.write_bytes(raw)
             bones = converter.read_skeleton(path)
+            self.addCleanup(bones.close)
         self.assertEqual(bones["child"].parent, "parent")
         actual = converter.source_world(bones, converter.hierarchy(bones, ["child"]))["child"][0]
         for a, b in zip(actual, (0, 1, 0)):
@@ -268,7 +271,7 @@ class ConverterTests(unittest.TestCase):
             (directory/"z_good.SAN").write_bytes(raw)
             (output/"a_bad.vmd").write_bytes(b"previous result")
             (output/"z_good.vmd").write_bytes(b"outdated result")
-            with patch.object(converter, "read_skeleton", return_value={}), \
+            with patch.object(converter, "read_skeleton", return_value=converter.Skeleton()), \
                  patch.object(converter, "read_pmd", return_value=("test", {}, [])), \
                  patch.object(converter, "Retargeter", return_value=TestRig()), \
                  contextlib.redirect_stdout(io.StringIO()):

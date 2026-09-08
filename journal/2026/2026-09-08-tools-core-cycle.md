@@ -24,3 +24,10 @@ spNode world PRS. Python engine-копии удалены, MMD retarget/writer �
 и шесть C++ suites прошли. Входы и frozen original reference сверены по SHA256,
 повторный full-corpus не запускался. Unsupported unused track/NaN дают явный
 отказ shared host-loader, без обхода. SMO-reader ещё требует миграции.
+
+Третий блок: общий native resource graph. SanToVmd теперь использует и SMO
+reader, и реальные загруженные узлы; старый Python FFPS/Node reader удалён.
+37 tests, 24 VMD / 732 original-reference позы, пять character SMO, шесть C++
+suites и 2 273 C# checks прошли. MeshBV меню — следующий приоритет.
+VS во время работы обновилась и требует reboot; явный VisualStudioPath дал
+продолжить проверочные сборки без изменений установки или перезапуска системы.

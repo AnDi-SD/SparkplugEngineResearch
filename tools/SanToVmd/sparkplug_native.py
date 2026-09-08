@@ -40,6 +40,15 @@ class AxisInfo(C.Structure):
                 ('stride', C.c_uint32), ('values', C.c_uint32)]
 
 
+class GraphObject(C.Structure):
+    _fields_ = [(name, C.c_uint32) for name in ('id', 'wire_class', 'runtime_class', 'offset', 'size', 'is_node')]
+
+
+class GraphNode(C.Structure):
+    _fields_ = [(name, C.c_uint32) for name in ('parent', 'flags', 'children', 'collisions')] + [
+        ('position', C.c_float*3), ('orientation', C.c_float*9), ('scale', C.c_float*3), ('rotation', C.c_float*4)]
+
+
 _library = None
 _load_lock = threading.Lock()
 
@@ -73,6 +82,11 @@ def library():
             'spv_scene_create': (h, [C.POINTER(Node), u]), 'spv_scene_destroy': (None, [h]),
             'spv_scene_bind': (C.c_int, [h, h, C.POINTER(C.c_int32), u]),
             'spv_scene_pose': (C.c_int, [h, f, C.POINTER(Pose), u]),
+            'spv_graph_load': (h, [C.POINTER(C.c_uint8), u]), 'spv_graph_destroy': (None, [h]),
+            'spv_graph_info': (C.c_int, [h, C.POINTER(u), C.POINTER(u), C.POINTER(u)]),
+            'spv_graph_object': (C.c_int, [h, u, C.POINTER(C.c_char), u, C.POINTER(GraphObject)]),
+            'spv_graph_node': (C.c_int, [h, u, C.POINTER(GraphNode)]),
+            'spv_graph_scene': (h, [h, C.POINTER(u), u]),
         }
         try:
             for name, (result, arguments) in signatures.items():
@@ -83,6 +97,8 @@ def library():
             raise NativeError('Неподдерживаемая версия ABI SparkplugViewerNative.dll.')
         if (C.sizeof(Node), C.sizeof(Pose), C.sizeof(ChannelInfo), C.sizeof(AxisInfo)) != (48,44,24,16):
             raise NativeError('Неверный размер структуры native-интерфейса.')
+        if (C.sizeof(GraphObject), C.sizeof(GraphNode)) != (24, 92):
+            raise NativeError('Неверный размер структуры resource graph.')
         _library = lib
         return lib
 
@@ -176,12 +192,44 @@ class Animation(Owned):
             return pose
 
 
+class Graph(Owned):
+    def __init__(self, data):
+        if not 36 <= len(data) <= 64*1024*1024:
+            raise NativeError('SMO превышает допустимый размер или оборван.')
+        lib = library();buffer = (C.c_uint8*len(data)).from_buffer_copy(data)
+        self._initialize(lib.spv_graph_load(buffer, len(buffer)), lib.spv_graph_destroy)
+        try:
+            count, nodes, root = C.c_uint32(), C.c_uint32(), C.c_uint32()
+            check(lib.spv_graph_info(self._get(), C.byref(count), C.byref(nodes), C.byref(root)))
+            self.root, self.node_count, self.objects = root.value, nodes.value, []
+            name = C.create_string_buffer(65536)
+            for ordinal in range(count.value):
+                info = GraphObject()
+                check(lib.spv_graph_object(self._get(), ordinal, name, len(name), C.byref(info)))
+                node = None
+                if info.is_node:
+                    node = GraphNode()
+                    check(lib.spv_graph_node(self._get(), info.id, C.byref(node)))
+                self.objects.append((name.value.decode('latin-1'), info, node))
+        except BaseException:
+            self.close();raise
+
+
 class Scene(Owned):
     def __init__(self, bones, order):
         self.names = tuple(order)
         indices = {name: i for i, name in enumerate(order)}
         if len(indices) != len(order):
             raise NativeError('Повторный узел в порядке скелета.')
+        graph = getattr(bones, 'native_graph', None)
+        if graph is not None:
+            ids = (C.c_uint32*len(order))(*(bones[name].object_id for name in order))
+            lib = library()
+            with graph._lock:
+                self._initialize(lib.spv_graph_scene(graph._get(), ids, len(ids)), lib.spv_scene_destroy)
+            self.bound = None
+            self._poses = (Pose*len(order))()
+            return
         nodes = (Node*len(order))()
         for i, name in enumerate(order):
             bone = bones[name]

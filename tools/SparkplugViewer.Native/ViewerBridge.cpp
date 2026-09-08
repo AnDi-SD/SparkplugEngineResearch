@@ -1,4 +1,5 @@
 #include "ViewerBridge.h"
+#include "ResourceGraph.h"
 #include "Code/Sparkplug/spAnimationSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
@@ -64,7 +65,9 @@ struct Binding {
     spNodeController controller;
 };
 struct Scene {
+    std::shared_ptr<spvhost::ResourceGraph> graph;
     std::vector<SpvNode> initial;
+    std::vector<spNode::Matrix3> orientations;
     std::vector<std::shared_ptr<spNode>> nodes;
     std::shared_ptr<spAnimation> animation;
     std::vector<std::unique_ptr<Binding>> bindings;
@@ -72,7 +75,7 @@ struct Scene {
         for(std::size_t i=0;i<nodes.size();++i) {
             nodes[i]->SetPositionForAnalysis(values<3>(initial[i].position));
             nodes[i]->SetScaleForAnalysis(values<3>(initial[i].scale));
-            nodes[i]->SetOrientationForAnalysis(sparkplug::evidence::pc::animation_math::ToMatrix(values<4>(initial[i].rotation)));
+            nodes[i]->SetOrientationForAnalysis(orientations[i]);
             nodes[i]->MarkLocalTransformDirtyForAnalysis();
         }
     }
@@ -98,6 +101,59 @@ std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
 }
 SPV_API std::uint32_t spv_abi_version() noexcept { return 2; }
 SPV_API const char* spv_last_error() noexcept { return lastError; }
+SPV_API void* spv_graph_load(const std::uint8_t* data,std::uint32_t count) noexcept {
+    std::unique_ptr<spvhost::GraphHandle> result;
+    if(!guarded([&]{result=std::make_unique<spvhost::GraphHandle>();
+        result->graph=std::make_shared<spvhost::ResourceGraph>(data,count);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_graph_destroy(void* handle) noexcept {guarded([&]{delete static_cast<spvhost::GraphHandle*>(handle);});}
+SPV_API int spv_graph_info(void* handle,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept {
+    return guarded([&]{require(handle&&objects&&nodes&&rootID,"Invalid graph metadata output");
+        const auto& graph=*static_cast<spvhost::GraphHandle*>(handle)->graph;
+        *objects=static_cast<std::uint32_t>(graph.entries.size());*nodes=static_cast<std::uint32_t>(graph.nodeIDs.size());*rootID=graph.rootID;});
+}
+SPV_API int spv_graph_object(void* handle,std::uint32_t ordinal,char* name,std::uint32_t capacity,SpvGraphObject* output) noexcept {
+    return guarded([&]{require(handle&&name&&capacity&&output,"Invalid graph object output");
+        const auto& graph=*static_cast<spvhost::GraphHandle*>(handle)->graph;
+        require(ordinal<graph.entries.size(),"Invalid graph object ordinal");const auto& entry=graph.entries[ordinal];
+        require(entry.name.size()<capacity,"Graph name output too small");std::memcpy(name,entry.name.c_str(),entry.name.size()+1);
+        *output={entry.id,entry.wireClassID,entry.object->vfunc_18().classID,entry.offset,entry.size,
+            dynamic_cast<spNode*>(entry.object)?1u:0u};});
+}
+SPV_API int spv_graph_node(void* handle,std::uint32_t id,SpvGraphNode* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid graph node output");
+        const auto& graph=*static_cast<spvhost::GraphHandle*>(handle)->graph;const auto node=graph.Node(id);
+        output->parentID=graph.ID(node->GetParentForAnalysis());output->flags=node->GetFlagsForAnalysis();
+        output->children=static_cast<std::uint32_t>(node->GetChildCountForAnalysis());output->collisions=static_cast<std::uint32_t>(node->GetCollisionCountForAnalysis());
+        const auto& p=node->GetPositionForAnalysis();const auto& r=node->GetOrientationForAnalysis();const auto& s=node->GetScaleForAnalysis();
+        const auto q=sparkplug::evidence::pc::animation_math::FromMatrix(r);
+        std::copy(p.begin(),p.end(),output->position);std::copy(r.begin(),r.end(),output->orientation);std::copy(s.begin(),s.end(),output->scale);
+        std::copy(q.begin(),q.end(),output->rotation);});
+}
+SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_t count) noexcept {
+    std::unique_ptr<Scene> result;
+    if(!guarded([&]{
+        require(handle&&count<=16384&&(ids||!count),"Invalid graph scene selection");
+        result=std::make_unique<Scene>();result->graph=static_cast<spvhost::GraphHandle*>(handle)->graph;
+        std::unordered_map<const spNode*,std::int32_t> indices;
+        for(std::uint32_t i=0;i<count;++i) {
+            auto node=result->graph->Node(ids[i]);
+            require(indices.emplace(node.get(),static_cast<std::int32_t>(i)).second,"Repeated node in graph scene");
+            result->nodes.push_back(std::move(node));
+        }
+        for(const auto& node:result->nodes) {
+            SpvNode rest{};rest.parent=-1;rest.billboard=node->GetBillboardAxisForAnalysis();
+            if(const auto* parent=node->GetParentForAnalysis()) {
+                auto i=indices.find(parent);require(i!=indices.end(),"Graph scene selection omits a parent");rest.parent=i->second;
+            }
+            const auto& p=node->GetPositionForAnalysis();const auto& s=node->GetScaleForAnalysis();
+            std::copy(p.begin(),p.end(),rest.position);std::copy(s.begin(),s.end(),rest.scale);
+            result->initial.push_back(rest);result->orientations.push_back(node->GetOrientationForAnalysis());
+        }
+    }))return nullptr;
+    return result.release();
+}
 SPV_API int spv_read_field(const std::uint8_t* data, std::uint32_t count, SpvFieldHeader* output) noexcept {
     return guarded([&]{
         require(data && count && output,"Missing field input/output");
@@ -148,6 +204,7 @@ SPV_API void* spv_scene_create(const SpvNode* input, std::uint32_t count) noexce
             double norm=0; for(auto v:q) norm+=double(v)*v;
             require(std::abs(norm-1)<0.01,"Expected unit node quaternion");
             require(input[i].billboard<=2,"Unsupported billboard axis");
+            result->orientations.push_back(sparkplug::evidence::pc::animation_math::ToMatrix(q));
             auto node=std::make_shared<spNode>();
             node->SetBillboardAxisForAnalysis(input[i].billboard);
             result->nodes.push_back(std::move(node));

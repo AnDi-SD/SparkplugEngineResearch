@@ -209,83 +209,6 @@ def read_bytes(path):
     return path.read_bytes()
 
 
-def floats(payload, count):
-    """Прочитать ровно count вещественных чисел, например три координаты сустава."""
-    r = Reader(payload)
-    values = r.unpack("f" * count)
-    r.done()
-    if not all(math.isfinite(v) for v in values):
-        raise ConversionError("В данных встретились NaN или бесконечность.")
-    return values
-
-
-@dataclass
-class Entry:
-    """Один объект из каталога игрового файла; меш и кость — разные объекты."""
-    name: str  # Имя объекта, например Head.
-    kind: int  # Числовой идентификатор класса: кость, анимация, меш и т. д.
-    data: memoryview  # Только байты этого объекта, без общего заголовка.
-
-
-def read_ffps(path):
-    """Общая оболочка SMO/SAN. В каталоге хранятся ID, имена и границы объектов."""
-    raw = read_bytes(path)
-    r = Reader(raw)
-    # SMO и SAN имеют одинаковую внешнюю оболочку FFPS. Первые 32 байта
-    # сообщают версию, платформу, размеры и место начала данных объектов.
-    magic, version, _, size, platform, start, data_size, count = r.unpack("4s7I")
-    if magic != b"FFPS" or version != 0x26 or not platform & 3:
-        raise ConversionError("Поддерживаются только PC FFPS версии 0x26.")
-    if size != len(raw) or start + data_size != size or not 36 <= start <= size:
-        raise ConversionError("Размеры FFPS не совпадают с размером файла.")
-    table = Reader(r.take(start - 32))
-    if count > (start - 36) // 18:
-        raise ConversionError("Некорректное число объектов FFPS.")
-    entries = {}
-    for _ in range(count):
-        # Каталог похож на оглавление: номер объекта, имя, класс, смещение, длина.
-        # Смещение считается от начала области данных, а не от начала файла.
-        object_id, name_size = table.unpack("IH")
-        name = table.text(name_size)
-        kind, offset, extent = table.unpack("III")
-        if object_id in entries or extent < 8 or offset + extent > data_size:
-            raise ConversionError("Некорректная запись каталога FFPS.")
-        body = memoryview(raw)[start + offset:start + offset + extent]
-        # У каждого объекта свой маленький заголовок. Проверяем, что оглавление
-        # действительно привело к объекту нужного класса, а не к случайным байтам.
-        if bytes(body[:8]) != struct.pack("<I4s", kind, b"SBOO"):
-            raise ConversionError(f"Неверная сигнатура объекта {name}.")
-        entries[object_id] = Entry(name, kind, body[8:])
-    if table.number("I") != 0:
-        raise ConversionError("Нет нулевого завершения каталога FFPS.")
-    table.done()
-    return entries
-
-
-def fields(data):
-    """Поля Sparkplug: младшие 5 бит — номер, старшие 3 бита — способ задания длины."""
-    r = Reader(data)
-    while r.offset < len(r.data):
-        header = r.number("B")
-        kind, code = header & 31, header >> 5
-        if kind == 31:
-            # Номера 31 и выше не помещаются в 5 бит: настоящий номер идёт следом.
-            kind = r.number("B")
-        if code == 0:
-            # Для поддержанных concrete spNode/spAnimation здесь заканчивается объект.
-            r.done()
-            return
-        # Короткие поля имеют длину 1/2/4/8 прямо в заголовке. Для остальных
-        # длина записана следующим числом шириной 1, 2 или 4 байта.
-        if code <= 4:
-            size = (0, 1, 2, 4, 8)[code]
-        else:
-            size = r.number({5: "B", 6: "H", 7: "I"}[code])
-        # yield отдаёт одно поле вызывающему циклу и продолжает со следующего.
-        yield kind, r.take(size)
-    raise ConversionError("Нет завершения секции Sparkplug.")
-
-
 @dataclass
 class Bone:
     """Нужная нам часть описания кости, без вершин и физических настроек.
@@ -300,54 +223,40 @@ class Bone:
     rotation: tuple = IDENTITY
     kind: int = 0
     scale: tuple = (1.0, 1.0, 1.0)
+    object_id: int = 0
+    orientation: tuple | None = None
+    billboard: int = 0
+
+
+class Skeleton(dict):
+    """Имена для профиля MMD и владелец настоящего графа ресурсов Sparkplug."""
+    def __init__(self, graph=None):
+        super().__init__()
+        self.native_graph = graph
+
+    def close(self):
+        if self.native_graph is not None:
+            self.native_graph.close()
 
 
 def read_skeleton(path):
-    """Из SMO берём concrete spNode и их field 5, а меши/текстуры пропускаем."""
-    entries = read_ffps(path)
-    nodes = {i: e for i, e in entries.items() if e.kind == 0x695C0F65}
-    # Этот номер класса обозначает обычный spNode — узел с положением и поворотом.
-    # Сетки, материалы и текстуры остаются за пределами выбранного набора.
-    bones, links = {}, []
-    for object_id, entry in nodes.items():
-        if entry.name in bones:
-            raise ConversionError(f"Неоднозначное имя узла в SMO: {entry.name}")
-        bone = Bone(entry.name, None, ZERO)
-        seen = set()
-        for kind, payload in fields(entry.data):
-            if kind not in range(9):
-                raise ConversionError(f"Неизвестное поле spNode: {kind}")
-            if kind not in (5, 7) and kind in seen:
-                raise ConversionError(f"Повторное поле spNode: {entry.name}/{kind}")
-            seen.add(kind)
-            if kind == 0:
-                # В игровом узле поля 0/1/2 — положение, поворот и масштаб.
-                bone.position = floats(payload, 3)
-            elif kind == 1:
-                bone.rotation = normalize(floats(payload, 4))
-            elif kind == 2:
-                # Масштаб проверяется позже, только в используемой ветке тела.
-                # У лишней кости/маркера он не должен мешать конвертации.
-                bone.scale = floats(payload, 3)
-            elif kind == 5:
-                # Поле 5 — ссылка на ребёнка. Нельзя считать, что соседний
-                # объект в файле автоматически является дочерней костью.
-                child = Reader(payload)
-                child_id = child.number("I")
-                if len(payload) != 4:
-                    child.take(child.number("I"))
-                child.done()
-                if child_id not in entries:
-                    raise ConversionError("Ссылка на отсутствующий объект SMO.")
-                if child_id in nodes:
-                    links.append((entry.name, nodes[child_id].name))
-        bones[bone.name] = bone
-    for parent, child in links:
-        # Связи строим после чтения всех узлов: ребёнок мог стоять раньше родителя.
-        if bones[child].parent not in (None, parent):
-            raise ConversionError(f"У узла {child} несколько родителей.")
-        bones[child].parent = parent
-    return bones
+    """Общий loader читает SMO целиком; профиль использует реальные spNode."""
+    graph = native.Graph(read_bytes(path))
+    try:
+        bones = Skeleton(graph)
+        nodes = [(name, info, node) for name, info, node in graph.objects if node is not None]
+        names = {info.id: name for name, info, node in nodes}
+        for name, info, node in nodes:
+            if name in bones:
+                raise ConversionError(f"Неоднозначное имя узла в SMO: {name}")
+            bones[name] = Bone(name, names[node.parent] if node.parent else None,
+                               tuple(node.position), tuple(node.rotation), scale=tuple(node.scale),
+                               object_id=info.id, orientation=tuple(node.orientation),
+                               billboard=(node.flags >> 20) & 3)
+        return bones
+    except BaseException:
+        graph.close()
+        raise
 
 
 def read_pmd(path):
@@ -779,40 +688,40 @@ def convert_files(directory, output):
         raise ConversionError("Положите в input хотя бы один SAN с анимацией выбранного SMO.")
 
     # Шаг 3. Скелеты читаем один раз: они одинаковы для всех SAN этого запуска.
-    source = read_skeleton(skeleton_path)
-    model_name, target, iks = read_pmd(model_path)
-    with closing(Retargeter(source, target, iks, BODY_ONLY, MOTION_SCALE)) as rig:
-        print(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
-        print("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
+    with closing(read_skeleton(skeleton_path)) as source:
+        model_name, target, iks = read_pmd(model_path)
+        with closing(Retargeter(source, target, iks, BODY_ONLY, MOTION_SCALE)) as rig:
+            print(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
+            print("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
 
-        # Шаг 4. Обрабатываем по одной анимации, чтобы не хранить весь набор в памяти.
-        # Ошибка одного SAN не мешает получить остальные исправные анимации.
-        rows = []
-        for path in paths:
-            destination = output / (path.stem + ".vmd")
-            row = {"source": path.name, "output": destination.name}
-            try:
-                with read_san(path, set(rig.order)) as clip:
-                    frames, bones = write_vmd(destination, clip, rig, model_name)
-                    row.update(status="ok", duration=clip.duration, frames=frames, bones=bones,
-                               ignored_tracks=clip.ignored, ignored_tags=clip.tags,
-                               missing_tracks=sorted(set(rig.order)-set(clip.tracks)))
-                print(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
-            except (OSError, ValueError, struct.error, OverflowError) as error:
-                row.update(status="error", error=str(error))
-                print(f"ОШИБКА {path.name}: {error}")
-            rows.append(row)
+            # Шаг 4. Обрабатываем по одной анимации, чтобы не хранить весь набор в памяти.
+            # Ошибка одного SAN не мешает получить остальные исправные анимации.
+            rows = []
+            for path in paths:
+                destination = output / (path.stem + ".vmd")
+                row = {"source": path.name, "output": destination.name}
+                try:
+                    with read_san(path, set(rig.order)) as clip:
+                        frames, bones = write_vmd(destination, clip, rig, model_name)
+                        row.update(status="ok", duration=clip.duration, frames=frames, bones=bones,
+                                   ignored_tracks=clip.ignored, ignored_tags=clip.tags,
+                                   missing_tracks=sorted(set(rig.order)-set(clip.tracks)))
+                    print(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
+                except (OSError, ValueError, struct.error, OverflowError) as error:
+                    row.update(status="error", error=str(error))
+                    print(f"ОШИБКА {path.name}: {error}")
+                rows.append(row)
 
-        # Шаг 5. Сохраняем читаемый отчёт. Там видно, какие файлы удались,
-        # какие дополнительные кости были отброшены и чего не хватило в SAN.
-        report = {"version": VERSION, "skeleton": skeleton_path.name, "model": model_path.name,
-                  "motion_scale": rig.scale, "disabled_ik": rig.disabled_ik,
-                  "neutral_target_bones": rig.neutral_bones, "files": rows}
-        (output / "conversion_report.json").write_text(
-            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        errors = sum(row["status"] == "error" for row in rows)
-        print(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
-        return 1 if errors else 0  # Ноль означает успешное завершение программы.
+            # Шаг 5. Сохраняем читаемый отчёт. Там видно, какие файлы удались,
+            # какие дополнительные кости были отброшены и чего не хватило в SAN.
+            report = {"version": VERSION, "skeleton": skeleton_path.name, "model": model_path.name,
+                      "motion_scale": rig.scale, "disabled_ik": rig.disabled_ik,
+                      "neutral_target_bones": rig.neutral_bones, "files": rows}
+            (output / "conversion_report.json").write_text(
+                json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            errors = sum(row["status"] == "error" for row in rows)
+            print(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
+            return 1 if errors else 0  # Ноль означает успешное завершение программы.
 
 
 def main():

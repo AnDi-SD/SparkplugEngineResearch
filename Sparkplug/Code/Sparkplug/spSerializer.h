@@ -157,7 +157,14 @@ namespace sparkplug::reconstruction
         // Optional host observation of the completed file's FAT identities.
         // Borrowed pointers retain no additional ownership and live only as
         // long as the context/external owners. Native FAT cleanup is unchanged.
-        struct FileObjectForAnalysis { std::uint32_t id; spBaseObject* object; };
+        struct FileObjectForAnalysis
+        {
+            std::uint32_t id; spBaseObject* object;
+            // Optional host snapshot of the FAT that the original loader clears.
+            // These are wire identities/extents, not the runtime factory's class.
+            std::uint32_t wireClassID = 0, offset = 0, size = 0;
+            std::string name;
+        };
         bool captureFileObjectIDsForAnalysis = false;
         std::vector<FileObjectForAnalysis> fileObjectsForAnalysis;
         [[nodiscard]] std::shared_ptr<spBaseObject> ShareObjectForAnalysis(

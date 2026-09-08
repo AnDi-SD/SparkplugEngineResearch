@@ -56,6 +56,11 @@ def native_world(source, order, tracks):
                  [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w), position[1]],
                  [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y), position[2]],
                  [0, 0, 0, 1]]
+        if '3' not in channels and bone.orientation is not None:
+            # Exact authored engine matrix; test uses column vectors.
+            for i in range(3):
+                for j in range(3):
+                    local[i][j] = bone.orientation[j*3+i]
         parent = result.get(bone.parent, identity)
         result[name] = [[sum(parent[i][k]*local[k][j] for k in range(4))
                          for j in range(4)] for i in range(4)]
@@ -137,6 +142,7 @@ def validate(external, path, source_path, model_path, native_fixture, baseline):
         row['previous_vmd_sha256'] = digest(baseline['old'])
     clip.close()
     rig.close()
+    source.close()
     return row
 
 

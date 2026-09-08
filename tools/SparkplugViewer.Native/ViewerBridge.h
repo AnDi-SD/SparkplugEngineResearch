@@ -16,6 +16,16 @@ struct SpvChannelInfo { std::uint32_t sourceKeys, axes, uniqueTimes, representat
 struct SpvAxisInfo { std::uint32_t representation, keys, stride, values; };
 struct SpvLinearChannel { const float* times; const float* values; std::uint32_t count; };
 struct SpvFieldHeader { std::uint32_t field, payloadSize, headerSize; };
+struct SpvGraphObject {std::uint32_t id,wireClassID,runtimeClassID,offset,size,isNode;};
+struct SpvGraphNode {std::uint32_t parentID,flags,children,collisions;float position[3],orientation[9],scale[3],rotation[4];};
+SPV_API void* spv_graph_load(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_graph_destroy(void*) noexcept;
+SPV_API int spv_graph_info(void*,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept;
+SPV_API int spv_graph_object(void*,std::uint32_t ordinal,char* name,std::uint32_t capacity,SpvGraphObject*) noexcept;
+SPV_API int spv_graph_node(void*,std::uint32_t id,SpvGraphNode*) noexcept;
+// Select actual loaded Node objects, including every parent of the selection.
+// The scene retains their whole resource graph and preserves authored matrices.
+SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count) noexcept;
 SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;

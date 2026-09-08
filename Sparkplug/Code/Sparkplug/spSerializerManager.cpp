@@ -412,7 +412,8 @@ namespace sparkplug::reconstruction
                 std::vector<spSerializerReadContextForAnalysis::FileObjectForAnalysis> observed;
                 observed.reserve(fat_->GetResourceCountForAnalysis());
                 for (auto* entry = fat_->FirstForAnalysis(); entry; entry = fat_->NextForAnalysis())
-                    observed.push_back({entry->id, entry->object});
+                    observed.push_back({entry->id, entry->object, entry->classID,
+                        entry->offset, entry->size, entry->name});
                 context.fileObjectsForAnalysis = std::move(observed);
             }
             catch (...)

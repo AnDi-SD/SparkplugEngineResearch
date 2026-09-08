@@ -29,44 +29,24 @@ def copy_runtime(package):
 
 
 def poison_ignored_curves(path, ignored):
-    """Keep real SAN body keys, but replace unused PRS with unsupported curves.
+    """Test-only four-byte corruption, using the existing research inspector.
 
-    This is a test-only FFPS writer. It preserves fields, names and durations;
-    representation 99 must be rejected by the shared whole-file loader.
-    Original game files are never modified.
+    No production parser or alternate writer. File and field extents stay intact.
     """
-    entries = converter.read_ffps(path)
-    assert len(entries) == 1
-    object_id, entry = next(iter(entries.items()))
-    output, pending, changed = bytearray(), [], 0
-
-    def emit(kind, payload):
-        header = bytes([0xE0 | kind]) if kind < 31 else bytes([0xFF, kind])
-        return header + struct.pack("<I", len(payload)) + payload
-
-    for kind, payload in converter.fields(entry.data):
-        if kind in (2, 3, 4):
-            pending.append((kind, payload))
+    sys.path.insert(0, str(ROOT/'research'))
+    from inspect_pc_san_keys import inspect
+    _, tracks = inspect(path.resolve())
+    raw, changed = bytearray(path.read_bytes()), 0
+    for track in tracks:
+        if track['name'] not in ignored:
             continue
-        if kind == 1:
-            reader = converter.Reader(payload)
-            name = reader.text(reader.number("H"))
-            reader.done()
-            for role, curve in pending:
-                if name in ignored:
-                    curve = struct.pack("<I", 99)
-                    changed += 1
-                output += emit(role, curve)
-            pending.clear()
-        output += emit(kind, payload)
-    assert not pending
-    body = struct.pack("<I4s", entry.kind, b"SBOO") + output + b"\0"
-    name = entry.name.encode("latin1") + b"\0"
-    table = struct.pack("<IH", object_id, len(name)) + name
-    table += struct.pack("<III", entry.kind, 0, len(body)) + bytes(4)
-    start = 32 + len(table)
-    header = struct.pack("<4s7I", b"FFPS", 0x26, 0, start+len(body), 2, start, len(body), 1)
-    return header + table + body, changed
+        for row in track['roles'].values():
+            offset = row['offset'];header = raw[offset];code = header >> 5
+            offset += 1 + int((header & 31) == 31) + (0 if code <= 4 else (1, 2, 4)[code-5])
+            assert raw[offset:offset+len(row['payload'])] == row['payload']
+            struct.pack_into('<I', raw, offset, 99)
+            changed += 1
+    return bytes(raw), changed
 
 
 def mmd_world(target, keys, frame):

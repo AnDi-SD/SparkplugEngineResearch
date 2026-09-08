@@ -1,13 +1,17 @@
-param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switch]$Fresh, [switch]$RunChecks)
+param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switch]$Fresh, [switch]$RunChecks,
+    [string]$VisualStudioPath)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $taskRepo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskBuild = Join-Path $taskRepo "artifacts/native/viewer/$Configuration"
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 if (-not (Test-Path -LiteralPath $vswhere)) { throw 'Visual Studio C++ tools are required.' }
-$installation = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-if (-not $installation) { throw 'Install the Visual Studio Desktop development with C++ workload.' }
+$installation = if ($VisualStudioPath) { [IO.Path]::GetFullPath($VisualStudioPath) } else {
+    & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+}
+if (-not $installation) { throw 'No complete C++ workload found. If VS is pending restart but its compiler is available, pass -VisualStudioPath explicitly.' }
 $devCmd = Join-Path $installation 'Common7/Tools/VsDevCmd.bat'
+if (-not (Test-Path -LiteralPath $devCmd -PathType Leaf)) { throw 'The selected Visual Studio toolchain has no VsDevCmd.bat.' }
 # Only build-tool paths enter cmd; environment output is consumed, never logged.
 $environmentLines = & $env:ComSpec /d /s /c "`"$devCmd`" -arch=x64 -host_arch=x64 >nul && set"
 if ($LASTEXITCODE -ne 0) { throw 'Cannot initialize the x64 compiler environment.' }
