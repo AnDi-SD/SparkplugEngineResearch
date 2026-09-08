@@ -55,3 +55,11 @@ CheckSuites для адресной сборки/проверки. Подроб�
 native unknown/repeated face fields и независимый count. C++83 checks,
 C#9 271/2 946/1 504 на трёх файлах и два whole graphs прошли. Досье:
 `docs/research/tool-mesh-bv-shared-core-2026-09-09.md`.
+
+Седьмой блок: общие render mesh buffers и vertex layout вместо C# E0/E1
+разборщиков. Пять свежих original PC/ABI сравнений, FullLoader213,
+C#9 282/2 957/1 505 на трёх файлах и два graphs прошли. Нормали сохраняют raw
+значения, planning header не переопределяет IB/VB. Отмечено старое расхождение
+packed combiner cached size; standalone path свежей проверкой совпал, перенос
+combined cached member отложен отдельно. Досье:
+`docs/research/tool-render-mesh-shared-core-2026-09-09.md`.

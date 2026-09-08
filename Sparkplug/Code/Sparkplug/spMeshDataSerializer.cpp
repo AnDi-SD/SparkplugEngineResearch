@@ -72,7 +72,7 @@ namespace sparkplug::reconstruction
         // Actual PC42AFD0 ignores both header words and creates DXMesh, not the
         // MeshData RTTI factory. The common manager still validates FAT extents.
         spSerializerObjectHeaderForAnalysis header;
-        if(!source.ReadData(&header,sizeof(header)))return nullptr;
+        if(!ReadObjectHeaderForAnalysis(source,header))return nullptr;
         if(observedHeader)*observedHeader=header;
         try{return std::make_unique<spDXMesh>();}catch(...){return nullptr;}
     }
@@ -83,8 +83,35 @@ namespace sparkplug::reconstruction
         return ReadMeshFieldsForAnalysis(context,source,byteCount,object,false,error);
     }
 
+    bool spMeshDataSerializer::ReadBuffersForAnalysis(spStream& source,std::uint32_t size,bool native,
+        spIndexBuffer& indices,spVertexBuffer& vertices,std::string* error,BufferReadObservationForAnalysis* observation)
+    {
+        if(error)error->clear();
+        const auto fail=[&](const char* message){if(error)*error=message;return false;};
+        std::uint32_t start=0,position=0;
+        if(!size||size>MaximumPayloadBytesForAnalysis||!source.GetCurrentPosition(start))return fail("Invalid bounded mesh buffer extent");
+        BufferReadObservationForAnalysis observed;
+        if(native) {
+            if(size<17)return fail("Truncated native mesh planning header");
+            // Original429A40 reads and ignores these planning values. Recording
+            // them does not let them override the actual IB/VB headers below.
+            for(auto& word:observed.planningWords)if(!source.Read(word))return fail("Truncated native mesh planning header");
+            if(!source.Read(observed.planningByte))return fail("Truncated native mesh planning header");
+        }
+        if(!source.GetCurrentPosition(position)||position<start||position-start>size
+            ||!indices.ReadForAnalysis(source,size-(position-start)))return fail("Invalid bounded mesh index buffer");
+        if(!source.GetCurrentPosition(position)||position<start||position-start>size)return fail("Invalid mesh index extent");
+        observed.indexPayloadOffset=position-start-static_cast<std::uint32_t>(indices.GetIndexCountForAnalysis()*indices.GetIndexElementSizeForAnalysis());
+        if(!vertices.ReadForAnalysis(source,size-(position-start)))return fail("Invalid bounded mesh vertex buffer");
+        if(!source.GetCurrentPosition(position)||position<start||position-start!=size)return fail("Unaccounted mesh payload bytes");
+        observed.vertexPayloadOffset=position-start-vertices.GetVertexSizeForAnalysis();
+        if(observation)*observation=observed;
+        return true;
+    }
+
     bool spMeshDataSerializer::ReadMeshFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
-        spStream& source,std::uint32_t byteCount,spBaseObject& object,bool dxFields,std::string* error) const
+        spStream& source,std::uint32_t byteCount,spBaseObject& object,bool dxFields,std::string* error,
+        const BufferReadObserverForAnalysis& observer) const
     {
         if(error)error->clear();
         const auto fail=[&](const char* message){if(error)*error=message;return false;};
@@ -123,23 +150,16 @@ namespace sparkplug::reconstruction
             spMemoryStream payload;
             if(!payload.ResizeAndSetSize(header->payloadSize)||
                 !source.ReadData(payload.GetBuffer(),header->payloadSize))return fail("Cannot read bounded mesh payload");
-            if(native)
-            {
-                // Original429A40 discards this planning header. CPU buffer
-                // headers, not these five numbers, determine actual decoding.
-                std::uint32_t ignored=0;std::uint8_t ignoredByte=0;
-                if(!payload.Read(ignored)||!payload.Read(ignored)||!payload.Read(ignored)||
-                    !payload.Read(ignored)||!payload.Read(ignoredByte))return fail("Truncated native mesh planning header");
-            }
             spIndexBuffer indices;spVertexBuffer vertices;
-            if(!payload.GetCurrentPosition(position)||position>header->payloadSize||
-                !indices.ReadForAnalysis(payload,header->payloadSize-position))return fail("Invalid bounded mesh index buffer");
-            if(!payload.GetCurrentPosition(position)||position>header->payloadSize||
-                !vertices.ReadForAnalysis(payload,header->payloadSize-position))return fail("Invalid bounded mesh vertex buffer");
-            if(!payload.GetCurrentPosition(position)||position!=header->payloadSize)return fail("Unaccounted mesh payload bytes");
+            BufferReadObservationForAnalysis observed;
+            if(!ReadBuffersForAnalysis(payload,header->payloadSize,native,indices,vertices,error,observer?&observed:nullptr))return false;
             if(!mesh->InitializeFromBuffersForAnalysis(indices,vertices,false,context.activeMeshCombiner,context.pcRenderer))
                 return fail("Cannot initialize PC mesh buffers/ranges/declaration");
             initialized=true;
+            if(observer) {
+                observed.fieldID=header->fieldID;observed.fieldPayloadOffset=header->dataStreamPosition-start;
+                observer(indices,vertices,observed);
+            }
         }
         return fail("Mesh field-count bound exceeded");
     }

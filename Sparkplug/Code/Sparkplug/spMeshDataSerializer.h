@@ -7,10 +7,14 @@
 #include "spSerializer.h"
 
 #include <cstdint>
+#include <array>
+#include <functional>
 #include <vector>
 
 namespace sparkplug::reconstruction
 {
+    class spIndexBuffer;
+    class spVertexBuffer;
     class spMeshDataSerializer : public spSerializer
     {
     public:
@@ -51,9 +55,19 @@ namespace sparkplug::reconstruction
             std::uint32_t nativeSerializationMode) noexcept;
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             std::uint32_t nativeSerializationMode) const;
-    protected:
+        // Host observations of the actual reader, not original object members.
+        struct BufferReadObservationForAnalysis {
+            std::uint32_t fieldID=0,fieldPayloadOffset=0,indexPayloadOffset=0,vertexPayloadOffset=0;
+            std::array<std::uint32_t,4> planningWords{};
+            std::uint8_t planningByte=0;
+        };
+        using BufferReadObserverForAnalysis=std::function<void(const spIndexBuffer&,
+            const spVertexBuffer&,const BufferReadObservationForAnalysis&)>;
+        // PC429A40/portable buffer branch. Also used by direct field inspectors.
+        [[nodiscard]] static bool ReadBuffersForAnalysis(spStream&,std::uint32_t,bool native,
+            spIndexBuffer&,spVertexBuffer&,std::string*,BufferReadObservationForAnalysis* = nullptr);
         [[nodiscard]] bool ReadMeshFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
             spStream& source, std::uint32_t byteCount, spBaseObject& object,
-            bool dxFields, std::string* error) const;
+            bool dxFields, std::string* error,const BufferReadObserverForAnalysis& observer={}) const;
     };
 }

@@ -24,6 +24,23 @@ struct SpvContainerInfo {std::uint32_t signature,version,exportTag,fileSize,plat
 struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,classID,offset,size,signatureClassID,signatureFlags;};
 struct SpvMeshBVInfo {std::uint32_t primitiveType,vertices,indices,faces,hasFaces,fieldMask,vertexPayloadOffset,faceClassID;};
 struct SpvFaceData {std::uint32_t surfaceType,flags,surfaceID,fieldMask;};
+struct SpvVertexLayout {std::uint32_t stride;std::int32_t normal,color,uv0,uv1,weights,bones;};
+struct SpvMeshInfo {
+    std::uint32_t fieldID,fieldPayloadOffset,indexPayloadOffset,vertexPayloadOffset;
+    std::uint32_t primitiveType,primitives,vertices,indices,indexElementSize;
+    std::uint32_t serializedStride,runtimeStride,runtimeVBSize,componentFlags,attributes;
+    std::uint32_t planningWords[4],planningByte;
+};
+struct SpvMeshVertex {float position[3],normal[3],uv0[2],uv1[2],weights[4];std::uint32_t color,bones;};
+// kind0: complete MeshData field stream; kind1: portable field; kind2: PC field.
+// kind3/4: same portable/PC reader, metadata only (no host attribute validation).
+// platformMask controls the original whole-field selector, without fallback.
+SPV_API void* spv_mesh_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind,std::uint32_t platformMask) noexcept;
+SPV_API void spv_mesh_destroy(void*) noexcept;
+SPV_API int spv_mesh_info(void*,SpvMeshInfo*) noexcept;
+SPV_API int spv_mesh_vertices(void*,SpvMeshVertex*,std::uint32_t) noexcept;
+SPV_API int spv_mesh_indices(void*,std::uint32_t*,std::uint32_t) noexcept;
+SPV_API int spv_vertex_layout(std::uint32_t componentFlags,SpvVertexLayout*) noexcept;
 // kind 0: MeshBV field stream (no SBOO header), 1: geometry field, 2: face field.
 // Leaf readers invoke the same actual serializers as whole resource loading.
 SPV_API void* spv_mesh_bv_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind) noexcept;

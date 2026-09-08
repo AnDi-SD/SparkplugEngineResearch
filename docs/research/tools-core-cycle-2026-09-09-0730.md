@@ -130,3 +130,17 @@ C# геометрия MeshBV и wxFaceData теперь используют о�
 два полных resource graphs сохранили результат. Досье:
 `docs/research/tool-mesh-bv-shared-core-2026-09-09.md`.
 Следующий приоритет — общий render mesh reader и его typed buffer view.
+
+### Седьмой блок: render mesh и vertex layout
+
+C# E0/E1/PC metadata parsers и собственная таблица offsets заменены общими
+классами. Whole reader выбирает original поле по платформе; normal сохраняет
+значение файла. Пять свежих original-PC/tools ABI сравнений, FullLoader213,
+C#9 282/2 957/1 505 на PC menu/PS2 menu/Bloom и два whole graphs прошли.
+PS2 native packet metadata пока требует переноса. Досье:
+`docs/research/tool-render-mesh-shared-core-2026-09-09.md`.
+
+Отдельно сообщено прежнее расхождение packed combiner cached byteSize. Новая
+standalone mesh загрузка совпала с оригиналом; выдача комбинированного cached
+member за точное native состояние приостановлена, рекомендация разделения
+игрового member и host storage size записана в досье.

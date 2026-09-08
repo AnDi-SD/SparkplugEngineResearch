@@ -45,11 +45,11 @@ template<class T,class S> void Register(spSerializerManager& manager) {
     if(!manager.RegisterForAnalysis(T::ClassID,std::make_shared<S>(),255,1))
         throw std::runtime_error("Cannot register reconstructed resource reader");
 }
+}
 std::shared_ptr<spPCRenderer> CpuRenderer() {
     // One declaration/cache owner, as required by the engine singleton. It has
     // no device and never enters legacy startup. Calls are serialized by C ABI.
     static auto renderer=std::make_shared<spPCRenderer>();return renderer;
-}
 }
 ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     if(!bytes||count<36||count>64u*1024u*1024u)throw std::runtime_error("SMO must fit 64 MiB");

@@ -1,5 +1,6 @@
 #include "ViewerBridge.h"
 #include "ResourceGraph.h"
+#include "RenderMeshView.h"
 #include "Code/Sparkplug/spAnimationSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
@@ -192,6 +193,28 @@ std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
 }
 SPV_API std::uint32_t spv_abi_version() noexcept { return 2; }
 SPV_API const char* spv_last_error() noexcept { return lastError; }
+SPV_API void* spv_mesh_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind,std::uint32_t platformMask) noexcept {
+    std::unique_ptr<spvhost::RenderMeshView> result;
+    if(!guarded([&]{require(bytes&&size,"Missing render mesh input");BorrowedInput input(bytes,size);
+        result=std::make_unique<spvhost::RenderMeshView>(input,size,kind,platformMask);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_mesh_destroy(void* handle) noexcept {guarded([&]{delete static_cast<spvhost::RenderMeshView*>(handle);});}
+SPV_API int spv_mesh_info(void* handle,SpvMeshInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing mesh info input/output");*output=static_cast<spvhost::RenderMeshView*>(handle)->info;});
+}
+SPV_API int spv_mesh_vertices(void* handle,SpvMeshVertex* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing render mesh handle");const auto& values=static_cast<spvhost::RenderMeshView*>(handle)->vertices;
+        require(values.size()==count&&(output||!count),"Mesh vertex output count mismatch");if(count)std::copy(values.begin(),values.end(),output);});
+}
+SPV_API int spv_mesh_indices(void* handle,std::uint32_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing render mesh handle");const auto& values=static_cast<spvhost::RenderMeshView*>(handle)->indices;
+        require(values.size()==count&&(output||!count),"Mesh index output count mismatch");if(count)std::copy(values.begin(),values.end(),output);});
+}
+SPV_API int spv_vertex_layout(std::uint32_t flags,SpvVertexLayout* output) noexcept {
+    return guarded([&]{require(output,"Missing vertex layout output");spVertexBuffer vb;
+        require(vb.InitializeForAnalysis(flags,0),"Cannot initialize original vertex layout");*output=spvhost::RenderMeshView::Layout(vb);});
+}
 SPV_API void* spv_mesh_bv_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) noexcept {
     std::unique_ptr<MeshBVView> result;
     if(!guarded([&]{result=std::make_unique<MeshBVView>(bytes,size,kind);}))return nullptr;

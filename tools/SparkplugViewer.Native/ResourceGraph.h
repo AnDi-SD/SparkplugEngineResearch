@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 namespace spvhost {
+std::shared_ptr<sparkplug::reconstruction::spPCRenderer> CpuRenderer();
 class ResourceGraph final {
 public:
     using Object = sparkplug::reconstruction::spBaseObject;
