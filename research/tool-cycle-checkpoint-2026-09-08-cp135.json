@@ -1,0 +1,59 @@
+{
+  "kind": "tool-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP135",
+  "createdUtc": "2026-09-08T14:56:05.422528+00:00",
+  "documentation": "docs/research/tool-suite-handoff-2026-09-08.md",
+  "scopeId": "tools-pc-operations-v1",
+  "scopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "assessmentPath": "research/tool-readiness-assessment-2026-09-08-cp134.json",
+  "assessmentManifestSha256": "3EDA57D250A5B74FF0695A18ED0FD78172E0F317711F648DC924C6E31F1C3585",
+  "validationPath": "research/tool-suite-handoff-validation-2026-09-08.json",
+  "validationSha256": "1D6F10A30C6DBDC9248B4ABD3E81B67CAE7A2EB7E0CA71FF8E97AEE8E1559C7B",
+  "snapshotPath": "local-data/results/tool-cycle-20260908-1900/readiness-cp135.json",
+  "snapshotSha256": "302F0C571065DC96F6A20571FE0744DC8CFB56937E95611FE50770927C75D4D9",
+  "readyCount": 16,
+  "totalCount": 16,
+  "readyPercent": 100.0,
+  "stagePassedCounts": {
+    "contract": 16,
+    "integration": 16,
+    "validation": 16
+  },
+  "cycleDelta": {
+    "readyCountDelta": 5,
+    "newlyReady": [
+      "export.fbx-alpha",
+      "san.rare-keys",
+      "texture.inspect",
+      "texture.replace-gui",
+      "texture.resize-repack"
+    ],
+    "noLongerReady": [],
+    "percentagePointDelta": 31.25
+  },
+  "newlyDeliveredOperations": [],
+  "evidence": {
+    "pcInputs": 2,
+    "actualSuiteHandoffs": 2,
+    "receivedSan": 1,
+    "guiFbxExport": true,
+    "independentBlenderImport": true,
+    "meshes": 6,
+    "vertices": 5280,
+    "triangles": 1880,
+    "sampledVertexPositions": 15840,
+    "inputsUnchanged": true
+  },
+  "productionCodeChanged": false,
+  "cp134ArchivesUnchanged": true,
+  "unchangedNativeClassLedger": true,
+  "publishStatus": "local-candidates; public push still awaits previously requested exact-destination approval",
+  "documentationAudit": {
+    "markdownFiles": 448,
+    "jsonFiles": 210,
+    "relativeLinks": 1689,
+    "errors": 0,
+    "scope": "Full audit before this checkpoint JSON; checkpoint separately parsed."
+  }
+}
