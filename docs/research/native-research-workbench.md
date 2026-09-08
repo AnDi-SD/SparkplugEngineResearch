@@ -7,6 +7,15 @@ DX mesh materialization, Node resource graph. Реализован отдель�
 Общий разрешённый бюджет RAM — около 1 ГиБ на все исследовательские процессы;
 существующие ограничения отдельных утилит описаны ниже и сами не меняются.
 
+С 8 сентября PC остаётся главным направлением, а PS2 получает отдельную
+сопутствующую очередь: общая сериализация/save, spatial/collision/navigation
+и частицы. Связи `companionPcItems` указывают PC-задачи, которым полезно
+сопоставление. Они не являются `dependsOn` и не переносят evidence или scores.
+Планирование двух платформ и подбор коротких выборок описаны в манифесте;
+автоматического планировщика PC/PS2 и универсального cache результатов нет.
+У новых PS2-задач пока пустые `testProfiles`: сначала требуется выбрать или
+создать подходящие bounded проверки. Добавление задачи не означает её выполнение.
+
 Обновление CP26–27: каждый CLI `run` сохраняет отдельный generated JSON в
 `local-data/results/bounded-native-runs/`, обновляя его после каждого child.
 Статусы passed/failed/deadline различают полный успех и остановку; записаны
@@ -29,6 +38,7 @@ DX mesh materialization, Node resource graph. Реализован отдель�
 python research/native_workbench.py dossier spOctreeNode --platform pc
 python research/native_workbench.py dossier spOctreeNode --platform ps2 --json
 python research/native_workbench.py queue --platform pc
+python research/native_workbench.py queue --platform ps2
 ```
 
 Паспорт берёт из SQLite уже зарегистрированные ID/base/registration locator,
@@ -43,7 +53,7 @@ payload для этого **не сканируются**. Историческ�
 assessments и знаменатели каталога считаются отдельно от этих corpus counts.
 
 [native-work-items.json](../../research/native-work-items.json) — reviewed
-очередь из 17 участков. Первоначальные четыре: plane storage, concrete spatial
+очередь из 21 участка: 18 PC и 3 PS2. Первоначальные четыре: plane storage, concrete spatial
 membership, occluder topology, native mesh submission. Очередь хранит ссылки,
 проверенные факты, отдельные неизвестные **behavior/name/path/ABI**, наборы
 проверок и исследовательский порядок. `dependsOn` здесь не означает доказанный

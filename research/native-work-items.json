@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "notes": "Reviewed PC-first research sequence, not an exhaustive call graph. dependsOn records investigation ordering, not a claim that isolated downstream work is impossible. Unnamed helper labels are analytical, never original classes. PS2 mappings must be added independently.",
+  "notes": "Reviewed PC-first sequence with a standing PS2 companion queue; not an exhaustive call graph. PC remains the main delivery target. dependsOn records same-platform investigation ordering, not required runtime edges. companionPcItems records useful cross-platform research pairings only, never ABI equivalence, score transfer or a scheduling dependency. Unnamed helper labels are analytical, never original classes. Policy: docs/research/research-manifesto.md. No automatic two-platform scheduler or universal result cache is implemented.",
   "items": [
     {
       "id": "pc-texture-codec-backend",
@@ -967,6 +967,118 @@
       "testProfiles": [
         "pc-scene-manager-world"
       ]
+    },
+    {
+      "id": "ps2-shared-serialization-save",
+      "platform": "ps2",
+      "priority": 0,
+      "status": "queued",
+      "classes": [
+        "spSerializerManager",
+        "spSerializer",
+        "spRTTIManager"
+      ],
+      "dependsOn": [],
+      "companionPcItems": [
+        "pc-smo-san-loader-save",
+        "pc-dx-mesh-materialization"
+      ],
+      "summary": "Use accessible PS2 shared serialization/registration code to locate outer whole-save dispatch and resolve common contracts needed by PC. Preserve independent PS2 evidence and verify actual PC differences before implementation credit.",
+      "known": [
+        "Existing PS2 serializer and manager dossiers provide registration, constructor, stream and reference-contract anchors; this queue addition records no new binary execution."
+      ],
+      "unknowns": [
+        {
+          "kind": "behavior",
+          "text": "Locate and validate complete original PS2 whole-save caller, FAT/offset/indexing order and its correspondence to the unresolved PC outer operation. Do not equate read materialization or a compatible host producer with original whole Save."
+        },
+        {
+          "kind": "abi",
+          "text": "Map actual PC layout, virtual slots and platform-hook differences independently; class identity does not establish identical behavior."
+        }
+      ],
+      "evidencePaths": [
+        "docs/research/native-class-sp-serializer-manager.md",
+        "docs/research/native-class-sp-serializer.md",
+        "docs/research/native-pc-san-file-roundtrip.md",
+        "docs/engine/original-architecture.md"
+      ],
+      "testProfiles": []
+    },
+    {
+      "id": "ps2-spatial-collision-navigation",
+      "platform": "ps2",
+      "priority": 1,
+      "status": "queued",
+      "classes": [
+        "spVisibilityManager",
+        "spZonePortal",
+        "spCollisionManager",
+        "spCollisionInfo",
+        "spNavigationGraph"
+      ],
+      "dependsOn": [],
+      "companionPcItems": [
+        "pc-visibility-plane-storage",
+        "pc-spatial-membership",
+        "pc-node-resource-graph"
+      ],
+      "summary": "Start with one accessible PS2 common spatial contract that removes a PC blocker, then examine collision/navigation runtime consumers of already decoded resources. Each contract receives separate PS2 and PC evidence.",
+      "known": [
+        "Existing dossier exposes PS2 CollisionManager primitive-pair dispatch through a7x7 table; navigation graph wire data are decoded. Neither fact proves a complete collision/navigation runtime."
+      ],
+      "unknowns": [
+        {
+          "kind": "behavior",
+          "text": "Choose and execute a bounded PS2 visibility-copy/portal or collision query contract, establish correspondence to actual PC callers, then cover required branches. Full collision/navigation runtime remains open."
+        },
+        {
+          "kind": "abi",
+          "text": "PS2 plane/container layouts, ownership and rounding must be established independently; PC protected45E870 must not be replaced by an assumed equal-layout copy."
+        }
+      ],
+      "evidencePaths": [
+        "docs/engine/physics-and-collision.md",
+        "docs/research/smo-class-sp-navigation-graph.md",
+        "docs/research/native-pc-visibility-plane-storage.md",
+        "docs/research/native-pc-zone-portal-runtime.md"
+      ],
+      "testProfiles": []
+    },
+    {
+      "id": "ps2-particle-runtime",
+      "platform": "ps2",
+      "priority": 2,
+      "status": "queued",
+      "classes": [
+        "spParticleSystem",
+        "spParticleSystemSerializer",
+        "spParticleSystemManager"
+      ],
+      "dependsOn": [],
+      "companionPcItems": [
+        "pc-particle-parameters"
+      ],
+      "summary": "Use PS2 particle reader/runtime bodies to understand shared looping emission and simulation, then compare the corresponding PC path. Reuse documented PC questions while keeping PS2 layouts, random-state behavior and results independent.",
+      "known": [
+        "The shared particle format dossier contains PC/PS2 field evidence. CP120-122 parameter/sampling executable comparisons are PC-only and do not count as PS2 runtime proof."
+      ],
+      "unknowns": [
+        {
+          "kind": "behavior",
+          "text": "Establish PS2 emission/update/lifetime and looping contracts, locate PC counterparts, and select bounded examples that expose a new common behavior. Full render and clone/reinit remain separate."
+        },
+        {
+          "kind": "abi",
+          "text": "Verify PS2 object/region layout, random generator state and float rounding; do not import PC offsets or bit-exact assumptions."
+        }
+      ],
+      "evidencePaths": [
+        "docs/research/smo-class-sp-particle-system.md",
+        "docs/research/native-pc-particle-parameters.md",
+        "docs/research/native-pc-particle-sampling.md"
+      ],
+      "testProfiles": []
     }
   ],
   "testProfiles": {
