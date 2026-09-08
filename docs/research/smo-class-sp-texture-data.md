@@ -4,8 +4,10 @@
 восстановлены для чтения на всём доступном PC/PS2-корпусе. Viewer показывает
 структурные поля и продолжает выводить BGRA-превью PC/cross-platform вариантов.
 Нативные PS2-буферы разобраны без остатка по границам, но их swizzle и точное
-преобразование каналов в BGRA пока намеренно не угадываются. Запись и мутация не
-включены.
+преобразование каналов в BGRA пока намеренно не угадываются.
+[CP125](tool-texture-writer-2026-09-08.md) добавил запись/resize одного встроенного
+PC BGRA mip; [CP130](tool-importer-textures-2026-09-08.md) подключил тот же
+структурный writer к новым ресурсам Importer. PS2/multiple-mip запись не включена.
 
 Нативный layout/lifetime и concrete buffer-copy path теперь вынесены в
 [`native-class-sp-texture-data.md`](native-class-sp-texture-data.md). Эта
@@ -63,7 +65,7 @@ Executable обеих платформ подтверждают имена:
 field 5 payload:
     UInt32 width
     UInt32 height
-    UInt32 auxiliaryValue       // в корпусе 0 или 1; точное имя не восстановлено
+    UInt32 pixelFormat          // наблюдаемые 0/1 дают четырёхбайтовые pixels
     UInt32 bytesPerPixel        // всегда 4
     byte bgra[width*height*4]
 terminator
@@ -71,6 +73,15 @@ terminator
 
 Размер проверяется точным равенством `16 + width * height * 4`. Это обычный
 несжатый BGRA32; Viewer может показывать его без платформенной конверсии.
+
+Первоначальное имя `auxiliaryValue` третьего слова устарело:
+[оригинальный cross reader CP115–116](native-pc-texture-cross-upload.md)
+подтвердил pixel format отдельно от следующего pixel size. В текущем C# record
+оно находится в `FormatValue`; `AuxiliaryValue` cross-представления исторически
+содержит bytes-per-pixel. Переносить последнее в format запрещено.
+Bare legacy field 0 и корректная embedded-обёртка имеют разное поведение
+оригинального DX reader; успешный структурный decode сам по себе не доказывает
+инициализацию runtime-текстуры.
 
 ## Embedded-обёртка
 
@@ -220,6 +231,7 @@ SmoViewer.Inspect research-db analyze-class <db> spTextureData
 аннотирует прямые поля decoded JSON, записывает пять вариантов, 7 485 назначений
 и четыре evidence-записи. Проверка идемпотентна.
 
-Открыты только две отдельные задачи: точная семантика PS2 auxiliary/descriptors
-и подтверждённое unswizzle/channel conversion для визуального превью; безопасная
-перезапись размеров, палитр и mip-цепочек потребует нативного теста обеих игр.
+Открыты точная семантика PS2 auxiliary/descriptors и подтверждённое
+unswizzle/channel conversion для визуального превью. Запись палитр и нескольких
+явных mip-уровней остаётся вне реализованного PC writer; готовность одиночного
+PC BGRA mip не переносится на эти варианты или PS2.

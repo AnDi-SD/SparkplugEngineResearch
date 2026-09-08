@@ -73,8 +73,6 @@ public sealed record SmoLevelModelGraphFileResult(
 public static class SmoLevelModelGraphReplacer
 {
     private const int ObjectReferenceSize = 8;
-    private const int SerializedTexturePixelOffset = 0x3D;
-    private const int SerializedTextureMarkerOffset = 0x3C;
     private static readonly uint[] RigidTextureAlphaMaterialRenderStates =
         [0, 0, 1, 0, 1, 0, 3, 0, 2, 0, 6];
 
@@ -523,16 +521,11 @@ public static class SmoLevelModelGraphReplacer
                 SmoClassIds.TextureData,
                 requireCatalogEntry: false);
             uint newId = nextId++;
-            output = options.RequireUnskinnedModel
-                ? InjectInlineObject(
-                    current,
-                    hostMaterialId,
-                    10,
-                    newId,
-                    $"{importedTexture.Name}_lvl",
-                    SmoClassIds.TextureData,
-                    textureObject)
-                : hostTextureReferences.Length switch
+            // The original resource reader resolves references in stream
+            // order. Expand the existing first reference in both static and
+            // level imports; appending an inline copy after it creates a
+            // forward reference that a catalog-only parser would accept.
+            output = hostTextureReferences.Length switch
             {
                 0 => InjectInlineObject(
                     current,
@@ -1287,6 +1280,27 @@ public static class SmoLevelModelGraphReplacer
                     $"Installed texture {textureId} is invalid: {error}");
             }
         }
+        VerifyTextureReferenceOrder(document, result.ImportedTextureObjectIds.Values);
+    }
+
+    internal static void VerifyTextureReferenceOrder(SmoDocument document, IEnumerable<uint> textureIds)
+    {
+        HashSet<uint> selected = textureIds.ToHashSet();
+        Dictionary<uint, long> starts = document.Objects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData && selected.Contains(entry.Id))
+            .ToDictionary(entry => entry.Id, entry => entry.PhysicalOffset);
+        foreach (SmoObjectEntry material in document.Objects.Where(entry => entry.TypeHash == SmoClassIds.MaterialData))
+        {
+            foreach (SmoObjectField field in SmoObjectFieldReader.Read(document, material))
+            {
+                if (field.FieldType != 10 || field.PayloadSize < 8) continue;
+                uint id = BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span);
+                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span[4..]);
+                if (inlineSize == 0 && starts.TryGetValue(id, out long start) && field.AbsolutePayloadOffset < start)
+                    throw new InvalidDataException(
+                        $"Material [{material.Index}] references imported texture {id} before its inline definition.");
+            }
+        }
     }
 
     private sealed record PreparedGraphReplacement(
@@ -1441,17 +1455,14 @@ public static class SmoLevelModelGraphReplacer
                 data is
                 {
                     SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
+                    CrossPlatform.FormatValue: 0 or 1,
                     CrossPlatform.Kind:
                         SmoTextureRepresentationKind.CrossPlatformBgra32
                 })
             {
                 return entry;
             }
-            if (SmoTextureDecoder.TryDecode(
-                    document, entry, out SmoTexture? texture, out _) &&
-                texture is not null &&
-                texture.FormatCode is 0x32E3 or 0x43E3 &&
-                texture.SourceLayout == SmoTextureLayout.Bgra)
+            if (data is not null && SmoTextureDataWriter.CanReplace(data, out _))
             {
                 return entry;
             }
@@ -1464,10 +1475,7 @@ public static class SmoLevelModelGraphReplacer
 
     private static byte[] BuildCanonicalTextureObject(ImportedTexture imported)
     {
-        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
-                imported.Width, imported.Height) ||
-            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
-            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
+        if (!SmoTextureSerializationLimits.IsSizeRepresentable(imported.Width, imported.Height))
         {
             throw new InvalidDataException(
                 $"Texture {imported.Name} has unsupported dimensions " +
@@ -1477,11 +1485,7 @@ public static class SmoLevelModelGraphReplacer
         if (image.Width != imported.Width || image.Height != imported.Height)
             throw new InvalidDataException(
                 $"Texture {imported.Name} dimensions do not match its image payload.");
-        return BuildLegacyCrossPlatformTextureObject(
-            imported,
-            EncodeBgra(image),
-            auxiliaryValue: 0,
-            platformType: null);
+        return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, EncodeBgra(image));
     }
 
     internal static byte[] BuildTextureObject(
@@ -1489,14 +1493,18 @@ public static class SmoLevelModelGraphReplacer
         SmoObjectEntry templateEntry,
         ImportedTexture imported)
     {
-        if (!SmoTextureDecoder.TryDecode(
-                document, templateEntry, out SmoTexture? template, out string error) ||
-            template is null)
+        if (!SmoTextureDataDecoder.TryDecode(
+                document, templateEntry, out SmoTextureDataInfo? data, out string error))
             throw new InvalidDataException(error);
-        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
-                imported.Width, imported.Height) ||
-            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
-            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
+        bool legacy = data is
+        {
+            SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
+            CrossPlatform.Kind: SmoTextureRepresentationKind.CrossPlatformBgra32,
+            CrossPlatform.FormatValue: 0 or 1
+        };
+        if (!legacy && !SmoTextureDataWriter.CanReplace(data, out string reason))
+            throw new NotSupportedException(reason);
+        if (!SmoTextureSerializationLimits.IsSizeRepresentable(imported.Width, imported.Height))
         {
             throw new InvalidDataException(
                 $"Texture {imported.Name} has unsupported dimensions " +
@@ -1508,102 +1516,16 @@ public static class SmoLevelModelGraphReplacer
                 $"Texture {imported.Name} dimensions do not match its image payload.");
         byte[] pixels = EncodeBgra(image);
 
-        if (SmoTextureDataDecoder.TryDecode(
-                document,
-                templateEntry,
-                out SmoTextureDataInfo? data,
-                out string dataError) &&
-            data is
-            {
-                SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
-                CrossPlatform.Kind:
-                    SmoTextureRepresentationKind.CrossPlatformBgra32
-            })
+        if (legacy)
         {
-            return BuildLegacyCrossPlatformTextureObject(
-                imported,
-                pixels,
-                data.CrossPlatform.AuxiliaryValue,
-                data.PlatformType);
+            // A new imported resource uses the native PC wrapper. Copying the
+            // old bare field0 section does not initialize the game's DX reader.
+            return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, pixels);
         }
-        if (data is null)
-            throw new InvalidDataException(dataError);
-
-        ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
-        int oldPixelSize = checked(template.Width * template.Height * 4);
-        int oldPixelEnd = checked(SerializedTexturePixelOffset + oldPixelSize);
-        if (oldPixelEnd > source.Length ||
-            source[SerializedTextureMarkerOffset] != 0)
-            throw new InvalidDataException("Texture template has an unsupported layout.");
-        byte[] result = new byte[checked(source.Length - oldPixelSize + pixels.Length)];
-        source[..SerializedTexturePixelOffset].CopyTo(result);
-        pixels.CopyTo(result.AsSpan(SerializedTexturePixelOffset));
-        source[oldPixelEnd..].CopyTo(result.AsSpan(
-            SerializedTexturePixelOffset + pixels.Length));
-        int delta = pixels.Length - oldPixelSize;
-        AddUInt32(result, 0x09, delta);
-        AddUInt32(result, 0x1A, delta);
-        AddUInt32(result, 0x1F, delta);
-        WriteUInt32(result, 0x24, checked((uint)image.Width));
-        WriteUInt32(result, 0x28, checked((uint)image.Height));
-        WriteUInt32(result, 0x2C, 0);
-        WriteUInt32(result, 0x30, checked(((uint)image.Width << 8) | 1));
-        WriteUInt32(result, 0x34, checked((uint)image.Width << 10));
-        WriteUInt32(result, 0x38, checked((uint)image.Height << 8));
-        return result;
+        return SmoTextureDataWriter.BuildReplacementObjectBgra(
+            document, templateEntry.Index, image.Width, image.Height, pixels);
     }
 
-    private static byte[] BuildLegacyCrossPlatformTextureObject(
-        ImportedTexture imported,
-        byte[] pixels,
-        uint auxiliaryValue,
-        uint? platformType)
-    {
-        const int objectSignatureSize = 8;
-        const int sizedFieldHeaderSize = 5;
-        const int compactUInt32FieldSize = 5;
-        const int representationHeaderSize = 16;
-        const int sectionTerminatorSize = 1;
-        int representationSize = checked(representationHeaderSize + pixels.Length);
-        int sourcePayloadSize = checked(
-            sizedFieldHeaderSize + representationSize + sectionTerminatorSize);
-        int platformFieldSize = platformType.HasValue
-            ? compactUInt32FieldSize
-            : 0;
-        byte[] result = new byte[checked(
-            objectSignatureSize + platformFieldSize +
-            sizedFieldHeaderSize + sourcePayloadSize + sectionTerminatorSize)];
-        WriteUInt32(result, 0, SmoClassIds.TextureData);
-        "SBOO"u8.CopyTo(result.AsSpan(4));
-
-        int cursor = objectSignatureSize;
-        if (platformType.HasValue)
-        {
-            result[cursor] = 0x66;
-            WriteUInt32(result, cursor + 1, platformType.Value);
-            cursor += compactUInt32FieldSize;
-        }
-
-        result[cursor] = 0xE0;
-        WriteUInt32(result, cursor + 1, checked((uint)sourcePayloadSize));
-        cursor += sizedFieldHeaderSize;
-        result[cursor] = 0xE5;
-        WriteUInt32(result, cursor + 1, checked((uint)representationSize));
-        cursor += sizedFieldHeaderSize;
-        WriteUInt32(result, cursor, checked((uint)imported.Width));
-        WriteUInt32(result, cursor + 4, checked((uint)imported.Height));
-        WriteUInt32(result, cursor + 8, auxiliaryValue);
-        WriteUInt32(result, cursor + 12, 4);
-        cursor += representationHeaderSize;
-        pixels.CopyTo(result.AsSpan(cursor));
-        cursor += pixels.Length;
-        result[cursor++] = 0;
-        result[cursor++] = 0;
-        if (cursor != result.Length)
-            throw new InvalidDataException(
-                "Legacy cross-platform texture size calculation is inconsistent.");
-        return result;
-    }
 
     private static byte[] InjectInlineObject(
         SmoDocument document,
@@ -1794,12 +1716,6 @@ public static class SmoLevelModelGraphReplacer
         SmoDocument document,
         SmoObjectEntry entry) => document.Data.Span.Slice(
             checked((int)entry.PhysicalOffset), checked((int)entry.SerializedSize));
-
-    private static void AddUInt32(Span<byte> data, int offset, int delta)
-    {
-        long value = checked((long)BinaryPrimitives.ReadUInt32LittleEndian(data[offset..]) + delta);
-        WriteUInt32(data, offset, checked((uint)value));
-    }
 
     private static void WriteUInt32(Span<byte> data, int offset, uint value) =>
         BinaryPrimitives.WriteUInt32LittleEndian(data[offset..], value);

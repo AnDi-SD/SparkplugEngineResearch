@@ -126,3 +126,13 @@ CPU pose handler Icy/Knut в Release ускорен в 3,14/3,54 раза, alloc
 снижены на 62–70%; это не измерение общего FPS. Cached visuals, выбор костей
 разных файлов и picking проверены вместе с прежними 43 позами/419 mesh-time
 сравнениями. [Assessment CP129](../../research/tool-readiness-assessment-2026-09-08-cp129.json).
+
+## CP130 — исправления Importer и обнаруженная регрессия
+
+[Новые текстуры/порядок ссылок](tool-importer-textures-2026-09-08.md): **15/16
+(93,75%)**. Полный статический импорт получил текущие native proofs, но
+`import.skin` переведён в `partial` после отказов текущего конвейера на
+Bloom_body/Tecna и survey Flora/Icy. Исторические gate4/gate7 не скрывают этот
+отказ. Знаменатель не изменён; −1 операция от CP129, +4 net от baseline.
+Повторное восстановление этой операции не будет новой возможностью.
+[Assessment CP130](../../research/tool-readiness-assessment-2026-09-08-cp130.json).

@@ -1,5 +1,17 @@
 using SmoImporter.Core;
 
+if (args.Length is 3 or 4 or 5 && args[0] == "--texture-static-integration")
+    return TextureStaticIntegrationRegression.Run(args[1],args[2],args.Length>=4?int.Parse(args[3]):1,args.Length==5 && args[4]=="independent");
+
+if (args.Length == 2 && args[0] == "--texture-forward-reference-guard")
+    return TextureStaticIntegrationRegression.VerifyRejectedForwardReference(args[1]);
+
+if (args.Length >= 3 && args[0] == "--texture-template-regression")
+{
+    try { TextureTemplateRegression.Run(args.Skip(1).ToArray()); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args.Length >= 3 && args[0] == "--texture-writer-regression")
 {
     TextureWriterRegression.Run(args.Skip(1).ToArray());

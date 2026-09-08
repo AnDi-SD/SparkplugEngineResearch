@@ -115,8 +115,6 @@ internal static class SmoSkinnedBranchSplitBuilder
 {
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
-    private const int SerializedTextureMarkerOffset = 0x3C;
-    private const int SerializedTexturePixelOffset = 0x3D;
     private const int PaletteCapacity = 16;
     private const float WeightEpsilon = 0.000001f;
     private const uint SharedFogClassId = SmoClassIds.Fog;
@@ -917,108 +915,10 @@ internal static class SmoSkinnedBranchSplitBuilder
         string name,
         ImportedTexture imported)
     {
-        if (!SmoTextureDecoder.TryDecode(
-                document, templateEntry, out SmoTexture? template, out string textureError) ||
-            template is null)
-        {
-            throw new InvalidDataException(textureError);
-        }
-        if (template.FormatCode is not (0x32E3 or 0x43E3) ||
-            template.SourceLayout != SmoTextureLayout.Bgra)
-        {
-            throw new NotSupportedException(
-                $"Texture template [{templateEntry.Index}] must be BGRA 0x32E3/0x43E3.");
-        }
-        if (!SmoTextureSerializationLimits.IsSizeRepresentable(
-                imported.Width, imported.Height) ||
-            imported.Width is < 1 or > SmoTextureSerializationLimits.MaximumDimension ||
-            imported.Height is < 1 or > SmoTextureSerializationLimits.MaximumDimension)
-        {
-            throw new InvalidDataException(
-                $"Texture {imported.Name} has unsupported dimensions " +
-                $"{imported.Width}x{imported.Height}.");
-        }
-
-        using Image<Rgba32> image = Image.Load<Rgba32>(imported.Data);
-        if (image.Width != imported.Width || image.Height != imported.Height)
-        {
-            throw new InvalidDataException(
-                $"Texture {imported.Name} declares {imported.Width}x{imported.Height}, " +
-                $"but its image is {image.Width}x{image.Height}.");
-        }
-        byte[] pixels = EncodeBgra(image);
-        ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
-        int oldPixelSize = checked(template.Width * template.Height * 4);
-        if (source.Length < SerializedTexturePixelOffset + oldPixelSize ||
-            source[SerializedTextureMarkerOffset] != 0)
-        {
-            throw new InvalidDataException(
-                $"Texture template [{templateEntry.Index}] has an unsupported serialized layout.");
-        }
-        int oldPixelEnd = checked(SerializedTexturePixelOffset + oldPixelSize);
-        byte[] result = new byte[checked(source.Length - oldPixelSize + pixels.Length)];
-        source[..SerializedTexturePixelOffset].CopyTo(result);
-        pixels.CopyTo(result.AsSpan(SerializedTexturePixelOffset));
-        source[oldPixelEnd..].CopyTo(
-            result.AsSpan(SerializedTexturePixelOffset + pixels.Length));
-        PatchTextureHeader(
-            result,
-            oldPixelSize,
-            pixels.Length,
-            imported.Width,
-            imported.Height);
-        if (result[SerializedTextureMarkerOffset] != 0)
-            throw new InvalidDataException("Texture serializer marker was modified.");
+        byte[] result = SmoLevelModelGraphReplacer.BuildTextureObject(
+            document, templateEntry, imported);
         return BuiltObject.CreateRoot(
             id, RawName(name), SmoClassIds.TextureData, result);
-    }
-
-    private static byte[] EncodeBgra(Image<Rgba32> image)
-    {
-        byte[] result = new byte[checked(image.Width * image.Height * 4)];
-        int offset = 0;
-        image.ProcessPixelRows(accessor =>
-        {
-            for (int y = 0; y < image.Height; y++)
-            {
-                foreach (Rgba32 pixel in accessor.GetRowSpan(y))
-                {
-                    result[offset] = pixel.B;
-                    result[offset + 1] = pixel.G;
-                    result[offset + 2] = pixel.R;
-                    result[offset + 3] = pixel.A;
-                    offset += 4;
-                }
-            }
-        });
-        return result;
-    }
-
-    private static void PatchTextureHeader(
-        Span<byte> data,
-        int oldPixelSize,
-        int newPixelSize,
-        int width,
-        int height)
-    {
-        int delta = checked(newPixelSize - oldPixelSize);
-        AddUInt32(data, 0x09, delta);
-        AddUInt32(data, 0x1A, delta);
-        AddUInt32(data, 0x1F, delta);
-        WriteUInt32(data, 0x24, checked((uint)width));
-        WriteUInt32(data, 0x28, checked((uint)height));
-        WriteUInt32(data, 0x2C, 0);
-        WriteUInt32(data, 0x30, checked(((uint)width << 8) | 1));
-        WriteUInt32(data, 0x34, checked((uint)width << 10));
-        WriteUInt32(data, 0x38, checked((uint)height << 8));
-    }
-
-    private static void AddUInt32(Span<byte> data, int offset, int delta)
-    {
-        long value = checked(
-            (long)BinaryPrimitives.ReadUInt32LittleEndian(data[offset..]) + delta);
-        BinaryPrimitives.WriteUInt32LittleEndian(
-            data[offset..], checked((uint)value));
     }
 
     private static BuiltObject BuildSkinnedTransparentSurfaceMaterial(

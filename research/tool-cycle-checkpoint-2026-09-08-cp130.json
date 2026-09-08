@@ -1,0 +1,78 @@
+{
+  "kind": "tool-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP130",
+  "createdUtc": "2026-09-08T11:41:30.725651+00:00",
+  "documentation": "docs/research/tool-importer-textures-2026-09-08.md",
+  "scopeId": "tools-pc-operations-v1",
+  "scopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "assessmentPath": "research/tool-readiness-assessment-2026-09-08-cp130.json",
+  "assessmentManifestSha256": "8D5E1219F366DE4AA12C29FE575F5C453439C337AD49F9B7B6D12F5B5B1B9F26",
+  "validationPath": "research/tool-importer-textures-validation-2026-09-08.json",
+  "validationSha256": "2680734B2D92121E9A7ADB077498A1AD7CB0E0337E5AD72F280418281E47D41B",
+  "snapshotPath": "local-data/results/tool-cycle-20260908-1900/readiness-cp130.json",
+  "snapshotSha256": "8738EE842DBAF726300D2CDA37D2C86B69E2F4DCBA020163033E8E1F2FB3CC87",
+  "readyCount": 15,
+  "totalCount": 16,
+  "readyPercent": 93.75,
+  "stagePassedCounts": {
+    "contract": 16,
+    "integration": 15,
+    "validation": 15
+  },
+  "cycleDelta": {
+    "readyCountDelta": 4,
+    "newlyReady": [
+      "export.fbx-alpha",
+      "san.rare-keys",
+      "texture.inspect",
+      "texture.replace-gui",
+      "texture.resize-repack"
+    ],
+    "noLongerReady": [
+      "import.skin"
+    ],
+    "percentagePointDelta": 25.0
+  },
+  "newlyDeliveredOperations": [],
+  "revalidatedExistingOperations": [
+    "import.rigid",
+    "import.texture-fixed",
+    "texture.inspect",
+    "texture.replace-gui",
+    "texture.resize-repack"
+  ],
+  "reopenedOperations": [
+    "import.skin"
+  ],
+  "fixes": [
+    "Native embedded BGRA texture creation and structural template rebuild",
+    "Define imported textures before references in static material graphs",
+    "Reject imported texture forward references before installation"
+  ],
+  "evidence": {
+    "templateChecks": 50,
+    "templateGuards": 9,
+    "existingTextureChecks": 4248,
+    "unchangedTextureOutputHashes": 32,
+    "nativeWholeSceneObjectCounts": [
+      7,
+      11,
+      12
+    ],
+    "nativeAllocationsReleased": [
+      132,
+      167,
+      209
+    ]
+  },
+  "viewerCommit": "7ce688a72adb58517cc1acb7e9e7500cb77221cb",
+  "publishStatus": "local-checkpoint; public push still awaits previously requested exact-destination approval",
+  "documentationAudit": {
+    "markdownFiles": 437,
+    "jsonFiles": 196,
+    "relativeLinks": 1646,
+    "errors": 0,
+    "scope": "Full documentation audit before this checkpoint JSON; checkpoint and changed plan serialized and parsed."
+  }
+}

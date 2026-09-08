@@ -1,0 +1,247 @@
+{
+  "kind": "tool-importer-textures-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP130",
+  "createdUtc": "2026-09-08T11:32:54.367321+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureDataWriter.cs",
+      "sha256": "6D20A9989E9D01B34E55AAC9114AEDD0A379DBBDD33BDED5DCF01EFAB641F8A0"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoLevelModelGraphReplacer.cs",
+      "sha256": "52F29BCF2F81935132CF3E379620D164F15856AE037F608BB92E27D31F3B432F"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedBranchSplitBuilder.cs",
+      "sha256": "A45CA1A218ABDB13FAB0BC9217AF57AF24A7413410FE0412D616E6C4EC773F7C"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoTextureSerializationLimits.cs",
+      "sha256": "F5C5E3336C3D3C33162572515A36ACBDB1C25DEDD1B6B8B3273929DBB74371A7"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/TextureTemplateRegression.cs",
+      "sha256": "4F719535C4BFB3845C4A966FE3CC16C2A85049FE8B1694C7F11CCA543D83837A"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/TextureStaticIntegrationRegression.cs",
+      "sha256": "C27E6868495296C87B77B929879AE7AF2310186635EEB958E2D969A701AA70CE"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "54470978315B2EB3F9DBF98B82FE264CFCBD15FA862D91A914595AF1B7F8D5A3"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
+      "sha256": "02499C04B8095234E48971F4958F21782618616DE8AEBA8D565102448FED3067"
+    },
+    {
+      "path": "tools/SmoImporter/README.md",
+      "sha256": "0705C0F1D103A6E7F84B78CE6165C9AFA124D4E81D9BFD3BFC5D9644E77B9B7A"
+    },
+    {
+      "path": "research/probe_pc_imported_texture.py",
+      "sha256": "0135ADFA3B9E00F09DFB8D9406D19EDFF32331AE7EFEAF5CA146247CCC8CAD3E"
+    },
+    {
+      "path": "research/probe_pc_importer_scene.py",
+      "sha256": "24542A3B4F56DBEBE7299E12D590920FCC410613DDEA287F31BF1C194135D2D7"
+    },
+    {
+      "path": "research/ImporterGraphProbe/Program.cs",
+      "sha256": "76DA905B304097889EB339D54C3E4C8BC457280330AD245452DA87E722B414D0"
+    },
+    {
+      "path": "research/ImporterGraphProbe/ImporterGraphProbe.csproj",
+      "sha256": "19F7C3C1F619D444B98C9530658FC486A22F190E3FBA4D2A987769B0744864EC"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureDataDecoder.cs",
+      "sha256": "07E5FC4BB725763B3B1845E624E96118D515E3212EFA0BE463F454187B5407BB"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureBindingResolver.cs",
+      "sha256": "074C3013B02AB1C792D6C05D39B2DCB15F9915D2F7F2F954CC2803A84524F7CA"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoTargetVisualGroupReader.cs",
+      "sha256": "D53C79688D4F67A3FB61B605CCDFC9BCDB2DD79CAFFC7D9375B6439DAC5D601F"
+    },
+    {
+      "path": "research/probe_pc_scene_file_profile.py",
+      "sha256": "B645F7C619713C7195E582EF2E547322317E45BE6752D762EDC9622A6ACC53CE"
+    },
+    {
+      "path": "docs/research/smo-class-sp-texture-data.md",
+      "sha256": "985C10AF1C5C86B7B270BA9C603597835AFCC162AFEB9805BFC89599AD1F147D"
+    }
+  ],
+  "sourceHashNote": "Changed tool text normalized to CRLF after checks; same code. Importer GUI Release0.6.1 built with0 warnings/errors. Initial native-only failure probe later removed one unused local variable; final positive probes bind current exact source.",
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/baseline-v2/report.json",
+      "sha256": "1DF821AA5DD0FA1546DBE9FA3CF76A7DD040ED392F1E2AEE79D917D8ACF14AD1",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/final-v2/report.json",
+      "sha256": "AE153CD9CD6465DCE966C52C55939A8C2442FF73CCE822CC6B951214E149E1F1",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/texture-tool-regression/report.json",
+      "sha256": "DB80398E8EDFE958652D5990839B397E7F46E80C69AD96CAB0CE7F7585B56741",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-legacy-rejection.json",
+      "sha256": "629F793335677A32225E925996056C14ECEB725CAEFD3BE5975C7330DA185AD3",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-compact-17x9.json",
+      "sha256": "F79D3347E69C3A784D91B65FD9AEC0BCAF7DB1F3B99C9FA465DAAD3016654FB2",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-created-17x9.json",
+      "sha256": "EF8549144960C7362B012D8A0C71F9627FF341773F6F4BF8FBB365A111E98212",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-created-8x8.json",
+      "sha256": "001052BC669323F0CE222AA2952EC07D16FDC612AA164B9EEA0CB498693EC530",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/static-proof.json",
+      "sha256": "8F3DD7686ECAA128C5B72F4CBAB08AC0B6FB9C10632540B9CB2B4C5715439CC4",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-original.json",
+      "sha256": "56D09B5F3925B6A7FA738132A6D5F2C75C10EFA50EAEBBA8BD5B7AB71551682B",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/static-proof-v2.json",
+      "sha256": "DD04D10F194CD6F3801B6A2BB05E896949565F647737DC8372D8F7DDE7437EAE",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-proof-v2/cp109-rock-ids.json",
+      "sha256": "0FD8C0D23248BF73D2833B138DD0E16236E23A677D74C9CE723A292B5BBD2C6D",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-proof-v2/cp109-rock-ids-native.json",
+      "sha256": "11C4D31D6FCDAED71EA23AC7C7C40F233CC748A43F1A218F60D94DB67FF8A63A",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-proof-v2/cp109-rock-ids-source.json",
+      "sha256": "290A483CD3A254715E99DFD0A9EEBC860FE51CE2CEDAE8C1DC76EF4ABC21CDCE",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/static-shared-proof.json",
+      "sha256": "3F59957494495ABD3C8F37E54C4BC75D3682420A00B30EBB1E81FA1287810970",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-shared.json",
+      "sha256": "C1CB3DD49815951897B9AB5F5AB1A20715C619C22F65E6988033A705F291D665",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/static-independent-proof.json",
+      "sha256": "F6513B04B3975898934E2ED6D480BCB1305CEEEAEF32C1C5D5324C9DBB178E38",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/native-static-independent.json",
+      "sha256": "53DD2F7294415D6C75D8793207D958C9D4570D1FB0447D5DCA4E7E234FD2B5E4",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-texture-templates/target-bindings-before.json",
+      "sha256": "9B7CEBB7C40E8BB6DC5CB893A15163C2F58835CA34B4AF40819DCE647B7997B7",
+      "status": "observed"
+    }
+  ],
+  "originalPcExe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "templateTests": {
+    "baselineChecks": 44,
+    "baselineFailures": 31,
+    "finalChecks": 50,
+    "guardChecks": 9,
+    "elapsedSeconds": 0.37364,
+    "peakWorkingSet": 46170112
+  },
+  "textureTool": {
+    "checks": 4248,
+    "byteIdenticalOutputs": 32,
+    "elapsedSeconds": 0.7103482,
+    "peakWorkingSet": 53403648,
+    "previousValidation": "research/tool-texture-validation-2026-09-08.json",
+    "previousValidationSha256": "EA7E661E91C8C21AE416CED53019B79EF3484CE3ECD00D8C34C4981B2BBAA776",
+    "unchangedNativeEvidenceReused": true
+  },
+  "nativeLeaf": {
+    "accepted": 3,
+    "expectedLegacyRejections": 1,
+    "legacyReturnOneIsNotAcceptance": true
+  },
+  "staticIntegration": {
+    "standardTwoMaterialRegression": "passed after reference fix",
+    "preservedForwardReferenceRejected": true,
+    "wholeSceneObjects": [
+      7,
+      11,
+      12
+    ],
+    "portableNativeExactObjects": 7,
+    "nativeOnlyObjects": [
+      11,
+      12
+    ],
+    "releasedAllocations": [
+      132,
+      167,
+      209
+    ]
+  },
+  "unresolvedSkinned": {
+    "status": "partial",
+    "directIntegrationRejectedTargets": [
+      "Bloom_body",
+      "Tecna"
+    ],
+    "surveyTargets": [
+      "Bloom_body",
+      "Tecna",
+      "Icy",
+      "Flora"
+    ],
+    "missingBindings": [
+      1,
+      5,
+      10,
+      5
+    ],
+    "rigidBloomMeshIndex": 21,
+    "scope": "Observed tool constraints; no inferred native material inheritance. Historical gate4/gate7 are not current acceptance."
+  },
+  "build": "Importer GUI Release0.6.1 passed,0 warnings/errors",
+  "published": false,
+  "limits": [
+    "Whole native scene has prepared RTTI/startup and bounded stream/CRT/COM inputs; no game boot or GPU claim.",
+    "Embedded single-mip PC BGRA only; unsupported extra mip/representation remains rejected.",
+    "Baseline-v1 auxiliary expectation and draft mip fixture were harness errors, superseded before final checks; not application fixes.",
+    "Skinned material inheritance/rigid target handling remains unresolved; fixed sixteen-operation denominator, readiness15/16."
+  ]
+}
