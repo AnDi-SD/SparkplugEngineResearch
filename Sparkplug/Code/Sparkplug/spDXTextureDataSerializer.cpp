@@ -5,6 +5,7 @@
 #include "spDataBlockSerializer.h"
 #include "Analysis/PC/spSectionCursor.h"
 #include "Analysis/PC/spTextureMipFilter.h"
+#include "Analysis/PC/spTextureResizeFilter.h"
 #include "Analysis/PC/spTextureCompressedMipFilter.h"
 #include <algorithm>
 
@@ -116,8 +117,9 @@ namespace sparkplug::reconstruction
                     if(!stream.ReadData(&nativeFlag,1)||!stream.ReadData(&width,4)||!stream.ReadData(&height,4)
                         ||!stream.ReadData(&flags,4)||!stream.ReadData(&field1C,1))return native.Fail("Truncated native mip prefix");
                     payload-=14;prefix=true;
-                    if(!nativeFlag||!width||!height||width>65535||height>65535||(width&(width-1))||(height&(height-1))||flags>3)
-                        return native.Fail("Only native power-of-two mip data with confirmed flags is restored");
+                    if(!nativeFlag||!width||!height||width>65535||height>65535||flags>3
+                        ||(flags&&((width&(width-1))||(height&(height-1)))))
+                        return native.Fail("Native BGRA or power-of-two compressed mip data with confirmed flags is required");
                 }
                 if(!prefix||payload<12||mips.size()>=spDXTexture::FullMipCountForAnalysis(width,height))return native.Fail("Native mip count/prefix exceeds full chain");
                 std::uint32_t wireWidth=0,wireStride=0,wireRows=0;
@@ -136,8 +138,12 @@ namespace sparkplug::reconstruction
             while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
             {
                 spDXTexture::MipForAnalysis generated;
-                const bool created=flags?sparkplug::evidence::pc::texture_mips::GenerateNextCompressed(mips.back(),flags,generated)
-                    :sparkplug::evidence::pc::texture_mips::GenerateNext(mips.back(),generated);
+                const auto& previous=mips.back();
+                const bool powerOfTwo=!(previous.width&(previous.width-1))&&!(previous.height&(previous.height-1));
+                const bool created=flags?sparkplug::evidence::pc::texture_mips::GenerateNextCompressed(previous,flags,generated)
+                    :powerOfTwo?sparkplug::evidence::pc::texture_mips::GenerateNext(previous,generated)
+                    :sparkplug::evidence::pc::texture_mips::ResampleRaw(previous,0,
+                        std::max(1u,previous.width/2),std::max(1u,previous.height/2),false,generated);
                 if(!created)return native.Fail("Cannot generate bounded native mip");
                 if(context.pcTexturePitchForAnalysis)generated.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),generated.rowBytes);
                 if(generated.physicalPitch<generated.rowBytes||std::uint64_t(generated.physicalPitch)*generated.rows>16u*1024u*1024u)return native.Fail("Invalid declared generated mip surface pitch");

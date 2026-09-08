@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args.Length >= 3 && args[0] == "--texture-writer-regression")
+{
+    TextureWriterRegression.Run(args.Skip(1).ToArray());
+    return 0;
+}
+
 if (args.Length == 1 && args[0] == "--glb-normal-repair-regression")
 {
     GlbNormalRepairRegression.Run();

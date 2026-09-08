@@ -14,6 +14,8 @@
 [Новый измеритель](docs/research/tool-readiness-meter.md) считает подтверждённые
 операции инструментов: начальный срез — 11/16 (68,75%). Контракт, внедрение и
 проверка результата показываются отдельно; это переучёт существующих функций.
+Первый checkpoint нового цикла: **14/16 (87,5%)** —
+[TextureTool replacement/resize и актуальная PNG-проверка](docs/research/tool-texture-writer-2026-09-08.md).
 
 Последний цикл — [PC SMO/SAN до 07:00 МСК, 8 сентября 2026](docs/research/native-cycle-report-2026-09-08-0700.md):
 PC workflow-v2 45,62%, целые сцены, текстурные преобразования и генераторы
@@ -26,8 +28,9 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 
 Уже работают строгий анализ структуры, просмотр геометрии/материалов/анимаций,
 экспорт и контролируемый импорт моделей, а также встроенная проверка результата
-нативным загрузчиком игры. Отдельный текстурный инструмент сохраняет безопасную
-read-only границу для ещё не подтверждённых writer-сценариев. Текущее состояние
+нативным загрузчиком игры. В рабочей сборке TextureTool 2.2 включены
+[проверенные замена RGBA и resize/repack](docs/research/tool-texture-writer-2026-09-08.md)
+для поддерживаемых встроенных PC BGRA-текстур. Текущее состояние
 формата описано в [документе SMO](docs/formats/smo.md).
 
 ## Состав workspace
@@ -35,7 +38,7 @@ read-only границу для ещё не подтверждённых writer-
 | Путь | Назначение |
 |---|---|
 | [`tools/SmoViewer`](tools/SmoViewer) | Строгий парсер, WPF-просмотрщик и встроенная нативная проверка SMO кодом игры |
-| [`tools/SMOTextureTool`](tools/SMOTextureTool) | Read-only Avalonia-инструмент для просмотра и экспорта текстур; resize/repack отключён до отдельной нативной проверки |
+| [`tools/SMOTextureTool`](tools/SMOTextureTool) | Avalonia: просмотр/PNG, замена RGBA и resize поддерживаемых PC-текстур с сохранением проверенной копии |
 | [`tools/SmoExporter`](tools/SmoExporter) | Экспорт SMO в GLB, OBJ и нативный FBX через Autodesk FBX SDK |
 | [`tools/SmoImporter`](tools/SmoImporter) | Visual transplant SMO → SMO и импорт rigid/skinned OBJ, GLB и нативного FBX |
 | [`tools/SmoLVLcreator`](tools/SmoLVLcreator) | Модульный редактор SMO-уровней: сцена, размещения, коллизии, импорт, экспорт и сохранение |

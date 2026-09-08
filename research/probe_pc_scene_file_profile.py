@@ -182,7 +182,7 @@ def capture_scene(f,root,entries,by_file_id=False):
         row['stateHex']=state.hex();captured['objects'][str(key)]=row
     return captured
 
-def main(case='logo',by_file_id=False):
+def main(case='logo',by_file_id=False,*,input_path=None,output_directory=None):
     animate_uv=case=='gem-animated'
     if animate_uv:case='gem'
     cases={'logo':('Menus/logo_screen.smo',703,'DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7'),
@@ -202,13 +202,33 @@ def main(case='logo',by_file_id=False):
     object_count={'g-crystal':26,'droid-trail':13,'loading':11,'gem':9,'rock':7}.get(case,6)
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
+    if input_path is not None:
+        check(case in ('gem','loading','rock'),'declared tool-output scene families')
+        path=Path(input_path).resolve();path.relative_to(ROOT)
+        check(path.stat().st_size<=32768,'tool-written whole scene input cap')
+        raw=path.read_bytes()
+        from probe_pc_tool_texture_output import texture_slice,expected_base
+        shapes=[]
+        count=struct.unpack_from('<I',raw,28)[0]
+        check(count==object_count,'tool output preserves catalog count')
+        offset=32
+        for index in range(count):
+            name_size=struct.unpack_from('<H',raw,offset+4)[0]
+            kind=struct.unpack_from('<I',raw,offset+6+name_size)[0]
+            if kind==0x78ea082b:
+                payload,_=texture_slice(raw,index);shape,_=expected_base(payload);shapes.append(shape)
+            offset+=18+name_size
+        check(1<=len(shapes)<=2 and all(1<=n<=32 for shape in shapes for n in shape),'declared bounded tool texture dimensions')
+        texture_shapes=tuple(shapes);by_file_id=True
+    directory=Path(output_directory).resolve() if output_directory else ROOT/'local-data/results/cycle-20260908-0700'
+    directory.relative_to(ROOT/'local-data/results');directory.mkdir(parents=True,exist_ok=True)
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSceneSerializationTests.exe'
     result=subprocess.run([str(binary),'--asset-file-uv' if animate_uv else '--asset-file-ids' if by_file_id else '--asset-file',str(path)],capture_output=True,timeout=10)
     check(result.returncode==0,'source whole capture: '+result.stderr.decode('utf-8',errors='replace')[:2048])
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
     f=(CrystalSceneFileFixture if case in ('g-crystal','gem','rock') else SceneFileFixture)(raw)
-    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes,surface_profile='corpus32' if case in ('rock','pickup-particle') else 'tiny')
+    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes,surface_profile='tool32' if input_path is not None else 'corpus32' if case in ('rock','pickup-particle') else 'tiny')
     if with_particle:install_particle_caps(f)
     p=f.p;f.call(0x6d38e0)
     animation=f.call(0x454640) if with_uv else 0
@@ -241,6 +261,7 @@ def main(case='logo',by_file_id=False):
         'inputSha256':hashlib.sha256(raw).hexdigest().upper(),'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),
         'arenaLimitBytes':p.arena_size,'maxAllocationBytes':f.max_allocation_size,'maxCOMBufferBytes':f.max_buffer_size,
         'identityMode':'file-id' if by_file_id else 'runtime-class','processTimeoutSeconds':30,'phase':'whole-load'}
+    if input_path is not None:report.update(inputKind='actual-tool-output',sourceCase=case,inputPath=str(path.relative_to(ROOT)))
     if with_texture:report.update(maxTextureSurfaceBytes=f.texture_io.max_surface_bytes,maxTextureLevels=f.texture_io.max_levels,textureDimensions=texture_shapes,maxTextures=len(texture_shapes))
     at=time.monotonic()
     try:
@@ -276,7 +297,6 @@ def main(case='logo',by_file_id=False):
                     frame+=b''.join(bytes(p.mu.mem_read(obj+0x4c+offset+0x10,4)) for offset in (0x10,0x48,0x80,0xb8,0xf0,0x128,0x178))
                     frames.append([file_id,frame.hex()])
             observed['uvFrames']=frames;report.update(uvFrames=len(frames),uvFrameBytes=sum(len(row[1])//2 for row in frames),maxUVUpdateInstructions=maximum)
-        directory=ROOT/'local-data/results/cycle-20260908-0700'
         suffix='animated' if animate_uv else 'ids' if by_file_id else 'class'
         (directory/f'cp109-{case}-{suffix}-native.json').write_text(json.dumps(observed,indent=2)+'\n')
         (directory/f'cp109-{case}-{suffix}-source.json').write_text(json.dumps(expected,indent=2)+'\n')
@@ -311,11 +331,14 @@ def main(case='logo',by_file_id=False):
     finally:
         report.update(arenaReservedBytes=p.allocated,elapsedSeconds=time.monotonic()-at)
         name=f'cp109-{case}-'+('animated' if animate_uv else 'ids' if by_file_id else 'class')+'.json'
-        (ROOT/'local-data/results/cycle-20260908-0700'/name).write_text(json.dumps(report,indent=2)+'\n')
+        (directory/name).write_text(json.dumps(report,indent=2)+'\n')
         print('CAPTURE',json.dumps(report,sort_keys=True),flush=True)
     return 0
 
 if __name__=='__main__':
+    if sys.argv[1:3]==['--guest','--tool-output']:
+        if len(sys.argv)!=6:raise ValueError('--tool-output CASE INPUT_SMO OUTPUT_DIRECTORY')
+        raise SystemExit(main(sys.argv[3],True,input_path=sys.argv[4],output_directory=sys.argv[5]))
     if sys.argv[1:2]==['--guest']:raise SystemExit(main(sys.argv[2] if len(sys.argv)>2 else 'logo','--file-ids' in sys.argv[3:]))
     raise SystemExit(run_bounded(Path(__file__),sys.argv[1:]))
 

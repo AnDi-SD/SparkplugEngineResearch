@@ -18,11 +18,21 @@
     {
       "id": "CP124",
       "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp124.json"
+    },
+    {
+      "id": "CP125",
+      "summaryPath": "research/tool-cycle-checkpoint-2026-09-08-cp125.json"
     }
   ],
   "readinessScopePath": "research/tool-readiness-scope-v1.json",
   "baselinePath": "local-data/results/tool-cycle-20260908-1900/baseline-readiness.json",
   "initialReadyCount": 11,
   "initialTotalCount": 16,
-  "initialReadyPercent": 68.75
+  "initialReadyPercent": 68.75,
+  "currentReadyCount": 14,
+  "currentReadyPercent": 87.5,
+  "nextOperations": [
+    "export.fbx-alpha",
+    "san.rare-keys"
+  ]
 }

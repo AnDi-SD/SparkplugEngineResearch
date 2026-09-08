@@ -50,14 +50,15 @@ class MissingMipFixture(TextureMipChainFixture):
 
     @classmethod
     def install_on_scene(cls,fixture,dimensions=(16,16),*,surface_profile='tiny'):
-        assert surface_profile in ('tiny','corpus32')
-        maximum=32 if surface_profile=='corpus32' else 16
-        assert len(dimensions)==2 and all(n>0 and n<=maximum and not n&(n-1) for n in dimensions)
+        assert surface_profile in ('tiny','corpus32','tool32')
+        maximum=32 if surface_profile in ('corpus32','tool32') else 16
+        assert len(dimensions)==2 and all(n>0 and n<=maximum and
+            (surface_profile=='tool32' or not n&(n-1)) for n in dimensions)
         from pc_compact_texture_device import install_texture_device
         install_texture_device(fixture,dimensions[0]*4,fixture_class=cls)
         io=fixture.texture_io;io.dimensions=dimensions;io.levels=[];io.surfaces={}
-        io.max_levels=6 if surface_profile=='corpus32' else 5
-        io.max_surface_bytes=8192 if surface_profile=='corpus32' else 2048
+        io.max_levels=6 if surface_profile in ('corpus32','tool32') else 5
+        io.max_surface_bytes=8192 if surface_profile in ('corpus32','tool32') else 2048
         io.install_external_inputs();return io
 
     @classmethod
@@ -65,9 +66,10 @@ class MissingMipFixture(TextureMipChainFixture):
         """One real device identity, at most two declared independent textures."""
         import copy
         assert 1<=len(dimensions)<=2
-        assert surface_profile in ('tiny','corpus32')
-        maximum=32 if surface_profile=='corpus32' else 16
-        assert all(len(shape)==2 and all(n>0 and n<=maximum and not n&(n-1) for n in shape) for shape in dimensions)
+        assert surface_profile in ('tiny','corpus32','tool32')
+        maximum=32 if surface_profile in ('corpus32','tool32') else 16
+        assert all(len(shape)==2 and all(n>0 and n<=maximum and
+            (surface_profile=='tool32' or not n&(n-1)) for n in shape) for shape in dimensions)
         first=cls.install_on_scene(fixture,dimensions[0],surface_profile=surface_profile);p=fixture.p
         instances=[first]
         if len(dimensions)==2:

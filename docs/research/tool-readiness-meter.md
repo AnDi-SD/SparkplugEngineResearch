@@ -76,3 +76,13 @@ python research/tool_readiness.py report --baseline local-data/results/tool-cycl
 дробного кредита, изменённый evidence, обязательность доказательств, запрет
 сравнения разных scopes, неизвестные/повторные ID и запрещённые пути.
 [CP124](../../research/tool-cycle-checkpoint-2026-09-08-cp124.json).
+
+## CP125 — первый прирост этого цикла
+
+[TextureTool и общий writer](tool-texture-writer-2026-09-08.md): **14/16 (87,5%)**,
+все три этапа 14/16. Относительно baseline +3 подтверждённые операции, +18,75 п.п.
+Из них две команды добавлены: GUI replacement и resize/repack; PNG workflow
+уже существовал и получил актуальную проверку. Importer RGB/alpha перепроверен.
+Остались FBX texture×material alpha и редкие SAN-ключи конвертера.
+Знаменатель и первоначальный assessment не изменены.
+[Assessment CP125](../../research/tool-readiness-assessment-2026-09-08-cp125.json).
