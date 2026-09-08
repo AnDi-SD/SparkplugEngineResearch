@@ -12,8 +12,11 @@
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
+#include "Code/Sparkplug/spDXTextureDataSerializer.h"
+#include "Code/Sparkplug/spTextureBuffer.h"
 #include "Code/wxFaceData.h"
 #include "Analysis/PC/spAnimationMath.h"
+#include "Analysis/PC/spTextureResizeFilter.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -105,6 +108,39 @@ struct ContainerIndex {
     }
 };
 static_assert(sizeof(SpvContainerInfo)==36&&sizeof(SpvContainerEntry)==36);
+struct TextureSectionView {
+    SpvTextureSectionInfo info{};
+    std::vector<SpvTextureMip> mips;
+    std::vector<std::byte> xrgb;
+    TextureSectionView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
+        require(bytes&&size&&size<=16u*1024u*1024u&&kind<=1,"Invalid bounded texture section");
+        BorrowedInput input(bytes,size);spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);std::string error;
+        if(kind==0) {
+            bool initialized=false;
+            if(!spTextureDataSerializer::ReadCrossSectionForAnalysis(context,input,size,
+                [](const spTextureBuffer&){return true;},initialized,&error,[&](const spTextureBuffer& buffer,std::uint32_t offset){
+                    const auto w=buffer.GetWidthForAnalysis(),h=buffer.GetHeightForAnalysis();
+                    const auto pixelSize=buffer.GetPixelSizeForAnalysis();
+                    info={0,w,h,buffer.GetPixelFormatForAnalysis(),pixelSize,pixelSize*8,1,1};
+                    mips={{w,h,w,std::uint32_t(w)*pixelSize,h,offset,static_cast<std::uint32_t>(buffer.GetBufferForAnalysis().size())}};
+                    xrgb.clear();if(info.format==1)xrgb=buffer.GetBufferForAnalysis();
+                }))throw std::runtime_error(error);
+            require(initialized,"Cross texture has no pixel field");
+        } else {
+            spDXTextureDataSerializer::NativeReadForAnalysis observed;
+            if(!spDXTextureDataSerializer::ReadNativeSectionForAnalysis(context,input,size,observed,&error))throw std::runtime_error(error);
+            info={1,observed.width,observed.height,observed.flags,0,observed.flags==0?32u:observed.flags==1?4u:8u,
+                observed.field1C!=0,static_cast<std::uint32_t>(observed.mips.size())};
+            for(std::size_t i=0;i<observed.mips.size();++i) {
+                const auto& mip=observed.mips[i];
+                mips.push_back({mip.width,mip.height,mip.width,mip.rowBytes,mip.rows,observed.pixelOffsets[i],
+                    static_cast<std::uint32_t>(mip.packedBytes.size())});
+            }
+        }
+    }
+};
+static_assert(sizeof(SpvTextureSectionInfo)==32&&sizeof(SpvTextureMip)==28);
 struct MeshBVView {
     std::unique_ptr<spMeshBV> mesh;
     std::unique_ptr<spFaceDataContainer> standaloneFaces;
@@ -211,6 +247,28 @@ SPV_API int spv_mesh_bounds(const std::uint8_t* bytes,std::uint32_t size,float* 
         BorrowedInput input(bytes,size);spPS2MeshDataSerializer::BoundingBoxForAnalysis bounds;
         require(spPS2MeshDataSerializer::ReadBoundingBoxForAnalysis(input,bounds),"Truncated mesh bounds");
         std::copy(bounds.minimum.begin(),bounds.minimum.end(),output);std::copy(bounds.maximum.begin(),bounds.maximum.end(),output+3);
+    });
+}
+SPV_API void* spv_texture_section_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) noexcept {
+    std::unique_ptr<TextureSectionView> result;
+    if(!guarded([&]{result=std::make_unique<TextureSectionView>(bytes,size,kind);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_texture_section_destroy(void* handle) noexcept {guarded([&]{delete static_cast<TextureSectionView*>(handle);});}
+SPV_API int spv_texture_section_info(void* handle,SpvTextureSectionInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing texture section info");*output=static_cast<TextureSectionView*>(handle)->info;});
+}
+SPV_API int spv_texture_section_mips(void* handle,SpvTextureMip* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing texture section handle");const auto& mips=static_cast<TextureSectionView*>(handle)->mips;
+        require(count==mips.size()&&(output||!count),"Texture mip output count differs");std::copy(mips.begin(),mips.end(),output);});
+}
+SPV_API int spv_texture_section_bgra(void* handle,std::uint8_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle&&output,"Missing texture preview input/output");const auto& view=*static_cast<TextureSectionView*>(handle);
+        require(view.info.kind==0&&view.info.format==1&&count==view.xrgb.size(),"This projection requires stored XRGB pixels");
+        for(std::size_t i=0;i<view.xrgb.size();i+=4) {
+            const auto color=sparkplug::evidence::pc::texture_mips::DecodeRawPixel(view.xrgb.data()+i,1);
+            for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
+        }
     });
 }
 SPV_API void* spv_mesh_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind,std::uint32_t platformMask) noexcept {

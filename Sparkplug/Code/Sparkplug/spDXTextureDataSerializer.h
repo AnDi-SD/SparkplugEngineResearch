@@ -4,6 +4,7 @@
 // Z:\Sparkplug\Code\Sparkplug\spDXTextureDataSerializer.cpp
 
 #include "spTextureDataSerializer.h"
+#include "../SparkplugDX/spDXTexture.h"
 
 #include <cstdint>
 #include <vector>
@@ -48,6 +49,17 @@ namespace sparkplug::reconstruction
             std::uint32_t rowStride = 0;
             std::uint32_t payloadSize = 0;
         };
+
+        // Snapshot of the actual native-data reader before attachment/missing
+        // mip generation. Offsets are host observations of the source stream.
+        struct NativeReadForAnalysis final {
+            std::uint32_t width=0,height=0,flags=0;
+            std::uint8_t nativeFlag=0,field1C=0;
+            std::vector<spDXTexture::MipForAnalysis> mips;
+            std::vector<std::uint32_t> pixelOffsets;
+        };
+        [[nodiscard]] static bool ReadNativeSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,NativeReadForAnalysis&,std::string*);
 
         spDXTextureDataSerializer() noexcept = default;
         ~spDXTextureDataSerializer() override;

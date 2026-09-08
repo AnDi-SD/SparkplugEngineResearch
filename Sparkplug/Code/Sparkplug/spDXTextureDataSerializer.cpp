@@ -78,6 +78,49 @@ namespace sparkplug::reconstruction
         return native.FinalizeObjectForAnalysis()&&local.WriteEndForAnalysis(1)&&local.FinalizeObjectForAnalysis()?true:fail("Cannot finalize native texture sections");
     }
 
+    bool spDXTextureDataSerializer::ReadNativeSectionForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t byteCount,NativeReadForAnalysis& output,std::string* error)
+    {
+        using sparkplug::evidence::pc::serialization::SectionCursor;
+        SectionCursor native(context,stream,byteCount,true,error);
+        output={};
+        bool prefix=false,terminated=false;
+        auto& width=output.width;auto& height=output.height;auto& flags=output.flags;
+        auto& nativeFlag=output.nativeFlag;auto& field1C=output.field1C;
+        auto& mips=output.mips;
+        while(const auto* mipField=native.Next())
+        {
+            if(mipField->IsTerminator()){terminated=true;break;}
+            if(mipField->fieldID!=0&&mipField->fieldID!=1){if(!native.Skip())return native.Fail("Cannot skip native mip field");continue;}
+            auto payload=mipField->payloadSize;
+            if(mipField->fieldID==0)
+            {
+                if(prefix||payload<26)return native.Fail("Missing or repeated native mip prefix");
+                if(!stream.ReadData(&nativeFlag,1)||!stream.ReadData(&width,4)||!stream.ReadData(&height,4)
+                    ||!stream.ReadData(&flags,4)||!stream.ReadData(&field1C,1))return native.Fail("Truncated native mip prefix");
+                payload-=14;prefix=true;
+                if(!nativeFlag||!width||!height||width>65535||height>65535||flags>3
+                    ||(flags&&((width&(width-1))||(height&(height-1)))))
+                    return native.Fail("Native BGRA or power-of-two compressed mip data with confirmed flags is required");
+            }
+            if(!prefix||payload<12||mips.size()>=spDXTexture::FullMipCountForAnalysis(width,height))return native.Fail("Native mip count/prefix exceeds full chain");
+            std::uint32_t wireWidth=0,wireStride=0,wireRows=0;
+            if(!stream.ReadData(&wireWidth,4)||!stream.ReadData(&wireStride,4)||!stream.ReadData(&wireRows,4))return native.Fail("Truncated native mip row header");
+            auto w=width,h=height;for(std::size_t i=0;i<mips.size();++i){w=std::max(1u,w>>1);h=std::max(1u,h>>1);}
+            spDXTexture::MipForAnalysis mip;
+            if(!spDXTexture::DescribeMipForAnalysis(w,h,flags?flags-1:3u,mip)||wireWidth!=w||wireStride!=mip.rowBytes||wireRows!=mip.rows
+                ||std::uint64_t(wireStride)*wireRows!=payload-12)return native.Fail("Native mip layout/extent differs from confirmed packed surface");
+            if(context.pcTexturePitchForAnalysis)mip.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),mip.rowBytes);
+            if(mip.physicalPitch<mip.rowBytes||std::uint64_t(mip.physicalPitch)*mip.rows>16u*1024u*1024u)return native.Fail("Invalid declared native mip surface pitch");
+            mip.packedBytes.resize(static_cast<std::size_t>(wireStride)*wireRows);
+            if(!stream.ReadData(mip.packedBytes.data(),static_cast<std::uint32_t>(mip.packedBytes.size())))return native.Fail("Truncated native mip row bytes");
+            output.pixelOffsets.push_back(mipField->dataStreamPosition+(mipField->fieldID==0?26:12));
+            mips.push_back(std::move(mip));
+        }
+        if(!terminated||!prefix||mips.empty())return native.Fail("Incomplete native mip section");
+        return true;
+    }
+
     bool spDXTextureDataSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& stream,std::uint32_t byteCount,spBaseObject& object,std::string* error) const
     {
@@ -103,38 +146,10 @@ namespace sparkplug::reconstruction
             }
             if(field->fieldID!=1||!(platform&PCNativeLoadFlagMask))
             {if(!local.Skip())return local.Fail("Cannot skip inactive DX texture field");continue;}
-            SectionCursor native(context,stream,field->payloadSize,true,error);
-            bool prefix=false,terminated=false;std::uint32_t width=0,height=0,flags=0;std::uint8_t nativeFlag=0,field1C=0;
-            std::vector<spDXTexture::MipForAnalysis> mips;
-            while(const auto* mipField=native.Next())
-            {
-                if(mipField->IsTerminator()){terminated=true;break;}
-                if(mipField->fieldID!=0&&mipField->fieldID!=1){if(!native.Skip())return native.Fail("Cannot skip native mip field");continue;}
-                auto payload=mipField->payloadSize;
-                if(mipField->fieldID==0)
-                {
-                    if(prefix||payload<26)return native.Fail("Missing or repeated native mip prefix");
-                    if(!stream.ReadData(&nativeFlag,1)||!stream.ReadData(&width,4)||!stream.ReadData(&height,4)
-                        ||!stream.ReadData(&flags,4)||!stream.ReadData(&field1C,1))return native.Fail("Truncated native mip prefix");
-                    payload-=14;prefix=true;
-                    if(!nativeFlag||!width||!height||width>65535||height>65535||flags>3
-                        ||(flags&&((width&(width-1))||(height&(height-1)))))
-                        return native.Fail("Native BGRA or power-of-two compressed mip data with confirmed flags is required");
-                }
-                if(!prefix||payload<12||mips.size()>=spDXTexture::FullMipCountForAnalysis(width,height))return native.Fail("Native mip count/prefix exceeds full chain");
-                std::uint32_t wireWidth=0,wireStride=0,wireRows=0;
-                if(!stream.ReadData(&wireWidth,4)||!stream.ReadData(&wireStride,4)||!stream.ReadData(&wireRows,4))return native.Fail("Truncated native mip row header");
-                auto w=width,h=height;for(std::size_t i=0;i<mips.size();++i){w=std::max(1u,w>>1);h=std::max(1u,h>>1);}
-                spDXTexture::MipForAnalysis mip;
-                if(!spDXTexture::DescribeMipForAnalysis(w,h,flags?flags-1:3u,mip)||wireWidth!=w||wireStride!=mip.rowBytes||wireRows!=mip.rows
-                    ||std::uint64_t(wireStride)*wireRows!=payload-12)return native.Fail("Native mip layout/extent differs from confirmed packed surface");
-                if(context.pcTexturePitchForAnalysis)mip.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),mip.rowBytes);
-                if(mip.physicalPitch<mip.rowBytes||std::uint64_t(mip.physicalPitch)*mip.rows>16u*1024u*1024u)return native.Fail("Invalid declared native mip surface pitch");
-                mip.packedBytes.resize(static_cast<std::size_t>(wireStride)*wireRows);
-                if(!stream.ReadData(mip.packedBytes.data(),static_cast<std::uint32_t>(mip.packedBytes.size())))return native.Fail("Truncated native mip row bytes");
-                mips.push_back(std::move(mip));
-            }
-            if(!terminated||!prefix||mips.empty())return native.Fail("Incomplete native mip section");
+            NativeReadForAnalysis input;
+            if(!ReadNativeSectionForAnalysis(context,stream,field->payloadSize,input,error))return false;
+            const auto width=input.width,height=input.height,flags=input.flags;const auto field1C=input.field1C;
+            auto& mips=input.mips;
             while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
             {
                 spDXTexture::MipForAnalysis generated;
@@ -144,13 +159,13 @@ namespace sparkplug::reconstruction
                     :powerOfTwo?sparkplug::evidence::pc::texture_mips::GenerateNext(previous,generated)
                     :sparkplug::evidence::pc::texture_mips::ResampleRaw(previous,0,
                         std::max(1u,previous.width/2),std::max(1u,previous.height/2),false,generated);
-                if(!created)return native.Fail("Cannot generate bounded native mip");
+                if(!created)return local.Fail("Cannot generate bounded native mip");
                 if(context.pcTexturePitchForAnalysis)generated.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),generated.rowBytes);
-                if(generated.physicalPitch<generated.rowBytes||std::uint64_t(generated.physicalPitch)*generated.rows>16u*1024u*1024u)return native.Fail("Invalid declared generated mip surface pitch");
+                if(generated.physicalPitch<generated.rowBytes||std::uint64_t(generated.physicalPitch)*generated.rows>16u*1024u*1024u)return local.Fail("Invalid declared generated mip surface pitch");
                 mips.push_back(std::move(generated));
             }
             if(!texture->InitializeNativeMipShadowForAnalysis(width,height,flags,field1C,std::move(mips)))
-                return native.Fail("Invalid complete native mip chain");
+                return local.Fail("Invalid complete native mip chain");
             initialized=true;
         }
         return false;

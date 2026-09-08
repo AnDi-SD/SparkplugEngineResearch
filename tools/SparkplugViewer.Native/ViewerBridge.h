@@ -33,6 +33,18 @@ struct SpvMeshInfo {
 };
 struct SpvMeshVertex {float position[3],normal[3],uv0[2],uv1[2],weights[4];std::uint32_t color,bones;};
 struct SpvPs2MeshHeader {float sphere[4];std::uint32_t primitives,vertices,componentFlags,packetQwords,additionalUVCount,weightCount;};
+struct SpvTextureSectionInfo {std::uint32_t kind,width,height,format,auxiliary,bitsPerPixel,pixelDataPresent,mips;};
+struct SpvTextureMip {std::uint32_t width,height,descriptor0,descriptor1,descriptor2,pixelOffset,pixelSize;};
+// Explicit serialized representation inspection: kind0 cross field, kind1 PC
+// native field. Stored levels/offsets only; runtime attachment generates mips
+// separately through the same engine classes. Input is borrowed for one call.
+SPV_API void* spv_texture_section_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind) noexcept;
+SPV_API void spv_texture_section_destroy(void*) noexcept;
+SPV_API int spv_texture_section_info(void*,SpvTextureSectionInfo*) noexcept;
+SPV_API int spv_texture_section_mips(void*,SpvTextureMip*,std::uint32_t) noexcept;
+// XRGB inspector preview through the restored raw decoder/encoder. Stored
+// bytes above remain untouched; this is an explicit BGRA output projection.
+SPV_API int spv_texture_section_bgra(void*,std::uint8_t*,std::uint32_t) noexcept;
 // Bounded inspection only. Header reads the original prefix and checks the
 // opaque packet extent; it neither materializes nor executes a DMA packet.
 SPV_API int spv_ps2_mesh_header(const std::uint8_t*,std::uint32_t,SpvPs2MeshHeader*) noexcept;

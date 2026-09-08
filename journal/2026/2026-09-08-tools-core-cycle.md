@@ -70,3 +70,10 @@ prefix probes остановлены до allocation, отдельный bounds-
 сохранил40/40/24 bytes, C#2 960/9 833/9 285 на трёх меню прошли. DMA остаётся
 opaque, header numeric relationships не подгоняются под старые C# ожидания.
 Досье: `docs/research/tool-ps2-mesh-metadata-core-2026-09-09.md`.
+
+Девятый блок: raw/PC mip readers общие с исходным loader; TextureTool получает
+их через общий C# DTO. Удалён его второй FFPS parser. Выявлена и исправлена
+ошибка XRGB alpha в preview/PNG; исходные bytes сохранены. Семь original/ABI
+сравнений, C++1007, C#9300/2975, TextureTool4248+40 прошли. Source wrapper,
+PS2 metadata и writers пока не перенесены. Досье:
+`docs/research/tool-texture-sections-shared-core-2026-09-09.md`.

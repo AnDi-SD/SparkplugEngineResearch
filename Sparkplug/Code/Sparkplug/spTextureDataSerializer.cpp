@@ -39,7 +39,7 @@ namespace sparkplug::reconstruction
         spStream& source,spSerializerObjectHeaderForAnalysis* observedHeader) const
     {
         spSerializerObjectHeaderForAnalysis header;
-        if(!source.ReadData(&header,sizeof(header)))return nullptr;
+        if(!ReadObjectHeaderForAnalysis(source,header))return nullptr;
         if(observedHeader)*observedHeader=header;
         // Actual PC42DD10 ignores both words and creates DXTexture4AB520.
         // Portable shadow preserves identity; no live COM acquisition is claimed.
@@ -102,7 +102,7 @@ namespace sparkplug::reconstruction
 
     bool spTextureDataSerializer::ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t byteCount,const std::function<bool(const spTextureBuffer&)>& initialize,
-        bool& initialized,std::string* error)
+        bool& initialized,std::string* error,const CrossReadObserverForAnalysis& observer)
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
         SectionCursor pixelsSection(context,source,byteCount,true,error);bool terminated=false;
@@ -121,6 +121,7 @@ namespace sparkplug::reconstruction
             spTextureBuffer buffer;
             if(!buffer.InitializeForAnalysis(static_cast<std::uint16_t>(raw.width),static_cast<std::uint16_t>(raw.height),1,raw.format)
                 ||!buffer.SetDataForAnalysis(bytes)||!initialize(buffer))return pixelsSection.Fail("Cannot initialize texture from common pixel buffer");
+            if(observer)observer(buffer,pixelsHeader->dataStreamPosition+sizeof(raw));
             initialized=true;
         }
         return terminated;

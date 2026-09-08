@@ -155,3 +155,13 @@ field reader прошли, все3/3,3/3,5/5 allocations освобождены;
 counter/format и запрет reverse bounds; DMA runtime не реализуется.
 Оставшаяся C# metadata aggregation и другие resource readers ещё в работе.
 Досье: `docs/research/tool-ps2-mesh-metadata-core-2026-09-09.md`.
+
+### Девятый блок: raw/PC texture sections
+
+Raw pixels и PC mip records переданы общим serializers; C# получает slices
+исходного SMO. TextureTool также больше не читает FFPS header самостоятельно.
+Исправлено смешение XRGB и BGRA: общий codec готовит opaque alpha для preview
+и PNG, не меняя raw bytes. Семь свежих original/ABI сравнений, C++1007,
+C#9300/2975 и TextureTool4248+40 прошли. Source-wrapper/PS2 metadata и writers
+ещё требуют переноса. Досье:
+`docs/research/tool-texture-sections-shared-core-2026-09-09.md`.

@@ -86,11 +86,15 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static CrossPlatformPayloadHeader
             BuildCrossPlatformPayloadHeaderForAnalysis(
                 const spTextureData& textureData) noexcept;
+        // Same field5 reader for explicit inspection. Observation is the input
+        // pixel offset after the actual four-word header; no runtime state.
+        using CrossReadObserverForAnalysis=std::function<void(const spTextureBuffer&,std::uint32_t pixelOffset)>;
+        [[nodiscard]] static bool ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,const std::function<bool(const spTextureBuffer&)>& initialize,bool& initialized,std::string*,
+            const CrossReadObserverForAnalysis& observer={});
     protected:
         [[nodiscard]] static bool InitializeCrossDXForAnalysis(spSerializerReadContextForAnalysis&,
             const spTextureBuffer&,spDXTexture&);
-        [[nodiscard]] static bool ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
-            std::uint32_t,const std::function<bool(const spTextureBuffer&)>& initialize,bool& initialized,std::string*);
         [[nodiscard]] static bool WriteSourceNoneForAnalysis(spStream&,const spTextureData&);
         [[nodiscard]] static bool WriteCrossSectionForAnalysis(spStream&,const spTextureData&);
         // Actual42EA50: same selected virtual reader recurses for field3;
