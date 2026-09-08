@@ -52,8 +52,11 @@ def run_bounded(script: Path, arguments=()) -> int:
 
 class PcInstructions:
     def __init__(self, path: Path | None = None, *, arena_size: int = ARENA_SIZE,
-                 execution_profile: str = 'micro'):
+                 execution_profile: str = 'micro', code_cache_mode: str = 'page'):
         execution_limits(execution_profile)
+        if code_cache_mode not in ('bytes', 'page'):
+            raise ValueError('Explicit bytes or page instruction cache required')
+        self.code_cache_mode = code_cache_mode
         self.execution_profile = execution_profile
         if arena_size not in (ARENA_SIZE, INTEGRATION_ARENA_SIZE):
             raise ValueError('Explicit 64KiB micro or 128KiB integration arena required')
@@ -68,7 +71,9 @@ class PcInstructions:
         import unicorn
         from unicorn import x86_const
         self.uc, self.xr = unicorn, x86_const
-        pe = pefile.PE(data=raw)
+        # Header/section mapping only: no loader imports/resources are used.
+        # CP117 checks the complete mapped-image hash against full parsing.
+        pe = pefile.PE(data=raw, fast_load=True)
         size = (pe.OPTIONAL_HEADER.SizeOfImage+4095) & ~4095
         if pe.OPTIONAL_HEADER.ImageBase != BASE or not 0 < size < 0x4000000:
             raise ValueError('Unexpected image mapping')
@@ -82,6 +87,20 @@ class PcInstructions:
         self.mu.mem_map(HEAP, self.arena_size, unicorn.UC_PROT_READ | unicorn.UC_PROT_WRITE)
         self.decoder = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
         self.code_cache = {}
+        self.code_cache_pages = {}
+        if code_cache_mode == 'page':
+            # API mem_write does not invoke Unicorn's guest-write hook. Cover
+            # both paths; instructions straddling pages belong to both sets.
+            write_memory, unmap_memory = self.mu.mem_write, self.mu.mem_unmap
+            def write(address, data):
+                self._invalidate_code(address, len(data), host=True)
+                return write_memory(address, data)
+            def unmap(address, size):
+                self._invalidate_code(address, size, host=True)
+                return unmap_memory(address, size)
+            self.mu.mem_write, self.mu.mem_unmap = write, unmap
+            self.mu.hook_add(unicorn.UC_HOOK_MEM_WRITE, self._guest_write,
+                             begin=BASE, end=BASE+size-1)
         self.tail = collections.deque(maxlen=12)
         self.seams = {}  # address -> explicit fixture callback, no default API shim
         self.visits = collections.Counter()
@@ -124,6 +143,41 @@ class PcInstructions:
         self.reason = reason
         self.mu.emu_stop()
 
+    def _invalidate_code(self, address, size, *, host=False):
+        if size <= 0 or address >= BASE+self.size or address+size <= BASE:
+            return
+        first, last = max(address, BASE)>>12, min(address+size-1, BASE+self.size-1)>>12
+        for page in range(first, last+1):
+            entries = self.code_cache_pages.pop(page, ())
+            if entries and host:
+                # API writes can retain a stale translated instruction size.
+                # Guest writes already invalidate Unicorn translations itself.
+                self.mu.ctl_remove_cache(page<<12, (page+1)<<12)
+            for entry in entries:
+                self.code_cache.pop(entry, None)
+
+    def _guest_write(self, mu, access, address, size, value, user):
+        self._invalidate_code(address, size)
+
+    def _mnemonic(self, mu, address, length):
+        if self.code_cache_mode == 'page':
+            cached = self.code_cache.get(address)
+            if cached is not None and cached[0] == length:
+                return cached[1]
+            raw = bytes(mu.mem_read(address, length))
+            ins = next(self.decoder.disasm(raw, address), None)
+            mnemonic = ins.mnemonic if ins else 'invalid'
+            self.code_cache[address] = (length, mnemonic)
+            for page in range(address>>12, ((address+length-1)>>12)+1):
+                self.code_cache_pages.setdefault(page, set()).add(address)
+            return mnemonic
+        raw = bytes(mu.mem_read(address, length))
+        key = (address, raw)
+        if key not in self.code_cache:
+            ins = next(self.decoder.disasm(raw, address), None)
+            self.code_cache[key] = ins.mnemonic if ins else 'invalid'
+        return self.code_cache[key]
+
     def _code(self, mu, address, length, _):
         self.visits[address] += 1
         self.tail.append(address)
@@ -136,12 +190,7 @@ class PcInstructions:
         if not BASE <= address < BASE+self.size:
             self._stop('external execution denied')
             return
-        raw = bytes(mu.mem_read(address,length))
-        key = (address,raw)
-        if key not in self.code_cache:
-            ins = next(self.decoder.disasm(raw,address),None)
-            self.code_cache[key] = ins.mnemonic if ins else 'invalid'
-        if self.code_cache[key] in {
+        if self._mnemonic(mu, address, length) in {
             'invalid','syscall','sysenter','int','int1','int3','in','out',
             'insb','insw','insd','outsb','outsw','outsd','hlt','cli','sti',
         }:
