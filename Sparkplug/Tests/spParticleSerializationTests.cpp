@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 
 using namespace sparkplug::reconstruction;
@@ -32,6 +33,18 @@ namespace
     {
         spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
         spMemoryStream stream;Open(stream,payload);return spParticleSystemSerializer{}.ReadPayloadForAnalysis(context,stream,std::uint32_t(payload.size()),object,&error);
+    }
+    std::string Sample(std::uint32_t tag,std::uint32_t seed,std::uint32_t count,const std::string& text)
+    {
+        Check(count<=128,"Bounded sample count");spParticleSystem object;auto& p=object.Parameters();p.regionType=tag;
+        sparkplug::evidence::pc::ParticleRandomForAnalysis random;random.Seed(seed);
+        const auto bytes=Unhex(text);Check(bytes.size()%4==0&&bytes.size()<=32,"Region extent");
+        p.region.resize(bytes.size()/4);std::memcpy(p.region.data(),bytes.data(),bytes.size());
+        std::vector<spParticleSystem::Vector3> positions;Check(object.SampleEmissionRegionForAnalysis(random,count,positions),"Bounded region sampling");
+        Bytes state;const auto append=[&](const void* data,std::size_t size){const auto* b=static_cast<const std::uint8_t*>(data);state.insert(state.end(),b,b+size);};
+        for(const auto& position:positions)append(position.data(),12);
+        const auto positionsHex=Hex(state);state.clear();append(random.state.data(),random.state.size()*4);
+        return "{\"positionsHex\":\""+positionsHex+"\",\"randomIndex\":"+std::to_string(random.index)+",\"randomStateHex\":\""+Hex(state)+"\"}";
     }
     void Guards()
     {
@@ -78,18 +91,21 @@ int main(int argc,char** argv)
 {
     try
     {
-        if(argc==5&&std::string(argv[1])=="--sample")
+        if(argc==2&&std::string(argv[1])=="--sample-batch")
         {
-            spParticleSystem object;auto& p=object.Parameters();p.regionType=std::stoul(argv[2]);
-            sparkplug::evidence::pc::ParticleRandomForAnalysis random;random.Seed(std::stoul(argv[3]));
-            const auto count=std::stoul(argv[4]);Check(count<=128,"Bounded sample count");
-            std::string text;std::getline(std::cin,text);const auto bytes=Unhex(text);
-            Check(bytes.size()%4==0&&bytes.size()<=32,"Region extent");p.region.resize(bytes.size()/4);std::memcpy(p.region.data(),bytes.data(),bytes.size());
-            std::vector<spParticleSystem::Vector3> positions;Check(object.SampleEmissionRegionForAnalysis(random,std::uint32_t(count),positions),"Bounded region sampling");
-            Bytes state;const auto append=[&](const void* data,std::size_t size){const auto* b=static_cast<const std::uint8_t*>(data);state.insert(state.end(),b,b+size);};
-            for(const auto& position:positions)append(position.data(),12);
-            const auto positionsHex=Hex(state);state.clear();append(random.state.data(),random.state.size()*4);
-            std::cout<<"{\"positionsHex\":\""<<positionsHex<<"\",\"randomIndex\":"<<random.index<<",\"randomStateHex\":\""<<Hex(state)<<"\"}\n";
+            std::string line;unsigned rows=0;
+            while(std::getline(std::cin,line))
+            {
+                Check(++rows<=64&&line.size()<=128,"Bounded sample batch");
+                std::istringstream input(line);std::uint32_t tag=0,seed=0,count=0;std::string hex,extra;
+                Check(bool(input>>tag>>seed>>count>>hex)&&!(input>>extra),"Sample batch record");
+                std::cout<<Sample(tag,seed,count,hex)<<'\n';
+            }
+        }
+        else if(argc==5&&std::string(argv[1])=="--sample")
+        {
+            std::string text;std::getline(std::cin,text);
+            std::cout<<Sample(std::stoul(argv[2]),std::stoul(argv[3]),std::stoul(argv[4]),text)<<'\n';
         }
         else if(argc==2&&std::string(argv[1])=="--payload")
         {

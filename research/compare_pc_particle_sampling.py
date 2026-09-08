@@ -15,22 +15,34 @@ def region_input(tag,variant):
     elif variant!='base':raise ValueError('Explicit region variant required')
     return struct.pack('<'+'f'*(len(origin)+len(values)),*(origin+values))
 
-def main(tag=1):
+def main(tag=1,source_mode='batch'):
     if not 1<=tag<=7:raise ValueError('Region tag1..7 required')
+    if source_mode not in ('single','batch'):raise ValueError('Explicit source process mode required')
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugParticleSerializationTests.exe'
     p=PcInstructions(execution_profile='file');obj=p.allocate(264);region=p.allocate(32);guard=p.allocate(128*12+32);output=guard+16
     p.put_uint(obj+0x70,tag);p.put_uint(obj+0x74,region)
     cases=[];started=time.monotonic()
     report={'kind':'native-particle-sampling-comparison','regionTag':tag,'executionProfile':'file','arenaLimitBytes':p.arena_size,
-        'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),'cases':cases}
+        'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),'cases':cases,
+        'sourceMode':source_mode,'sourceProcessCount':36 if source_mode=='single' else 1}
     try:
+        expected_batch=[]
+        if source_mode=='batch':
+            records=[f'{tag} {seed} {count} {region_input(tag,variant).hex()}' for variant in ('base','translated','zero','negative') for seed in (0,5489,0xffffffff) for count in (0,1,128)]
+            result=subprocess.run([str(binary),'--sample-batch'],input=('\n'.join(records)+'\n').encode(),capture_output=True,timeout=5)
+            assert result.returncode==0,result.stderr.decode(errors='replace')
+            assert len(result.stdout)<=524288,'bounded source batch output'
+            expected_batch=[json.loads(line) for line in result.stdout.splitlines()]
+            assert len(expected_batch)==36,'exact source batch response count'
         for variant in ('base','translated','zero','negative'):
             data=region_input(tag,variant);p.mu.mem_write(region,data)
             for seed in (0,5489,0xffffffff):
                 for count in (0,1,128):
-                    result=subprocess.run([str(binary),'--sample',str(tag),str(seed),str(count)],input=(data.hex()+'\n').encode(),capture_output=True,timeout=5)
-                    assert result.returncode==0,result.stderr.decode(errors='replace')
-                    expected=json.loads(result.stdout)
+                    if source_mode=='single':
+                        result=subprocess.run([str(binary),'--sample',str(tag),str(seed),str(count)],input=(data.hex()+'\n').encode(),capture_output=True,timeout=5)
+                        assert result.returncode==0,result.stderr.decode(errors='replace')
+                        expected=json.loads(result.stdout)
+                    else:expected=expected_batch[len(cases)]
                     p.run(0x413270,args=(seed,),callee_pop=False)
                     p.mu.mem_write(guard,b'\xa5'*(128*12+32))
                     p.run(0x48c100,this=obj,args=(count,output));instructions=sum(p.visits.values())
@@ -50,10 +62,11 @@ def main(tag=1):
     except (AssertionError,ValueError) as e:report.update(status='failed',error=str(e));raise
     finally:
         report.update(seconds=time.monotonic()-started,arenaReservedBytes=p.allocated)
-        path=ROOT/'local-data/results/cycle-20260908-0700'/f'cp121-sampling-{tag}.json';path.write_text(json.dumps(report,indent=2)+'\n')
+        suffix='-single' if source_mode=='single' else ''
+        path=ROOT/'local-data/results/cycle-20260908-0700'/f'cp121-sampling-{tag}{suffix}.json';path.write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps({k:v for k,v in report.items() if k!='cases' and k!='error'}),flush=True)
     return 0
 
 if __name__=='__main__':
-    if sys.argv[1:2]==['--guest']:raise SystemExit(main(int(sys.argv[2]) if len(sys.argv)>2 else 1))
+    if sys.argv[1:2]==['--guest']:raise SystemExit(main(int(sys.argv[2]) if len(sys.argv)>2 else 1,'single' if '--source-single' in sys.argv else 'batch'))
     raise SystemExit(run_bounded(Path(__file__),sys.argv[1:]))

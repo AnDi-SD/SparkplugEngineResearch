@@ -1,0 +1,144 @@
+{
+  "kind": "native-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP122",
+  "createdUtc": "2026-09-08T03:38:21.194723+00:00",
+  "documentation": "docs/research/native-pc-particle-batch-speed.md",
+  "classScoresChanged": false,
+  "benchmark": {
+    "kind": "native-particle-source-batch-benchmark",
+    "rows": [
+      {
+        "repeat": 0,
+        "tag": 1,
+        "sourceMode": "single",
+        "processSeconds": 3.598687100005918,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 0,
+        "tag": 1,
+        "sourceMode": "batch",
+        "processSeconds": 1.6748380999924848,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 0,
+        "tag": 7,
+        "sourceMode": "single",
+        "processSeconds": 4.060726600000635,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 0,
+        "tag": 7,
+        "sourceMode": "batch",
+        "processSeconds": 3.1411799999914365,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 1,
+        "tag": 1,
+        "sourceMode": "batch",
+        "processSeconds": 1.4697801000002073,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 1,
+        "tag": 1,
+        "sourceMode": "single",
+        "processSeconds": 2.1185299000062514,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 1,
+        "tag": 7,
+        "sourceMode": "batch",
+        "processSeconds": 3.028367899998557,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 1,
+        "tag": 7,
+        "sourceMode": "single",
+        "processSeconds": 3.805187699996168,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 2,
+        "tag": 1,
+        "sourceMode": "single",
+        "processSeconds": 2.4011687000020174,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 2,
+        "tag": 1,
+        "sourceMode": "batch",
+        "processSeconds": 1.552614000000176,
+        "semanticSha256": "811D8F67BC299F3306E26CD31B8F0F1CA6BF50259759706803861CDAE7B9AB1E",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 2,
+        "tag": 7,
+        "sourceMode": "single",
+        "processSeconds": 3.734059399997932,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 36,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      },
+      {
+        "repeat": 2,
+        "tag": 7,
+        "sourceMode": "batch",
+        "processSeconds": 3.0040983999933815,
+        "semanticSha256": "9333C5CA3C95E81F1ADADA42DA27F4A3A8938665775C3398909E482648635F98",
+        "sourceProcessCount": 1,
+        "sourceExecutableSha256": "865EBEB7A9F7B8E14379802FFE47BDFAB040E988E35492CA827052513E22B398"
+      }
+    ],
+    "comparisons": [
+      {
+        "tag": 1,
+        "medians": {
+          "single": 2.4011687000020174,
+          "batch": 1.552614000000176
+        },
+        "speedup": 1.5465329437978437
+      },
+      {
+        "tag": 7,
+        "medians": {
+          "single": 3.805187699996168,
+          "batch": 3.028367899998557
+        },
+        "speedup": 1.2565143422627023
+      }
+    ]
+  },
+  "validation": {
+    "particleAssertions": 46,
+    "batchGuards": 3,
+    "nativeSamplingCases": 252
+  }
+}
