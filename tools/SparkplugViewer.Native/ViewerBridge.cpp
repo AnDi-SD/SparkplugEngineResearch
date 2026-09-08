@@ -7,6 +7,7 @@
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
+#include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Analysis/PC/spAnimationMath.h"
 #include <algorithm>
 #include <cmath>
@@ -59,6 +60,46 @@ public:
     bool WriteData(const void*, std::uint32_t) override { return false; }
     bool vfunc_WriteFromStream(spStream*, std::uint32_t) override { return false; }
 };
+struct ContainerIndex {
+    SpvContainerInfo info{};
+    std::vector<SpvContainerEntry> entries;
+    ContainerIndex(const std::uint8_t* data,std::uint32_t count) {
+        require(data&&count>=36&&count<=64u*1024u*1024u,"FFPS inspection requires 36 bytes..64 MiB");
+        BorrowedInput input(data,count);spSerializerManager manager;spSerializerFileHeader header{};
+        const auto status=manager.ReadAndValidateHeaderForAnalysis(input,
+            spSerializerManager::PlatformPC|spSerializerManager::PlatformPS2,&header);
+        require(status!=spSerializerFileHeaderStatus::HeaderReadFailed
+            &&status!=spSerializerFileHeaderStatus::WrongFileType,"The file does not start with the FFPS signature");
+        // A raw inspector may display wrong-version/platform/size documents.
+        // Return native header status explicitly; never claim a runtime load.
+        info={header.signature,header.version,header.exportTag,header.declaredFileSize,
+            header.platformMask,header.dataOffset,header.dataSize,0,static_cast<std::uint32_t>(status)};
+        require(header.dataOffset>=36&&header.dataOffset<=count,"FFPS table is outside the file");
+        BorrowedInput table(data,header.dataOffset-4);
+        require(table.Seek(spStream::SeekSource::essStart,sizeof(header)),"Cannot seek to FAT index");
+        const bool read=spResourceFATHelperForAnalysis::ReadIndexEntriesForAnalysis(table,
+            [&](auto entry,const auto& location) {
+                SpvContainerEntry result{location.tableOffset,entry->id,location.nameOffset,location.nameBytes,
+                    entry->classID,entry->offset,entry->size,0,0};
+                const std::uint64_t physical=std::uint64_t(header.dataOffset)+entry->offset;
+                if(physical<=count-8) {
+                    spSerializerObjectHeaderForAnalysis objectHeader{};
+                    require(input.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(physical))
+                        &&spSerializer::ReadObjectHeaderForAnalysis(input,objectHeader),"Cannot inspect bounded object header");
+                    result.signatureClassID=objectHeader.classID;
+                    result.signatureFlags=1u|(spSerializer::HasCanonicalObjectMarkerForAnalysis(objectHeader)?2u:0u)
+                        |(objectHeader.classID==entry->classID?4u:0u);
+                }
+                entries.push_back(result);return true;
+            },true,&info.objectCount);
+        require(read,"Truncated or oversized resource FAT index");
+        std::uint32_t position=0,fileCount=0;
+        require(table.GetCurrentPosition(position)&&position==header.dataOffset-4,"FAT table does not end at the declared terminator");
+        require(input.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(position))
+            &&input.Read(fileCount)&&fileCount==0,"Expected zero external-file index count");
+    }
+};
+static_assert(sizeof(SpvContainerInfo)==36&&sizeof(SpvContainerEntry)==36);
 struct Binding {
     Sampler sampler;
     spTransformTrackEval::PlaybackForAnalysis playback;
@@ -101,6 +142,22 @@ std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
 }
 SPV_API std::uint32_t spv_abi_version() noexcept { return 2; }
 SPV_API const char* spv_last_error() noexcept { return lastError; }
+SPV_API void* spv_container_inspect(const std::uint8_t* data,std::uint32_t count) noexcept {
+    std::unique_ptr<ContainerIndex> result;
+    if(!guarded([&]{result=std::make_unique<ContainerIndex>(data,count);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_container_destroy(void* handle) noexcept {guarded([&]{delete static_cast<ContainerIndex*>(handle);});}
+SPV_API int spv_container_info(void* handle,SpvContainerInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing container info input/output");*output=static_cast<ContainerIndex*>(handle)->info;});
+}
+SPV_API int spv_container_entries(void* handle,SpvContainerEntry* output,std::uint32_t count) noexcept {
+    return guarded([&]{
+        require(handle,"Missing container handle");const auto& entries=static_cast<ContainerIndex*>(handle)->entries;
+        require(count==entries.size()&&(output||!count),"Container entry buffer count mismatch");
+        if(count)std::copy(entries.begin(),entries.end(),output);
+    });
+}
 SPV_API void* spv_graph_load(const std::uint8_t* data,std::uint32_t count) noexcept {
     std::unique_ptr<spvhost::GraphHandle> result;
     if(!guarded([&]{result=std::make_unique<spvhost::GraphHandle>();

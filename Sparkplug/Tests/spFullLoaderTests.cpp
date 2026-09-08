@@ -139,6 +139,32 @@ namespace
         Check(manager.LoadResourcesForAnalysis(input, context) != nullptr, "declared size/dataSize are not invented native validators");
     }
 
+    void IndexInspection()
+    {
+        spMemoryStream stream;Check(stream.Open(nullptr)&&stream.Write(3u),"index inspection setup");
+        std::uint32_t expectedSecondEnd=0;
+        for(std::uint32_t id=1;id<=3;++id)
+        {
+            const char* name=id==1?nullptr:id==2?"":"later";
+            Check(stream.Write(id)&&stream.Write(name)&&stream.Write(id==2?0xDEADBEEFu:spAnimation::ClassID)
+                &&stream.Write(100u*id)&&stream.Write(9u),"test index entries");
+            if(id==2)Check(stream.GetCurrentPosition(expectedSecondEnd),"unknown entry extent");
+        }
+        Check(stream.Seek(spStream::SeekSource::essStart,0),"rewind index");
+        spResourceFATHelperForAnalysis runtime;std::uint32_t stopped=0;
+        Check(!runtime.LoadIndexForAnalysis(stream)&&runtime.GetResourceCountForAnalysis()==1
+            &&stream.GetCurrentPosition(stopped)&&stopped==expectedSecondEnd,
+            "runtime FAT preserves early unknown-RTTI rejection and preceding entry");
+        Check(stream.Seek(spStream::SeekSource::essStart,0),"rewind raw observation");
+        std::vector<spResourceFATEntryLocationForAnalysis> locations;std::vector<std::uint32_t> kinds;std::uint32_t count=0;
+        Check(spResourceFATHelperForAnalysis::ReadIndexEntriesForAnalysis(stream,[&](auto entry,const auto& location)
+            {locations.push_back(location);kinds.push_back(entry->classID);return true;},true,&count),"shared raw index stream reader");
+        Check(count==3&&locations.size()==3&&kinds[1]==0xDEADBEEF,"raw inspection does not invent an unknown runtime factory");
+        Check(locations[0].tableOffset==4&&locations[0].nameOffset==10&&locations[0].nameBytes==0
+            &&locations[1].tableOffset==22&&locations[1].nameOffset==28&&locations[1].nameBytes==1,
+            "source locations preserve null vs nonnull empty names");
+    }
+
     void FullFileProducer()
     {
         spSerializerManager manager; spResourceManager resources; spAnimationManager names; Register(manager);
@@ -189,7 +215,7 @@ namespace
 }
 int main()
 {
-    try { (void)spAnimation::StaticRTTI(); Reuse(); Failures(); NullableNamesAndOrigin(); FullFileProducer();
+    try { (void)spAnimation::StaticRTTI(); Reuse(); Failures(); NullableNamesAndOrigin(); IndexInspection(); FullFileProducer();
         std::cout << "PASS " << checks << '/' << checks << ": complete PC FFPS loader reconstruction\n"; return 0; }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

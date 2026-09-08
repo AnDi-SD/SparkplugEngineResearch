@@ -63,7 +63,7 @@ namespace sparkplug::reconstruction
         spSerializerObjectHeaderForAnalysis* const observedHeader) const
     {
         spSerializerObjectHeaderForAnalysis header{};
-        if (!source.ReadData(&header, sizeof(header)))
+        if (!ReadObjectHeaderForAnalysis(source,header))
         {
             if (observedHeader != nullptr)
             {
@@ -88,6 +88,10 @@ namespace sparkplug::reconstruction
     {
         return header.marker == 0x4F4F4253;
     }
+
+    bool spSerializer::ReadObjectHeaderForAnalysis(spStream& source,
+        spSerializerObjectHeaderForAnalysis& header)
+    {return source.ReadData(&header,sizeof(header));}
 
     bool spSerializer::WriteObjectHeaderForAnalysis(spStream& destination, const spBaseObject& object)
     {

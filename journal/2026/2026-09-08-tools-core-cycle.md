@@ -40,3 +40,11 @@ VS во время работы обновилась и требует reboot; �
 Сфера вынесена из DXMesh в единый helper без изменения алгоритма. Native
 query tree не объявлен восстановленным/доступным tools. Досье:
 `docs/research/native-pc-mesh-bv-tools-core-2026-09-09.md`.
+
+Пятый блок: SmoDocument использует общий header/FAT/object-header reader,
+собственный C# parser удалён. Raw inspection не создаёт неизвестных runtime
+классов и сохраняет статус оригинального header validator. 9 262 C# assertions
+на одном меню, восемь C++ suites (включая FullLoader213), пять metadata samples
+с двумя PS2 payloads и три прежних resource graphs прошли. Добавлен выбор
+CheckSuites для адресной сборки/проверки. Подробности:
+`docs/research/tool-container-shared-core-2026-09-09.md`.

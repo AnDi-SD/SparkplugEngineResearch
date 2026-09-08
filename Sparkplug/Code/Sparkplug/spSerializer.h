@@ -64,6 +64,11 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static bool HasCanonicalObjectMarkerForAnalysis(
             const spSerializerObjectHeaderForAnalysis& header) noexcept;
 
+        // Original eight-byte read, shared with metadata-only inspection.
+        // Factory/RTTI dispatch remains in ReadObjectHeaderAndCreate above.
+        [[nodiscard]] static bool ReadObjectHeaderForAnalysis(spStream& source,
+            spSerializerObjectHeaderForAnalysis& header);
+
         // PC467260 writes actual object's RTTI class ID plus literal SBOO.
         [[nodiscard]] static bool WriteObjectHeaderForAnalysis(
             spStream& destination, const spBaseObject& object);

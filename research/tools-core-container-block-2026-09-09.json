@@ -1,0 +1,177 @@
+{
+  "kind": "tools-core-container-block",
+  "status": "verified-scoped-core",
+  "base_commit": "6c02465",
+  "viewer_commit": "48620a4597ad1203a077db58577a9bc520295f46",
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "C2980C29B309317755A0AE4240BA91DE716D37D3B006D149825B694163E44A6E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "A5A344E33E6463C8256D4BBA1845B472FA0DCAFEB0E980E2CCBF90AF23545240"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "5B40F717CEF7C077170E011116D9F13091D19A4D4D324D33BA922EEF5C40EA57"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "F4D6325FDBF041D752996085964597CC2F531CEE7684D3B84C0DA65A296773CB"
+    },
+    {
+      "path": "Sparkplug/Tests/spFullLoaderTests.cpp",
+      "sha256": "B16BD23F2397F287144E21E35474F27587EE7083D67E8FD760AE549022BB6730"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "sha256": "7EB457F930ED751E6630ACBD7098B66072EF3C6E2D9A8A08A62CE3018A65969F"
+    },
+    {
+      "path": "docs/research/tool-container-shared-core-2026-09-09.md",
+      "sha256": "32215AA8B834E25A41BF574388D28C4F01C54FDBF34E7C844507A2B570CFDF15"
+    },
+    {
+      "path": "research/validate_tools_container_index.py",
+      "sha256": "932D167E423D31F4A267D1A8806A2AFA02B246123B78B9E5DEAC9185F31A8FFE"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "BEFCEBE380396679901CD2ACD6CB471FCB63B1C70628B8503B28152A1A92BCFA"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "694FDDBA7C3FF938202F00B069572ACC32364B72C3FA85D818A80C9EAFA0EE35"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "F7E0BDE2777C3522893573BEDF3D1FD21E18978DC3056CD44E3DD326AA45C2C6"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "8A7EFA009A3719F8E596FA661C8A89B474884F28E63C2579F31D4C9D80DA615E"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "worktree_sha256": "0EF17C000E007C983293EDCA9C80287FE2F413D7ED80A7D821DC2DDC5CC273A6",
+      "git_blob_sha256": "FCEE66A65ECC2CDAFC9CB7B899F7255BF41BE082967A3E821F2DFA7FA7C71C99",
+      "worktree_line_endings": "CRLF"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoDocument.cs",
+      "worktree_sha256": "5CAB246505F1DAD425571F305F2222FA7552FBEC6EDA3FC6C039DF038490607B",
+      "git_blob_sha256": "F8B72420441F386B99BFC3F6E9D160F39B3DD214E99B21BD6B8E9FD2CFD39BFB",
+      "worktree_line_endings": "CRLF"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoModels.cs",
+      "worktree_sha256": "F6EA774AA446B0068D3EF0B088720C9EAC564073106305CFD564BD731CEA64D8",
+      "git_blob_sha256": "BA606E3F9E78CCB0694447F327C2983EF08627718CE4CE890B146225FE83D909",
+      "worktree_line_endings": "CRLF"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "worktree_sha256": "2C40818B9B828E8235826E782DBB648AB1118F60BBAA81E21A6180F7FF4B5412",
+      "git_blob_sha256": "1EFABEE1CDE3949A3405604BBE54C45AB5DD44E2FAB66A413F164EF989E25A98",
+      "worktree_line_endings": "CRLF"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "worktree_sha256": "BE471E1CF48B2A6A14251D7CB7BFABF714736448DCA59F3B162F1F12395C7700",
+      "git_blob_sha256": "88BBC86EB0B8D21E4D6CBBDC2C7F06625C252CE49678E27F6DF38B0BE077CCF1",
+      "worktree_line_endings": "CRLF"
+    }
+  ],
+  "native_dll_sha256": "61F618BC0AF15EB8CB9B9ED60E637A7EB4B411447359349CA6046B5EEF909D23",
+  "format_tests_dll_sha256": "BEDC93630CA24DED2569B06E740D58F2A64E476B2AD1F0CA4DC6F38E76D615ED",
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/index.json",
+      "sha256": "82C1C97669E1509ADF00719B5723AB7DE7908ABED854E7F144BC1DED803A9A60"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/graphs.json",
+      "sha256": "EABB764B70B94BF79EF653566D10886EABC598E5DD7277E9EF8AE82E2D2E076A"
+    }
+  ],
+  "logs": {
+    "format_pc": {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/container-format-tests.log",
+      "sha256": "8CF8D6ABA6FBA803C8DAC321888E52AA0280E37201E16F34FF19A70B5C844DC1"
+    },
+    "format_ps2": {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/container-format-ps2.log",
+      "sha256": "A9FAD772846F7204C5E41AB8DB6BD5841E5BED1817B75A196A00FB4C1F2A96D8"
+    },
+    "native_full_loader": {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/container-full-loader-build.log",
+      "sha256": "6D9C27E7B3FFD11E6BC033B6CD9E0E3E120511AA7E38EACD96F953E18C445A33"
+    },
+    "native_other_suites": {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/container/container-core-build.log",
+      "sha256": "8B0631A84C09FE6B00F3BE0C20F20228997971E64FF95B2A06B0E2C1FC755B68"
+    }
+  },
+  "validation": {
+    "cpp_suites": 8,
+    "full_loader_checks": 213,
+    "csharp_pc_menu_assertions": 9262,
+    "csharp_ps2_menu_assertions": 2937,
+    "metadata_samples": [
+      {
+        "file": "Characters/Bloom/bloom_jeans.smo",
+        "sha256": "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA",
+        "objects": 121,
+        "platform_mask": 2,
+        "container_bytes": 613109,
+        "metadata_bytes": 4356,
+        "seconds": 0.0005252999835647643
+      },
+      {
+        "file": "Menus/igmenu_opt_pc.smo",
+        "sha256": "D6ED2606BFCA4C4EED41F59869D1EC1C20DFAFE7A3BFD8E7FEC6C5F109052F0E",
+        "objects": 1225,
+        "platform_mask": 2,
+        "container_bytes": 4079540,
+        "metadata_bytes": 44100,
+        "seconds": 0.004432100016856566
+      },
+      {
+        "file": "SFX/tile_bad.smo",
+        "sha256": "E4497C217F49FE8BF7A3645533F10B19AA8DEEFD07063E44C8CE84CEE18484C6",
+        "objects": 127,
+        "platform_mask": 2,
+        "container_bytes": 107351,
+        "metadata_bytes": 4572,
+        "seconds": 0.0005447999865282327
+      },
+      {
+        "file": "Menus/igmenu_opt_ps2.smo",
+        "sha256": "42765C63D4E2040F72FD6DFC4A9C7141A26B001EF0EFE0210CCCC305757A83E4",
+        "objects": 342,
+        "platform_mask": 9,
+        "container_bytes": 380648,
+        "metadata_bytes": 12312,
+        "seconds": 0.0009514999983366579
+      },
+      {
+        "file": "Menus/mmenu_new_ps2.smo",
+        "sha256": "E1440D60D263C1EC12A87286839F32B2CC351262E2AE504194857030561906C1",
+        "objects": 1167,
+        "platform_mask": 8,
+        "container_bytes": 525763,
+        "metadata_bytes": 42012,
+        "seconds": 0.0030593000119552016
+      }
+    ],
+    "resource_graph_samples": 3
+  },
+  "limits": [
+    "Raw inspection is not unknown runtime resource loading; native header status retained",
+    "C# typed resource decoders/editors/scene adapters still need migration",
+    "Current C# bridge Windows x64; no UI/GPU/PS2 executable run in this block"
+  ]
+}

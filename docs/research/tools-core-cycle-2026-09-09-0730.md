@@ -104,3 +104,18 @@ Sphere совпал побитно с оригиналом на семи отд�
 использовать восстановленные чтение header/FAT/fields, сохраняя диагностику
 и собственные сценарии инспектора. Существующий C# typed resource decode
 тоже требует последующей замены, готовность всех ядер пока не заявлена.
+
+### Пятый блок: контейнер/FAT в общих C# cores
+
+Самостоятельный FFPS/FAT/object-header parser из SmoDocument удалён. Используются
+общие исходные операции чтения; runtime RTTI rejection сохраняет прежний порядок,
+а raw inspector получает metadata без фиктивных объектов неизвестных классов.
+SafeHandle живёт только при batch передаче metadata, исходный SMO не копируется
+в native stream. Осталась собственная диагностика и ещё не перенесённые typed
+resource decoders. Введён адресный выбор C++ suites через CheckSuites.
+
+Сборки прошли; семь прежних C++ suites и FullLoader213 checks прошли. C# FormatTests
+на одном PC меню:9 262 assertions. Native metadata сверены на пяти файлах,
+включая два с настоящими PS2 payloads; полные resource graphs на меню/SFX/Bloom
+сохранили результат. Досье: `docs/research/tool-container-shared-core-2026-09-09.md`.
+Отдельный финальный C# прогон PS2-меню прошёл2 937 assertions.

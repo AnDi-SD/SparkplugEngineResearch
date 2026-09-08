@@ -18,6 +18,14 @@ struct SpvLinearChannel { const float* times; const float* values; std::uint32_t
 struct SpvFieldHeader { std::uint32_t field, payloadSize, headerSize; };
 struct SpvGraphObject {std::uint32_t id,wireClassID,runtimeClassID,offset,size,isNode;};
 struct SpvGraphNode {std::uint32_t parentID,flags,children,collisions;float position[3],orientation[9],scale[3],rotation[4];};
+// Raw container inspection through the original header/FAT stream readers.
+// No runtime resource factories are invoked or substituted for unknown types.
+struct SpvContainerInfo {std::uint32_t signature,version,exportTag,fileSize,platformMask,dataOffset,dataSize,objectCount,headerStatus;};
+struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,classID,offset,size,signatureClassID,signatureFlags;};
+SPV_API void* spv_container_inspect(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_container_destroy(void*) noexcept;
+SPV_API int spv_container_info(void*,SpvContainerInfo*) noexcept;
+SPV_API int spv_container_entries(void*,SpvContainerEntry*,std::uint32_t count) noexcept;
 SPV_API void* spv_graph_load(const std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void spv_graph_destroy(void*) noexcept;
 SPV_API int spv_graph_info(void*,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept;

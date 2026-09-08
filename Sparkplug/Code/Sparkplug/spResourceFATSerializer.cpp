@@ -18,7 +18,8 @@ namespace sparkplug::reconstruction
         ClearFileEntriesForAnalysis();
     }
 
-    bool spResourceFATHelperForAnalysis::LoadIndexForAnalysis(spStream& source)
+    bool spResourceFATHelperForAnalysis::ReadIndexEntriesForAnalysis(spStream& source,
+        const IndexVisitorForAnalysis& visitor,const bool captureLocations,std::uint32_t* declaredCount)
     {
         std::uint32_t count = 0;
         if (!source.Read(count))
@@ -26,18 +27,39 @@ namespace sparkplug::reconstruction
             return false;
         }
         if (count > 65536) return false; // host allocation bound, not a native cap
+        if(declaredCount)*declaredCount=count;
 
         for (std::uint32_t index = 0; index < count; ++index)
         {
             auto entry = std::make_unique<spResourceFATEntryForAnalysis>();
+            spResourceFATEntryLocationForAnalysis location{};
+            if(captureLocations&&!source.GetCurrentPosition(location.tableOffset))return false;
             if (!source.Read(entry->id)
-                || !source.ReadString(entry->name, &entry->nameIsNullForAnalysis)
-                || !source.Read(entry->classID)
+                || !source.ReadString(entry->name, &entry->nameIsNullForAnalysis))return false;
+            if(captureLocations)
+            {
+                std::uint32_t position=0;
+                if(!source.GetCurrentPosition(position)||position<location.tableOffset
+                    ||position-location.tableOffset<6)return false;
+                location.nameOffset=location.tableOffset+6;
+                location.nameBytes=position-location.nameOffset;
+            }
+            if (!source.Read(entry->classID)
                 || !source.Read(entry->offset)
                 || !source.Read(entry->size))
             {
                 return false;
             }
+
+            if(!visitor(std::move(entry),location))return false;
+        }
+        return true;
+    }
+
+    bool spResourceFATHelperForAnalysis::LoadIndexForAnalysis(spStream& source)
+    {
+        const bool read=ReadIndexEntriesForAnalysis(source,[&](auto entry,const auto&)
+        {
 
             if (spRTTIManager::Instance().Find(entry->classID) == nullptr)
             {
@@ -55,7 +77,9 @@ namespace sparkplug::reconstruction
             auto* const entryPointer = entry.get();
             resourcesByID_.emplace(entry->id, std::move(entry));
             orderedResources_.push_back(entryPointer);
-        }
+            return true;
+        });
+        if(!read)return false;
 
         cursor_ = orderedResources_.end();
         return true;

@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -43,6 +44,12 @@ namespace sparkplug::reconstruction
         spBaseObject* object = nullptr;
     };
 
+    // Optional host observations of the original reads; no native ABI claim.
+    struct spResourceFATEntryLocationForAnalysis final
+    {
+        std::uint32_t tableOffset=0,nameOffset=0,nameBytes=0;
+    };
+
     class spResourceFATHelperForAnalysis final : public spBaseObject
     {
     public:
@@ -57,6 +64,17 @@ namespace sparkplug::reconstruction
         // PS2 sub_0017F570 reads count followed by five fields per entry and
         // validates every class ID against the global RTTI manager.
         [[nodiscard]] bool LoadIndexForAnalysis(spStream& source);
+
+        // Shared stream-reading portion of LoadIndex, before its RTTI/map
+        // acceptance step. A raw inspector can observe unknown identities
+        // without constructing or claiming to load their runtime classes.
+        // The normal loader's visitor retains its original early rejection.
+        using IndexVisitorForAnalysis=std::function<bool(
+            std::unique_ptr<spResourceFATEntryForAnalysis>,
+            const spResourceFATEntryLocationForAnalysis&)>;
+        [[nodiscard]] static bool ReadIndexEntriesForAnalysis(spStream& source,
+            const IndexVisitorForAnalysis& visitor,bool captureLocations=false,
+            std::uint32_t* declaredCount=nullptr);
 
         // Host encoder of the independently confirmed PC466B90 index grammar.
         // No original whole-file/index writer has been located. Only complete
