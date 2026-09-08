@@ -436,81 +436,61 @@ public static class SmoSceneBuilder
         ICollection<string> warnings)
     {
         if (paths is null || paths.Count == 0) return [];
-        Dictionary<string, SmoExportNode> byName = nodes
-            .GroupBy(node => node.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, SmoExportNode[]> byName = nodes
+            .GroupBy(node => node.Name, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
         List<SmoExportAnimation> result = [];
+        int keyBudget = SmoAnimationBaker.MaximumOutputKeys;
         foreach (string path in paths.Distinct(StringComparer.OrdinalIgnoreCase))
         {
             if (!SmoAnimationDecoder.TryDecode(path, out SmoAnimationClip? clip, out string error) || clip is null)
             {
-                warnings.Add($"Animation {Path.GetFileName(path)}: {error}");
-                continue;
+                throw new SmoFormatException($"Animation {Path.GetFileName(path)}: {error}");
             }
             int discardedKeys = 0;
-            int duplicateChannels = 0;
             var tracks = new List<SmoExportAnimationTrack>();
-            foreach (IGrouping<int, SmoAnimationTrack> group in clip.Tracks
-                         .Where(track => byName.ContainsKey(track.NodeName))
-                         .GroupBy(track => byName[track.NodeName].ObjectIndex))
+            IReadOnlyDictionary<string, SmoAnimationTrack> bound = SmoAnimationBinding.BindByName(clip.Tracks, warnings);
+            SmoAnimationTrack[] matchedTracks = bound.Values.Where(track => byName.ContainsKey(track.NodeName)).ToArray();
+            float minimumTime = matchedTracks.SelectMany(track => track.Positions.Select(key => key.Time)
+                .Concat(track.Rotations.Select(key => key.Time)).Concat(track.Scales.Select(key => key.Time)))
+                .DefaultIfEmpty(0).Min();
+            float timeOffset = -Math.Min(0, minimumTime);
+            foreach (SmoAnimationTrack sourceTrack in matchedTracks)
             {
-                SmoExportNode node = nodes.First(item => item.ObjectIndex == group.Key);
-                var positionCurves = new List<SmoAnimationKey<Vector3>[]>();
-                var rotationCurves = new List<SmoAnimationKey<Quaternion>[]>();
-                var scaleCurves = new List<SmoAnimationKey<Vector3>[]>();
-                foreach (SmoAnimationTrack sourceTrack in group)
-                {
-                    SmoAnimationKey<Vector3>[] positionCurve = SanitizeVectorCurve(
-                        sourceTrack.Positions,
-                        value => new Vector3(value.X, value.Y, -value.Z),
-                        ref discardedKeys);
-                    SmoAnimationKey<Quaternion>[] rotationCurve = SanitizeQuaternionCurve(
-                        sourceTrack.Rotations, ref discardedKeys);
-                    SmoAnimationKey<Vector3>[] scaleCurve = SanitizeVectorCurve(
-                        sourceTrack.Scales, value => value, ref discardedKeys);
-                    if (positionCurve.Length > 0) positionCurves.Add(positionCurve);
-                    if (rotationCurve.Length > 0) rotationCurves.Add(rotationCurve);
-                    if (scaleCurve.Length > 0) scaleCurves.Add(scaleCurve);
-                }
-
-                duplicateChannels += Math.Max(0, positionCurves.Count - 1);
-                duplicateChannels += Math.Max(0, rotationCurves.Count - 1);
-                duplicateChannels += Math.Max(0, scaleCurves.Count - 1);
-                SmoAnimationKey<Vector3>[] positions = positionCurves.FirstOrDefault() ?? [];
-                SmoAnimationKey<Quaternion>[] rotations = rotationCurves.FirstOrDefault() ?? [];
-                SmoAnimationKey<Vector3>[] scales = scaleCurves.FirstOrDefault() ?? [];
+                SmoExportNode[] targets = byName[sourceTrack.NodeName];
+                SmoAnimationTrack sampled = SmoAnimationBaker.Bake(sourceTrack, clip.Duration, ref keyBudget, timeOffset);
+                SmoAnimationKey<Vector3>[] positions = SanitizeVectorCurve(sampled.Positions,
+                    value => new Vector3(value.X, value.Y, -value.Z), ref discardedKeys);
+                SmoAnimationKey<Quaternion>[] rotations = SanitizeQuaternionCurve(sampled.Rotations, ref discardedKeys);
+                SmoAnimationKey<Vector3>[] scales = SanitizeVectorCurve(sampled.Scales, value => value, ref discardedKeys);
                 if (positions.Length > 0 || rotations.Length > 0 || scales.Length > 0)
                 {
-                    tracks.Add(new SmoExportAnimationTrack(
-                        node.ObjectIndex, node.Name, positions, rotations, scales));
+                    long additionalKeys = (long)(positions.Length+rotations.Length+scales.Length)*(targets.Length-1);
+                    if (additionalKeys > keyBudget)
+                        throw new SmoFormatException("SAN duplicate-target expansion exceeds the 500000-key export limit.");
+                    keyBudget -= (int)additionalKeys;
+                    foreach (SmoExportNode node in targets)
+                        tracks.Add(new SmoExportAnimationTrack(
+                            node.ObjectIndex, node.Name, positions, rotations, scales));
+                    if (targets.Length > 1)
+                        warnings.Add($"Animation {Path.GetFileName(path)}: '{sourceTrack.NodeName}' binds to all {targets.Length} matching nodes.");
                 }
             }
             if (tracks.Count == 0)
-                continue;
+                throw new SmoFormatException($"Animation {Path.GetFileName(path)} has no non-empty tracks matching the exported node names (case sensitive).");
+            warnings.Add($"Animation {Path.GetFileName(path)}: sampled from PC SAN curves at {SmoAnimationBaker.FramesPerSecond} fps plus source key boundaries; target interpolation between exported keys is an approximation.");
 
-            float minimumTime = tracks
-                .SelectMany(EnumerateTrackTimes)
-                .DefaultIfEmpty(0)
-                .Min();
-            if (minimumTime < 0)
+            if (timeOffset > 0)
             {
-                float offset = -minimumTime;
-                tracks = tracks.Select(track => ShiftTrack(track, offset)).ToList();
                 warnings.Add(
                     $"Animation {Path.GetFileName(path)}: shifted key times by " +
-                    $"{offset:G9}s so the glTF/FBX timeline starts at zero.");
+                    $"{timeOffset:G9}s so the glTF/FBX timeline starts at zero.");
             }
             if (discardedKeys > 0)
             {
                 warnings.Add(
                     $"Animation {Path.GetFileName(path)}: discarded {discardedKeys} " +
                     "non-finite, zero-quaternion, or duplicate-time keys.");
-            }
-            if (duplicateChannels > 0)
-            {
-                warnings.Add(
-                    $"Animation {Path.GetFileName(path)}: ignored {duplicateChannels} " +
-                    "duplicate node/property curves after the first valid curve.");
             }
             float maximumTime = tracks
                 .SelectMany(EnumerateTrackTimes)
@@ -608,17 +588,6 @@ public static class SmoSceneBuilder
         track.Positions.Select(key => key.Time)
             .Concat(track.Rotations.Select(key => key.Time))
             .Concat(track.Scales.Select(key => key.Time));
-
-    private static SmoExportAnimationTrack ShiftTrack(
-        SmoExportAnimationTrack track, float offset) => track with
-    {
-        Positions = track.Positions
-            .Select(key => key with { Time = key.Time + offset }).ToArray(),
-        Rotations = track.Rotations
-            .Select(key => key with { Time = key.Time + offset }).ToArray(),
-        Scales = track.Scales
-            .Select(key => key with { Time = key.Time + offset }).ToArray()
-    };
 
     private static bool IsFinite(Vector3 value) =>
         float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);

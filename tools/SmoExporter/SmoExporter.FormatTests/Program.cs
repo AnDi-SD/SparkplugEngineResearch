@@ -6,6 +6,11 @@ using SmoViewer.Core;
 
 int checks = 0;
 
+if (args is ["--san-animation-regression", string sanOutput, string repository, string nativeReport])
+    return SanAnimationRegression.Run(sanOutput, repository, nativeReport);
+if (args is ["--san-animation-regression", string boundaryOutput, string boundaryRepository, string boundaryReport, "--fixtures-only"])
+    return SanAnimationRegression.Run(boundaryOutput, boundaryRepository, boundaryReport, includeReal: false);
+
 if (args.Length >= 2 && args[0] == "--fbx-alpha-regression")
     return FbxAlphaRegression.Run(args[1], args.Skip(2).ToArray());
 if (args is ["--fbx-pose-regression", string poseOutput, string poseSmo, string poseSan])

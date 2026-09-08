@@ -19,6 +19,9 @@
 добавлена [совместная FBX alpha](docs/research/tool-fbx-alpha-2026-09-08.md),
 исправлен импорт skeleton в Blender и добавлены
 [редкие SAN-ключи конвертера](docs/research/tool-san-keys-2026-09-08.md).
+В CP128 [общий SAN sampler Viewer 0.6 / Exporter 0.7](docs/research/tool-shared-san-2026-09-08.md)
+поддерживает те же rare keys, исправляет привязки и экспорт границ анимации;
+[PS2 interval leaf](docs/research/tool-ps2-san-2026-09-08.md) проверен отдельно.
 Это готовность перечисленных вариантов операций; ограничения форматов,
 непроверенные варианты файлов и дальнейшие исправления инструментов остаются.
 
@@ -54,7 +57,7 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Последние зафиксированные версии инструментов: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
+Последние опубликованные версии инструментов: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
 [SmoExporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.5.0),
 [SmoImporter `0.6.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.6.0),
 [SmoLVLcreator `0.1.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smolvlcreator-v0.1.0),

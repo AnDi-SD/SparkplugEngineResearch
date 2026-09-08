@@ -826,6 +826,7 @@ Vec4 EvaluateRotation(const std::vector<RotationKey>& keys, float time)
 void AddAnimations(SceneState& state)
 {
     if ((state.data->resources & ResourceAnimations) == 0) return;
+    std::size_t remainingRotationKeys = 500000;
     state.scene->GetGlobalSettings().SetTimeMode(FbxTime::eFrames30);
     for (const AnimationData& animation : state.data->animations)
     {
@@ -865,13 +866,33 @@ void AddAnimations(SceneState& state)
                 {
                     float duration = std::max(
                         animation.duration, track.rotations.back().time);
-                    int frames = std::max(1, static_cast<int>(std::ceil(duration * 30.0f)));
+                    double frameCount = std::ceil(static_cast<double>(duration) * 30.0);
+                    if (!std::isfinite(frameCount) || frameCount < 0 || frameCount+1 > remainingRotationKeys)
+                        throw std::runtime_error("FBX rotation sampling exceeds the 500000-key limit.");
+                    int frames = std::max(1, static_cast<int>(frameCount));
+                    std::vector<float> times;
+                    times.reserve(static_cast<std::size_t>(frames)+1+track.rotations.size());
+                    for (int frame = 0; frame <= frames; ++frame)
+                        times.push_back(frame == frames ? duration : frame / 30.0f);
+                    // The C# SAN baker also emits source boundaries and short
+                    // pre-boundary guards. Preserve them during quaternion ->
+                    // Euler conversion instead of reducing them back to 30fps.
+                    for (const RotationKey& key : track.rotations)
+                    {
+                        if (!std::isfinite(key.time) || key.time < 0)
+                            throw std::runtime_error("Invalid FBX rotation key time.");
+                        times.push_back(key.time);
+                    }
+                    std::sort(times.begin(), times.end());
+                    times.erase(std::unique(times.begin(), times.end()), times.end());
+                    if (times.size() > remainingRotationKeys)
+                        throw std::runtime_error("FBX rotation sampling exceeds the 500000-key limit.");
+                    remainingRotationKeys -= times.size();
                     std::vector<std::pair<float, double>> x, y, z;
                     FbxVector4 previous;
                     bool hasPrevious = false;
-                    for (int frame = 0; frame <= frames; ++frame)
+                    for (float time : times)
                     {
-                        float time = frame == frames ? duration : frame / 30.0f;
                         Vec4 value = EvaluateRotation(track.rotations, time);
                         FbxAMatrix rotation;
                         rotation.SetQ(FbxQuaternion(value.x, value.y, value.z, value.w));
