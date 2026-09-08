@@ -1,0 +1,330 @@
+{
+  "kind": "tool-importer-clean-targets-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP131",
+  "createdUtc": "2026-09-08T12:25:24.501495+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoTargetVisualGroupReader.cs",
+      "sha256": "4A0760417F44F63153B42ACB380AAEDCA0614867445B52D5448245664B57B3A3"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedBranchSplitBuilder.cs",
+      "sha256": "50B1A3FF423E025E1D5578F4833143446AC20DF56D0694128A20508CB37A4A26"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedVisualGraphRebuilder.cs",
+      "sha256": "E5FA73355C20ECB093E7BF95E114FE0D56FD63EB62F2F30E84C00BA9B9E8A499"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedGlbReplacer.cs",
+      "sha256": "BCE119C501A46914593271C6DE80C82E0EC114D4F14A19FD26F128A8460263B1"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/CleanSkinnedTargetRegression.cs",
+      "sha256": "BCB78C6100F2A3D98B362FCF4E39F0B608BC173E5BCC31C8D5DE88BC72F0AA7B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/CleanSkinnedPoseRegression.cs",
+      "sha256": "2CBDC0F1386AD8CDC5C7889A67B5E40F18692A43D45443A26F49EE6AF3B8B052"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "6E8D4F4310A91D3445747A70C04364D73E73D609E3D336A280254FA67B4782D4"
+    },
+    {
+      "path": "tools/SmoImporter/README.md",
+      "sha256": "5C363E0DB7F5BD7C983A6FB4EDAF957AA4CF0A9FE0C54BEF0196A8531DB0CAE9"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj",
+      "sha256": "02499C04B8095234E48971F4958F21782618616DE8AEBA8D565102448FED3067"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029"
+    },
+    {
+      "path": "research/probe_pc_imported_skin.py",
+      "sha256": "7123EE26A60D1A6E80E50566CF1BEFC7744C069EA09251D19EE1BDF2161E329C"
+    },
+    {
+      "path": "research/validate_imported_skin_palettes.py",
+      "sha256": "3235C7A03CF8AA2535FBB52F3FC54F97C3AADE5BDCD5361F9F427C4B8A531917"
+    },
+    {
+      "path": "research/test_pc_arena_profiles.py",
+      "sha256": "C6D63B67471BB568512209933382EAAEABD4D7C0FCAC0A0E201DC64EF7F24C28"
+    },
+    {
+      "path": "research/test_pc_instruction_emulator.py",
+      "sha256": "474E6513B172401D2C23D3902EA96DFA47FA5C431073DD0088E92BAA893F86E2"
+    },
+    {
+      "path": "research/probe_pc_scene_file_profile.py",
+      "sha256": "B645F7C619713C7195E582EF2E547322317E45BE6752D762EDC9622A6ACC53CE"
+    },
+    {
+      "path": "research/validate_shared_san_gui.py",
+      "sha256": "01840C5842DD3886FAAC451577361F811DAFE170C7A0C0D1B3A09A5DEF8DFCDE"
+    },
+    {
+      "path": "research/san_pose_reference.py",
+      "sha256": "37282149E1BD7A2458D15396C24FE517E56B10AA2E941998751572452AB55EF7"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "sha256": "4718F40C6AE81C3B2541A819AEA6D49EFC7E9505D57FB58907AC45B554915FD4"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/AnimationVisualRegression.cs",
+      "sha256": "FAF760CD9594D01813988EB0DB2777E30EC92264124F0748F0A5A90B03DD1E50"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSkinDecoder.cs",
+      "sha256": "F7EFCD93E81A88D358C624F9E51722FFD9B063988DE30DE633FBD2D7224D321E"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoAnimationChannel.cs",
+      "sha256": "0D9D6CCAF14649B068513E911279799340F6B820F9B22BB522B917917366A7AD"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureBindingResolver.cs",
+      "sha256": "074C3013B02AB1C792D6C05D39B2DCB15F9915D2F7F2F954CC2803A84524F7CA"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "sha256": "904619E5BDFD88A6CB3BB2541CFD2487417BA146F89FD876E958D7FE787A7AF1"
+    }
+  ],
+  "sourceHashNote": "Changed tool text normalized to CRLF after checks; code unchanged. Earlier profiles retain their original numeric limits; only the explicit character profile and arena tier were added.",
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/baseline/report.json",
+      "sha256": "E43EFF3091FD8FB76C47433F38ABE93015408AE6FD8AE3512A7C838672B1223D",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/baseline-v2/report.json",
+      "sha256": "E31B8AE699AC523E65037FF3A25393382F083DA361CF041D6E9DBE9E5957FB84",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/fixed-v1/report.json",
+      "sha256": "4B71B832CB5D6F58F776728B69B0B5771CB4EC0B3D830103BE24F590DB70D723",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/fixed-v2/report.json",
+      "sha256": "2DB5C22F63D1A1E80E168D5BFEAB70899E8BD4C0CDCDCC113DCD91B7144CD725",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/final-v1/report.json",
+      "sha256": "5ECEF6A67FCA0208189F558057160D1765FFEDEFD8C7C115EF608A7B07D498FB",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-jeans-v1.json",
+      "sha256": "7CEACFF1AD46BEBD3188715B9AE7D260203FA135FC9BA561E52ABE201BFB902E",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-jeans-v2.json",
+      "sha256": "2639FF34455EDF242B4179CF1058DF4AD9FE04C98E6868DF660CB88F89CBB20A",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-jeans-v3.json",
+      "sha256": "B21C02DD3C9DB6486EE02A94F2FA363C73F7B69EDEAB95E7EF118B9A3C1A6083",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-jeans-v4.json",
+      "sha256": "475F5694D2F973088D941683DDA213773DE40B078B0FE9E381138A78CF69A065",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-flora-v1.json",
+      "sha256": "34990FBBA3191522A56D1B38FF1254B5CB4141748096A44A35126F986B060A75",
+      "status": "failed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-body.json",
+      "sha256": "B6DDBA39311591EFD11CD131D0F3E4651AD74E6BEDACF29521E5643A6FA72D01",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-bloom-jeans-final.json",
+      "sha256": "1901C743DC71CB4EC345B6F8E27FF500FB2D2B4EFD07A349362284E5D7812747",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-tecna.json",
+      "sha256": "DBF665089ECEFB20CE9496E227D5BA71F6ED893FC159B752391B1EE7B42078FE",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-icy-v1.json",
+      "sha256": "8C7F875279FA204B70B4212FC022B6C01569A08551836BE9E0D65A01367645FE",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-flora-v2.json",
+      "sha256": "583536B13C8368B26FC713103A706B971FDB074852AF512122F88AE2D23A94EA",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/input.json",
+      "sha256": "D8CF3CD82E437AE6B32082163EC1CD58D4ACA5FD89A9E23245CDE184F9E57C30",
+      "status": "recorded"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/gui-poses-v1/capture.json",
+      "sha256": "51161D1401D0FD126AF09815C3A4CA587EA1BFAA4006BE4D26E3230D7832DEE4",
+      "status": "captured"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/gui-poses-v1/report.json",
+      "sha256": "B7DFF07128C0E90FFCE911893E210A31AF5D8B4CFFC602BBFD21CABFFD3B6D40",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/native-palette-comparison.json",
+      "sha256": "78708C882A925E9CA6DCE68E35F1836ACC2A337054C02383B8B7D206BC06A4FB",
+      "status": "passed"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/stock-san-motion.json",
+      "sha256": "13B0960C179608DCEA920611FC08AE5C0EF6CD71DA55A04DE8E0BD4D31138E46",
+      "status": "passed"
+    }
+  ],
+  "outputs": [
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\Bloom_body.smo",
+      "inputSha256": "3316BCE73A9F4098A4BC813E1231A81C4BEEC46FAB9C5BC34E6E9B5D1817E8F2",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-clean-targets\\final-v1\\Bloom_body-clean.smo",
+      "outputSha256": "6C08EC63304CAFDBE7CB64F65DEC24C1FFBE060345A84CDB7DFD4D2D3C1BE944",
+      "objects": 115
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\bloom_jeans.smo",
+      "inputSha256": "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-clean-targets\\final-v1\\bloom_jeans-clean.smo",
+      "outputSha256": "8041C51801E6F7C462A96525FFB82314C082824CED91437251F93D88B14FBB3C",
+      "objects": 114
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Tecna\\Tecna.smo",
+      "inputSha256": "B20E8C8A29F31F64CB6E65A712D237ECCD75D5A07DE8A5C07A25E08497C2C7EE",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-clean-targets\\final-v1\\Tecna-clean.smo",
+      "outputSha256": "7097D278C5C24C262E44B53EA9D4EFB6CB8230372A1FBC66A164FED8D38B18C5",
+      "objects": 99
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "inputSha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-clean-targets\\final-v1\\Icy-clean.smo",
+      "outputSha256": "63D554FE8C3149DC5113F53FA4A1421507DA5F9D964BB25DDF2B74D6D8944003",
+      "objects": 101
+    },
+    {
+      "input": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Flora\\Flora.smo",
+      "inputSha256": "982BAC3C629FCEB230B904C5110B11474EFB6B77627B588021AE7CFBD4B0ECA5",
+      "output": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tool-cycle-20260908-1900\\importer-clean-targets\\final-v1\\Flora-clean.smo",
+      "outputSha256": "3374527AF4D252A420D38109DCE3516B26D3EACCCEE9FBDD997A90EEB9E46027",
+      "objects": 99
+    }
+  ],
+  "references": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/source-0.json",
+      "sha256": "D6F1C2FD3CE71767561DD1A90D93586A0EEC44F5F544FB84593F0ED6F551A458",
+      "san": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\blwalk.san",
+      "sanSha256": "A4906EEA7DC633FC2B0672654AA7941028CBCA04AE9871EE6549E8529FC7635F"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/source-1.json",
+      "sha256": "290244B08103E2BC7FEDF75353756CC38E257AB21AFCEC93A625BD3AA61085D6",
+      "san": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\blwalk.san",
+      "sanSha256": "A4906EEA7DC633FC2B0672654AA7941028CBCA04AE9871EE6549E8529FC7635F"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/source-2.json",
+      "sha256": "F27080C9511B1BEEB202C753E7D4A95B7FD598AF4AD5031CA2E8E6A95DA636D9",
+      "san": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\wtgl.san",
+      "sanSha256": "24DC5CE4A2CB01A324BF47BAA9C2061A2FE32EA9BE11571C22C66F61C3FD9D2C"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/source-3.json",
+      "sha256": "A7A39BB0EEBEF14218CB58389E71402A384E97DF0FA05A724440CAC3C448E0DB",
+      "san": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\xiwa.san",
+      "sanSha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/importer-clean-targets/poses-v1/source-4.json",
+      "sha256": "9B6E1BC5407ACAC3AE7615A6E349F5F1DB9C8CBED8844151BF2F042EDB6AED9C",
+      "san": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Bloom\\wfgl.san",
+      "sanSha256": "5ABFADA7FB26313D0682151DDA4070826B168F64D36AD02A39943D4E1B7DFE62"
+    }
+  ],
+  "originalPcExe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "focused": {
+    "targets": 5,
+    "baselineFailures": 4,
+    "checks": 65,
+    "includedGuardChecks": 10,
+    "elapsedSeconds": 1.0946469,
+    "peakWorkingSet": 76718080,
+    "unchangedBaselineControl": true
+  },
+  "native": {
+    "wholeFiles": 5,
+    "objects": 528,
+    "releasedAllocations": 5368,
+    "largestArenaUsedBytes": 139904,
+    "profile": {
+      "profile": "character",
+      "arenaBytes": 262144,
+      "objects": 256,
+      "inputBytes": 32768,
+      "processSeconds": 30,
+      "instructionsPerCall": 4000000,
+      "microsecondsPerCall": 16000000
+    },
+    "skins": 19,
+    "boneMatrixPairs": 304,
+    "inverseBindBytes": 19456,
+    "collisionManagerCleanup": "Original destructor4571C0, getter record75FB18, vtable6E6FE4, allocation1790h, singleton75DB6C; no collision query implementation claim."
+  },
+  "viewer": {
+    "guiChecks": 3144,
+    "poses": 30,
+    "independentMeshTimeChecks": 114,
+    "maximumError": 3.4914927497503454e-05,
+    "elapsedSeconds": 3.3933392,
+    "peakWorkingSet": 188325888,
+    "allFiveDonorsActuallyMove": true
+  },
+  "guards": {
+    "executionTests": 18,
+    "arenaTests": 6,
+    "passed": true
+  },
+  "build": "Importer GUI Release0.6.1 passed,0 warnings/errors,7.95s",
+  "published": false,
+  "restoredOperation": "import.skin",
+  "newOperations": [],
+  "limits": [
+    "Native loader has prepared RTTI/startup and stream/CRT/COM boundaries; no game boot or GPU rendering proof.",
+    "Stock SAN samples use the previously PC-validated shared sampler; independent NumPy FK compares actual Viewer CPU positions.",
+    "Rigid attachments in the removed visual tree do not require material inheritance; original skeleton nodes and collision payloads are checked.",
+    "Baseline-v1 full deform-rig comparison was an invalid test assumption; corrected baseline-v2 retained before production fixes.",
+    "Native host working-set peak was not sampled; probes executed one at a time. Reported native arena is not host process memory.",
+    "Same sixteen-operation denominator; restoration of an existing operation, no native class-ledger increase."
+  ]
+}

@@ -2525,11 +2525,18 @@ internal static class SmoSkinnedBranchSplitBuilder
                 throw new NotSupportedException(
                     $"Target skin [{primarySkin.Index}] has no direct spRenderNode parent.");
             SmoObjectEntry render = target.Objects[renderIndex];
-            SmoObjectEntry helper = target.Objects.SingleOrDefault(entry =>
-                entry.ParentIndex == primarySkin.Index &&
-                entry.TypeHash == SharedFogClassId) ??
+            if (!SmoSkinDecoder.TryDecode(
+                    target, primarySkin, out SmoSkin? primaryPalette, out string primaryError) ||
+                primaryPalette is null || primaryPalette.Bones.Count is < 1 or > PaletteCapacity)
                 throw new NotSupportedException(
-                    "Primary skin has no inline shared spFog helper template.");
+                    $"Primary skin has no writable 1..{PaletteCapacity}-bone palette: " +
+                    primaryError);
+            SmoObjectEntry helper = primaryPalette.Renderable.Fog?.TargetObjectIndex is int helperIndex &&
+                target.Objects[helperIndex].TypeHash == SharedFogClassId &&
+                target.Objects[helperIndex].PhysicalEnd <= render.PhysicalEnd
+                ? target.Objects[helperIndex] :
+                throw new NotSupportedException(
+                    "Primary skin has no resolved spFog helper defined before the appended branch.");
             SmoObjectEntry primaryMesh = target.Objects.SingleOrDefault(entry =>
                 entry.ParentIndex == primarySkin.Index &&
                 entry.TypeHash == SmoClassIds.MeshData) ??
@@ -2551,12 +2558,6 @@ internal static class SmoSkinnedBranchSplitBuilder
                 .FirstOrDefault();
             continuation ??= primarySkin;
 
-            if (!SmoSkinDecoder.TryDecode(
-                    target, primarySkin, out SmoSkin? primaryPalette, out string primaryError) ||
-                primaryPalette is null || primaryPalette.Bones.Count is < 1 or > PaletteCapacity)
-                throw new NotSupportedException(
-                    $"Primary skin has no writable 1..{PaletteCapacity}-bone palette: " +
-                    primaryError);
             if (!SmoSkinDecoder.TryDecode(
                     target, continuation, out SmoSkin? continuationPalette,
                     out string continuationError) ||

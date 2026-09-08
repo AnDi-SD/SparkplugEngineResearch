@@ -1,0 +1,63 @@
+{
+  "kind": "tool-cycle-checkpoint",
+  "schemaVersion": 1,
+  "checkpoint": "CP131",
+  "createdUtc": "2026-09-08T12:27:02.003597+00:00",
+  "documentation": "docs/research/tool-importer-clean-targets-2026-09-08.md",
+  "scopeId": "tools-pc-operations-v1",
+  "scopeSha256": "8FF4C69F214CF9D1EC88C9ECAF7AF1CE5201A607785941B534D42CE3470A2F7B",
+  "assessmentPath": "research/tool-readiness-assessment-2026-09-08-cp131.json",
+  "assessmentManifestSha256": "9D262F4FB3DFC370F564977791DD3FF16FB7DAEA7684F648D0AC2C5C179EB2FF",
+  "validationPath": "research/tool-importer-clean-targets-validation-2026-09-08.json",
+  "validationSha256": "1AD8466FEC2F37D9CAF8386E5CAE48175D6AFF0A4E943BA5CC0F2CF314CAA542",
+  "snapshotPath": "local-data/results/tool-cycle-20260908-1900/readiness-cp131.json",
+  "snapshotSha256": "290EF393C7334C1EDD378F635F492CD36FCF58E2FD7C6FF27F421830B790A908",
+  "readyCount": 16,
+  "totalCount": 16,
+  "readyPercent": 100.0,
+  "stagePassedCounts": {
+    "contract": 16,
+    "integration": 16,
+    "validation": 16
+  },
+  "cycleDelta": {
+    "readyCountDelta": 5,
+    "newlyReady": [
+      "export.fbx-alpha",
+      "san.rare-keys",
+      "texture.inspect",
+      "texture.replace-gui",
+      "texture.resize-repack"
+    ],
+    "noLongerReady": [],
+    "percentagePointDelta": 31.25
+  },
+  "newlyDeliveredOperations": [],
+  "restoredOperations": [
+    "import.skin"
+  ],
+  "fixes": [
+    "Select only explicit native layout templates needed by clean replacement",
+    "Resolve the actual earlier spFog dependency"
+  ],
+  "evidence": {
+    "targets": 5,
+    "toolChecks": 65,
+    "nativeWholeObjects": 528,
+    "nativeReleasedAllocations": 5368,
+    "exactSkinPalettes": 19,
+    "exactBoneMatrixPairs": 304,
+    "guiChecks": 3144,
+    "stockSanPoses": 30,
+    "independentMeshTimeChecks": 114
+  },
+  "unchangedNativeClassLedger": true,
+  "publishStatus": "local-checkpoint; public push still awaits previously requested exact-destination approval",
+  "documentationAudit": {
+    "markdownFiles": 438,
+    "jsonFiles": 199,
+    "relativeLinks": 1653,
+    "errors": 0,
+    "scope": "Full documentation audit before this checkpoint JSON; checkpoint and changed plan serialized and parsed."
+  }
+}

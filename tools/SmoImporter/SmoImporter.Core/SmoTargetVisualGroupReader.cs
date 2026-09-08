@@ -33,15 +33,18 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         foreach (SmoObjectEntry meshEntry in document.Objects.Where(entry =>
                      entry.TypeHash == SmoClassIds.MeshData))
         {
+            // The clean replacement discards every old visual resource. Only
+            // explicit, writable native branches are layout candidates; rigid
+            // attachments and material-less continuations are not templates.
+            // Their material inheritance is irrelevant to the generated graph.
+            if (meshEntry.ParentIndex is not int skinIndex ||
+                document.Objects[skinIndex].TypeHash != SmoClassIds.Skin)
+                continue;
             if (!bindings.TryGetValue(meshEntry.Index, out SmoTextureBinding? binding) ||
                 binding.Issue is not null || binding.Texture is null)
-            {
-                throw new InvalidOperationException(
-                    $"Mesh [{meshEntry.Index}] '{meshEntry.Name}' has no " +
-                    "unambiguous native texture binding.");
-            }
+                continue;
 
-            SmoObjectEntry skinEntry = FindParentSkin(document, meshEntry);
+            SmoObjectEntry skinEntry = document.Objects[skinIndex];
             if (!SmoSkinDecoder.TryDecode(
                     document, skinEntry, out SmoSkin? skin, out string error) ||
                 skin is null)
@@ -49,12 +52,15 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                 throw new InvalidOperationException(error);
             }
 
+            if (skin.BaseMesh.TargetObjectIndex != meshEntry.Index ||
+                skin.Renderable.Material?.TargetObjectIndex is not int materialIndex ||
+                document.Objects[materialIndex].ParentIndex != skinIndex ||
+                document.Objects[binding.Texture.ObjectIndex].ParentIndex != materialIndex)
+                continue;
+
             SmoMesh mesh = SmoMeshDecoder.Decode(document, meshEntry);
             if (mesh.Marker != SmoMeshDecoder.E1Marker || !mesh.HasSkinningData)
-            {
-                throw new InvalidOperationException(
-                    $"Mesh [{meshEntry.Index}] must use a confirmed skinned E1 layout.");
-            }
+                continue;
 
             int textureObjectIndex = binding.Texture.ObjectIndex;
             if (!groups.TryGetValue(

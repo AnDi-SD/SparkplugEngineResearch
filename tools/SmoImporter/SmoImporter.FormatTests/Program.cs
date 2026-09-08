@@ -1,5 +1,17 @@
 using SmoImporter.Core;
 
+if (args.Length >= 4 && args[0] == "--clean-skinned-pose-input")
+{
+    try { return CleanSkinnedPoseRegression.Prepare(args.Skip(1).ToArray()); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args.Length >= 3 && args[0] == "--clean-skinned-target-regression")
+{
+    try { return CleanSkinnedTargetRegression.Run(args.Skip(1).ToArray()); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args.Length is 3 or 4 or 5 && args[0] == "--texture-static-integration")
     return TextureStaticIntegrationRegression.Run(args[1],args[2],args.Length>=4?int.Parse(args[3]):1,args.Length==5 && args[4]=="independent");
 

@@ -70,6 +70,24 @@ class GuardTests(unittest.TestCase):
                 emu.PcInstructions(execution_profile='unlimited')
             read.assert_not_called()
 
+    def test_character_profile_maps_only_its_declared_arena(self):
+        import struct
+        p = emu.PcInstructions(arena_size=emu.CHARACTER_ARENA_SIZE, execution_profile='character')
+        last = emu.HEAP+emu.CHARACTER_ARENA_SIZE-4
+        p.put_uint(last, 0x12345678)
+        p.mu.mem_write(0x401000, b'\xa1'+struct.pack('<I',last)+b'\xc3')
+        p.run(0x401000)
+        self.assertEqual(p.reg('EAX'),0x12345678)
+        self.assertEqual(p.last_execution_limits, {'profile':'character','instructionLimit':4000000,'timeoutUs':16000000})
+        p.mu.mem_write(0x401010, b'\xa1'+struct.pack('<I',last+4)+b'\xc3')
+        with self.assertRaisesRegex(AssertionError,'invalid memory'):
+            p.run(0x401010)
+        p.mu.mem_write(0x401020,b'\xeb\xfe')
+        with patch.object(emu,'execution_limits',return_value=(48,16000000)):
+            with self.assertRaisesRegex(AssertionError,'instruction/time cap'):
+                p.run(0x401020)
+        self.assertEqual(sum(p.visits.values()),48)
+
     def test_explicit_file_profile_still_bounds_instructions(self):
         p = emu.PcInstructions(execution_profile='file')
         p.mu.mem_write(0x401000, b'\xeb\xfe')

@@ -26,6 +26,7 @@ HEAP = 0x31000000
 RETURN = 0x32000000
 ARENA_SIZE = 0x10000
 INTEGRATION_ARENA_SIZE = 0x20000
+CHARACTER_ARENA_SIZE = 0x40000
 INSTRUCTION_LIMIT = 100_000
 TIMEOUT_US = 2_000_000
 PROCESS_TIMEOUT = 30
@@ -37,7 +38,8 @@ def execution_limits(profile):
     """Explicit fresh-guest profiles; historical micro limits remain default."""
     if profile == 'micro': return INSTRUCTION_LIMIT, TIMEOUT_US
     if profile == 'file': return FILE_INSTRUCTION_LIMIT, FILE_TIMEOUT_US
-    raise ValueError('Explicit micro or file execution profile required')
+    if profile == 'character': return 4_000_000, 16_000_000
+    raise ValueError('Explicit micro, file or character execution profile required')
 
 
 def run_bounded(script: Path, arguments=()) -> int:
@@ -58,8 +60,8 @@ class PcInstructions:
             raise ValueError('Explicit bytes or page instruction cache required')
         self.code_cache_mode = code_cache_mode
         self.execution_profile = execution_profile
-        if arena_size not in (ARENA_SIZE, INTEGRATION_ARENA_SIZE):
-            raise ValueError('Explicit 64KiB micro or 128KiB integration arena required')
+        if arena_size not in (ARENA_SIZE, INTEGRATION_ARENA_SIZE, CHARACTER_ARENA_SIZE):
+            raise ValueError('Explicit 64KiB, 128KiB or 256KiB arena required')
         self.arena_size = arena_size
         raw = (path or ROOT/'local-data/pc-pristine/WinxClub.exe').read_bytes()
         if sha256(raw) != PC_SHA256:
