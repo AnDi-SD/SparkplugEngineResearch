@@ -140,8 +140,42 @@ namespace sparkplug::reconstruction
                 if(!source.GetCurrentPosition(position)||position<start||position-start>byteCount)return wrapper.Fail("Invalid texture source extent");
                 remaining=byteCount-(position-start);return true;
             }
-            if(header->fieldID==4)return wrapper.Fail("External texture source resolver is not restored");
-            if(header->fieldID==3)
+            if(header->fieldID==4)
+            {
+                if(!context.textureSourceStreamFactoryForAnalysis||context.depth>=64)
+                    return wrapper.Fail("External texture source requires a bounded stream factory");
+                std::uint32_t stringPosition=0;std::uint16_t length=0;
+                if(header->payloadSize<3||header->payloadSize>262||!source.GetCurrentPosition(stringPosition)
+                    ||!source.Read(length)||!length||length>260||header->payloadSize!=std::uint32_t(length)+2
+                    ||stringPosition>std::uint32_t(std::numeric_limits<std::int32_t>::max())
+                    ||!source.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(stringPosition)))
+                    return wrapper.Fail("Invalid external texture filename extent");
+                std::string reference;
+                if(!source.ReadString(reference)||reference.size()!=std::size_t(length)-1||reference.find('\0')!=std::string::npos)
+                    return wrapper.Fail("External texture filename must be terminated");
+                const auto* name=source.GetStreamName();
+                if(!name)return wrapper.Fail("External texture requires parent stream name");
+                const std::string parent=name;
+                if(parent.size()>=260)return wrapper.Fail("Parent texture path exceeds native stack buffer");
+                const auto drive=parent.size()>=2&&parent[1]==':'?2u:0u;
+                const auto slash=parent.find_last_of("/\\");
+                const auto prefix=slash!=std::string::npos&&slash>=drive?slash+1:std::size_t(drive);
+                // Native _splitpath drive+directory, then strcat(reference).
+                // Even an absolute reference is appended; no path normalization.
+                const auto resolved=parent.substr(0,prefix)+reference;
+                if(resolved.size()>=260)return wrapper.Fail("Resolved texture path exceeds native stack buffer");
+                auto external=context.textureSourceStreamFactoryForAnalysis(context.textureSourceStreamContext);
+                if(!external||!external->Open(resolved.c_str()))return wrapper.Fail("Cannot open external texture source");
+                struct CloseGuard{spStream& stream;~CloseGuard(){(void)stream.Close();}} close{*external};
+                std::uint32_t size=0,position=0;
+                const auto origin=external->GetLogicalOriginForAnalysis();
+                if(!external->GetSize(&size)||!external->GetCurrentPosition(position)||origin>size||position>size-origin
+                    ||size-origin-position>16u*1024u*1024u)return wrapper.Fail("Invalid external texture stream extent");
+                struct DepthGuard{spSerializerReadContextForAnalysis& context;explicit DepthGuard(spSerializerReadContextForAnalysis& c):context(c){++context.depth;}~DepthGuard(){--context.depth;}} depth(context);
+                if(!ReadPayloadForAnalysis(context,*external,size-origin-position,object,error))return false;
+                handled=true;
+            }
+            else if(header->fieldID==3)
             {
                 if(context.depth>=64)return wrapper.Fail("Embedded texture recursion limit");
                 struct DepthGuard{spSerializerReadContextForAnalysis& context;explicit DepthGuard(spSerializerReadContextForAnalysis& c):context(c){++context.depth;}~DepthGuard(){--context.depth;}} depth(context);

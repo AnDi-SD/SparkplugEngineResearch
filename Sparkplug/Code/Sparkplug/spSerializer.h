@@ -144,6 +144,11 @@ namespace sparkplug::reconstruction
         using PCTexturePitchForAnalysis=std::uint32_t (*)(void*,std::uint32_t level,std::uint32_t packedRowBytes) noexcept;
         PCTexturePitchForAnalysis pcTexturePitchForAnalysis=nullptr; // explicit CPU shadow storage policy; default tightly packed, NOT device pitch
         void* pcTexturePitchContext=nullptr;
+        // PC42EA50 constructs6BD580 for external texture source field4.
+        // Host supplies the owned stream backend explicitly; no implicit I/O.
+        using TextureSourceStreamFactoryForAnalysis=std::unique_ptr<spStream> (*)(void*);
+        TextureSourceStreamFactoryForAnalysis textureSourceStreamFactoryForAnalysis=nullptr;
+        void* textureSourceStreamContext=nullptr;
         const std::array<float,9>* cameraOrientation = nullptr; // explicit CPU billboard input
         bool failed = false;
         std::uint32_t depth = 0;

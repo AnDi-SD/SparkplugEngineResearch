@@ -298,6 +298,83 @@ namespace
         }
         out<<"]}";return out.str();
     }
+    struct ExternalFixture
+    {
+        Bytes data;std::string expected;bool failOpen=false,failSize=false;
+        unsigned opened=0,closed=0,destroyed=0;std::string resolved;
+    };
+    struct ExternalStream final:spStream
+    {
+        ExternalFixture& fixture;spMemoryStream storage;bool opened=false;
+        explicit ExternalStream(ExternalFixture& fixture):fixture(fixture){}
+        ~ExternalStream() override{if(opened)(void)Close();++fixture.destroyed;}
+        bool Open(const char* name) override{return Open(1,name);}
+        bool Open(std::uint32_t mode,const char* name) override
+        {
+            fixture.resolved=name?name:"";++fixture.opened;
+            if(mode!=1||!name||fixture.resolved!=fixture.expected||fixture.failOpen||opened)return false;
+            if(!SetStreamName(name)||!storage.Open(name)||!storage.ResizeAndSetSize(static_cast<std::uint32_t>(fixture.data.size())))return false;
+            if(!fixture.data.empty())std::memcpy(storage.GetBuffer(),fixture.data.data(),fixture.data.size());
+            opened=true;return true;
+        }
+        bool Close() override{if(!opened)return false;++fixture.closed;opened=false;return storage.Close();}
+        bool Seek(SeekSource source,std::int32_t offset) override{return opened&&storage.Seek(source,offset);}
+        bool GetCurrentPosition(std::uint32_t& position) const override{return opened&&storage.GetCurrentPosition(position);}
+        bool ReadData(void* out,std::uint32_t size) override{return opened&&storage.ReadData(out,size);}
+        bool WriteData(const void*,std::uint32_t) override{return false;}
+        bool vfunc_WriteFromStream(spStream*,std::uint32_t) override{return false;}
+        bool GetSize(std::uint32_t* size) const override{return opened&&!fixture.failSize&&storage.GetSize(size);}
+    };
+    std::unique_ptr<spStream> ExternalFactory(void* fixture)
+    {return std::make_unique<ExternalStream>(*static_cast<ExternalFixture*>(fixture));}
+    Bytes ReadExternalHex()
+    {
+        std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=4096&&hex.size()%2==0,"bounded external source hex");
+        Bytes bytes;for(std::size_t i=0;i<hex.size();i+=2)
+        {
+            unsigned value=0;for(unsigned j=0;j<2;++j)
+            {const char c=hex[i+j];Check((c>='0'&&c<='9')||(c>='a'&&c<='f'),"external source hex digit");value=value*16+(c<='9'?c-'0':c-'a'+10);}
+            bytes.push_back(static_cast<std::uint8_t>(value));
+        }
+        return bytes;
+    }
+    std::string ExternalSource(const char* parent,const char* resolved,bool common)
+    {
+        const auto outer=ReadExternalHex();ExternalFixture fixture{ReadExternalHex(),resolved};
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        context.textureSourceStreamFactoryForAnalysis=ExternalFactory;context.textureSourceStreamContext=&fixture;
+        context.pcTexturePitchForAnalysis=[](void*,std::uint32_t,std::uint32_t row) noexcept{return row+4;};
+        spMemoryStream stream;Check(stream.Open(parent),"named parent stream");Open(stream,outer);spDXTexture texture;std::string error;
+        spDXTextureDataSerializer dxSerializer;spTextureDataSerializer commonSerializer;
+        const spTextureDataSerializer& serializer=common?commonSerializer:dxSerializer;
+        Check(serializer.ReadPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(outer.size()),texture,&error),error.c_str());
+        std::uint32_t cursor=0;Check(stream.GetCurrentPosition(cursor)&&cursor==outer.size()&&!context.failed&&!context.depth,"external wrapper consumed and depth restored");
+        Check(fixture.opened==1&&fixture.closed==1&&fixture.destroyed==1,"owned external stream closes and destroys once");
+        std::ostringstream out;out<<"{\"state\":["<<texture.GetField18ForAnalysis()<<','<<unsigned(texture.GetField1CForAnalysis())<<','
+            <<texture.GetTextureFlagsForAnalysis()<<','<<texture.IsInitializedForAnalysis()<<','<<texture.GetWidthForAnalysis()<<','<<texture.GetHeightForAnalysis()<<','
+            <<(texture.HasInitializedRuntimeFormatForAnalysis()?texture.GetRuntimeFormatForAnalysis():0xccccccccu)<<','<<texture.GetNativeByteCountForAnalysis()<<"],\"mips\":[";
+        bool first=true;for(const auto& mip:texture.GetMipsForAnalysis())
+        {if(!first)out<<',';first=false;Bytes packed;for(auto value:mip.packedBytes)packed.push_back(std::uint8_t(value));out<<'"'<<Hex(packed)<<'"';}
+        const Bytes path(fixture.resolved.begin(),fixture.resolved.end());
+        out<<"],\"resolvedHex\":\""<<Hex(path)<<"\",\"closeCalls\":"<<fixture.closed<<",\"destroyCalls\":"<<fixture.destroyed<<'}';return out.str();
+    }
+    void ExternalSourceGuards()
+    {
+        for(unsigned mode=0;mode<7;++mode)
+        {
+            spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+            ExternalFixture fixture{{0},"C:\\Media\\image.tex"};fixture.failOpen=mode==1;fixture.failSize=mode==2;
+            if(mode!=0){context.textureSourceStreamFactoryForAnalysis=ExternalFactory;context.textureSourceStreamContext=&fixture;}
+            if(mode==3)context.depth=64;
+            Bytes reference;const std::string name="image.tex";Add(reference,std::uint16_t(name.size()+1));reference.insert(reference.end(),name.begin(),name.end());reference.push_back(mode==4?'x':0);
+            if(mode==5)reference[0]=255;
+            Bytes outer;Field(outer,4,reference);outer.push_back(0);spMemoryStream stream;Check(stream.Open("C:\\Media\\scene.smo"),"external guard stream name");Open(stream,outer);
+            spDXTexture texture;std::string error;
+            Check(!spDXTextureDataSerializer{}.ReadPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(outer.size()),texture,&error)&&context.failed,"external failure must propagate");
+            Check(context.depth==(mode==3?64u:0u)&&!texture.IsInitializedForAnalysis(),"external failure restores depth without false texture");
+            Check(fixture.destroyed==fixture.opened&&fixture.closed==(mode==2||mode==6?1u:0u),"external failure owns and releases stream");
+        }
+    }
     void MissingMipGuards()
     {
         namespace filter=sparkplug::evidence::pc::texture_mips;
@@ -449,6 +526,8 @@ int main(int argc,char** argv)
         if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
         if(argc==2&&std::string(argv[1])=="--cross-upload"){std::cout<<MissingMips(true)<<'\n';return 0;}
         if(argc==2&&std::string(argv[1])=="--cross-upload-common"){std::cout<<MissingMips(true,true)<<'\n';return 0;}
+        if(argc==4&&(std::string(argv[1])=="--external-source"||std::string(argv[1])=="--external-source-common"))
+        {std::cout<<ExternalSource(argv[2],argv[3],std::string(argv[1])=="--external-source-common")<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--cross"){std::cout<<Cross(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--runtime"){std::cout<<Runtime(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--native"){std::cout<<Native(argv[2])<<'\n';return 0;}
@@ -461,6 +540,7 @@ int main(int argc,char** argv)
         NativeBounds();
         MissingMipGuards();
         CrossUploadGuards();
+        ExternalSourceGuards();
         BlockDecodeGuards();
         BlockOptimizerGuards();
         CompressedMipGuards();

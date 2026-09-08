@@ -20,7 +20,7 @@
       "dependsOn": [
         "pc-node-resource-graph"
       ],
-      "summary": "CP108/113 restore raw and DXT1/3/5 missing mips; CP114 verifies whole gem.smo with two textures and loaded UV updates. CP115 reconstructs common RGBA -> DX upload, normalized wrapped resize and ordered dithering, shared by common and DX serializers. CP116 adds XRGB, default-palette P8, RGB565 and ARGB4444 (70 exact comparisons). Continue other filters, arbitrary palettes, external source, remaining failures and live backend.",
+      "summary": "CP108/113 restore raw and DXT1/3/5 missing mips; CP114 verifies whole gem.smo with two textures and loaded UV updates. CP115 reconstructs common RGBA -> DX upload, normalized wrapped resize and ordered dithering, shared by common and DX serializers. CP116 adds XRGB, default-palette P8, RGB565 and ARGB4444 (70 exact comparisons). CP118 restores external texture source through an explicit owned stream factory (20 comparisons and native Open failure). Continue other filters, arbitrary palettes, package-backed sources, remaining failures and live backend.",
       "originalName": "spTextureDataSerializer",
       "sourcePath": "Z:\\Sparkplug\\Code\\Sparkplug\\spTextureDataSerializer.cpp",
       "known": [
@@ -35,12 +35,13 @@
         "CP113 encoders match708 original packed cases/9440 bytes and compressed reader15/15 cases/1560 mip bytes, including640 generated; all609 original allocations freed.",
         "CP114 whole gem.smo matches9 objects/4414 bytes plus288 bytes after loaded UV updates; two textures, all197 native allocations freed.",
         "CP115 common and DX readers match33 RGBA upload cases/16004 mip bytes;619219 wrapped coefficients and61F153 alternating-row ordered dither reproduce normalized resize; all1399 native allocations freed.",
-        "CP116 raw cross formats1/2/3/4 match70 cases; default P8 palettes contain256 identical white entries, so strict nearest-color ties select index0 for filtered pixels. XRGB copies original X on direct base transfer and writes0 after filtering."
+        "CP116 raw cross formats1/2/3/4 match70 cases; default P8 palettes contain256 identical white entries, so strict nearest-color ties select index0 for filtered pixels. XRGB copies original X on direct base transfer and writes0 after filtering.",
+        "CP118 source field4 matches20 path/state/mip cases through actual PC file stream and recursive serializer; default path is parent drive+directory+reference, even for absolute reference. Original filename allocation leaks on success/failure; host uses RAII. Native Open failure returns0 and destroys stream without texture pixels."
       ],
       "unknowns": [
         {
           "kind": "behavior",
-          "text": "Other filters and supplied palettes, error diffusion/gamma, compressed cross output, conversion-library attribution, remaining writer failures, palette reset/replacement, external source, controller clone graph, reinit/errors and live PC backend remain required. Default raw/compressed missing mips and common raw formats0..4 normalized upload are restored."
+          "text": "Other filters and supplied palettes, error diffusion/gamma, compressed cross output, conversion-library attribution, remaining writer failures, palette reset/replacement, package-backed external source, controller clone graph, reinit/errors and live PC backend remain required. Default raw/compressed missing mips and common raw formats0..4 normalized upload are restored."
         },
         {
           "kind": "behavior",
@@ -65,7 +66,8 @@
         "docs/research/native-pc-texture-block-optimizer.md",
         "docs/research/native-pc-texture-compressed-mips.md",
         "docs/research/native-pc-whole-uv-scene.md",
-        "docs/research/native-pc-texture-cross-upload.md"
+        "docs/research/native-pc-texture-cross-upload.md",
+        "docs/research/native-pc-texture-external-source.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -81,7 +83,8 @@
         "pc-texture-block-optimizer",
         "pc-texture-block-encode",
         "pc-texture-compressed-mips",
-        "pc-texture-cross-upload"
+        "pc-texture-cross-upload",
+        "pc-texture-external-source"
       ]
     },
     {
@@ -13199,6 +13202,282 @@
           "random",
           "profile",
           "dx"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-texture-external-source": [
+      {
+        "id": "pc-external-dxt1-absolute-ref-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "absolute-ref",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-dxt1-bare-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "bare",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-dxt1-drive-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "drive",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-dxt1-relative-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "dxt1",
+          "relative",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-absolute-ref-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "absolute-ref",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-absolute-ref-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "absolute-ref",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-bare-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "bare",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-bare-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "bare",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-drive-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "drive",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-drive-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "drive",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-relative-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "relative",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-p8-relative-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "p8",
+          "relative",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-absolute-ref-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "absolute-ref",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-absolute-ref-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "absolute-ref",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-bare-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "bare",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-bare-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "bare",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-drive-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "drive",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-drive-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "drive",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-relative-common",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "relative",
+          "common",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-rgba-relative-dx",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "relative",
+          "dx",
+          "profile"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-external-open-failure",
+        "platform": "pc",
+        "script": "research/probe_pc_texture_external_source.py",
+        "args": [
+          "--guest",
+          "rgba",
+          "drive",
+          "dx",
+          "profile-failure-open",
+          "open"
         ],
         "parallelSafe": true
       }

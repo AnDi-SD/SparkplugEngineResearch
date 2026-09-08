@@ -1,7 +1,8 @@
 # PC texture: source/local codec, DX header и границы upload
 
-Дополнение8 сентября: [CP115](native-pc-texture-cross-upload.md) исполняет
-RGBA upload полностью и переносит resize/dither/mip pipeline в C++.
+Дополнение8 сентября: [CP115–116](native-pc-texture-cross-upload.md) исполняют
+raw formats0..4 upload и переносят resize/dither/mip pipeline в C++.
+[CP118](native-pc-texture-external-source.md) добавляет внешний source field4.
 Описанные ниже entry-only stops остаются историческими результатами CP14.
 
 Checkpoint14 продолжающегося PC SMO/SAN исследования,6 сентября2026.

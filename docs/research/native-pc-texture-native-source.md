@@ -1,7 +1,11 @@
 # PC native texture data: shared source wrapper and reconstructed reader
 
-CP115 adds [common RGBA upload and normalized resize](native-pc-texture-cross-upload.md)
-through the same source wrapper. Other cross formats remain open.
+Status on8 September: [CP115–116](native-pc-texture-cross-upload.md) restore
+common raw formats0..4 upload, normalized resize and mip generation.
+[CP118](native-pc-texture-external-source.md) restores external source field4
+through an explicit owned stream factory, including the original path rule.
+Sections below preserve checkpoint16 evidence; its then-open boundaries have
+the subsequent updates linked at the end.
 
 Checkpoint 16, 2026-09-06. Continuing research, **not complete SMO/SAN support**.
 Primary executable SHA256:
@@ -75,6 +79,10 @@ power-of-two levels through actual61039A/60FDB4, including exact float codec
 rounding and wrapped edges. [CP113](native-pc-texture-compressed-mips.md) adds
 compressed DXT1/3/5 missing levels with filter4 and no dithering. Arbitrary
 conversion remains open; the original checkpoint results below are historical.
+
+Common raw conversion0..4 is now covered by CP115–116 and external-source
+orchestration by CP118. Arbitrary palettes/filters, package-backed external
+streams and remaining errors still require separate evidence.
 
 Later [checkpoint 17](native-pc-palette-lifetime.md) closes the palette-codec,
 construction/copy and observed ownership/failure subset described as pending above.
