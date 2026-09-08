@@ -4,6 +4,8 @@
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNodeSerializer.h"
 #include "Code/Sparkplug/spModelSerializer.h"
+#include "Code/Sparkplug/spParticleSystemSerializer.h"
+#include "spParticleCapture.h"
 #include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
@@ -58,6 +60,7 @@ namespace sparkplug::reconstruction::scene_file_test
         Require(manager.RegisterForAnalysis(spNode::ClassID,std::make_shared<spNodeSerializer>(),255,3),"Node binding");
         Require(manager.RegisterForAnalysis(spRenderNode::ClassID,std::make_shared<spRenderNodeSerializer>(),255,3),"RenderNode binding");
         Require(manager.RegisterForAnalysis(spModel::ClassID,std::make_shared<spModelSerializer>(),255,3),"Model binding");
+        Require(manager.RegisterForAnalysis(spParticleSystem::ClassID,std::make_shared<spParticleSystemSerializer>(),255,3),"Particle binding");
         Require(manager.RegisterForAnalysis(spSkin::ClassID,std::make_shared<spSkinSerializer>(),255,3),"Skin binding");
         Require(manager.RegisterForAnalysis(spMaterialDataSerializer::TargetClassID,std::make_shared<spMaterialDataSerializer>(),255,3),"MaterialData binding");
         Require(manager.RegisterForAnalysis(spFog::ClassID,std::make_shared<spFogSerializer>(),255,3),"Fog binding");
@@ -129,6 +132,11 @@ namespace sparkplug::reconstruction::scene_file_test
                     for(const auto& binding:skin->GetBoneBindingsForAnalysis())
                     {edges.push_back(Reference(binding.GetBoneForAnalysis().get()));Add(state,binding.inverseBindMatrix);}
                 }
+            }
+            else if(const auto* particle=dynamic_cast<const spParticleSystem*>(object))
+            {
+                state=particle_test::State(*particle);
+                edges={Reference(particle->GetMaterialForAnalysis().get()),Reference(particle->GetFogForAnalysis().get()),Reference(particle->GetRenderNodeForAnalysis().get())};
             }
             else if(const auto* material=dynamic_cast<const spDXMaterial*>(object))
             {

@@ -13,6 +13,7 @@ from pc_loader_fixtures import PCFileBytesFixture,empty_manager,empty_fat
 from probe_pc_san_reader import ReaderFixture,cstring
 from pc_stl_fixtures import install_char_traits
 from probe_pc_texture_missing_mips import MissingMipFixture
+from pc_particle_fixtures import install_particle_caps,particle_state
 
 class SceneFileFixture(MeshFixture):
     guest_execution_profile='file'
@@ -28,7 +29,7 @@ class SceneFileFixture(MeshFixture):
 class CrystalSceneFileFixture(SceneFileFixture):
     guest_max_buffer_size=8192
 
-def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False,with_texture=False,with_uv=False):
+def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False,with_texture=False,with_uv=False,with_particle=False):
     p=f.p
     records=[(0x755310,0x415352a1,0),(0x7555f8,0x44de07fd,0x755310),
         (0x75dd88,0x695c0f65,0x7555f8),(0x75e150,0x603625d0,0x75dd88),
@@ -44,6 +45,7 @@ def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False,with_t
         (0x75d488,0x78ea082b,0x75df10),(0x75df10,0x2f281e13,0x7555f8),(0x763210,0x3f3651b6,0x75df10),
         (0x75d3c8,0x1c0053d6,0x75deb0),(0x75deb0,0x14477ac7,0x75de50),
         (0x75de50,0x4fad24f1,0x760340),(0x760340,0x062c22ed,0x755310)]
+    if with_particle:records += [(0x762610,0x5afa1a4f,0x75e030)]
     for rec,identity,parent in records:p.put_uint(rec,identity);p.put_uint(rec+0x48,parent)
     targets=[(0x695c0f65,0x75dd88,0x421e20),(0x603625d0,0x75e150,0x425520),
         (0x763277db,0x760cf8,0x479ed0),(0x6160348b,0x75d548,0x41a390),
@@ -60,6 +62,7 @@ def seed_scene_rtti(f,with_light=False,with_material=None,with_skin=False,with_t
         if not with_light:targets += [(0x193b2671,0x763150,0x4a9e80)]
     if with_texture:targets += [(0x78ea082b,0x75d488,0x41a2d0),(0x3f3651b6,0x763210,0x4ab520)]
     if with_uv:targets += [(0x1c0053d6,0x75d3c8,0x41a210)]
+    if with_particle:targets += [(0x5afa1a4f,0x762610,0x48d8d0)]
     tree=p.allocate(32);head=p.allocate(24);targets.sort()
     red_level=(len(targets)+1).bit_length()-1
     def build(rows,parent,depth=0):
@@ -130,6 +133,8 @@ def capture_scene(f,root,entries,by_file_id=False):
                 count=p.uint(obj+0x64);check(count<=32,'bounded native skin palette')
                 state+=read(obj,0x60,8)+read(p.uint(obj+0x6c),0,count*64)
                 row['edges'] += [identity(p.uint(p.uint(obj+0x68)+4*i)) for i in range(count)]
+        elif kind==0x5afa1a4f:
+            state=particle_state(f,obj);row['edges']=[identity(p.uint(obj+a)) for a in (0x20,0x24,0x5c)]
         elif kind==0x797b39ec:
             state=read(obj,0x18,44)+read(obj,0x6d,1)+read(obj,0x78,68)+read(obj,0x48,4)
             count=p.uint(obj+0x48);check(count<=8,'bounded native passes')
@@ -186,13 +191,14 @@ def main(case='logo',by_file_id=False):
         'droid-trail':('SFX/droid_trail.smo',3070,'4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8'),
         'loading':('Menus/loading.smo',2442,'0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E'),
         'gem':('SFX/gem.smo',3878,'4F192B68087AF09AFBBE4688CDCED49B279611E16780AEA824E7C640033F813F'),
-        'rock':('Levels/Gardenia/rock.smo',6364,'E5CA7A422396DBB2FB7964A248B27221B3CD9761F06611A9D05BB38A5B158034')}
+        'rock':('Levels/Gardenia/rock.smo',6364,'E5CA7A422396DBB2FB7964A248B27221B3CD9761F06611A9D05BB38A5B158034'),
+        'pickup-particle':('SFX/pickup_ptc.smo',4733,'D8CB2C06BCAC278B54E3335129E2FFA851244159DCA8ADDC07F83D251A295757')}
     check(case in cases,'selected bounded whole scene case')
     relative,size,digest=cases[case];with_light=case in ('bloom-projectile','g-crystal')
     common_mesh=case in ('bloom-projectile','droid-trail');with_skin=case=='droid-trail'
-    with_texture=case in ('loading','gem','rock');with_uv=case=='gem'
-    texture_shapes=((8,8),(16,16)) if case=='gem' else ((32,32),) if case=='rock' else ((16,16),)
-    by_file_id=by_file_id or case in ('g-crystal','droid-trail','loading','gem','rock')
+    with_texture=case in ('loading','gem','rock','pickup-particle');with_uv=case=='gem';with_particle=case=='pickup-particle'
+    texture_shapes=((8,8),(16,16)) if case=='gem' else ((32,32),) if case in ('rock','pickup-particle') else ((16,16),)
+    by_file_id=by_file_id or case in ('g-crystal','droid-trail','loading','gem','rock','pickup-particle')
     object_count={'g-crystal':26,'droid-trail':13,'loading':11,'gem':9,'rock':7}.get(case,6)
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
@@ -202,10 +208,11 @@ def main(case='logo',by_file_id=False):
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
     f=(CrystalSceneFileFixture if case in ('g-crystal','gem','rock') else SceneFileFixture)(raw)
-    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes,surface_profile='corpus32' if case=='rock' else 'tiny')
+    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes,surface_profile='corpus32' if case in ('rock','pickup-particle') else 'tiny')
+    if with_particle:install_particle_caps(f)
     p=f.p;f.call(0x6d38e0)
     animation=f.call(0x454640) if with_uv else 0
-    seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin,with_texture=with_texture,with_uv=with_uv)
+    seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin,with_texture=with_texture,with_uv=with_uv,with_particle=with_particle)
     fat=empty_fat(f);manager,_=empty_manager(f);p.put_uint(manager+0x28,fat);p.put_uint(0x75dde8,manager)
     bindings=[(0x695c0f65,0x4638f0,255),(0x603625d0,0x469040,255),
         (0x763277db,0x4934c0,255),(0x6160348b,0x42f690,255),(0x7ac95aec,0x43b830,255),(0x33c34cf0,0x4297c0,2)]
@@ -216,6 +223,7 @@ def main(case='logo',by_file_id=False):
     if with_skin:bindings += [(0x681f2043,0x490c50,255)]
     if with_texture:bindings += [(0x78ea082b,0x42b660,6)]
     if with_uv:bindings += [(0x1c0053d6,0x440b00,255)]
+    if with_particle:bindings += [(0x5afa1a4f,0x49bbb0,255)]
     for kind,factory,platform in bindings:
         serializer=f.call(factory);f.call(0x422d90,this=manager,args=(kind,serializer,platform,1))
     f.call(0x45adf0);published=[]
@@ -245,6 +253,9 @@ def main(case='logo',by_file_id=False):
         if with_skin:stages+=(0x491170,0x46a120,0x421a60)
         if with_texture:stages+=(0x42dd10,0x42c640,0x4abba0,0x4ab030,0x61039a,0x60fdb4)
         if with_uv:stages+=(0x440be0,0x41a210,0x467d90)
+        if with_particle:
+            stages=tuple(a for a in stages if a not in (0x4938f0,0x429a40))
+            stages+=(0x48d8d0,0x49bce0,0x48c340,0x4b97f0,0x4ad4d0)
         report.update(wholeLoadInstructions=sum(p.visits.values()),wholeLoadSeconds=time.monotonic()-at,
             executionLimits=p.last_execution_limits,visitedStages={f'{a:08X}':p.visits[a] for a in stages})
         for a in stages:check(p.visits[a]>0,f'actual whole-file stage {a:08X}')
@@ -272,14 +283,14 @@ def main(case='logo',by_file_id=False):
         check(observed==expected,'exact whole original/source scene state and edges')
         report['phase']='cleanup'
         combiners=[a for a,s in f.allocations.items() if a not in f.freed and s==0x2c and p.uint(a)==0x6ef294]
-        check(len(combiners)==(0 if common_mesh else 1),'native common path has no batch; PC hook retains one combiner')
+        check(len(combiners)==(0 if common_mesh or with_particle else 1),'common/no-mesh paths have no retained combiner; PC mesh hook retains one')
         f.call(p.uint(p.uint(root)),this=root,args=(1,))
         if animation:
             check(p.uint(animation+0x24)==p.uint(animation+0x28)==0,'whole graph unregisters all controllers')
             f.call(0x4545d0,this=animation,args=(1,))
         for obj in combiners:f.call(0x4a9f30,this=obj,args=(1,))
         f.clear_declarations();f.call(0x4228a0,this=manager)
-        for address in (0x75db90,0x75db78,0x75526c,0x755264):
+        for address in ((0x75db84,) if with_particle else ())+(0x75db90,0x75db78,0x75526c,0x755264):
             obj=p.uint(address)
             if obj:f.call(p.uint(p.uint(obj)),this=obj,args=(1,))
         check(all(b['refs']==0 and b['locks']==0 for b in f.buffers.values()),'all fixture COM buffers released/unlocked')

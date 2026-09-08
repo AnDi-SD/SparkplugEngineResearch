@@ -1,4 +1,9 @@
-# Полный разбор `spParticleSystem`
+# Wire layout `spParticleSystem`
+
+Нативное продолжение: [CP120 — параметры, writer и whole pickup scene](native-pc-particle-parameters.md).
+Указанная ниже обязательность fields относится к исследованным authored файлам.
+Оригинальный writer пропускает default scale и нулевой render node; это отдельно
+подтверждено исполнением, как и допуск0,001 при сравнении векторов с default.
 
 ## Layout
 
@@ -42,7 +47,7 @@ Viewer показывает inherited renderable, все ranges/flags, конк�
 render node. Изменение оставлено read-only до реализации coordinated ownership и
 валидации зависимых material/render-node данных.
 
-Binary layout всех семи regions закрыт; открыты только simulation equations и
+Binary layout всех семи regions закрыт; открыты simulation equations и
 взаимодействие lifetime/emission/ranges/flags. Они проверяются одиночными
 fixed-size изменениями по
 [`smo-runtime-validation-plan.md`](smo-runtime-validation-plan.md).

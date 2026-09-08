@@ -234,6 +234,10 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spModel.h
     Code/Sparkplug/spModelSerializer.cpp
     Code/Sparkplug/spModelSerializer.h
+    Code/Sparkplug/spParticleSystem.cpp
+    Code/Sparkplug/spParticleSystem.h
+    Code/Sparkplug/spParticleSystemSerializer.cpp
+    Code/Sparkplug/spParticleSystemSerializer.h
     Code/Sparkplug/spSkin.cpp
     Code/Sparkplug/spSkin.h
     Code/Sparkplug/spSkinSerializer.cpp
@@ -570,6 +574,10 @@ if(BUILD_TESTING)
     add_test(NAME SparkplugNodeSerializationTests COMMAND SparkplugNodeSerializationTests)
     set_tests_properties(SparkplugNodeSerializationTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSceneSerializationTests Tests/spSceneSerializationTests.cpp)
+    add_executable(SparkplugParticleSerializationTests Tests/spParticleSerializationTests.cpp)
+    target_link_libraries(SparkplugParticleSerializationTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugParticleSerializationTests COMMAND SparkplugParticleSerializationTests)
+    set_tests_properties(SparkplugParticleSerializationTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSkinSerializationTests Tests/spSkinSerializationTests.cpp)
     add_executable(SparkplugSkinRenderTests Tests/spSkinRenderTests.cpp)
     add_executable(SparkplugSceneManagerTests Tests/spSceneManagerTests.cpp)

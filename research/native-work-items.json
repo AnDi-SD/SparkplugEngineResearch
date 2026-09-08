@@ -90,6 +90,46 @@
       ]
     },
     {
+      "id": "pc-particle-parameters",
+      "platform": "pc",
+      "priority": 4,
+      "status": "partial",
+      "classes": [
+        "spParticleSystem",
+        "spParticleSystemSerializer"
+      ],
+      "dependsOn": [
+        "pc-node-resource-graph",
+        "pc-texture-codec-backend"
+      ],
+      "summary": "CP120 restores all particle parameter fields, native omission/framing rules, seven regions and borrowed RenderNode backlink. Complete non-looping read/initial-state and writer match20 cases; whole pickup_ptc.smo matches6 objects/6088 bytes with all138 allocations released.",
+      "originalName": "spParticleSystem",
+      "known": [
+        "48D8D0/48D6F0 factory and manager registration,49BBB0 serializer factory,49BCE0 complete reader,49C8D0 writer and48D360 destruction executed.",
+        "Original non-looping48C340/48BE50 pool initialization and4B97F0 render support execute through actual4AD4D0 with external D3D9 GetDeviceCaps input.",
+        "Writer omits scale1..1 and null RenderNode; acceleration/direction comparisons use float0.001 tolerance.",
+        "Native RenderNode pointer is borrowed; portable weak pointer avoids ancestor ownership cycles."
+      ],
+      "unknowns": [
+        {
+          "kind": "behavior",
+          "text": "Looping initialization/emission, simulation/update/draw, all normalization rounding cases, clone/reinitialization and malformed native failure behavior remain open. Source read explicitly supports non-looping finite parameters with one region and1..1024 initial particles."
+        },
+        {
+          "kind": "name",
+          "text": "Portable class/header and API names are inferred; no original declaration ABI claim and no PC-to-PS2 evidence transfer."
+        }
+      ],
+      "evidencePaths": [
+        "docs/research/native-pc-particle-parameters.md",
+        "docs/research/smo-class-sp-particle-system.md"
+      ],
+      "testProfiles": [
+        "pc-particle-parameters",
+        "pc-scene-file-profile"
+      ]
+    },
+    {
       "id": "pc-node-resource-graph",
       "platform": "pc",
       "priority": 2,
@@ -11093,6 +11133,17 @@
           "--file-ids"
         ],
         "parallelSafe": true
+      },
+      {
+        "id": "pc-whole-pickup-particle-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "pickup-particle",
+          "--file-ids"
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-dx-shared-payload": [
@@ -13502,6 +13553,235 @@
           "dx",
           "profile-failure-open",
           "open"
+        ],
+        "parallelSafe": true
+      }
+    ],
+    "pc-particle-parameters": [
+      {
+        "id": "pc-particle-default-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "default",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-12-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "12",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-13-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "13"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-13-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "13",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-14-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "14"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-14-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "14",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-15-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "15"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-15-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "15",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-16-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "16"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-16-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "16",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-17-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "17"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-17-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "17",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-18-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "18"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-custom-18-1",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "custom",
+          "18",
+          "--caps"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-defaults-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "defaults",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-threshold-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "threshold",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-direction-zero-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "direction-zero",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-direction-tiny-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "direction-tiny",
+          "12"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-particle-direction-negative-12-0",
+        "platform": "pc",
+        "script": "research/compare_pc_particle_parameters.py",
+        "args": [
+          "--guest",
+          "direction-negative",
+          "12"
         ],
         "parallelSafe": true
       }
