@@ -51,6 +51,12 @@ target_compile_features(SparkBase PUBLIC cxx_std_17)
 # The original source path places this layer in Code/Sparkplug rather than
 # SparkBase.  Keep the reconstructed target boundary explicit as well.
 add_library(SparkplugEngine STATIC
+    Code/Sparkplug/spExtensionData.cpp
+    Code/Sparkplug/spFaceDataContainer.cpp
+    Code/Sparkplug/spCollisionMesh.cpp
+    Code/Sparkplug/spMeshBV.cpp
+    Code/Sparkplug/spMeshBVSerializer.cpp
+    Analysis/PC/spVertexBounds.h
     Code/Sparkplug/spBoundingVolume.cpp
     Code/Sparkplug/spBoundingVolume.h
     Code/Sparkplug/spOBBBV.cpp

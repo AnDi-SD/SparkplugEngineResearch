@@ -31,3 +31,12 @@ reader, и реальные загруженные узлы; старый Python
 suites и 2 273 C# checks прошли. MeshBV меню — следующий приоритет.
 VS во время работы обновилась и требует reboot; явный VisualStudioPath дал
 продолжить проверочные сборки без изменений установки или перезапуска системы.
+
+Четвёртый блок: MeshBV/CollisionMesh/FaceDataContainer в Sparkplug, wxFaceData
+в отдельном WinxGameCore без bootstrap. Пять original-PC micro cases,
+семь побитных sphere comparisons, C++76 checks и семь suites прошли.
+Полный общий loader прочитал меню1 225 objects, tile_bad127 и Bloom121;
+регистрация существующего ParticleSystem закрыла дополнительный пробел SFX.
+Сфера вынесена из DXMesh в единый helper без изменения алгоритма. Native
+query tree не объявлен восстановленным/доступным tools. Досье:
+`docs/research/native-pc-mesh-bv-tools-core-2026-09-09.md`.

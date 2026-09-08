@@ -45,7 +45,7 @@ if ($prefixLine) {
 & $cmake --build $taskBuild --target SparkplugViewerNative --parallel 2
 if ($LASTEXITCODE -ne 0) { throw 'Sparkplug Viewer native build failed.' }
 if ($RunChecks) {
-    & $cmake --build $taskBuild --target ViewerAnimationKeyChecks ViewerAnimationRuntimeChecks ViewerNodeWorldChecks ViewerTransformInputChecks ViewerSanReaderChecks ViewerCollisionCoreChecks --parallel 2
+    & $cmake --build $taskBuild --target ViewerAnimationKeyChecks ViewerAnimationRuntimeChecks ViewerNodeWorldChecks ViewerTransformInputChecks ViewerSanReaderChecks ViewerCollisionCoreChecks ViewerMeshBVCoreChecks --parallel 2
     if ($LASTEXITCODE -ne 0) { throw 'Viewing-core checks did not build.' }
     & (Join-Path (Split-Path $cmake) 'ctest.exe') --test-dir $taskBuild --output-on-failure -j 1
     if ($LASTEXITCODE -ne 0) { throw 'Viewing-core checks failed.' }

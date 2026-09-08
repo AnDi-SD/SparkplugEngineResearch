@@ -120,6 +120,10 @@ namespace sparkplug::reconstruction
         // an unrelated source owner. Cyclic unique-root references stay open.
         [[nodiscard]] std::shared_ptr<spBaseObject> CloneReferenceForAnalysis(const spBaseObject& source);
         bool RegisterSharedCloneForAnalysis(const spBaseObject& source,const std::shared_ptr<spBaseObject>& clone);
+        // PC412F70, exposed for recovered classes in the separate game layer.
+        // One implementation; this alias avoids engine dependencies on Winx.
+        void RegisterCloneForAnalysis(const spBaseObject& source,spBaseObject& clone)
+        {RegisterClone(source,clone);}
 
         spCloneManager(const spCloneManager&) = delete;
         spCloneManager& operator=(const spCloneManager&) = delete;

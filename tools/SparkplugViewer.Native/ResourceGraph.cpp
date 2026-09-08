@@ -22,12 +22,17 @@
 #include "Code/Sparkplug/spCollisionInfoSerializer.h"
 #include "Code/Sparkplug/spOBBBV.h"
 #include "Code/Sparkplug/spOBBBVSerializer.h"
+#include "Code/Sparkplug/spMeshBV.h"
+#include "Code/Sparkplug/spMeshBVSerializer.h"
+#include "Code/wxFaceData.h"
 #include "Code/Sparkplug/spUVController.h"
 #include "Code/Sparkplug/spUVControllerSerializer.h"
 #include "Code/Sparkplug/spAnimTexController.h"
 #include "Code/Sparkplug/spAnimTexControllerSerializer.h"
 #include "Code/Sparkplug/spMaterialColorController.h"
 #include "Code/Sparkplug/spMatColorControllerSerializer.h"
+#include "Code/Sparkplug/spParticleSystem.h"
+#include "Code/Sparkplug/spParticleSystemSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include <cstring>
 #include <stdexcept>
@@ -63,9 +68,12 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spFog,spFogSerializer>(manager);
     Register<spCollisionInfo,spCollisionInfoSerializer>(manager);
     Register<spOBBBV,spOBBBVSerializer>(manager);
+    Register<spMeshBV,spMeshBVSerializer>(manager);
+    (void)winx::reconstruction::wxFaceData::StaticRTTI();
     Register<spUVController,spUVControllerSerializer>(manager);
     Register<spAnimTexController,spAnimTexControllerSerializer>(manager);
     Register<spMaterialColorController,spMatColorControllerSerializer>(manager);
+    Register<spParticleSystem,spParticleSystemSerializer>(manager);
     spSerializerReadContextForAnalysis context(manager,resources);
     context.pcRenderer=renderer.get();context.captureFileObjectIDsForAnalysis=true;
     spMemoryStream input;

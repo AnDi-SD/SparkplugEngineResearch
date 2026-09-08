@@ -54,13 +54,13 @@ Payload `esfMeshBV` одинаков на PC и PS2 и целиком little-end
 
 | Порядок | Тип | Смысл |
 |---:|---|---|
-| 1 | `UInt32` | версия, во всех объектах `2` |
+| 1 | `UInt32` | index-buffer type, во всех объектах `2` (triangle list) |
 | 2 | `UInt32` | число треугольников `T` |
-| 3 | `UInt32` | ноль |
+| 3 | `UInt32` | index format flags, в корпусе ноль (UInt16) |
 | 4 | `UInt16[T*3]` | triangle-list indices |
-| 5 | `UInt32` | ноль после индексов |
+| 5 | `UInt32` | vertex component flags, в корпусе ноль (позиции) |
 | 6 | `UInt32` | число вершин `V` |
-| 7 | `UInt32` | ноль |
+| 7 | `UInt32` | vertex buffer flags, в корпусе ноль |
 | 8 | `Vector3[V]` | позиции `Single X/Y/Z` |
 
 Формула размера payload:
@@ -207,6 +207,13 @@ SmoViewer.Inspect research-db analyze-class <db> spMeshBV
 [`analyze_smo_mesh_bv.py`](../../research/analyze_smo_mesh_bv.py).
 
 ## Открытые вопросы
+
+Дополнение 9 сентября: [общие восстановленные C++ классы и PC проверки](native-pc-mesh-bv-tools-core-2026-09-09.md)
+подтвердили, что geometry состоит из стандартных index/vertex buffer streams.
+Прежнее название первого слова «версия» было ошибочной интерпретацией layout;
+байты и декодированные значения не изменились. Новый общий loader умеет
+читать/сохранять эти классы. Подключение C# Inspector ещё продолжается;
+описанный выше старый decoder не считается окончательной архитектурой.
 
 1. Восстановить имена и потребителей отдельных битов `m_uFlags`.
 2. Определить область уникальности и runtime-роль `m_uSurfaceID`.

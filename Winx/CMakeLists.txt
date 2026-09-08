@@ -1,7 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
 project(WinxReconstruction LANGUAGES CXX)
 
-add_subdirectory(../Sparkplug Sparkplug)
+if(NOT TARGET SparkplugEngine)
+    add_subdirectory(../Sparkplug Sparkplug)
+endif()
+
+# Recovered game data used by tools, with no application/OS bootstrap.
+add_library(WinxGameCore STATIC Code/wxFaceData.cpp Code/wxFaceData.h)
+target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxGameCore PUBLIC SparkplugEngine)
+target_compile_features(WinxGameCore PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
+endif()
 
 add_library(WinxBootstrap STATIC
     Code/wxEngineCore.cpp

@@ -1,0 +1,351 @@
+{
+  "kind": "tools-core-mesh-bv-block",
+  "status": "verified-scoped-core",
+  "base_commit": "1095594",
+  "sources": [
+    {
+      "path": "Sparkplug/Analysis/PC/spVertexBounds.h",
+      "sha256": "E4CECCE1EE1C8AB81D39AAB3EAFC63347399EFAE1AD7361FB12D66A3D0F6D69F"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "6D1FCD5B3F9A3D91C943B232BA6EFC1FE0D1E39D00B6DE6C132A8B998A4768FD"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.h",
+      "sha256": "B421A80D6CC7B67627A612B91B7F42EEBABDB5B3E363FD0600CA00F8AE69D49E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionMesh.cpp",
+      "sha256": "2B36BE5C2A206A3FFA00EF8D666C9152F7F92FD2AAE5F8A9BAD50B455A04D2A6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spCollisionMesh.h",
+      "sha256": "D69FE05F8C93CF2C9D2A67C0F510B509EE72616EC773EA863A7183F3FFAC7930"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spExtensionData.cpp",
+      "sha256": "EDC97367CFA425F2D16E1800CCBC0CF334376B9EEDB87BBA51B3551C7DDE1484"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spExtensionData.h",
+      "sha256": "2107F2A79E7250AB6488FFEA3146F5A4661954EB140D256490DAB06EF57CE15C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFaceDataContainer.cpp",
+      "sha256": "3DCB4B0339AB50F04041D2470DA785DDF36D4762DC8C82DD240F662068F81194"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFaceDataContainer.h",
+      "sha256": "6BF99AFE62B1FCCDD432FF7D2250405CB6365B2C90A8E1A7DEE7A89115BFAFBF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBV.cpp",
+      "sha256": "59BD3FAEA8FBDC419D784008F5F6F27840A1D0E0C4526C4DD3CCFE65E6C437FF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBV.h",
+      "sha256": "8B4F2EF0635D3D52F33C114860CB832394DD6F4577C65DD2795909B9C5E0DBA6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBVSerializer.cpp",
+      "sha256": "516A2E90D2AB7B4D6A9C982DFA5A3632B572D0BE4D64CD6027566D30A08FB19C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBVSerializer.h",
+      "sha256": "E5D51E000779C41655A63A38C964700D906E2A6962B3EA279F5832870974CFC5"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "sha256": "FA255E56DD847E09DE41017F30DC2B7E57A5DDD67634993B5F3F5E5F84E1E970"
+    },
+    {
+      "path": "Sparkplug/Tests/spMeshBVCoreTests.cpp",
+      "sha256": "BA5129DD5C328122B3640262C092E5F6992F78536EAC6B4F7218E24B9C457880"
+    },
+    {
+      "path": "Winx/CMakeLists.txt",
+      "sha256": "9E9E36C7B5DFB0AE7FC6E2B10433CD237EF88100A133E9F7E456B88313EAC12F"
+    },
+    {
+      "path": "Winx/Code/wxFaceData.cpp",
+      "sha256": "548318A72A0755F001E16A435B4671A1592DA7C4E8E0CC9773E084B6AC99C037"
+    },
+    {
+      "path": "Winx/Code/wxFaceData.h",
+      "sha256": "B728E7A2531AEA51408FCEB06C4C7EE5150B1F7F0117BE353F8130019B4866C2"
+    },
+    {
+      "path": "docs/research/native-pc-mesh-bv-tools-core-2026-09-09.md",
+      "sha256": "833863EA1DB0992C9CAE56951AF32AE017E2544DEE64991AC5AEEF7BB3074B9E"
+    },
+    {
+      "path": "docs/research/smo-class-sp-mesh-bv.md",
+      "sha256": "F8036F8C2F7D5F1616E7B115B4676B8BA9E8F5737C3D254FC2070CD20DF53A23"
+    },
+    {
+      "path": "research/probe_pc_mesh_bv_core.py",
+      "sha256": "EE80CC9EC16B5543D1BED22A4804B8E9B983B1F1B466B511B5CC3A740E9607DA"
+    },
+    {
+      "path": "research/validate_shared_vertex_sphere.py",
+      "sha256": "075A285E67E39C65A44DCD1E26ECF81FC45938907599CE6BB8991ED7440F136E"
+    },
+    {
+      "path": "research/validate_tools_resource_graph.py",
+      "sha256": "C43B845E39E00762ED03F73ECECCF53483B3FF356AF3E8291EC13EAD38295F0E"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "8EC6F4FA233FB34D0EE318C54CD0C579EC4CAFFB2388554964C7B99571A46116"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "89CFB9E7931DF329A2AFD2C3A507C71D193797AB54565EB782AD501431634826"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "96817E76C6E65A87FC6CD64D0A0AB7ABF0EEB31A65ACAD2C9B174368CCB96948"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/defaults.json",
+      "sha256": "C336E5ACC7019E035EAFB9A67AC1BBC549CE98C61280274B86A237303A7BE427"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/geometry.json",
+      "sha256": "F37A841C1601447068A85E8AAB1703F42F97306B268DA1821B31E19E415298FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/faces.json",
+      "sha256": "D80272703BEBDBD5B40B45EAFAD659A743F92354A2565FC78AEE8AEA280C5FA4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/face-defaults.json",
+      "sha256": "C08526CFEB3DD7B8E9AFC8CC4C32B1DD8AD9D8AE93F95A025294E0EC252A168D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/faces-unknown.json",
+      "sha256": "0CD327FEB23B60022FBFEF6E123221884D75D858F3C3F44CA96FEEA2C8EF7AEF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/shared-sphere.json",
+      "sha256": "5F1C167E8E51D0C747F66C62D693DD7E87C8C21EEF26E917B68A9249C689FC4E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-bv/graphs-final.json",
+      "sha256": "84416730EE08D0D12B5E28865888757BA654AB3B3961C41C1D5AEAA25D4CA40E"
+    }
+  ],
+  "native_dll_sha256": "F5C949A076E5BBE64A7730539F57C6E90462F914B6EB601DB8DD8C6E464540DB",
+  "native_checks_binary_sha256": "A2FC1316D82DBA051B0810FFF33E3FAAC3EB6CF6ABCCC4C424C6133B3EDE925D",
+  "original_pc_sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "validation": {
+    "original_micro_cases": 5,
+    "released_allocations": [
+      2,
+      10,
+      14,
+      14,
+      18
+    ],
+    "exact_sphere_cases": 7,
+    "cpp_checks": 76,
+    "cpp_suites": 7,
+    "san_python_tests": 37,
+    "resource_graphs": [
+      {
+        "file": "Menus/igmenu_opt_pc.smo",
+        "sha256": "D6ED2606BFCA4C4EED41F59869D1EC1C20DFAFE7A3BFD8E7FEC6C5F109052F0E",
+        "objects": 1225,
+        "nodes": 835,
+        "returned_resource_id": 1,
+        "wire_class_counts": {
+          "33C34CF0": 99,
+          "3F453DE7": 33,
+          "47A97C0E": 33,
+          "603625D0": 143,
+          "6160348B": 108,
+          "695C0F65": 692,
+          "763277DB": 110,
+          "78EA082B": 6,
+          "7AC95AEC": 1
+        },
+        "wire_runtime_class_pairs": [
+          [
+            868437232,
+            423306865
+          ],
+          [
+            1061502439,
+            1061502439
+          ],
+          [
+            1202289678,
+            1202289678
+          ],
+          [
+            1614161360,
+            1614161360
+          ],
+          [
+            1633694859,
+            2038118892
+          ],
+          [
+            1767640933,
+            1767640933
+          ],
+          [
+            1983018971,
+            1983018971
+          ],
+          [
+            2028603435,
+            1060524470
+          ],
+          [
+            2060016364,
+            2060016364
+          ]
+        ],
+        "seconds": 0.0813332999823615
+      },
+      {
+        "file": "SFX/tile_bad.smo",
+        "sha256": "E4497C217F49FE8BF7A3645533F10B19AA8DEEFD07063E44C8CE84CEE18484C6",
+        "objects": 127,
+        "nodes": 35,
+        "returned_resource_id": 1,
+        "wire_class_counts": {
+          "1C0053D6": 12,
+          "33C34CF0": 14,
+          "3F453DE7": 15,
+          "47A97C0E": 15,
+          "5AFA1A4F": 2,
+          "603625D0": 31,
+          "6160348B": 16,
+          "695C0F65": 4,
+          "763277DB": 14,
+          "78EA082B": 3,
+          "7AC95AEC": 1
+        },
+        "wire_runtime_class_pairs": [
+          [
+            469783510,
+            469783510
+          ],
+          [
+            868437232,
+            423306865
+          ],
+          [
+            1061502439,
+            1061502439
+          ],
+          [
+            1202289678,
+            1202289678
+          ],
+          [
+            1526340175,
+            1526340175
+          ],
+          [
+            1614161360,
+            1614161360
+          ],
+          [
+            1633694859,
+            2038118892
+          ],
+          [
+            1767640933,
+            1767640933
+          ],
+          [
+            1983018971,
+            1983018971
+          ],
+          [
+            2028603435,
+            1060524470
+          ],
+          [
+            2060016364,
+            2060016364
+          ]
+        ],
+        "seconds": 0.003343399992445484
+      },
+      {
+        "file": "Characters/Bloom/bloom_jeans.smo",
+        "sha256": "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA",
+        "objects": 121,
+        "nodes": 98,
+        "returned_resource_id": 1,
+        "wire_class_counts": {
+          "33C34CF0": 6,
+          "47A97C0E": 3,
+          "4DA04889": 3,
+          "5E6402DF": 1,
+          "603625D0": 2,
+          "6160348B": 2,
+          "681F2043": 6,
+          "695C0F65": 95,
+          "78EA082B": 2,
+          "7AC95AEC": 1
+        },
+        "wire_runtime_class_pairs": [
+          [
+            868437232,
+            423306865
+          ],
+          [
+            1202289678,
+            1202289678
+          ],
+          [
+            1302349961,
+            1302349961
+          ],
+          [
+            1583612639,
+            1799257002
+          ],
+          [
+            1614161360,
+            1614161360
+          ],
+          [
+            1633694859,
+            2038118892
+          ],
+          [
+            1746870339,
+            1746870339
+          ],
+          [
+            1767640933,
+            1767640933
+          ],
+          [
+            2028603435,
+            1060524470
+          ],
+          [
+            2060016364,
+            2060016364
+          ]
+        ],
+        "seconds": 0.007985100004589185
+      }
+    ]
+  },
+  "limits": [
+    "Geometry/face/bounds/ownership/serialization slice; no exposed OPCODE or collision-query API",
+    "Original full leaf methods plus source whole graph integration; no original whole SMO execution in this block",
+    "C# resource decoder migration remains incomplete; no release or GPU/PS2 runtime validation"
+  ]
+}

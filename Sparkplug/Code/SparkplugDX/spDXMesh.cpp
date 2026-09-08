@@ -19,6 +19,7 @@
 #include "../Sparkplug/spResourceManager.h"
 #include "../Sparkplug/spSerializerManager.h"
 #include "../Sparkplug/spVertexBuffer.h"
+#include "Analysis/PC/spVertexBounds.h"
 
 #include <cstring>
 #include <cmath>
@@ -56,39 +57,7 @@ namespace sparkplug::reconstruction
                 return value;
             };
             const float high = std::numeric_limits<float>::max();
-            spMesh::Position low{high, high, high}, upper{-high, -high, -high};
-            for (std::size_t i = 0; i < count; ++i)
-            {
-                const auto v = position(i);
-                for (std::size_t c = 0; c < 3; ++c)
-                {
-                    if (low[c] > v[c]) low[c] = v[c];
-                    if (upper[c] < v[c]) upper[c] = v[c];
-                }
-            }
-            // Match the explicit float stores between the x87 operations.
-            for (std::size_t c = 0; c < 3; ++c)
-            {
-                const float extent = static_cast<float>(double(upper[c]) - low[c]);
-                const double sum = double(upper[c]) + low[c];
-                const float center = static_cast<float>((c < 2 ? double(static_cast<float>(sum)) : sum) * .5);
-                const double half = double(extent) * .5;
-                const float first = static_cast<float>(double(center) - half);
-                const double last = double(center) + half;
-                const double joined = (c == 0 ? double(static_cast<float>(last)) : last) + first;
-                result.sphere[c] = static_cast<float>((c < 2 ? double(static_cast<float>(joined)) : joined) * .5);
-            }
-            float radiusSquared = 0;
-            for (std::size_t i = 0; i < count; ++i)
-            {
-                const auto v = position(i);
-                const double x = double(v[0]) - result.sphere[0];
-                const double y = double(v[1]) - result.sphere[1];
-                const double z = double(v[2]) - result.sphere[2];
-                const double distance = (z*z + y*y) + x*x;
-                if (distance > radiusSquared) radiusSquared = static_cast<float>(distance);
-            }
-            result.sphere[3] = static_cast<float>(std::sqrt(double(radiusSquared)));
+            if(!evidence::pc::ComputeVertexSphere(vertices,result.sphere))return false;
             result.minimum = {high, high, high}; result.maximum = {-high, -high, -high};
             for (std::size_t i = 0; i < indices.GetPrimitiveCountForAnalysis(); ++i)
             {

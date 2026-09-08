@@ -6,6 +6,7 @@ matching file hashes. Node structure is checked through actual engine objects.
 This is integration/metadata evidence, not a new original-executable probe.
 """
 from pathlib import Path
+from collections import Counter
 import argparse
 import hashlib
 import json
@@ -23,13 +24,15 @@ FILES=('Characters/Bloom/bloom_jeans.smo','Characters/Icy/Icy.smo',
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest().upper()
 
-def main(output):
+def main(output,files=FILES):
+    if not 1<=len(files)<=10:raise ValueError('Select 1..10 representative files')
     output=output.resolve();output.relative_to(ROOT/'local-data/results')
     database=ROOT/'local-data/results/smo-corpus-v2.sqlite'
     db=sqlite3.connect(database.as_uri()+'?mode=ro',uri=True)
     rows=[]
-    for name in FILES:
+    for name in files:
         path=ROOT/'local-data/pc-pristine/Media'/name;digest=sha(path)
+        path.resolve().relative_to((ROOT/'local-data/pc-pristine/Media').resolve())
         candidates=db.execute('SELECT id,sha256 FROM files WHERE relative_path=?',(name,)).fetchall()
         file_id=next(key for key,value in candidates if value.upper()==digest)
         entries=db.execute('SELECT object_id,name,type_hash,logical_offset,serialized_size FROM objects WHERE file_id=? ORDER BY object_index',(file_id,)).fetchall()
@@ -48,6 +51,7 @@ def main(output):
                         children[node.parent]+=1
             assert all(node.children==children[key] for key,node in nodes.items())
             row=dict(file=name,sha256=digest,objects=len(entries),nodes=len(nodes),returned_resource_id=graph.root,
+                     wire_class_counts={f'{kind:08X}':count for kind,count in sorted(Counter(entry[2] for entry in entries).items())},
                      wire_runtime_class_pairs=[list(pair) for pair in sorted(pairs)],seconds=time.perf_counter()-started)
             rows.append(row)
         print(json.dumps({key:row[key] for key in ('file','objects','nodes','seconds')}),flush=True)
@@ -61,4 +65,5 @@ def main(output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True,type=Path)
-    main(parser.parse_args().output)
+    parser.add_argument('--file',action='append',dest='files',help='Explicit small representative selection; defaults to five characters')
+    args=parser.parse_args();main(args.output,args.files or FILES)

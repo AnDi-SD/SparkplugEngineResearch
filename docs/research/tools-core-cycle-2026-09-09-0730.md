@@ -87,3 +87,20 @@ readers и собственный игровой FK удалены. Сцена �
 Следующий конкретный пробел: MeshBV у меню/уровней. В процессе сборки обнаружено
 обновление VS с pending reboot; явный путь к имеющемуся toolchain позволил
 продолжить без вмешательства в установку и без перезагрузки.
+
+### Четвёртый блок: MeshBV и игровые face data
+
+Общий core получил spMeshBV/spCollisionMesh/spFaceDataContainer и wxFaceData
+с настоящей RTTI-цепочкой. Геометрия пользуется существующими index/vertex
+buffers; sphere producer общий с render mesh, без второй реализации.
+Пять original-PC micro cases прошли, все 2/10/14/14/18 allocations освобождены.
+Sphere совпал побитно с оригиналом на семи отдельных случаях. C++76 checks
+и семь выбранных suites прошли. Меню1 225 objects, SFX tile_bad127 и Bloom121
+прошли полный общий loader. ParticleSystem потребовал лишь регистрации уже
+восстановленного reader. Query-tree/collision queries не входят в этот срез.
+Подробности: `docs/research/native-pc-mesh-bv-tools-core-2026-09-09.md`.
+
+Следующий блок — убрать самостоятельный C# разбор контейнера и data blocks:
+использовать восстановленные чтение header/FAT/fields, сохраняя диагностику
+и собственные сценарии инспектора. Существующий C# typed resource decode
+тоже требует последующей замены, готовность всех ядер пока не заявлена.
