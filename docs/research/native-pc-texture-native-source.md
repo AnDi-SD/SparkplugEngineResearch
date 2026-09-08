@@ -88,8 +88,9 @@ Later [checkpoint 17](native-pc-palette-lifetime.md) closes the palette-codec,
 construction/copy and observed ownership/failure subset described as pending above.
 Full renderer integration is still open.
 
-Real `icebat.smo` embedded texture is only statically framed so far, not loaded
-natively: its 32x32 base level likely requires generation of missing mip levels.
+[CP119](native-pc-texture-corpus32.md) subsequently verifies the unchanged
+`icebat.smo` embedded32x32 texture slice and whole Gardenia rock.smo with six
+levels. The former is not a whole-icebat load.
 Internal conversion `60FDB4/61039A`, native-data writer, external source paths,
 palette, material/controller references, reinit/clone/errors, lossless unknown
 fields, whole FFPS Save and resource-to-live-PC-render remain open. This extends

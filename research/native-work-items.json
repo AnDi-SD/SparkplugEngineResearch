@@ -36,7 +36,8 @@
         "CP114 whole gem.smo matches9 objects/4414 bytes plus288 bytes after loaded UV updates; two textures, all197 native allocations freed.",
         "CP115 common and DX readers match33 RGBA upload cases/16004 mip bytes;619219 wrapped coefficients and61F153 alternating-row ordered dither reproduce normalized resize; all1399 native allocations freed.",
         "CP116 raw cross formats1/2/3/4 match70 cases; default P8 palettes contain256 identical white entries, so strict nearest-color ties select index0 for filtered pixels. XRGB copies original X on direct base transfer and writes0 after filtering.",
-        "CP118 source field4 matches20 path/state/mip cases through actual PC file stream and recursive serializer; default path is parent drive+directory+reference, even for absolute reference. Original filename allocation leaks on success/failure; host uses RAII. Native Open failure returns0 and destroys stream without texture pixels."
+        "CP118 source field4 matches20 path/state/mip cases through actual PC file stream and recursive serializer; default path is parent drive+directory+reference, even for absolute reference. Original filename allocation leaks on success/failure; host uses RAII. Native Open failure returns0 and destroys stream without texture pixels.",
+        "CP119 unchanged icebat32x32 TextureData slice matches5460 bytes including1364 generated; whole Gardenia rock.smo matches7 objects/7675 bytes,601092 instructions,146 allocations freed. Explicit corpus32 surface profile admits six levels/8KiB surface without changing instruction/time/arena/allocation caps."
       ],
       "unknowns": [
         {
@@ -67,7 +68,8 @@
         "docs/research/native-pc-texture-compressed-mips.md",
         "docs/research/native-pc-whole-uv-scene.md",
         "docs/research/native-pc-texture-cross-upload.md",
-        "docs/research/native-pc-texture-external-source.md"
+        "docs/research/native-pc-texture-external-source.md",
+        "docs/research/native-pc-texture-corpus32.md"
       ],
       "testProfiles": [
         "pc-texture-codec-boundaries",
@@ -11080,6 +11082,17 @@
           "--file-ids"
         ],
         "parallelSafe": true
+      },
+      {
+        "id": "pc-whole-rock-file-ids",
+        "platform": "pc",
+        "script": "research/probe_pc_scene_file_profile.py",
+        "args": [
+          "--guest",
+          "rock",
+          "--file-ids"
+        ],
+        "parallelSafe": true
       }
     ],
     "pc-dx-shared-payload": [
@@ -11292,6 +11305,17 @@
           "--guest",
           "random",
           "2x2"
+        ],
+        "parallelSafe": true
+      },
+      {
+        "id": "pc-missing-mips-icebat-32x32",
+        "platform": "pc",
+        "script": "research/compare_pc_texture_missing_mips.py",
+        "args": [
+          "--guest",
+          "icebat",
+          "32x32"
         ],
         "parallelSafe": true
       }

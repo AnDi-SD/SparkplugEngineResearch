@@ -273,7 +273,7 @@ namespace
     }
     std::string MissingMips(bool cross=false,bool common=false)
     {
-        std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=4096&&hex.size()%2==0,"bounded native payload hex");
+        std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=16384&&hex.size()%2==0,"bounded native payload hex");
         const auto nibble=[](char c)->unsigned
         {if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;throw std::runtime_error("lowercase hex input");};
         Bytes data;for(std::size_t i=0;i<hex.size();i+=2)data.push_back(static_cast<std::uint8_t>(nibble(hex[i])*16+nibble(hex[i+1])));

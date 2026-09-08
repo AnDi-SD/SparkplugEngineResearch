@@ -25,9 +25,15 @@ def field(kind,payload):
 class MissingMipFixture(TextureMipChainFixture):
     guest_arena_size=131072
     guest_execution_profile='file'
+    max_levels=5
+    max_surface_bytes=2048
 
-    def __init__(self,data,dimensions=(16,16)):
-        assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
+    def __init__(self,data,dimensions=(16,16),*,surface_profile='tiny'):
+        assert surface_profile in ('tiny','corpus32')
+        maximum=32 if surface_profile=='corpus32' else 16
+        self.max_levels=6 if surface_profile=='corpus32' else 5
+        self.max_surface_bytes=8192 if surface_profile=='corpus32' else 2048
+        assert len(dimensions)==2 and all(n>0 and n<=maximum and not n&(n-1) for n in dimensions)
         self.dimensions=dimensions
         super().__init__(data);self.install_external_inputs()
 
@@ -43,20 +49,26 @@ class MissingMipFixture(TextureMipChainFixture):
         self.ftol_calls=0
 
     @classmethod
-    def install_on_scene(cls,fixture,dimensions=(16,16)):
-        assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
+    def install_on_scene(cls,fixture,dimensions=(16,16),*,surface_profile='tiny'):
+        assert surface_profile in ('tiny','corpus32')
+        maximum=32 if surface_profile=='corpus32' else 16
+        assert len(dimensions)==2 and all(n>0 and n<=maximum and not n&(n-1) for n in dimensions)
         from pc_compact_texture_device import install_texture_device
         install_texture_device(fixture,dimensions[0]*4,fixture_class=cls)
         io=fixture.texture_io;io.dimensions=dimensions;io.levels=[];io.surfaces={}
+        io.max_levels=6 if surface_profile=='corpus32' else 5
+        io.max_surface_bytes=8192 if surface_profile=='corpus32' else 2048
         io.install_external_inputs();return io
 
     @classmethod
-    def install_many_on_scene(cls,fixture,dimensions):
+    def install_many_on_scene(cls,fixture,dimensions,*,surface_profile='tiny'):
         """One real device identity, at most two declared independent textures."""
         import copy
         assert 1<=len(dimensions)<=2
-        assert all(len(shape)==2 and all(n in (1,2,4,8,16) for n in shape) for shape in dimensions)
-        first=cls.install_on_scene(fixture,dimensions[0]);p=fixture.p
+        assert surface_profile in ('tiny','corpus32')
+        maximum=32 if surface_profile=='corpus32' else 16
+        assert all(len(shape)==2 and all(n>0 and n<=maximum and not n&(n-1) for n in shape) for shape in dimensions)
+        first=cls.install_on_scene(fixture,dimensions[0],surface_profile=surface_profile);p=fixture.p
         instances=[first]
         if len(dimensions)==2:
             io=copy.copy(first);base=0x34070000
@@ -140,10 +152,10 @@ class MissingMipFixture(TextureMipChainFixture):
         self.width=width;self.height=height;self.format=fmt
         self.texture_refs=self.surface_refs=1;p.put_uint(out,self.texture)
         table=p.uint(self.surface);self.levels=[];self.surfaces={}
-        for index in range(5):
+        for index in range(self.max_levels):
             surface=self.surface if index==0 else p.allocate(4)
             row_bytes=width*4;pitch=row_bytes+4;capacity=pitch*height
-            assert capacity<=2048
+            assert capacity<=self.max_surface_bytes
             pixels=p.allocate(capacity);p.put_uint(surface,table);p.mu.mem_write(pixels,b'\xa5'*capacity)
             rec=dict(index=index,width=width,height=height,row_bytes=row_bytes,rows=height,pitch=pitch,
                      pixels=pixels,refs=1,locked=False,surface=surface)
@@ -155,6 +167,13 @@ class MissingMipFixture(TextureMipChainFixture):
 
 
 def specimen(pattern='corpus',dimensions=(16,16)):
+    if pattern=='icebat':
+        assert dimensions==(32,32)
+        raw=(ROOT/'local-data/pc-pristine/Media/Characters/Animals/icebat.smo').read_bytes()
+        digest=hashlib.sha256(raw).hexdigest().upper()
+        assert len(raw)==35571 and digest=='6AEC9CA21EB50FD93E89955551C3557FF19BD21260038FF6E7CF94EEF178BF72'
+        assert raw[1336:1344]==struct.pack('<II',0x78ea082b,0x4f4f4253)
+        return raw[1344:5496],digest
     path=ROOT/'local-data/pc-pristine/Media/Menus/loading.smo';raw=path.read_bytes()
     digest=hashlib.sha256(raw).hexdigest().upper()
     assert len(raw)==2442 and digest=='0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E'
@@ -179,9 +198,9 @@ def specimen(pattern='corpus',dimensions=(16,16)):
 def main(label='first',pattern='corpus',shape='16x16',*,return_capture=False):
     if not label.replace('-','').isalnum() or len(label)>40:raise ValueError('short report label')
     dimensions=tuple(map(int,shape.split('x')))
-    assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
+    assert (pattern=='icebat' and dimensions==(32,32)) or (len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions))
     data,digest=specimen(pattern,dimensions)
-    f=MissingMipFixture(data,dimensions);p=f.p
+    f=MissingMipFixture(data,dimensions,surface_profile='corpus32' if pattern=='icebat' else 'tiny');p=f.p
     manager,_=empty_manager(f);p.put_uint(manager+0x10,2);p.put_uint(manager+0x14,1);p.put_uint(0x75dde8,manager)
     obj=f.call(0x4ab520);serializer=f.call(0x42b660)
     coefficients=[];coefficient_args=[];codecs=[]
@@ -201,9 +220,9 @@ def main(label='first',pattern='corpus',shape='16x16',*,return_capture=False):
             codecs.append({'kind':p.uint(codec+8),'methods':[f'{p.uint(table+i):08X}' for i in (0,4,8)]})
     p.mu.hook_add(p.uc.UC_HOOK_CODE,observe_codecs,begin=0x61c647,end=0x61c647)
     report={'kind':'original-texture-missing-mips','inputSha256':digest,'pattern':pattern,
-            'payloadSha256':hashlib.sha256(data).hexdigest().upper(),'originalObjectOffset':1053,'originalObjectSize':1088,
-            'dimensions':dimensions,'payloadSize':len(data),'inputKind':'unchanged-slice' if pattern=='corpus' and dimensions==(16,16) else 'constructed-pixel-case',
-            'executionProfile':'file','arenaLimitBytes':p.arena_size,'maxSurfaceBytes':2048,'maxLevels':5}
+            'payloadSha256':hashlib.sha256(data).hexdigest().upper(),'originalObjectOffset':1336 if pattern=='icebat' else 1053,'originalObjectSize':4160 if pattern=='icebat' else 1088,
+            'dimensions':dimensions,'payloadSize':len(data),'inputKind':'unchanged-slice' if pattern=='icebat' or pattern=='corpus' and dimensions==(16,16) else 'constructed-pixel-case',
+            'executionProfile':'file','arenaLimitBytes':p.arena_size,'maxSurfaceBytes':f.max_surface_bytes,'maxLevels':f.max_levels}
     started=time.monotonic()
     try:
         result=f.call(0x42c640,this=serializer+0x10,args=(f.stream,obj))&255

@@ -11,7 +11,7 @@ from probe_pc_texture_missing_mips import main as native,specimen
 
 def main(pattern='corpus',shape='16x16'):
     dimensions=tuple(map(int,shape.split('x')))
-    assert len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions)
+    assert (pattern=='icebat' and dimensions==(32,32)) or (len(dimensions)==2 and all(n in (1,2,4,8,16) for n in dimensions))
     data,_=specimen(pattern,dimensions)
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugTextureSerializationTests.exe'
     result=subprocess.run([str(binary),'--missing-native'],input=data.hex()+'\n',text=True,capture_output=True,timeout=10)

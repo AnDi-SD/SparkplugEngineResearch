@@ -189,8 +189,9 @@ namespace sparkplug::reconstruction::scene_file_test
                 Add(state,texture->GetField18ForAnalysis());Add(state,texture->GetField1CForAnalysis());
                 Add(state,texture->GetTextureFlagsForAnalysis());Add(state,std::uint8_t(texture->IsInitializedForAnalysis()));
                 Add(state,texture->GetWidthForAnalysis());Add(state,texture->GetHeightForAnalysis());
-                Require(texture->GetMipsForAnalysis().size()<=5,"Bounded texture mip capture");
-                for(const auto& mip:texture->GetMipsForAnalysis())buffers.push_back(Hex(mip.packedBytes));
+                Require(texture->GetMipsForAnalysis().size()<=6,"Bounded texture mip capture");
+                for(const auto& mip:texture->GetMipsForAnalysis())
+                {Require(mip.width<=32&&mip.height<=32&&mip.packedBytes.size()<=8192,"Bounded corpus texture surface");buffers.push_back(Hex(mip.packedBytes));}
             }
             else throw std::runtime_error("Uncaptured runtime class");
             out<<Hex(state)<<"\",\"edges\":[";for(std::size_t i=0;i<edges.size();++i){if(i)out<<',';out<<edges[i];}

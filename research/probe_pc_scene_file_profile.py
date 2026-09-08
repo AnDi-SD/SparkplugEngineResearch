@@ -185,14 +185,15 @@ def main(case='logo',by_file_id=False):
         'g-crystal':('SFX/g_crystal.smo',6264,'9ECB8CFEFADD7A30F1411F8235039FB07EA342BA13177B4060DE975158609A0A'),
         'droid-trail':('SFX/droid_trail.smo',3070,'4781A76774FD2F079AF853B1ECC7235FB0B743FFFE071B34F9D8ACEED9C7AEA8'),
         'loading':('Menus/loading.smo',2442,'0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E'),
-        'gem':('SFX/gem.smo',3878,'4F192B68087AF09AFBBE4688CDCED49B279611E16780AEA824E7C640033F813F')}
+        'gem':('SFX/gem.smo',3878,'4F192B68087AF09AFBBE4688CDCED49B279611E16780AEA824E7C640033F813F'),
+        'rock':('Levels/Gardenia/rock.smo',6364,'E5CA7A422396DBB2FB7964A248B27221B3CD9761F06611A9D05BB38A5B158034')}
     check(case in cases,'selected bounded whole scene case')
     relative,size,digest=cases[case];with_light=case in ('bloom-projectile','g-crystal')
     common_mesh=case in ('bloom-projectile','droid-trail');with_skin=case=='droid-trail'
-    with_texture=case in ('loading','gem');with_uv=case=='gem'
-    texture_shapes=((8,8),(16,16)) if case=='gem' else ((16,16),)
-    by_file_id=by_file_id or case in ('g-crystal','droid-trail','loading','gem')
-    object_count={'g-crystal':26,'droid-trail':13,'loading':11,'gem':9}.get(case,6)
+    with_texture=case in ('loading','gem','rock');with_uv=case=='gem'
+    texture_shapes=((8,8),(16,16)) if case=='gem' else ((32,32),) if case=='rock' else ((16,16),)
+    by_file_id=by_file_id or case in ('g-crystal','droid-trail','loading','gem','rock')
+    object_count={'g-crystal':26,'droid-trail':13,'loading':11,'gem':9,'rock':7}.get(case,6)
     path=ROOT/'local-data/pc-pristine/Media'/relative;raw=path.read_bytes()
     check(len(raw)==size and hashlib.sha256(raw).hexdigest().upper()==digest,'unchanged selected corpus SHA256')
     binary=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugSceneSerializationTests.exe'
@@ -200,8 +201,8 @@ def main(case='logo',by_file_id=False):
     check(result.returncode==0,'source whole capture: '+result.stderr.decode('utf-8',errors='replace')[:2048])
     check(len(result.stdout)<=262144,'bounded source capture')
     expected=json.loads(result.stdout)
-    f=(CrystalSceneFileFixture if case in ('g-crystal','gem') else SceneFileFixture)(raw)
-    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes)
+    f=(CrystalSceneFileFixture if case in ('g-crystal','gem','rock') else SceneFileFixture)(raw)
+    if with_texture:MissingMipFixture.install_many_on_scene(f,texture_shapes,surface_profile='corpus32' if case=='rock' else 'tiny')
     p=f.p;f.call(0x6d38e0)
     animation=f.call(0x454640) if with_uv else 0
     seed_scene_rtti(f,with_light,with_material=case!='bloom-projectile',with_skin=with_skin,with_texture=with_texture,with_uv=with_uv)
@@ -232,7 +233,7 @@ def main(case='logo',by_file_id=False):
         'inputSha256':hashlib.sha256(raw).hexdigest().upper(),'sourceExecutableSha256':hashlib.sha256(binary.read_bytes()).hexdigest().upper(),
         'arenaLimitBytes':p.arena_size,'maxAllocationBytes':f.max_allocation_size,'maxCOMBufferBytes':f.max_buffer_size,
         'identityMode':'file-id' if by_file_id else 'runtime-class','processTimeoutSeconds':30,'phase':'whole-load'}
-    if with_texture:report.update(maxTextureSurfaceBytes=2048,maxTextureLevels=5,textureDimensions=texture_shapes,maxTextures=len(texture_shapes))
+    if with_texture:report.update(maxTextureSurfaceBytes=f.texture_io.max_surface_bytes,maxTextureLevels=f.texture_io.max_levels,textureDimensions=texture_shapes,maxTextures=len(texture_shapes))
     at=time.monotonic()
     try:
         root=f.call(0x422b50,this=manager,args=(f.stream,));p.mu.hook_del(observer)
