@@ -14,22 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import san_to_vmd as converter
 
 
-def field(kind, payload):
-    return bytes([0xE0 | kind]) + struct.pack("<I", len(payload)) + payload
-
-
-def container(objects):
-    """Synthetic FFPS with separate physical objects and explicit child references."""
-    table, body = bytearray(), bytearray()
-    for number, name, kind, fields in objects:
-        name = name.encode("ascii") + b"\0"
-        obj = struct.pack("<I4s", kind, b"SBOO") + fields + b"\0"
-        table += struct.pack("<IH", number, len(name)) + name
-        table += struct.pack("<III", kind, len(body), len(obj))
-        body += obj
-    table += bytes(4)
-    start = 32 + len(table)
-    return struct.pack("<4s7I", b"FFPS", 0x26, 0, start+len(body), 2, start, len(body), len(objects)) + table + body
+from san_fixtures import field, container, wire, channel, clip as native_clip
 
 
 def vector_curve(values, times=None):
@@ -58,43 +43,44 @@ class ConverterTests(unittest.TestCase):
         q = (0, 0, math.sqrt(0.5), math.sqrt(0.5))
         actual = converter.rotate(q, (1, 0, 0))
         for a, b in zip(actual, (0, 1, 0)):
-            self.assertAlmostEqual(a, b)
-        midway = converter.slerp(q, converter.times(q, -1), 0.5)
-        self.assertAlmostEqual(abs(sum(a*b for a, b in zip(q, midway))), 1)
+            self.assertAlmostEqual(a, b, places=6)
+        midway = channel(wire(1, (0, 1), (q, converter.times(q, -1))), 3).sample(0.5)
+        self.assertAlmostEqual(abs(sum(a*b for a, b in zip(q, midway))), 1, places=6)
 
     def test_different_arm_rest_angles_are_aligned(self):
         original, desired = (1, 0, 0), (0, -2, 0)
         q = converter.align_directions(original, desired)
         for a, b in zip(converter.rotate(q, original), (0, -1, 0)):
-            self.assertAlmostEqual(a, b)
+            self.assertAlmostEqual(a, b, places=6)
         q = converter.align_directions(original, (-1, 0, 0))
         self.assertAlmostEqual(converter.rotate(q, original)[0], -1)
 
     def test_cubic_recomputes_coefficients_and_normalizes_time(self):
-        curve = converter.Curve(4, (2, 6), ((0, 0, 2, 999, 999), (4, 6, 0, 999, 999)))
+        curve = channel(wire(4, (2, 6), ((0, 0, 2, 999, 999), (4, 6, 0, 999, 999))) + wire(3, (0,), ((0,),))*2, 2)
         # Analytic polynomial 2*u + 2*u^2; file coefficient placeholders are ignored.
         self.assertAlmostEqual(curve.sample(3)[0], 0.625)
         self.assertAlmostEqual(curve.sample(4)[0], 1.5)
-        self.assertEqual(curve.sample(10), (0,))  # Original two-key endpoint rule.
+        self.assertEqual(curve.sample(10), (0, 0, 0))  # Original two-key endpoint rule.
 
     def test_scalar_axes_have_independent_times(self):
         payload = bytearray()
         for endpoint in (1.0, 2.0, 4.0):
             payload += struct.pack("<II2f2f", 3, 2, 0, endpoint, 0, 8)
-        curves = converter.read_curve(payload, 2)
-        self.assertEqual(converter.sample(curves, 1, (0, 0, 0)), (0, 4, 2))
+        curve = channel(payload, 2)
+        self.assertEqual(curve.sample(1), (0, 4, 2))
 
     def test_empty_scale_keeps_rest_and_nonidentity_scale_rejected(self):
-        empty = converter.read_curve(struct.pack("<II", 1, 0), 4)
-        self.assertEqual(converter.sample(empty, 1, (1, 1, 1)), (1, 1, 1))
+        empty = channel(struct.pack("<II", 1, 0), 4)
+        self.assertIsNone(empty.sample(1))
         with self.assertRaises(converter.ConversionError):
-            converter.read_curve(vector_curve([(1, 1, 1), (2, 1, 1)]), 4)
+            converter.validate_vmd_scale(channel(vector_curve([(1, 1, 1), (2, 1, 1)]), 4))
 
-    def test_invalid_counts_and_times_rejected(self):
+    def test_invalid_count_rejected_and_original_equal_times_accepted(self):
         with self.assertRaises(converter.ConversionError):
-            converter.read_curve(struct.pack("<II", 1, 0xFFFFFFFF), 2)
-        with self.assertRaises(converter.ConversionError):
-            converter.read_curve(vector_curve([(0, 0, 0)]*2, (1, 1)), 2)
+            channel(struct.pack("<II", 1, 0xFFFFFFFF), 2)
+        equal = channel(vector_curve([(0, 0, 0)]*2, (1, 1)), 2)
+        self.assertEqual(equal.source_keys, 2)
+        self.assertEqual(equal.times, (1,))
 
     def test_child_relationship_instead_of_physical_nesting(self):
         q = (0, 0, math.sqrt(0.5), math.sqrt(0.5))
@@ -108,7 +94,7 @@ class ConverterTests(unittest.TestCase):
         self.assertEqual(bones["child"].parent, "parent")
         actual = converter.source_world(bones, converter.hierarchy(bones, ["child"]))["child"][0]
         for a, b in zip(actual, (0, 1, 0)):
-            self.assertAlmostEqual(a, b)
+            self.assertAlmostEqual(a, b, places=6)
 
     def test_cycles_rejected(self):
         bones = {"a": converter.Bone("a", "b", (0, 0, 0)), "b": converter.Bone("b", "a", (0, 0, 0))}
@@ -126,15 +112,15 @@ class ConverterTests(unittest.TestCase):
             "Cape_01": converter.Bone("Cape_01", "Root", (0, 0, 1), scale=(3, 3, 3)),
         }
         qz = (0, 0, math.sqrt(0.5), math.sqrt(0.5))
-        curve = converter.Curve(1, (0,), (qz,))
-        clip = converter.Clip(1, {"ExtraParent": {3: [curve]}}, 0, [])
+        clip = native_clip([("ExtraParent", {3: wire(1, (0,), (qz,))})], 1)
+        self.addCleanup(clip.close)
         order = converter.hierarchy(source, ["Head"])
         self.assertEqual(order, ["Root", "ExtraParent", "Head"])
         actual = converter.source_world(source, order, clip)
         pruned = {name: source[name] for name in order}
         self.assertEqual(actual, converter.source_world(pruned, order, clip))
         for a, b in zip(actual["Head"][0], (-1, 2, 0)):
-            self.assertAlmostEqual(a, b)
+            self.assertAlmostEqual(a, b, places=6)
         with self.assertRaises(converter.ConversionError):
             converter.source_world(source, converter.hierarchy(source, ["Hair_01"]), clip)
 
@@ -160,26 +146,31 @@ class ConverterTests(unittest.TestCase):
         rig.alignment = {name: converter.IDENTITY for name in rig.mapping}
         rig.order = converter.hierarchy(source, ["Head"])
         rig.target_order = converter.hierarchy(target, ["頭"])
-        rig.rest = converter.source_world(source, rig.order)
+        rig.native_scene = converter.native.Scene(source, rig.order)
+        self.addCleanup(rig.close)
+        rig.rest = converter.scene_world(rig.native_scene, rig.order)
         rig.scale = 1
-        curve = converter.Curve(1, (0,), (qz,))
-        clip = converter.Clip(1, {"Root": {3: [curve]}}, 0, [])
+        clip = native_clip([("Root", {3: wire(1, (0,), (qz,))})], 1)
+        self.addCleanup(clip.close)
         pose = rig.pose(clip, 0)
         self.assertAlmostEqual(abs(pose["頭"][1][3]), 1)
         self.assertAlmostEqual(abs(sum(a*b for a, b in zip(pose["下半身"][1], qz))), 1)
 
-    def test_unknown_and_duplicate_unused_tracks_do_not_block_body(self):
+    def test_valid_duplicate_unused_tracks_do_not_block_body(self):
         track = named_track("Head", vector_curve([(0, 1, 0)], (0,)))
-        unsupported = named_track("movement_tracker", struct.pack("<I", 99))
-        body = field(0, struct.pack("<f", 1)) + track + unsupported*2
+        unused = named_track("movement_tracker", vector_curve([(9, 8, 7)], (0,)))
+        body = field(0, struct.pack("<f", 1)) + track + unused*2
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder)/"example.san"
             path.write_bytes(container([(1, "example", 0x56EE563A, body)]))
-            clip = converter.read_san(path, {"Head"})
-            self.assertIn("Head", clip.tracks)
-            self.assertEqual(len(clip.ignored), 2)
+            with converter.read_san(path, {"Head"}) as clip:
+                self.assertIn("Head", clip.tracks)
+                self.assertEqual(len(clip.ignored), 2)
+            # The shared loader validates the whole file, including unused data.
+            unsupported = named_track("movement_tracker", struct.pack("<I", 99))
+            path.write_bytes(container([(1, "example", 0x56EE563A, body+unsupported)]))
             with self.assertRaises(converter.ConversionError):
-                converter.read_san(path, {"movement_tracker"})
+                converter.read_san(path, {"Head"})
 
     def test_failed_write_preserves_existing_file(self):
         class BrokenRetargeter:
@@ -253,6 +244,9 @@ class ConverterTests(unittest.TestCase):
 
     def test_one_bad_san_does_not_stop_batch_or_destroy_old_vmd(self):
         class TestRig:
+            def close(self):
+                pass
+
             order = ["Head"]
             mapping = {"頭": "Head"}
             neutral_bones = ["twist"]

@@ -76,6 +76,14 @@ struct Scene {
             nodes[i]->MarkLocalTransformDirtyForAnalysis();
         }
     }
+    void sample(float time) {
+        require(std::isfinite(time),"Non-finite sample time");
+        // Seeking always starts from authored rest PRS.
+        reset();
+        for(auto& binding:bindings) { binding->playback.time=time; binding->controller.ApplyForAnalysis(time); }
+        for(auto& node:nodes) if(!node->GetParentForAnalysis())
+            require(node->UpdateWorldForAnalysis(),"World update failed");
+    }
 };
 Scene& scene(void* handle) { require(handle!=nullptr,"Null scene handle"); return *static_cast<Scene*>(handle); }
 Clip& clip(void* handle) { require(handle!=nullptr,"Null clip handle"); return *static_cast<Clip*>(handle); }
@@ -179,6 +187,10 @@ SPV_API int spv_clip_info(void* handle, float* duration, std::uint32_t* count) n
     return guarded([&]{ require(duration && count,"Null clip info output"); auto& a=*clip(handle).animation;
         *duration=a.GetTotalTimeForAnalysis(); *count=static_cast<std::uint32_t>(a.GetTrackCountForAnalysis()); });
 }
+SPV_API int spv_clip_tag_count(void* handle,std::uint32_t* count) noexcept {
+    return guarded([&]{require(count!=nullptr,"Null tag count output");
+        *count=static_cast<std::uint32_t>(clip(handle).animation->GetTagsForAnalysis().size());});
+}
 SPV_API int spv_clip_track(void* handle,std::uint32_t index,char* name,std::uint32_t capacity,SpvTrackInfo* info) noexcept {
     return guarded([&]{
         auto* track=clip(handle).animation->GetTrackForAnalysis(index);
@@ -233,6 +245,28 @@ SPV_API void* spv_clip_create_linear(const SpvLinearChannel* channels,std::uint3
     })) return nullptr;
     return result.release();
 }
+SPV_API int spv_clip_axis_info(void* handle,std::uint32_t ordinal,std::uint32_t role,std::uint32_t axis,SpvAxisInfo* output) noexcept {
+    return guarded([&]{
+        auto* track=clip(handle).animation->GetTrackForAnalysis(ordinal);
+        require(track&&role<3&&axis<3&&output,"Invalid axis metadata output");*output={};
+        const auto* keys=track->GetKeysForAnalysis();require(keys!=nullptr,"Missing prepared track");
+        if(const auto& key=(*keys)[role][axis]) {
+            output->representation=key->representation;output->keys=static_cast<std::uint32_t>(key->times.size());
+            output->values=static_cast<std::uint32_t>(key->values.size());
+            output->stride=output->keys?output->values/output->keys:0;
+        }
+    });
+}
+SPV_API int spv_clip_axis_values(void* handle,std::uint32_t ordinal,std::uint32_t role,std::uint32_t axis,float* output,std::uint32_t count) noexcept {
+    return guarded([&]{
+        auto* track=clip(handle).animation->GetTrackForAnalysis(ordinal);
+        require(track&&role<3&&axis<3,"Invalid prepared axis");
+        const auto* keys=track->GetKeysForAnalysis();require(keys!=nullptr,"Missing prepared track");
+        const auto& key=(*keys)[role][axis];const auto size=key?key->values.size():0;
+        require(count==size&&(output||!count),"Invalid prepared-value output length");
+        if(count)std::memcpy(output,key->values.data(),count*sizeof(float));
+    });
+}
 SPV_API int spv_scene_bind(void* handle,void* clipHandle,const std::int32_t* roles,std::uint32_t count) noexcept {
     return guarded([&]{
         auto& s=scene(handle); auto animation=clip(clipHandle).animation;
@@ -283,17 +317,28 @@ SPV_API int spv_clip_sample(void* handle,std::uint32_t ordinal,float time,SpvSam
 }
 SPV_API int spv_scene_sample(void* handle,float time,float* output,std::uint32_t floats) noexcept {
     return guarded([&]{
-        auto& s=scene(handle); require(std::isfinite(time),"Non-finite sample time");
+        auto& s=scene(handle);
         require(floats==s.nodes.size()*16 && (output||!floats),"Invalid world output length");
-        // Direct seeking starts from authored rest PRS, independent of previous frames.
-        s.reset();
-        for(auto& binding:s.bindings) { binding->playback.time=time; binding->controller.ApplyForAnalysis(time); }
-        for(auto& node:s.nodes) if(!node->GetParentForAnalysis())
-            require(node->UpdateWorldForAnalysis(),"World update failed");
+        s.sample(time);
         for(std::size_t i=0;i<s.nodes.size();++i) {
             auto matrix=s.nodes[i]->GetWorldMatrixForAnalysis();
             for(auto value:matrix) require(std::isfinite(value),"Non-finite world result");
             std::memcpy(output+i*16,matrix.data(),64);
+        }
+    });
+}
+SPV_API int spv_scene_pose(void* handle,float time,SpvSample* output,std::uint32_t count) noexcept {
+    return guarded([&]{
+        auto& s=scene(handle);require(count==s.nodes.size()&&(output||!count),"Invalid world-pose output length");
+        s.sample(time);
+        for(std::size_t i=0;i<s.nodes.size();++i) {
+            const auto& node=*s.nodes[i];const auto& p=node.GetWorldPositionForAnalysis();const auto& scale=node.GetWorldScaleForAnalysis();
+            const auto q=sparkplug::evidence::pc::animation_math::FromMatrix(node.GetWorldOrientationForAnalysis());
+            for(float v:p)require(std::isfinite(v),"Non-finite world position");
+            for(float v:q)require(std::isfinite(v),"Non-finite world rotation");
+            for(float v:scale)require(std::isfinite(v),"Non-finite world scale");
+            std::copy(p.begin(),p.end(),output[i].position);std::copy(q.begin(),q.end(),output[i].rotation);
+            std::copy(scale.begin(),scale.end(),output[i].scale);output[i].validRoles=7;
         }
     });
 }

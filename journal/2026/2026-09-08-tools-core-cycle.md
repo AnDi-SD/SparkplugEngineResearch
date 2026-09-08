@@ -17,3 +17,10 @@ collision queries не заявлены готовыми. Release не упак�
 Следующий самостоятельный шаг — использовать существующий native SAN sampler
 в SanToVmd, затем продолжить SMO graph. GitHub publication остаётся отдельно
 от локальных checkpoint commits; прежнее решение о публикации не изменено.
+
+Второй блок около 23:30 МСК: SanToVmd использует общий native SAN sampler и
+spNode world PRS. Python engine-копии удалены, MMD retarget/writer сохранены.
+32 tests, 24 VMD / 55 024 keys / 732 original-PC-reference poses, 2 273 C# checks
+и шесть C++ suites прошли. Входы и frozen original reference сверены по SHA256,
+повторный full-corpus не запускался. Unsupported unused track/NaN дают явный
+отказ shared host-loader, без обхода. SMO-reader ещё требует миграции.

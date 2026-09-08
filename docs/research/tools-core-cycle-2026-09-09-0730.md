@@ -60,3 +60,17 @@ broadphase не входят в нужное инструментам API. На�
 оказались недостающим startup clone-map и неверным ожиданием OBB world position;
 исправлены fixture/ожидания по оригиналу. Первый C++ graph test требовал явного
 save-dispatch в своём setup; настройки исходного serializer manager не менялись.
+
+### Второй блок: SAN и мировая поза SanToVmd
+
+Самостоятельный Python sampler/decoder SAN и игровой FK удалены. Приложение
+использует общее C++ animation/node ядро через ctypes, с одним вызовом мировой
+позы на кадр и повторным использованием сцены. 32 коротких теста, 24 VMD / 55 024
+ключа на трёх PMD, 732 original-PC-reference позы и 2 273 C# interop checks
+прошли. Шесть C++ suites прошли. SMO-reader скелета ещё прежний: весь SanToVmd
+не отмечен готовым. Следующий блок — общий SMO resource graph.
+
+Отличия приёма входов: общий loader отклоняет unsupported representation даже
+в ненужном треке и NaN в сырых коэффициентах. Прежняя возможность пропуска не
+восстановлена обходным parser; граница задокументирована. Подробности:
+`docs/research/tool-san-shared-core-2026-09-08.md`.

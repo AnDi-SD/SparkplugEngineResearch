@@ -135,6 +135,8 @@ def validate(external, path, source_path, model_path, native_fixture, baseline):
         _, old, _ = read_vmd(external, baseline['old'])
         row['previous_version_comparison'] = compare_old(old, bones)
         row['previous_vmd_sha256'] = digest(baseline['old'])
+    clip.close()
+    rig.close()
     return row
 
 
@@ -150,7 +152,10 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
     native = json.loads(args.native_report.read_text(encoding='utf-8'))
-    assert native['status'] == 'passed' and native['converter_sha256'] == digest(Path(converter.__file__))
+    assert native['status'] == 'passed'
+    # Original-PC samples remain valid when the consumer changes. Reuse only
+    # the same executable and fixture bytes, both checked by SHA256 below.
+    assert native['pc_sha256'] == digest(ROOT/'local-data/pc-pristine/WinxClub.exe')
     samples = {row['san']: row for row in native['vmd_fixtures']}
     spec = importlib.util.spec_from_file_location('external_vmd', args.reader)
     external = importlib.util.module_from_spec(spec)
@@ -171,6 +176,7 @@ def main():
             for name in ORDINARY:
                 shutil.copyfile(source/name, directory/name)
             if version == 'new':
+                validate_local.copy_runtime(package)
                 for name, row in samples.items():
                     path = args.native_report.parent/'vmd-fixtures'/name
                     assert digest(path) == row['sha256']
@@ -191,6 +197,9 @@ def main():
             print(f'PASS {model}: 4 ordinary + 4 original-PC-backed rare clips', flush=True)
     report = {'status': 'passed', 'version': converter.VERSION, 'seconds': time.perf_counter()-started,
               'converter_sha256': digest(Path(converter.__file__)), 'validator_sha256': digest(Path(__file__)),
+              'native_dll_sha256': digest(Path(converter.native.library()._name)),
+              'adapter_sha256': digest(Path(converter.native.__file__)),
+              'original_reference_converter_sha256': native['converter_sha256'],
               'native_report_sha256': digest(args.native_report), 'independent_reader_sha256': digest(args.reader),
               'previous_version_commit': old_commit, 'previous_converter_sha256': hashlib.sha256(old_script).hexdigest().upper(),
               'skeleton_sha256': digest(source/'Icy.smo'), 'portable_cli_unrelated_cwd': True,

@@ -11,6 +11,7 @@ import json
 import math
 from pathlib import Path
 import struct
+import shutil
 import sys
 import tempfile
 import time
@@ -21,11 +22,17 @@ import san_to_vmd as converter
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def copy_runtime(package):
+    """Stage the actual development runtime in an isolated test directory."""
+    shutil.copyfile(converter.native.__file__, package/'sparkplug_native.py')
+    shutil.copyfile(Path(converter.native.library()._name), package/'SparkplugViewerNative.dll')
+
+
 def poison_ignored_curves(path, ignored):
     """Keep real SAN body keys, but replace unused PRS with unsupported curves.
 
     This is a test-only FFPS writer. It preserves fields, names and durations;
-    representation 99 must fail if an unused track ever reaches the decoder.
+    representation 99 must be rejected by the shared whole-file loader.
     Original game files are never modified.
     """
     entries = converter.read_ffps(path)
@@ -98,7 +105,7 @@ def main(argv=None):
     args.add_argument("--model", type=Path,
                       default=ROOT/"local-data/mmd/MikuMikuDanceE_v932/UserFile/Model/Miku_Hatsune.pmd")
     args.add_argument("--check-ignored", action="store_true",
-                      help="Poison unused SAN curves and compare the entire resulting VMD byte for byte")
+                      help="Verify the shared loader rejects unsupported data even in unused SAN tracks")
     args = args.parse_args(argv)
     started = time.perf_counter()
     specification = importlib.util.spec_from_file_location("external_vmd", args.reader)
@@ -112,7 +119,7 @@ def main(argv=None):
     if not paths:
         raise RuntimeError("Local SAN corpus is missing")
     total_keys, max_direction_error = 0, 0.0
-    evidence, ignored_names, unchanged_files, poisoned_channels = [], set(), 0, 0
+    evidence, ignored_names, rejected_files, poisoned_channels = [], set(), 0, 0
     for path in paths:
         clip = converter.read_san(path, set(rig.order))
         vmd = args.vmd_dir/(path.stem+".vmd")
@@ -175,21 +182,20 @@ def main(argv=None):
             with tempfile.TemporaryDirectory(prefix="san-vmd-ignored-") as folder:
                 changed_san, changed_vmd = Path(folder)/path.name, Path(folder)/vmd.name
                 changed_san.write_bytes(raw)
-                changed_clip = converter.read_san(changed_san, set(rig.order))
-                converter.write_vmd(changed_vmd, changed_clip, rig, model_name)
-                assert changed_vmd.read_bytes() == vmd.read_bytes(), path
                 try:
-                    converter.read_san(changed_san, set(rig.order) | set(clip.ignored))
-                except converter.ConversionError as error:
-                    assert "99" in str(error), error
+                    with converter.read_san(changed_san, set(rig.order)):
+                        pass
+                except converter.ConversionError:
+                    pass
                 else:
-                    raise AssertionError("Mutation did not poison unused curves")
-            unchanged_files += 1
+                    raise AssertionError("Shared loader accepted representation 99")
+            rejected_files += 1
             poisoned_channels += changed
         evidence.append({"san": path.name, "san_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                          "vmd_sha256": hashlib.sha256(vmd.read_bytes()).hexdigest(),
                          "frames": count, "ignored_tracks": clip.ignored,
                          "missing_tracks": sorted(set(rig.order)-set(clip.tracks))})
+        clip.close()
     report = {
         "converter_sha256": hashlib.sha256(Path(converter.__file__).read_bytes()).hexdigest(),
         "independent_reader_sha256": hashlib.sha256(args.reader.read_bytes()).hexdigest(),
@@ -201,7 +207,7 @@ def main(argv=None):
         "neutral_target_bones": rig.neutral_bones,
         "source_nodes": len(rig.order), "total_source_nodes": len(source), "motion_scale": rig.scale,
         "ignored_tracks": sorted(ignored_names),
-        "extra_track_mutation_identical_files": unchanged_files,
+        "unsupported_unused_track_files_rejected": rejected_files,
         "poisoned_unused_prs_channels": poisoned_channels,
         "pose_check": "three frames per clip; ten arm/leg segment directions from independently decoded VMD",
         "max_limb_direction_error": max_direction_error,
@@ -212,6 +218,7 @@ def main(argv=None):
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2)+"\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in report.items() if k != "inputs"}, indent=2))
+    rig.close()
     return report
 
 

@@ -21,6 +21,8 @@ from inspect_pc_san_keys import inspect, key_payload
 
 sys.path.insert(0, str(ROOT/'tools/SanToVmd'))
 import san_to_vmd as converter
+sys.path.insert(0, str(ROOT/'tools/SanToVmd/tests'))
+from san_fixtures import animation as fixture_animation
 
 
 def wire(rep, key_times, rows):
@@ -198,18 +200,14 @@ def guest(output):
                           (0, 1/30, summary['duration']*.5, summary['duration'], summary['duration']+1)))
     for name, channels, seconds in cases:
         native = NativeTrack(p, channels)
-        decoded = {}
+        owner = converter.native.Animation(fixture_animation([('Root', {role+2: payload for role, payload in channels.items()})]))
+        decoded = owner.tracks[0].channels
         rejected_scale = False
-        for role, payload in channels.items():
+        if 2 in channels:
             try:
-                decoded[role] = converter.read_curve(payload, role+2)
-            except converter.ConversionError as error:
-                if role != 2 or 'масштаба' not in str(error):
-                    raise
+                converter.validate_vmd_scale(decoded[2])
+            except converter.ConversionError:
                 rejected_scale = True
-                # Actual converter must reject non-VMD scale. The same packed
-                # vector math is additionally compared in its position role.
-                decoded[role] = converter.read_curve(payload, 2)
         rows, maximum = [], 0.0
         for seconds_value in seconds:
             # Original inputs and converter use the same float32 time.
@@ -217,15 +215,18 @@ def guest(output):
             original, flags = native.sample(t)
             actual = []
             for role, fallback in enumerate((converter.ZERO, converter.IDENTITY, (1, 1, 1))):
-                curves = decoded.get(role)
-                expected_flag = bool(curves and curves[0].times)
+                channel = decoded[role]
+                expected_flag = bool(channel.source_keys)
                 assert flags[role] == expected_flag, (name, role, 'validity')
-                value = converter.sample(curves, t, fallback, role == 1)
+                value = channel.sample(t)
+                if value is None:
+                    value = fallback
                 actual.append(value)
                 error = max(abs(a-b) for a, b in zip(value, original[role]))
                 maximum = max(maximum, error)
                 assert all(math.isclose(a, b, rel_tol=4e-5, abs_tol=4e-5) for a, b in zip(value, original[role])), (name, role, t, original[role], value)
             rows.append({'seconds': t, 'original': original, 'converter': actual, 'validity': list(flags)})
+        owner.close()
         results.append({'case': name, 'channels': {str(role): hashlib.sha256(data).hexdigest().upper() for role, data in channels.items()},
                         'non_vmd_scale_rejected': rejected_scale, 'max_component_error': maximum, 'samples': rows})
     vmd_fixtures = emit_vmd_fixtures(p, output.parent/'vmd-fixtures')
@@ -237,8 +238,9 @@ def guest(output):
               'vmd_fixtures': vmd_fixtures, 'vmd_fixture_native_samples': sum(len(row['samples']) for row in vmd_fixtures),
               'max_component_error': max(row['max_component_error'] for row in results),
               'seams': ['stream read', '16-byte descriptor pool allocation', 'CRT acos (two observed ABI entries)'],
-              'host_guards': ['bounds/finite/strictly increasing times', 'unit quaternion normalization and log roundoff clamp',
-                              'bounded one-key neighbor and unused coefficient handling', 'VMD scale rejection'],
+              'host_guards': ['shared loader bounds/finite/nondecreasing times',
+                              'shared original-key preparation and sampler', 'VMD scale rejection'],
+              'native_dll_sha256': hashlib.sha256(Path(converter.native.library()._name).read_bytes()).hexdigest().upper(),
               'native_endpoint_policy': 'PC 0x478F90: count 2 at/after last => first key; count >=3 => final interval at u=1'}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')

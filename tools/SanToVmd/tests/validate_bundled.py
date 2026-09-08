@@ -43,6 +43,7 @@ def main():
         package.mkdir()
         script = package/"san_to_vmd.py"
         shutil.copyfile(converter.__file__, script)
+        validate_local.copy_runtime(package)
         directory = package/"input"
         directory.mkdir()
         shutil.copyfile(source/"Icy.smo", directory/"Icy.smo")
@@ -78,7 +79,7 @@ def main():
             print(f"OK {model.name}: {validation['files']} VMD, {validation['target_tracks']} tracks, "
                   f"direction error {validation['max_limb_direction_error']:.3g}", flush=True)
     summary = {"version": converter.VERSION, "elapsed_seconds": round(time.perf_counter()-started, 3),
-               "portable_script_with_unrelated_cwd": True, "models": results}
+               "portable_native_runtime_with_unrelated_cwd": True, "models": results}
     (args.results/"matrix.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     assert sum(row["status"] == "passed" for row in results) == 12
 

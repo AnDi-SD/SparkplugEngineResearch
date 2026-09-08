@@ -3,7 +3,7 @@
 """SAN → VMD: положите один SMO, одну PMD и анимации SAN в папку input.
 
 Запустите run.bat или этот файл. Готовые анимации появятся в папке output.
-Нужен Python 3.10 или новее. Blender и дополнительные библиотеки не нужны.
+Нужен 64-битный Python 3.10+ на Windows и общее ядро SparkplugViewerNative.dll.
 
 Как читать этот скрипт, если вы только начинаете изучать Python:
 1. Начните с main() в самом конце: это короткий список действий программы.
@@ -22,14 +22,15 @@
 
 from __future__ import annotations
 
-from bisect import bisect_right  # Находит, между какими ключами находится время.
 from collections import Counter  # Считает повторения имён костей в PMD.
 from dataclasses import dataclass  # Создаёт простые записи с именованными полями.
+from contextlib import closing
 import json  # Сохраняет текстовый отчёт о конвертации.
 import math  # Корни, синусы и другие операции для вращений.
 from pathlib import Path  # Работа с папками и файлами.
 import struct  # Превращает байты файла в числа и обратно.
 import sys  # Код завершения программы и настройка Windows-консоли.
+import sparkplug_native as native  # Только владение C++-объектами и вызовы общего ядра.
 
 
 # ------------------------- Понятные настройки -------------------------
@@ -39,7 +40,7 @@ import sys  # Код завершения программы и настройк
 SCRIPT_DIR = Path(__file__).resolve().parent
 INPUT_DIR = SCRIPT_DIR / "input"
 OUTPUT_DIR = SCRIPT_DIR / "output"
-VERSION = "0.3.0-test"
+VERSION = "0.4.0-dev"
 FPS = 30  # VMD хранит номера кадров, а SAN — время в секундах.
 MAX_BYTES = 64 * 1024 * 1024  # Не загружаем случайный гигантский файл в память.
 MAX_SECONDS = 600  # Защита от случайного огромного/повреждённого duration.
@@ -73,8 +74,7 @@ FINGERS = {"人指": "Index", "中指": "Middle", "薬指": "Ring", "小指": "P
 LEG_IK = ("左足ＩＫ", "右足ＩＫ", "左つま先ＩＫ", "右つま先ＩＫ")
 
 
-class ConversionError(ValueError):
-    """Ожидаемая ошибка входного файла, которую можно объяснить пользователю."""
+ConversionError = native.NativeError
 
 
 # ---------------------- Немного математики ----------------------------
@@ -157,54 +157,6 @@ def align_directions(original, desired):
         axis = cross(a, (1, 0, 0) if abs(a[0]) < 0.9 else (0, 1, 0))
         return normalize((*axis, 0))
     return normalize((*cross(a, b), 1+dot))
-
-
-def slerp(a, b, amount):
-    """Плавный поворот между ключами: amount=0 даёт a, amount=1 даёт b."""
-    # q и -q описывают одну позу. Выбираем короткий путь, иначе будет полный оборот.
-    dot = sum(x*y for x, y in zip(a, b))
-    if dot < 0:
-        b, dot = times(b, -1), -dot
-    dot = min(1.0, dot)
-    angle = math.acos(dot)
-    sine = math.sin(angle)
-    # PC 0x425CB0: при малом угле игра копирует первый ключ, а не смешивает
-    # линейно. Нормализация целевой позы выполняется отдельно при переносе.
-    if sine < 0.001:
-        return a
-    return add(times(a, math.sin((1-amount)*angle) / sine),
-               times(b, math.sin(amount*angle) / sine))
-
-
-def quaternion_control(previous, current, following):
-    """Контрольная точка кубического вращения: PC 0x464DE0 / 0x4933C0."""
-    def logarithm(q):
-        # Входные вращения нормализованы при чтении. Из-за округления dot
-        # одинаковых вращений может чуть выйти за [-1,1]: ограничение здесь
-        # является защитой конвертера, а не поведением оригинального Log.
-        angle = math.acos(max(-1.0, min(1.0, q[3])))
-        sine = math.sin(angle)
-        factor = 1.0 if abs(sine) < 0.001 else angle/sine
-        return (*times(q[:3], factor), 0.0)
-
-    left = logarithm(multiply(inverse(current), previous))
-    right = logarithm(multiply(inverse(current), following))
-    value = times(add(left, right), -0.25)
-    angle = length(value[:3])
-    sine = math.sin(angle)
-    factor = 1.0 if abs(sine) < 0.001 else sine/angle
-    exponential = (*times(value[:3], factor), math.cos(angle))
-    return multiply(current, exponential)
-
-
-def euler_rotation(angles):
-    """Три скалярных угла SAN — радианы, итоговый поворот qZ * qY * qX."""
-    result = IDENTITY
-    for axis, angle in enumerate(angles):
-        rotation = [0.0, 0.0, 0.0, math.cos(angle*0.5)]
-        rotation[axis] = math.sin(angle*0.5)
-        result = multiply(rotation, result)
-    return result
 
 
 # ------------------- Чтение бинарных данных ---------------------------
@@ -454,214 +406,69 @@ def read_pmd(path):
     return model_name, bones, iks
 
 
-# ----------------------- Кривые анимации SAN --------------------------
-
-@dataclass
-class Curve:
-    """Одна величина, изменяющаяся во времени: например положение или поворот."""
-    representation: int  # 1/2 — packed linear/cubic; 3/4 — scalar linear/cubic.
-    times: tuple  # Моменты ключей в секундах, строго по возрастанию.
-    values: tuple  # Значения в те же моменты; для cubic также хранятся наклоны.
-    rotation: bool = False  # У packed rotation ключ содержит quaternion XYZW.
-
-    def __post_init__(self):
-        # Подготавливаем один раз при чтении, а не на каждом VMD-кадре.
-        if self.representation == 2 and self.rotation:
-            rotations = tuple(row[:4] for row in self.values)
-            self.values = tuple((*q, *(q if len(rotations) == 1 else quaternion_control(
-                rotations[max(0, i-1)], q, rotations[min(i+1, len(rotations)-1)])))
-                for i, q in enumerate(rotations))
-        elif self.representation in (2, 4):
-            width = 1 if self.representation == 4 else 3
-            rows = []
-            for i, row in enumerate(self.values):
-                # Файловые коэффициенты могут содержать мусор. Последний ключ
-                # не имеет следующего интервала; его коэффициенты не нужны.
-                c2, c3 = [0.0]*width, [0.0]*width
-                if i+1 < len(self.values):
-                    following = self.values[i+1]
-                    for axis in range(width):
-                        delta = following[axis] - row[axis]
-                        outgoing, incoming = row[2*width+axis], following[width+axis]
-                        c2[axis] = 3*delta - (2*outgoing + incoming)
-                        c3[axis] = outgoing + incoming - 2*delta
-                rows.append((*row[:3*width], *c2, *c3))
-            self.values = tuple(rows)
-
-    def sample(self, time, quaternion=False):
-        """Узнать значение между ключами, например положение на секунде 0.25."""
-        if not self.times:
-            return None  # Пустая кривая сохраняет компоненту исходной позы SMO.
-        quaternion = quaternion or self.rotation
-        width = 1 if self.representation >= 3 else 4 if quaternion else 3
-        if time <= self.times[0] or len(self.times) == 1:
-            return self.values[0][:width]
-        if time >= self.times[-1]:
-            # PC interval 0x478F90: ровно два ключа дают index=0, fraction=0
-            # на последнем времени и после него. Это правило sampler'а,
-            # не утверждение о времени/зацикливании actor в самой игре.
-            i, u = (0, 0.0) if len(self.times) == 2 else (len(self.times)-2, 1.0)
-        else:
-            i = bisect_right(self.times, time) - 1
-            u = (time-self.times[i]) / (self.times[i+1]-self.times[i])
-        # Находим два соседних ключа a и b. Доля u показывает, как далеко
-        # мы между ними: 0 — первый ключ, 0.5 — середина, 1 — второй ключ.
-        a, b = self.values[i:i+2]
-        if self.representation == 4 or self.representation == 2 and not quaternion:
-            # Кубический полином учитывает не только концы, но и наклон кривой.
-            # Используется доля u внутри интервала, а не абсолютное время клипа.
-            return tuple(a[axis] + u*(a[2*width+axis] + u*(a[3*width+axis] +
-                         u*a[4*width+axis])) for axis in range(width))
-        if quaternion:
-            if self.representation == 2:
-                # Squad: сначала две сферические смеси, затем смесь между ними.
-                return slerp(slerp(a[:4], b[:4], u), slerp(a[4:], b[4:], u), 2*u*(1-u))
-            return slerp(a, b, u)
-        # Обычное линейное смешивание координат: доля от a плюс доля от b.
-        return add(times(a, 1-u), times(b, u))
-
-
-def read_curve(payload, role):
-    """Разобрать ключи одного SAN-канала: role 2=позиция, 3=поворот, 4=масштаб.
-
-    Игра может хранить XYZ вместе или как три отдельные кривые с собственными
-    временами ключей. Возвращаем список из одной либо трёх Curve.
-    """
-    r = Reader(payload)
-    curves, axes = [], 1
-    while len(curves) < axes:
-        representation = r.number("I")
-        if representation == 0:
-            # Нулевое представление означает отсутствие канала, а не нулевую позу.
-            if curves:
-                raise ConversionError("Неполная тройка скалярных SAN-кривых.")
-            r.done()
-            return []
-        if representation not in (1, 2, 3, 4):
-            raise ConversionError(f"Не поддерживается SAN representation {representation}, поле {role}.")
-        if not curves and representation >= 3:
-            # Скаляр описывает только одну ось: нужно прочитать ещё две.
-            axes = 3
-        if curves and representation not in (3, 4):
-            raise ConversionError("Смешаны векторные и скалярные кривые.")
-        count = r.number("I")
-        if count == 0 and representation != 1:
-            # Native preparation/sampling ожидает непустые cubic/scalar данные.
-            # Разрешённое отсутствие канала — representation 0 или empty rep 1.
-            raise ConversionError("Пустая кубическая/скалярная SAN-кривая.")
-        # Сколько float-чисел занимает один ключ. Явные ветки длиннее одной
-        # формулы, зато видно, какой размер соответствует какому виду данных.
-        if representation == 4:
-            stride = 5  # Значение, два наклона, два служебных коэффициента.
-        elif representation == 3:
-            stride = 1  # Одно число для одной оси.
-        elif representation == 2:
-            stride = 8 if role == 3 else 15  # Quaternion+control либо пять XYZ.
-        elif role == 3:
-            stride = 4  # Кватернион XYZW.
-        else:
-            stride = 3  # Вектор XYZ.
-        if count > len(payload) // (4 * (stride+1)):
-            raise ConversionError("Некорректное число SAN-ключей.")
-        # В SAN сначала идут ВСЕ времена, затем ВСЕ значения, а не пары время/значение.
-        key_times = r.unpack("f" * count)
-        values = tuple(r.unpack("f" * stride) for _ in range(count))
-        if not all(math.isfinite(t) and t >= 0 for t in key_times):
-            raise ConversionError("Некорректное время ключа SAN.")
-        if any(b <= a for a, b in zip(key_times, key_times[1:])):
-            raise ConversionError("SAN-ключи должны идти по возрастанию времени.")
-        used_width = 3 if representation == 4 else (4 if role == 3 else 9) if representation == 2 else stride
-        # У кубического ключа последние два числа пересчитываются при чтении.
-        # Их мусорное содержимое не должно портить проверенные первые три числа.
-        if not all(math.isfinite(v) for row in values for v in row[:used_width]):
-            raise ConversionError("Некорректное значение SAN-ключа.")
-        if role == 3 and representation < 3:
-            values = tuple((*normalize(row[:4]), *row[4:]) for row in values)
-        if role == 4:
-            # Проверяем сами ключи, чтобы даже короткое изменение scale между
-            # соседними VMD-кадрами не исчезло незаметно при запекании.
-            for row in values:
-                components = row[:1] if representation >= 3 else row[:3]
-                if any(abs(v-1) > 0.001 for v in components):
-                    raise ConversionError("Анимация масштаба не представима в VMD.")
-                width = 1 if representation >= 3 else 3
-                if representation in (2, 4) and any(abs(v) > 0.001 for v in row[width:3*width]):
-                    raise ConversionError("Кубическая анимация масштаба не представима в VMD.")
-        curves.append(Curve(representation, key_times, values, role == 3 and representation < 3))
-    r.done()
-    if len(curves) == 3 and any(bool(c.times) != bool(curves[0].times) for c in curves):
-        raise ConversionError("Некоторые оси SAN-кривой отсутствуют.")
-    return curves
-
-
-def sample(curves, time, fallback, quaternion=False):
-    """Общий доступ к каналу: пустой сохраняет исходную позу, три оси собираются в XYZ."""
-    if not curves or not curves[0].times:
-        return fallback
-    if len(curves) == 3:
-        values = tuple(c.sample(time)[0] for c in curves)
-        return euler_rotation(values) if quaternion else values
-    return curves[0].sample(time, quaternion)
-
+# ----------------------- Общее ядро анимации SAN ----------------------
 
 @dataclass
 class Clip:
-    """Одна прочитанная анимация SAN."""
-    duration: float  # Длительность в секундах.
-    tracks: dict  # Имя кости → номер канала → список кривых.
-    tags: int  # Число игровых событий, например звуков шагов; в VMD не переносим.
-    ignored: list  # Имена ненужных треков для текстового отчёта.
+    """Метаданные конвертации и владелец реального spAnimation в C++."""
+    duration: float
+    tracks: dict  # Имя → PRS role 2/3/4 → thin native Channel.
+    tags: int
+    ignored: list
+    native: native.Animation | None = None
+
+    def close(self):
+        if self.native is not None:
+            self.native.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+
+def validate_vmd_scale(channel):
+    """Ограничение выходного VMD: масштаб не представим этим форматом.
+
+    Значения и подготовленные коэффициенты получены из spAnimTrack. Здесь
+    нет разбора SAN или вычисления кривой; проверяется пригодность экспорта.
+    """
+    for info, values in channel.prepared_axes():
+        width = 1 if info.representation >= 3 else 3
+        for index in range(info.keys):
+            row = values[index*info.stride:(index+1)*info.stride]
+            if any(abs(v-1) > 0.001 for v in row[:width]):
+                raise ConversionError("Анимация масштаба не представима в VMD.")
+            if info.representation in (2, 4) and any(abs(v) > 0.001 for v in row[width:3*width]):
+                raise ConversionError("Кубическая анимация масштаба не представима в VMD.")
 
 
 def read_san(path, required):
-    """Читаем только движения костей из required, включая их нужных родителей."""
-    entries = list(read_ffps(path).values())
-    if len(entries) != 1 or entries[0].kind != 0x56EE563A:
-        raise ConversionError("Ожидается один spAnimation в SAN.")
-    tracks, pending, ignored, names = {}, {}, [], set()
-    duration, tags = None, 0
-    # Особенность SAN: сначала записаны каналы, а ПОСЛЕ них — имя кости.
-    # pending временно хранит байты каналов. Когда узнаем имя, решим, нужны ли они.
-    for kind, payload in fields(entries[0].data):
-        if kind == 0:
-            if duration is not None:
-                raise ConversionError("Повторная длительность SAN.")
-            duration = floats(payload, 1)[0]
-        elif kind in (2, 3, 4):
-            if kind in pending:
-                raise ConversionError("Повторный PRS-канал до имени трека.")
-            pending[kind] = payload
-        elif kind == 1:
-            r = Reader(payload)
-            name = r.text(r.number("H"))
-            r.done()
-            if not name or (name in names and name in required):
-                raise ConversionError(f"Пустое/повторное имя трека SAN: {name}")
-            names.add(name)
-            # Лишние кости разрешены: даже их неподдержанные кривые не влияют
-            # на тело. Поддержку PRS проверяем только для используемого графа.
-            if name in required:
-                try:
-                    tracks[name] = {role: read_curve(data, role) for role, data in pending.items()}
-                except ConversionError as error:
-                    raise ConversionError(f"{name}: {error}") from error
-            else:
-                ignored.append(name)
-            pending = {}
-        elif kind == 5:
-            tags += 1  # Игровые события вроде SND_FOOTSTEP не являются движением костей.
-        elif kind in range(6, 13) or kind == 64:
-            if len(payload) != 4:
-                raise ConversionError("Неверный размер служебного счётчика SAN.")
-        else:
-            raise ConversionError(f"Неизвестное поле SAN: {kind}")
-    if pending or duration is None or not 0 < duration <= MAX_SECONDS:
-        raise ConversionError("Нет корректной длительности или завершения SAN-трека.")
-    if not any(c.times for track in tracks.values() for role, cs in track.items()
-               if role in (2, 3) for c in cs):
-        # Пустой результат часто означает, что SAN взят от совсем другого скелета.
-        raise ConversionError("В SAN нет движения для выбранного скелета.")
-    return Clip(duration, tracks, tags, ignored)
+    """Общее C++-ядро читает SAN; конвертер выбирает нужные имена и роли."""
+    animation = native.Animation(read_bytes(path))
+    try:
+        if not 0 < animation.duration <= MAX_SECONDS:
+            raise ConversionError("Нет корректной длительности SAN.")
+        tracks, ignored = {}, []
+        for track in animation.tracks:
+            if track.name not in required:
+                ignored.append(track.name)
+                continue
+            chosen = tracks.setdefault(track.name, {})
+            # Та же прикладная политика, что у Viewer: первое совпадение каждой
+            # PRS-роли; одно имя может иметь разные роли в отдельных треках.
+            for role, channel in track.channels.items():
+                if channel.source_keys and role+2 not in chosen:
+                    if role == 2:
+                        validate_vmd_scale(channel)
+                    chosen[role+2] = channel
+        if not any(role in (2, 3) for channels in tracks.values() for role in channels):
+            raise ConversionError("В SAN нет движения для выбранного скелета.")
+        return Clip(animation.duration, tracks, animation.tags, ignored, animation)
+    except BaseException:
+        animation.close()
+        raise
 
 
 # --------------------- Перенос позы между скелетами --------------------
@@ -697,32 +504,29 @@ def hierarchy(bones, selected):
     return order
 
 
-def source_world(bones, order, clip=None, time=0):
-    """Вычислить позу игрового скелета относительно всей сцены.
-
-    Без clip получаем исходную позу SMO. С clip подставляем значения SAN
-    на нужной секунде; отсутствующие каналы оставляем как в исходном SMO.
-    """
-    # Engine передаёт время одним float32. Это особенно существенно на конце
-    # двухключевого трека: Python double 20/30 ещё меньше SAN float32 20/30.
-    time = struct.unpack('<f', struct.pack('<f', time))[0]
+def scene_world(scene, order, clip=None, time=0):
+    """spNodeController и spNode вычисляют PRS; здесь только DTO для MMD."""
+    if clip is not None:
+        if clip.native is None:
+            raise ConversionError("Клип не содержит объекта общего SAN-ядра.")
+        if scene.bound is not clip.native:
+            roles = []
+            for name in order:
+                channels = clip.tracks.get(name, {})
+                roles.extend(channels[role].ordinal if role in channels else -1 for role in (2, 3, 4))
+            scene.bind(clip.native, roles)
     result = {}
-    for name in order:
-        bone = bones[name]
-        channels = clip.tracks.get(name, {}) if clip else {}
-        position = sample(channels.get(2), time, bone.position)
-        rotation = sample(channels.get(3), time, bone.rotation, quaternion=True)
-        scale = sample(channels.get(4), time, bone.scale)
+    for name, (position, rotation, scale) in zip(order, scene.sample(time)):
         if any(abs(v-1) > 0.001 for v in scale):
             raise ConversionError(f"Масштабирование {name} нельзя записать в VMD.")
-        if bone.parent is not None:
-            # Локальная позиция — смещение от родителя. Сначала поворачиваем
-            # это смещение вместе с родителем, потом прибавляем его положение.
-            parent_position, parent_rotation = result[bone.parent]
-            position = add(parent_position, rotate(parent_rotation, position))
-            rotation = normalize(multiply(parent_rotation, rotation))
         result[name] = (position, rotation)
     return result
+
+
+def source_world(bones, order, clip=None, time=0):
+    """Однократный вызов общего ядра; Retargeter повторно использует одну сцену."""
+    with native.Scene(bones, order) as scene:
+        return scene_world(scene, order, clip, time)
 
 
 def bone_mapping(target, body_only):
@@ -769,56 +573,65 @@ class Retargeter:
             if target[name].kind not in (0, 1, 4):
                 raise ConversionError(f"Необычный тип кости PMD: {name}; этот профиль пока не поддерживается.")
         self.order = hierarchy(source, [*self.mapping.values(), "L_Toe", "R_Toe"])
-        self.rest = source_world(source, self.order)
-        # 2. Ищем исходный наклон рук и ног. У игры и MMD он может отличаться:
-        # просто одинаковые углы суставов ещё не дают одинаковые направления рук.
-        self.alignment = {name: IDENTITY for name in self.mapping}
-        for side in ("左", "右"):
-            for start, end in (("肩", "腕"), ("腕", "ひじ"), ("ひじ", "手首"),
-                               ("足", "ひざ"), ("ひざ", "足首"), ("手首", "中指１")):
-                a, b = side+start, side+end
-                if a in self.mapping and b in self.mapping:
-                    target_direction = sub(target[b].position, target[a].position)
-                    source_direction = sub(self.rest[self.mapping[b]][0], self.rest[self.mapping[a]][0])
-                    self.alignment[a] = align_directions(target_direction, source_direction)
-            # Пальцы сохраняют форму исходной кисти Miku и получают ту же
-            # поправку базиса, что кисть; их собственные движения идут из SAN.
-            for name in self.mapping:
-                if name.startswith(side) and "指" in name:
-                    self.alignment[name] = self.alignment[side+"手首"]
-        # Y вверх и X в сторону левой руки совпадают у проверенных PC Bloom
-        # и Miku PMD. Здесь читается исходный SMO, не отражённый экспортный GLB.
-        # Никакого дополнительного отражения Z поэтому не делаем.
-        floor = min(self.rest[name][0][1] for name in ("L_Toe", "R_Toe"))
-        source_height = self.rest["Pelvis"][0][1] - floor
-        target_floor = min(b.position[1] for b in target.values()
-                           if b.name in ("左つま先", "右つま先", "左足首", "右足首"))
-        target_height = target["下半身"].position[1] - target_floor
-        # 3. Если высота таза в игре 100 единиц, а в MMD 13, перемещение на
-        # 10 игровых единиц должно стать перемещением на 1.3 единицы MMD.
-        if source_height <= 0 or target_height <= 0:
-            raise ConversionError("Не удалось определить высоту таза над стопами.")
-        self.scale = motion_scale if motion_scale is not None else target_height/source_height
-        if not math.isfinite(self.scale) or self.scale <= 0:
-            raise ConversionError("Масштаб перемещения должен быть положительным числом.")
-        self.disabled_ik = [name for name in LEG_IK if name in iks]
-        unexpected = [name for name in self.target_order
-                      if name not in self.mapping and name != "センター"]
-        # В Luka и Miku Ver2 между плечом и локтем стоят кости скручивания,
-        # type 8. Они могут крутиться только вокруг своей оси. Нулевой поворот
-        # допустим для любой оси: оставляем их нейтральными, а движение переносим
-        # обычными костями рук. Длину цепочки и наследование родителей сохраняем.
-        # Это простой перенос позы, без распределения скручивания по руке.
-        self.extra_parents = unexpected
-        if any(target[name].kind not in (0, 1, 8) for name in unexpected):
-            raise ConversionError("Дополнительный родитель PMD использует неподдерживаемый тип кости.")
-        # Записываем нейтральные ключи явно, чтобы прежнее вращение служебной
-        # кости в сцене MMD не добавилось к новой анимации.
-        self.neutral_bones = unexpected
+        self.native_scene = native.Scene(source, self.order)
+        try:
+            self.rest = scene_world(self.native_scene, self.order)
+            # 2. Ищем исходный наклон рук и ног. У игры и MMD он может отличаться:
+            # просто одинаковые углы суставов ещё не дают одинаковые направления рук.
+            self.alignment = {name: IDENTITY for name in self.mapping}
+            for side in ("左", "右"):
+                for start, end in (("肩", "腕"), ("腕", "ひじ"), ("ひじ", "手首"),
+                                   ("足", "ひざ"), ("ひざ", "足首"), ("手首", "中指１")):
+                    a, b = side+start, side+end
+                    if a in self.mapping and b in self.mapping:
+                        target_direction = sub(target[b].position, target[a].position)
+                        source_direction = sub(self.rest[self.mapping[b]][0], self.rest[self.mapping[a]][0])
+                        self.alignment[a] = align_directions(target_direction, source_direction)
+                # Пальцы сохраняют форму исходной кисти Miku и получают ту же
+                # поправку базиса, что кисть; их собственные движения идут из SAN.
+                for name in self.mapping:
+                    if name.startswith(side) and "指" in name:
+                        self.alignment[name] = self.alignment[side+"手首"]
+            # Y вверх и X в сторону левой руки совпадают у проверенных PC Bloom
+            # и Miku PMD. Здесь читается исходный SMO, не отражённый экспортный GLB.
+            # Никакого дополнительного отражения Z поэтому не делаем.
+            floor = min(self.rest[name][0][1] for name in ("L_Toe", "R_Toe"))
+            source_height = self.rest["Pelvis"][0][1] - floor
+            target_floor = min(b.position[1] for b in target.values()
+                               if b.name in ("左つま先", "右つま先", "左足首", "右足首"))
+            target_height = target["下半身"].position[1] - target_floor
+            # 3. Если высота таза в игре 100 единиц, а в MMD 13, перемещение на
+            # 10 игровых единиц должно стать перемещением на 1.3 единицы MMD.
+            if source_height <= 0 or target_height <= 0:
+                raise ConversionError("Не удалось определить высоту таза над стопами.")
+            self.scale = motion_scale if motion_scale is not None else target_height/source_height
+            if not math.isfinite(self.scale) or self.scale <= 0:
+                raise ConversionError("Масштаб перемещения должен быть положительным числом.")
+            self.disabled_ik = [name for name in LEG_IK if name in iks]
+            unexpected = [name for name in self.target_order
+                          if name not in self.mapping and name != "センター"]
+            # В Luka и Miku Ver2 между плечом и локтем стоят кости скручивания,
+            # type 8. Они могут крутиться только вокруг своей оси. Нулевой поворот
+            # допустим для любой оси: оставляем их нейтральными, а движение переносим
+            # обычными костями рук. Длину цепочки и наследование родителей сохраняем.
+            # Это простой перенос позы, без распределения скручивания по руке.
+            self.extra_parents = unexpected
+            if any(target[name].kind not in (0, 1, 8) for name in unexpected):
+                raise ConversionError("Дополнительный родитель PMD использует неподдерживаемый тип кости.")
+            # Записываем нейтральные ключи явно, чтобы прежнее вращение служебной
+            # кости в сцене MMD не добавилось к новой анимации.
+            self.neutral_bones = unexpected
+        except BaseException:
+            self.native_scene.close()
+            raise
+
+
+    def close(self):
+        self.native_scene.close()
 
     def pose(self, clip, time):
         """Получить положение и поворот каждой выходной кости в один момент времени."""
-        animated = source_world(self.source, self.order, clip, time)
+        animated = scene_world(self.native_scene, self.order, clip, time)
         # Важное отличие от копирования SAN-ключей: убираем исходную ориентацию
         # кости и получаем её ПОЛНОЕ мировое изменение от bind/rest pose.
         # Одной разницы вращений недостаточно: Bloom и Miku держат руки под
@@ -968,38 +781,38 @@ def convert_files(directory, output):
     # Шаг 3. Скелеты читаем один раз: они одинаковы для всех SAN этого запуска.
     source = read_skeleton(skeleton_path)
     model_name, target, iks = read_pmd(model_path)
-    rig = Retargeter(source, target, iks, BODY_ONLY, MOTION_SCALE)
-    print(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
-    print("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
+    with closing(Retargeter(source, target, iks, BODY_ONLY, MOTION_SCALE)) as rig:
+        print(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
+        print("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
 
-    # Шаг 4. Обрабатываем по одной анимации, чтобы не хранить весь набор в памяти.
-    # Ошибка одного SAN не мешает получить остальные исправные анимации.
-    rows = []
-    for path in paths:
-        destination = output / (path.stem + ".vmd")
-        row = {"source": path.name, "output": destination.name}
-        try:
-            clip = read_san(path, set(rig.order))
-            frames, bones = write_vmd(destination, clip, rig, model_name)
-            row.update(status="ok", duration=clip.duration, frames=frames, bones=bones,
-                       ignored_tracks=clip.ignored, ignored_tags=clip.tags,
-                       missing_tracks=sorted(set(rig.order)-set(clip.tracks)))
-            print(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
-        except (OSError, ValueError, struct.error, OverflowError) as error:
-            row.update(status="error", error=str(error))
-            print(f"ОШИБКА {path.name}: {error}")
-        rows.append(row)
+        # Шаг 4. Обрабатываем по одной анимации, чтобы не хранить весь набор в памяти.
+        # Ошибка одного SAN не мешает получить остальные исправные анимации.
+        rows = []
+        for path in paths:
+            destination = output / (path.stem + ".vmd")
+            row = {"source": path.name, "output": destination.name}
+            try:
+                with read_san(path, set(rig.order)) as clip:
+                    frames, bones = write_vmd(destination, clip, rig, model_name)
+                    row.update(status="ok", duration=clip.duration, frames=frames, bones=bones,
+                               ignored_tracks=clip.ignored, ignored_tags=clip.tags,
+                               missing_tracks=sorted(set(rig.order)-set(clip.tracks)))
+                print(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
+            except (OSError, ValueError, struct.error, OverflowError) as error:
+                row.update(status="error", error=str(error))
+                print(f"ОШИБКА {path.name}: {error}")
+            rows.append(row)
 
-    # Шаг 5. Сохраняем читаемый отчёт. Там видно, какие файлы удались,
-    # какие дополнительные кости были отброшены и чего не хватило в SAN.
-    report = {"version": VERSION, "skeleton": skeleton_path.name, "model": model_path.name,
-              "motion_scale": rig.scale, "disabled_ik": rig.disabled_ik,
-              "neutral_target_bones": rig.neutral_bones, "files": rows}
-    (output / "conversion_report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    errors = sum(row["status"] == "error" for row in rows)
-    print(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
-    return 1 if errors else 0  # Ноль означает успешное завершение программы.
+        # Шаг 5. Сохраняем читаемый отчёт. Там видно, какие файлы удались,
+        # какие дополнительные кости были отброшены и чего не хватило в SAN.
+        report = {"version": VERSION, "skeleton": skeleton_path.name, "model": model_path.name,
+                  "motion_scale": rig.scale, "disabled_ik": rig.disabled_ik,
+                  "neutral_target_bones": rig.neutral_bones, "files": rows}
+        (output / "conversion_report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        errors = sum(row["status"] == "error" for row in rows)
+        print(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
+        return 1 if errors else 0  # Ноль означает успешное завершение программы.
 
 
 def main():
