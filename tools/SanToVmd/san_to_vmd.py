@@ -39,7 +39,7 @@ import sys  # Код завершения программы и настройк
 SCRIPT_DIR = Path(__file__).resolve().parent
 INPUT_DIR = SCRIPT_DIR / "input"
 OUTPUT_DIR = SCRIPT_DIR / "output"
-VERSION = "0.2.0-test"
+VERSION = "0.3.0-test"
 FPS = 30  # VMD хранит номера кадров, а SAN — время в секундах.
 MAX_BYTES = 64 * 1024 * 1024  # Не загружаем случайный гигантский файл в память.
 MAX_SECONDS = 600  # Защита от случайного огромного/повреждённого duration.
@@ -166,13 +166,45 @@ def slerp(a, b, amount):
     if dot < 0:
         b, dot = times(b, -1), -dot
     dot = min(1.0, dot)
-    if dot > 0.9995:
-        # Для почти одинаковых поворотов простая смесь точнее, чем деление
-        # на очень маленький синус угла в общей формуле ниже.
-        return normalize(add(times(a, 1-amount), times(b, amount)))
     angle = math.acos(dot)
-    return normalize(add(times(a, math.sin((1-amount)*angle) / math.sin(angle)),
-                         times(b, math.sin(amount*angle) / math.sin(angle))))
+    sine = math.sin(angle)
+    # PC 0x425CB0: при малом угле игра копирует первый ключ, а не смешивает
+    # линейно. Нормализация целевой позы выполняется отдельно при переносе.
+    if sine < 0.001:
+        return a
+    return add(times(a, math.sin((1-amount)*angle) / sine),
+               times(b, math.sin(amount*angle) / sine))
+
+
+def quaternion_control(previous, current, following):
+    """Контрольная точка кубического вращения: PC 0x464DE0 / 0x4933C0."""
+    def logarithm(q):
+        # Входные вращения нормализованы при чтении. Из-за округления dot
+        # одинаковых вращений может чуть выйти за [-1,1]: ограничение здесь
+        # является защитой конвертера, а не поведением оригинального Log.
+        angle = math.acos(max(-1.0, min(1.0, q[3])))
+        sine = math.sin(angle)
+        factor = 1.0 if abs(sine) < 0.001 else angle/sine
+        return (*times(q[:3], factor), 0.0)
+
+    left = logarithm(multiply(inverse(current), previous))
+    right = logarithm(multiply(inverse(current), following))
+    value = times(add(left, right), -0.25)
+    angle = length(value[:3])
+    sine = math.sin(angle)
+    factor = 1.0 if abs(sine) < 0.001 else sine/angle
+    exponential = (*times(value[:3], factor), math.cos(angle))
+    return multiply(current, exponential)
+
+
+def euler_rotation(angles):
+    """Три скалярных угла SAN — радианы, итоговый поворот qZ * qY * qX."""
+    result = IDENTITY
+    for axis, angle in enumerate(angles):
+        rotation = [0.0, 0.0, 0.0, math.cos(angle*0.5)]
+        rotation[axis] = math.sin(angle*0.5)
+        result = multiply(rotation, result)
+    return result
 
 
 # ------------------- Чтение бинарных данных ---------------------------
@@ -427,34 +459,63 @@ def read_pmd(path):
 @dataclass
 class Curve:
     """Одна величина, изменяющаяся во времени: например положение или поворот."""
-    representation: int  # 1 — векторные ключи; 3 — скалярные; 4 — кубические.
+    representation: int  # 1/2 — packed linear/cubic; 3/4 — scalar linear/cubic.
     times: tuple  # Моменты ключей в секундах, строго по возрастанию.
     values: tuple  # Значения в те же моменты; для cubic также хранятся наклоны.
+    rotation: bool = False  # У packed rotation ключ содержит quaternion XYZW.
+
+    def __post_init__(self):
+        # Подготавливаем один раз при чтении, а не на каждом VMD-кадре.
+        if self.representation == 2 and self.rotation:
+            rotations = tuple(row[:4] for row in self.values)
+            self.values = tuple((*q, *(q if len(rotations) == 1 else quaternion_control(
+                rotations[max(0, i-1)], q, rotations[min(i+1, len(rotations)-1)])))
+                for i, q in enumerate(rotations))
+        elif self.representation in (2, 4):
+            width = 1 if self.representation == 4 else 3
+            rows = []
+            for i, row in enumerate(self.values):
+                # Файловые коэффициенты могут содержать мусор. Последний ключ
+                # не имеет следующего интервала; его коэффициенты не нужны.
+                c2, c3 = [0.0]*width, [0.0]*width
+                if i+1 < len(self.values):
+                    following = self.values[i+1]
+                    for axis in range(width):
+                        delta = following[axis] - row[axis]
+                        outgoing, incoming = row[2*width+axis], following[width+axis]
+                        c2[axis] = 3*delta - (2*outgoing + incoming)
+                        c3[axis] = outgoing + incoming - 2*delta
+                rows.append((*row[:3*width], *c2, *c3))
+            self.values = tuple(rows)
 
     def sample(self, time, quaternion=False):
         """Узнать значение между ключами, например положение на секунде 0.25."""
         if not self.times:
             return None  # Пустая кривая сохраняет компоненту исходной позы SMO.
+        quaternion = quaternion or self.rotation
+        width = 1 if self.representation >= 3 else 4 if quaternion else 3
         if time <= self.times[0] or len(self.times) == 1:
-            return self.values[0][:1] if self.representation >= 3 else self.values[0]
+            return self.values[0][:width]
         if time >= self.times[-1]:
-            return self.values[-1][:1] if self.representation >= 3 else self.values[-1]
+            # PC interval 0x478F90: ровно два ключа дают index=0, fraction=0
+            # на последнем времени и после него. Это правило sampler'а,
+            # не утверждение о времени/зацикливании actor в самой игре.
+            i, u = (0, 0.0) if len(self.times) == 2 else (len(self.times)-2, 1.0)
+        else:
+            i = bisect_right(self.times, time) - 1
+            u = (time-self.times[i]) / (self.times[i+1]-self.times[i])
         # Находим два соседних ключа a и b. Доля u показывает, как далеко
         # мы между ними: 0 — первый ключ, 0.5 — середина, 1 — второй ключ.
-        i = bisect_right(self.times, time) - 1
-        u = (time-self.times[i]) / (self.times[i+1]-self.times[i])
         a, b = self.values[i:i+2]
-        if self.representation == 4:
-            # SAN хранит value, incoming, outgoing и два служебных coefficient.
-            # Пересчитываем коэффициенты, как native preparation; последние
-            # служебные значения в файле могут быть неинициализированы.
-            delta = b[0] - a[0]
-            c2 = 3*delta - (2*a[2] + b[1])
-            c3 = a[2] + b[1] - 2*delta
+        if self.representation == 4 or self.representation == 2 and not quaternion:
             # Кубический полином учитывает не только концы, но и наклон кривой.
             # Используется доля u внутри интервала, а не абсолютное время клипа.
-            return (a[0] + u*(a[2] + u*(c2 + u*c3)),)
+            return tuple(a[axis] + u*(a[2*width+axis] + u*(a[3*width+axis] +
+                         u*a[4*width+axis])) for axis in range(width))
         if quaternion:
+            if self.representation == 2:
+                # Squad: сначала две сферические смеси, затем смесь между ними.
+                return slerp(slerp(a[:4], b[:4], u), slerp(a[4:], b[4:], u), 2*u*(1-u))
             return slerp(a, b, u)
         # Обычное линейное смешивание координат: доля от a плюс доля от b.
         return add(times(a, 1-u), times(b, u))
@@ -476,7 +537,7 @@ def read_curve(payload, role):
                 raise ConversionError("Неполная тройка скалярных SAN-кривых.")
             r.done()
             return []
-        if representation not in (1, 3, 4) or (role == 3 and representation != 1):
+        if representation not in (1, 2, 3, 4):
             raise ConversionError(f"Не поддерживается SAN representation {representation}, поле {role}.")
         if not curves and representation >= 3:
             # Скаляр описывает только одну ось: нужно прочитать ещё две.
@@ -484,12 +545,18 @@ def read_curve(payload, role):
         if curves and representation not in (3, 4):
             raise ConversionError("Смешаны векторные и скалярные кривые.")
         count = r.number("I")
+        if count == 0 and representation != 1:
+            # Native preparation/sampling ожидает непустые cubic/scalar данные.
+            # Разрешённое отсутствие канала — representation 0 или empty rep 1.
+            raise ConversionError("Пустая кубическая/скалярная SAN-кривая.")
         # Сколько float-чисел занимает один ключ. Явные ветки длиннее одной
         # формулы, зато видно, какой размер соответствует какому виду данных.
         if representation == 4:
             stride = 5  # Значение, два наклона, два служебных коэффициента.
         elif representation == 3:
             stride = 1  # Одно число для одной оси.
+        elif representation == 2:
+            stride = 8 if role == 3 else 15  # Quaternion+control либо пять XYZ.
         elif role == 3:
             stride = 4  # Кватернион XYZW.
         else:
@@ -503,23 +570,24 @@ def read_curve(payload, role):
             raise ConversionError("Некорректное время ключа SAN.")
         if any(b <= a for a, b in zip(key_times, key_times[1:])):
             raise ConversionError("SAN-ключи должны идти по возрастанию времени.")
-        used_width = 3 if representation == 4 else stride
+        used_width = 3 if representation == 4 else (4 if role == 3 else 9) if representation == 2 else stride
         # У кубического ключа последние два числа пересчитываются при чтении.
         # Их мусорное содержимое не должно портить проверенные первые три числа.
         if not all(math.isfinite(v) for row in values for v in row[:used_width]):
             raise ConversionError("Некорректное значение SAN-ключа.")
-        if role == 3:
-            values = tuple(normalize(q) for q in values)
+        if role == 3 and representation < 3:
+            values = tuple((*normalize(row[:4]), *row[4:]) for row in values)
         if role == 4:
             # Проверяем сами ключи, чтобы даже короткое изменение scale между
             # соседними VMD-кадрами не исчезло незаметно при запекании.
             for row in values:
-                components = row[:1] if representation >= 3 else row
+                components = row[:1] if representation >= 3 else row[:3]
                 if any(abs(v-1) > 0.001 for v in components):
                     raise ConversionError("Анимация масштаба не представима в VMD.")
-                if representation == 4 and any(abs(v) > 0.001 for v in row[1:3]):
+                width = 1 if representation >= 3 else 3
+                if representation in (2, 4) and any(abs(v) > 0.001 for v in row[width:3*width]):
                     raise ConversionError("Кубическая анимация масштаба не представима в VMD.")
-        curves.append(Curve(representation, key_times, values))
+        curves.append(Curve(representation, key_times, values, role == 3 and representation < 3))
     r.done()
     if len(curves) == 3 and any(bool(c.times) != bool(curves[0].times) for c in curves):
         raise ConversionError("Некоторые оси SAN-кривой отсутствуют.")
@@ -531,7 +599,8 @@ def sample(curves, time, fallback, quaternion=False):
     if not curves or not curves[0].times:
         return fallback
     if len(curves) == 3:
-        return tuple(c.sample(time)[0] for c in curves)
+        values = tuple(c.sample(time)[0] for c in curves)
+        return euler_rotation(values) if quaternion else values
     return curves[0].sample(time, quaternion)
 
 
@@ -634,6 +703,9 @@ def source_world(bones, order, clip=None, time=0):
     Без clip получаем исходную позу SMO. С clip подставляем значения SAN
     на нужной секунде; отсутствующие каналы оставляем как в исходном SMO.
     """
+    # Engine передаёт время одним float32. Это особенно существенно на конце
+    # двухключевого трека: Python double 20/30 ещё меньше SAN float32 20/30.
+    time = struct.unpack('<f', struct.pack('<f', time))[0]
     result = {}
     for name in order:
         bone = bones[name]

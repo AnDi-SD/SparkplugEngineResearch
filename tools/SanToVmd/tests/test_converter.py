@@ -75,14 +75,14 @@ class ConverterTests(unittest.TestCase):
         # Analytic polynomial 2*u + 2*u^2; file coefficient placeholders are ignored.
         self.assertAlmostEqual(curve.sample(3)[0], 0.625)
         self.assertAlmostEqual(curve.sample(4)[0], 1.5)
-        self.assertEqual(curve.sample(10), (4,))
+        self.assertEqual(curve.sample(10), (0,))  # Original two-key endpoint rule.
 
     def test_scalar_axes_have_independent_times(self):
         payload = bytearray()
         for endpoint in (1.0, 2.0, 4.0):
             payload += struct.pack("<II2f2f", 3, 2, 0, endpoint, 0, 8)
         curves = converter.read_curve(payload, 2)
-        self.assertEqual(converter.sample(curves, 1, (0, 0, 0)), (8, 4, 2))
+        self.assertEqual(converter.sample(curves, 1, (0, 0, 0)), (0, 4, 2))
 
     def test_empty_scale_keeps_rest_and_nonidentity_scale_rejected(self):
         empty = converter.read_curve(struct.pack("<II", 1, 0), 4)

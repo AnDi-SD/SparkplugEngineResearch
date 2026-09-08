@@ -1,0 +1,1170 @@
+{
+  "kind": "tool-san-validation",
+  "schemaVersion": 1,
+  "checkpoint": "CP127",
+  "createdUtc": "2026-09-08T08:35:54.290800+00:00",
+  "sourceFiles": [
+    {
+      "path": "tools/SanToVmd/san_to_vmd.py",
+      "sha256": "4D2DE22A951F6B7236752F9829EB7DACE0250D76CB08D093A4985C9FDFA5669F"
+    },
+    {
+      "path": "tools/SanToVmd/tests/test_converter.py",
+      "sha256": "2C92F9E72732D3006DCE14F838CECEA627ED0CFB715B8B9B4596B5183C92CDC2"
+    },
+    {
+      "path": "tools/SanToVmd/tests/test_rare_keys.py",
+      "sha256": "DB78C1EDE72EAD1D6D011E54729C0323CD4D6E13104D3B8D2AFE1B50BD143BE3"
+    },
+    {
+      "path": "tools/SanToVmd/tests/validate_rare_local.py",
+      "sha256": "388C5031B3319F31FDA93C5F6E51DA07BB8EA565761C3D19097C4EC7E20D152A"
+    },
+    {
+      "path": "tools/SanToVmd/tests/validate_local.py",
+      "sha256": "CD2B0C4B3F11D95CADB865575871FEB192C10AEB6010EC199810EB378634B2C6"
+    },
+    {
+      "path": "research/probe_pc_san_vmd_keys.py",
+      "sha256": "177B427A288F741576B4A45C72CC0BBFDF6876FC8BBCC7B71807CE963D9328A0"
+    }
+  ],
+  "version": "0.3.0-test",
+  "reports": [
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/san-vmd-native-v3/report.json",
+      "sha256": "BC9EA325AC224B7216D95974DC29975D8A0E0BB294101C42D2272EC108911FB3"
+    },
+    {
+      "path": "local-data/results/tool-cycle-20260908-1900/san-vmd-output-v2/report.json",
+      "sha256": "9F7AF242D09CA401E86A36F32E94642D9FBE034A68AD7F0FC5C84C55015DB91E"
+    }
+  ],
+  "native": {
+    "pcSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "cases": 29,
+    "samples": 195,
+    "maximumComponentError": 1.7660635442950934e-07,
+    "tolerance": {
+      "relative": 4e-05,
+      "absolute": 4e-05
+    },
+    "seams": [
+      "stream read",
+      "16-byte descriptor pool allocation",
+      "CRT acos (two observed ABI entries)"
+    ],
+    "hostGuards": [
+      "bounds/finite/strictly increasing times",
+      "unit quaternion normalization and log roundoff clamp",
+      "bounded one-key neighbor and unused coefficient handling",
+      "VMD scale rejection"
+    ],
+    "endpointPolicy": "PC 0x478F90: count 2 at/after last => first key; count >=3 => final interval at u=1",
+    "elapsedSeconds": 8.48614579999412,
+    "sources": [
+      {
+        "path": "local-data\\pc-pristine\\Media\\Animations\\barrel.san",
+        "sha256": "2140F2679D28126198CF2A285EB3BAA07174D1095F55B0891FFB1E0D3DFD02E7",
+        "duration": 3.3333332538604736,
+        "tracks": 20,
+        "track_reserve_hint": null,
+        "declared_pools": [
+          0,
+          0,
+          700,
+          0,
+          700,
+          0,
+          1400
+        ],
+        "observed_pools": [
+          0,
+          0,
+          700,
+          0,
+          700,
+          0,
+          1400
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count35": 20,
+          "role1/repr1/count35": 20,
+          "role2/repr1/count0": 20
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Animations\\bbush.san",
+        "sha256": "706BD0E5C70111BBD7C9524B3A37B1B2D867EC86FDC5A7A7908FAC8BBFCA428E",
+        "duration": 1.0,
+        "tracks": 5,
+        "track_reserve_hint": 5,
+        "declared_pools": [
+          0,
+          0,
+          55,
+          3,
+          55,
+          0,
+          113
+        ],
+        "observed_pools": [
+          0,
+          0,
+          55,
+          3,
+          55,
+          0,
+          113
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count11": 5,
+          "role1/repr1/count11": 5,
+          "role2/repr2/count3": 1,
+          "role2/repr1/count0": 4
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Animations\\bflower.san",
+        "sha256": "B3814396886C6FE9F61D1760A820DFBAFC68C5F2F8BC8FAAA5CFD0C7845BBA19",
+        "duration": 3.0,
+        "tracks": 17,
+        "track_reserve_hint": 17,
+        "declared_pools": [
+          0,
+          0,
+          17,
+          0,
+          392,
+          0,
+          409
+        ],
+        "observed_pools": [
+          0,
+          0,
+          17,
+          0,
+          392,
+          0,
+          409
+        ],
+        "unknown_fields": [
+          {
+            "field": 5,
+            "size": 19,
+            "offset": 9119
+          },
+          {
+            "field": 5,
+            "size": 19,
+            "offset": 9141
+          }
+        ],
+        "key_shapes": {
+          "role0/repr1/count1": 17,
+          "role1/repr1/count1": 5,
+          "role2/repr1/count0": 17,
+          "role1/repr1/count32": 3,
+          "role1/repr1/count38": 3,
+          "role1/repr1/count29": 1,
+          "role1/repr1/count30": 2,
+          "role1/repr1/count35": 1,
+          "role1/repr1/count28": 1,
+          "role1/repr1/count25": 1
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Animations\\bw.san",
+        "sha256": "C26D3091627A0BA72F798367FD4967BDF2138C63047BF20D359FB6A2448D5435",
+        "duration": 3.3333334922790527,
+        "tracks": 20,
+        "track_reserve_hint": 20,
+        "declared_pools": [
+          0,
+          0,
+          700,
+          0,
+          700,
+          0,
+          1400
+        ],
+        "observed_pools": [
+          0,
+          0,
+          700,
+          0,
+          700,
+          0,
+          1400
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count35": 20,
+          "role1/repr1/count35": 20,
+          "role2/repr1/count0": 20
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Characters\\Icy\\xiwa.san",
+        "sha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC",
+        "duration": 1.0,
+        "tracks": 64,
+        "track_reserve_hint": null,
+        "declared_pools": [
+          0,
+          0,
+          101,
+          0,
+          1167,
+          0,
+          1268
+        ],
+        "observed_pools": [
+          0,
+          0,
+          101,
+          0,
+          1167,
+          0,
+          1268
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count1": 50,
+          "role1/repr1/count1": 22,
+          "role2/repr1/count0": 64,
+          "role0/repr1/count2": 1,
+          "role0/repr1/count9": 1,
+          "role0/repr1/count3": 8,
+          "role1/repr1/count29": 10,
+          "role0/repr1/count4": 4,
+          "role1/repr1/count27": 1,
+          "role1/repr1/count26": 3,
+          "role1/repr1/count31": 6,
+          "role1/repr1/count25": 8,
+          "role1/repr1/count28": 1,
+          "role1/repr1/count24": 9,
+          "role1/repr1/count30": 4
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Characters\\Icy\\xiru.san",
+        "sha256": "95DC8D7EB3C5D0D2B8A6101CAAAE617CE5AA8475BF95BED5D00364F02F38E15C",
+        "duration": 0.6666666865348816,
+        "tracks": 64,
+        "track_reserve_hint": null,
+        "declared_pools": [
+          0,
+          0,
+          229,
+          0,
+          619,
+          0,
+          848
+        ],
+        "observed_pools": [
+          0,
+          0,
+          229,
+          0,
+          619,
+          0,
+          848
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count1": 1,
+          "role1/repr1/count1": 36,
+          "role2/repr1/count0": 64,
+          "role0/repr1/count2": 13,
+          "role0/repr1/count7": 1,
+          "role0/repr1/count17": 1,
+          "role0/repr1/count3": 43,
+          "role1/repr1/count21": 24,
+          "role0/repr1/count5": 3,
+          "role1/repr1/count20": 3,
+          "role1/repr1/count19": 1,
+          "role0/repr1/count13": 1,
+          "role0/repr1/count21": 1
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Characters\\Icy\\xiid.san",
+        "sha256": "08396420426987B7574F61AEEC08DB87C8FC6919B55A99EDC1D44E581AA9AA0C",
+        "duration": 1.6666666269302368,
+        "tracks": 64,
+        "track_reserve_hint": null,
+        "declared_pools": [
+          0,
+          0,
+          148,
+          0,
+          913,
+          0,
+          1061
+        ],
+        "observed_pools": [
+          0,
+          0,
+          148,
+          0,
+          913,
+          0,
+          1061
+        ],
+        "unknown_fields": [],
+        "key_shapes": {
+          "role0/repr1/count1": 15,
+          "role1/repr1/count1": 31,
+          "role2/repr1/count0": 64,
+          "role0/repr1/count2": 16,
+          "role0/repr1/count5": 1,
+          "role1/repr1/count19": 19,
+          "role1/repr1/count35": 1,
+          "role0/repr1/count3": 32,
+          "role1/repr1/count43": 1,
+          "role1/repr1/count11": 1,
+          "role1/repr1/count42": 2,
+          "role1/repr1/count27": 1,
+          "role1/repr1/count37": 1,
+          "role1/repr1/count21": 1,
+          "role1/repr1/count50": 2,
+          "role1/repr1/count48": 1,
+          "role1/repr1/count47": 1,
+          "role1/repr1/count23": 1,
+          "role1/repr1/count45": 1
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      },
+      {
+        "path": "local-data\\pc-pristine\\Media\\Characters\\Icy\\xibhu.san",
+        "sha256": "8F61AC254DB2D89D81C190023432EF60E015721BC447599054655F8225BB9E1C",
+        "duration": 0.46666666865348816,
+        "tracks": 64,
+        "track_reserve_hint": null,
+        "declared_pools": [
+          0,
+          0,
+          189,
+          0,
+          515,
+          0,
+          704
+        ],
+        "observed_pools": [
+          0,
+          0,
+          189,
+          0,
+          515,
+          0,
+          704
+        ],
+        "unknown_fields": [
+          {
+            "field": 5,
+            "size": 21,
+            "offset": 16786
+          }
+        ],
+        "key_shapes": {
+          "role0/repr1/count1": 13,
+          "role1/repr1/count1": 30,
+          "role2/repr1/count0": 64,
+          "role0/repr1/count3": 41,
+          "role0/repr1/count2": 8,
+          "role0/repr1/count18": 1,
+          "role1/repr1/count13": 5,
+          "role1/repr1/count14": 15,
+          "role1/repr1/count15": 14,
+          "role0/repr1/count19": 1
+        },
+        "pool_hints_match": true,
+        "pool_hints_cover": true
+      }
+    ],
+    "casesSummary": [
+      {
+        "name": "representation-1-count-2",
+        "channelSha256": {
+          "0": "E740A12BB2373D77BD3838995D905935C0C3ABCF4540A5A0E041E672D0C4871F",
+          "1": "651E169E23583A8D602FF4D6D11CBEB10FCD75823EA1E6812B82765B65838ABF",
+          "2": "83DDE03D46B5B0E995615EFA4CE12602A5403F5931115B1ABEE28DA13E9E0585"
+        },
+        "samples": 11,
+        "maxComponentError": 5.413733306092183e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-1-count-3",
+        "channelSha256": {
+          "0": "E12D2F178B57223DC3C1A16C2ED551EACF6423A01FDB537F351B229E91F1CDAD",
+          "1": "1946D28A5F2B26EE7F9641A6EC7D342D5383731F3F5A8A88B084FD81A9D2A487",
+          "2": "D9822A2DC59A6F1D59F7E31E9D5365B2E9735AA9B1B9F98C48ED9AAAAA1B3475"
+        },
+        "samples": 11,
+        "maxComponentError": 1.5894571925301193e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-2-count-2",
+        "channelSha256": {
+          "0": "40CFDABFC5310A9DE0A8621115418043D01868ADF6EE2AE9EA310669918E86F0",
+          "1": "1E92DD08480DDC9D1DABDFB5201CE2FCFDD0FC00EA9A0093A79B8EF128DE5A56",
+          "2": "1F6786EFD23C350D19FFCF30BC1927CAC3766BEE291185D7A5770420AC35FC4A"
+        },
+        "samples": 11,
+        "maxComponentError": 1.7660635442950934e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-2-count-3",
+        "channelSha256": {
+          "0": "69934074523A9EF56A01608D30E4BC046CADBEA050914BBC9BCF508B7AA2FC53",
+          "1": "534CB39BB1228CA32A902897ECD7CB7FF36013ECE8C0CA563FAD40B0747E2960",
+          "2": "5A733BE4764F01091EC0F166320DA10DF9B477537C394FB7F2E7E228BC2CD6EC"
+        },
+        "samples": 11,
+        "maxComponentError": 1.7660635442950934e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-3-count-2",
+        "channelSha256": {
+          "0": "81827D56935F34C86C494C77E61649DEDF1D1A9DB984FF48C507159E98C10593",
+          "1": "1593C7746DCC8E28000D897532601B16494ED1D99D5618A9EA92EE6623F7AE30",
+          "2": "2A1589859D5C2F4A81AED77F29E36A6759272929BDD5BDAE07380B85BFCC3CA9"
+        },
+        "samples": 11,
+        "maxComponentError": 9.536743128535363e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-3-count-3",
+        "channelSha256": {
+          "0": "A0F2372109B8655D9F85652AB28AB4CB3C024071CEADDF5B51C884A43AA00517",
+          "1": "D265AF0E1A6085BDF3897EF72D56F8C640350FB819DA3E1B91AF023C8EEEE57E",
+          "2": "27F1E3E70E61724060FD85A75E3F5CD3E43230DEBBFB76B3473580FA8CB8A51A"
+        },
+        "samples": 11,
+        "maxComponentError": 9.536743128535363e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-4-count-2",
+        "channelSha256": {
+          "0": "3E9AA08FD15B7ADB3D7F50340373C2BAE85DDDD7E83B47110F83E18BFFD2BF8A",
+          "1": "038F74CB8FF2986A9E809D3B12172F2E3B053A4647B6B76DC9399B31E238FC60",
+          "2": "1A8D627379FFA09726AE5C9417CAB515DECCB13DF8AF04C8E70AA0B5FA122E6B"
+        },
+        "samples": 11,
+        "maxComponentError": 1.1825561552214481e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "representation-4-count-3",
+        "channelSha256": {
+          "0": "A37D24A7EF1056A13C66D61ECEE9AD458E86502064DA8A1BD791C1B0935B3E82",
+          "1": "4F1386A0FE14DB60F0C9D5F97D6ABFB7D51CF5B9344A23BC031CA282DA024D86",
+          "2": "0385EB82B0D57A80149D4A8E8D58DDC239C2F858A349DC2493E0F82B5C8F3ACB"
+        },
+        "samples": 11,
+        "maxComponentError": 1.1825561552214481e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "mixed-scalar-rotation",
+        "channelSha256": {
+          "1": "662C4706460BB5FF3FAB8239EECB6876B511E1A76375DD5607D66406681294E9"
+        },
+        "samples": 7,
+        "maxComponentError": 3.601432618793865e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "quaternion-small-angle-0.0005",
+        "channelSha256": {
+          "1": "AEE982C4884FCF8B72D6E82FE8BDBE73639D3E52A44A9532726DC9143857202C"
+        },
+        "samples": 6,
+        "maxComponentError": 2.8354639636241075e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "quaternion-small-angle-0.003",
+        "channelSha256": {
+          "1": "4147B790FEF9727F5CFA5BF2ED7EF4512A7AB53FC77AB3F9E40576F02CD3B128"
+        },
+        "samples": 6,
+        "maxComponentError": 7.03124996004334e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "single-cubic-quaternion",
+        "channelSha256": {
+          "1": "8A512DA9BDD774ABE25B26CD58236F9E468F38E5BEFF9E18112B0C2F9DE450CC"
+        },
+        "samples": 3,
+        "maxComponentError": 1.9073486234866266e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "barrel.san:barel",
+        "channelSha256": {
+          "0": "9B46B70EFE879967B63A623261AEC5F0B42C19DC10D57F10EC4C13BCC6F0C9C1",
+          "1": "6E115E9CB8DEBF752B784FB1840A72BE1962BA7B87821D8D3917908BDB7E01BA",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 0.0,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "bbush.san:Plane01",
+        "channelSha256": {
+          "0": "65D15779C8B2F669B11A420F623CF1ABF6B78E45687CCBA5601731FB6FA14693",
+          "1": "D69C56D1A41DD0140BC76A18E7F65CF8B0EEE2FE6E89D6C47DF219ACA072721B",
+          "2": "EFE1EE7F85DC2DE2BE470C1CB4032940DF68774427C305AAA44420D3E545D728"
+        },
+        "samples": 5,
+        "maxComponentError": 2.9802322387695312e-08,
+        "nonVmdScaleRejected": true
+      },
+      {
+        "name": "bflower.san:model_master_root",
+        "channelSha256": {
+          "0": "905BF78769A8AAAF6565FD9F60BFBA050711D4C1F801D9D77B908AF4FF0332C7",
+          "1": "49ED4816D41870F6B4993482638266B4A6A83F9D4DC9F521CA81371EB2AF2696",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 0.0,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "bflower.san:bone_r_01",
+        "channelSha256": {
+          "0": "56FCA1D7E9A791525D5724D4B3F52BFE7ECFA57A79DEA63B2549B6AC2E65C9CF",
+          "1": "D84433199B878E6B305345EE2C19690A17F6E3F04EE319D6B213A35A95621339",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 4.6287234267694544e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "bw.san:bw01",
+        "channelSha256": {
+          "0": "1AD0148C17DD58C56639754227338A61AEAF26A6A80AD05ED2CE6C07CFC83846",
+          "1": "82B0898A29DB3D17872C268901144B18F571E55D1B94BB4525310F444092B076",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 1.2107908342606777e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiwa.san:Pelvis",
+        "channelSha256": {
+          "0": "B20D475A38A0A101F70D9E7E95554C3F5F66BB641D2905EB6861940C3EF084E1",
+          "1": "FF07C1D5C471F2F7A84789358D8975E999441C13836F3BDF527549B310ACAAC6",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 1.1282849210481061e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiwa.san:L_Bicep",
+        "channelSha256": {
+          "0": "5E4130DEF48E50A30C2D3CD3B6EABE4D782EF64F9C527F2FA2A7975795A55A2F",
+          "1": "DB1426988950FA6FDBD574FBEAD266D66ADAD267987153F6827DECD676762648",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 1.202419848134184e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiwa.san:L_UpperArm",
+        "channelSha256": {
+          "0": "8333DF2389C3313CF976B97708A9C71DA97D9706933C4A1FED165BEA90373934",
+          "1": "90080438BA034C49E03B080D8F1603EEE28D757FD852922AB9CE92CDF53765E0",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 9.82425174544943e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiru.san:Pelvis",
+        "channelSha256": {
+          "0": "429B300C65B9CD81696437E7D55F7D8DB7C7CD216B8032E29528A7D0F0EF9299",
+          "1": "7B21D5FCA70D1A36CE59571FDF375B6067A3E64306683786E875F47326908417",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 5.389047141868275e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiru.san:L_Bicep",
+        "channelSha256": {
+          "0": "47F9149FBF516FA6959E378A8B2FA95146FA7712590C2785CBC37F33FA6B23C6",
+          "1": "0119329B41C7D9AEA963CA2465A493B4048A5A69D440E3CA937B7394039FE924",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 1.0380713044710888e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiru.san:L_UpperArm",
+        "channelSha256": {
+          "0": "7115C1C2C5E1C11E73A59180D76632CBB13369BA6E9B66891C74F8B229E78D06",
+          "1": "ED5C015973F763136EED8D2F04922F413214E420E1C0564FE4D315D26FAD12E8",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 4.5277774085583644e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiid.san:Pelvis",
+        "channelSha256": {
+          "0": "DC0E64160AB91931C965FC71ED549A9F638054304BEC8C29D964F9A574F04B01",
+          "1": "A3CEC2C3AFE89A6A7683E6CE2DAAA0D2594E26360549B23FCF71D514C83B65AC",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 1.0822461027348851e-07,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiid.san:L_Bicep",
+        "channelSha256": {
+          "0": "5E4130DEF48E50A30C2D3CD3B6EABE4D782EF64F9C527F2FA2A7975795A55A2F",
+          "1": "72B1531431C98A3D33089C0E0514A89F412A9975BF71FA7A7F6E4DC628EDB817",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 7.017015868360232e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xiid.san:L_UpperArm",
+        "channelSha256": {
+          "0": "8333DF2389C3313CF976B97708A9C71DA97D9706933C4A1FED165BEA90373934",
+          "1": "658042E1277B9C611D54E0613ACE9E63098D9E147E078BD00A1C87658C46E3BA",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 6.513782124795142e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xibhu.san:Pelvis",
+        "channelSha256": {
+          "0": "4A3CCFE1C3C13911E0F893DD68982516B08E59CDC78B9B6A2FA998C9CCB1B638",
+          "1": "B7DC1C7B51F0CBCC1F567573AFFEF4D39AE7F574676CB848303A5E1BDFCACA56",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 4.152459620598847e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xibhu.san:L_Bicep",
+        "channelSha256": {
+          "0": "5E4130DEF48E50A30C2D3CD3B6EABE4D782EF64F9C527F2FA2A7975795A55A2F",
+          "1": "49B7BA46B7A4C03AAE3DD1E2F0778ADF70229BA649B46C138F334EFEA4228809",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 6.205719693674894e-08,
+        "nonVmdScaleRejected": false
+      },
+      {
+        "name": "xibhu.san:L_UpperArm",
+        "channelSha256": {
+          "0": "8333DF2389C3313CF976B97708A9C71DA97D9706933C4A1FED165BEA90373934",
+          "1": "13325E33E7977BC317F6DFF4B13B274E43ED652672308C4133F869AB1F436C40",
+          "2": "7C9FA136D4413FA6173637E883B6998D32E1D675F88CDDFF9DCBCF331820F4B8"
+        },
+        "samples": 5,
+        "maxComponentError": 7.516488609304872e-08,
+        "nonVmdScaleRejected": false
+      }
+    ],
+    "syntheticVmdFixtures": [
+      {
+        "san": "representation-2-count-3.san",
+        "sha256": "F3EA129E8551E86A520E75A5756EF0445D13BC20EBD429C995A7C0B6F377EC72",
+        "duration": 2,
+        "source": "synthetic wire, original reader and sampler outputs"
+      },
+      {
+        "san": "representation-3-count-3.san",
+        "sha256": "BB843D7E3F5C98EAAE7319CCBCAB42C0FD8FDCC23FBABBD6009557A2C746082E",
+        "duration": 2,
+        "source": "synthetic wire, original reader and sampler outputs"
+      },
+      {
+        "san": "representation-4-count-3.san",
+        "sha256": "6F1C78BF93C6EAEDAFEA22EC3EC61C353F681EC3A7E018558519EA4D1FF5DF1A",
+        "duration": 2,
+        "source": "synthetic wire, original reader and sampler outputs"
+      },
+      {
+        "san": "mixed-scalar-rotation.san",
+        "sha256": "20A12BC91B621108CA696AD393A3CDB1E2CC4F27204F0D9C22043EB9A238FE8A",
+        "duration": 2,
+        "source": "synthetic wire, original reader and sampler outputs"
+      }
+    ],
+    "syntheticNativePoses": 244
+  },
+  "vmd": {
+    "version": "0.3.0-test",
+    "seconds": 10.72155400000338,
+    "independent_reader_sha256": "CDF395D556219A66250A7193BB737E11535C15583B8D5C4D2170B632188F6131",
+    "previous_version_commit": "591b75e",
+    "previous_converter_sha256": "B447B6D72B03D7122821F5EFB7ECB301F364C104A75FAB5D528DC561AF0EA583",
+    "skeleton_sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+    "portable_cli_unrelated_cwd": true,
+    "vmd_files": 24,
+    "keys": 55024,
+    "native_reference_pose_checks": 732,
+    "max_limb_direction_error": 8.466639076793913e-07,
+    "max_center_error": 1.5185246571292055e-07,
+    "results": [
+      {
+        "san": "xiwa.san",
+        "san_sha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "7B54AC73BCFB18A15DFD2D3C6A94AD681C64E924D324FF3DEB6ACBAFAEEF054C",
+        "frames": 31,
+        "keys": 1581,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.249097051020717e-07,
+        "max_center_error": 8.888785540950295e-10,
+        "previous_version_comparison": {
+          "changed_keys": 515,
+          "max_rotation_radians": 0.0019337167049874313,
+          "max_position_units": 4.470348358154297e-08
+        },
+        "previous_vmd_sha256": "9537167942C934BAB7A6E4B55C333041D391DBB0631D1B14D282EEA8E76AD6E9"
+      },
+      {
+        "san": "xiru.san",
+        "san_sha256": "95DC8D7EB3C5D0D2B8A6101CAAAE617CE5AA8475BF95BED5D00364F02F38E15C",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "255838CB595FA32367A07FF5DAC656283BAB931539844FCFAF2E13FDBAA9DB34",
+        "frames": 21,
+        "keys": 1071,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.254451019195954e-07,
+        "max_center_error": 4.2720758042236184e-09,
+        "previous_version_comparison": {
+          "changed_keys": 265,
+          "max_rotation_radians": 2.1696418193818693e-07,
+          "max_position_units": 2.3841860752327024e-07
+        },
+        "previous_vmd_sha256": "B67110259A7530E6FA9FC9405ED82903F226F2C5837907BD96F68AE46A205EE5"
+      },
+      {
+        "san": "xiid.san",
+        "san_sha256": "08396420426987B7574F61AEEC08DB87C8FC6919B55A99EDC1D44E581AA9AA0C",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "EEF38E29ED00895EBE28C41703946E84F45CBAA51A95B60A3C9BC7B15A9AAF42",
+        "frames": 51,
+        "keys": 2601,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.466639076793913e-07,
+        "max_center_error": 2.9926429390148e-09,
+        "previous_version_comparison": {
+          "changed_keys": 468,
+          "max_rotation_radians": 0.002179470023679399,
+          "max_position_units": 8.43348460098488e-09
+        },
+        "previous_vmd_sha256": "322BDF1E266E7CDDAA33096DE141E54E345BF89DA99F4E7BAD351B18058B655D"
+      },
+      {
+        "san": "xibhu.san",
+        "san_sha256": "8F61AC254DB2D89D81C190023432EF60E015721BC447599054655F8225BB9E1C",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "7250FC843F685DBED2664851EECB1BF9D9AE364F1D5CFDFEE82465B78A863CFF",
+        "frames": 15,
+        "keys": 765,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.310007693650494e-07,
+        "max_center_error": 4.949162613065994e-08,
+        "previous_version_comparison": {
+          "changed_keys": 199,
+          "max_rotation_radians": 0.0009074237146231809,
+          "max_position_units": 4.2981520598697533e-07
+        },
+        "previous_vmd_sha256": "2F66E92E986A37CA04C41EDDC57F3539C7CFECF5C37AFCD63E1336946E7694F2"
+      },
+      {
+        "san": "representation-2-count-3.san",
+        "san_sha256": "F3EA129E8551E86A520E75A5756EF0445D13BC20EBD429C995A7C0B6F377EC72",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "AB22BAF282FECA1EC245CD16F635C6AB1118DB87EB219A38CEDCF42015AF3CB8",
+        "frames": 61,
+        "keys": 3111,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 2.071467507554728e-07,
+        "max_center_error": 4.9785378042344064e-08
+      },
+      {
+        "san": "representation-3-count-3.san",
+        "san_sha256": "BB843D7E3F5C98EAAE7319CCBCAB42C0FD8FDCC23FBABBD6009557A2C746082E",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "33B4596307D9112E0631CE4F85040DCC149DEC1F51A083BF3595F64180696B68",
+        "frames": 61,
+        "keys": 3111,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.4037757932391966e-07,
+        "max_center_error": 2.666191240008331e-08
+      },
+      {
+        "san": "representation-4-count-3.san",
+        "san_sha256": "6F1C78BF93C6EAEDAFEA22EC3EC61C353F681EC3A7E018558519EA4D1FF5DF1A",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "28C70F78AB671BFC01D8AFA4FFF6410A383AF1C858EAC0CDE512563DFAA71209",
+        "frames": 61,
+        "keys": 3111,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.7712881753049816e-07,
+        "max_center_error": 2.98881003280016e-08
+      },
+      {
+        "san": "mixed-scalar-rotation.san",
+        "san_sha256": "20A12BC91B621108CA696AD393A3CDB1E2CC4F27204F0D9C22043EB9A238FE8A",
+        "model": "Miku_Hatsune_Ver2.pmd",
+        "model_sha256": "748C29019E7C3E546968CF5E17D70B031D137F0DA33FB25DFC0C2015401672E0",
+        "vmd_sha256": "6D7591C4894BDB854F0A93DA5FA7F7AF4F1E57FBA635D64A523A25E6D4729642",
+        "frames": 61,
+        "keys": 3111,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 9.122428659111628e-08,
+        "max_center_error": 0.0
+      },
+      {
+        "san": "xiwa.san",
+        "san_sha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "313E2489D64D5C096936E9CFB0B6B79D2FD890BE953A8ECB58740AD455B69948",
+        "frames": 31,
+        "keys": 1674,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.031972914171028e-07,
+        "max_center_error": 3.1535307976060523e-09,
+        "previous_version_comparison": {
+          "changed_keys": 551,
+          "max_rotation_radians": 0.0019337026810044503,
+          "max_position_units": 4.470348358154297e-08
+        },
+        "previous_vmd_sha256": "D6DD225F0C3C0A3540EE2A3F10FE21D2535A844F0AA2C615F9A2221628586D22"
+      },
+      {
+        "san": "xiru.san",
+        "san_sha256": "95DC8D7EB3C5D0D2B8A6101CAAAE617CE5AA8475BF95BED5D00364F02F38E15C",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "F3596F6C197D0C10D99D80A69689DF64500378C4DF6BA7E18A95A1DDD91CE281",
+        "frames": 21,
+        "keys": 1134,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.235244020974844e-07,
+        "max_center_error": 2.6597721941579167e-09,
+        "previous_version_comparison": {
+          "changed_keys": 300,
+          "max_rotation_radians": 2.1283115233608642e-07,
+          "max_position_units": 2.2351744822420286e-07
+        },
+        "previous_vmd_sha256": "910D9D5580FEEF65E92DDD7A95B81A3B84C583D7FBEF6DABA7AE6FCCD288DC96"
+      },
+      {
+        "san": "xiid.san",
+        "san_sha256": "08396420426987B7574F61AEEC08DB87C8FC6919B55A99EDC1D44E581AA9AA0C",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "30C02474C011B7C58EF10BC21A018A394C83F1605DCA2DA3CF98F669258734AF",
+        "frames": 51,
+        "keys": 2754,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.248107328352693e-07,
+        "max_center_error": 2.259083586864108e-09,
+        "previous_version_comparison": {
+          "changed_keys": 500,
+          "max_rotation_radians": 0.0021794706590036812,
+          "max_position_units": 8.43348460098488e-09
+        },
+        "previous_vmd_sha256": "06DAB7D0A8A2562F8814AE6C0FAE5E30EDEB4C48EC7664A2304EC621C667FFC2"
+      },
+      {
+        "san": "xibhu.san",
+        "san_sha256": "8F61AC254DB2D89D81C190023432EF60E015721BC447599054655F8225BB9E1C",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "DEAB62C3163FD80BBAED333AC387BB335E2B1A1BE57158AAEDF99D43DF885833",
+        "frames": 15,
+        "keys": 810,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.080866859483834e-07,
+        "max_center_error": 1.0183011855957602e-07,
+        "previous_version_comparison": {
+          "changed_keys": 211,
+          "max_rotation_radians": 0.0009074232457820204,
+          "max_position_units": 3.371747880871523e-07
+        },
+        "previous_vmd_sha256": "8002C01DAA0EC1A48B23EA86A2668787440CF5A994FF9094EFD9844489AA1F67"
+      },
+      {
+        "san": "representation-2-count-3.san",
+        "san_sha256": "F3EA129E8551E86A520E75A5756EF0445D13BC20EBD429C995A7C0B6F377EC72",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "97839330A56BF3171154ECEABBD1985823EE1CB7A3DB2A9DA0FD957E6DCE47D2",
+        "frames": 61,
+        "keys": 3294,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.839301134190534e-07,
+        "max_center_error": 4.652206464506037e-08
+      },
+      {
+        "san": "representation-3-count-3.san",
+        "san_sha256": "BB843D7E3F5C98EAAE7319CCBCAB42C0FD8FDCC23FBABBD6009557A2C746082E",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "07358960A0E4A53E7E7971BA6D962950007371CF4055949F5D61E03947A549D7",
+        "frames": 61,
+        "keys": 3294,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.6073280245902535e-07,
+        "max_center_error": 2.446798497146574e-08
+      },
+      {
+        "san": "representation-4-count-3.san",
+        "san_sha256": "6F1C78BF93C6EAEDAFEA22EC3EC61C353F681EC3A7E018558519EA4D1FF5DF1A",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "BDF3003C1CF910F6637D7D4B2097AC1AA3FB2FB8B282FD47783B52D24298868E",
+        "frames": 61,
+        "keys": 3294,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.705402129651252e-07,
+        "max_center_error": 2.722228681362182e-08
+      },
+      {
+        "san": "mixed-scalar-rotation.san",
+        "san_sha256": "20A12BC91B621108CA696AD393A3CDB1E2CC4F27204F0D9C22043EB9A238FE8A",
+        "model": "Luka_Megurine.pmd",
+        "model_sha256": "D36E028119B2DE8DE7CB0482869E43774847DBC2ACC5AF73B5D557D6B806CC44",
+        "vmd_sha256": "1DE58A5ED73D1C87539570E1F78680E7BEC38761334387EA214C8B7B0D5342F6",
+        "frames": 61,
+        "keys": 3294,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 8.73806065755748e-08,
+        "max_center_error": 0.0
+      },
+      {
+        "san": "xiwa.san",
+        "san_sha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "D576A23F192C9FAB6EA1BD8627BE64060DA65E7974A103D527CDB78FC3FDD7B1",
+        "frames": 31,
+        "keys": 1457,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.109651743475782e-07,
+        "max_center_error": 5.309620548787919e-09,
+        "previous_version_comparison": {
+          "changed_keys": 520,
+          "max_rotation_radians": 0.001933718012417524,
+          "max_position_units": 5.960464477539063e-08
+        },
+        "previous_vmd_sha256": "C90B7E9C8B63F61B48DB1BED9F1081312B5B5B339251D7CA9A7FE3DA3E309099"
+      },
+      {
+        "san": "xiru.san",
+        "san_sha256": "95DC8D7EB3C5D0D2B8A6101CAAAE617CE5AA8475BF95BED5D00364F02F38E15C",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "562D85E3A77B9E2F32B78EAD5A99426D7CB2A677C1A0638B099E0C8641E54DE9",
+        "frames": 21,
+        "keys": 987,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.16840022886156e-07,
+        "max_center_error": 7.385394462655626e-09,
+        "previous_version_comparison": {
+          "changed_keys": 294,
+          "max_rotation_radians": 2.1900144899933154e-07,
+          "max_position_units": 2.533197670452529e-07
+        },
+        "previous_vmd_sha256": "2A87FB07AD3C8AC4458BFB9696BF49B9D3AF256FC1A801283D263F43ECF73226"
+      },
+      {
+        "san": "xiid.san",
+        "san_sha256": "08396420426987B7574F61AEEC08DB87C8FC6919B55A99EDC1D44E581AA9AA0C",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "01F446787DDC939325B1E1788DF5781BB4142C2D2D5F408F6A48CBE088E0CE93",
+        "frames": 51,
+        "keys": 2397,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.183455222515215e-07,
+        "max_center_error": 4.745502879544006e-10,
+        "previous_version_comparison": {
+          "changed_keys": 500,
+          "max_rotation_radians": 0.002179470023679399,
+          "max_position_units": 8.43348460098488e-09
+        },
+        "previous_vmd_sha256": "9AFB8FC89CFA089737BA3D03F6572CA75FADD73C1F0529C3D2D56E49826C2E57"
+      },
+      {
+        "san": "xibhu.san",
+        "san_sha256": "8F61AC254DB2D89D81C190023432EF60E015721BC447599054655F8225BB9E1C",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "5685C8CDBE5AD3F47C34EFC933A17CE9B4735FDED9AD17886861EA8072EEA961",
+        "frames": 15,
+        "keys": 705,
+        "checked_poses": 3,
+        "native_prs_reference": false,
+        "max_limb_direction_error": 8.170516295267792e-07,
+        "max_center_error": 1.5185246571292055e-07,
+        "previous_version_comparison": {
+          "changed_keys": 193,
+          "max_rotation_radians": 0.0009074242798749888,
+          "max_position_units": 5.960464477539062e-07
+        },
+        "previous_vmd_sha256": "6944AC1FF8BE7555C53417F17434BE397F215F3D82647F6E674BD48796A2F63E"
+      },
+      {
+        "san": "representation-2-count-3.san",
+        "san_sha256": "F3EA129E8551E86A520E75A5756EF0445D13BC20EBD429C995A7C0B6F377EC72",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "CA5E5D4EE370D2A0F2974C48E7DE58DE0F427C6589A5ABC6860D5CEBBDDDB107",
+        "frames": 61,
+        "keys": 2867,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.844428004440876e-07,
+        "max_center_error": 4.738572578766309e-08
+      },
+      {
+        "san": "representation-3-count-3.san",
+        "san_sha256": "BB843D7E3F5C98EAAE7319CCBCAB42C0FD8FDCC23FBABBD6009557A2C746082E",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "B8A1E72BBC86D39B3646C06F09115EBADF7E93341F33F151C8D72AE5BBEC2D08",
+        "frames": 61,
+        "keys": 2867,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.5092887142242584e-07,
+        "max_center_error": 2.708584817545656e-08
+      },
+      {
+        "san": "representation-4-count-3.san",
+        "san_sha256": "6F1C78BF93C6EAEDAFEA22EC3EC61C353F681EC3A7E018558519EA4D1FF5DF1A",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "82047DC1F2CB732933C667D6858FE8B2BCA3951ABEF3F106CD37144B80C98D07",
+        "frames": 61,
+        "keys": 2867,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.8352730322036858e-07,
+        "max_center_error": 2.8447695421540686e-08
+      },
+      {
+        "san": "mixed-scalar-rotation.san",
+        "san_sha256": "20A12BC91B621108CA696AD393A3CDB1E2CC4F27204F0D9C22043EB9A238FE8A",
+        "model": "MEIKO.pmd",
+        "model_sha256": "204653122C85CF1AB6F822C67954FC42AD5F247DFF4CE4264245CBA4FB135C7E",
+        "vmd_sha256": "561B9A8719B06F21A414E13879F0B6417EF9E1F0981D62FA9FB653DE544BE4B5",
+        "frames": 61,
+        "keys": 2867,
+        "checked_poses": 61,
+        "native_prs_reference": true,
+        "max_limb_direction_error": 1.1023552050006558e-07,
+        "max_center_error": 0.0
+      }
+    ],
+    "limits": [
+      "frame-sampled 30fps VMD",
+      "three documented PMD profiles",
+      "unit scale only",
+      "no original MMD visual playback or mesh/physics claim",
+      "ordinary pose reference uses converter; rare pose reference uses original-PC PRS"
+    ]
+  },
+  "ordinaryCompatibility": {
+    "previousCommit": "591b75e",
+    "files": 12,
+    "changedKeys": 4516,
+    "maxRotationDegrees": 0.12487447033350715,
+    "maxTranslationUnits": 5.960464477539062e-07,
+    "bitIdentical": false,
+    "reason": "Original small-angle SLERP, original two-key endpoint and float32 pose time replace old host approximations."
+  },
+  "unitTests": {
+    "passed": 28,
+    "elapsedSeconds": 0.096
+  },
+  "selection": "Eight real SANs with selected tracks; four ordinary Icy plus four synthetic rare clips on three PMD profiles. No complete 240-output matrix rerun.",
+  "limits": [
+    "VMD scale/events/physics/PMX/arbitrary rigs remain outside scope.",
+    "30fps baked motion; no between-frame cubic or actor time/wrap equivalence promise.",
+    "Independent native FK applies to rare fixtures; ordinary output pose reference is converter regression.",
+    "No new visual playback in original MMD; PC image executes only in the bounded guest.",
+    "Viewer/Exporter C# rare-key integration remains separate follow-up."
+  ]
+}
