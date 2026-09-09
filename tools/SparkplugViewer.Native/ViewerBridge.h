@@ -113,6 +113,17 @@ SPV_API int spv_graph_texture(void*,std::uint32_t,SpvGraphTexture*) noexcept;
 SPV_API int spv_graph_texture_bgra(void*,std::uint32_t,std::uint8_t*,std::uint32_t) noexcept;
 SPV_API int spv_graph_texture_track(void*,std::uint32_t,std::uint32_t* keys,float* duration) noexcept;
 SPV_API int spv_graph_texture_keys(void*,std::uint32_t,SpvGraphTextureKey*,std::uint32_t) noexcept;
+// Explicit tool inputs to the actual controller and pass methods. These calls
+// do not invent an AnimationManager schedule, enabled gate or visibility order.
+struct SpvGraphControllerClock {std::uint32_t classID;float accumulated,applied,playback;std::uint32_t hasPlayback,enabled;};
+struct SpvGraphUVSubmission {std::uint32_t stage;float matrix[9];};
+SPV_API int spv_graph_controller_clock(void*,std::uint32_t,SpvGraphControllerClock*) noexcept;
+SPV_API int spv_graph_apply_controllers(void*,const std::uint32_t* ids,std::uint32_t count,float elapsed) noexcept;
+SPV_API int spv_graph_update_material_color(void*,std::uint32_t material,std::uint32_t frame,std::uint32_t force,std::uint32_t* evaluated) noexcept;
+// Output capacity must cover the pass's layer count. Output consists only of
+// actual UV submissions in original call order. Failure can retain mutations
+// performed by preceding layers; original updates are not transactional.
+SPV_API int spv_graph_update_material_pass(void*,std::uint32_t material,std::uint32_t pass,SpvGraphUVSubmission*,std::uint32_t capacity,std::uint32_t* count) noexcept;
 // Select actual loaded Node objects, including every parent of the selection.
 // The scene retains their whole resource graph and preserves authored matrices.
 SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count) noexcept;

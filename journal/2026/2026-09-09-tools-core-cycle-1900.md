@@ -141,3 +141,13 @@ Importer больше не теряет repeated placements. Несколько 
 отклоняются его ограниченным ImportedScene; static selection не отбрасывает Skin.
 Пять .NET builds и native FBX passed. Full shader/material clock остаются далее.
 Досье: `docs/research/tool-export-occurrences-shared-core-2026-09-09.md`.
+
+Блок 14: Materials API на том же live ResourceGraph выполняет actual controller
+accumulation / pass UV+AnimTex update / material color-frame entry. Один shared
+projector используется runtime и immutable snapshot. Два старых uniform clocks
+удалены из frontend. Пять файлов: 2191 material, 88 controllers, 86 UV updates,
+13787 checks. Python 14 playback events/73 checks/37 guards, snapshot 30938.
+Native MaterialController/UVFunction/FullLoader и пять builds прошли. Game code
+не менялся; original proofs reuse. Автоматический frontend frame ещё не подключён,
+MaterialColorController factory не подменялась.
+Досье: `docs/research/tool-material-runtime-shared-core-2026-09-09.md`.

@@ -190,3 +190,16 @@ Static selection Skin и importer multipass явно отклоняются, о�
 зафиксированы. Full material runtime/target shader projection остаются далее.
 Native game DLL не менялась, original probes не повторялись, релиза нет.
 Досье: `docs/research/tool-export-occurrences-shared-core-2026-09-09.md`.
+
+### Блок 14: живой material runtime общей сцены
+
+Materials API сохраняет тот же ResourceGraph, вызывает actual RenderController
+Apply, material pass update и DXMaterial color frame method. Все UV submissions
+и texture selection приходят из общего кода, projector общий со static snapshot.
+Удалены два старых uniform texture clocks в frontend; новый автоматический
+renderer frame ещё не подключён. Пять файлов: 2191 material, 88 controllers,
+86 изменённых UV layers, 13787 checks. Python: 14 animation events, 73 checks,
+37 ABI guards. Static snapshot regression 30938; три native suites и пять
+consumer builds прошли. Original proofs переиспользованы, алгоритмы не менялись.
+MaterialColorController factory и full scheduler/shader остаются открытыми.
+Досье: `docs/research/tool-material-runtime-shared-core-2026-09-09.md`.

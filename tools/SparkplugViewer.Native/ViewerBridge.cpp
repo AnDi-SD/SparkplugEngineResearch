@@ -730,6 +730,53 @@ SPV_API int spv_graph_texture_keys(void* handle,std::uint32_t id,SpvGraphTexture
         for(std::uint32_t i=0;i<count;++i)output[i]={times[i],graph.ID(textures[i].get())};});
 }
 static_assert(sizeof(SpvGraphModel)==24&&sizeof(SpvGraphMaterial)==128&&sizeof(SpvGraphLayer)==112&&sizeof(SpvGraphTextureKey)==8);
+static_assert(sizeof(SpvGraphControllerClock)==24&&sizeof(SpvGraphUVSubmission)==40);
+SPV_API int spv_graph_controller_clock(void* handle,std::uint32_t id,SpvGraphControllerClock* output) noexcept {
+    return guarded([&]{require(output,"Missing controller clock output");
+        const auto& controller=graphResource<spRenderController>(graphForView(handle),id);
+        *output={controller.vfunc_18().classID,controller.GetAccumulatedTimeForAnalysis(),controller.GetAppliedTimeForAnalysis(),0,0,
+            controller.IsEnabledForAnalysis()?1u:0u};
+        if(const auto* animation=dynamic_cast<const spAnimTexController*>(&controller)) {
+            output->playback=animation->GetPlaybackTimeForAnalysis();output->hasPlayback=1;
+        }});
+}
+SPV_API int spv_graph_apply_controllers(void* handle,const std::uint32_t* ids,std::uint32_t count,float elapsed) noexcept {
+    return guarded([&]{require(std::isfinite(elapsed)&&count<=4096&&(ids||!count),"Invalid bounded controller application");
+        const auto& graph=graphForView(handle);
+        std::vector<spRenderController*> controllers;controllers.reserve(count);
+        std::unordered_map<std::uint32_t,bool> seen;
+        for(std::uint32_t i=0;i<count;++i) {
+            require(seen.emplace(ids[i],true).second,"Repeated controller in one elapsed-time application");
+            auto* controller=dynamic_cast<spRenderController*>(graph.Find(ids[i]));
+            require(controller,"Expected a loaded render controller");
+            require(std::isfinite(controller->GetAccumulatedTimeForAnalysis()+elapsed),"Controller clock would become non-finite");
+            controllers.push_back(controller);
+        }
+        for(auto* controller:controllers)controller->ApplyForAnalysis(elapsed);
+    });
+}
+SPV_API int spv_graph_update_material_color(void* handle,std::uint32_t id,std::uint32_t frame,std::uint32_t force,std::uint32_t* evaluated) noexcept {
+    return guarded([&]{require(evaluated&&force<=1,"Invalid material color update output or force flag");*evaluated=0;
+        auto* material=dynamic_cast<spDXMaterial*>(graphForView(handle).Find(id));require(material,"Expected loaded PC material");
+        bool changed=false;
+        const bool ok=material->UpdateColorForFrameForAnalysis(frame,force!=0,&changed);*evaluated=changed?1u:0u;
+        require(ok,"Loaded material color controller update failed");});
+}
+SPV_API int spv_graph_update_material_pass(void* handle,std::uint32_t id,std::uint32_t passIndex,SpvGraphUVSubmission* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{require(count,"Missing material pass submission count");*count=0;
+        const auto& graph=graphForView(handle);const auto& material=graphResource<spMaterial>(graph,id);
+        require(passIndex<material.GetPassCountForAnalysis(),"Graph material pass index out of range");
+        auto* pass=dynamic_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(passIndex));
+        require(pass,"Unsupported runtime material pass");
+        require(capacity>=pass->GetLayerCountForAnalysis()&&capacity<=8&&(output||!capacity),"Material UV submission capacity mismatch");
+        struct Capture {SpvGraphUVSubmission* output;std::uint32_t* count;};Capture capture{output,count};
+        const auto submit=+[](void* context,std::uint32_t stage,const std::array<float,9>& matrix) {
+            auto& value=*static_cast<Capture*>(context);auto& entry=value.output[(*value.count)++];entry.stage=stage;
+            std::copy(matrix.begin(),matrix.end(),entry.matrix);return true;
+        };
+        require(pass->UpdateForRenderForAnalysis(0xffffffffu,submit,&capture),"Loaded material pass update failed; preceding layer mutations are retained");
+    });
+}
 SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_t count) noexcept {
     std::unique_ptr<Scene> result;
     if(!guarded([&]{
