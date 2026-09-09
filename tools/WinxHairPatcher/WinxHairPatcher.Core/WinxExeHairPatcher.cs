@@ -138,8 +138,11 @@ public static class WinxExeHairPatcher
         byte[] source = File.ReadAllBytes(exePath);
         byte[] patched = PatchBytes(source, disabledMask);
         string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        string backup = exePath + $".hairpatch-backup-{stamp}";
-        string temporary = exePath + $".hairpatch-{Guid.NewGuid():N}.tmp";
+        string operationId = Guid.NewGuid().ToString("N");
+        // File.Replace can replace an existing backup, including one made in the
+        // same second. Keep every operation's original bytes under its own name.
+        string backup = exePath + $".hairpatch-backup-{stamp}-{operationId}";
+        string temporary = exePath + $".hairpatch-{operationId}.tmp";
         File.WriteAllBytes(temporary, patched);
         try { File.Replace(temporary, exePath, backup, true); }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }

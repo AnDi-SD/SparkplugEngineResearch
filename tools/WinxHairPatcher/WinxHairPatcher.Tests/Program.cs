@@ -255,5 +255,53 @@ corruptedGameplay[attachmentOffset] ^= 1;
 Check(!WinxExeHairPatcher.Inspect(corruptedGameplay).IsSupported,
     "unknown gameplay code signature is rejected");
 
+// File replacement is a platform operation. Use only the verified signatures in a
+// small synthetic file, so repeated writes never touch the supplied game EXE.
+byte[] fileFixture = gameplaySites.SelectMany(site => site.Original)
+    .Concat(menuOriginal).ToArray();
+string fileTestDirectory = Path.Combine(Path.GetTempPath(), "WinxHairPatcher.Tests-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(fileTestDirectory);
+try
+{
+    string exePath = Path.Combine(fileTestDirectory, "WinxClub.exe");
+    File.WriteAllBytes(exePath, fileFixture);
+    WinxExePatchResult firstFilePatch = WinxExeHairPatcher.PatchFile(exePath, requested);
+    byte[] firstFileBytes = File.ReadAllBytes(exePath);
+    Check(firstFileBytes.SequenceEqual(WinxExeHairPatcher.PatchBytes(fileFixture, requested)),
+        "file patch writes the same verified bytes as the in-memory operation");
+    Check(File.ReadAllBytes(firstFilePatch.BackupPath).SequenceEqual(fileFixture),
+        "first file patch backs up the original bytes");
+
+    WinxExePatchResult secondFilePatch = WinxExeHairPatcher.PatchFile(exePath, secondMask);
+    Check(firstFilePatch.BackupPath != secondFilePatch.BackupPath,
+        "rapid successive file patches have distinct backup names");
+    Check(File.ReadAllBytes(firstFilePatch.BackupPath).SequenceEqual(fileFixture),
+        "repatch preserves the first original backup");
+    Check(File.ReadAllBytes(secondFilePatch.BackupPath).SequenceEqual(firstFileBytes),
+        "repatch separately backs up the preceding patch");
+    Check(File.ReadAllBytes(exePath).SequenceEqual(WinxExeHairPatcher.PatchBytes(fileFixture, secondMask)),
+        "repatch writes the newly requested mask to the file");
+    Check(!Directory.EnumerateFiles(fileTestDirectory, "*.tmp").Any(),
+        "successful file replacement leaves no temporary file");
+
+    string unsupportedPath = Path.Combine(fileTestDirectory, "unsupported.exe");
+    byte[] unsupportedBytes = [0x4d, 0x5a, 0x00, 0x00];
+    File.WriteAllBytes(unsupportedPath, unsupportedBytes);
+    string[] beforeRejectedPatch = Directory.GetFiles(fileTestDirectory);
+    bool rejected = false;
+    try { WinxExeHairPatcher.PatchFile(unsupportedPath, requested); }
+    catch (InvalidDataException) { rejected = true; }
+    Check(rejected, "unsupported file patch fails before replacement");
+    Check(File.ReadAllBytes(unsupportedPath).SequenceEqual(unsupportedBytes),
+        "rejected file patch preserves the input bytes");
+    Check(Directory.GetFiles(fileTestDirectory).Order().SequenceEqual(beforeRejectedPatch.Order()),
+        "rejected file patch creates neither backup nor temporary file");
+}
+finally
+{
+    foreach (string file in Directory.EnumerateFiles(fileTestDirectory)) File.Delete(file);
+    Directory.Delete(fileTestDirectory);
+}
+
 Console.WriteLine($"PASS: {checks} assertions; mask=0x{requested:X4}; bytes={original.Length}");
 return 0;

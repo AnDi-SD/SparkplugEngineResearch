@@ -44,6 +44,17 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    Static original/ABI 5 случаев; managed Font 54, Static 50, общая проверка
    Viewer 609 (локальный Samples отсутствует, отдельное menu проверено).
    Viewer/Importer builds без warnings/errors. Все ядра ещё не готовы.
+   Checkpoint: root `a9c15df`, Viewer `0c76126`.
+2. WinxHairPatcher: проверена операция EXE patch по существующему
+   [оригинальному evidence](bloom-hair-system.md). Дублирования игровой
+   симуляции/serializer нет; это собственная операция изменения файла.
+   Исправлена коллизия backup-имён при двух патчах в одну секунду: добавлен
+   уникальный ID операции. Старый код провалил regression; исправленный прошёл
+   **38 assertions**, build без warnings/errors. Игровой EXE только читался,
+   запись проверялась на временных synthetic файлах. Визуальная проверка всех
+   игровых комбинаций остаётся прежним ограничением, не результатом этого блока.
+   [Локальные команды и evidence](../../local-data/results/tools-core-cycle-20260910-0730/hair-core/notes.md),
+   [manifest](../../local-data/results/tools-core-cycle-20260910-0730/hair-core/manifest.json).
 
 ## Новые границы и исправления
 
@@ -55,7 +66,7 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   инфраструктуры не выдаются за успешное полное освобождение.
 - Новые host-дефекты Font (foreign entry и diagnostic pointer) исправлены
   до checkpoint и покрыты адресными проверками.
-- В WinxHairPatcher обнаружена возможная коллизия имён backup; независимое
-  исправление и проверка продолжаются, завершённым ещё не считается.
+- Коллизия backup в WinxHairPatcher исправлена и проверена; новых спорных
+  изменений игровой логики этот блок не потребовал.
 
 Время остановки ещё не наступило; цикл продолжается.
