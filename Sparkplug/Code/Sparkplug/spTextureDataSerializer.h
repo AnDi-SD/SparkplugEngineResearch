@@ -92,6 +92,11 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static bool ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
             std::uint32_t,const std::function<bool(const spTextureBuffer&)>& initialize,bool& initialized,std::string*,
             const CrossReadObserverForAnalysis& observer={});
+        // PC42E5F0 memory-source branch: copy the entire buffer, Close and
+        // delete it before the final terminator. Explicit host owner replaces
+        // the generic native +0C attachment; that dangling field is not modeled.
+        [[nodiscard]] static bool WriteEmbeddedSourceForAnalysis(spStream&,const spTextureData&,
+            std::unique_ptr<spMemoryStream>& source,std::string* error);
     protected:
         [[nodiscard]] static bool InitializeCrossDXForAnalysis(spSerializerReadContextForAnalysis&,
             const spTextureBuffer&,spDXTexture&);

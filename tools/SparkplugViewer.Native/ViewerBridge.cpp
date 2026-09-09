@@ -110,6 +110,7 @@ struct ContainerIndex {
 static_assert(sizeof(SpvContainerInfo)==36&&sizeof(SpvContainerEntry)==36);
 struct TextureSectionView {
     SpvTextureSectionInfo info{};
+    std::uint32_t field1C=0;
     std::vector<SpvTextureMip> mips;
     std::vector<std::byte> xrgb;
     TextureSectionView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
@@ -130,6 +131,7 @@ struct TextureSectionView {
         } else {
             spDXTextureDataSerializer::NativeReadForAnalysis observed;
             if(!spDXTextureDataSerializer::ReadNativeSectionForAnalysis(context,input,size,observed,&error))throw std::runtime_error(error);
+            field1C=observed.field1C;
             info={1,observed.width,observed.height,observed.flags,0,observed.flags==0?32u:observed.flags==1?4u:8u,
                 observed.field1C!=0,static_cast<std::uint32_t>(observed.mips.size())};
             for(std::size_t i=0;i<observed.mips.size();++i) {
@@ -141,6 +143,13 @@ struct TextureSectionView {
     }
 };
 static_assert(sizeof(SpvTextureSectionInfo)==32&&sizeof(SpvTextureMip)==28);
+struct SerializedBytes {
+    std::vector<std::uint8_t> bytes;
+    explicit SerializedBytes(spMemoryStream& source) {
+        std::uint32_t size=0;require(source.GetSize(&size)&&size&&source.GetBuffer(),"Empty serialized output");
+        const auto* data=static_cast<const std::uint8_t*>(source.GetBuffer());bytes.assign(data,data+size);
+    }
+};
 struct MeshBVView {
     std::unique_ptr<spMeshBV> mesh;
     std::unique_ptr<spFaceDataContainer> standaloneFaces;
@@ -270,6 +279,43 @@ SPV_API int spv_texture_section_bgra(void* handle,std::uint8_t* output,std::uint
             for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
         }
     });
+}
+SPV_API int spv_texture_section_field1c(void* handle,std::uint32_t* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing texture field1C input/output");*output=static_cast<TextureSectionView*>(handle)->field1C;});
+}
+SPV_API void* spv_texture_write_bgra(const std::uint8_t* pixels,std::uint32_t count,std::uint32_t width,
+    std::uint32_t height,std::uint32_t field1C,std::uint32_t kind) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(pixels&&width&&height&&width<=16384&&height<=16384&&std::uint64_t(width)*height*4==count
+            &&count<=16u*1024u*1024u&&field1C<=255&&kind<=1,"Invalid bounded BGRA writer input");
+        spTextureData texture;spTextureData::NativeMipForAnalysis mip;
+        mip.width=width;mip.rows=height;mip.rowStride=width*4;
+        const auto* bytes=reinterpret_cast<const std::byte*>(pixels);mip.bytes.assign(bytes,bytes+count);
+        std::vector<spTextureData::NativeMipForAnalysis> mips;mips.push_back(std::move(mip));
+        require(texture.SetNativeMipDataForAnalysis(width,height,0,static_cast<std::uint8_t>(field1C),std::move(mips)),"Cannot prepare CPU texture mip input");
+        spMemoryStream output;require(output.Open("tool.texture.output"),"Cannot open output memory stream");
+        if(kind==1)require(spDXTextureDataSerializer::WriteMipRecordForAnalysis(output,texture,texture.GetNativeMipsForAnalysis()[0],true),"Cannot serialize first mip record");
+        else {
+            auto source=std::make_unique<spMemoryStream>();require(source->Open("tool.texture.source"),"Cannot open embedded memory stream");
+            spSerializerManager manager;require(manager.SetSerializationPolicyForAnalysis(1),"Cannot select native-only texture output");
+            std::string error;
+            if(!spDXTextureDataSerializer().WritePayloadWithContextForAnalysis(manager,*source,texture,&error))throw std::runtime_error(error);
+            require(spSerializer::WriteObjectHeaderForAnalysis(output,texture),"Cannot write TextureData object header");
+            if(!spTextureDataSerializer::WriteEmbeddedSourceForAnalysis(output,texture,source,&error))throw std::runtime_error(error);
+            require(!source,"Embedded source ownership was not consumed");
+        }
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
+SPV_API void spv_serialized_bytes_destroy(void* handle) noexcept {guarded([&]{delete static_cast<SerializedBytes*>(handle);});}
+SPV_API int spv_serialized_bytes_size(void* handle,std::uint32_t* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing serialized bytes input/output");*output=static_cast<std::uint32_t>(static_cast<SerializedBytes*>(handle)->bytes.size());});
+}
+SPV_API int spv_serialized_bytes_copy(void* handle,std::uint8_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle&&output,"Missing serialized byte copy input/output");const auto& bytes=static_cast<SerializedBytes*>(handle)->bytes;
+        require(bytes.size()==count,"Serialized output byte count differs");std::copy(bytes.begin(),bytes.end(),output);});
 }
 SPV_API void* spv_mesh_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind,std::uint32_t platformMask) noexcept {
     std::unique_ptr<spvhost::RenderMeshView> result;

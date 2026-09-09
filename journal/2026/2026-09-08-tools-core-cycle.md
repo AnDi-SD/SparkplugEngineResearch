@@ -77,3 +77,9 @@ opaque, header numeric relationships не подгоняются под стар
 сравнений, C++1007, C#9300/2975, TextureTool4248+40 прошли. Source wrapper,
 PS2 metadata и writers пока не перенесены. Досье:
 `docs/research/tool-texture-sections-shared-core-2026-09-09.md`.
+
+Десятый блок: typed texture output теперь C++ writer. Оригинал подтвердил
+raw NPOT и field1C0/2, embedded MemoryStream потребляется после записи целого
+буфера. Четыре writer cases11/11, два source cases7/7 owners освобождены;
+ABI bytes точны. C++1007, TextureTool4272, Importer192 прошли,32 edited SMO
+побайтно прежние. Досье: `docs/research/tool-texture-shared-writer-2026-09-09.md`.

@@ -165,3 +165,13 @@ Raw pixels и PC mip records переданы общим serializers; C# пол�
 C#9300/2975 и TextureTool4248+40 прошли. Source-wrapper/PS2 metadata и writers
 ещё требуют переноса. Досье:
 `docs/research/tool-texture-sections-shared-core-2026-09-09.md`.
+
+### Десятый блок: общий texture writer
+
+Создание BGRA leaf и замена mip payload переданы исходным C++ writers.
+Выяснено настоящее consuming ownership embedded MemoryStream; прежний вывод
+о восстановлении cursor исправлен новым досье. Generic dangling attachment
+не экспортируется в host. Четыре original writers, два source cases, точный
+ABI, C++1007, TextureTool4272 и Importer192 прошли. Все32 edited outputs
+побайтно прежние; generic editing/field encoder остаются следующим переносом.
+Досье: `docs/research/tool-texture-shared-writer-2026-09-09.md`.

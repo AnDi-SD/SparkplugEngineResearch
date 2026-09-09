@@ -37,6 +37,19 @@ namespace sparkplug::reconstruction
 
     spDXTextureDataSerializer::~spDXTextureDataSerializer() = default;
 
+    bool spDXTextureDataSerializer::WriteMipRecordForAnalysis(spStream& stream,const spTextureData& texture,
+        const spTextureData::NativeMipForAnalysis& mip,bool first)
+    {
+        if(first)
+        {
+            const std::uint8_t nativeFlag=1,field1C=texture.GetField1CForAnalysis();
+            const std::uint32_t header[]{texture.GetWidthForAnalysis(),texture.GetHeightForAnalysis(),texture.GetTextureFlagsForAnalysis()};
+            if(!stream.WriteData(&nativeFlag,1)||!stream.WriteData(header,sizeof(header))||!stream.WriteData(&field1C,1))return false;
+        }
+        const std::uint32_t rowHeader[]{mip.width,mip.rowStride,mip.rows};
+        return stream.WriteData(rowHeader,sizeof(rowHeader))&&stream.WriteData(mip.bytes.data(),static_cast<std::uint32_t>(mip.bytes.size()));
+    }
+
     bool spDXTextureDataSerializer::WritePayloadWithContextForAnalysis(spSerializerManager& manager,
         spStream& stream,const spBaseObject& object,std::string* error) const
     {
@@ -64,14 +77,7 @@ namespace sparkplug::reconstruction
         for(const auto& mip:texture->GetNativeMipsForAnalysis())
         {
             const auto field=first?0u:1u;if(!native.WriteBeginForAnalysis(field))return fail("Cannot begin mip record");
-            if(first)
-            {
-                const std::uint8_t nativeFlag=1,field1C=texture->GetField1CForAnalysis();
-                const std::uint32_t header[]{texture->GetWidthForAnalysis(),texture->GetHeightForAnalysis(),texture->GetTextureFlagsForAnalysis()};
-                if(!stream.WriteData(&nativeFlag,1)||!stream.WriteData(header,sizeof(header))||!stream.WriteData(&field1C,1))return fail("Cannot write native mip prefix");
-            }
-            const std::uint32_t rowHeader[]{mip.width,mip.rowStride,mip.rows};
-            if(!stream.WriteData(rowHeader,sizeof(rowHeader))||!stream.WriteData(mip.bytes.data(),static_cast<std::uint32_t>(mip.bytes.size()))
+            if(!WriteMipRecordForAnalysis(stream,*texture,mip,first)
                 ||!native.WriteEndForAnalysis(field))return fail("Cannot write native mip rows");
             first=false;
         }

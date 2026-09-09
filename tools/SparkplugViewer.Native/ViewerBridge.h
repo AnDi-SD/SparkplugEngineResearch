@@ -45,6 +45,14 @@ SPV_API int spv_texture_section_mips(void*,SpvTextureMip*,std::uint32_t) noexcep
 // XRGB inspector preview through the restored raw decoder/encoder. Stored
 // bytes above remain untouched; this is an explicit BGRA output projection.
 SPV_API int spv_texture_section_bgra(void*,std::uint8_t*,std::uint32_t) noexcept;
+SPV_API int spv_texture_section_field1c(void*,std::uint32_t*) noexcept;
+// One supplied BGRA base mip. kind0: whole embedded CPU TextureData object;
+// kind1: raw first-mip record for a lossless editor field replacement.
+SPV_API void* spv_texture_write_bgra(const std::uint8_t*,std::uint32_t bytes,std::uint32_t width,
+    std::uint32_t height,std::uint32_t field1C,std::uint32_t kind) noexcept;
+SPV_API void spv_serialized_bytes_destroy(void*) noexcept;
+SPV_API int spv_serialized_bytes_size(void*,std::uint32_t*) noexcept;
+SPV_API int spv_serialized_bytes_copy(void*,std::uint8_t*,std::uint32_t) noexcept;
 // Bounded inspection only. Header reads the original prefix and checks the
 // opaque packet extent; it neither materializes nor executes a DMA packet.
 SPV_API int spv_ps2_mesh_header(const std::uint8_t*,std::uint32_t,SpvPs2MeshHeader*) noexcept;

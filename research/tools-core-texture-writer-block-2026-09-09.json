@@ -1,0 +1,243 @@
+{
+  "kind": "tools-core-texture-writer-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T00:04:24.204995+00:00",
+  "base_commit": "b30a562bff0d95ea96127d72281047c3ea2bb740",
+  "viewer_commit": "00ed2abfccfc786fff06f94b55e484190ec0810f",
+  "texture_tool_commit": "1ddb50f0b43238af0261b9dbbbefe14d032b0f85",
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.cpp",
+      "sha256": "1B79A8E682EA707D57792FA779C223DD502E7D22603654F0978617F95D4D275F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.h",
+      "sha256": "A11FA258182030C09101B2E7C3D99D420121AFED6D1B3CF4D9D34C800A7BF67C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureData.cpp",
+      "sha256": "A72E9D274A1ED7027F7683656EFFC33DC76203F3BD28B972493C6E4946D70A7D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureDataSerializer.cpp",
+      "sha256": "DA51BD48E6D2856C7229BF5A3EAEA2A3008CC7B7C1DBEBBB4EE33EF8D951158B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureDataSerializer.h",
+      "sha256": "EA6CB0EAD402285D9AF151FEA7009F29EAE697E8D211FBA57EC86D1C09A5AF8B"
+    },
+    {
+      "path": "docs/research/tool-texture-shared-writer-2026-09-09.md",
+      "sha256": "BD7957A3449511E9D9C98560F89D97380CC620D3BB34D656F7C5E5AE1C8D9A39"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-0730.md",
+      "sha256": "1E37B2CB56C6B6A44881750EA39FBAAE70A46E6690F593101B324755A492F51B"
+    },
+    {
+      "path": "journal/2026/2026-09-08-tools-core-cycle.md",
+      "sha256": "795499FD5DC23426E691EA3E8E85382FEFA35C3C356679B9517DC04657967187"
+    },
+    {
+      "path": "research/probe_pc_texture_embedded_writer.py",
+      "sha256": "9815A8E4DBE745D65EEC1EDE2510CA59F9DDF82AE6C873A5F430367F4FC908CE"
+    },
+    {
+      "path": "research/probe_pc_texture_writer_dimensions.py",
+      "sha256": "A9582D7B096ACA4360D7864936763D3452FF854007DDC52E49BEA8EA6E3772FE"
+    },
+    {
+      "path": "research/validate_tools_texture_writer.py",
+      "sha256": "EBF515D8CB5EDCAD46C66112E1871283AF7609904D5BD34A90781143949FFBA0"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "13DDCD36780AA4908EEC426D07181464C4558551397951F2370CDDB620F113F5"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "A54D2E7DFC7CEC37B539A21C54AE84E80D0CA7205036A6214B12A3F01ADE3F53"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "C4C3EA3E1C5008C930E5F13EB45D795CD53BBB8BA1F70E88D5C966BB65D330F1",
+      "git_blob_sha256": "7A80F3BA076200FC0DD8B9319FC59DD7CFBD380620FEF0B5EB5B394DFD3715E5"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureDataDecoder.cs",
+      "sha256": "7388FB72166F6B889D138A04EB91C4A8FCB8CC9153014B97F8EB7F333B6CC3AC",
+      "git_blob_sha256": "74D1C6AF729E9E8A2389114E6912DED32299F58B678B96BBB4829ED0B52F0AB2"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoTextureDataWriter.cs",
+      "sha256": "B4AC67D2B3D91D0CE87F4CC27C2D601876C8A9F882EB2B71490123CB77F551CD",
+      "git_blob_sha256": "51FCF6746585A785E6EAAF99804BA26EA96AE985CE2E4D1EDEE802468FBDAB25"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoViewer.Editing.csproj",
+      "sha256": "6F3EEFD1771FADD697F8A42FC93F92FDE00FF0F1D23BF9C7C9B90F8B7051F57B",
+      "git_blob_sha256": "B861747C7189380383F1A844CE3B3541C0E5FB32D6DAB0A4001C879D457A2036"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/AssemblyInfo.cs",
+      "sha256": "AF827829762D1E7F3CDDD944F91C44CE5C03C3CB7052AB978A35AF418748500A",
+      "git_blob_sha256": "98374DCE5332C454C1329C34810F8D0B7F89ABDEE56BDDBA215130D5017BAE0A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "9D99D400F071B6CB8ED8D2C631F710072EE013764B53ED39D34C14912671AD53",
+      "git_blob_sha256": "57637932CD4615B164259E2B514C4867A437E7A2637CD460B572EFEEB82E6293"
+    }
+  ],
+  "texture_tool_sources": [
+    {
+      "path": "tools/SMOTextureTool/README.md",
+      "sha256": "64E2A9CE6BCB7FF4CC451F03E1C61145D1047A2B5BE5E2481223BECBD02A7F22",
+      "git_blob_sha256": "37E5ABEFD64F29F0F340BD244A38318804B30736F5809F238CA9783131755926"
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/FocusedTextureRegression.cs",
+      "sha256": "BA81F0367E1BA1F7B920CD7EF7CDEE8E3587181C9D596B2D9074EBA2CCAD337F",
+      "git_blob_sha256": "6CFF3E6C04D5B5C812A51968728A0244C44DC5F555C2FA723B1218E8AFD878AB"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "sha256": "55354C097F6902A0971FF00EE5BE5082FC9CD7334389DB8C637824277722BD4F"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerTextureSerializationChecks.exe",
+      "sha256": "4B2312CF25B37EDA95333F335C2FCC6D2C84DFB3C094CC983509ABCBD691DECC"
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/bin/Release/net8.0/SMOTextureTool.FormatTests.dll",
+      "sha256": "6553186895B4BB386BD7DB8F3E846A7A5D4E2F3D24ADD743B8F452C11954AFF6"
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/bin/Release/net8.0/SmoViewer.Editing.dll",
+      "sha256": "3ED51491F1B69D8783DF2BF0CA79E0CB981F3D81D7C28A4593B617171644F681"
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll",
+      "sha256": "C8BC45BA5F4B0B04CEA879678951BCA30324FBF6E73A5AA79B2913078135D579"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoImporter.FormatTests.dll",
+      "sha256": "8F1BAFB49E8B4D79273404E6BCB70588D6A81C05480B5ED614BF0FAFFC4DF405"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/13x7.json",
+      "sha256": "D207A889E4FE4E8EBD0E8A061BA3DCB2ACCE441D7F4859D658F07B42FCA1C310"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/13x7.log",
+      "sha256": "7E0984B508A2A1E2650FE7F2E412753FCE26779C5898B0AA2E101EE5BD3BAAA0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/1x1.json",
+      "sha256": "B3F95855624062763F546A810B8802FEDE96F8117DFADB19FCC30EED509A670E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/1x1.log",
+      "sha256": "ED412B949154DBDF1F1B22F78A7622E0281CC076C7A9DFD53DC3B0CE16D48138"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/1x9-field2.json",
+      "sha256": "D5C0AD835E672EC2F49B88E294ECBD7983D8565A5F34B852563421790B2BD242"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/1x9-field2.log",
+      "sha256": "2450C5EF483DB04BAC57961C562403218408F89A5A4FB8C126451EA191AA1F9C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/3x2-field0.json",
+      "sha256": "BDE7C973A7C45A0F73EEBEE1EBEF2D84B29851C04AFF60451CA9501738606222"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/3x2-field0.log",
+      "sha256": "30A1265A55D5F5AE5F7E8BFB5C62E1C1B38F4D297A94C13D2DB0D5EF8D0143C3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/abi.json",
+      "sha256": "02BA944D0584FF120FBDE6FA919788F43F21C9AB2B3E8870DB18B3B4470E0CD8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/embedded-positioned.json",
+      "sha256": "2D9CF119FA51282721F8227250CC13AA8DC219261A043A12DAB56893AEA430BF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/embedded-positioned.log",
+      "sha256": "46737C84BC19892CC2D1D4C7CDABD017CCEC7D6A954D217565075E01F6C09CB4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/embedded-start.json",
+      "sha256": "120D042A35B848EED91088D3A14BA2965308B0C3791462934C9811DFDBCF2910"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/embedded-start.log",
+      "sha256": "FAFC5FD3E00F5C9C3FACA9510A887FFB20F297F34661257FA2485A273AD9E45D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/importer/report.json",
+      "sha256": "7C2B63C775856D426CC1F501FF43A119A6B538C26B7FACAE3FA201B4BE994E7B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/importer-check.log",
+      "sha256": "68F41D9FAB3062170C1AF591BE32915E7AB3509C49E58B8374C88C8FC0B7566F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-native-suite.log",
+      "sha256": "6F656A1C775C60885001115C4905FD66AE5DD21B23CC41609AAFB38DFD27E345"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-writer-importer-build.log",
+      "sha256": "E8ECD57991882D88907F130E37FBDD432AA8BB2078D7CCA092398A86707D56AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-writer-managed-build.log",
+      "sha256": "C20896BF124AB6396865197E6864734499321B59AE5E143D95088B1770B7EC0D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-writer-native-build.log",
+      "sha256": "6E8EE0C433BF73A4D764B975B059F1BA35FF5F265C0E3EEA6EC4A4C471F455A6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-writer-native-final.log",
+      "sha256": "E46D04B95DCDDABDF4C95461ABD70BA11B7866BE2832C08972637CE3A19A0B9A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/texture-writer-tool-final-build.log",
+      "sha256": "71C1D897AE80C86D276478F20A4866A4DCB0689328AB4496AD5E5AADE87AE705"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/tool/report.json",
+      "sha256": "1F61B9FE86916A842D71713F3CED16544B1735A774E5E1F8BD367E69F9609800"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/tool-final-check.log",
+      "sha256": "4A05F2D4E05A194D4A78A4ECB0A1C0898839CCD8BDE65C964C906A4FBA12360B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/texture-writer/unchanged-writer-output.json",
+      "sha256": "12CCE80BF23796F6C1CCFCEA7A191E7C355031A1EC59F06EF569BA7C4A69CC54"
+    }
+  ],
+  "pc_executable": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "validation": {
+    "original_pc_mip_writers": 4,
+    "original_pc_embedded_writers": 2,
+    "cpp_texture_checks": 1007,
+    "texture_tool_checks": 4272,
+    "importer_checks": 192,
+    "unchanged_edited_outputs": 32
+  },
+  "scope": "Shared PC BGRA creation/mip replacement; original consuming MemoryStream source branch with explicit host ownership; raw NPOT evidence. Generic attachment dispatch, PS2 writer, multiple mips/representations and whole Save graph remain outside this slice."
+}

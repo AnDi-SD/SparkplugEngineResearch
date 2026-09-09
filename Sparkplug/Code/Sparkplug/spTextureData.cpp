@@ -35,7 +35,11 @@ namespace sparkplug::reconstruction
     bool spTextureData::SetNativeMipDataForAnalysis(std::uint32_t width,std::uint32_t height,
         std::uint32_t flags,std::uint8_t field1C,std::vector<NativeMipForAnalysis> mips)
     {
-        if(!width||!height||width>65535||height>65535||(width&(width-1))||(height&(height-1))||flags>3||mips.empty())return false;
+        // Actual42BF40/42B9E0 writes valid NPOT raw rows unchanged (13x7,
+        // 1x9 probes). Keep the existing power-of-two guard only for the
+        // compressed layout whose wider dimension domain is not established.
+        if(!width||!height||width>65535||height>65535||flags>3||mips.empty()
+            ||(flags&&((width&(width-1))||(height&(height-1)))))return false;
         auto w=width,h=height;std::uint64_t total=0;bool ended=false;
         for(const auto& mip:mips)
         {

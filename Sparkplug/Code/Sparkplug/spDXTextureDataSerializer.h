@@ -5,6 +5,7 @@
 
 #include "spTextureDataSerializer.h"
 #include "../SparkplugDX/spDXTexture.h"
+#include "spTextureData.h"
 
 #include <cstdint>
 #include <vector>
@@ -60,6 +61,9 @@ namespace sparkplug::reconstruction
         };
         [[nodiscard]] static bool ReadNativeSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
             std::uint32_t,NativeReadForAnalysis&,std::string*);
+        // Original42B9E0 record writer, also used for lossless tool field replacement.
+        [[nodiscard]] static bool WriteMipRecordForAnalysis(spStream&,const spTextureData&,
+            const spTextureData::NativeMipForAnalysis&,bool first);
 
         spDXTextureDataSerializer() noexcept = default;
         ~spDXTextureDataSerializer() override;

@@ -1,6 +1,7 @@
 #include "spTextureDataSerializer.h"
 
 #include "spTextureData.h"
+#include "../SparkBase/spMemoryStream.h"
 #include "../SparkplugDX/spDXTexture.h"
 #include "spSerializerManager.h"
 #include "spDataBlockSerializer.h"
@@ -195,6 +196,21 @@ namespace sparkplug::reconstruction
 
     bool spTextureDataSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const
     {spSerializerManager manager;return WritePayloadWithContextForAnalysis(manager,stream,object,error);}
+
+    bool spTextureDataSerializer::WriteEmbeddedSourceForAnalysis(spStream& stream,const spTextureData& texture,
+        std::unique_ptr<spMemoryStream>& source,std::string* error)
+    {
+        if(error)error->clear();const auto fail=[&](const char* text){if(error)*error=text;return false;};
+        std::uint32_t size=0;
+        if(!source||!source->GetSize(&size)||!size||size>16u*1024u*1024u||!source->GetBuffer())
+            return fail("Embedded source requires a bounded owned MemoryStream");
+        spDataBlockSerializer wrapper;
+        if(!wrapper.BeginObjectForAnalysis(stream,&texture)||!wrapper.WriteBeginForAnalysis(3)
+            ||!stream.WriteData(source->GetBuffer(),size)||!wrapper.WriteEndForAnalysis(3))
+            return fail("Cannot write embedded texture source");
+        (void)source->Close();source.reset();
+        return wrapper.FinalizeObjectForAnalysis()?true:fail("Cannot finalize consumed embedded source");
+    }
 
     bool spTextureDataSerializer::WriteSourceNoneForAnalysis(spStream& stream,const spTextureData& texture)
     {
