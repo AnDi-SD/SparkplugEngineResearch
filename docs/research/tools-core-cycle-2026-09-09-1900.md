@@ -241,3 +241,15 @@ release; пользователь уведомлён. PC-only test_world_navmesh
 source-only TextureData, который исследуется следующим. Occlusion Init остаётся
 неподтверждённым; capped вызов не повторялся и не заменялся заглушкой.
 Досье: `docs/research/tool-navigation-readers-shared-core-2026-09-09.md`.
+
+### Блок 18: LensFlare reader, spQuad и PS2 ownership
+
+Field1 оказался counted array, field0 — одним primary element. Ошибочная
+C# трактовка удалена; actual LensFlare/Quad/serializer используются общим graph.
+Пять PC captures совпали с C++, отдельный PC Quad destructor подтвердил refs2→1.
+Полный PC LensFlare destructor capped и не повторялся; PS2 static destructor
+подтвердил array→Quad→Renderable ownership. ABI21/15guards, managed20,
+LensFlare15/FullLoader213, пять builds. Два реальных уровня требуют Occlusion;
+их успешная загрузка не заявляется. UI только подключение исправленных DTO.
+Старый source-less TextureData — отдельный незакрытый whole-file случай CP116.
+Досье: `docs/research/tool-lens-flare-shared-core-2026-09-09.md`.

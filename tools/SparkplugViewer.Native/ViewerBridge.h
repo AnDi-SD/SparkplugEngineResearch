@@ -94,6 +94,12 @@ struct SpvGraphOctree {std::uint32_t parent,children[8];SpvOctreeFields fields;}
 SPV_API int spv_octree_fields_read(const std::uint8_t*,std::uint32_t,SpvOctreeFields*) noexcept;
 SPV_API int spv_graph_octree(void*,std::uint32_t id,SpvGraphOctree*) noexcept;
 SPV_API int spv_graph_navigation_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
+struct SpvLensFlareInfo {std::uint32_t elements,renderNode;float radius,speed;};
+struct SpvGraphRenderable {std::uint32_t material,fog,alpha,priority;};
+SPV_API int spv_graph_renderable(void*,std::uint32_t id,SpvGraphRenderable*) noexcept;
+struct SpvLensFlareElement {std::uint32_t material,color;float distance,scale;};
+SPV_API int spv_graph_lens_flare(void*,std::uint32_t id,SpvLensFlareInfo*) noexcept;
+SPV_API int spv_graph_lens_flare_element(void*,std::uint32_t id,std::uint32_t ordinal,SpvLensFlareElement*) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical
 // loader/cache identity; zero means NULL, never an inferred default resource.
 struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};

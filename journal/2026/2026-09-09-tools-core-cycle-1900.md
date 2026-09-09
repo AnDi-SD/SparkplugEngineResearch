@@ -181,3 +181,13 @@ Repeated populated table resize в оригинале дал duplicate release, 
 source-only TextureData reader; уточнена inline diagnostic chain. Следующая
 независимая задача — этот texture input. Релиза и полной готовности ядер нет.
 Досье: `docs/research/tool-navigation-readers-shared-core-2026-09-09.md`.
+
+Блок18: actual LensFlare/Quad ownership и LensFlareSerializer. Пять original-PC
+reader states совпали, включая counted array, NULL primary preserve, raw floats
+и повторный resize. Старый C# reader удалён, неправильный optional-glare layout
+исправлен. PC LensFlare dtor capped88B422, не повторялся; PS2 static destructor
+и отдельный успешный PC Quad lifecycle закрыли необходимое владение.
+ABI21 (15guards), managed20, LensFlare15/FullLoader213; пять builds.
+Battle01/Gardenia03 требуют OcclusionVolume, инспектор полного LensFlare там
+пока недоступен. Source-less TextureData не подправлялся. Релиза нет.
+Досье: `docs/research/tool-lens-flare-shared-core-2026-09-09.md`.

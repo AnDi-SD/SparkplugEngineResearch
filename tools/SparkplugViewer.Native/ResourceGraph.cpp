@@ -3,6 +3,8 @@
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
+#include "Code/Sparkplug/spLensFlare.h"
+#include "Code/Sparkplug/spLensFlareSerializer.h"
 #include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spNavigationGraph.h"
 #include "Code/Sparkplug/spNavigationPortal.h"
@@ -85,6 +87,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spNode,spNodeSerializer>(manager);
     Register<spRenderNode,spRenderNodeSerializer>(manager);
     Register<spSkyBox,spRenderNodeSerializer>(manager); // exact original6D4B00 mapping
+    Register<spLensFlare,spLensFlareSerializer>(manager);
     Register<spNavigationGraph,spNavigationGraphSerializer>(manager);
     Register<spNavigationPortal,spNavigationPortalSerializer>(manager);
     Register<spMeshNavigationSet,spMeshNavigationSetSerializer>(manager);

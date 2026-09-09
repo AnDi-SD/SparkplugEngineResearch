@@ -12,6 +12,7 @@
 #include "Code/Sparkplug/spOctreeNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spSkyBox.h"
+#include "Code/Sparkplug/spLensFlare.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -682,6 +683,19 @@ SPV_API int spv_graph_navigation_json(void* handle,std::uint8_t* output,std::uin
         const auto& json=graphForView(handle).NavigationJSON();*size=static_cast<std::uint32_t>(json.size());
         if(!output)return;
         require(capacity>=json.size(),"Navigation snapshot buffer is too small");std::memcpy(output,json.data(),json.size());});
+}
+SPV_API int spv_graph_renderable(void* handle,std::uint32_t id,SpvGraphRenderable* output) noexcept {
+    return guarded([&]{require(output,"Missing Renderable output");const auto& graph=graphForView(handle);const auto& value=graphResource<spRenderable>(graph,id);
+        *output={graph.ID(value.GetMaterialForAnalysis().get()),graph.ID(value.GetFogForAnalysis().get()),value.IsAlphaSortEnabledForAnalysis()?1u:0u,value.GetPriorityForAnalysis()};});
+}
+SPV_API int spv_graph_lens_flare(void* handle,std::uint32_t id,SpvLensFlareInfo* output) noexcept {
+    return guarded([&]{require(output,"Missing LensFlare output");const auto& graph=graphForView(handle);const auto& flare=graphResource<spLensFlare>(graph,id);
+        *output={static_cast<std::uint32_t>(flare.GetElementsForAnalysis().size()),graph.ID(flare.GetRenderNodeForAnalysis()),flare.GetOcclusionRadiusForAnalysis(),flare.GetOcclusionSpeedForAnalysis()};});
+}
+SPV_API int spv_graph_lens_flare_element(void* handle,std::uint32_t id,std::uint32_t ordinal,SpvLensFlareElement* output) noexcept {
+    return guarded([&]{require(output,"Missing LensFlare element output");const auto& graph=graphForView(handle);const auto& flare=graphResource<spLensFlare>(graph,id);
+        const auto* element=&flare.GetPrimaryForAnalysis();if(ordinal!=0xffffffffu){require(ordinal<flare.GetElementsForAnalysis().size(),"LensFlare element index out of range");element=flare.GetElementsForAnalysis()[ordinal].get();}
+        *output={graph.ID(element->quad.GetMaterialForAnalysis().get()),element->color,element->distance,element->scale};});
 }
 SPV_API int spv_graph_octree(void* handle,std::uint32_t id,SpvGraphOctree* output) noexcept {
     return guarded([&]{require(output,"Missing graph Octree output");const auto& graph=graphForView(handle);
