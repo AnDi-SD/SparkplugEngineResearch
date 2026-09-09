@@ -391,6 +391,8 @@ namespace sparkplug::reconstruction
                     auto* serializer=context.manager.FindForAnalysis(entry->classID);
                     if(!serializer||context.GetCreatedObjectCountForAnalysis()>=context.maximumCreatedObjectsForAnalysis)
                         return fail("Missing mesh serializer or object budget exceeded");
+                    const auto payloadTrace=context.BeginPayloadReadTraceForAnalysis(entry->id,entry->classID,source,entry->size,
+                        spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis::PreparedMesh);
                     auto object=serializer->ReadObjectHeaderAndCreateForAnalysis(source);
                     if(!object)return fail("Mesh header/factory failed");
                     auto* pointer=context.PublishObjectForAnalysis(std::move(object));
@@ -399,15 +401,18 @@ namespace sparkplug::reconstruction
                         struct BatchScope final
                         {
                             spSerializerReadContextForAnalysis& context;
-                            BatchScope(spSerializerReadContextForAnalysis& c,spDXMeshCombiner& b):context(c)
-                            {context.activeMeshCombiner=&b;++context.depth;}
-                            ~BatchScope(){--context.depth;context.activeMeshCombiner=nullptr;}
-                        } scope(context,combiner);
+                            const std::uint32_t previousConsumer;
+                            BatchScope(spSerializerReadContextForAnalysis& c,spDXMeshCombiner& b,std::uint32_t id)
+                                :context(c),previousConsumer(c.currentFileReadObjectIdForAnalysis)
+                            {context.activeMeshCombiner=&b;++context.depth;context.currentFileReadObjectIdForAnalysis=id;}
+                            ~BatchScope(){--context.depth;context.activeMeshCombiner=nullptr;context.currentFileReadObjectIdForAnalysis=previousConsumer;}
+                        } scope(context,combiner,entry->id);
                         loaded=serializer->ReadPayloadForAnalysis(context,source,entry->size-8,*pointer,error);
                     }
                     std::uint32_t end=0;
                     if(!loaded||context.failed||!source.GetCurrentPosition(end)||end!=entry->offset+entry->size)
                         return fail("Mesh payload failed or did not consume its exact extent");
+                    context.CompletePayloadReadTraceForAnalysis(payloadTrace,true);
                     // Unlike generic ReadReference/outer materialization,
                     // original4AA870 publishes only AFTER successful payload.
                     entry->object=pointer;

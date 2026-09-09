@@ -24,3 +24,13 @@
 - Следующий блок — Model/Material selection и authoring reference provenance
   Importer/LVLcreator. Аудит обнаружил host loader limit 64 МиБ при сценариях
   80+ МиБ; сообщено, обходной C# parser не вводится, нужны замеры памяти.
+- 20:48 МСК: второй блок сохранён root7ccb2ee / Vieweraf69d81.
+- 20:57–21:22 МСК: actual Model/Material selection —3 replacements/50 checks;
+  optional reader trace —5 native suites, ABI121348. Exact remap —42 managed
+  checks, включая Skin palette и raw field, похожий на ID. Пять consumer builds
+  прошли. LVL isolated worker создал7 объектов/2 forests, catalog4273 передан
+  один раз, source Alfea02 не изменился. Готовится третий checkpoint.
+- Alfea01 cached TextureData1848 не имеет payload-read coverage: его raw branch
+  remap приостановлен, пользователь уведомлён. Large-file audit отдельно
+  подтвердил исторический1015,77MiB peak и дополнительные16MiB guards; limits
+  не менялись. Следующий блок — общая запись скалярных Material параметров.

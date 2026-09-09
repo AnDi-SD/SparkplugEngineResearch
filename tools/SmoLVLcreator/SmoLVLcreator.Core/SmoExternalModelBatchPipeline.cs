@@ -87,7 +87,8 @@ internal static class SmoExternalModelBatchPipeline
             emitForestPlans: true,
             retainFinalContainer: false);
         return new SmoExternalModelForestPlanResult(
-            new SmoAdditiveForestPlan(run.ForestOperations, run.GeneratedObjectIds),
+            new SmoAdditiveForestPlan(run.ForestOperations, run.GeneratedObjectIds)
+            { ReferenceRanges = run.ReferenceRanges },
             run.MeshObjectIds,
             run.ImportedTextureObjectIds,
             worldTransforms.Count);
@@ -134,6 +135,8 @@ internal static class SmoExternalModelBatchPipeline
                 stream.Write(current.Data.Span);
             }
 
+            var referenceRanges = new List<SmoFileReferenceRange>();
+            var referenceTransport = new SmoFileReferenceWorkerContext();
             var textureFiles = new List<SmoExternalBatchTexture>(
                 importedScene.Textures.Count);
             for (int index = 0; index < importedScene.Textures.Count; index++)
@@ -230,6 +233,9 @@ internal static class SmoExternalModelBatchPipeline
                     foreach (SmoExternalBatchForest forest in result.Forests)
                     {
                         byte[] fieldData = File.ReadAllBytes(forest.FieldDataPath);
+                        if (forest.ReferenceRange is null)
+                            throw new InvalidDataException("External-model worker omitted actual-reader reference provenance.");
+                        referenceRanges.Add(SmoFileReferenceRange.RestoreWorkerTransport(fieldData, forest.ReferenceRange, referenceTransport));
                         SmoVisualForestEntry[] entries = forest.Entries.Select(entry =>
                             new SmoVisualForestEntry(
                                 entry.Id,
@@ -283,7 +289,8 @@ internal static class SmoExternalModelBatchPipeline
                 generatedMeshIds,
                 importedTextureObjectIds,
                 forestOperations,
-                generatedObjectIds);
+                generatedObjectIds,
+                referenceRanges);
         }
         finally
         {
@@ -383,7 +390,8 @@ internal static class SmoExternalModelBatchPipeline
         IReadOnlyList<uint> MeshObjectIds,
         IReadOnlyDictionary<int, uint> ImportedTextureObjectIds,
         IReadOnlyList<SmoVisualForestOperation> ForestOperations,
-        IReadOnlyList<uint> GeneratedObjectIds);
+        IReadOnlyList<uint> GeneratedObjectIds,
+        IReadOnlyList<SmoFileReferenceRange> ReferenceRanges);
 }
 
 public sealed class SmoExternalModelBatchJob
@@ -500,6 +508,9 @@ public sealed class SmoExternalModelBatchJob
             throw new InvalidDataException("Batch result path has no directory.");
         string stem = Path.GetFileNameWithoutExtension(resultPath);
         var result = new List<SmoExternalBatchForest>(plan.Operations.Count);
+        var referenceTransport = new SmoFileReferenceWorkerContext();
+        if (plan.ReferenceRanges is null || plan.ReferenceRanges.Count != plan.Operations.Count)
+            throw new InvalidDataException("Worker forest plan lacks actual-reader reference provenance.");
         for (int index = 0; index < plan.Operations.Count; index++)
         {
             SmoVisualForestOperation operation = plan.Operations[index];
@@ -516,7 +527,8 @@ public sealed class SmoExternalModelBatchJob
                         entry.RawName,
                         entry.TypeHash,
                         entry.RelativeOffset,
-                        entry.SerializedSize)).ToList()));
+                        entry.SerializedSize)).ToList(),
+                plan.ReferenceRanges[index].ExportWorkerTransport(referenceTransport)));
         }
         return result;
     }
@@ -545,7 +557,8 @@ public sealed record SmoExternalBatchForest(
     SmoVisualForestInsertionKind InsertionKind,
     int AnchorFieldType,
     string FieldDataPath,
-    List<SmoExternalBatchForestEntry> Entries);
+    List<SmoExternalBatchForestEntry> Entries,
+    SmoFileReferenceRangeTransport? ReferenceRange = null);
 
 public sealed record SmoExternalBatchForestEntry(
     uint Id,

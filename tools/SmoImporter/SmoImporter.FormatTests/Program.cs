@@ -1,5 +1,17 @@
 using SmoImporter.Core;
 
+if (args is ["--forest-reference-remap", string remapTemplate, string remapOutput])
+{
+    try { return ForestReferenceRemapRegression.Run(remapTemplate, remapOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--model-graph-links", string graphTemplate, string graphOutput])
+{
+    try { return ModelGraphLinkRegression.Run(graphTemplate, graphOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--smo-occurrences", string occurrenceSource, string layeredSource, string occurrenceOutput])
     return SmoOccurrenceImportRegression.Run(occurrenceSource, layeredSource, occurrenceOutput);
 

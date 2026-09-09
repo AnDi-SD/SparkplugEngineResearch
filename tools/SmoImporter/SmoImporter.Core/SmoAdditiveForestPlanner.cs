@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Security.Cryptography;
 using SmoViewer.Core;
 
 namespace SmoImporter.Core;
@@ -9,7 +10,11 @@ namespace SmoImporter.Core;
 /// </summary>
 public sealed record SmoAdditiveForestPlan(
     IReadOnlyList<SmoVisualForestOperation> Operations,
-    IReadOnlyList<uint> GeneratedObjectIds);
+    IReadOnlyList<uint> GeneratedObjectIds)
+{
+    /// <summary>Sealed actual-reader observations, aligned with Operations.</summary>
+    public IReadOnlyList<SmoFileReferenceRange>? ReferenceRanges { get; init; }
+}
 
 /// <summary>
 /// Converts an isolated serializer result to the shared forest-operation contract.
@@ -45,7 +50,14 @@ public static class SmoAdditiveForestPlanner
             .ThenByDescending(entry => entry.SerializedSize)
             .ToArray();
         if (generated.Length == 0)
-            return new SmoAdditiveForestPlan([], []);
+            return new SmoAdditiveForestPlan([], []) { ReferenceRanges = [] };
+
+        SmoLoadedResources loaded = SmoLoadedResources.Get(additiveResult);
+        SmoFileReferenceTrace trace = loaded.ReferenceTrace ??
+            throw new InvalidDataException(loaded.ReferenceTraceIssue ?? loaded.LoadIssue ??
+                "The additive result has no actual-reader reference provenance.");
+        if (loaded.ReferenceTraceIssue is not null)
+            throw new InvalidDataException(loaded.ReferenceTraceIssue);
 
         HashSet<uint> generatedIds = generated.Select(entry => entry.Id).ToHashSet();
         SmoObjectEntry[] roots = generated.Where(entry =>
@@ -109,7 +121,8 @@ public static class SmoAdditiveForestPlanner
                 fieldLength,
                 new SmoVisualForestOperation(
                     new SmoVisualForestAttachment(parent.Id, fieldData, forestEntries),
-                    SmoVisualForestInsertionKind.BeforeTerminal)));
+                    SmoVisualForestInsertionKind.BeforeTerminal),
+                trace.CaptureRange(additiveResult, fieldPhysicalOffset, fieldLength)));
         }
 
         if (!assignedIds.SetEquals(generatedIds))
@@ -121,15 +134,15 @@ public static class SmoAdditiveForestPlanner
 
         ValidateOwnerSuffixes(source, additiveResult, sourceById, resultById, extracted);
         ValidateUnchangedObjects(source, additiveResult, sourceById, resultById, extracted);
-        SmoVisualForestOperation[] operations = extracted
+        ExtractedOperation[] ordered = extracted
             .OrderBy(item => additiveResult.Objects.Single(entry =>
                 entry.Id == item.TargetOwnerId).LogicalOffset)
             .ThenBy(item => item.FieldOffset)
-            .Select(item => item.Operation)
             .ToArray();
         return new SmoAdditiveForestPlan(
-            operations,
-            generated.Select(entry => entry.Id).ToArray());
+            ordered.Select(item => item.Operation).ToArray(),
+            generated.Select(entry => entry.Id).ToArray())
+        { ReferenceRanges = ordered.Select(item => item.ReferenceRange).ToArray() };
     }
 
     /// <summary>
@@ -143,71 +156,69 @@ public static class SmoAdditiveForestPlanner
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(idMap);
         if (plan.GeneratedObjectIds.Count != idMap.Count ||
-            plan.GeneratedObjectIds.Any(id => !idMap.ContainsKey(id)) ||
+            plan.GeneratedObjectIds.Distinct().Count() != plan.GeneratedObjectIds.Count ||
+            plan.GeneratedObjectIds.Any(id => id == 0 || !idMap.ContainsKey(id)) ||
+            idMap.Values.Any(id => id == 0) ||
             idMap.Values.Distinct().Count() != idMap.Count)
         {
             throw new ArgumentException(
-                "The generated-object ID map must be complete and one-to-one.",
+                "The generated-object ID map must be complete, nonzero and one-to-one.",
                 nameof(idMap));
         }
+        if (plan.ReferenceRanges is null || plan.ReferenceRanges.Count != plan.Operations.Count)
+            throw new InvalidDataException(
+                "Cannot remap an additive plan without actual-reader reference provenance for every operation.");
+        uint[] entryIds = plan.Operations.SelectMany(operation => operation.Attachment.Entries)
+            .Select(entry => entry.Id).ToArray();
+        if (entryIds.Length != plan.GeneratedObjectIds.Count ||
+            entryIds.Distinct().Count() != entryIds.Length || entryIds.Any(id => !idMap.ContainsKey(id)))
+            throw new InvalidDataException("The additive plan's object entries do not match its generated IDs.");
+        var remapContext = new SmoFileReferenceRemapContext(idMap);
 
         var operations = new List<SmoVisualForestOperation>(plan.Operations.Count);
-        foreach (SmoVisualForestOperation operation in plan.Operations)
+        var ranges = new List<SmoFileReferenceRange>(plan.Operations.Count);
+        for (int index = 0; index < plan.Operations.Count; ++index)
         {
-            byte[] data = operation.Attachment.FieldData.ToArray();
-            SmoVisualForestEntry[] entries = operation.Attachment.Entries
-                .Select(entry => entry with { Id = idMap[entry.Id] })
-                .ToArray();
-            foreach (SmoVisualForestEntry original in operation.Attachment.Entries)
+            SmoVisualForestOperation operation = plan.Operations[index];
+            SmoFileReferenceRange range = plan.ReferenceRanges[index] ??
+                throw new InvalidDataException("The additive operation has no reference provenance.");
+            if (operation.Attachment.Entries.Count == 0 || range.Objects.Count != operation.Attachment.Entries.Count)
+                throw new InvalidDataException("The additive operation's object catalog differs from its reader provenance.");
+            var observedObjects = range.Objects.ToDictionary(value => value.ObjectId);
+            var sites = range.Sites.ToDictionary(site => site.Offset);
+            int rootOffset = operation.Attachment.Entries.Min(entry => entry.RelativeOffset);
+            foreach (SmoVisualForestEntry entry in operation.Attachment.Entries)
             {
-                int prefix = checked(original.RelativeOffset - ObjectReferenceSize);
-                if (prefix < 0 || prefix > data.Length - ObjectReferenceSize ||
-                    BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(prefix)) != original.Id)
-                {
+                if (!observedObjects.TryGetValue(entry.Id, out var observed) ||
+                    observed.RelativeOffset != entry.RelativeOffset || observed.ClassId != entry.TypeHash ||
+                    observed.SerializedSize != entry.SerializedSize || entry.RawName is null ||
+                    !Convert.ToHexString(SHA256.HashData(entry.RawName)).Equals(observed.RawNameSha256, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidDataException(
-                        $"Generated object {original.Id} has no remappable inline prefix.");
-                }
-                BinaryPrimitives.WriteUInt32LittleEndian(
-                    data.AsSpan(prefix),
-                    idMap[original.Id]);
-
-                ReadOnlySpan<byte> objectBytes = operation.Attachment.FieldData.AsSpan(
-                    original.RelativeOffset,
-                    checked((int)original.SerializedSize));
-                int fieldOffset = ObjectSignatureSize;
-                while (fieldOffset < objectBytes.Length &&
-                       SmoDataBlockReader.TryReadHeader(
-                           objectBytes,
-                           fieldOffset,
-                           out SmoDataBlockHeader field))
-                {
-                    if (field.PayloadSize == ObjectReferenceSize)
-                    {
-                        uint referencedId = BinaryPrimitives.ReadUInt32LittleEndian(
-                            objectBytes[field.PayloadOffset..]);
-                        uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                            objectBytes[(field.PayloadOffset + sizeof(uint))..]);
-                        if (inlineSize == 0 && idMap.TryGetValue(referencedId, out uint mapped))
-                        {
-                            int payload = checked(original.RelativeOffset + field.PayloadOffset);
-                            BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(payload), mapped);
-                        }
-                    }
-                    fieldOffset = checked((int)field.PayloadEnd);
-                }
+                        $"Generated object {entry.Id} has catalog metadata different from its reader provenance.");
+                if (!sites.TryGetValue(checked(entry.RelativeOffset - ObjectReferenceSize), out var site) ||
+                    site.ObjectId != entry.Id || site.InlineSize != entry.SerializedSize ||
+                    (entry.RelativeOffset == rootOffset && site.ConsumerId != operation.Attachment.TargetOwnerId))
+                    throw new InvalidDataException(
+                        $"Generated object {entry.Id} has no actual-reader inline reference at its declared prefix.");
             }
+            SmoRemappedReferenceRange remapped = range.Remap(operation.Attachment.FieldData, remapContext);
+            SmoVisualForestEntry[] entries = operation.Attachment.Entries
+                .Select(entry => entry with { Id = remapContext.MapId(entry.Id) })
+                .ToArray();
             operations.Add(operation with
             {
                 Attachment = operation.Attachment with
                 {
-                    FieldData = data,
+                    FieldData = remapped.Data,
                     Entries = entries
                 }
             });
+            ranges.Add(remapped.Provenance);
         }
         return new SmoAdditiveForestPlan(
             operations,
-            plan.GeneratedObjectIds.Select(id => idMap[id]).ToArray());
+            plan.GeneratedObjectIds.Select(remapContext.MapId).ToArray())
+        { ReferenceRanges = ranges };
     }
 
     private static void ValidateExistingCatalog(
@@ -367,5 +378,6 @@ public static class SmoAdditiveForestPlanner
         uint TargetOwnerId,
         int FieldOffset,
         int FieldLength,
-        SmoVisualForestOperation Operation);
+        SmoVisualForestOperation Operation,
+        SmoFileReferenceRange ReferenceRange);
 }

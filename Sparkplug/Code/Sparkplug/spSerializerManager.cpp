@@ -311,7 +311,12 @@ namespace sparkplug::reconstruction
         bool first = true;
         for (auto* entry = fat_->FirstForAnalysis(); entry; entry = fat_->NextForAnalysis())
         {
-            if (entry->object) continue;
+            if (entry->object)
+            {
+                context.RecordUnvisitedPayloadReadTraceForAnalysis(entry->id,entry->classID,entry->offset,entry->size,
+                    spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis::SkippedExisting);
+                continue;
+            }
             if (entry->fileID)
                 return fail("External file-ID materialization is not reconstructed");
             entry->object = context.resources.FindForAnalysis(entry->classID, entry->GetNameForAnalysis());
@@ -329,6 +334,8 @@ namespace sparkplug::reconstruction
                 if (!serializer) return fail("No serializer for FAT resource");
                 if (context.GetCreatedObjectCountForAnalysis() >= context.maximumCreatedObjectsForAnalysis)
                     return fail("Resource object limit exceeded");
+                const auto payloadTrace=context.BeginPayloadReadTraceForAnalysis(entry->id,entry->classID,source,entry->size,
+                    spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis::Outer);
                 auto object = serializer->ReadObjectHeaderAndCreateForAnalysis(source);
                 if (!object) return fail("FAT resource header or factory failed");
                 auto* objectPointer = context.PublishObjectForAnalysis(std::move(object));
@@ -338,9 +345,12 @@ namespace sparkplug::reconstruction
                     struct DepthGuard final
                     {
                         std::uint32_t& depth;
-                        explicit DepthGuard(std::uint32_t& value) : depth(value) { ++depth; }
-                        ~DepthGuard() { --depth; }
-                    } guard(context.depth);
+                        std::uint32_t& consumer;
+                        const std::uint32_t previousConsumer;
+                        DepthGuard(std::uint32_t& value,std::uint32_t& active,std::uint32_t id)
+                            : depth(value),consumer(active),previousConsumer(active) { ++depth;consumer=id; }
+                        ~DepthGuard() { --depth;consumer=previousConsumer; }
+                    } guard(context.depth,context.currentFileReadObjectIdForAnalysis,entry->id);
                     loaded = serializer->ReadPayloadForAnalysis(context, source, entry->size - 8, *entry->object, error);
                 }
                 if (!loaded)
@@ -352,12 +362,15 @@ namespace sparkplug::reconstruction
                 std::uint32_t end = 0;
                 if (context.failed || !source.GetCurrentPosition(end) || end != entry->offset + entry->size)
                     return fail("FAT resource reader did not consume its bounded extent");
+                context.CompletePayloadReadTraceForAnalysis(payloadTrace,true);
                 // Unlike ReadReference, the original outer loop attempts
                 // cache registration BEFORE applying the directory name.
                 if (entry->object->IsKindOf(spNamedObject::ClassID))
                     if (auto* resource = dynamic_cast<spResource*>(entry->object))
                         (void)context.resources.RegisterForAnalysis(*resource);
             }
+            else context.RecordUnvisitedPayloadReadTraceForAnalysis(entry->id,entry->classID,entry->offset,entry->size,
+                spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis::SkippedCache);
             if (first) { root = entry->object; first = false; }
             if (entry->object && entry->object->IsKindOf(spNamedObject::ClassID))
                 if (auto* named = dynamic_cast<spNamedObject*>(entry->object)) named->SetName(entry->GetNameForAnalysis());
@@ -368,6 +381,7 @@ namespace sparkplug::reconstruction
     spBaseObject* spSerializerManager::LoadResourcesForAnalysis(
         spStream& source, spSerializerReadContextForAnalysis& context, std::string* error)
     {
+        context.ResetFileReadTraceForAnalysis(source);
         if (error) error->clear();
         const auto fail = [&](const char* message) -> spBaseObject* {
             context.failed = true;
@@ -400,6 +414,7 @@ namespace sparkplug::reconstruction
         if (!source.GetSize(&physicalSize) || origin > physicalSize || position > physicalSize - origin)
             return fail("Invalid physical FFPS data origin");
         source.SetLogicalOriginForAnalysis(origin + position);
+        context.SetFileReadTraceDataOriginForAnalysis(source);
         spDXSerializerHook hook;
         if (!hook.PrepareForAnalysis(header.platformMask, &context.resources, fat_.get(), source))
             return fail("PC mesh preparation failed");
@@ -423,6 +438,8 @@ namespace sparkplug::reconstruction
                 return fail("Cannot capture completed file object identities");
             }
         }
+        if(root&&!context.failed&&context.fileReadTraceSourceForAnalysis)
+            context.fileReadTraceForAnalysis.complete=true;
         return root;
     }
 

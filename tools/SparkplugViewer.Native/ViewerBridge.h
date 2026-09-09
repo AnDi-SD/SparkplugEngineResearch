@@ -86,6 +86,18 @@ SPV_API void spv_container_destroy(void*) noexcept;
 SPV_API int spv_container_info(void*,SpvContainerInfo*) noexcept;
 SPV_API int spv_container_entries(void*,SpvContainerEntry*,std::uint32_t count) noexcept;
 SPV_API void* spv_graph_load(const std::uint8_t*,std::uint32_t) noexcept;
+// Optional host observations from the same original readers. This is not an
+// alternative loader or a second field/reference parser.
+SPV_API void* spv_graph_load_with_trace(const std::uint8_t*,std::uint32_t) noexcept;
+struct SpvReferenceRead {
+    std::uint32_t consumerId,id,inlineSize,idPhysicalOffset,sizePhysicalOffset,resolution,success;
+};
+struct SpvPayloadRead {
+    std::uint32_t objectId,wireClassId,physicalOffset,size,kind,complete;
+};
+SPV_API int spv_graph_reference_trace_info(void*,std::uint32_t* references,std::uint32_t* payloads,std::uint32_t* dataPhysicalOrigin) noexcept;
+SPV_API int spv_graph_reference_reads(void*,SpvReferenceRead*,std::uint32_t count) noexcept;
+SPV_API int spv_graph_payload_reads(void*,SpvPayloadRead*,std::uint32_t count) noexcept;
 SPV_API void spv_graph_destroy(void*) noexcept;
 SPV_API int spv_graph_info(void*,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept;
 SPV_API int spv_graph_object(void*,std::uint32_t ordinal,char* name,std::uint32_t capacity,SpvGraphObject*) noexcept;

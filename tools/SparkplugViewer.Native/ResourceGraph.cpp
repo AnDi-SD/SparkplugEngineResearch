@@ -82,7 +82,7 @@ std::shared_ptr<spPCRenderer> CpuRenderer() {
     // no device and never enters legacy startup. Calls are serialized by C ABI.
     static auto renderer=std::make_shared<spPCRenderer>();return renderer;
 }
-ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
+ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool captureReadTrace) {
     if(!bytes||count<36||count>64u*1024u*1024u)throw std::runtime_error("SMO must fit 64 MiB");
     renderer=CpuRenderer();
     // Cache/serializer lifetime is confined to this load. Separate documents
@@ -130,9 +130,11 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     spMemoryStream input;
     if(!input.ResizeAndSetSize(count))throw std::runtime_error("Cannot allocate bounded SMO stream");
     std::memcpy(input.GetBuffer(),bytes,count);
+    if(captureReadTrace)context.fileReadTraceSourceForAnalysis=&input;
     std::string error;
     auto* root=manager.LoadResourcesForAnalysis(input,context,&error);
     if(!root||context.failed)throw std::runtime_error(error.empty()?"Resource graph load failed":error);
+    if(captureReadTrace)readTrace=std::move(context.fileReadTraceForAnalysis);
     // Original generic loader can visit physical objects in a different order;
     // it need not leave the stream at EOF. Each serializer enforces its extent.
     entries=std::move(context.fileObjectsForAnalysis);

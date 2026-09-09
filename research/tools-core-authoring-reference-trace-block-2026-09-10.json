@@ -1,0 +1,535 @@
+{
+  "kind": "tools-core-authoring-reference-trace-block",
+  "status": "verified-bounded-authoring",
+  "cycle_block": 3,
+  "created_utc": "2026-09-09T18:26:49.547915+00:00",
+  "base_commit": "7ccb2eeb8c8f52e54da78c42dab8092459878fbf",
+  "viewer_commit": "3ebdfd05923cc9a10ecc5eaf285eba65daf1d117",
+  "base_shared_tree": "3d98392f0b8e35e321aac62ee6b6bf1245dda53e",
+  "shared_changes": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "161FD739E3E5AD7DF7B8D3AAFC1C0BFFB0B423ED4DAA2CA39DFAE115F9595461"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "419C0B5FF0B200896A170C80AB7EBE63F8D93F753AC383EE2DF2EB101E1B33A8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "031637F1F3203C737517E9731656A0184C75A449D1B85481A663DC48C80FA7AC"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "sha256": "5F3570DE94690A57CC00C5AB3932141564260BB2A81F0B41F5C7420AAABA0815"
+    },
+    {
+      "path": "Sparkplug/Tests/spReferenceReadTraceTests.cpp",
+      "sha256": "52E5DFE817C839DDEC7CB0245CC0B416055D322DC3A62C81CC11C039742F3871"
+    }
+  ],
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "161FD739E3E5AD7DF7B8D3AAFC1C0BFFB0B423ED4DAA2CA39DFAE115F9595461"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "419C0B5FF0B200896A170C80AB7EBE63F8D93F753AC383EE2DF2EB101E1B33A8"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "031637F1F3203C737517E9731656A0184C75A449D1B85481A663DC48C80FA7AC"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "sha256": "5F3570DE94690A57CC00C5AB3932141564260BB2A81F0B41F5C7420AAABA0815"
+    },
+    {
+      "path": "Sparkplug/Tests/spReferenceReadTraceTests.cpp",
+      "sha256": "52E5DFE817C839DDEC7CB0245CC0B416055D322DC3A62C81CC11C039742F3871"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoAdditiveForestPlanner.cs",
+      "sha256": "E3B422D308082861D501F72774B052E8943A2580A5C6E3C01216E8A3F256E032"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoLevelModelGraphReplacer.cs",
+      "sha256": "6F4402054E71609E2A604CB9E5AFE7EAA466D1B720F5DE78711434ADA38C9C92"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/ForestReferenceRemapRegression.cs",
+      "sha256": "DE7DD1511237D527F615FBA53C761AEB0DB5D4E14524A72AC5BAF25A818AA148"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/ModelGraphLinkRegression.cs",
+      "sha256": "A8A25B85E4EA4F959145BBFB87FBD75314018E2536430EB50AC089033939FAAA"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "B9DECC3BC6D7F755F9533211260958DDAB641DEA5A019044BEC20A29E46CF670"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.Core/SmoExternalModelBatchPipeline.cs",
+      "sha256": "8193666B680976030E90CF1A1391AE7487591284CCC9DBFE80FF5319C91CB766"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "A919AF0E1B0A192AA4DE358E7F59892256E62794310AC54A9149DB7B24AE2253"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "B375186BBEC5957C6388BDBF5AAE29E4B3DAF7F5828C9E233C24535DC276FC60"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "2B35C0E720FC33CD7E29FA45C10B1D50575DC576F97ECEEAC54BE740089C7DCF"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.h",
+      "sha256": "99826E9C91FBAFD4A86F82F570236F2C11E6B0DC93A198717617703207802C67"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "6AA6119BE84760A1F664FFE7B7A2FDC431847F9EE07A879EFB01F86CD2543752"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "F01C8011FD9F96F5CE46B11E5666B97A0878BD671DE8CD36CDC7F4C15AC66514"
+    },
+    {
+      "path": "docs/research/tool-authoring-reference-trace-2026-09-10.md",
+      "sha256": "2A06C96D4C438D2A61B12DD2BCFF3719A050DC52B9E2D77DACB25295B31E2159"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-10-0700.md",
+      "sha256": "3DE1D302A5F532C14ADB2306F9750A8A421E0799C8DB2A3B6A262E0B672CB5A8"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-0700.md",
+      "sha256": "AF1F9640F8B89DBD9C87DFB3BE30477BB3C035BB5B5DD64A46F7C07D27A35DA7"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoFileReferenceRemapContext.cs",
+      "sha256": "D37C2B44B59FBCA3CC1F8317EF56E53EFCB817EDB4CB8CB502464B4B1FD4AB83"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoFileReferenceTrace.cs",
+      "sha256": "D2BD493F4A40B4FC113C024FE42061A5CFD715631C8FDBE1ECBF2EB4C1890255"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "536DDA61C899B5A7D2F3A988541D20B6D02AE22932FC94633E5BE83FF3AEB6BA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.ReferenceTrace.cs",
+      "sha256": "50DC11D4A425FF6CAA9748CFEE7EEBDD9C352761BA8E6D9644A16CCA557B97EB"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/abi-1.json",
+      "sha256": "400CB765A8D06C6EC0AD5C0C90C0BD22A7068849769DB723FE2E01197536A96E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/abi-failed-1.json",
+      "sha256": "7C53DA3C4599CD384886B9161C97334AE3AE7331D5CD579B83F9EB9E41E00A6F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/abi-notes-1.json",
+      "sha256": "08F4B4C9F502041B97D18FC18BC4842D4723756BBF530E809BAE01800AF7DD86"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/Alfea01-trace-1.json",
+      "sha256": "52666867615A528A866BB57E7A5506E22D7486609A6BAD0B33D50892BA7B4053"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/build-1.json",
+      "sha256": "E6290686B66580007F2F6B23E139A0FB6B93688B5A82F3ABC5B787AFBD1085F8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/build_cycle_0700.py",
+      "sha256": "F90F4B2A4609A44EB4F0C546A3350559B8AB7B70AA38CF72C6852EB18FEC4408"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/build-2.json",
+      "sha256": "B07F686766EFAFAB37F3770BB763E335797DED435BBA8CBCA44A099F99AC65E5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/build-3.json",
+      "sha256": "45508CBFAFE1381EE79A063057DFDBC71C51A68209647F7C3CF86F95E6A5D377"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/format-check-1.json",
+      "sha256": "CFA2ACC999B401EEE0701525DB969480545D2A49A140DB60237184D7C2F252DC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/format-check-1.log",
+      "sha256": "8E5FCCCAC875285C9EA3EA631003AD5C11D3CA8587181CE62F34E8B20D58F842"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/model-check-1.json",
+      "sha256": "B33288E8B8400C3B1613983943C90E11C510E92F8BE5899D01F8B5F44042BFFE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/model-check-1.log",
+      "sha256": "606BB22004879F9615195B47A36747B0BA154E61CC50D80B28ABED1ABCAD93A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/remap-check-1.json",
+      "sha256": "0B85BEEFF54966BF508A3AB40A365CD7758E44A5316083CD9BB9CAAB536190F8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/remap-check-1.log",
+      "sha256": "E60DD86319203728309B4721CBEDDB54FE21D3FB93D3AB597DB4B885E6419781"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/remap-check-2.json",
+      "sha256": "38E1195A84CC016B1515153B622B28B34EE0622BE363B8477F8A97C2028CE591"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/remap-check-2.log",
+      "sha256": "16747E659AAAF23B04F29298AEFD7F79AB156ABB839F25CB2038B77B8A8D5C55"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoExporter.FormatTests-2.log",
+      "sha256": "83D8DF7D1F66E360BC395686B9483B92C420D110DA3B8E3054EBFBE5DF045459"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoExporter.FormatTests-3.log",
+      "sha256": "30B9B9201B4EC8AC371B2346D7B690211968DCFCD4CBC3563CB5CF2BBCF523B5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoImporter.FormatTests-2.log",
+      "sha256": "242C49D59CFCDA9DA3DC6097D8CBFC70D5D3EAE8528077B7031179A7895A7D1C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoImporter.FormatTests-3.log",
+      "sha256": "F93124A97E680582FCE6BC6A9F770FED342E1588EF4653014E570E4B9A10CFF3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoLVLcreator.CoreTests-2.log",
+      "sha256": "021195669A3226A20705D2899B095A8147A3A7EA6D7AC4FA3C6E3DB463C23F5B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoLVLcreator.CoreTests-3.log",
+      "sha256": "7E800F016D76839ED46D93E4C9AFD4B46C8E16852CDC5AB925C73E4EC172602F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoViewer-2.log",
+      "sha256": "8EF16EC6E160AB34136D855F6A684F6D12645AD47BA135FC7B96D9867E0DC957"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoViewer-3.log",
+      "sha256": "73CC59FC25E4D7931A1D5FD6F76172BE2D12F29736D3603B8E22D24E1CC96991"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoViewer.FormatTests-2.log",
+      "sha256": "EF1448FE08FE35BF0A37234856B8E83D10E47BEC544D27EB19CC6AC19D339212"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/SmoViewer.FormatTests-3.log",
+      "sha256": "CF2F297A4C9051C2D8B80688EAE421150862E996A3341CAEE2122B14F01E20B1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/worker-check-1.json",
+      "sha256": "7B468FC4EBBCD060D84C9C78DEA3AA04EEBF620D2977CA70F389AF02E11BAB38"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/managed/worker-check-1.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/inline-materials-replaced.smo",
+      "sha256": "4DAF6A42283BF31B8391C6835569271866DD2CDDE31E1174F8AB2C56B24D4BD0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/inline-materials.smo",
+      "sha256": "68A135EA03B3C7D642A5DD70D8A56B91C0D19990A3F44E4A8B6F8A519B05E99F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/referenced-materials-replaced.smo",
+      "sha256": "7BA33CDF0E76FDCEA55C5EBC15CFC4E17C98A696FD76BAB16CB9A88DF2DDF0DC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/referenced-materials.smo",
+      "sha256": "A5BDBAF71033ECDB8F1D1AA19AE66DF421C092269E029E518C89EDF4B9821317"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/report.json",
+      "sha256": "36F2695C445C843F7D2577CD477BBC70B013C8B6C9A12488383A0C97A80381D0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/superseded-mesh-reference-replaced.smo",
+      "sha256": "22F5471A575402D2C968CBE1E16A2DA9E551197EC3498CE8A052903533386C9D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/model-links/superseded-mesh-reference.smo",
+      "sha256": "DF0BC2BFA3444AC7CFC7F0FC97811A40E20879DF3B80E59C33FFFAF91C06EB02"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/native-1.log",
+      "sha256": "13725331334A5D2E2A2635DD90D10E621F943E643805D4C7E98445523D6840E7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/native-ctest.log",
+      "sha256": "544537700D1F9EAFB7C0077C87C22F489AA321473215204BFB31AF6DD8E4BE3B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/Qc-trace-1.json",
+      "sha256": "F62E3D38CE6267919A685FA8802150CB642CCFAE759D5490DC280D1547A52994"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap/additive.smo",
+      "sha256": "A1910173A9AA87AF5BB0CBAFD57F69BED0F86020796566D6447414DB8058FF79"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap/remapped-twice.smo",
+      "sha256": "037C77B8742967A617903CCE912E704407D9E07910199F691CD292C4ECE5AC16"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap/remapped.smo",
+      "sha256": "CA23A300642A9276231DB179B1AAC3FF5AA50CD2711507E035D27D4E0BB50455"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap/report.json",
+      "sha256": "7544412EDE932ADD075B8581102C31366C3BC4EDFF72F4AEB4440EB6ABDF153B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap/worker-reference-transport.json",
+      "sha256": "19EE6C757D86FC9ABB9C37E5A503285B0542CB91EB19B573C9ABD194A746B3EC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap-final/additive.smo",
+      "sha256": "A1910173A9AA87AF5BB0CBAFD57F69BED0F86020796566D6447414DB8058FF79"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap-final/remapped-twice.smo",
+      "sha256": "037C77B8742967A617903CCE912E704407D9E07910199F691CD292C4ECE5AC16"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap-final/remapped.smo",
+      "sha256": "CA23A300642A9276231DB179B1AAC3FF5AA50CD2711507E035D27D4E0BB50455"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap-final/report.json",
+      "sha256": "509117D433F388D4A84B85F754C7C161B2F5258DE6BC37D4AFB54BE9646A8F7D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/remap-final/worker-reference-transport.json",
+      "sha256": "19EE6C757D86FC9ABB9C37E5A503285B0542CB91EB19B573C9ABD194A746B3EC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/run_cycle_check.py",
+      "sha256": "3FD7D9B3BF5CEF46522B7B9F0BFE80DD09472C8B34E66A97F90279B945E6BD42"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/seal_reference_trace_0700.py",
+      "sha256": "7BEC5FFDDCF94EA2A85D3D25404FCE918B321A14F507838069B0CBFD9780F136"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/SmoViewer.FormatTests-1.log",
+      "sha256": "3FF1F1DA85FDA0A0B10FD54E9143D3648A31A4DFFAA3F804C0A5AF148CE33A7F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/vase-trace-1.json",
+      "sha256": "D70AB23AEFF6B02EE00842BAFC3D59F599EA03500E747414DCB9E081C0C95824"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/verify_reference_trace_abi_cycle.py",
+      "sha256": "4C6ADBE3D7EB94EFFEB153A414C45361AC32D2B4D3AF88C9D40C0376681F1235"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/job.json",
+      "sha256": "D325D4CF0F06E56CE1817F05D2AAF73FF8AE3EE965F360537F81FFEB9EBE8C30"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/preparation.json",
+      "sha256": "D63CF07D012FA938103FC9A1D64600850C116D97C03B6666F89907F77ED0D462"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/prepare_worker_case.py",
+      "sha256": "411804B54922B6132635273964BB6C1DF7F1BD2A6445ADCD28B044A9B4440AEE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/triangle.glb",
+      "sha256": "9D409AB43590DB7E2A84EF784CC87D61CF8E222053AAB39E78E92E63053D492E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/verification.json",
+      "sha256": "AFBF940298598D19B26515EB2A4429CDB367EF77FD3B850DC0CCA92004E2F106"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/verify_worker_case.py",
+      "sha256": "05DE1AEB71210676C41A592DA502350457CB64322003A661D5A1F67D66855B1A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/worker-result-forest-000.bin",
+      "sha256": "E721AAC6C7855D089AE77A2847CB1F7553450D405750176A9E19ECF7F10403BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/worker-result-forest-001.bin",
+      "sha256": "3330A92CA00E27A6C32678559CBB49C752EFD59448540DF12A04A71562F4C715"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/reference-trace/worker-case/worker-result.json",
+      "sha256": "4C69BC0FCA2F767BC17532E0DA4D823405AD70543A79B923C6B38BDA207E8CC8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/build-1.json",
+      "sha256": "7759B4636DC72626E6663BB3A80139EAD8FC41B24FF96A7605D35ABDD4C45AC6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/build-2.json",
+      "sha256": "CECAEF1D00BC92A38D8628CC0AB8A15FC4729131FDD1C55AADDBE4379866CCF9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/inline-materials-replaced.smo",
+      "sha256": "4DAF6A42283BF31B8391C6835569271866DD2CDDE31E1174F8AB2C56B24D4BD0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/inline-materials.smo",
+      "sha256": "68A135EA03B3C7D642A5DD70D8A56B91C0D19990A3F44E4A8B6F8A519B05E99F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/managed-check-1.json",
+      "sha256": "063102A2E21E176469A43A03FF5CE37EAAC0CA19D4875066444B1061DCF3CF40"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/managed-check-1.log",
+      "sha256": "34C8F3272A4D02CC9F7F9B2D026D1B8A72E1DC43ECF467C83A9E8E39878D16BE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/managed-check-2.json",
+      "sha256": "76FB874E6871F759A331149935D05D4F7A05A54DF2AB4BDD8B62CDE7DF13D163"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/managed-check-2.log",
+      "sha256": "606BB22004879F9615195B47A36747B0BA154E61CC50D80B28ABED1ABCAD93A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/ModelGraphLinkRegression-selection-verified.cs",
+      "sha256": "A8A25B85E4EA4F959145BBFB87FBD75314018E2536430EB50AC089033939FAAA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/Program-selection-verified.cs",
+      "sha256": "0330B936F2CBD5CD879EE6672C08305CD5FB157E377424336A5B799CCD8CEBA6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/referenced-materials-replaced.smo",
+      "sha256": "7BA33CDF0E76FDCEA55C5EBC15CFC4E17C98A696FD76BAB16CB9A88DF2DDF0DC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/referenced-materials.smo",
+      "sha256": "A5BDBAF71033ECDB8F1D1AA19AE66DF421C092269E029E518C89EDF4B9821317"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/report.json",
+      "sha256": "36F2695C445C843F7D2577CD477BBC70B013C8B6C9A12488383A0C97A80381D0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/selection-source-snapshot.json",
+      "sha256": "A5F260B866BE6B8B073467921BAEEAEEBE6A95D9FD84C76B3B53032C1F5969A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/SmoImporter.FormatTests-1.log",
+      "sha256": "D889FA518DE7F167C1E85E9EFA196008E22A54C95EC188177CD23ED05A28BD3A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/SmoImporter.FormatTests-2.log",
+      "sha256": "5DF012D2F74C1B01F3A084777586FC46604DAFFA01BC94B8989A895623E7EFA4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/SmoLevelModelGraphReplacer-selection-verified.cs",
+      "sha256": "8FE033735B219C4D37E8AC4FC1AB0FE88E708E8F993F3FD955F5FAC7806D0ED7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/SmoLVLcreator.CoreTests-1.log",
+      "sha256": "68639EEA5118ED34A134AF68A3D3CAF9A81ECE22E8AA2D736944F4F7BBCBE1DB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/superseded-mesh-reference-replaced.smo",
+      "sha256": "22F5471A575402D2C968CBE1E16A2DA9E551197EC3498CE8A052903533386C9D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/model-graph-links/superseded-mesh-reference.smo",
+      "sha256": "DF0BC2BFA3444AC7CFC7F0FC97811A40E20879DF3B80E59C33FFFAF91C06EB02"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/large-container-audit/audit.json",
+      "sha256": "A2ED2E90F2CEF3CA58802E8DA2BB2F53AE0DCF45D4739B28668FAFFB40263267"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/large-container-audit/audit.md",
+      "sha256": "F0C3111B548F00551619F9153137C82FB64A40617C397944FDBEBEDB0AF5544D"
+    }
+  ],
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A"
+    }
+  ],
+  "native_dll_sha256": "C8ABC02AC8C02E23C436D88BC5772D739644DFCA551BEB146547BE162345319A",
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "checks": {
+    "ReferenceReadTrace": 61,
+    "ReadReference": 298,
+    "FullLoader": 213,
+    "MeshReader": 346,
+    "SkinSerialization": 119,
+    "ABI": 121348,
+    "actual_files": 3,
+    "objects": 4538,
+    "nodes": 537,
+    "reference_rows": 8842,
+    "payload_rows": 9645,
+    "prepared_meshes": 572,
+    "trace_DTO_bytes": 479056,
+    "model_link_replacements": 3,
+    "model_link_managed": 50,
+    "exact_remap_managed": 42,
+    "isolated_worker_forests": 2,
+    "isolated_worker_generated_objects": 7,
+    "isolated_worker_reference_sites": 12,
+    "worker_shared_catalog_ids": 4273,
+    "general_FormatTests": 647,
+    "consumer_builds": 5
+  },
+  "reconstruction_changes": "No original algorithm correction or new execution claim. Added optional host observations around the same reference resolver, outer and prepared-Mesh payload consumers; native selection/ownership/read order unchanged. Tools use actual Model/Material links and observed reference sites.",
+  "performance": "Observation rows bounded at262144 combined. Native and managed catalogs shared per trace/remap/worker exchange; repeated worker ranges carry catalog hash, not another full ID array. CaptureRange currently verifies source SHA per call; batching that verification for many ranges is a next optimization.",
+  "limitations": [
+    "Alfea01 TextureData1848 marble exact FAT extent was skipped through cache; no payload coverage and no raw-branch remap authorization for those bytes.",
+    "Provenance errors disable remap without changing original graph load semantics.",
+    "Worker transport is a private exchange of our own reader observations, not arbitrary evidence authentication or independent reader execution.",
+    "Large containers remain limited by separate input/envelope/texture policies; historical1015.77MiB full-edit peak is not a fresh load measurement. Limits unchanged.",
+    "Material graph builders, original whole Save, repeated support-slot authoring, unusual lossless headers, multipass donor DTO and world inverse remain outside this completed slice.",
+    "No new PC/PS2 original execution, GUI/GPU run, full corpus sweep, release or publication."
+  ],
+  "harness_notes": [
+    "Initial null-Mesh test fixture hit an existing host guard; changed fixture to a different actual Mesh, not shared semantics.",
+    "Corrected C# unsigned literal and ABI helper MeshData ID before passing final checks.",
+    "Native wrapper build metadata filename was reused by early managed attempt; complete native-1.log and native-ctest.log preserve the successful build/test evidence. Later managed runs use their own folder."
+  ]
+}

@@ -190,6 +190,57 @@ namespace sparkplug::reconstruction
         };
         bool captureFileObjectIDsForAnalysis = false;
         std::vector<FileObjectForAnalysis> fileObjectsForAnalysis;
+        // Optional HOST observations, not original engine members. The caller
+        // explicitly identifies the file stream before LoadResources. Only
+        // that stream at the loader-established data origin has provenance.
+        // Invalid observations never change a reader result; consumers must
+        // reject a map whose valid/complete flags are false.
+        enum class ReferenceResolutionForAnalysis : std::uint32_t
+        { Unresolved, Null, Created, Existing, Cache };
+        enum class PayloadReadKindForAnalysis : std::uint32_t
+        { Outer, Inline, SkippedExisting, SkippedCache, PreparedMesh };
+        struct ReferenceReadForAnalysis
+        {
+            std::uint32_t consumerId=0,id=0,inlineSize=0;
+            std::uint32_t idPhysicalOffset=0xFFFFFFFFu,sizePhysicalOffset=0xFFFFFFFFu;
+            ReferenceResolutionForAnalysis resolution=ReferenceResolutionForAnalysis::Unresolved;
+            bool success=false;
+        };
+        struct PayloadReadForAnalysis
+        {
+            std::uint32_t objectId=0,wireClassId=0;
+            // Full object extent INCLUDING the eight-byte object header.
+            std::uint32_t physicalOffset=0xFFFFFFFFu,size=0;
+            PayloadReadKindForAnalysis kind=PayloadReadKindForAnalysis::Outer;
+            bool complete=false; // successful skip is not reader coverage
+        };
+        struct FileReadTraceForAnalysis
+        {
+            bool valid=false,complete=false;
+            std::uint32_t dataPhysicalOrigin=0xFFFFFFFFu;
+            std::string diagnostic;
+            std::vector<ReferenceReadForAnalysis> referenceReads;
+            std::vector<PayloadReadForAnalysis> payloadReads;
+        };
+        spStream* fileReadTraceSourceForAnalysis=nullptr;
+        FileReadTraceForAnalysis fileReadTraceForAnalysis;
+        // Current original serializer consumer, not physical FAT ancestry.
+        std::uint32_t currentFileReadObjectIdForAnalysis=0;
+        static constexpr std::size_t NoFileReadTraceIndexForAnalysis=static_cast<std::size_t>(-1);
+        static constexpr std::size_t MaximumFileReadTraceRowsForAnalysis=262144;
+        void ResetFileReadTraceForAnalysis(spStream& source) noexcept;
+        void SetFileReadTraceDataOriginForAnalysis(spStream& source) noexcept;
+        [[nodiscard]] std::uint32_t TracePhysicalPositionForAnalysis(spStream& source) noexcept;
+        [[nodiscard]] std::size_t AppendReferenceReadTraceForAnalysis(
+            ReferenceReadForAnalysis row) noexcept;
+        [[nodiscard]] std::size_t BeginPayloadReadTraceForAnalysis(
+            std::uint32_t objectId,spClassID wireClassId,spStream& source,
+            std::uint32_t size,PayloadReadKindForAnalysis kind) noexcept;
+        void CompletePayloadReadTraceForAnalysis(std::size_t index,bool complete) noexcept;
+        void RecordUnvisitedPayloadReadTraceForAnalysis(std::uint32_t objectId,
+            spClassID wireClassId,std::uint32_t logicalOffset,std::uint32_t size,
+            PayloadReadKindForAnalysis kind) noexcept;
+        void InvalidateFileReadTraceForAnalysis(const char* diagnostic) noexcept;
         [[nodiscard]] std::shared_ptr<spBaseObject> ShareObjectForAnalysis(
             spBaseObject* object) const noexcept;
         spSerializerReadContextForAnalysis(spSerializerManager& manager,

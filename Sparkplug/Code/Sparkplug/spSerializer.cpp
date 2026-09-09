@@ -191,6 +191,97 @@ namespace sparkplug::reconstruction
         spSerializerManager& manager, spResourceManager& resources, spAnimationManager* bindings) noexcept
         : manager(manager), resources(resources), animationBindings(bindings) {}
 
+    void spSerializerReadContextForAnalysis::InvalidateFileReadTraceForAnalysis(const char* message) noexcept
+    {
+        fileReadTraceForAnalysis.valid=false;
+        try { if(fileReadTraceForAnalysis.diagnostic.empty())fileReadTraceForAnalysis.diagnostic=message; }
+        catch(...) {} // Observation failure must never change original control flow.
+    }
+
+    void spSerializerReadContextForAnalysis::ResetFileReadTraceForAnalysis(spStream& source) noexcept
+    {
+        fileReadTraceForAnalysis={};currentFileReadObjectIdForAnalysis=0;
+        if(!fileReadTraceSourceForAnalysis)return;
+        fileReadTraceForAnalysis.valid=fileReadTraceSourceForAnalysis==&source;
+        if(!fileReadTraceForAnalysis.valid)
+            InvalidateFileReadTraceForAnalysis("File trace source differs from the explicitly supplied stream");
+    }
+
+    void spSerializerReadContextForAnalysis::SetFileReadTraceDataOriginForAnalysis(spStream& source) noexcept
+    {
+        if(!fileReadTraceSourceForAnalysis||!fileReadTraceForAnalysis.valid)return;
+        if(fileReadTraceSourceForAnalysis!=&source)
+        {InvalidateFileReadTraceForAnalysis("File trace data source has no provenance");return;}
+        fileReadTraceForAnalysis.dataPhysicalOrigin=source.GetLogicalOriginForAnalysis();
+    }
+
+    std::uint32_t spSerializerReadContextForAnalysis::TracePhysicalPositionForAnalysis(spStream& source) noexcept
+    {
+        if(!fileReadTraceSourceForAnalysis||!fileReadTraceForAnalysis.valid)return 0xFFFFFFFFu;
+        std::uint32_t position=0,size=0;
+        const auto origin=source.GetLogicalOriginForAnalysis();
+        if(&source!=fileReadTraceSourceForAnalysis||origin!=fileReadTraceForAnalysis.dataPhysicalOrigin
+            ||origin==0xFFFFFFFFu||!source.GetCurrentPosition(position)||!source.GetSize(&size)
+            ||origin>size||position>size-origin)
+        {InvalidateFileReadTraceForAnalysis("Reference stream position has no confirmed file provenance");return 0xFFFFFFFFu;}
+        return origin+position;
+    }
+
+    std::size_t spSerializerReadContextForAnalysis::AppendReferenceReadTraceForAnalysis(ReferenceReadForAnalysis row) noexcept
+    {
+        if(!fileReadTraceSourceForAnalysis||!fileReadTraceForAnalysis.valid)return NoFileReadTraceIndexForAnalysis;
+        try
+        {
+            if(fileReadTraceForAnalysis.referenceReads.size()+fileReadTraceForAnalysis.payloadReads.size()
+                >=MaximumFileReadTraceRowsForAnalysis)
+            {InvalidateFileReadTraceForAnalysis("File read trace row bound exceeded");return NoFileReadTraceIndexForAnalysis;}
+            fileReadTraceForAnalysis.referenceReads.push_back(row);
+            return fileReadTraceForAnalysis.referenceReads.size()-1;
+        }
+        catch(...){InvalidateFileReadTraceForAnalysis("Cannot allocate reference read observation");return NoFileReadTraceIndexForAnalysis;}
+    }
+
+    std::size_t spSerializerReadContextForAnalysis::BeginPayloadReadTraceForAnalysis(
+        std::uint32_t id,spClassID wireClass,spStream& source,std::uint32_t size,PayloadReadKindForAnalysis kind) noexcept
+    {
+        if(!fileReadTraceSourceForAnalysis||!fileReadTraceForAnalysis.valid)return NoFileReadTraceIndexForAnalysis;
+        const auto position=TracePhysicalPositionForAnalysis(source);
+        if(!fileReadTraceForAnalysis.valid)return NoFileReadTraceIndexForAnalysis;
+        try
+        {
+            if(fileReadTraceForAnalysis.referenceReads.size()+fileReadTraceForAnalysis.payloadReads.size()
+                >=MaximumFileReadTraceRowsForAnalysis)
+            {InvalidateFileReadTraceForAnalysis("File read trace row bound exceeded");return NoFileReadTraceIndexForAnalysis;}
+            fileReadTraceForAnalysis.payloadReads.push_back({id,wireClass,position,size,kind,false});
+            return fileReadTraceForAnalysis.payloadReads.size()-1;
+        }
+        catch(...){InvalidateFileReadTraceForAnalysis("Cannot allocate payload read observation");return NoFileReadTraceIndexForAnalysis;}
+    }
+
+    void spSerializerReadContextForAnalysis::CompletePayloadReadTraceForAnalysis(std::size_t index,bool complete) noexcept
+    {
+        if(index<fileReadTraceForAnalysis.payloadReads.size())fileReadTraceForAnalysis.payloadReads[index].complete=complete;
+    }
+
+    void spSerializerReadContextForAnalysis::RecordUnvisitedPayloadReadTraceForAnalysis(
+        std::uint32_t id,spClassID wireClass,std::uint32_t offset,std::uint32_t size,PayloadReadKindForAnalysis kind) noexcept
+    {
+        if(!fileReadTraceSourceForAnalysis||!fileReadTraceForAnalysis.valid)return;
+        std::uint32_t physicalSize=0;const auto origin=fileReadTraceForAnalysis.dataPhysicalOrigin;
+        if(origin==0xFFFFFFFFu||!fileReadTraceSourceForAnalysis->GetSize(&physicalSize)
+            ||origin>physicalSize||offset>physicalSize-origin||size>physicalSize-origin-offset)
+        {InvalidateFileReadTraceForAnalysis("Unvisited FAT extent has no bounded file provenance");return;}
+        try
+        {
+            if(fileReadTraceForAnalysis.referenceReads.size()+fileReadTraceForAnalysis.payloadReads.size()
+                >=MaximumFileReadTraceRowsForAnalysis)
+            {InvalidateFileReadTraceForAnalysis("File read trace row bound exceeded");return;}
+            // This is a declared FAT extent, never claimed to have been read.
+            fileReadTraceForAnalysis.payloadReads.push_back({id,wireClass,origin+offset,size,kind,false});
+        }
+        catch(...){InvalidateFileReadTraceForAnalysis("Cannot allocate unvisited payload observation");}
+    }
+
     spSerializerReadContextForAnalysis::~spSerializerReadContextForAnalysis()
     {
         // Remove only pointers owned here. Native FAT does not own objects;
@@ -331,10 +422,28 @@ namespace sparkplug::reconstruction
             return nullptr;
         };
         if (context.failed) return fail("Discard failed reference-read context before retry");
+        // Observe the final resolver only. Field/sequence guards inspect and
+        // rewind the prefix separately and must not create duplicate rows.
+        spSerializerReadContextForAnalysis::ReferenceReadForAnalysis referenceTrace;
+        referenceTrace.consumerId=context.currentFileReadObjectIdForAnalysis;
+        referenceTrace.idPhysicalOffset=context.TracePhysicalPositionForAnalysis(idSource);
+        const auto originalPayloadPosition=context.TracePhysicalPositionForAnalysis(payloadSource);
         ReferencePrefixForAnalysis prefix;
         if(!ReadReferencePrefixForAnalysis(idSource,payloadSource,prefix,error)){context.failed=true;return nullptr;}
         const auto id=prefix.id,inlineSize=prefix.inlineSize;
-        if (!id) return nullptr;
+        referenceTrace.id=id;referenceTrace.inlineSize=inlineSize;
+        if(id)referenceTrace.sizePhysicalOffset=&idSource==&payloadSource
+            ?(referenceTrace.idPhysicalOffset==0xFFFFFFFFu?0xFFFFFFFFu:referenceTrace.idPhysicalOffset+4)
+            :originalPayloadPosition;
+        const auto referenceTraceIndex=context.AppendReferenceReadTraceForAnalysis(referenceTrace);
+        using Resolution=spSerializerReadContextForAnalysis::ReferenceResolutionForAnalysis;
+        using PayloadKind=spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis;
+        const auto finishTrace=[&](Resolution resolution,bool success) noexcept
+        {
+            auto& rows=context.fileReadTraceForAnalysis.referenceReads;
+            if(referenceTraceIndex<rows.size()){rows[referenceTraceIndex].resolution=resolution;rows[referenceTraceIndex].success=success;}
+        };
+        if (!id) {finishTrace(Resolution::Null,true);return nullptr;}
         auto* fat = context.manager.GetFATForAnalysis();
         auto* entry = fat ? fat->FindByIDForAnalysis(id) : nullptr;
         if (!entry) return fail("Reference ID is absent from FAT");
@@ -347,12 +456,26 @@ namespace sparkplug::reconstruction
                 inlineSize <= std::uint32_t(std::numeric_limits<std::int32_t>::max()) &&
                 payloadSource.Seek(spStream::SeekSource::essCurrent, static_cast<std::int32_t>(inlineSize));
         };
-        if (entry->object) return skip() ? entry->object : fail("Cannot skip existing reference payload");
+        if (entry->object)
+        {
+            const auto trace=inlineSize?context.BeginPayloadReadTraceForAnalysis(id,entry->classID,payloadSource,
+                inlineSize,PayloadKind::SkippedExisting):spSerializerReadContextForAnalysis::NoFileReadTraceIndexForAnalysis;
+            const bool skipped=skip();context.CompletePayloadReadTraceForAnalysis(trace,skipped);
+            finishTrace(Resolution::Existing,skipped);
+            return skipped ? entry->object : fail("Cannot skip existing reference payload");
+        }
         // Native resolves serializer BEFORE the cache; a cache hit still works
         // if that lookup returned null, because it never dereferences it.
         auto* serializer = context.manager.FindForAnalysis(entry->classID);
         entry->object = context.resources.FindForAnalysis(entry->classID, entry->GetNameForAnalysis());
-        if (entry->object) return skip() ? entry->object : fail("Cannot skip cached reference payload");
+        if (entry->object)
+        {
+            const auto trace=inlineSize?context.BeginPayloadReadTraceForAnalysis(id,entry->classID,payloadSource,
+                inlineSize,PayloadKind::SkippedCache):spSerializerReadContextForAnalysis::NoFileReadTraceIndexForAnalysis;
+            const bool skipped=skip();context.CompletePayloadReadTraceForAnalysis(trace,skipped);
+            finishTrace(Resolution::Cache,skipped);
+            return skipped ? entry->object : fail("Cannot skip cached reference payload");
+        }
         if (!serializer) return fail("No serializer for inline resource");
         std::uint32_t position = 0, size = 0;
         const auto origin = payloadSource.GetLogicalOriginForAnalysis();
@@ -362,6 +485,7 @@ namespace sparkplug::reconstruction
         if (context.depth >= 64) return fail("Reference graph exceeds host depth bound (64)");
         if (context.GetCreatedObjectCountForAnalysis() >= context.maximumCreatedObjectsForAnalysis)
             return fail("Reference graph exceeds configured host object bound");
+        const auto payloadTrace=context.BeginPayloadReadTraceForAnalysis(id,entry->classID,payloadSource,inlineSize,PayloadKind::Inline);
         auto object = serializer->ReadObjectHeaderAndCreateForAnalysis(payloadSource);
         if (!object) return fail("Inline object header or factory failed");
         auto* result = context.PublishObjectForAnalysis(std::move(object));
@@ -369,9 +493,12 @@ namespace sparkplug::reconstruction
         struct DepthGuard final
         {
             std::uint32_t& depth;
-            explicit DepthGuard(std::uint32_t& value) : depth(value) { ++depth; }
-            ~DepthGuard() { --depth; }
-        } guard(context.depth);
+            std::uint32_t& consumer;
+            const std::uint32_t previousConsumer;
+            DepthGuard(std::uint32_t& value,std::uint32_t& active,std::uint32_t id)
+                : depth(value),consumer(active),previousConsumer(active) { ++depth;consumer=id; }
+            ~DepthGuard() { --depth;consumer=previousConsumer; }
+        } guard(context.depth,context.currentFileReadObjectIdForAnalysis,id);
         if (!serializer->ReadPayloadForAnalysis(context, payloadSource, inlineSize - 8, *result, error))
         {
             context.failed = true;
@@ -382,6 +509,8 @@ namespace sparkplug::reconstruction
         std::uint32_t end = 0;
         if (context.failed || !payloadSource.GetCurrentPosition(end) || end != position + inlineSize)
             return fail("Inline payload did not consume its bounded extent");
+        context.CompletePayloadReadTraceForAnalysis(payloadTrace,true);
+        finishTrace(Resolution::Created,true);
         if (result->vfunc_18().IsKindOf(spNamedObject::ClassID))
         {
             if (auto* named = dynamic_cast<spNamedObject*>(result)) named->SetName(entry->GetNameForAnalysis());

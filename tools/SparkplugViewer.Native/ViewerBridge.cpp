@@ -633,6 +633,40 @@ SPV_API void* spv_graph_load(const std::uint8_t* data,std::uint32_t count) noexc
         result->graph=std::make_shared<spvhost::ResourceGraph>(data,count);}))return nullptr;
     return result.release();
 }
+SPV_API void* spv_graph_load_with_trace(const std::uint8_t* data,std::uint32_t count) noexcept {
+    std::unique_ptr<spvhost::GraphHandle> result;
+    if(!guarded([&]{result=std::make_unique<spvhost::GraphHandle>();
+        result->graph=std::make_shared<spvhost::ResourceGraph>(data,count,true);}))return nullptr;
+    return result.release();
+}
+SPV_API int spv_graph_reference_trace_info(void* handle,std::uint32_t* references,
+    std::uint32_t* payloads,std::uint32_t* origin) noexcept {
+    return guarded([&]{require(handle&&references&&payloads&&origin,"Invalid reference trace output");
+        const auto& trace=static_cast<spvhost::GraphHandle*>(handle)->graph->readTrace;
+        if(!trace.valid||!trace.complete)throw std::runtime_error(trace.diagnostic.empty()
+            ?"SPARKPLUG_REFERENCE_TRACE: successful traced file load required":trace.diagnostic);
+        *references=static_cast<std::uint32_t>(trace.referenceReads.size());
+        *payloads=static_cast<std::uint32_t>(trace.payloadReads.size());*origin=trace.dataPhysicalOrigin;});
+}
+SPV_API int spv_graph_reference_reads(void* handle,SpvReferenceRead* output,std::uint32_t count) noexcept {
+    static_assert(sizeof(SpvReferenceRead)==28);
+    return guarded([&]{require(handle,"Missing graph trace handle");
+        const auto& trace=static_cast<spvhost::GraphHandle*>(handle)->graph->readTrace;
+        require(trace.valid&&trace.complete,"SPARKPLUG_REFERENCE_TRACE: incomplete or unproven file trace");
+        require(count==trace.referenceReads.size()&&(output||!count),"Reference trace count mismatch");
+        for(std::size_t i=0;i<count;++i){const auto& r=trace.referenceReads[i];
+            output[i]={r.consumerId,r.id,r.inlineSize,r.idPhysicalOffset,r.sizePhysicalOffset,
+                static_cast<std::uint32_t>(r.resolution),r.success?1u:0u};}});
+}
+SPV_API int spv_graph_payload_reads(void* handle,SpvPayloadRead* output,std::uint32_t count) noexcept {
+    static_assert(sizeof(SpvPayloadRead)==24);
+    return guarded([&]{require(handle,"Missing graph trace handle");
+        const auto& trace=static_cast<spvhost::GraphHandle*>(handle)->graph->readTrace;
+        require(trace.valid&&trace.complete,"SPARKPLUG_REFERENCE_TRACE: incomplete or unproven file trace");
+        require(count==trace.payloadReads.size()&&(output||!count),"Payload trace count mismatch");
+        for(std::size_t i=0;i<count;++i){const auto& p=trace.payloadReads[i];
+            output[i]={p.objectId,p.wireClassId,p.physicalOffset,p.size,static_cast<std::uint32_t>(p.kind),p.complete?1u:0u};}});
+}
 SPV_API void spv_graph_destroy(void* handle) noexcept {guarded([&]{delete static_cast<spvhost::GraphHandle*>(handle);});}
 SPV_API int spv_graph_info(void* handle,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept {
     return guarded([&]{require(handle&&objects&&nodes&&rootID,"Invalid graph metadata output");

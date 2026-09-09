@@ -112,7 +112,11 @@ public static class SmoLevelModelGraphReplacer
             throw new InvalidOperationException(
                 $"Mesh [{selectedMeshObjectIndex}] has no owning spModel.");
         SmoObjectEntry root = FindAncestor(document.Objects, model, SmoClassIds.RenderNode) ?? model;
+        SmoLoadedResources loaded = RequireLoadedResources(document);
 
+        // Components are physical byte carriers, one per inline mesh resource.
+        // Additional Model consumers remain placements of that same resource;
+        // their actual Mesh/Material links never follow physical ownership.
         SmoLevelModelGraphComponent[] components = document.Objects
             .Where(entry => entry.TypeHash == SmoClassIds.MeshData)
             .Select(entry => (Mesh: entry, Model: FindAncestor(
@@ -125,14 +129,17 @@ public static class SmoLevelModelGraphReplacer
             .Select(pair =>
             {
                 SmoObjectEntry owner = pair.Model!;
-                SmoObjectEntry? material = document.Objects.FirstOrDefault(entry =>
-                    entry.ParentIndex == owner.Index &&
-                    entry.TypeHash == SmoClassIds.MaterialData);
+                SmoLoadedModel linked = RequireLoadedModel(loaded, owner);
+                if (linked.MeshId != pair.Mesh.Id ||
+                    linked.MeshObjectIndex is not int meshIndex || meshIndex != pair.Mesh.Index)
+                    throw new InvalidOperationException(
+                        $"Inline mesh {pair.Mesh.Id} is not the active mesh of its " +
+                        $"physical spModel owner {owner.Id}; this byte carrier cannot be replaced.");
                 return new SmoLevelModelGraphComponent(
                     owner.Id,
-                    material?.Id,
-                    pair.Mesh.Id,
-                    pair.Mesh.Index);
+                    linked.MaterialId == 0 ? null : linked.MaterialId,
+                    linked.MeshId,
+                    meshIndex);
             })
             .ToArray();
 
@@ -404,7 +411,8 @@ public static class SmoLevelModelGraphReplacer
             plan.Components.ToDictionary(
                 component => component.MeshObjectId,
                 component => placementModelIdsByMesh[component.MeshObjectId]
-                    .Select(modelId => FindMaterialChildId(document, modelId))
+                    .Select(modelId => FindPlacementMaterialId(
+                        document, modelId, component.MeshObjectId))
                     .Where(id => id.HasValue)
                     .Select(id => id!.Value)
                     .Concat(component.MaterialObjectId is uint primaryMaterialId
@@ -1172,11 +1180,18 @@ public static class SmoLevelModelGraphReplacer
                 entry.TypeHash,
                 checked((int)entry.PhysicalOffset - fieldPhysical),
                 entry.SerializedSize)).ToArray());
+        SmoLoadedResources loaded = SmoLoadedResources.Get(document);
+        SmoFileReferenceTrace trace = loaded.ReferenceTrace ??
+            throw new InvalidDataException(loaded.ReferenceTraceIssue ?? loaded.LoadIssue ??
+                "The native model template has no actual-reader reference provenance.");
+        if (loaded.ReferenceTraceIssue is not null)
+            throw new InvalidDataException(loaded.ReferenceTraceIssue);
         return new SmoAdditiveForestPlan(
             [new SmoVisualForestOperation(
                 attachment,
                 SmoVisualForestInsertionKind.BeforeTerminal)],
-            entries.Select(entry => entry.Id).ToArray());
+            entries.Select(entry => entry.Id).ToArray())
+        { ReferenceRanges = [trace.CaptureRange(document, fieldPhysical, fieldLength)] };
     }
 
     private static SmoDataBlockHeader FindInlineField(
@@ -1399,14 +1414,34 @@ public static class SmoLevelModelGraphReplacer
         return result;
     }
 
-    private static uint? FindMaterialChildId(
+    private static SmoLoadedResources RequireLoadedResources(SmoDocument document)
+    {
+        SmoLoadedResources loaded = SmoLoadedResources.Get(document);
+        if (loaded.LoadIssue is not null)
+            throw new InvalidDataException(loaded.LoadIssue);
+        return loaded;
+    }
+
+    private static SmoLoadedModel RequireLoadedModel(
+        SmoLoadedResources loaded,
+        SmoObjectEntry model) => loaded.Models.TryGetValue(model.Index, out SmoLoadedModel? linked)
+            ? linked
+            : throw new InvalidDataException(
+                $"SPARKPLUG_AUTHORING_GRAPH: spModel {model.Id} is absent from the loaded graph.");
+
+    private static uint? FindPlacementMaterialId(
         SmoDocument document,
-        uint modelId)
+        uint modelId,
+        uint meshId)
     {
         SmoObjectEntry model = document.Objects.Single(entry => entry.Id == modelId);
-        return document.Objects.FirstOrDefault(entry =>
-            entry.ParentIndex == model.Index &&
-            entry.TypeHash == SmoClassIds.MaterialData)?.Id;
+        SmoLoadedModel linked = RequireLoadedModel(RequireLoadedResources(document), model);
+        // Earlier serialized references still require byte relocation, even if
+        // a later assignment changes the Model's active mesh. Only an actual
+        // consumer's material participates in the imported material edit.
+        return linked.MeshId == meshId && linked.MaterialId != 0
+            ? linked.MaterialId
+            : null;
     }
 
     private static uint[] ResolveReferenceOnlyObjectIds(

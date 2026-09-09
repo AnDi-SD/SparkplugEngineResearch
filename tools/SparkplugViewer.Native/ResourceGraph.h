@@ -12,7 +12,8 @@ class ResourceGraph final {
 public:
     using Object = sparkplug::reconstruction::spBaseObject;
     using Entry = sparkplug::reconstruction::spSerializerReadContextForAnalysis::FileObjectForAnalysis;
-    ResourceGraph(const std::uint8_t*,std::uint32_t);
+    ResourceGraph(const std::uint8_t*,std::uint32_t,bool captureReadTrace=false);
+    sparkplug::reconstruction::spSerializerReadContextForAnalysis::FileReadTraceForAnalysis readTrace;
     std::uint32_t rootID=0;
     std::vector<Entry> entries;
     std::vector<std::shared_ptr<Object>> owners;
