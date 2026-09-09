@@ -3,6 +3,7 @@
 #include "spTrack.h"
 #include <memory>
 #include <vector>
+#include <optional>
 namespace sparkplug::reconstruction
 {
     class spTexture;
@@ -21,6 +22,9 @@ namespace sparkplug::reconstruction
         // runtime evaluation separately rejects nonfinite/unsorted inputs.
         bool SetKeysForAnalysis(std::vector<float> times,std::vector<std::shared_ptr<spTexture>> textures);
         [[nodiscard]] bool EvaluateForAnalysis(float time,std::shared_ptr<spTexture>& output) const noexcept;
+        // Same original endpoint selection used by Evaluate. Exposes only the
+        // key index for partial metadata tracks with unresolved texture IDs.
+        [[nodiscard]] bool SelectKeyIndexForAnalysis(float time,std::optional<std::size_t>& index) const noexcept;
         [[nodiscard]] const auto& GetTimesForAnalysis() const noexcept{return times_;}
         [[nodiscard]] const auto& GetTexturesForAnalysis() const noexcept{return textures_;}
     private:

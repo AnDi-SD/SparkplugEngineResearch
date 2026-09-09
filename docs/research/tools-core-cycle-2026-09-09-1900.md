@@ -65,3 +65,13 @@ captures повторно использованы без новых ориги�
 и Viewer/Importer/LVLcreator CoreTests builds прошли. Старый DTO требует bound
 MeshData; это явно отделено от permissive missing-mesh native reader.
 Досье: `docs/research/tool-model-skin-reader-shared-core-2026-09-09.md`.
+
+### Блок4: Animated texture reader и выбор ключа
+
+Общий AnimTexControllerSerializer заменил C# grammar; исходный TextureTrack
+выбирает индекс без подставных Texture. Original5/source captures и33 выборов
+совпали, inline graph capture переиспользован. C++ Controller488/Material554/
+FullLoader213,5 адресно выбранных SMO и3 consumer builds прошли. Два старых
+ожидания BloomX исправлены по реальным references и сохранённым BGRA байтам.
+Часы UI и эвристики bindings остаются следующей работой.
+Досье: `docs/research/tool-animated-texture-reader-shared-core-2026-09-09.md`.

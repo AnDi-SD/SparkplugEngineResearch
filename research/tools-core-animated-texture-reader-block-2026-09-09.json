@@ -1,0 +1,303 @@
+{
+  "kind": "tools-core-animated-texture-reader-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T07:10:50.360785+00:00",
+  "base_commit": "ec501192b7f7742b092b519c1b3b053fc6382841",
+  "viewer_commit": "17a81fce25494826acd610f148ecbc10960ab68b",
+  "cycle_block": 4,
+  "previous_cycle_blocks": 17,
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.cpp",
+      "sha256": "0A1163C2A6C25B1FEFC78E214BBFBFAFE33D07A994F230C2920985224739E256"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.h",
+      "sha256": "A79B21D783A217A8B5B897091B05EE305F5EEC2048389553FC4FFD19E5EFF029"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureTrack.cpp",
+      "sha256": "A568A7F4E87E1EDFAA4A55929EF7020DB26A3987DFF5D47763E8A6AB29DB6E41"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureTrack.h",
+      "sha256": "3CA324924F40F1C84A21FDC96FC225C070295FC649095E52F4CB4EAAF60799E8"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialControllerTests.cpp",
+      "sha256": "8ED3CA96A5EBAD63B7D793F9508C8B4D8D8C071EFFFBA64F299E8000EFEAEBAF"
+    },
+    {
+      "path": "docs/research/tool-animated-texture-reader-shared-core-2026-09-09.md",
+      "sha256": "38E416F6136D28BC5FE73BE23C0312E92422ED3A6BECE1747A97ED0537A09E71"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "41BE86F78BBFC2D8313CE76D127BF36E116E2E4F59B8425DDAC5C017C00CE53C"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "370FD6B88F2233FAFEAEC78DDED6F32DC5A97AC25F931B75963B066376D9373E"
+    },
+    {
+      "path": "research/validate_tools_animated_texture_reader.py",
+      "sha256": "33FA903740772E883312091411EEA83F3A0377177811C14BD569A677E5110DDE"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "A076A83EF102D58973528ADE443F9D4C4D4CDE066A9A07D78DA93128634890BB"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "52A0377FF95C627E90C55A9B8CDC470DB004414CB9A42BE5EAD1461FCBEC31C2"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "4314FDF9259FB5DD3E6B22837C4BB0E4033E802491BEE851FAE8FEC9AD4B7D8D",
+      "git_blob_sha256": "853EA5B47BCD0643468856492BEE2A84CD57A94B70C8F940A09782E490CFE258"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoAnimTextureControllerDecoder.cs",
+      "sha256": "172AF1A3DA7BA726179745D162873EC8C16051B9ECCCA2865943FE448D88A2C8",
+      "git_blob_sha256": "16CAD41D8B1F84066D417338DA54C325D0D7B5E4ED7BB60C41B35414596A881E"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "D7176F82B5621449D79F98CD9D916FC524E2CD56F1667E0A1A2871550507D82F",
+      "git_blob_sha256": "396355994444ACDF43EED5B8405F75F55C4415B1D72526233789869572762C9F"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "4DB07F014BEF4A7DA616BA66C574F59BF472FC16D0254FE673356C302791D128",
+      "git_blob_sha256": "9150D2B3D648F0635F7C267BF3C6F637CE8799AD25F9393E8E28B161C7A81566"
+    }
+  ],
+  "native_dll_sha256": "C04CB6E92019E0D3DDAAC602B0581971B1D08424EAAAB46D74EC031CF95E690B",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C04CB6E92019E0D3DDAAC602B0581971B1D08424EAAAB46D74EC031CF95E690B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C04CB6E92019E0D3DDAAC602B0581971B1D08424EAAAB46D74EC031CF95E690B"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C04CB6E92019E0D3DDAAC602B0581971B1D08424EAAAB46D74EC031CF95E690B"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/alfea02.log",
+      "sha256": "A9D95CD6E832B6EFB344C280C1E9C383196E820A7D2C4300919698461A763D29"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/alpha-diagnostic-Program.cs.txt",
+      "sha256": "F4E26E41F7CE2677FFDD6030D81F742B765C3292A7E7B7E9D8C52A733806B553"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/bloom-crystal.log",
+      "sha256": "B503818B855CE902801124CD668F34DE1D91C8E03B679DCAE3EAFFE4E65EC9A9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/bloom-x.log",
+      "sha256": "CD6373CADF88F38884168FE6637E36E081C57C20124B8F4C35F54E63E57A76CE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/boundary-original.log",
+      "sha256": "7317BDE63E1715C1D08490441F40BB5A683D75E81975E7C1E42F4C6B26BDD78F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/comparison.json",
+      "sha256": "CE87112463BE2F60960B85E7AD2D98A359AE40E27A195F8F78944B06C7BD8D0D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/darcy-bats.log",
+      "sha256": "CFAF741F74F53681A7E414AE2ABAA5512E0A631AD03375389801F198964C1E2D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/diagnostic-BaselineModelDecoder.cs.txt",
+      "sha256": "870277A40CA7D5721BB19D0064FBA859BC65A6F5315CBE4ECA701BF51CC966EA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/diagnostic-BaselineTextureBindingResolver.cs.txt",
+      "sha256": "C757637D8627EAD928D0D5C0A42BDD8F8479B15931E0AB46233728D3BCE67FD5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/diagnostic-prepare_wing_baseline.py.txt",
+      "sha256": "F2D22687329719AC88FCD78F8424E533E9C6743BCB03F20E26D7C957DFB5B98B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/diagnostic-Program.cs.txt",
+      "sha256": "F879E323A24A9DCA9556E264192CC4821219E635C97111B1AC91545A228CB8DE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/duplicate-original.log",
+      "sha256": "71635834DC352F673FA28B5B321FA8D98A6C1C1230CA4EC69E437F4305F7654B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/empty-original.log",
+      "sha256": "53E07CF07251E453442C8C880A0D53022938DA3C749E166BFF95383A957FE169"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/flora-x.log",
+      "sha256": "13D782D28BAD21B1C88412557588F16C77C88D0CC9180493A754EA2DD72A8118"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/importer-build.log",
+      "sha256": "11DD666CCA5ACEA3A339F3F221B08CA80CB93AF69F7200E879D56EA4FFB56BC6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/level-build.log",
+      "sha256": "23176841DBC7F13FED93BB1649641469C358A8535F67592EDC6FB8A539FEFA8E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/managed-samples-final.json",
+      "sha256": "398443DDC9271FC8369BB6A9D5720B413B2FBBA27A512246AC10E333CC981D2D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/native-build.log",
+      "sha256": "5172984FBD1536B0E4DF562586B4BC24CFACCCA46A4E0ABC0E75BEE719274668"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/negative-original.log",
+      "sha256": "C20581A844AB1DE1F83645042626163F777DC1D3DE7070AD2ABA26D8C8B44F35"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/null-original.log",
+      "sha256": "46173D5F9559F4D819D75F38BA4932B10008870D5B88C1F3E0AD7C6BD534C4DC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/original.json",
+      "sha256": "FF533313B44DBA4CC4FAAC5DFB49B825E782494771011711EEFA9E47A6E9F12D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/source-tests.log",
+      "sha256": "D44EC764D6252B4F05A57B7D8120791502C8E35A2DA73B4274A25F5F8DF059C1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/trial-bloom-x.log",
+      "sha256": "77F57A5DC1C6AA3D4AC8730B483A8222AFE062A3B483A79B490CF09690E91B00"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/trial-managed-samples-final.json",
+      "sha256": "1B9D9714C4C1551D95780449174501CD1B88EE60E37DEC935BB02C9DE1D74553"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/trial2-bloom-x.log",
+      "sha256": "B395FDFD657EC2D383C85B4D07916AB009D5DBE31B323AEB81FCAE8B1223FD01"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/trial2-managed-samples-final.json",
+      "sha256": "2AE0D5F3CB30A8493E4D687D270475B8C1C0B3C1E68C3748726DBBF54E7E6FD3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/viewer-build.log",
+      "sha256": "7D8A231CEE2A12412DB435C962B3795FF98347C8C0131FFDBC9BB45D548FDB56"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/wing-alpha-diagnostic.log",
+      "sha256": "C51E539559E71F8D1233C18C208F397BC49AEFBEA8E0946173F2F63CA0325E63"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/wing-baseline-build.log",
+      "sha256": "4C5A58BDC076A355045FAFDF77D2597DFC0F9B9FF248B24632CACD8D9B052B16"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/wing-baseline-provenance.json",
+      "sha256": "52FA75C35212399F2EA3C61040227AF5C2343FC6018B6D0C4A5944FB74E6DC32"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/wing-baseline.json",
+      "sha256": "32CD4AAF0F9C5A48EE60D8219A504295AB35E7DD8D9E861A38D06623A27619C9"
+    }
+  ],
+  "checks": {
+    "original_selected_cases": 5,
+    "exact_source_captures": 5,
+    "runtime_selections": 33,
+    "reused_original_inline_controller_graph": true,
+    "cpp_MaterialController": 488,
+    "cpp_MaterialSerialization": 554,
+    "cpp_FullLoader": 213,
+    "CSharp_samples": [
+      {
+        "name": "darcy-bats",
+        "path": "local-data/pc-pristine/Media/SFX/Darcy_shadow_bats.smo",
+        "reason": "small effect controller",
+        "indexed_animation_controllers": 1,
+        "bytes": 36328,
+        "sha256": "4ACE04C69DAFA15D222528CA6EBEF765F913AB9713614CD7E0AC0E7F246EFD88",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/darcy-bats.log",
+        "result": [
+          "PASS: 951 assertions"
+        ]
+      },
+      {
+        "name": "flora-x",
+        "path": "local-data/pc-pristine/Media/Characters/Flora/FloraX.smo",
+        "reason": "three controllers including compact reference-only and inline tracks",
+        "indexed_animation_controllers": 3,
+        "bytes": 564755,
+        "sha256": "FB72A2801B6F6607A0EBAE3BD20DC14E60B1F36728CD86A158C2AD83F01CED49",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/flora-x.log",
+        "result": [
+          "PASS: 1933 assertions"
+        ]
+      },
+      {
+        "name": "bloom-crystal",
+        "path": "local-data/pc-pristine/Media/Characters/Bloom/bloom_crystal.smo",
+        "reason": "large inline track and skinned material consumers",
+        "indexed_animation_controllers": 1,
+        "bytes": 576044,
+        "sha256": "86BB16346267F83F9A0A972A867AD05085118DFF80273D4BE6F77CE85562A589",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/bloom-crystal.log",
+        "result": [
+          "PASS: 1753 assertions"
+        ]
+      },
+      {
+        "name": "bloom-x",
+        "path": "local-data/pc-pristine/Media/Characters/BloomX/bloomx.smo",
+        "reason": "two controllers and shared texture metadata",
+        "indexed_animation_controllers": 2,
+        "bytes": 591685,
+        "sha256": "49E2C2D22FAE3211C20D9A3767EBB43934048507606ABD0C32B16B093823C012",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/bloom-x.log",
+        "result": [
+          "PASS: 1871 assertions"
+        ]
+      },
+      {
+        "name": "alfea02",
+        "path": "local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+        "reason": "pristine level regression after shared track/header changes",
+        "indexed_animation_controllers": 0,
+        "bytes": 7106313,
+        "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/animated-texture-reader/alfea02.log",
+        "result": [
+          "PASS: 36330 assertions"
+        ]
+      }
+    ],
+    "Viewer_Importer_LevelCoreTests_build": "0 warnings, 0 errors"
+  },
+  "limits": [
+    "Texture IDs are metadata; retained native track selects indices without substitute resource objects",
+    "Input time is an already calculated track position; UI looping clock and binding heuristics remain",
+    "Empty FileStream read failure differs from memory-backed metadata inspection; original ReadData(0) call remains",
+    "Host limits 4096 keys/16MiB and finite sorted evaluation guards remain explicit",
+    "BloomX legacy reference-identity/alpha expectations corrected against actual model links and stored BGRA; initial failures preserved",
+    "No full corpus, PS2 execution, GPU integration or release"
+  ]
+}

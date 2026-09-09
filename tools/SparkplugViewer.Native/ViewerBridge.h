@@ -128,6 +128,14 @@ SPV_API void* spv_model_read(const std::uint8_t*,std::uint32_t,std::uint32_t kin
 SPV_API void spv_model_destroy(void*) noexcept;
 SPV_API int spv_model_info(void*,SpvModelInfo*) noexcept;
 SPV_API int spv_model_bones(void*,SpvSkinBone*,std::uint32_t) noexcept;
+struct SpvAnimTextureInfo {std::uint32_t frames,hasTrack;float duration;};
+struct SpvAnimTextureFrame {float time;SpvMaterialReference reference;};
+SPV_API void* spv_anim_texture_read(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_anim_texture_destroy(void*) noexcept;
+SPV_API int spv_anim_texture_info(void*,SpvAnimTextureInfo*) noexcept;
+SPV_API int spv_anim_texture_frames(void*,SpvAnimTextureFrame*,std::uint32_t) noexcept;
+// Unwrapped track time: original end-time key selection, not a looping clock.
+SPV_API int spv_anim_texture_index(void*,float,std::int32_t*) noexcept;
 // Original field1/2 assignments with fresh constructor defaults; no reference
 // resolution, affine validation or relation between matrices is implied.
 SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,

@@ -78,6 +78,13 @@ namespace
         const bool read=serializer->ReadPayloadForAnalysis(context,source,static_cast<std::uint32_t>(input.size()),*controller,&error);
         Check(read==(mode!="empty"),error.empty()?"FileStream zero-byte read result matches native":error.c_str());
         Check(controller->GetTextureTrackForAnalysis().GetTimesForAnalysis()==times,"stored exact times");
+        spAnimTexController partial;spAnimTexControllerSerializer::InspectionForAnalysis observation;
+        spMemoryStream inspectedInput;Open(inspectedInput,input);
+        if(!serializer->InspectPayloadForAnalysis(inspectedInput,static_cast<std::uint32_t>(input.size()),partial,observation,&error))throw std::runtime_error(error);
+        Check(observation.hasTrack&&partial.GetTextureTrackForAnalysis().GetTimesForAnalysis()==times,"memory-backed inspection preserves original time array including empty");
+        Check(observation.textures.size()==ids.size(),"inspected reference count");
+        for(std::size_t i=0;i<ids.size();++i)
+            Check(observation.textures[i].id==ids[i]&&!partial.GetTextureTrackForAnalysis().GetTexturesForAnalysis()[i],"inspected ID without substitute Texture object");
         spMaterialTexture holder;holder.SetOwnedAnimTextureControllerForAnalysis(controller);std::ostringstream states;states<<std::setprecision(17)<<'[';
         if(!times.empty())
         {
@@ -86,6 +93,9 @@ namespace
             {
                 controller->ApplyForAnalysis(steps[step]);Check(holder.UpdateTextureAnimationForAnalysis(),"actual positive track update");
                 std::uint32_t selected=0;for(const auto& [id,texture]:textures)if(holder.GetTextureForAnalysis()==texture.get())selected=id;
+                std::optional<std::size_t> key;
+                Check(partial.GetTextureTrackForAnalysis().SelectKeyIndexForAnalysis(controller->GetPlaybackTimeForAnalysis(),key)
+                    &&key&&ids[*key]==selected,"same key-selection algorithm for original resolved runtime and inspected timeline");
                 if(step)states<<',';states<<'['<<steps[step]<<','<<controller->GetAppliedTimeForAnalysis()<<','<<controller->GetAccumulatedTimeForAnalysis()<<','<<controller->GetPlaybackTimeForAnalysis()<<','<<selected<<']';
             }
         }

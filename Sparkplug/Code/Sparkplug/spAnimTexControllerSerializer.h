@@ -4,6 +4,7 @@
 // exact original translation-unit path has not yet been recovered.
 
 #include "spSerializer.h"
+#include "Analysis/PC/spReferenceInspection.h"
 
 #include <array>
 #include <cstdint>
@@ -11,6 +12,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spAnimTexController;
     class spAnimTexControllerSerializer : public spSerializer
     {
     public:
@@ -66,8 +68,20 @@ namespace sparkplug::reconstruction
             std::uint32_t fieldID) noexcept;
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
             spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
+        struct InspectionForAnalysis
+        {
+            bool hasTrack=false;
+            std::vector<evidence::pc::serialization::InspectedReference> textures;
+        };
+        // Partial track keeps real times and NULL slots; unresolved resources
+        // remain metadata. No substitute Texture object is instantiated.
+        bool InspectPayloadForAnalysis(spStream&,std::uint32_t,spAnimTexController&,
+            InspectionForAnalysis&,std::string*) const;
         [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const override;
         [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,
             spStream& destination,const spBaseObject& object,std::string* error) const override;
+    private:
+        bool ReadFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,
+            spBaseObject&,std::string*,InspectionForAnalysis*) const;
     };
 }

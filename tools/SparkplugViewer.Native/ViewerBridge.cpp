@@ -15,6 +15,8 @@
 #include "Code/SparkplugDX/spDXMaterial.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spSkinSerializer.h"
+#include "Code/Sparkplug/spAnimTexController.h"
+#include "Code/Sparkplug/spAnimTexControllerSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
@@ -246,6 +248,23 @@ struct ModelView {
     }
 };
 static_assert(sizeof(SpvModelInfo)==56&&sizeof(SpvSkinBone)==80);
+struct AnimTextureView {
+    SpvAnimTextureInfo info{};
+    std::vector<SpvAnimTextureFrame> frames;
+    spTextureTrack track; // actual key selector; resource slots explicitly unresolved
+    AnimTextureView(const std::uint8_t* bytes,std::uint32_t count) {
+        require(bytes&&count&&count<=16u*1024u*1024u,"Invalid bounded animated texture stream");
+        BorrowedInput input(bytes,count);spAnimTexController partial;
+        spAnimTexControllerSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spAnimTexControllerSerializer{}.InspectPayloadForAnalysis(input,count,partial,observed,&error))throw std::runtime_error(error);
+        const auto& times=partial.GetTextureTrackForAnalysis().GetTimesForAnalysis();
+        require(times.size()==observed.textures.size(),"Inspected animated texture track has inconsistent slots");
+        info={static_cast<std::uint32_t>(times.size()),observed.hasTrack,partial.GetTextureTrackForAnalysis().GetDurationForAnalysis()};
+        for(std::size_t i=0;i<times.size();++i)frames.push_back({times[i],{observed.textures[i].offset,observed.textures[i].size}});
+        require(track.SetKeysForAnalysis(times,std::vector<std::shared_ptr<spTexture>>(times.size())),"Cannot retain inspected texture timeline");
+    }
+};
+static_assert(sizeof(SpvAnimTextureInfo)==12&&sizeof(SpvAnimTextureFrame)==12);
 static_assert(sizeof(SpvTextureSectionInfo)==32&&sizeof(SpvTextureMip)==28);
 struct SerializedBytes {
     std::vector<std::uint8_t> bytes;
@@ -633,6 +652,24 @@ SPV_API void* spv_model_read(const std::uint8_t* bytes,std::uint32_t count,std::
     return result.release();
 }
 SPV_API void spv_model_destroy(void* handle) noexcept {(void)guarded([&]{delete static_cast<ModelView*>(handle);});}
+SPV_API void* spv_anim_texture_read(const std::uint8_t* bytes,std::uint32_t count) noexcept {
+    std::unique_ptr<AnimTextureView> result;
+    if(!guarded([&]{result=std::make_unique<AnimTextureView>(bytes,count);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_anim_texture_destroy(void* handle) noexcept {(void)guarded([&]{delete static_cast<AnimTextureView*>(handle);});}
+SPV_API int spv_anim_texture_info(void* handle,SpvAnimTextureInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid animated texture view");*output=static_cast<AnimTextureView*>(handle)->info;});
+}
+SPV_API int spv_anim_texture_frames(void* handle,SpvAnimTextureFrame* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Invalid animated texture view");const auto& frames=static_cast<AnimTextureView*>(handle)->frames;
+        require(count==frames.size()&&(!count||output),"Animated texture frame output size mismatch");if(count)std::copy(frames.begin(),frames.end(),output);});
+}
+SPV_API int spv_anim_texture_index(void* handle,float time,std::int32_t* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid animated texture index request");std::optional<std::size_t> index;
+        require(static_cast<AnimTextureView*>(handle)->track.SelectKeyIndexForAnalysis(time,index),"Texture timeline is outside the verified runtime domain");
+        *output=index?static_cast<std::int32_t>(*index):-1;});
+}
 SPV_API int spv_model_info(void* handle,SpvModelInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Invalid Model/Skin view");*output=static_cast<ModelView*>(handle)->info;});
 }

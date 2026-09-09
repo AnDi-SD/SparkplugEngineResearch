@@ -23,14 +23,21 @@ namespace sparkplug::reconstruction
     }
     bool spTextureTrack::EvaluateForAnalysis(float time,std::shared_ptr<spTexture>& output) const noexcept
     {
+        std::optional<std::size_t> index;
+        if(!SelectKeyIndexForAnalysis(time,index))return false;
+        output=index?textures_[*index]:nullptr;return true;
+    }
+    bool spTextureTrack::SelectKeyIndexForAnalysis(float time,std::optional<std::size_t>& index) const noexcept
+    {
+        index.reset();
         if(!std::isfinite(time)||!std::is_sorted(times_.begin(),times_.end())
             ||!std::all_of(times_.begin(),times_.end(),[](float value){return std::isfinite(value);}))return false;
-        if(times_.empty()){output.reset();return true;}
+        if(times_.empty())return true;
         // Actual478C60: last endpoint is inclusive, earlier endpoints select
         // the FIRST key strictly greater than time (end-time, not start-time).
-        if(time>=times_.back()){output=textures_.back();return true;}
+        if(time>=times_.back()){index=times_.size()-1;return true;}
         const auto found=std::upper_bound(times_.begin(),times_.end(),time);
         if(found==times_.end())return false; // original fallback slot4 is unsafe
-        output=textures_[static_cast<std::size_t>(found-times_.begin())];return true;
+        index=static_cast<std::size_t>(found-times_.begin());return true;
     }
 }

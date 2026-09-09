@@ -37,3 +37,11 @@ C++ Skin119/Material554/FullLoader213. Старые Material9 original captures
 повторно использованы для проверки нового общего reference helper без повторной
 эмуляции.5 SMO:37101/36326/9330/3005/1577 assertions;3 consumer builds чистые.
 Досье: `docs/research/tool-model-skin-reader-shared-core-2026-09-09.md`.
+
+Блок4: общий reader AnimTexController и исходный выбор ключа TextureTrack.
+Пять original/source captures,33 runtime selections и повторное использование
+inline original graph прошли. C++ Controller488/Material554/FullLoader213;
+5 SMO:951/1933/1753/1871/36330 assertions;3 consumer builds чистые.
+Старые BloomX tests исправлены по реальным связям и исходным opaque BGRA bytes.
+Это перенос чтения и индексатора; looping clock/UI bindings ещё не мигрированы.
+Досье: `docs/research/tool-animated-texture-reader-shared-core-2026-09-09.md`.

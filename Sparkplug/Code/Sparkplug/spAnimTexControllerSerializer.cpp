@@ -2,6 +2,7 @@
 #include "spAnimTexController.h"
 #include "spTexture.h"
 #include "spSerializerManager.h"
+#include "spResourceManager.h"
 #include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
@@ -103,6 +104,18 @@ namespace sparkplug::reconstruction
 
     bool spAnimTexControllerSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const
+    {return ReadFieldsForAnalysis(context,source,byteCount,object,error,nullptr);}
+
+    bool spAnimTexControllerSerializer::InspectPayloadForAnalysis(spStream& source,std::uint32_t byteCount,
+        spAnimTexController& partial,InspectionForAnalysis& observation,std::string* error) const
+    {
+        if(error)error->clear();observation={};spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);
+        return ReadFieldsForAnalysis(context,source,byteCount,partial,error,&observation);
+    }
+
+    bool spAnimTexControllerSerializer::ReadFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error,InspectionForAnalysis* observation) const
     {
         evidence::pc::serialization::SectionCursor cursor(context,source,byteCount,true,error);
         auto* controller=dynamic_cast<spAnimTexController*>(&object);
@@ -115,11 +128,22 @@ namespace sparkplug::reconstruction
             if(header->payloadSize<4||!source.Read(count)||count>spTextureTrack::MaximumKeysForAnalysis
                 ||std::uint64_t(count)*8+4>header->payloadSize)return cursor.Fail("Animated texture count exceeds bounded field");
             std::vector<float> times(count);std::vector<std::shared_ptr<spTexture>> textures; textures.reserve(count);
+            std::vector<evidence::pc::serialization::InspectedReference> inspected;
+            if(observation)inspected.reserve(count);
             // Native calls ReadData even for count0: FileStream's zero-byte
             // read fails, MemoryStream may succeed. Keep the stream contract.
             if(!source.ReadData(times.data(),count*4))return cursor.Fail("Cannot read animated texture times");
             for(std::uint32_t i=0;i<count;++i)
             {
+                if(observation)
+                {
+                    const auto end=header->dataStreamPosition+header->payloadSize;std::uint32_t position=0;
+                    evidence::pc::serialization::InspectedReference reference;
+                    if(!source.GetCurrentPosition(position)||position>end||
+                        !evidence::pc::serialization::InspectReference(source,end-position,false,reference,error))
+                        return cursor.Fail("Cannot inspect animated texture frame");
+                    inspected.push_back(reference);textures.emplace_back();continue;
+                }
                 auto* referenced=spSerializer::ReadSequenceReferenceForAnalysis(context,spTexture::ClassID,source,
                     header->dataStreamPosition+header->payloadSize,error);
                 if(context.failed)return false;
@@ -129,6 +153,7 @@ namespace sparkplug::reconstruction
             }
             if(!controller->GetTextureTrackForAnalysis().SetKeysForAnalysis(std::move(times),std::move(textures)))
                 return cursor.Fail("Cannot install bounded animated texture track");
+            if(observation){observation->hasTrack=true;observation->textures=std::move(inspected);}
         }
         return false;
     }
