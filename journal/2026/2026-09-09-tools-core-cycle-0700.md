@@ -43,3 +43,13 @@
   pristine Alfea02:94,866→5,585мс (16,99× для capture operation), peak58,30MiB.
   Полное время импорта таким коэффициентом не оценивается. Unknown DX power
   и неоднозначные single-layer LTS формы остаются явными ограничениями.
+- 21:51 МСК: block4 сохранён root8b77ac6 / Viewercaca0d6.
+- 21:52–22:02 МСК: block5 переносит Renderable sort/priority в BuildSkin и
+  исправляет выбор одинаковых field IDs из неправильной секции. Native5 suites,
+  managed44+44, Icy13, FormatTests647,5 consumer builds; ABI6/19 +2 Material
+  regressions. Icy output совпал побайтно сblock4.
+- Свободно704084KiB RAM; дополнительные .NET/MSBuild принадлежат VS Code
+  пользователя, их не останавливали. Managed block5 —1 worker.
+- FAT boundary сообщён пользователю. Узкий PS2 manager-region не содержит
+  save-кандидата; подготовлено предложение общей HOST записи envelope для
+  трёх существующих production writers. Реализация ждёт решения пользователя.

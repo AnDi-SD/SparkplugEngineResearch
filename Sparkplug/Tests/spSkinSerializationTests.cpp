@@ -89,6 +89,73 @@ namespace
         std::ostringstream row;row<<'['<<model.IsAlphaSortEnabledForAnalysis()<<','<<model.GetPriorityForAnalysis()<<','
             <<model.GetProjectionGroupForAnalysis()<<",\""<<Hex(Data(output))<<"\"]";return row.str();
     }
+    void RenderableScalarWriterSlices()
+    {
+        // CP10 secondary47F7A0 -> target1402630 always writes these fields.
+        // Exact slices also preserved in sealed model-skin-reader captures:
+        // model-empty-original.log SHA256 7A860B605673A3B0E56BE658FF2F9E333
+        // EBE096901B04D2DA81B3C6DDA7B1016: 6201000000630000000000.
+        // model-repeat-original.log SHA256 B2A96A45887B8CA39AB2BA91DF78B881
+        // B1D625D36445FF3471BEA7374540E89D: 620000000063ffffffff00.
+        for(const bool alpha:{false,true})for(const std::uint32_t priority:{0u,UINT32_MAX})
+        {
+            spModel object;object.SetAlphaSortEnabledForAnalysis(alpha);object.SetPriorityForAnalysis(priority);
+            spMemoryStream output;Open(output);std::string error;
+            Check(spRenderableSerializer::WriteAlphaSortEnableFieldForAnalysis(output,object,&error),error.c_str());
+            Check(Hex(Data(output))==(alpha?"6201000000":"6200000000"),"alpha slice matches original true/false UInt32 field, without suppression or terminator");
+            Open(output);Check(spRenderableSerializer::WritePriorityFieldForAnalysis(output,object,&error),error.c_str());
+            Check(Hex(Data(output))==(priority?"63ffffffff":"6300000000"),"priority slice matches original zero/full-u32 field, without suppression or terminator");
+            Check(object.IsAlphaSortEnabledForAnalysis()==alpha&&object.GetPriorityForAnalysis()==priority,"scalar writer slices preserve actual object state");
+        }
+    }
+    void RenderableScalarObservations()
+    {
+        struct Expected{std::uint32_t field,offset;};std::vector<Expected> expected;
+        Bytes renderable;
+        const auto field=[](Bytes& bytes,std::uint8_t id,const Bytes& value)
+        {
+            Check(value.size()<256,"bounded observation fixture field");bytes.push_back(0xa0+id);
+            bytes.push_back(static_cast<std::uint8_t>(value.size()));bytes.insert(bytes.end(),value.begin(),value.end());
+        };
+        const auto scalar=[&](std::uint8_t id,std::uint32_t value)
+        {
+            expected.push_back({id,static_cast<std::uint32_t>(renderable.size()+2)});
+            field(renderable,id,Bits(value));
+        };
+        scalar(3,UINT32_MAX);scalar(2,256);
+        field(renderable,18,Bits(std::array<std::uint32_t,2>{7,0}));
+        scalar(2,0);scalar(3,7);scalar(2,2);renderable.push_back(0);
+        Bytes model;field(model,2,Bytes{0xff});field(model,3,Bits(std::array<std::uint32_t,2>{5,0}));
+        field(model,1,Bits(11u));model.push_back(0);
+        Bytes skin;field(skin,2,Bits(0u));field(skin,3,Bits(UINT32_MAX));
+        field(skin,0,Bits(std::array<std::uint32_t,2>{4,0}));skin.push_back(0);
+        Bytes payload=renderable;payload.insert(payload.end(),model.begin(),model.end());payload.insert(payload.end(),skin.begin(),skin.end());
+        Bytes prefixed{0x42,0x42,0x42,0x42,0x42};prefixed.insert(prefixed.end(),payload.begin(),payload.end());
+        spMemoryStream input;Open(input,prefixed);Check(input.Seek(spStream::SeekSource::essStart,5),"nonzero Skin stream start");
+        spSkin object;spSkinSerializer::InspectionForAnalysis observation;std::string error;
+        Check(spSkinSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(payload.size()),object,observation,&error),error.c_str());
+        const auto& rows=observation.model.renderable.scalarFields;
+        Check(rows.size()==expected.size(),"only actual Renderable scalar assignments are observed across three sections");
+        for(std::size_t i=0;i<expected.size();++i)
+        {
+            const auto& row=rows[i];const auto& want=expected[i];
+            Check(static_cast<std::uint32_t>(row.field)==want.field&&row.payloadOffset==want.offset
+                &&row.payloadSize==4&&row.assignmentOrder==i&&row.owner==static_cast<const spRenderable*>(&object),
+                "Renderable row has exact relative extent, actual base owner and repeated-assignment order");
+        }
+        Check(object.IsAlphaSortEnabledForAnalysis()&&object.GetPriorityForAnalysis()==7,
+            "repeated actual Renderable scalars are last-wins and normalize nonzero alpha");
+        Check(object.GetProjectionGroupForAnalysis()==11&&observation.weights==4&&observation.bones.empty(),
+            "Model/Skin retain their own semantics despite unknown fields2/3");
+        Check(observation.model.renderable.fieldMask==12&&observation.model.fieldMask==2&&observation.fieldMask==1,
+            "field masks remain scoped to the actual inherited sections");
+        std::uint32_t position=0;Check(input.GetCurrentPosition(position)&&position==prefixed.size(),"three sections consume their exact complete extent");
+        // Observation reset belongs to the existing whole-inspection entry.
+        const Bytes empty{0,0,0};Open(input,empty);spSkin second;
+        Check(spSkinSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(empty.size()),second,observation,&error),error.c_str());
+        Check(observation.model.renderable.scalarFields.empty()&&second.IsAlphaSortEnabledForAnalysis()
+            &&second.GetPriorityForAnalysis()==0,"reused inspection clears borrowed rows and does not invent missing scalar assignments");
+    }
     void Guards()
     {
         std::weak_ptr<spNode> releasedRoot;
@@ -184,7 +251,7 @@ int main(int argc,char** argv)
         if(argc==3&&std::string(argv[1])=="--clone"){std::cout<<Clone(argv[2])<<'\n';return 0;}
         if(argc==2&&std::string(argv[1])=="--model")
         {std::string payload;std::cin>>payload;std::cout<<Model(Unhex(payload))<<'\n';return 0;}
-        Guards();for(const auto* mode:{"empty","one","mapped","repeat","direct-repeat","child","copy-populated","raw-bits"})(void)Clone(mode);
+        Guards();RenderableScalarWriterSlices();RenderableScalarObservations();for(const auto* mode:{"empty","one","mapped","repeat","direct-repeat","child","copy-populated","raw-bits"})(void)Clone(mode);
         std::cout<<"PASS "<<checks<<'/'<<checks<<": Skin envelope guards, native wire and clone ownership\n";return 0;
     }
     catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

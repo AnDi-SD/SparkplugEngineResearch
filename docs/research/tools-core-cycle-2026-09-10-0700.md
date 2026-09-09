@@ -82,6 +82,13 @@ Reference remap60 checks сохраняют coverage, порядок и отка
 Остальная структурная запись Material/Skin/контейнера ещё не завершена;
 35-reader counter по-прежнему30/3/2.
 
+**Блок 5:** Skin authoring использует общие Renderable alpha-sort/priority
+writer slices. Исправлена ошибка нашего builder: номера2/3 больше не выбираются
+из соседних Model/Skin sections. Native5 suites, managed44+Material44,
+Icy13 с побайтным совпадением прежнего результата, FormatTests647;5 builds.
+ABI6 Skin cases/19 guards/2 Material regressions. [Подробности](tool-renderable-scalar-authoring-2026-09-10.md).
+Нужный следующий срез — palette writer и подтверждённый контекст existing IDs.
+
 ## Отложенные случаи
 
 Сохраняется список из [предыдущего среза](tools-core-migration-status-2026-09-09.md).
@@ -110,3 +117,9 @@ Trace не выдаёт skipped bytes за coverage; remap содержащей 
 остаётся отложенным. Частичные scalar writers это значение не читают и не
 подставляют default. Single-layer authoring для legacy/orphan/repeated LTS
 требует отдельного определения операции; такие формы явно отклоняются.
+
+Три независимых FAT/envelope writers пока не перенесены: существующий общий
+producer является HOST реализацией и меняет lossless-контракт. Узкий PC/PS2
+поиск не дал original whole/index writer; отсутствие во всём EXE не утверждается.
+Подготовлено [конкретное предложение общего host encoder](tool-container-writer-boundary-2026-09-10.md),
+ожидающее решения пользователя по правилу2. До этого независимые ядра продолжаются.

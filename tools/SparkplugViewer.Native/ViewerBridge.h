@@ -219,6 +219,11 @@ SPV_API int spv_material_passes(void*,SpvMaterialPass*,std::uint32_t) noexcept;
 SPV_API void* spv_material_patch_scalars(const std::uint8_t*,std::uint32_t,
     const std::uint32_t* states,std::uint32_t stateCount,std::uint32_t blend,
     const std::uint32_t* textureStates,std::uint32_t textureStateCount,std::uint32_t kind) noexcept;
+// Same-length edit of the two actual Renderable-section assignments in Skin.
+// Model/Skin sections are read by their real readers and retained unchanged;
+// alphaSort is the explicit tool bool 0/1. Returns SerializedBytes field stream.
+SPV_API void* spv_skin_patch_sort_scalars(const std::uint8_t*,std::uint32_t,
+    std::uint32_t alphaSort,std::uint32_t priority) noexcept;
 struct SpvModelInfo {
     std::uint32_t alpha,priority,projection,weights,renderableMask,modelMask,skinMask,bones;
     SpvMaterialReference material,fog,mesh;

@@ -45,12 +45,35 @@ namespace sparkplug::reconstruction
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,const spBaseObject&,std::string*) const override;
         bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        struct InspectedScalarFieldForAnalysis
+        {
+            Field field = Field::AlphaSortEnable;
+            // Relative to this Renderable section's start, not the physical
+            // stream origin or a later Model/Skin section.
+            std::uint32_t payloadOffset = 0;
+            std::uint32_t payloadSize = 0;
+            std::uint32_t assignmentOrder = 0;
+            const spRenderable* owner = nullptr;
+        };
         // Partial scalar state and unresolved metadata, never a loaded graph.
         struct InspectionForAnalysis
         {
             std::uint32_t fieldMask=0;
             std::optional<evidence::pc::serialization::InspectedReference> material,fog;
+            // Host observations from successful actual field2/3 assignments.
+            // Repeats retain encounter order; owner borrows the partial object.
+            // Consume only after successful whole inspection and while that
+            // object is alive. SectionCursor bounds the observation count.
+            std::vector<InspectedScalarFieldForAnalysis> scalarFields;
         };
+
+        // Shared slices of original PC secondary47F7A0 -> target1402630.
+        // Each writes one complete UInt32 field, including false/zero, without
+        // a section terminator or relationship serialization.
+        [[nodiscard]] static bool WriteAlphaSortEnableFieldForAnalysis(spStream& destination,
+            const spRenderable& object,std::string* error = nullptr);
+        [[nodiscard]] static bool WritePriorityFieldForAnalysis(spStream& destination,
+            const spRenderable& object,std::string* error = nullptr);
 
         // Native writer omits null relationships but always emits the two
         // alpha-sort scalars, including their constructor-default values.

@@ -298,6 +298,23 @@ struct SerializedBytes {
         const auto* data=static_cast<const std::uint8_t*>(source.GetBuffer());bytes.assign(data,data+size);
     }
 };
+// Host same-length edit shared by typed writer adapters. Field interpretation
+// stays with the actual reader and writer; no header grammar is repeated here.
+void PatchObservedFieldPayload(spMemoryStream& destination,std::uint32_t sourceSize,
+    std::uint32_t field,std::uint32_t payloadOffset,std::uint32_t payloadSize,
+    spMemoryStream& encoded) {
+    require(encoded.Seek(spStream::SeekSource::essStart,0),"Cannot rewind written scalar field");
+    spDataBlockSerializer blocks;
+    const auto* header=blocks.ReadHeaderForAnalysis(encoded);
+    std::uint32_t encodedSize=0;
+    require(header&&header->fieldID==field&&header->payloadSize==payloadSize&&
+        encoded.GetSize(&encodedSize)&&std::uint64_t(header->dataStreamPosition)+header->payloadSize==encodedSize&&
+        std::uint64_t(payloadOffset)+payloadSize<=sourceSize,
+        "SCALAR_AUTHORING: shared writer output differs from observed field extent");
+    require(destination.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(payloadOffset))&&
+        destination.WriteData(static_cast<const std::uint8_t*>(encoded.GetBuffer())+header->dataStreamPosition,payloadSize),
+        "Cannot apply observed scalar payload");
+}
 struct MeshBVView {
     std::unique_ptr<spMeshBV> mesh;
     std::unique_ptr<spFaceDataContainer> standaloneFaces;
@@ -1110,18 +1127,8 @@ SPV_API void* spv_material_patch_scalars(const std::uint8_t* bytes,std::uint32_t
         spMemoryStream output;
         require(output.Open("tool.material.patch")&&output.WriteData(bytes,count),"Cannot copy material template");
         const auto patch=[&](const Observation& destination,spMemoryStream& encoded) {
-            require(encoded.Seek(spStream::SeekSource::essStart,0),"Cannot rewind written scalar field");
-            spDataBlockSerializer blocks;
-            const auto* header=blocks.ReadHeaderForAnalysis(encoded);
-            std::uint32_t encodedSize=0;
-            require(header&&header->fieldID==static_cast<std::uint32_t>(destination.field)&&
-                header->payloadSize==destination.payloadSize&&encoded.GetSize(&encodedSize)&&
-                std::uint64_t(header->dataStreamPosition)+header->payloadSize==encodedSize&&
-                std::uint64_t(destination.payloadOffset)+destination.payloadSize<=count,
-                "MATERIAL_SCALAR_SHAPE: shared writer output differs from observed scalar extent");
-            require(output.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(destination.payloadOffset))&&
-                output.WriteData(static_cast<const std::uint8_t*>(encoded.GetBuffer())+header->dataStreamPosition,header->payloadSize),
-                "Cannot apply material scalar payload");
+            PatchObservedFieldPayload(output,count,static_cast<std::uint32_t>(destination.field),
+                destination.payloadOffset,destination.payloadSize,encoded);
         };
         spMemoryStream writtenStates;
         require(writtenStates.Open("tool.material.states"),"Cannot open scalar writer stream");
@@ -1139,6 +1146,44 @@ SPV_API void* spv_material_patch_scalars(const std::uint8_t* bytes,std::uint32_t
             if(!spMaterialSerializer::WriteTextureStatesFieldForAnalysis(writtenTexture,*texture,&error))throw std::runtime_error(error);
             patch(*textureFields.front(),writtenTexture);
         }
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
+SPV_API void* spv_skin_patch_sort_scalars(const std::uint8_t* bytes,std::uint32_t count,
+    std::uint32_t alphaSort,std::uint32_t priority) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(bytes&&count&&count<=16u*1024u*1024u&&alphaSort<=1,
+            "RENDERABLE_SCALAR_SHAPE: invalid bounded Skin sort edit input");
+        BorrowedInput input(bytes,count);spSkin skin;
+        spSkinSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spSkinSerializer{}.InspectPayloadForAnalysis(input,count,skin,observed,&error))throw std::runtime_error(error);
+        std::uint32_t end=0;
+        require(input.GetCurrentPosition(end)&&end==count,"RENDERABLE_SCALAR_SHAPE: unread trailing Skin bytes");
+        using Field=spRenderableSerializer::Field;
+        using Observation=spRenderableSerializer::InspectedScalarFieldForAnalysis;
+        const Observation* alphaField=nullptr;const Observation* priorityField=nullptr;
+        for(const auto& field:observed.model.renderable.scalarFields) {
+            require(field.owner==static_cast<const spRenderable*>(&skin)&&field.payloadSize==4,
+                "RENDERABLE_SCALAR_SHAPE: scalar assignment has no exact Skin owner");
+            auto& selected=field.field==Field::AlphaSortEnable?alphaField:priorityField;
+            require((field.field==Field::AlphaSortEnable||field.field==Field::AlphaSortPriority)&&!selected,
+                "RENDERABLE_SCALAR_SHAPE: repeated or unknown Renderable scalar assignment");
+            selected=&field;
+        }
+        require(alphaField&&priorityField,"RENDERABLE_SCALAR_SHAPE: missing authored Renderable alpha or priority");
+        skin.SetAlphaSortEnabledForAnalysis(alphaSort!=0);skin.SetPriorityForAnalysis(priority);
+        spMemoryStream output,writtenAlpha,writtenPriority;
+        require(output.Open("tool.skin.sort.patch")&&output.WriteData(bytes,count)&&
+            writtenAlpha.Open("tool.renderable.alpha")&&writtenPriority.Open("tool.renderable.priority"),
+            "Cannot open Renderable scalar writer streams");
+        if(!spRenderableSerializer::WriteAlphaSortEnableFieldForAnalysis(writtenAlpha,skin,&error)||
+            !spRenderableSerializer::WritePriorityFieldForAnalysis(writtenPriority,skin,&error))throw std::runtime_error(error);
+        PatchObservedFieldPayload(output,count,static_cast<std::uint32_t>(alphaField->field),
+            alphaField->payloadOffset,alphaField->payloadSize,writtenAlpha);
+        PatchObservedFieldPayload(output,count,static_cast<std::uint32_t>(priorityField->field),
+            priorityField->payloadOffset,priorityField->payloadSize,writtenPriority);
         result=std::make_unique<SerializedBytes>(output);
     }))return nullptr;
     return result.release();

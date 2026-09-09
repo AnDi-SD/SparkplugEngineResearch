@@ -62,6 +62,8 @@ namespace sparkplug::reconstruction
         spStream& stream,std::uint32_t size,spRenderable& object,bool exact,std::string* error,InspectionForAnalysis* observation) const
     {
         evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error);
+        std::uint32_t sectionStart=0;
+        if(observation&&!stream.GetCurrentPosition(sectionStart))return cursor.Fail("Cannot locate Renderable inspection section");
         while(const auto* header=cursor.Next())
         {
             if(header->IsTerminator())return true;
@@ -86,7 +88,13 @@ namespace sparkplug::reconstruction
             {
                 std::uint32_t value=0;if(!cursor.Read(value))return cursor.Fail("Invalid Renderable UInt32 scalar");
                 if(header->fieldID==2)object.SetAlphaSortEnabledForAnalysis(value!=0);else object.SetPriorityForAnalysis(value);
-                if(observation)observation->fieldMask|=1u<<header->fieldID;
+                if(observation)
+                {
+                    observation->fieldMask|=1u<<header->fieldID;
+                    observation->scalarFields.push_back({static_cast<Field>(header->fieldID),
+                        header->dataStreamPosition-sectionStart,header->payloadSize,
+                        static_cast<std::uint32_t>(observation->scalarFields.size()),&object});
+                }
             }
             else if(!cursor.Skip())return cursor.Fail("Cannot skip Renderable field");
         }
@@ -114,6 +122,26 @@ namespace sparkplug::reconstruction
         return target&&GetTargetClassIDForAnalysis()==spRenderable::ClassID&&IndexRenderableFieldsForAnalysis(manager,*target);
     }
 
+    bool spRenderableSerializer::WriteAlphaSortEnableFieldForAnalysis(spStream& stream,
+        const spRenderable& object,std::string* error)
+    {
+        if(error)error->clear();
+        const std::uint32_t value=std::uint32_t(object.IsAlphaSortEnabledForAnalysis());
+        if(!spDataBlockSerializer{}.WriteFieldForAnalysis(stream,2,&value,sizeof(value)))
+        {if(error)*error="Cannot write Renderable alpha-sort enable";return false;}
+        return true;
+    }
+
+    bool spRenderableSerializer::WritePriorityFieldForAnalysis(spStream& stream,
+        const spRenderable& object,std::string* error)
+    {
+        if(error)error->clear();
+        const auto value=object.GetPriorityForAnalysis();
+        if(!spDataBlockSerializer{}.WriteFieldForAnalysis(stream,3,&value,sizeof(value)))
+        {if(error)*error="Cannot write Renderable alpha-sort priority";return false;}
+        return true;
+    }
+
     bool spRenderableSerializer::WriteRenderableFieldsForAnalysis(spSerializerManager* manager,spStream& stream,
         const spRenderable& object,std::string* error) const
     {
@@ -132,11 +160,9 @@ namespace sparkplug::reconstruction
                 if(!blocks.WriteBeginForAnalysis(id,spDataBlockSerializer::SizeCode::UInt32)
                     ||!WriteReferenceForAnalysis(*manager,stream,target,error)||!blocks.WriteEndForAnalysis(id))return false;
             }
-            else
-            {
-                const std::uint32_t value=id==2?std::uint32_t(object.IsAlphaSortEnabledForAnalysis()):object.GetPriorityForAnalysis();
-                if(!blocks.WriteFieldForAnalysis(stream,id,&value,sizeof(value)))return false;
-            }
+            else if(id==2)
+            {if(!WriteAlphaSortEnableFieldForAnalysis(stream,object,error))return false;}
+            else if(!WritePriorityFieldForAnalysis(stream,object,error))return false;
         }
         return blocks.FinalizeObjectForAnalysis();
     }

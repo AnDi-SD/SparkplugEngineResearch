@@ -1175,7 +1175,17 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyList<string> paletteNames,
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
     {
-        ReadOnlySpan<byte> source = ObjectBytes(document, templateEntry);
+        uint alphaSortEnable = materialFamily switch
+        {
+            SmoSkinnedRenderableMaterialFamily.OpaqueBody => OpaqueOverlayAlphaSortEnable,
+            SmoSkinnedRenderableMaterialFamily.OpaqueOverlay => OpaqueOverlayAlphaSortEnable,
+            SmoSkinnedRenderableMaterialFamily.AlphaBlend => SkinnedTransparentSurfaceAlphaSortEnable,
+            _ => throw new InvalidOperationException(
+                $"Unsupported generated material family {materialFamily}.")
+        };
+        // The application profiles above are the fixed 0/1 sort choices.
+        ReadOnlySpan<byte> source = SmoRenderableScalarWriter.PatchSkinSort(
+            document, templateEntry, alphaSortEnable != 0, GeneratedPriority);
         SmoObjectEntry templateMesh = document.Objects.Single(entry =>
             entry.ParentIndex == templateEntry.Index &&
             entry.TypeHash == SmoClassIds.MeshData);
@@ -1251,27 +1261,6 @@ internal static class SmoSkinnedBranchSplitBuilder
             else if (field.Offset == paletteField.Offset)
             {
                 stream.Write(palette);
-            }
-            else if (field.FieldType == 2 && field.PayloadSize == sizeof(uint))
-            {
-                stream.Write(source.Slice(field.Offset, field.HeaderSize));
-                uint alphaSortEnable = materialFamily switch
-                {
-                    SmoSkinnedRenderableMaterialFamily.OpaqueBody =>
-                        OpaqueOverlayAlphaSortEnable,
-                    SmoSkinnedRenderableMaterialFamily.OpaqueOverlay =>
-                        OpaqueOverlayAlphaSortEnable,
-                    SmoSkinnedRenderableMaterialFamily.AlphaBlend =>
-                        SkinnedTransparentSurfaceAlphaSortEnable,
-                    _ => throw new InvalidOperationException(
-                        $"Unsupported generated material family {materialFamily}.")
-                };
-                WriteUInt32(stream, alphaSortEnable);
-            }
-            else if (field.FieldType == 3 && field.PayloadSize == sizeof(uint))
-            {
-                stream.Write(source.Slice(field.Offset, field.HeaderSize));
-                WriteUInt32(stream, GeneratedPriority);
             }
             else
             {
@@ -2559,24 +2548,6 @@ internal static class SmoSkinnedBranchSplitBuilder
                     paletteError);
             }
             _ = FindPaletteField(source, palette.Bones.Count);
-            int sortFieldCount = 0;
-            int priorityFieldCount = 0;
-            int offset = ObjectSignatureSize;
-            while (offset < source.Length &&
-                   SmoDataBlockReader.TryReadHeader(
-                       source, offset, out SmoDataBlockHeader field))
-            {
-                if (field.FieldType == 2 && field.PayloadSize == sizeof(uint))
-                    sortFieldCount++;
-                if (field.FieldType == 3 && field.PayloadSize == sizeof(uint))
-                    priorityFieldCount++;
-                offset = checked((int)field.PayloadEnd);
-            }
-            if (offset != source.Length || sortFieldCount != 1 ||
-                priorityFieldCount != 1)
-                throw new NotSupportedException(
-                    $"Skin template [{skin.Index}] does not expose exactly one " +
-                    "writable sort and priority field.");
         }
 
         private static SmoObjectEntry SelectWritableMeshTemplate(

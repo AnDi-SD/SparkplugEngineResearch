@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args is ["--renderable-scalar-authoring", string renderableOutput])
+{
+    try { return RenderableScalarWriterRegression.Run(renderableOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--reference-range-benchmark", string rangeSource, string rangeOutput])
 {
     try { return ReferenceRangeBatchBenchmark.Run(rangeSource, rangeOutput); }
