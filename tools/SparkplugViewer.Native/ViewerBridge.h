@@ -61,6 +61,10 @@ SPV_API int spv_mesh_bounds(const std::uint8_t*,std::uint32_t,float* minimumMaxi
 // kind3/4: same portable/PC reader, metadata only (no host attribute validation).
 // platformMask controls the original whole-field selector, without fallback.
 SPV_API void* spv_mesh_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind,std::uint32_t platformMask) noexcept;
+// Typed host input -> original CPU buffers/mesh serializers. kind0 portable,
+// kind1 PC native-only. UInt16 triangle lists; returned SerializedBytes owner.
+SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex*,std::uint32_t vertices,
+    const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t componentFlags,std::uint32_t kind) noexcept;
 SPV_API void spv_mesh_destroy(void*) noexcept;
 SPV_API int spv_mesh_info(void*,SpvMeshInfo*) noexcept;
 SPV_API int spv_mesh_vertices(void*,SpvMeshVertex*,std::uint32_t) noexcept;

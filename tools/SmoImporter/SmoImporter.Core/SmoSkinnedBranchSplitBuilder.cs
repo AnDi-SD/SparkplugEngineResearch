@@ -1060,7 +1060,7 @@ internal static class SmoSkinnedBranchSplitBuilder
             .ToDictionary(item => item.bone, item => checked((byte)item.index),
                 StringComparer.Ordinal);
         var vertexMap = new Dictionary<(int Mesh, int Vertex), ushort>();
-        var records = new List<byte[]>();
+        var records = new List<PreparedMeshVertex>();
         var indices = new List<ushort>(checked(plan.Triangles.Count * 3));
         foreach (TrianglePlan triangle in plan.Triangles)
         {
@@ -1080,7 +1080,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                     if (records.Count >= ushort.MaxValue)
                         throw new InvalidOperationException(
                             $"Generated alpha mesh {name} exceeds 65,535 vertices.");
-                    byte[] record = BuildVertexRecord(
+                    PreparedMeshVertex record = BuildVertexRecord(
                         triangle.Mesh,
                         sourceVertex,
                         layout,
@@ -1095,42 +1095,14 @@ internal static class SmoSkinnedBranchSplitBuilder
             }
         }
 
-        int indexBytes = checked(indices.Count * sizeof(ushort));
-        int vertexBytes = checked(records.Count * template.Stride);
-        const int preambleSize = 17;
-        const int primitiveHeaderSize = 12;
-        const int vertexHeaderSize = 12;
-        int payloadSize = checked(
-            preambleSize + primitiveHeaderSize + indexBytes + vertexHeaderSize + vertexBytes);
-        byte[] result = new byte[checked(ObjectSignatureSize + 5 + payloadSize + 1)];
-        WriteUInt32(result, 0, SmoClassIds.MeshData);
-        "SBOO"u8.CopyTo(result.AsSpan(4));
-        result[8] = SmoMeshDecoder.E1Marker;
-        WriteUInt32(result, 9, checked((uint)payloadSize));
-        int payload = 13;
-        WriteUInt32(result, payload, template.VertexFormat);
-        WriteUInt32(result, payload + 4, checked((uint)records.Count));
-        WriteUInt32(result, payload + 8,
-            checked((uint)(records.Count * template.RuntimeStride)));
-        WriteUInt32(result, payload + 12, checked((uint)indexBytes));
-        result[payload + 16] = 0;
-        int primitive = payload + preambleSize;
-        WriteUInt32(result, primitive, SmoMeshDecoder.TriangleListPrimitive);
-        WriteUInt32(result, primitive + 4, checked((uint)plan.Triangles.Count));
-        WriteUInt32(result, primitive + 8, 0);
-        int indexOffset = primitive + primitiveHeaderSize;
-        for (int index = 0; index < indices.Count; index++)
-            WriteUInt16(result, indexOffset + index * sizeof(ushort), indices[index]);
-        int vertexHeader = indexOffset + indexBytes;
-        WriteUInt32(result, vertexHeader, template.VertexFormat);
-        WriteUInt32(result, vertexHeader + 4, checked((uint)records.Count));
-        WriteUInt32(result, vertexHeader + 8, 0);
-        int vertexOffset = vertexHeader + vertexHeaderSize;
-        foreach (byte[] record in records)
-        {
-            record.CopyTo(result.AsSpan(vertexOffset));
-            vertexOffset += record.Length;
-        }
+        byte[] result = SmoMeshDataWriter.CreateTriangleList(SmoMesh.CreateTransient(
+            template, records.Select(v => v.Position).ToArray(),
+            layout.NormalOffset.HasValue ? records.Select(v => v.Normal).ToArray() : [],
+            layout.TextureCoordinate0Offset.HasValue ? records.Select(v => v.Uv0).ToArray() : [],
+            layout.TextureCoordinate1Offset.HasValue ? records.Select(v => v.Uv1).ToArray() : [],
+            layout.DiffuseArgbOffset.HasValue ? records.Select(v => v.Color).ToArray() : [],
+            records.Select(v => v.Weights).ToArray(), records.Select(v => v.Bones).ToArray(),
+            indices.Select(i => (uint)i).ToArray()));
         return new BuiltObject(
             result,
             [new ObjectPlacement(
@@ -1139,7 +1111,11 @@ internal static class SmoSkinnedBranchSplitBuilder
             plan.Triangles.Count);
     }
 
-    private static byte[] BuildVertexRecord(
+    // Foreign-format conversion result; original serializers own all wire layout.
+    private readonly record struct PreparedMeshVertex(Vector3 Position, Vector3 Normal,
+        Vector2 Uv0, Vector2 Uv1, uint Color, Vector4 Weights, SmoBlendIndices Bones);
+
+    private static PreparedMeshVertex BuildVertexRecord(
         SmoSkinnedBranchSourceMesh mesh,
         int vertex,
         SmoVertexLayout layout,
@@ -1147,36 +1123,19 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyDictionary<string, byte> palette,
         IReadOnlyDictionary<string, string> boneRemap)
     {
-        byte[] record = new byte[layout.SerializedStride];
-        WriteVector3(record, 0, mesh.Positions[vertex]);
-        if (layout.NormalOffset is int normalOffset)
-            WriteVector3(record, normalOffset, mesh.Normals[vertex]);
-        if (layout.DiffuseArgbOffset is int diffuseOffset)
+        uint diffuse = layout.DiffuseArgbOffset.HasValue ? materialFamily switch
         {
-            uint diffuse = materialFamily switch
-            {
-                SmoSkinnedRenderableMaterialFamily.OpaqueBody =>
-                    OpaqueOverlayVertexDiffuse,
-                SmoSkinnedRenderableMaterialFamily.OpaqueOverlay =>
-                    OpaqueOverlayVertexDiffuse,
-                SmoSkinnedRenderableMaterialFamily.AlphaBlend =>
-                    SkinnedTransparentSurfaceVertexDiffuse,
-                _ => throw new InvalidOperationException(
-                    $"Unsupported generated material family {materialFamily}.")
-            };
-            WriteUInt32(record, diffuseOffset, diffuse);
-        }
+            SmoSkinnedRenderableMaterialFamily.OpaqueBody => OpaqueOverlayVertexDiffuse,
+            SmoSkinnedRenderableMaterialFamily.OpaqueOverlay => OpaqueOverlayVertexDiffuse,
+            SmoSkinnedRenderableMaterialFamily.AlphaBlend => SkinnedTransparentSurfaceVertexDiffuse,
+            _ => throw new InvalidOperationException($"Unsupported generated material family {materialFamily}.")
+        } : 0;
         Vector2 uv = mesh.TextureCoordinates[vertex];
         Vector2 uv1 = SmoSkinnedUvTransfer.SecondaryOrPrimary(
             mesh.TextureCoordinates,
             mesh.SecondaryTextureCoordinates,
             vertex,
             mesh.Positions.Length);
-        if (layout.TextureCoordinate0Offset is int uv0Offset)
-            WriteVector2(record, uv0Offset, uv);
-        if (layout.TextureCoordinate1Offset is int uv1Offset)
-            WriteVector2(record, uv1Offset, uv1);
-
         var influences = new Dictionary<byte, float>();
         Vector4 sourceWeights = mesh.Skinning.Weights[vertex];
         ImportedJointIndices sourceIndices = mesh.Skinning.JointIndices[vertex];
@@ -1201,10 +1160,10 @@ internal static class SmoSkinnedBranchSplitBuilder
             indices[index] = ordered[index].Slot;
             weights[index] = ordered[index].Weight / total;
         }
-        WriteVector4(record, layout.BlendWeightsOffset!.Value,
-            new Vector4(weights[0], weights[1], weights[2], weights[3]));
-        indices.CopyTo(record, layout.BlendIndicesOffset!.Value);
-        return record;
+        return new PreparedMeshVertex(mesh.Positions[vertex],
+            layout.NormalOffset.HasValue ? mesh.Normals[vertex] : Vector3.Zero,
+            uv, uv1, diffuse, new Vector4(weights[0], weights[1], weights[2], weights[3]),
+            new SmoBlendIndices(indices[0], indices[1], indices[2], indices[3]));
 
         void Add(float weight, ushort joint)
         {
@@ -2024,33 +1983,9 @@ internal static class SmoSkinnedBranchSplitBuilder
             WriteSingle(data, index * sizeof(float), values[index]);
     }
 
-    private static void WriteVector2(Span<byte> data, int offset, Vector2 value)
-    {
-        WriteSingle(data, offset, value.X);
-        WriteSingle(data, offset + sizeof(float), value.Y);
-    }
-
-    private static void WriteVector3(Span<byte> data, int offset, Vector3 value)
-    {
-        WriteSingle(data, offset, value.X);
-        WriteSingle(data, offset + sizeof(float), value.Y);
-        WriteSingle(data, offset + 2 * sizeof(float), value.Z);
-    }
-
-    private static void WriteVector4(Span<byte> data, int offset, Vector4 value)
-    {
-        WriteSingle(data, offset, value.X);
-        WriteSingle(data, offset + sizeof(float), value.Y);
-        WriteSingle(data, offset + 2 * sizeof(float), value.Z);
-        WriteSingle(data, offset + 3 * sizeof(float), value.W);
-    }
-
     private static void WriteSingle(Span<byte> data, int offset, float value) =>
         BinaryPrimitives.WriteInt32LittleEndian(
             data[offset..], BitConverter.SingleToInt32Bits(value));
-
-    private static void WriteUInt16(Span<byte> data, int offset, ushort value) =>
-        BinaryPrimitives.WriteUInt16LittleEndian(data[offset..], value);
 
     private static void WriteUInt32(Span<byte> data, int offset, uint value) =>
         BinaryPrimitives.WriteUInt32LittleEndian(data[offset..], value);

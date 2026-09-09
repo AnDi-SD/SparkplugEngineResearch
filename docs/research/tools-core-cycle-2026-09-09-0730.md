@@ -214,3 +214,12 @@ Alfea02 с132 collision meshes и WPF build прошли. Старый inverse e
 теперь явно отказывает; эта ветка приостановлена, предложен исследованный
 original inverse path либо согласованный общий editor adapter. Досье:
 `docs/research/tool-node-world-shared-core-2026-09-09.md`.
+
+### Пятнадцатый блок: общая запись мешей
+
+Три C# writer в импортёре/level workflow (resource replacement, split skinned
+chunks, skeleton carrier) используют один native MeshData writer. Original
+IB/VB/mesh owners и serializers без изменений; host DTO без wire grammar.
+Девять original streams, пять host refusals, C++346, девять замен91 check,
+две clean-skinned пересборки26 checks. Все11 полных outputs побайтно прежние.
+Досье: `docs/research/tool-mesh-shared-writer-2026-09-09.md`.

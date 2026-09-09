@@ -452,55 +452,13 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                 "confirmed skinned E1 vertex layout.");
         }
 
-        const int vertexCount = 1;
-        const int indexCount = 3;
-        const int preambleSize = 17;
-        const int primitiveHeaderSize = 12;
-        const int vertexHeaderSize = 12;
-        const int indexBytes = indexCount * sizeof(ushort);
-        int vertexBytes = layout.SerializedStride;
-        int payloadSize = checked(
-            preambleSize + primitiveHeaderSize + indexBytes +
-            vertexHeaderSize + vertexBytes);
-        byte[] result = new byte[checked(8 + 5 + payloadSize + 1)];
-        WriteUInt32(result, 0, SmoClassIds.MeshData);
-        "SBOO"u8.CopyTo(result.AsSpan(4));
-        result[8] = SmoMeshDecoder.E1Marker;
-        WriteUInt32(result, 9, checked((uint)payloadSize));
-        int payload = 13;
-        WriteUInt32(result, payload, template.VertexFormat);
-        WriteUInt32(result, payload + 4, vertexCount);
-        WriteUInt32(result, payload + 8, checked((uint)template.RuntimeStride));
-        WriteUInt32(result, payload + 12, indexBytes);
-        result[payload + 16] = 0;
-        int primitive = payload + preambleSize;
-        WriteUInt32(result, primitive, SmoMeshDecoder.TriangleListPrimitive);
-        WriteUInt32(result, primitive + 4, 1);
-        WriteUInt32(result, primitive + 8, 0);
-        int indices = primitive + primitiveHeaderSize;
-        WriteUInt16(result, indices, 0);
-        WriteUInt16(result, indices + sizeof(ushort), 0);
-        WriteUInt16(result, indices + 2 * sizeof(ushort), 0);
-        int vertexHeader = indices + indexBytes;
-        WriteUInt32(result, vertexHeader, template.VertexFormat);
-        WriteUInt32(result, vertexHeader + 4, vertexCount);
-        WriteUInt32(result, vertexHeader + 8, 0);
-        int vertex = vertexHeader + vertexHeaderSize;
-        WriteVector3(result, vertex, Vector3.Zero);
-        if (layout.NormalOffset is int normalOffset)
-            WriteVector3(result, vertex + normalOffset, Vector3.UnitY);
-        if (layout.DiffuseArgbOffset is int diffuseOffset)
-            WriteUInt32(result, vertex + diffuseOffset, 0x00FFFFFF);
-        if (layout.TextureCoordinate0Offset is int uv0Offset)
-            WriteVector2(result, vertex + uv0Offset, Vector2.Zero);
-        if (layout.TextureCoordinate1Offset is int uv1Offset)
-            WriteVector2(result, vertex + uv1Offset, Vector2.Zero);
-        WriteVector4(
-            result,
-            vertex + layout.BlendWeightsOffset.Value,
-            Vector4.UnitX);
-        result.AsSpan(vertex + layout.BlendIndicesOffset.Value, 4).Clear();
-        return result;
+        return SmoMeshDataWriter.CreateTriangleList(SmoMesh.CreateTransient(
+            template, [Vector3.Zero],
+            layout.NormalOffset.HasValue ? [Vector3.UnitY] : [],
+            layout.TextureCoordinate0Offset.HasValue ? [Vector2.Zero] : [],
+            layout.TextureCoordinate1Offset.HasValue ? [Vector2.Zero] : [],
+            layout.DiffuseArgbOffset.HasValue ? [0x00FFFFFFu] : [],
+            [Vector4.UnitX], [new SmoBlendIndices(0,0,0,0)], [0,0,0]));
     }
 
     private static void VerifyFreshSkinnedVisualGraph(

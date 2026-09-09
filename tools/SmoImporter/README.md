@@ -2,6 +2,12 @@
 
 Версия рабочего дерева: **0.6.1**; последний опубликованный релиз — **0.6.0**.
 
+В текущем рабочем дереве MeshData записывают общие восстановленные C++
+MeshData/DXMeshData serializers и CPU buffers. Замена mesh resource, создание
+skinned chunks и skeleton carrier используют один `SmoMeshDataWriter` через
+native DLL. Собственная C# wire serialization удалена; donor conversion,
+FAT repack и другие typed graph writers ещё требуют отдельной переработки.
+
 В 0.6.1 новые импортированные текстуры используют подтверждённый встроенный PC
 BGRA-контейнер, включая точные NPOT-размеры. Шаблон определяется структурой,
 а не байтами размера заголовка. Статическая замена записывает inline-текстуру

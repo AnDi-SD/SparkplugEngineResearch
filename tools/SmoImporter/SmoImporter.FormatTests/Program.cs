@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args.Length >= 3 && args[0] == "--mesh-writer-regression")
+{
+    try { MeshWriterRegression.Run(args[1], args.Skip(2).ToArray()); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args.Length == 3 && args[0] == "--generated-cancellation-regression")
 {
     try { GeneratedResourceSafetyRegression.RunCancellation(args[1], args[2]); return 0; }

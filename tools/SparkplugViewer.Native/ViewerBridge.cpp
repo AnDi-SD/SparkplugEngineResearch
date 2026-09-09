@@ -13,6 +13,8 @@
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
+#include "Code/Sparkplug/spDXMeshDataSerializer.h"
+#include "Code/Sparkplug/spMeshData.h"
 #include "Code/Sparkplug/spDXTextureDataSerializer.h"
 #include "Code/Sparkplug/spTextureBuffer.h"
 #include "Code/wxFaceData.h"
@@ -336,6 +338,52 @@ SPV_API int spv_serialized_bytes_size(void* handle,std::uint32_t* output) noexce
 SPV_API int spv_serialized_bytes_copy(void* handle,std::uint8_t* output,std::uint32_t count) noexcept {
     return guarded([&]{require(handle&&output,"Missing serialized byte copy input/output");const auto& bytes=static_cast<SerializedBytes*>(handle)->bytes;
         require(bytes.size()==count,"Serialized output byte count differs");std::copy(bytes.begin(),bytes.end(),output);});
+}
+SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex* vertices,std::uint32_t vertexCount,
+    const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t flags,std::uint32_t kind) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(vertices&&indices&&vertexCount&&vertexCount<=65536&&indexCount&&indexCount<=3000000
+            &&indexCount%3==0&&kind<=1,"Invalid bounded triangle writer input");
+        require((flags&~0x197eu)==0&&((flags&0x1e)==0||(flags&0x1e)==0x1e),"Unsupported host vertex attributes");
+        spVertexBuffer vb;
+        require(vb.InitializeForAnalysis(flags,0,0),"Cannot inspect original vertex layout");
+        const auto layout=spvhost::RenderMeshView::Layout(vb);
+        require(std::uint64_t(vertexCount)*layout.stride+std::uint64_t(indexCount)*2<=16u*1024u*1024u,
+            "Triangle writer exceeds host buffer budget");
+        require(vb.InitializeForAnalysis(flags,vertexCount,0),"Cannot initialize original vertex buffer");
+        std::vector<std::byte> data(vb.GetVertexSizeForAnalysis());
+        for(std::uint32_t i=0;i<vertexCount;++i) {
+            const auto& source=vertices[i];auto* target=data.data()+std::size_t(i)*layout.stride;
+            const auto copy=[&](const void* input,std::int32_t offset,std::uint32_t size) {
+                if(offset<0)return;
+                require(std::uint64_t(offset)+size<=layout.stride,"Attribute exceeds original vertex layout");
+                std::memcpy(target+offset,input,size);
+            };
+            // Host DTO assignment, using the one original component table.
+            // No inferred weights, normal normalization or duplicate wire grammar.
+            const auto finite=[](const auto& values){return std::all_of(std::begin(values),std::end(values),[](float x){return std::isfinite(x);});};
+            require(finite(source.position)&&finite(source.normal)&&finite(source.uv0)&&finite(source.uv1)&&finite(source.weights),
+                "Non-finite host vertex attribute");
+            copy(source.position,0,sizeof(source.position));copy(source.normal,layout.normal,sizeof(source.normal));
+            copy(source.uv0,layout.uv0,sizeof(source.uv0));copy(source.uv1,layout.uv1,sizeof(source.uv1));
+            copy(source.weights,layout.weights,sizeof(source.weights));copy(&source.color,layout.color,4);copy(&source.bones,layout.bones,4);
+        }
+        require(vb.SetDataForAnalysis(data),"Cannot assign original vertex buffer data");
+        spIndexBuffer ib;require(ib.InitializeForAnalysis(indexCount/3,spIndexBuffer::eIndexBufferType::Type2,0),"Cannot initialize original index buffer");
+        for(std::uint32_t i=0;i<indexCount;++i)
+            require(indices[i]<vertexCount&&ib.SetIndexForAnalysis(i,indices[i]),"Triangle index exceeds vertex buffer");
+        spMeshData mesh;require(mesh.InitializeForAnalysis(ib,vb),"Cannot initialize original mesh owner");
+        spMemoryStream output;require(output.Open("tool.mesh.output"),"Cannot open mesh output stream");
+        require(spSerializer::WriteObjectHeaderForAnalysis(output,mesh),"Cannot write MeshData object header");
+        spSerializerManager manager;require(manager.SetSerializationPolicyForAnalysis(kind),"Cannot select mesh writer policy");
+        spMeshDataSerializer portable;spDXMeshDataSerializer pc;std::string error;
+        const bool written=kind==0?portable.WritePayloadWithContextForAnalysis(manager,output,mesh,&error)
+            :pc.WritePayloadWithContextForAnalysis(manager,output,mesh,&error);
+        if(!written)throw std::runtime_error(error);
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
 }
 SPV_API void* spv_mesh_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind,std::uint32_t platformMask) noexcept {
     std::unique_ptr<spvhost::RenderMeshView> result;

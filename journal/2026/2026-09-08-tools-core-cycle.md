@@ -108,3 +108,9 @@ whole-graph worlds совпали побитно; C++86, пять Viewer samples
 build прошли. Неверная обратная запись редактора при parent scale остановлена
 финальной native world проверкой; решение нового inverse adapter ожидает
 согласования. Досье: `docs/research/tool-node-world-shared-core-2026-09-09.md`.
+
+Пятнадцатый блок: общий MeshData writer вместо трёх C# implementations в
+resource replacement, skinned splitting и skeleton carrier. Девять original
+field streams совпали; пять guards, C++346, replacement91 и clean-skinned26
+прошли. Все11 полных edited outputs побайтно равны baseline. Досье:
+`docs/research/tool-mesh-shared-writer-2026-09-09.md`.

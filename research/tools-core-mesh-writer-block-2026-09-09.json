@@ -1,0 +1,182 @@
+{
+  "kind": "tools-core-mesh-writer-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T02:03:00.090668+00:00",
+  "base_commit": "938dcc841ff7bba757b9cbafa91dbb142914fe9a",
+  "viewer_commit": "4edaf35a68925c6ab23bcbd1689b0565c61b2d4b",
+  "sources": [
+    {
+      "path": "docs/research/tool-mesh-shared-writer-2026-09-09.md",
+      "sha256": "0D374B1D5E7A202B4691B0BD7CCA3A347CBC4100F439BE4FA7E8C4633C72221A"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-0730.md",
+      "sha256": "4383F84462E1A656FD10C097D7EE779BB511C3B9962F87AA51E2D40326429923"
+    },
+    {
+      "path": "journal/2026/2026-09-08-tools-core-cycle.md",
+      "sha256": "0F4C52879EC33DEFE110CA9DC43664E764FAFAF09CC5945103E33B1DEA0B17E4"
+    },
+    {
+      "path": "research/validate_tools_mesh_writer.py",
+      "sha256": "EBCBE3285038D4E852EF518E52603785885226B2809F78846A56B7041F6472F3"
+    },
+    {
+      "path": "tools/SmoImporter/README.md",
+      "sha256": "134992F52E8E665D5B71E17D2DB69B4520FD07FBFD1ADEC5DF038AA3603838B5",
+      "git_blob_sha256": "A0022CB0F16613DCA69DF8164C33012C0D49CBDAB623E414E68ADF5700DE6B10"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoMeshResourceReplacer.cs",
+      "sha256": "3E5AEA570CACB6D62D64D785D3F3D81FD1A97439E960007652857639F722C066",
+      "git_blob_sha256": "27BFB2623218F436173D81F6C512426B1549D25352D2CD964A40A3F424CBB6C3"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedBranchSplitBuilder.cs",
+      "sha256": "0CBFE0F07D53F262BDCF3F3CE3D9DD59CDB64D1E823D85D82DCE8D27789BA9A3",
+      "git_blob_sha256": "EA65899DF1E9772322287087E2F4EDA4824C2CF726185776A9A424BFD86D70DB"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedVisualGraphRebuilder.cs",
+      "sha256": "D7C6BEF7EFA1BC4FB532AC90724D21287F3FB772B7029F7E663B1E0FCD137FFC",
+      "git_blob_sha256": "98B7BB6B61AB02B1CE37D27937CC20225F0FBCF18C8494B9E37E89B6809DCA8B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/MeshWriterRegression.cs",
+      "sha256": "36B2060B60DD168F6E687E32825BA2D3E2339ED1889CFED8B8F2C362690D0343",
+      "git_blob_sha256": "3F3E636EBFB16EF9D3F63C94EBAE6E38B83A2966B0D50FDBE2E891EDE8EAB642"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "F1BC48A56ECD24F9FF1FDF69308186D91D2168A3681143C48644349B6F9652FA",
+      "git_blob_sha256": "82654A6EFE0E3676F0271CE2C56EE7F2ECB7310BF17033258AB8B34F2E90219A"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "03073DE2DC941ACA8DA47B97684246EA9906997AA4AA174F41ECF143BC58D4AF"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "3C32BCA88A52F66A9C1B5A477436165D2139A8E06EA77FB47DBE7F439C01547C"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "FC85DA8B1D8881286B914FDA97E23970F42533FE0061002D24353CF1AAEBA91A"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "F8CD0862795CD7784BADAE6086295DF5F44C3949A545EC4449CC53CEE3F40958"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "BCC4DFF601B8F5E64DDD9CA80C0BF56A00A1F4037911D4D0316350BB9E7F7689",
+      "git_blob_sha256": "648BA7FCF301F97AA39A1F3B1AF8CEE65F235800102E2564EB9169B91DC44184"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoMeshDataWriter.cs",
+      "sha256": "0C103400189DB702076D01CD3064C5799E93A3251876F22E20014FC39216E530",
+      "git_blob_sha256": "A4525E973986D3CD0950B06228F749C54B1F9C1C96A1B23F21C3FBFA7B125F7C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "494CA397A027739218668F3F01D4EDD8B198139A80D41BBD57B4D7017866E480",
+      "git_blob_sha256": "CE7C301714075BFE8E1BA08FA4D4E5E6CC6610D04EB49145E9BF95F72D88B03B"
+    }
+  ],
+  "pc_exe_sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "native_dll_sha256": "99CB50EFEB3B56F991B6E78A2845EA31990597574447716F783AA559B2D845BA",
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/baseline/report.json",
+      "sha256": "1E5E547B0EDBCF2EBFBF6566A28F530B93EACC25D16BBD3A57FFE3B181D994E3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/baseline-binaries.json",
+      "sha256": "04EC24FC4E4050D2B4F16DA5C36095003EA5023BAAB7CED5DFB375003407D99D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/comparison.json",
+      "sha256": "30BDAA1E0CE7CA70148576C2BF19E53EC842E9D12448F1C7F4A8DF3A2EDE63E5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/native.json",
+      "sha256": "370261F93A13D964F7BF7EA1294ED56A36258D0C108A74695E64FF3AEA777FB8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/shared/report.json",
+      "sha256": "1E5E547B0EDBCF2EBFBF6566A28F530B93EACC25D16BBD3A57FFE3B181D994E3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-baseline/report.json",
+      "sha256": "909B170342D25B363489A6C6A74F433B9EBF997D6CC26CBC0542D1EA8AAFE5B8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-comparison.json",
+      "sha256": "0C19ED5DB631D1956B438F8DB474BF7DB463727394729A34C41C95C4C83B284E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-shared/report.json",
+      "sha256": "7E2A2CCE14FC3942BCFF99DE8DA6AE0BDE8F361946324544FD1EDC48398E07FA"
+    }
+  ],
+  "check_logs": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/baseline-build.log",
+      "sha256": "24C219E8A65BB8873136B3BEAB08093EDA48E2E8B7E462E8E6D821D9FB33B67B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/baseline.log",
+      "sha256": "59E3071AC3FC06D7B983052FFE94CBCB3D88C8EE8F86EF5E46F251553D889293"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/level-core-build.log",
+      "sha256": "57A717ADF77D00EEC7B2AC7CE4C5627DF6EB9635ECF7582300CC369DAC64A94D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/managed-build.log",
+      "sha256": "F2557C38FCCC3EADC11525F92E0346944C3BEBB0F8797D4D4C9601273F178527"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/native-build.log",
+      "sha256": "AF5AF346E044C77C588B26C8CF656CEBDBE54258E886199D6BAAD33F3A58FBF4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/native.log",
+      "sha256": "E68E1353DBBC7EBD3BEF182319E8AE05247BD571F795557EB8FF70F5B76CF291"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/shared.log",
+      "sha256": "59E3071AC3FC06D7B983052FFE94CBCB3D88C8EE8F86EF5E46F251553D889293"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-baseline.log",
+      "sha256": "089A179B130CA4DDC618C57E2A077A9C177AA6D1E2A6A07203C9D8A65A958D6B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-build.log",
+      "sha256": "68AB5BBD8DC679A5FD1AE7B9786AB865964E563EE747FE10C017F4C54B65F1D4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/mesh-writer/skinned-shared.log",
+      "sha256": "089A179B130CA4DDC618C57E2A077A9C177AA6D1E2A6A07203C9D8A65A958D6B"
+    }
+  ],
+  "checks": {
+    "original_writers_exact_bytes": 9,
+    "host_refusals": 5,
+    "cpp_MeshReader": 346,
+    "replacement_checks": 91,
+    "skinned_graph_checks": 26,
+    "byte_exact_baseline_outputs": 11,
+    "Importer_and_Level_Core_build": "0 warnings, 0 errors"
+  },
+  "limits": [
+    "UInt16 nonempty triangle lists and represented attributes only; 16MiB host byte budget",
+    "FAT repack, Skin/Material graph writers and collision MeshBV writer remain separate work",
+    "Foreign-format conversion and typed DTO mapping are host adapters, not reconstructed engine algorithms",
+    "No GPU/combined-mesh cached-size or PS2-runtime claim",
+    "No release or full corpus"
+  ]
+}
