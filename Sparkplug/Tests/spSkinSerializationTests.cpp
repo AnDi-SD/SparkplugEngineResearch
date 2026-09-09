@@ -156,6 +156,79 @@ namespace
         Check(observation.model.renderable.scalarFields.empty()&&second.IsAlphaSortEnabledForAnalysis()
             &&second.GetPriorityForAnalysis()==0,"reused inspection clears borrowed rows and does not invent missing scalar assignments");
     }
+    void PaletteWriterSlices()
+    {
+        spSkin empty;spMemoryStream output;Open(output);std::string error;
+        Check(spSkinSerializer::WritePaletteFieldWithContextForAnalysis(nullptr,output,empty,&error),error.c_str());
+        // Exact CP62 original field; the final section terminator is excluded.
+        Check(Hex(Data(output))=="e0080000000400000000000000","empty palette retains UInt32 length, default weights and null-manager support");
+        spSerializerManager manager;spResourceManager resources;
+        Open(output);Check(spSkinSerializer::WritePaletteFieldWithContextForAnalysis(manager,output,empty,&error),error.c_str());
+        Check(Hex(Data(output))=="e0080000000400000000000000","reference manager overload writes the same empty field");
+        // Original skin-raw-bits capture, sealed 2026-09-09: input contains an
+        // actual inline Node; ordinary full read/index keeps its real owner.
+        // No prebound-ID API or substitute inspection palette is introduced.
+        const auto payload=Unhex("0000a067ffffffff010000000700000017000000650f5c6953424f4fa00c0000803f000000400000404000000000804523c17f0000807f000080ff000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b00000000");
+        const auto directory=Unhex("01000000070000000000650f5c690000000017000000");
+        spMemoryStream index;Open(index,directory);auto* fat=manager.GetFATForAnalysis();
+        Check(fat->LoadIndexForAnalysis(index),"palette original input FAT");
+        Check(manager.RegisterForAnalysis(spSkin::ClassID,std::make_shared<spSkinSerializer>(),0xff,3),"palette Skin registration");
+        Check(manager.RegisterForAnalysis(spNode::ClassID,std::make_shared<spNodeSerializer>(),0xff,3),"palette Node registration");
+        manager.SetDispatchContextForAnalysis(2,1);spSerializerReadContextForAnalysis context(manager,resources);
+        spSkin skin;spMemoryStream input;Open(input,payload);
+        Check(spSkinSerializer{}.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(payload.size()),skin,&error),error.c_str());
+        Check(skin.GetWeightCountForAnalysis()==UINT32_MAX&&skin.GetBoneCountForAnalysis()==1,"original full UInt32 weights and one actual bone");
+        Open(output);Check(!spSkinSerializer::WritePaletteFieldWithContextForAnalysis(nullptr,output,skin,&error)&&Data(output).empty(),
+            "nonempty palette without manager is rejected before field output");
+        Open(output);Check(!spSkinSerializer{}.WritePayloadForAnalysis(output,skin,&error)&&Data(output).empty(),
+            "full nonempty writer retains pre-inherited-output manager guard");
+        fat->ClearResourceEntriesForAnalysis();manager.SetDispatchContextForAnalysis(2,2);
+        Check(spSerializer::IndexReferenceForAnalysis(manager,&skin),"ordinary original recursive Skin and bone indexing");
+        Open(output);Check(spSkinSerializer::WritePaletteFieldWithContextForAnalysis(manager,output,skin,&error),error.c_str());
+        // model-skin-reader/skin-raw-bits-original.log SHA256
+        // 679A92D3630615D9FAA46154B3172395D3492FD273CE75C24350EB94E44CDEAA.
+        Check(Hex(Data(output))=="e069000000ffffffff010000000200000019000000650f5c6953424f4fa00c0000803f0000004000004040280100000000804523c17f0000807f000080ff000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000",
+            "palette helper matches exact original indexed Node/reference/raw-matrix field bytes");
+    }
+    void PaletteFieldObservations()
+    {
+        const auto field=[](Bytes& bytes,std::uint8_t id,const Bytes& payload,std::uint8_t width)
+        {
+            bytes.push_back(static_cast<std::uint8_t>(id|((width==2?6u:7u)<<5)));
+            const auto size=static_cast<std::uint32_t>(payload.size());
+            for(std::uint8_t i=0;i<width;++i)bytes.push_back(static_cast<std::uint8_t>(size>>(8*i)));
+            bytes.insert(bytes.end(),payload.begin(),payload.end());
+        };
+        Bytes payload;field(payload,0,Bits(0u),2);payload.push_back(0); // Renderable field0, not palette.
+        field(payload,0,Bits(std::array<std::uint32_t,2>{77,0}),4);payload.push_back(0); // Model field0, not palette.
+        field(payload,18,Bits(std::array<std::uint32_t,2>{0,0}),2); // Unknown eight-byte collision.
+        const auto first=static_cast<std::uint32_t>(payload.size());
+        field(payload,0,Bits(std::array<std::uint32_t,2>{0,0}),2); // Zero weights still is an actual palette field.
+        const auto second=static_cast<std::uint32_t>(payload.size());
+        const auto matrix=Unhex("000000804523c17f0000807f000080ff000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b000000");
+        Bytes palette=Bits(std::array<std::uint32_t,4>{UINT32_MAX,1,9,0});palette.insert(palette.end(),matrix.begin(),matrix.end());
+        field(payload,0,palette,4);payload.push_back(0);
+        Bytes prefixed{0xfe,0xed,0xfa,0xce,0x7f};prefixed.insert(prefixed.end(),payload.begin(),payload.end());
+        spMemoryStream input;Open(input,prefixed);Check(input.Seek(spStream::SeekSource::essStart,5),"nonzero palette input start");
+        spSkin partial;spSkinSerializer::InspectionForAnalysis observation;std::string error;
+        Check(spSkinSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(payload.size()),partial,observation,&error),error.c_str());
+        Check(observation.paletteFields.size()==2,"only the two actual Skin palette fields are observed");
+        const auto& a=observation.paletteFields[0];const auto& b=observation.paletteFields[1];
+        Check(a.headerOffset==first&&a.payloadOffset==first+3&&a.payloadSize==8&&a.assignmentOrder==0,
+            "zero-weight palette has exact wide header/payload location independent of stream start");
+        Check(b.headerOffset==second&&b.payloadOffset==second+5&&b.payloadSize==80&&b.assignmentOrder==1,
+            "repeated palette retains its own UInt32 header and encounter order");
+        Check(observation.weights==UINT32_MAX&&observation.bones.size()==1&&observation.bones[0].reference.id==9
+            &&Bits(observation.bones[0].inverseBind)==matrix,"last palette assignment preserves unrestricted weights and raw matrix bits");
+        Check(partial.GetBoneCountForAnalysis()==0,"palette observation does not invent substitute Node owners");
+        std::uint32_t position=0;Check(input.GetCurrentPosition(position)&&position==prefixed.size(),"palette inspection consumes all three sections exactly");
+        payload.pop_back();const auto third=static_cast<std::uint32_t>(payload.size());
+        field(payload,0,Bits(std::array<std::uint32_t,2>{0,0}),4);payload.push_back(0);Open(input,payload);spSkin cleared;
+        Check(spSkinSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(payload.size()),cleared,observation,&error),error.c_str());
+        Check(observation.paletteFields.size()==3&&observation.paletteFields.back().headerOffset==third
+            &&observation.paletteFields.back().assignmentOrder==2&&observation.weights==0&&observation.bones.empty(),
+            "later zero-weight empty field replaces the palette and remains observed");
+    }
     void Guards()
     {
         std::weak_ptr<spNode> releasedRoot;
@@ -251,7 +324,7 @@ int main(int argc,char** argv)
         if(argc==3&&std::string(argv[1])=="--clone"){std::cout<<Clone(argv[2])<<'\n';return 0;}
         if(argc==2&&std::string(argv[1])=="--model")
         {std::string payload;std::cin>>payload;std::cout<<Model(Unhex(payload))<<'\n';return 0;}
-        Guards();RenderableScalarWriterSlices();RenderableScalarObservations();for(const auto* mode:{"empty","one","mapped","repeat","direct-repeat","child","copy-populated","raw-bits"})(void)Clone(mode);
+        Guards();RenderableScalarWriterSlices();RenderableScalarObservations();PaletteWriterSlices();PaletteFieldObservations();for(const auto* mode:{"empty","one","mapped","repeat","direct-repeat","child","copy-populated","raw-bits"})(void)Clone(mode);
         std::cout<<"PASS "<<checks<<'/'<<checks<<": Skin envelope guards, native wire and clone ownership\n";return 0;
     }
     catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

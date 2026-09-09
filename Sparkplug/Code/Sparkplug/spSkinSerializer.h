@@ -73,15 +73,37 @@ namespace sparkplug::reconstruction
             evidence::pc::serialization::InspectedReference reference;
             spSkin::Matrix4 inverseBind{};
         };
+        struct InspectedPaletteFieldForAnalysis
+        {
+            // Relative to the whole Skin payload input, including inherited
+            // Renderable/Model sections but excluding the object header.
+            std::uint32_t headerOffset=0,payloadOffset=0,payloadSize=0;
+            std::uint32_t assignmentOrder=0;
+        };
         struct InspectionForAnalysis
         {
             spModelSerializer::InspectionForAnalysis model;
             std::uint32_t fieldMask=0,weights=0;
             std::vector<InspectedBoneForAnalysis> bones;
+            // Host locations from the actual Skin field0 reader only. Repeats
+            // retain encounter order; weights/bones above retain the last
+            // complete assignment. Consume rows only after whole inspection
+            // succeeds. The existing SectionCursor field cap bounds storage.
+            std::vector<InspectedPaletteFieldForAnalysis> paletteFields;
         };
         // Unresolved bone IDs/matrices remain metadata. No substitute Node
         // palette is attached to the explicitly partial Skin object.
         bool InspectPayloadForAnalysis(spStream&,std::uint32_t,spSkin&,InspectionForAnalysis&,std::string*) const;
+
+        // Shared field body of PC490DA0: UInt32-length field0, weight/count,
+        // then actual reference writer and raw64-byte matrix for each bone.
+        // No section terminator. A null manager preserves the existing empty
+        // palette path only; nonempty bindings require their real owner/index.
+        [[nodiscard]] static bool WritePaletteFieldWithContextForAnalysis(spSerializerManager*,
+            spStream&,const spSkin&,std::string* = nullptr);
+        [[nodiscard]] static bool WritePaletteFieldWithContextForAnalysis(spSerializerManager& manager,
+            spStream& stream,const spSkin& skin,std::string* error = nullptr)
+        {return WritePaletteFieldWithContextForAnalysis(&manager,stream,skin,error);}
 
         [[nodiscard]] KnownWritePlan BuildKnownWritePlanForAnalysis(
             const spSkin& skin) const;

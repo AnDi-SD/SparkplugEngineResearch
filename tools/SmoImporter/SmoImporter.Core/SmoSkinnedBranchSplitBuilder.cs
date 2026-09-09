@@ -657,6 +657,7 @@ internal static class SmoSkinnedBranchSplitBuilder
         int triangleCount = 0;
         int materialRunIndex = 0;
 
+        using (var paletteWriter = new SmoSkinPaletteWriter(target))
         for (int branchIndex = 0; branchIndex < plans.Length; branchIndex++)
         {
             PalettePlan plan = plans[branchIndex];
@@ -711,6 +712,7 @@ internal static class SmoSkinnedBranchSplitBuilder
             BuiltObject skin = BuildSkin(
                 target,
                 context,
+                paletteWriter,
                 skinTemplate,
                 skinId,
                 $"{prefix}_s_{materialTextureObjectId:X8}_{branchIndex:D2}",
@@ -1166,6 +1168,7 @@ internal static class SmoSkinnedBranchSplitBuilder
     private static BuiltObject BuildSkin(
         SmoDocument document,
         BuildContext context,
+        SmoSkinPaletteWriter paletteWriter,
         SmoObjectEntry templateEntry,
         uint id,
         string name,
@@ -1199,8 +1202,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                 $"Skin template [{templateEntry.Index}] palette cannot be decoded: " +
                 templatePaletteError);
         }
-        SmoDataBlockHeader paletteField = FindPaletteField(
-            source, templatePalette.Bones.Count);
+        SmoDataBlockHeader paletteField = SmoSkinPaletteWriter.GetSinglePaletteField(document, templateEntry);
         SmoDataBlockHeader helperField = FindObjectReferenceField(
             source, context.Helper.Id);
         // A shipped continuation may omit its material and inherit one ambient
@@ -1211,8 +1213,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                 ? FindObjectReferenceField(source, relationship.ObjectId)
                 : null;
         byte[] palette = BuildReferencePaletteField(
-            source.Slice(paletteField.Offset, paletteField.HeaderSize),
-            paletteField,
+            paletteWriter,
             paletteNames,
             context.TargetNodes,
             targetInverseBind);
@@ -1278,8 +1279,7 @@ internal static class SmoSkinnedBranchSplitBuilder
     }
 
     private static byte[] BuildReferencePaletteField(
-        ReadOnlySpan<byte> originalHeader,
-        SmoDataBlockHeader paletteField,
+        SmoSkinPaletteWriter writer,
         IReadOnlyList<string> names,
         IReadOnlyDictionary<string, SmoObjectEntry> targetNodes,
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind)
@@ -1287,33 +1287,25 @@ internal static class SmoSkinnedBranchSplitBuilder
         if (names.Count is 0 or > PaletteCapacity)
             throw new InvalidDataException(
                 $"Generated palette has {names.Count} unique bones.");
-        if (paletteField.SizeKind != SmoDataBlockSizeCode.UInt32)
-            throw new InvalidDataException("Skin palette does not use a writable UInt32 size.");
+        // Tool packing policy: fill the selected 16-slot mesh palette by
+        // repeating its first bone. The original writer itself never pads.
         string[] padded = Enumerable.Range(0, PaletteCapacity)
             .Select(index => index < names.Count ? names[index] : names[0])
             .ToArray();
-        int payloadSize = checked(
-            8 + padded.Length * (ObjectReferenceSize + 16 * sizeof(float)));
-        byte[] result = new byte[checked(originalHeader.Length + payloadSize)];
-        originalHeader.CopyTo(result);
-        WriteUInt32(result, originalHeader.Length - sizeof(uint), checked((uint)payloadSize));
-        WriteUInt32(result, originalHeader.Length, 0);
-        WriteUInt32(result, originalHeader.Length + sizeof(uint), checked((uint)padded.Length));
-        int cursor = originalHeader.Length + 8;
-        foreach (string name in padded)
+        var bindings = new SmoSkinPaletteBinding[padded.Length];
+        for (int index = 0; index < padded.Length; index++)
         {
+            string name = padded[index];
             if (!targetNodes.TryGetValue(name, out SmoObjectEntry? node) ||
                 !targetInverseBind.TryGetValue(name, out Matrix4x4 inverseBind))
             {
                 throw new InvalidOperationException(
                     $"Generated palette bone {name} has no unique target node/bind matrix.");
             }
-            WriteUInt32(result, cursor, node.Id);
-            WriteUInt32(result, cursor + sizeof(uint), 0);
-            WriteMatrix(result.AsSpan(cursor + ObjectReferenceSize), inverseBind);
-            cursor += ObjectReferenceSize + 16 * sizeof(float);
+            bindings[index] = new(node.Id, inverseBind);
         }
-        return result;
+        // Inject appends branches while retaining the source Nodes and IDs.
+        return writer.WriteField(0, bindings);
     }
 
     private static SmoVisualForestAttachment WrapSkinAttachment(
@@ -1815,24 +1807,6 @@ internal static class SmoSkinnedBranchSplitBuilder
             $"Object reference ID {objectId} was not found in the skin template.");
     }
 
-    private static SmoDataBlockHeader FindPaletteField(
-        ReadOnlySpan<byte> source,
-        int expectedBoneCount)
-    {
-        int offset = ObjectSignatureSize;
-        while (offset < source.Length &&
-               SmoDataBlockReader.TryReadHeader(source, offset, out SmoDataBlockHeader field))
-        {
-            if (field.FieldType == 0 && field.PayloadSize >= 8 &&
-                BinaryPrimitives.ReadUInt32LittleEndian(source[field.PayloadOffset..]) == 0 &&
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    source[(field.PayloadOffset + sizeof(uint))..]) == expectedBoneCount)
-                return field;
-            offset = checked((int)field.PayloadEnd);
-        }
-        throw new InvalidDataException("The skin palette field was not found.");
-    }
-
     private static void WriteResizedInlineField(
         Stream stream,
         ReadOnlySpan<byte> source,
@@ -1941,23 +1915,6 @@ internal static class SmoSkinnedBranchSplitBuilder
         encoded.CopyTo(result, 0);
         return result;
     }
-
-    private static void WriteMatrix(Span<byte> data, Matrix4x4 matrix)
-    {
-        float[] values =
-        [
-            matrix.M11, matrix.M12, matrix.M13, matrix.M14,
-            matrix.M21, matrix.M22, matrix.M23, matrix.M24,
-            matrix.M31, matrix.M32, matrix.M33, matrix.M34,
-            matrix.M41, matrix.M42, matrix.M43, matrix.M44
-        ];
-        for (int index = 0; index < values.Length; index++)
-            WriteSingle(data, index * sizeof(float), values[index]);
-    }
-
-    private static void WriteSingle(Span<byte> data, int offset, float value) =>
-        BinaryPrimitives.WriteInt32LittleEndian(
-            data[offset..], BitConverter.SingleToInt32Bits(value));
 
     private static void WriteUInt32(Span<byte> data, int offset, uint value) =>
         BinaryPrimitives.WriteUInt32LittleEndian(data[offset..], value);
@@ -2547,7 +2504,7 @@ internal static class SmoSkinnedBranchSplitBuilder
                     $"Skin template [{skin.Index}] has no writable palette: " +
                     paletteError);
             }
-            _ = FindPaletteField(source, palette.Bones.Count);
+            _ = SmoSkinPaletteWriter.GetSinglePaletteField(target, skin);
         }
 
         private static SmoObjectEntry SelectWritableMeshTemplate(

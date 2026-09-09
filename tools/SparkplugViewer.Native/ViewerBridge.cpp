@@ -247,6 +247,7 @@ static_assert(sizeof(SpvMaterialReference)==8&&sizeof(SpvMaterialInfo)==88&&size
 struct ModelView {
     SpvModelInfo info{};
     std::vector<SpvSkinBone> bones;
+    std::vector<SpvSkinPaletteField> paletteFields;
     ModelView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
         require(bytes&&size&&size<=16u*1024u*1024u&&kind<=1,"Invalid bounded Model/Skin field stream");
         BorrowedInput input(bytes,size);std::string error;
@@ -258,6 +259,8 @@ struct ModelView {
             auto skin=std::make_unique<spSkin>();spSkinSerializer::InspectionForAnalysis result;
             if(!spSkinSerializer{}.InspectPayloadForAnalysis(input,size,*skin,result,&error))throw std::runtime_error(error);
             info.skinMask=result.fieldMask;info.weights=result.fieldMask?result.weights:skin->GetWeightCountForAnalysis();
+            for(const auto& field:result.paletteFields)
+                paletteFields.push_back({field.headerOffset,field.payloadOffset,field.payloadSize,field.assignmentOrder});
             bones.reserve(result.bones.size());
             for(const auto& binding:result.bones) {
                 SpvSkinBone bone{};bone.reference={binding.reference.offset,binding.reference.size};
@@ -273,6 +276,7 @@ struct ModelView {
     }
 };
 static_assert(sizeof(SpvModelInfo)==56&&sizeof(SpvSkinBone)==80);
+static_assert(sizeof(SpvSkinPaletteField)==16&&sizeof(SpvSkinPaletteBinding)==68);
 struct AnimTextureView {
     SpvAnimTextureInfo info{};
     std::vector<SpvAnimTextureFrame> frames;
@@ -1188,6 +1192,70 @@ SPV_API void* spv_skin_patch_sort_scalars(const std::uint8_t* bytes,std::uint32_
     }))return nullptr;
     return result.release();
 }
+SPV_API void* spv_skin_write_palette(void* handle,std::uint32_t weights,
+    const SpvSkinPaletteBinding* bindings,std::uint32_t count) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(handle&&count<=1024&&(!count||bindings),"SKIN_PALETTE_INPUT: invalid bounded palette input");
+        const auto& graph=graphForView(handle);
+        const auto& trace=graph.readTrace;
+        require(trace.valid&&trace.complete,"SKIN_PALETTE_INPUT: actual graph read trace is required");
+        // Host selection/ownership only. The original FAT indexer below builds
+        // both maps; no placeholder Node or substitute reference writer exists.
+        std::map<std::uint32_t,std::shared_ptr<spNode>> selected;
+        std::map<std::uint32_t,const spvhost::ResourceGraph::Entry*> retained;
+        for(std::uint32_t i=0;i<count;++i) {
+            const auto id=bindings[i].nodeID;
+            require(id&&id!=0xFFFFFFFFu,"SKIN_PALETTE_INPUT: invalid retained Node ID");
+            if(selected.find(id)!=selected.end())continue;
+            auto node=graph.Node(id);
+            const spvhost::ResourceGraph::Entry* entry=nullptr;
+            for(const auto& candidate:graph.entries) {
+                require(candidate.object!=node.get()||candidate.id==id,
+                    "SKIN_PALETTE_INPUT: multiple file IDs alias the selected Node");
+                if(candidate.id==id)entry=&candidate;
+            }
+            require(entry&&entry->wireClassID==spNode::ClassID&&entry->size>=8,
+                "SKIN_PALETTE_INPUT: selected bone is not an exact catalogued Node");
+            const auto physical=std::uint64_t(trace.dataPhysicalOrigin)+entry->offset;
+            using Kind=spSerializerReadContextForAnalysis::PayloadReadKindForAnalysis;
+            const bool covered=std::any_of(trace.payloadReads.begin(),trace.payloadReads.end(),[&](const auto& row) {
+                return row.complete&&(row.kind==Kind::Outer||row.kind==Kind::Inline)&&
+                    row.objectId==id&&row.wireClassId==entry->wireClassID&&
+                    row.physicalOffset==physical&&row.size==entry->size;
+            });
+            require(covered,"SKIN_PALETTE_INPUT: retained Node payload was not completely read at its FAT extent");
+            selected.emplace(id,std::move(node));retained.emplace(id,entry);
+        }
+        spSerializerManager manager;
+        manager.SetDispatchContextForAnalysis(spSerializerManager::PlatformPC,spSerializerManager::OperationSave);
+        require(manager.RegisterForAnalysis(spNode::ClassID,std::make_shared<spNodeSerializer>(),
+            spSerializerManager::PlatformPC,spSerializerManager::OperationSave),"Cannot register actual Node writer");
+        auto* fat=manager.GetFATForAnalysis();require(fat!=nullptr,"Cannot create isolated palette writer FAT");
+        for(const auto& item:selected) {
+            const auto* original=retained.at(item.first);
+            require(fat->SetNextResourceIDForAnalysis(item.first)&&
+                fat->IndexObjectForAnalysis(spNode::ClassID,*item.second),"Cannot index retained palette Node");
+            auto* entry=fat->FindByObjectForAnalysis(*item.second);
+            require(entry&&entry->id==item.first&&fat->FindByIDForAnalysis(item.first)==entry,
+                "Palette writer FAT identity mismatch");
+            // Explicit retained payload input, confirmed against PC466FA0 +
+            // PC467350 in authoring-palette-prebind. This is not a whole save.
+            entry->offset=original->offset;entry->size=original->size;entry->payloadWritten=true;
+        }
+        std::vector<spSkin::BoneBinding> palette;palette.reserve(count);
+        for(std::uint32_t i=0;i<count;++i) {
+            spSkin::Matrix4 matrix{};std::memcpy(matrix.data(),bindings[i].inverseBind,sizeof(matrix));
+            palette.push_back(spSkin::BoneBinding::BorrowedForAnalysis(selected.at(bindings[i].nodeID),matrix));
+        }
+        spSkin skin;require(skin.SetPaletteForAnalysis(weights,std::move(palette)),"Invalid actual Skin palette");
+        spMemoryStream output;require(output.Open("tool.skin.palette"),"Cannot open Skin palette writer stream");
+        std::string error;
+        if(!spSkinSerializer::WritePaletteFieldWithContextForAnalysis(manager,output,skin,&error))throw std::runtime_error(error);
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
 SPV_API void spv_material_destroy(void* handle) noexcept { (void)guarded([&]{delete static_cast<MaterialView*>(handle);}); }
 SPV_API int spv_material_info(void* handle,SpvMaterialInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Invalid material view");*output=static_cast<MaterialView*>(handle)->info;});
@@ -1251,6 +1319,17 @@ SPV_API int spv_color_functions_read(const std::uint8_t* bytes,std::uint32_t cou
 }
 SPV_API int spv_model_info(void* handle,SpvModelInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Invalid Model/Skin view");*output=static_cast<ModelView*>(handle)->info;});
+}
+SPV_API int spv_model_palette_fields(void* handle,SpvSkinPaletteField* output,std::uint32_t capacity,
+    std::uint32_t* count) noexcept {
+    return guarded([&]{
+        require(handle&&count,"Invalid Model/Skin palette observation output");
+        const auto& fields=static_cast<ModelView*>(handle)->paletteFields;
+        *count=static_cast<std::uint32_t>(fields.size());
+        if(!output&&capacity==0)return;
+        require(capacity==fields.size()&&(!capacity||output),"Palette observation output size mismatch");
+        if(capacity)std::copy(fields.begin(),fields.end(),output);
+    });
 }
 SPV_API int spv_model_bones(void* handle,SpvSkinBone* output,std::uint32_t count) noexcept {
     return guarded([&]{require(handle,"Invalid Model/Skin view");const auto& bones=static_cast<ModelView*>(handle)->bones;

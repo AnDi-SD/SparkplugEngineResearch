@@ -147,7 +147,12 @@ namespace sparkplug::reconstruction
             // Original replaces both arrays without freeing old ones. The
             // portable container deliberately releases replaced storage.
             if(observation)
-            {observation->weights=weights;observation->bones=std::move(inspected);observation->fieldMask=1;}
+            {
+                observation->weights=weights;observation->bones=std::move(inspected);observation->fieldMask=1;
+                observation->paletteFields.push_back({header->headerStreamPosition-start,
+                    header->dataStreamPosition-start,header->payloadSize,
+                    static_cast<std::uint32_t>(observation->paletteFields.size())});
+            }
             else if(!skin->SetPaletteForAnalysis(weights,std::move(bindings)))return cursor.Fail("Invalid Skin palette");
         }
         return false;
@@ -166,13 +171,12 @@ namespace sparkplug::reconstruction
         return true;
     }
 
-    bool spSkinSerializer::WriteSectionsForAnalysis(spSerializerManager* manager,spStream& stream,
-        const spSkin& skin,std::string* error) const
+    bool spSkinSerializer::WritePaletteFieldWithContextForAnalysis(spSerializerManager* manager,spStream& stream,
+        const spSkin& skin,std::string* error)
     {
         if(error)error->clear();
         if(!manager&&skin.GetBoneCountForAnalysis())
         {if(error)*error="Skin graph writer requires explicit manager";return false;}
-        if(!WriteModelFieldsForAnalysis(manager,stream,skin,error))return false;
         spDataBlockSerializer blocks;
         if(!blocks.BeginObjectForAnalysis(stream,&skin)
             ||!blocks.WriteBeginForAnalysis(0,spDataBlockSerializer::SizeCode::UInt32))return false;
@@ -185,7 +189,21 @@ namespace sparkplug::reconstruction
             if(!bone||!WriteReferenceForAnalysis(*manager,stream,bone.get(),error)
                 ||!stream.WriteData(binding.inverseBindMatrix.data(),sizeof(binding.inverseBindMatrix)))return false;
         }
-        return blocks.WriteEndForAnalysis(0)&&blocks.FinalizeObjectForAnalysis();
+        return blocks.WriteEndForAnalysis(0);
+    }
+
+    bool spSkinSerializer::WriteSectionsForAnalysis(spSerializerManager* manager,spStream& stream,
+        const spSkin& skin,std::string* error) const
+    {
+        if(error)error->clear();
+        // Keep the original host guard before any inherited section is written.
+        if(!manager&&skin.GetBoneCountForAnalysis())
+        {if(error)*error="Skin graph writer requires explicit manager";return false;}
+        if(!WriteModelFieldsForAnalysis(manager,stream,skin,error)
+            ||!WritePaletteFieldWithContextForAnalysis(manager,stream,skin,error))return false;
+        // The helper successfully closed its sole field; the old FinalizeObject
+        // at this point performed this same shared terminator operation.
+        return spDataBlockSerializer::WriteTerminatorForAnalysis(stream);
     }
 
     bool spSkinSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const

@@ -1,10 +1,13 @@
 #include "Code/Sparkplug/spAnimationSerializer.h"
+#include "Code/Sparkplug/spNode.h"
+#include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -131,6 +134,95 @@ namespace
         spAnimation animation;
         Check(!spSerializer::IndexReferenceForAnalysis(unavailable, &animation), "missing dispatcher host guard");
     }
+
+    void PreparedNodeReferences()
+    {
+        // Original fresh PC captures: authoring-palette-prebind/id7.json and
+        // id1373.json. Only the next-ID/retained-state inputs are host supplied;
+        // the same shared Node, FAT indexer and reference writer are exercised.
+        for (const std::uint32_t id : {7U, 1373U})
+        {
+            spSerializerManager manager;
+            manager.SetDispatchContextForAnalysis(2, 2);
+            Check(manager.RegisterForAnalysis(spNode::ClassID,
+                  std::make_shared<spNodeSerializer>(), 0xFF, 3), "register actual Node serializer for retained references");
+            spNode node, followingNode;
+            auto* fat = manager.GetFATForAnalysis();
+            std::string error = "stale diagnostic";
+            Check(fat && fat->SetNextResourceIDForAnalysis(id, &error) && error.empty(),
+                  "host prepares original ID before indexing");
+            Check(fat->GetNextResourceIDForAnalysis() == id && fat->GetResourceCountForAnalysis() == 0
+                  && fat->FirstForAnalysis() == nullptr && fat->FindByObjectForAnalysis(node) == nullptr
+                  && fat->FindByIDForAnalysis(id) == nullptr, "preparation alone creates no FAT entry or object mapping");
+            Check(fat->SetNextResourceIDForAnalysis(id), "same next ID is an allowed idempotent preparation");
+            Check(fat->IndexObjectForAnalysis(spNode::ClassID, node), "unchanged indexer assigns prepared ID to actual Node");
+            auto* entry = fat->FindByObjectForAnalysis(node);
+            Check(entry && fat->FindByIDForAnalysis(id) == entry && entry->id == id
+                  && entry->object == &node && entry->classID == spNode::ClassID
+                  && entry->fileID == 0 && !entry->payloadWritten && entry->offset == 0 && entry->size == 0,
+                  "both actual FAT maps share the prepared save entry and native defaults");
+            Check(fat->GetNextResourceIDForAnalysis() == id + 1 && fat->GetResourceCountForAnalysis() == 1
+                  && fat->FirstForAnalysis() == entry && fat->NextForAnalysis() == nullptr,
+                  "original indexer increments once and inserts one ordered entry");
+            Check(!fat->IndexObjectForAnalysis(spNode::ClassID, node)
+                  && fat->GetNextResourceIDForAnalysis() == id + 1 && fat->GetResourceCountForAnalysis() == 1,
+                  "duplicate object pointer refuses without consuming the next ID");
+            for (const auto rejected : {0U, id, std::numeric_limits<std::uint32_t>::max()})
+            {
+                Check(!fat->SetNextResourceIDForAnalysis(rejected, &error) && !error.empty(),
+                      "zero, reverse and wrapping ID preparations explicitly refuse");
+                Check(fat->GetNextResourceIDForAnalysis() == id + 1 && fat->GetResourceCountForAnalysis() == 1
+                      && fat->FindByObjectForAnalysis(node) == entry && fat->FindByIDForAnalysis(id) == entry
+                      && fat->FirstForAnalysis() == entry && fat->NextForAnalysis() == nullptr
+                      && entry->id == id && entry->object == &node && !entry->payloadWritten
+                      && entry->offset == 0 && entry->size == 0,
+                      "rejected preparation preserves next ID, maps, list and entry state");
+            }
+            entry->offset = 0x100;
+            entry->size = 25;
+            entry->payloadWritten = true;
+            Output out;
+            Check(out.Open(nullptr), "open prepared Node reference output");
+            Check(spSerializer::WriteReferenceForAnalysis(manager, out, &node, &error) && error.empty(),
+                  "common writer accepts actual retained Node context");
+            const Bytes expected = id == 7 ? Bytes{7, 0, 0, 0, 0, 0, 0, 0}
+                                          : Bytes{0x5D, 5, 0, 0, 0, 0, 0, 0};
+            Check(out.Data() == expected && out.writes == 2 && out.seeks == 0,
+                  "prepared reference equals original PC eight-byte capture without payload/header/seek");
+            Check(entry->id == id && entry->object == &node && entry->payloadWritten
+                  && entry->offset == 0x100 && entry->size == 25 && fat->GetNextResourceIDForAnalysis() == id + 1
+                  && fat->GetResourceCountForAnalysis() == 1 && fat->FindByObjectForAnalysis(node) == entry
+                  && fat->FindByIDForAnalysis(id) == entry,
+                  "reference writer preserves prepared original identity and retained extent");
+
+            Check(fat->FirstForAnalysis() == entry && fat->SetNextResourceIDForAnalysis(id + 3, &error)
+                  && error.empty() && fat->NextForAnalysis() == nullptr,
+                  "forward preparation on a populated FAT preserves its cursor");
+            Check(fat->IndexObjectForAnalysis(spNode::ClassID, followingNode)
+                  && fat->FindByIDForAnalysis(id + 3) == fat->FindByObjectForAnalysis(followingNode)
+                  && fat->GetNextResourceIDForAnalysis() == id + 4 && fat->GetResourceCountForAnalysis() == 2
+                  && fat->FirstForAnalysis() == entry
+                  && fat->NextForAnalysis() == fat->FindByObjectForAnalysis(followingNode)
+                  && fat->NextForAnalysis() == nullptr,
+                  "forward gap indexes through the same maps and preserves insertion order");
+        }
+
+        spResourceFATHelperForAnalysis boundary;
+        spNode lastNode;
+        constexpr auto maximum = std::numeric_limits<std::uint32_t>::max();
+        Check(!boundary.SetNextResourceIDForAnalysis(0) && !boundary.SetNextResourceIDForAnalysis(maximum)
+              && boundary.GetNextResourceIDForAnalysis() == 1 && boundary.GetResourceCountForAnalysis() == 0,
+              "fresh invalid preparation also leaves the initial FAT state unchanged");
+        Check(boundary.SetNextResourceIDForAnalysis(maximum - 1)
+              && boundary.IndexObjectForAnalysis(spNode::ClassID, lastNode)
+              && boundary.GetNextResourceIDForAnalysis() == maximum
+              && boundary.FindByIDForAnalysis(maximum - 1) == boundary.FindByObjectForAnalysis(lastNode),
+              "largest accepted preparation permits one index increment without wrap");
+        Check(!boundary.SetNextResourceIDForAnalysis(maximum) && !boundary.SetNextResourceIDForAnalysis(maximum - 1)
+              && !boundary.SetNextResourceIDForAnalysis(0)
+              && boundary.GetNextResourceIDForAnalysis() == maximum && boundary.GetResourceCountForAnalysis() == 1,
+              "exhausted prepared-ID range refuses every tested successor without changing state");
+    }
 }
 int main(int argc, char** argv)
 {
@@ -138,6 +230,7 @@ int main(int argc, char** argv)
     {
         const auto bytes = Success();
         Failures();
+        PreparedNodeReferences();
         if (argc == 2 && std::strcmp(argv[1], "--emit") == 0)
         {
             std::cout << "REFERENCE_OUTPUT_HEX ";

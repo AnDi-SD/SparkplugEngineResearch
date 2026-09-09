@@ -1,6 +1,7 @@
 param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switch]$Fresh, [switch]$RunChecks,
     [string]$VisualStudioPath,
-    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter','ReadReference','NodeSerialization','MeshReader','RenderNode','StaticRenderObject','MaterialSerialization','MaterialController','MaterialColor','SkinSerialization','SkinRender','UVFunction','ColorFunction','SpatialSerialization','SceneSerialization','SkyBox','NavigationSerialization','LensFlare','OcclusionTopology','ParticleSerialization','LightSerialization','SimpleBVSerialization','OBBScalar','ReferenceReadTrace')]
+    [ValidateRange(1,4)][int]$BuildWorkers = 2,
+    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter','ReadReference','SaveReference','NodeSerialization','MeshReader','RenderNode','StaticRenderObject','MaterialSerialization','MaterialController','MaterialColor','SkinSerialization','SkinRender','UVFunction','ColorFunction','SpatialSerialization','SceneSerialization','SkyBox','NavigationSerialization','LensFlare','OcclusionTopology','ParticleSerialization','LightSerialization','SimpleBVSerialization','OBBScalar','ReferenceReadTrace')]
     [ValidateNotNullOrEmpty()]
     [string[]]$CheckSuites = @('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader'))
 $ErrorActionPreference = 'Stop'
@@ -45,11 +46,11 @@ if ($prefixLine) {
         if ($LASTEXITCODE -ne 0) { throw 'MSVC dependency-prefix configuration failed.' }
     }
 }
-& $cmake --build $taskBuild --target SparkplugViewerNative --parallel 2
+& $cmake --build $taskBuild --target SparkplugViewerNative --parallel $BuildWorkers
 if ($LASTEXITCODE -ne 0) { throw 'Sparkplug Viewer native build failed.' }
 if ($RunChecks) {
     $taskCheckTargets = @($CheckSuites | ForEach-Object { "Viewer${_}Checks" })
-    & $cmake --build $taskBuild --target @taskCheckTargets --parallel 2
+    & $cmake --build $taskBuild --target @taskCheckTargets --parallel $BuildWorkers
     if ($LASTEXITCODE -ne 0) { throw 'Viewing-core checks did not build.' }
     $taskCheckPattern = '^Viewer(' + ($CheckSuites -join '|') + ')Checks$'
     & (Join-Path (Split-Path $cmake) 'ctest.exe') --test-dir $taskBuild --output-on-failure -R $taskCheckPattern -j 1

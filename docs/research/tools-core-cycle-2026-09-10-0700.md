@@ -1,7 +1,9 @@
 # Цикл переноса ядер tools до 07:00 МСК 10 сентября 2026
 
-Начат 9 сентября около 19:35 МСК по поручению пользователя. Срок остановки —
-10 сентября 07:00 МСК. Исходная точка: root `c99abca`, Viewer `ddd1c52`,
+Начат 9 сентября около 19:35 МСК по поручению пользователя. Первоначальный срок —
+10 сентября 07:00 МСК; около22:34 пользователь сократил его до **9 сентября
+23:00 МСК**. Имена ранее созданных dossiers/артефактов сохраняются для evidence.
+Исходная точка: root `c99abca`, Viewer `ddd1c52`,
 TextureTool `1ddb50f`; рабочее дерево чистое. Это цикл разработки, не выпуск.
 
 Приоритет: рабочие ядра всех приложений `tools/`, использующие общие
@@ -87,7 +89,15 @@ writer slices. Исправлена ошибка нашего builder: номе�
 из соседних Model/Skin sections. Native5 suites, managed44+Material44,
 Icy13 с побайтным совпадением прежнего результата, FormatTests647;5 builds.
 ABI6 Skin cases/19 guards/2 Material regressions. [Подробности](tool-renderable-scalar-authoring-2026-09-10.md).
-Нужный следующий срез — palette writer и подтверждённый контекст existing IDs.
+
+**Блок6:** Skin palette записывается actual `spSkinSerializer` с actual Node
+owners; ручные header/count/ID/matrix writes и zero-weight heuristic удалены.
+Две свежие PC пробы подтвердили prebinding исходных ID:40checks. Native5 suites,
+ABI6writes/14guards/4locations, managed35+Renderable44, Icy13 и FormatTests647;
+пять consumer builds прошли. Icy output побайтно прежний, граф загружается один
+раз на все ветви Inject. [Подробности](tool-skin-palette-authoring-2026-09-10.md).
+Новый writer требует whole graph load и ровно одного canonical palette field;
+rare header/repeated shapes явно отклоняются. Reader counter остаётся30/3/2.
 
 ## Отложенные случаи
 

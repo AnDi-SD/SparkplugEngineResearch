@@ -92,6 +92,17 @@ namespace sparkplug::reconstruction
             spClassID classID,
             spBaseObject& object);
 
+        // Explicit host preparation of the existing next-ID state before
+        // IndexObjectForAnalysis; this is not a recovered native setter.
+        // PC466FA0 + PC467350 fresh Node captures (2026-09-10,
+        // authoring-palette-prebind) preserve staged IDs 7/1373 for retained
+        // references. Indexing and ownership remain in the original algorithm.
+        // Only forward/nonzero IDs below UINT32_MAX are accepted; rejection
+        // leaves the FAT unchanged. The caller validates retained payloads and
+        // object/ID identity separately before preparing each index operation.
+        [[nodiscard]] bool SetNextResourceIDForAnalysis(
+            std::uint32_t id, std::string* diagnostic = nullptr);
+
         // First stage of PS2 spSerializerManager::LoadAllFATEntries: unresolved
         // inline entries probe spResourceManager by class category and name
         // before the stream is seeked or a serializer creates a new object.

@@ -1,0 +1,448 @@
+{
+  "kind": "tools-core-skin-palette-authoring-block",
+  "status": "verified-bounded-authoring",
+  "cycle_block": 6,
+  "created_utc": "2026-09-09T19:36:51.584548+00:00",
+  "base_commit": "eff17886f239be421add34f5d9a392a902f89f54",
+  "viewer_commit": "d53bb78ef7e330cf8b5760a0ec38b0dff2640541",
+  "base_shared_tree": "7fbbf979a04631895e542eae99bb3d7b2f086d53",
+  "shared_changes": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "5FC4936FB60D21D096E1BAD648AC81EE317533127DF2FE8F7ACCF8BC57AB4801"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "A308D8ADCF08AC405FB774DA34A5F0993EB0C7C94C8C6D403F7F4582C99A35F7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp",
+      "sha256": "C0EE9E04EB0C5978C91ED2D45E8ADD3EBA9872C7E91C87AF7FBAB845C31355BD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.h",
+      "sha256": "385D9536AAA99DF83F61A8CBAED78E05BE53CC68340A6A62846F6ED49FB42DBE"
+    },
+    {
+      "path": "Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "sha256": "1DB386B7D99B525D6FB41F1B6D53CBF861D9721DC653EDEFE2684601899204EA"
+    },
+    {
+      "path": "Sparkplug/Tests/spSkinSerializationTests.cpp",
+      "sha256": "B0AAC38C316F83A053F9B824A776C1968ABFE292617B3F06F9F4EC8DB426B316"
+    }
+  ],
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "5FC4936FB60D21D096E1BAD648AC81EE317533127DF2FE8F7ACCF8BC57AB4801"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "A308D8ADCF08AC405FB774DA34A5F0993EB0C7C94C8C6D403F7F4582C99A35F7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp",
+      "sha256": "C0EE9E04EB0C5978C91ED2D45E8ADD3EBA9872C7E91C87AF7FBAB845C31355BD"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.h",
+      "sha256": "385D9536AAA99DF83F61A8CBAED78E05BE53CC68340A6A62846F6ED49FB42DBE"
+    },
+    {
+      "path": "Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "sha256": "1DB386B7D99B525D6FB41F1B6D53CBF861D9721DC653EDEFE2684601899204EA"
+    },
+    {
+      "path": "Sparkplug/Tests/spSkinSerializationTests.cpp",
+      "sha256": "B0AAC38C316F83A053F9B824A776C1968ABFE292617B3F06F9F4EC8DB426B316"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSkinnedBranchSplitBuilder.cs",
+      "sha256": "5AB9D77FCD32E50132AB1B9EDDDCECAF0515CFF4BB67929971BCB061026CF6BC"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "FFB7EA65633BB20E50D33D8F6A7C9B2CDC121D12E0A7CFDF07E1475740119EB9"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/SkinPaletteWriterRegression.cs",
+      "sha256": "5E8DBB79A6BF52295821DFBE4C7D61D847553B0569CF20B08A2E7A5ECF1E76A7"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "AB529A591A03F75E80C9D2EA34ADDCC5DE3960F1C7D7C14EEE414533FDEE0DEB"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "39E96C49068DD8BFC15944ADA6A67A47EC9FCD4F86E59037132C55215A5C71E8"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "097FB781BC9D329B191817184235DC944BFC0C94D54F2A2F78C834E7BD410473"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "0B99321A624E74F6301660892334206C61502854BF44FD4FBF93AF6DD249BD37"
+    },
+    {
+      "path": "docs/research/tool-skin-palette-authoring-2026-09-10.md",
+      "sha256": "DFCED7712CE996237B1B56BF9EE278285DF90D11E0F529A89EC4166EEED9C93C"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "sha256": "F81327343E0689BB97472B3E5451F359DCF17EE6ED24CB9675D8F23013A5E13D"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-10-0700.md",
+      "sha256": "69E0800B5C1A6A2C6BE41134D62A1AD8EFDDDCD8F68CB8F16D09C406B84544CC"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-0700.md",
+      "sha256": "B3E1FD60124B366751DBCF267E5CCEF61470B8BB05D4AE0EB1DB8C63D817159C"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoModelInspection.cs",
+      "sha256": "89CC18FFFFEFD95794C39CB4C84931E2A92CADFAB3A2631DC8B218B7A17EBDB2"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSkinDecoder.cs",
+      "sha256": "10BC4C385DAE963829CD96DC45C8788BE0F530709934CB4C5037511CD43385BE"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoSkinPaletteWriter.cs",
+      "sha256": "4C56B1EDE162A20CDCC4C6FBC90D9172F6A390A0FF7F560C4868629BA8756AAD"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.PaletteAuthoring.cs",
+      "sha256": "EAF732950CB1E8007278E175B6AFC34ECFA8CE60904DFD1E01B3038CB33C89B0"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.PaletteInspection.cs",
+      "sha256": "AEBC75CC9DA38B94D76970C66A7BD4B3C749FC95964D1863275FEB7C2FFC59D0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/abi/abi-1.json",
+      "sha256": "617699F5E59CB94FDDAFD01DFA4358E17F0664038C3494F768011070A842E744"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/abi/notes.md",
+      "sha256": "2B24435D7B9B00FAA7530157F96E4A49988C33A610A3F7E72CB31214E6B998AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/abi/verify_palette.py",
+      "sha256": "788D8DF8162BB8BA08B8AACCFAEE08EF7A516BFED90A228D76BBB73EDCB71152"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/build_cycle_0700.py",
+      "sha256": "3FEEB045109253FA7FB1726FD36A07BE3199929A5943B5CC2F68EF05C5E242B3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/build-1.json",
+      "sha256": "7CB3E38AFD4C8E44994577BB52C0EE2F91EC8A1F6E7A2C05453F2CCAD3AC73BE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/format-check-1.json",
+      "sha256": "1872F4BC2B6171566A4289C2D53B0D4303D0537C7AA269E5547B89A5EAB93E47"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/format-check-1.log",
+      "sha256": "8E5FCCCAC875285C9EA3EA631003AD5C11D3CA8587181CE62F34E8B20D58F842"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/icy-previous-comparison.json",
+      "sha256": "61CEB92E4EF12DBE7789A1B562DB14B9DC1A882C195FB15655BB6AB2563D20CB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/empty-max-weights.actual.bin",
+      "sha256": "F4BE2AFD96ABA6691BD650C701F879710BC5831E3BB33B6C1FD30A16442BBCBF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/empty-max-weights.expected.bin",
+      "sha256": "F4BE2AFD96ABA6691BD650C701F879710BC5831E3BB33B6C1FD30A16442BBCBF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/empty-zero-weights.actual.bin",
+      "sha256": "66EFFE08D2042175AA81D47866D6CBEC0574DCE67832542C4655038C2C4B1DE6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/empty-zero-weights.expected.bin",
+      "sha256": "66EFFE08D2042175AA81D47866D6CBEC0574DCE67832542C4655038C2C4B1DE6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/metadata-only-extended.smo",
+      "sha256": "0578C7DD42A04A5FBB38062AB52B1B5DF25A4023E5984A71B993FB62B920B1AD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/metadata-only-repeated.smo",
+      "sha256": "3E59158F93D7F5ADB9DC5E30C9C43895354D9C89C1A6A62ADCAFE4500362B102"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/metadata-only-uint16.smo",
+      "sha256": "B33D1EFCA0B4A902F30D8B3DE489E79512CAF3A9C863236123FD22B1C59E9D9C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/repeated-node-raw-matrices-max-weights.actual.bin",
+      "sha256": "C782F33C2962B4EDF9E76D1582C29064E56552B1B025AC545389D55FFB678FEA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/repeated-node-raw-matrices-max-weights.expected.bin",
+      "sha256": "C782F33C2962B4EDF9E76D1582C29064E56552B1B025AC545389D55FFB678FEA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/report.json",
+      "sha256": "D0B1B073DC90B791B5DF3F69767B2B71846DF0487CB0ABEB5F4C6EFEFCB314E8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/two-real-nodes-zero-weights.actual.bin",
+      "sha256": "D5EA731D24C40D6D4A8AD5911A2089BAE86E8C5EA524A6647FE9177F3F669A2C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-authoring-1/two-real-nodes-zero-weights.expected.bin",
+      "sha256": "D5EA731D24C40D6D4A8AD5911A2089BAE86E8C5EA524A6647FE9177F3F669A2C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-check-1.json",
+      "sha256": "585905AECBA03AF9DE319C9662118CA35FCF12A4B4FADCC6B0601172959F50EF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/palette-check-1.log",
+      "sha256": "30B7EB450F29BBA97D7CE45B5074E37672512F582EE0DD0948C5FF9F94F2D91F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/foreign-repeat-input.smo",
+      "sha256": "1EF96604686746056993D6B0476D7DDF065D2E559ED2BA2BCA5D2DA0D6425556"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/foreign-repeat-off.smo",
+      "sha256": "99A7166EBB90B5573874D94575255224F5D61C6A0CB7BFDD38C4A3A15935EB03"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/foreign-repeat-on.smo",
+      "sha256": "82827E210B5901F368C151A1647D97DB55DC0762DB00AA03136229F19C9980C1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/missing-alpha-input.smo",
+      "sha256": "47659D041F84C4C5FB5AA4A7C338841E68557CDF0432E3DA3600C9E818F6F312"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/missing-priority-input.smo",
+      "sha256": "7060C5C6F499D74CD7CACB777E2685632D98789EC352350D4B9A4E903FE5AD25"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/ordered-input.smo",
+      "sha256": "FDA9EDA9F9501F14B5080C3CAA5F1CB29BCE4AC7FCA0B307AE6B8FD40028ED10"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/ordered-off.smo",
+      "sha256": "278639895331BF60DD823671EC82FE222F815B2A2FFFF0504E43F883A7BAB63A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/ordered-on.smo",
+      "sha256": "F5BD225BABFE5CA336E26FF67EDAE5E35DA9B59461AC696436819F9A6A9E1858"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/reordered-input.smo",
+      "sha256": "28AEDB1CAFD8BCEA874DE6B59603B90B60E805DA2792C1251D12C808EDF2CAC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/reordered-off.smo",
+      "sha256": "0C49A7E606DBB2C4EE45A9144E1F5FA389939B9F6B2C3DEC9FA22872A802FAE6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/reordered-on.smo",
+      "sha256": "EC0847EDA74B123C9F5984421E6191A68279CC8740AACA496638F3CD12CC88CB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/repeated-alpha-input.smo",
+      "sha256": "BC2E077D5A754039DE17766BBF0CF1296E2C0262153D3CCE21D3DBEA84D35B7A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/repeated-priority-input.smo",
+      "sha256": "46362DF8998A5AAF4DD528B1E34C96C70A54CE540A56AD96DB70327CCAA60227"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/report.json",
+      "sha256": "D199FA92C11FC9456AECAAAA22C577A8B0804BECBE26CD82BB2150293620CAE9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/short-alpha-input.smo",
+      "sha256": "61CD47945706F343DC5D2311987A084347487A1C857A075832433A49BA9F4927"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-authoring-1/truncated-input.smo",
+      "sha256": "888CFDD2DE92B41AE203CB434E48665B1ECC70C47899C2D41C34036DC0D25746"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-check-1.json",
+      "sha256": "118A702F0A73B1C9689D054D7546CA0D2A6B71003D5A0077321E72D1A0EA9880"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/scalar-check-1.log",
+      "sha256": "90B08B56A62A38EFBC2811A8849344BCE472CB73D9721280333B47A775DED546"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/skinned-check-1.json",
+      "sha256": "82AADD80118C99E5DA96B4948D92AC644E572FBE365F446D2B22EC365B5277C3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/skinned-check-1.log",
+      "sha256": "E801A4BA4AF6BA4DAA3305933ACD378B21D20216D6432344991BF0A2F870DD42"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/skinned-e2e-1/Icy-clean.smo",
+      "sha256": "63D554FE8C3149DC5113F53FA4A1421507DA5F9D964BB25DDF2B74D6D8944003"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/skinned-e2e-1/Icy-rejected.smo",
+      "sha256": "F2E9320F49D78FF0E045FD6EE45DF4DB6339BCA0D0FF3657A8A93682F0332AE1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/skinned-e2e-1/report.json",
+      "sha256": "28D8D251E813070D62D7722AAD2741165519D575889B83172EF784E86A601FC0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/SmoExporter.FormatTests-1.log",
+      "sha256": "A77CB5BE9E7B42C630D0111BA1C05CC412C8CA77D94AE02E49335FD86E17B7E5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/SmoImporter.FormatTests-1.log",
+      "sha256": "11EE7DCEBDF619C90BA1DA05454D062C0B0D688248EC496731D69D0D4241EB99"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/SmoLVLcreator.CoreTests-1.log",
+      "sha256": "2609C78FE58558D60392C4F1EB36572AF70D6DE8F4AA0F1B93F49025CE772FBE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/SmoViewer-1.log",
+      "sha256": "B071CBEB72411C138BD48D4E271ED3A781EB1A4B9F4113C1843871373254144D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/managed/SmoViewer.FormatTests-1.log",
+      "sha256": "2BFB0559A38F5496D3E4D39492CE6B34E650DE294E7288F3C033B10F346D14BB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/native/build-1.json",
+      "sha256": "99DD5B7F177750FD3760B3829E337B5EAC064710B53E41F51B9F9CF0066CA4F6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/native/native-1.log",
+      "sha256": "E33E12DA963E6518C44F3038C41F25E29A3E3654D546522130BB40D81EE941E0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/native/native-ctest.log",
+      "sha256": "3E6FF1BD94ABB5FAC3AC570A309221E2ADA9BA9AAE7B936BD598FC2945B3ACF9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/run_palette_block_0700.py",
+      "sha256": "5E74803E895A191ABDE44A97F441E495365B121335457AAD855CC1A34515CB2B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/seal_palette_0700.py",
+      "sha256": "B3C6FAE92104657FC9D0E5697EE57420F1E2B794F95BD78EDACD1AE9C9779A87"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette/shared-notes.md",
+      "sha256": "0C58510E372D3DE8A1BFA6A93BC5E2F19D6C9485A123CA8B70F340F206201B0D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/id1373.json",
+      "sha256": "99939B82C2A8054877882DDEE021BDE81328D82F2C38625E3751486BCE946D5C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/id1373.log",
+      "sha256": "06452C89D1588B9B5E3229F84D6CD502BCD3F55E63B1297382CD00EAA5723260"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/id7.json",
+      "sha256": "DF7146CFE3EC3F92173E48A1C5BC13E9794BF9638AFA75BA06F0DB56B94C7663"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/id7.log",
+      "sha256": "30961B18C633FD03E5C5F3C35F1E9C46834F842B6D26FF42494C79CB0015E5FB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/manifest.json",
+      "sha256": "7506D14A6ADD9B646C0C85F60BE24A6B6AD2D3230573EFAA799A527ED2F88799"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/probe_pc_palette_prebinding_0700.py",
+      "sha256": "A208DB4024ABA9FA2F3B5A59B18847D5BC261C3EF0879141312D2BD28F4E35E7"
+    }
+  ],
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B"
+    }
+  ],
+  "native_dll_sha256": "013081A192B1AE1CB85DB3170216A09B5596CAEA82C1F081A4D0AE38652C9F2B",
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "ps2_elf": {
+    "path": "local-data/Winx Club the game PS2/SLES_532.19",
+    "sha256": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "checks": {
+    "SkinSerialization": 243,
+    "SaveReference": 110,
+    "ReadReference": 298,
+    "FullLoader": 213,
+    "ReferenceReadTrace": 61,
+    "ABI_palette_writes": 6,
+    "ABI_guard_cases": 14,
+    "ABI_palette_locations": 4,
+    "managed_renderable": 44,
+    "managed_palette": 35,
+    "original_prebinding_cases": 2,
+    "original_prebinding_checks": 40,
+    "skinned_end_to_end": 13,
+    "general_FormatTests": 647,
+    "consumer_builds": 5
+  },
+  "reconstruction_changes": "Existing Skin palette field write factored and reused by full writer; original reader observations preserve section scope/repeated assignments. No game-algorithm correction. Explicit guarded host nextID setter leaves original FAT indexing unchanged.",
+  "consumer_changes": "Importer writes palette through actual Skin, actual graph Nodes, shared reference writer and original FAT indexer. Manual field/count/ID/matrix encoding and zero-weight field search removed; tool padding/weight0 policy unchanged.",
+  "original_evidence_reused": {
+    "local-data/results/tools-core-cycle-20260909-1900/model-skin-reader/skin-empty-original.log": "7B706449085EB02E8F69A7F262B3B868D379F902243F2C15EDADF1BCBCB373F8",
+    "local-data/results/tools-core-cycle-20260909-1900/model-skin-reader/skin-raw-bits-original.log": "679A92D3630615D9FAA46154B3172395D3492FD273CE75C24350EB94E44CDEAA",
+    "local-data/results/tools-core-cycle-20260909-1900/model-skin-reader/skin-repeat-field-original.log": "CB1F22AC94FCA0F00A6E411487A919C82D67003EC1D5E0593FD3629FA0B595B6",
+    "local-data/results/tools-core-cycle-20260909-1900/model-skin-reader/original.json": "389F0CD9F839670A1AA501BB6BFFEB1069D1F1F3F9EF3F6BD5ED854659062A3B"
+  },
+  "original_dependencies_verified": 17,
+  "new_original_executions": 2,
+  "prebinding_evidence": {
+    "path": "local-data/results/tools-core-cycle-20260910-0700/authoring-palette-prebind/manifest.json",
+    "sha256": "7506D14A6ADD9B646C0C85F60BE24A6B6AD2D3230573EFAA799A527ED2F88799"
+  },
+  "resource_note": "Native and five managed builds use one worker under measured memory pressure; user applications were not stopped. One actual graph is owned for all palette writes per Inject operation and disposed before container insertion/verification.",
+  "limitations": [
+    "Palette edit requires exactly one actual field0 with canonical UInt32 header; repeated/missing/nonUInt32/forced-extended fields refused. Original reader behavior unchanged.",
+    "Whole source graph must load within existing64MiB/8192object bounds. Node selected by exact wire class and exact completed Outer/Inline FAT extent; skipped bytes do not count as coverage.",
+    "Repeated same ID preserves distinct matrices; different IDs aliasing one pointer are rejected. Public ABI harness does not construct alias/uncovered Node graph guard cases.",
+    "Source Node identities/transforms/hierarchy are retained; enclosing nested payload sizes may change. Writer requires retaining IDs/resources and does not save a container.",
+    "PC prebinding probes supply explicit startup/retained extent state. They prove index/reference composition only, not whole save or arbitrary alias mapping.",
+    "No full corpus, GPU/UI run, PS2 execution, release or publication; existing FAT proposal, source-less texture, cached payload and editor boundaries remain."
+  ]
+}

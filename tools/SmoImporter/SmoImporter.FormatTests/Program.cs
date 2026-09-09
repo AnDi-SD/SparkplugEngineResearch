@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args is ["--skin-palette-authoring", string skinPaletteSource, string skinPaletteOutput])
+{
+    try { return SkinPaletteWriterRegression.Run(skinPaletteSource, skinPaletteOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--renderable-scalar-authoring", string renderableOutput])
 {
     try { return RenderableScalarWriterRegression.Run(renderableOutput); }

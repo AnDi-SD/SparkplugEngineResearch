@@ -233,11 +233,22 @@ struct SpvSkinBone {
     std::uint32_t id,inlineSize;
     float inverseBind[16];
 };
+struct SpvSkinPaletteField {
+    std::uint32_t headerOffset,payloadOffset,payloadSize,assignmentOrder;
+};
+struct SpvSkinPaletteBinding {std::uint32_t nodeID;float inverseBind[16];};
+// Field-only original Skin writer. The traced graph owns the actual bones;
+// the caller retains their original payloads/IDs in its destination container.
+// Same-ID repetitions are allowed; aliases and unread Node extents are refused.
+SPV_API void* spv_skin_write_palette(void* graph,std::uint32_t weights,
+    const SpvSkinPaletteBinding*,std::uint32_t count) noexcept;
 // kind0 Model, kind1 Skin: original section readers with unresolved reference metadata.
 SPV_API void* spv_model_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind) noexcept;
 SPV_API void spv_model_destroy(void*) noexcept;
 SPV_API int spv_model_info(void*,SpvModelInfo*) noexcept;
 SPV_API int spv_model_bones(void*,SpvSkinBone*,std::uint32_t) noexcept;
+SPV_API int spv_model_palette_fields(void*,SpvSkinPaletteField*,std::uint32_t capacity,
+    std::uint32_t* count) noexcept;
 struct SpvAnimTextureInfo {std::uint32_t frames,hasTrack;float duration;};
 struct SpvAnimTextureFrame {float time;SpvMaterialReference reference;};
 SPV_API void* spv_anim_texture_read(const std::uint8_t*,std::uint32_t) noexcept;

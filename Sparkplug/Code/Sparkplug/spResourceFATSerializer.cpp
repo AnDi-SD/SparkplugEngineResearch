@@ -125,6 +125,23 @@ namespace sparkplug::reconstruction
         return true;
     }
 
+    bool spResourceFATHelperForAnalysis::SetNextResourceIDForAnalysis(
+        const std::uint32_t id, std::string* diagnostic)
+    {
+        if (diagnostic) diagnostic->clear();
+        // Host boundary only: prepare the confirmed input state of PC466FA0.
+        // Do not alter entries, either lookup map, the ordered list or cursor.
+        if (id == 0 || id == std::numeric_limits<std::uint32_t>::max()
+            || id < nextResourceID_)
+        {
+            if (diagnostic)
+                *diagnostic = "Prepared FAT resource ID must be nonzero, forward and below UINT32_MAX";
+            return false;
+        }
+        nextResourceID_ = id;
+        return true;
+    }
+
     bool spResourceFATHelperForAnalysis::IndexObjectForAnalysis(
         const spClassID classID,
         spBaseObject& object)

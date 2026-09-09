@@ -53,3 +53,15 @@
 - FAT boundary сообщён пользователю. Узкий PS2 manager-region не содержит
   save-кандидата; подготовлено предложение общей HOST записи envelope для
   трёх существующих production writers. Реализация ждёт решения пользователя.
+- 22:07 МСК: block5 сохранён rooteff1788 / Viewer8104dba.
+- 22:12–22:30 МСК: block6 — actual Skin palette writer и FAT prebinding:
+  2 fresh PC cases/40checks, native243/110/298/213/61, ABI6writes/14guards/4locations.
+  Один actual graph на все palette writes в Inject; ручная запись и zero-weight
+  heuristic удалены. Five consumer builds/managed integration ещё выполняются.
+- 22:34 МСК: пользователь сократил текущий цикл до **23:00 МСК 9 сентября**.
+  Основной приоритет до остановки — завершить и сохранить Skin palette блок,
+  затем небольшой перенос reserved field headers, если хватает времени.
+- 22:36 МСК: block6 проверки завершены: пять consumer builds0warnings/errors,
+  managed palette35/Renderable44/Icy13/FormatTests647. Icy output побайтно прежний;
+  palette regression peak32,39MiB. Whole graph requirement и редкие формы
+  сообщены пользователю; готовится локальный checkpoint.
