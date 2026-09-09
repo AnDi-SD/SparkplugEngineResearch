@@ -131,6 +131,13 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     обнаружили неподтверждённый output; после —42 PC checks,9 source guards
     и4 ранних legacy refusals PASS. Сборка чистая, исходники игры неизменны.
     Конверсия legacy/PS2 контейнера приостановлена как отдельное предложение.
+    Checkpoint: root `89fee87`; все34 PC output побайтно равны предыдущему коду.
+12. Importer: семь ручных reference-prefix consumers заменены общим reader.
+    ModelGraph50, shared/independent static по6 и отказ старого forward-reference
+    output прошли. Пять полных replacements побайтно совпали с baseline.
+    Host ID patch/owner scope и authoring coverage сохранены; новых игровых
+    алгоритмов или UI не добавлено. Первичная карточка TextureData исправлена:
+    исторический corpus profile не считается завершённым PC/PS2 runtime.
 
 ## Новые границы и исправления
 

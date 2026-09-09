@@ -1205,11 +1205,8 @@ public static class SmoLevelModelGraphReplacer
             long payloadPhysical = owner.PhysicalOffset + field.PayloadOffset;
             if (field.PayloadSize == child.SerializedSize + ObjectReferenceSize &&
                 payloadPhysical == child.PhysicalOffset - ObjectReferenceSize &&
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[field.PayloadOffset..]) == child.Id &&
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + sizeof(uint))..]) ==
-                    child.SerializedSize)
+                TryGetReferenceId(bytes, field, out uint id, out uint inlineSize) &&
+                id == child.Id && inlineSize == child.SerializedSize)
             {
                 return field;
             }
@@ -1309,9 +1306,9 @@ public static class SmoLevelModelGraphReplacer
             foreach (SmoObjectField field in SmoObjectFieldReader.Read(document, material))
             {
                 if (field.FieldType != 10 || field.PayloadSize < 8) continue;
-                uint id = BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span[4..]);
-                if (inlineSize == 0 && starts.TryGetValue(id, out long start) && field.AbsolutePayloadOffset < start)
+                if (SmoNodeDecoder.TryDecodeRelationship(field.Payload.Span,
+                        out uint id, out uint inlineSize, out _) &&
+                    inlineSize == 0 && starts.TryGetValue(id, out long start) && field.AbsolutePayloadOffset < start)
                     throw new InvalidDataException(
                         $"Material [{material.Index}] references imported texture {id} before its inline definition.");
             }
@@ -1433,11 +1430,8 @@ public static class SmoLevelModelGraphReplacer
             if (field.FieldType != fieldType ||
                 field.PayloadSize != ObjectReferenceSize)
                 continue;
-            uint id = BinaryPrimitives.ReadUInt32LittleEndian(
-                bytes[field.PayloadOffset..]);
-            uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                bytes[(field.PayloadOffset + sizeof(uint))..]);
-            if (inlineSize == 0 &&
+            if (TryGetReferenceId(bytes, field, out uint id, out uint inlineSize) &&
+                inlineSize == 0 &&
                 (!requireCatalogEntry || validIds.Contains(id)))
                 result.Add(id);
         }
@@ -1602,9 +1596,9 @@ public static class SmoLevelModelGraphReplacer
         {
             if (field.FieldType != 10 || field.PayloadSize < 8)
                 continue;
-            uint id = BinaryPrimitives.ReadUInt32LittleEndian(
-                ObjectBytes(document, material)[field.PayloadOffset..]);
-            if (document.Objects.Any(entry =>
+            if (TryGetReferenceId(ObjectBytes(document, material), field,
+                    out uint id, out _) &&
+                document.Objects.Any(entry =>
                     entry.Id == id && entry.TypeHash == SmoClassIds.TextureData))
                 textureIds.Add(id);
         }
@@ -1618,8 +1612,8 @@ public static class SmoLevelModelGraphReplacer
         uint referenceId) => Fields(document, owner).Any(field =>
             field.FieldType == fieldType &&
             field.PayloadSize >= 4 &&
-            BinaryPrimitives.ReadUInt32LittleEndian(
-                ObjectBytes(document, owner)[field.PayloadOffset..]) == referenceId);
+            TryGetReferenceId(ObjectBytes(document, owner), field, out uint id, out _) &&
+            id == referenceId);
 
     private static bool HasReferenceOnly(
         SmoDocument document,
@@ -1631,10 +1625,8 @@ public static class SmoLevelModelGraphReplacer
         foreach (SmoDataBlockHeader field in Fields(document, owner))
         {
             if (field.FieldType == fieldType && field.PayloadSize == 8 &&
-                BinaryPrimitives.ReadUInt32LittleEndian(bytes[field.PayloadOffset..]) ==
-                    referenceId &&
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + 4)..]) == 0)
+                TryGetReferenceId(bytes, field, out uint id, out uint inlineSize) &&
+                id == referenceId && inlineSize == 0)
                 return true;
         }
         return false;
@@ -1653,12 +1645,20 @@ public static class SmoLevelModelGraphReplacer
         foreach (SmoDataBlockHeader field in Fields(document, owner))
         {
             if (field.FieldType != fieldType || field.PayloadSize != 8 ||
-                BinaryPrimitives.ReadUInt32LittleEndian(bytes[field.PayloadOffset..]) != oldReferenceId ||
-                BinaryPrimitives.ReadUInt32LittleEndian(bytes[(field.PayloadOffset + 4)..]) != 0)
+                !TryGetReferenceId(bytes, field, out uint id, out uint inlineSize) ||
+                id != oldReferenceId || inlineSize != 0)
                 continue;
             WriteUInt32(data, checked((int)owner.PhysicalOffset + field.PayloadOffset), newReferenceId);
         }
     }
+
+    private static bool TryGetReferenceId(
+        ReadOnlySpan<byte> objectBytes,
+        SmoDataBlockHeader field,
+        out uint id,
+        out uint inlineSize) => SmoNodeDecoder.TryDecodeRelationship(
+            objectBytes.Slice(field.PayloadOffset, checked((int)field.PayloadSize)),
+            out id, out inlineSize, out _);
 
     private static IReadOnlyList<SmoDataBlockHeader> Fields(
         SmoDocument document,

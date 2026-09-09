@@ -36,3 +36,19 @@ file-reader trace. Authoring range `[2844011,2860459)` по-прежнему т�
 
 Артефакты текущего цикла: `reference-inspector/` и `cached-texture/`;
 [предыдущая граница trace](tool-authoring-reference-trace-2026-09-10.md).
+
+## Importer: тот же общий prefix reader
+
+Следующим отдельным срезом семь helpers `SmoLevelModelGraphReplacer` переведены
+на existing `SmoNodeDecoder.TryDecodeRelationship`: поиск inline field,
+texture order, reference-only IDs, texture IDs, проверки наличия и ID patch.
+Exact field extent теперь проверяет общий serializer; одиночный non-NULL UInt32
+не считается ссылкой. Числовые записи ID, ref-only8 constraint, физические
+границы inline children, ранние/повторные assignments и выбор owners сохранены.
+Семантика общего поиска по классам owners этим переносом не доказана заново.
+
+Пять полных replacements до/после побайтно идентичны: три ModelGraph cases
+(50 checks), static branches с общей и разными текстурами (по6 checks).
+Сохранённый старый broken output по-прежнему отклоняется за reference до inline
+definition. Сборка чистая, native/game code не менялся. Артефакты:
+`importer-reference/`; [manifest](../../research/tools-core-importer-reference-block-2026-09-10.json).

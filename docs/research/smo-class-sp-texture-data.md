@@ -1,10 +1,11 @@
 # `spTextureData` (`0x78EA082B`)
 
-Статус: контейнеры источника, платформы, палитры и mip-уровней полностью
-восстановлены для чтения на всём доступном PC/PS2-корпусе. Viewer показывает
-структурные поля и продолжает выводить BGRA-превью PC/cross-platform вариантов.
-Нативные PS2-буферы разобраны без остатка по границам, но их swizzle и точное
-преобразование каналов в BGRA пока намеренно не угадываются.
+Текущий статус10 сентября2026: [PC source dispatch подключён к общему reader](tool-pc-texture-source-inspection-2026-09-10.md),
+а [PS2 native section — к общему metadata inspector](tool-ps2-texture-native-inspection-2026-09-10.md).
+Полные PS2 source/runtime и legacy-common source-оболочка остаются границами.
+Viewer показывает metadata и BGRA/XRGB preview поддерживаемого выбранного
+представления; PS2 swizzle/preview не реализован. Приведённые ниже числа —
+исторический structural corpus profile, не повторная проверка текущего runtime.
 [CP125](tool-texture-writer-2026-09-08.md) добавил запись/resize одного встроенного
 PC BGRA mip; [CP130](tool-importer-textures-2026-09-08.md) подключил тот же
 структурный writer к новым ресурсам Importer. PS2/multiple-mip запись не включена.
@@ -21,7 +22,7 @@ PC BGRA mip; [CP130](tool-importer-textures-2026-09-08.md) подключил т
 | `pc-pristine` | 2 564 | 373 | 2 564 | 320–1 048 640 |
 | `ps2-pristine` | 2 357 | 294 | 6 439 | 171–263 243 |
 
-Все 7 485 уникальных корпусных записей имеют имя и строго декодируются. Working
+Исторический profiler структурно декодировал все7485 записей с именами. Working
 и pristine PC совпадают по структуре и содержимому текстур во всех 373 ресурсах.
 PC и PS2 имеют 294 общих canonical resource path, но платформенные
 представления ожидаемо различаются.
@@ -53,9 +54,11 @@ Executable обеих платформ подтверждают имена:
 | `texture_ps2_native_with_cross` | 28 | 28 | 4 | одновременно BGRA и PS2 native |
 | `texture_embedded_cross_only` | 1 | 1 | 0 | embedded field 0 без native-копии |
 
-Таким образом, PC-корпус сам содержит 34 настоящих PS2-native текстуры — прежде
-всего в menu-файлах `*_ps2`. Платформу нельзя определять только по каталогу или
-маске FFPS; внутренний layout распознаётся по собственной структуре.
+Каталог PC-корпуса содержит34 PS2-native storage shapes, прежде всего в
+menu-файлах `*_ps2`. Папка не определяет wire layout. Однако выбор runtime reader
+определяется настоящим serializer dispatch и platform fields; после отказа PC
+reader нельзя молча пробовать PS2 parser. Историческая классификация bytes не
+доказывает, что PC игра инициализирует каждую такую копию.
 
 ## Cross-platform BGRA32
 
@@ -71,8 +74,9 @@ field 5 payload:
 terminator
 ```
 
-Размер проверяется точным равенством `16 + width * height * 4`. Это обычный
-несжатый BGRA32; Viewer может показывать его без платформенной конверсии.
+Размер этих corpus-форм проверяется равенством `16 + width * height * 4`.
+Format0 — BGRA32; format1 — BGRX32, alpha игнорируется и для preview
+проецируется в255 общим codec. Исходный X byte сохраняется в metadata.
 
 Первоначальное имя `auxiliaryValue` третьего слова устарело:
 [оригинальный cross reader CP115–116](native-pc-texture-cross-upload.md)
@@ -85,7 +89,9 @@ Bare legacy field 0 и корректная embedded-обёртка имеют �
 
 ## Embedded-обёртка
 
-Field 3 всегда содержит две serializer-секции:
+В исторической обычной форме field3 содержал две serializer-секции. Это не
+полная grammar: actual reader допускает другие порядки, пропуски и повторы,
+описанные в новом PC source отчёте.
 
 ```text
 section 0, source base:
@@ -145,7 +151,7 @@ pristine PC-корпусе встречаются 2 081 текстура с од
 Внутри platform-specific field 1 находится один field 0:
 
 ```text
-byte   present                 // 1
+byte   nativeDataFlag          // raw byte; zero does not skip the image
 UInt32 pixelFormat
 UInt32 width
 UInt32 height
@@ -155,7 +161,7 @@ UInt32 mipCount
 palette:
     format 0:  16 * 4 bytes
     format 1: 256 * 4 bytes
-    format 3:  no palette
+    other formats: no palette
 
 repeat mipCount times:
     UInt32 descriptor0
@@ -165,8 +171,11 @@ repeat mipCount times:
     byte   data[dataSize]
 ```
 
-Логические размеры mip вычисляются делением исходных размеров на два. Размер
-данных подтверждён для каждого из 2 357 PS2-объектов:
+Исторический corpus profiler предполагал размеры successive mip делением
+исходных размеров на два и проверял следующие соотношения на2357 объектах.
+Это не правило original reader: он использует wire `dataSize`, а назначения
+descriptor1/2 как mip width/height пока не доказаны. Текущий общий inspector
+сохраняет descriptors и выставляет `DimensionsKnown=false`.
 
 ```text
 format 0: ceil(mipWidth * mipHeight / 2)   // indexed 4-bit
@@ -215,11 +224,12 @@ Pristine PC executable содержит регистрации `spTextureData`,
 cross/native-представлений и platform type. PS2 executable содержит общий и
 PS2 serializer с теми же именами полей.
 
-`SmoTextureDataDecoder` строго ограничивает все вложенные чтения объектной
-записью и возвращает обе representations, палитру и mip metadata.
-`SmoTextureDecoder` выбирает cross-platform BGRA либо Direct3D BGRA для
-превью. Inspector показывает source kind, platform type, обе representations,
-размер, настоящий format, bpp, палитру и mip count.
+`SmoTextureDataDecoder` ограничивает вложенные чтения объектной записью.
+PC DTO получает ordered observations, `SelectedRepresentation`, opaque skipped
+fields и разные stored/runtime mip counts от actual source reader. Preview
+использует выбранное представление, а не безусловный приоритет cross.
+PS2 leaf metadata читается общим inspector; оставшаяся legacy/PS2 source
+оболочка не выдаётся за готовый runtime.
 
 Команда
 
@@ -227,9 +237,10 @@ PS2 serializer с теми же именами полей.
 SmoViewer.Inspect research-db analyze-class <db> spTextureData
 ```
 
-повторно читает исходные directory/PCK-ресурсы, проверяет все 7 485 объектов,
-аннотирует прямые поля decoded JSON, записывает пять вариантов, 7 485 назначений
-и четыре evidence-записи. Проверка идемпотентна.
+исторически читала directory/PCK-ресурсы и записывала пять storage-вариантов.
+Теперь этот combined PC/PS2 profile остановлен guard до записи БД: для actual
+source selection и новых PS2 metadata нужны раздельные profiles. Старые
+результаты сохранены, нового полного прогона7485 записей в этом цикле не было.
 
 Открыты точная семантика PS2 auxiliary/descriptors и подтверждённое
 unswizzle/channel conversion для визуального превью. Запись палитр и нескольких
