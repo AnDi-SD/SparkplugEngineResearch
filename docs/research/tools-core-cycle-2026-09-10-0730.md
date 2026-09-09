@@ -138,6 +138,13 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     Host ID patch/owner scope и authoring coverage сохранены; новых игровых
     алгоритмов или UI не добавлено. Первичная карточка TextureData исправлена:
     исторический corpus profile не считается завершённым PC/PS2 runtime.
+    Checkpoint: root `ba044a7`.
+13. Исправлен host-признак `PixelDataPresent`: он отражает сохранённые mip bytes,
+    а не raw `NativeField1C`. Общий reader и raw byte не менялись. Усиленная
+    существующая проверка flag0/2 воспроизводит отказ со старым Core; новый
+    проходит2052 assertions, экспорт2PNG и6замен Bloom_body за1,18с.
+    [Manifest](../../research/tools-core-texture-presence-2026-09-10.json)
+    сохраняет hashes кода, baseline и результатов. Новая сборка чистая.
 
 ## Новые границы и исправления
 

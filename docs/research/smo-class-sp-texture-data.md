@@ -126,7 +126,7 @@ field 0, base mip:
     UInt32 width
     UInt32 height
     UInt32 pixelFormat          // 0 во всём корпусе
-    byte   pixelDataPresent     // 1
+    byte   nativeField1C        // raw value; not a stored-pixel presence test
     UInt32 mipWidth
     UInt32 rowStride            // mipWidth * 4
     UInt32 mipHeight
