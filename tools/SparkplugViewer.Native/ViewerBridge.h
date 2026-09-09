@@ -97,6 +97,11 @@ SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;
 struct SpvReferencePrefix { std::uint32_t id,inlineSize,encoding,classID; };
 struct SpvNodeField { std::uint32_t field,offset,size; };
+struct SpvStaticMatrices { float world[16],inverse[16]; std::uint32_t fieldMask; };
+// Original field1/2 assignments with fresh constructor defaults; no reference
+// resolution, affine validation or relation between matrices is implied.
+SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,
+    const SpvNodeField*,std::uint32_t,SpvStaticMatrices*) noexcept;
 struct SpvCollisionInfoValues {
     float position[3],rotation[4],scale[3],orientation[9];
     std::uint32_t group,fieldMask;

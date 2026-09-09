@@ -627,7 +627,7 @@ internal static class Program
                 SmoPropertyValueKind.Matrix4x4);
             Matrix4x4 inverse = ReadMatrix(inverseBytes);
             Matrix4x4 expectedEngineInverse =
-                SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(movedWorld);
+                SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(movedWorld);
             True(MatrixDistance(inverse, expectedEngineInverse) < 0.0001f,
                 "project transform regenerates Sparkplug's transpose-basis inverse");
             Matrix4x4 builtInverse = ReadMatrix(movedFields.Single(field =>
@@ -1941,7 +1941,7 @@ internal static class Program
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         byte[] forwardField = SmoDataBlockWriter.BuildField(
             1,
             SmoPropertyValueCodec.Encode(world));
@@ -2095,7 +2095,7 @@ internal static class Program
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         const uint ownerType = 0xA0020001;
         const uint ownerId = 1;
         const uint meshId = 2;
@@ -2212,7 +2212,7 @@ internal static class Program
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Synthetic placement is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         const uint ownerType = 0xA0021001;
         const uint ownerId = 1;
         const uint placementId = 2;
@@ -3289,7 +3289,7 @@ internal static class Program
              addedStaticData is not null &&
              MatrixDistance(
                  addedStaticData.EngineInverseTransform,
-                 SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(desired)) <
+                 SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(desired)) <
              0.001f,
             "new shared placement writes the scaled Sparkplug inverse convention");
         SmoSharedMeshInstanceInfo nearestTemplate =

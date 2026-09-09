@@ -6,6 +6,8 @@
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeController.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
+#include "Code/Sparkplug/spStaticRenderObject.h"
+#include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
@@ -534,6 +536,26 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
     }))return nullptr;
     return result.release();
 }
+SPV_API int spv_static_matrices(const std::uint8_t* bytes,std::uint32_t count,
+    const SpvNodeField* fields,std::uint32_t fieldCount,SpvStaticMatrices* output) noexcept {
+    return guarded([&]{
+        require(bytes&&count&&output&&(!fieldCount||fields)&&fieldCount<=65536,"Invalid bounded StaticRenderObject matrix input");
+        spStaticRenderObject object;std::uint32_t mask=0;
+        for(std::uint32_t i=0;i<fieldCount;++i) {
+            const auto& f=fields[i];
+            require((f.field==1||f.field==2)&&f.size==64,"Unsupported StaticRenderObject matrix descriptor");
+            require(f.offset<=count&&f.size<=count-f.offset,"StaticRenderObject matrix exceeds input extent");
+            BorrowedInput input(bytes+f.offset,f.size);
+            require(spStaticRenderObjectSerializer::ReadMatrixFieldForAnalysis(f.field,input,object),"Invalid StaticRenderObject matrix payload");
+            mask|=1u<<f.field;
+        }
+        SpvStaticMatrices result{};
+        const auto& world=object.GetWorldMatrixForAnalysis();const auto& inverse=object.GetWorldInverseMatrixForAnalysis();
+        std::copy(world.begin(),world.end(),result.world);std::copy(inverse.begin(),inverse.end(),result.inverse);
+        result.fieldMask=mask;*output=result;
+    });
+}
+static_assert(sizeof(SpvStaticMatrices)==132);
 SPV_API int spv_collision_info_values(const std::uint8_t* bytes,std::uint32_t count,
     const SpvNodeField* fields,std::uint32_t fieldCount,SpvCollisionInfoValues* output) noexcept {
     return guarded([&]{

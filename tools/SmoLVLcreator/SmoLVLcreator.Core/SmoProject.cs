@@ -695,7 +695,7 @@ public sealed class SmoProject
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Translated placement matrix is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         SetProperty(entry, SmoPropertyKeys.WorldMatrix, SmoPropertyValueKind.Matrix4x4,
             SmoPropertyValueCodec.Encode(world));
         SetProperty(entry, SmoPropertyKeys.InverseWorldMatrix,
@@ -1293,7 +1293,7 @@ public sealed class SmoProject
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("New placement matrix is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
 
         IReadOnlyList<SmoProjectObject> branch = GetReferencePlacementShellObjects(
             template,
@@ -1338,7 +1338,7 @@ public sealed class SmoProject
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Placement matrix is singular.");
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         byte[] inverseBytes = SmoPropertyValueCodec.Encode(inverse);
 
         SmoProjectObject? imported = Manifest.Objects.SingleOrDefault(item =>
@@ -3993,7 +3993,7 @@ public sealed class SmoProject
             inverseBytes,
             $"placement {objectId} inverse matrix");
         Matrix4x4 expectedInverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(world);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(world);
         if (!Matrix4x4.Invert(world, out _) ||
             !MatrixNearlyEquals(expectedInverse, inverse, 0.001f))
         {

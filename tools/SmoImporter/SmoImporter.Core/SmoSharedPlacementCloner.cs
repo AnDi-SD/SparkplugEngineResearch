@@ -32,7 +32,7 @@ public static class SmoSharedPlacementCloner
                 "A shared placement needs an invertible world transform.",
                 nameof(worldTransform));
         Matrix4x4 inverse =
-            SmoStaticRenderObjectDecoder.CreateEngineInverseTransform(worldTransform);
+            SmoPlacementTransformWriter.CreateLegacyStaticInverseTransform(worldTransform);
 
         IReadOnlyList<SmoSharedMeshInstanceInfo> instances =
             SmoSharedMeshInstanceResolver.ResolveAll(document);

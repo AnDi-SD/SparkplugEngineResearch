@@ -8,6 +8,7 @@
 #include "spRenderable.h"
 #include "spLightManager.h"
 #include "Analysis/PC/spRenderNodeMath.h"
+#include "Analysis/PC/spRenderSupport.h"
 
 #include <cstddef>
 #include <memory>
@@ -89,9 +90,7 @@ namespace sparkplug::reconstruction
             const noexcept;
 
       private:
-        std::vector<std::shared_ptr<spRenderable>> renderables_;
-        BoundingSphere localSphere_{};
-        BoundingSphere worldSphere_{};
+        evidence::pc::RenderSupportForAnalysis support_;
         Matrix4 cachedMatrix_ = evidence::pc::render_node_math::Identity4;
         Matrix4 cachedInverse_ = evidence::pc::render_node_math::Identity4;
         Vector3 reciprocalWorldScale_{1, 1, 1};

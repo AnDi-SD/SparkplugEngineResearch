@@ -277,6 +277,11 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spRenderNode.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
+    Analysis/PC/spRenderSupport.h
+    Code/Sparkplug/spStaticRenderObject.cpp
+    Code/Sparkplug/spStaticRenderObject.h
+    Code/Sparkplug/spStaticRenderObjectSerializer.cpp
+    Code/Sparkplug/spStaticRenderObjectSerializer.h
     Code/Sparkplug/spRenderer.cpp
     Code/Sparkplug/spRenderer.h
     Code/Sparkplug/spRenderTarget.cpp
@@ -446,6 +451,10 @@ if(BUILD_TESTING)
     add_executable(SparkplugRenderNodeTests Tests/spRenderNodeTests.cpp)
     target_link_libraries(SparkplugRenderNodeTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugRenderNodeTests COMMAND SparkplugRenderNodeTests)
+    add_executable(SparkplugStaticRenderObjectTests Tests/spStaticRenderObjectTests.cpp)
+    target_link_libraries(SparkplugStaticRenderObjectTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugStaticRenderObjectTests COMMAND SparkplugStaticRenderObjectTests)
+    set_tests_properties(SparkplugStaticRenderObjectTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugLightManagerTests Tests/spLightManagerTests.cpp)
     target_link_libraries(SparkplugLightManagerTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLightManagerTests COMMAND SparkplugLightManagerTests)
