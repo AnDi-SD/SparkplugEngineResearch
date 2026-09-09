@@ -253,3 +253,13 @@ LensFlare15/FullLoader213, пять builds. Два реальных уровня
 их успешная загрузка не заявляется. UI только подключение исправленных DTO.
 Старый source-less TextureData — отдельный незакрытый whole-file случай CP116.
 Досье: `docs/research/tool-lens-flare-shared-core-2026-09-09.md`.
+
+### Блок 19: необходимые методы Occlusion topology
+
+Пять readable PC методов перенесены в actual spOcclusionVolume;15 original
+state/results совпали с C++. Конструктор полей и Node-only clone подтверждены;
+OcclusionTopology38/FullLoader213 passed. PS2 дала порядок полной подготовки
+геометрии. Full Init, weld representative order и connectivity ещё открыты,
+класс не включён в ResourceGraph. Новые уровни не заявлены. C# не менялся,
+полный корпус и managed builds не повторялись. Старые capped entries не трогались.
+Досье: `docs/research/tool-occlusion-topology-shared-core-2026-09-09.md`.

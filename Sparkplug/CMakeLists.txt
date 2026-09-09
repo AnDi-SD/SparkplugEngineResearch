@@ -308,6 +308,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spLensFlare.h
     Code/Sparkplug/spLensFlareSerializer.cpp
     Code/Sparkplug/spLensFlareSerializer.h
+    Code/Sparkplug/spOcclusionVolume.cpp
+    Code/Sparkplug/spOcclusionVolume.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
     Code/Sparkplug/spPartitionNodeSerializer.cpp
@@ -654,6 +656,10 @@ if(BUILD_TESTING)
     add_executable(SparkplugSceneSerializationTests Tests/spSceneSerializationTests.cpp)
     add_executable(SparkplugSkyBoxTests Tests/spSkyBoxTests.cpp)
     add_executable(SparkplugLensFlareTests Tests/spLensFlareTests.cpp)
+    add_executable(SparkplugOcclusionTopologyTests Tests/spOcclusionTopologyTests.cpp)
+    target_link_libraries(SparkplugOcclusionTopologyTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugOcclusionTopologyTests COMMAND SparkplugOcclusionTopologyTests)
+    set_tests_properties(SparkplugOcclusionTopologyTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugLensFlareTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLensFlareTests COMMAND SparkplugLensFlareTests)
     set_tests_properties(SparkplugLensFlareTests PROPERTIES TIMEOUT 20)

@@ -256,6 +256,7 @@ namespace sparkplug::reconstruction
         friend class spNodeSerializer;
         friend class spRenderNodeSerializer;
         friend class spStaticRenderObject;
+        friend class spOcclusionVolume;
         friend class spStaticRenderObjectSerializer;
         friend class spPCRenderer;
         friend class spPS2Renderer;

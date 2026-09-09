@@ -191,3 +191,11 @@ ABI21 (15guards), managed20, LensFlare15/FullLoader213; пять builds.
 Battle01/Gardenia03 требуют OcclusionVolume, инспектор полного LensFlare там
 пока недоступен. Source-less TextureData не подправлялся. Релиза нет.
 Досье: `docs/research/tool-lens-flare-shared-core-2026-09-09.md`.
+
+Блок19: пять actual spOcclusionVolume topology leaves,15 PC/source matches,
+original constructor scalar defaults и Node-only clone. PS2 static помогает
+разделить remaining Init; capped full Init не повторён. Полной загрузки нового
+класса нет, fake serializer не добавлен. OcclusionTopology38/FullLoader213.
+Diagnostic fixture потребовал действительное имя, существующие CRT helpers и
+штатное отключение console output; geometry branches не заменялись. C# не менялся.
+Досье: `docs/research/tool-occlusion-topology-shared-core-2026-09-09.md`.
