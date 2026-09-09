@@ -84,18 +84,23 @@ namespace sparkplug::reconstruction
         auto* node=dynamic_cast<spRenderNode*>(&object);
         if(!node||!object.IsExactly(spRenderNode::ClassID))
         {context.failed=true;if(error)*error="RenderNode section target mismatch";return false;}
+        return ReadRenderNodeFieldsForAnalysis(context,source,size,*node,true,error);
+    }
+    bool spRenderNodeSerializer::ReadRenderNodeFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t size,spRenderNode& node,bool requireExactEnd,std::string* error) const
+    {
         std::uint32_t start=0,position=0;
-        if(!source.GetCurrentPosition(start)||!ReadNodeFieldsForAnalysis(context,source,size,*node,false,error)
+        if(!source.GetCurrentPosition(start)||!ReadNodeFieldsForAnalysis(context,source,size,node,false,error)
             ||!source.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing RenderNode derived section";return false;}
-        evidence::pc::serialization::SectionCursor cursor(context,source,size-(position-start),true,error);
+        evidence::pc::serialization::SectionCursor cursor(context,source,size-(position-start),requireExactEnd,error);
         while(const auto* header=cursor.Next())
         {
             if(header->IsTerminator())return true;
             if(header->fieldID!=0){if(!cursor.Skip())return cursor.Fail("Cannot skip RenderNode field");continue;}
             auto* relationship=ReadFieldReferenceForAnalysis(context,spRenderable::ClassID,source,*header,error);
             if(context.failed)return false;
-            if(!AttachResolvedRenderableForAnalysis(*node,context.ShareObjectForAnalysis(relationship)))
+            if(!AttachResolvedRenderableForAnalysis(node,context.ShareObjectForAnalysis(relationship)))
                 return cursor.Fail("RenderNode renderable is null, wrong type or lacks an explicit owner");
         }
         return false;

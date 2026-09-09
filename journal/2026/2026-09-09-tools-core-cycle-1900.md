@@ -68,3 +68,17 @@ active mesh и shared-instance metadata.5 SMO:37284/36389/9343/1888/1608;
 5 NULL; Icy9 и BloomX4 nonlocal material links. Texture binding и фактическое
 применение материала отдельного экземпляра продолжаются следующим блоком.
 Досье: `docs/research/tool-renderable-references-shared-core-2026-09-09.md`.
+
+Блок8: устранена следующая зависимость material runtime: семь пространственных
+serializers и нужные реальные ресурсы подключены в полный ResourceGraph.
+Direct children/root/payload передаются единственному владельцу; borrowed
+Zone roots и PortalNode portals сохраняют идентичность, collision links
+снимаются взаимно. Все14 original/source reader states совпали;74 spatial
+guards,298 reference,213 full loader,34 render-node,54 collision checks прошли.
+Alfea02:4266 ресурсов/489 Node; database FAT metadata и Node hierarchy совпали.
+Сработал host cap4096, не глубина; после замера памяти он поднят до8192 в
+приложении. CPU graph load около62–65ms, peak47,2MiB в отдельном процессе.
+5 коротких managed regressions и3 consumer builds прошли. Source headers
+содержат прежнее C4756 в spVertexBounds; .NET builds имеют0 warnings/errors.
+Octree и последующее подключение material/texture runtime остаются в работе.
+Досье: `docs/research/tool-spatial-readers-shared-core-2026-09-09.md`.

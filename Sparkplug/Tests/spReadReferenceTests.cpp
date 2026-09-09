@@ -4,6 +4,8 @@
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spMeshData.h"
 #include "Code/Sparkplug/spSerializerHook.h"
+#include "Code/Sparkplug/spPartitionNode.h"
+#include "Code/Sparkplug/spBSPNode.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include <cstring>
 #include <iostream>
@@ -155,12 +157,73 @@ namespace
                   "excluded/cached entries never parse metadata or request GPU batches");
         }
     }
+    void DirectOwnership()
+    {
+        // Destructor observation is a host test fixture, not a new game class.
+        class CountedPartition final : public spPartitionNode
+        {
+        public:
+            explicit CountedPartition(unsigned& count) : deleted(count) {}
+            ~CountedPartition() override { ++deleted; }
+            unsigned& deleted;
+        };
+        unsigned deleted = 0;
+        spSerializerManager manager; spResourceManager resources;
+        (void)spPartitionNode::StaticRTTI(); (void)spBSPNode::StaticRTTI();
+        Directory(manager, spPartitionNode::ClassID);
+        auto* entry = manager.GetFATForAnalysis()->FindByIDForAnalysis(7);
+        {
+            spSerializerReadContextForAnalysis context(manager, resources);
+            context.directOwnedClassIDsForAnalysis.push_back(spPartitionNode::ClassID);
+            auto* child = context.PublishObjectForAnalysis(std::make_unique<CountedPartition>(deleted));
+            auto* root = dynamic_cast<spBSPNode*>(context.PublishObjectForAnalysis(std::make_unique<spBSPNode>()));
+            entry->object = child;
+            Check(root && !context.ShareObjectForAnalysis(child) && context.createdObjects.empty(),
+                  "direct family and derived BSP are never assigned competing shared owners");
+            Bytes reference; Add(reference, 7U); Add(reference, 0U);
+            spMemoryStream stream; Open(stream, reference);
+            Check(spSerializer::ReadReferenceForAnalysis(context, 0, stream, stream) == child,
+                  "borrowed FAT hit preserves identity before direct owning edge is read");
+            auto owned = context.TakeDirectOwnerForAnalysis(child, root);
+            Check(owned.get() == child && root->SetChildForAnalysis(0,
+                  std::unique_ptr<spPartitionNode>(static_cast<spPartitionNode*>(owned.release()))),
+                  "previously borrowed resource transfers once to actual owned child slot");
+            Check(context.GetCreatedObjectCountForAnalysis() == 2 && deleted == 0,
+                  "transferred descendants remain counted and alive");
+            std::string error;
+            Check(!context.TakeDirectOwnerForAnalysis(root, child, &error) && context.failed && !error.empty(),
+                  "host rejects unique ownership cycle before moving the root");
+        }
+        Check(deleted == 1 && !entry->object, "parent deletes child exactly once and borrowed FAT alias clears");
+        {
+            spSerializerReadContextForAnalysis context(manager, resources);
+            context.directOwnedClassIDsForAnalysis.push_back(spPartitionNode::ClassID);
+            auto* child = context.PublishObjectForAnalysis(std::make_unique<CountedPartition>(deleted));
+            spBSPNode first, second;
+            auto owned = context.TakeDirectOwnerForAnalysis(child, &first);
+            Check(first.SetChildForAnalysis(0, std::unique_ptr<spPartitionNode>(static_cast<spPartitionNode*>(owned.release()))),
+                  "first direct owner accepts child");
+            Check(!context.TakeDirectOwnerForAnalysis(child, &second) && context.failed,
+                  "second direct parent cannot duplicate lifetime ownership");
+        }
+        Check(deleted == 2, "rejected second owner cannot double-delete the child");
+    }
+    void ConfiguredObjectBound()
+    {
+        spSerializerManager manager;spResourceManager resources;Directory(manager);
+        Check(manager.RegisterForAnalysis(spAnimation::ClassID,std::make_shared<spAnimationSerializer>(),0xFF,3),"bounded reader registered");
+        spMemoryStream input;Open(input,Reference());
+        spSerializerReadContextForAnalysis context(manager,resources);
+        context.maximumCreatedObjectsForAnalysis=0;
+        Check(!spSerializer::ReadReferenceForAnalysis(context,0,input,input)&&context.failed
+              &&context.GetCreatedObjectCountForAnalysis()==0,"configured host count limit rejects before factory allocation");
+    }
 }
 int main()
 {
     try
     {
-        (void)spAnimation::StaticRTTI(); Success(false); Success(true); CacheAndSkip(); Failures(); DXHookCacheRules();
+        (void)spAnimation::StaticRTTI(); Success(false); Success(true); CacheAndSkip(); Failures(); DXHookCacheRules(); DirectOwnership(); ConfiguredObjectBound();
         std::cout << "PASS " << checks << '/' << checks << ": PC reference-reader reconstruction\n"; return 0;
     }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

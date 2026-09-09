@@ -154,6 +154,16 @@ namespace sparkplug::reconstruction
         friend class spLightManager;
         friend class spVisibilityManager;
         friend class spPartitionNode;
+        friend class spPartitionSystem;
+        friend class spZone;
+        friend class spPCPartitionRenderable;
+        friend class spPartitionNodeSerializer;
+        friend class spPartitionSystemSerializer;
+        friend class spPartitionRenderableSerializer;
+        friend class spBSPNodeSerializer;
+        friend class spZoneSerializer;
+        friend class spZonePortalSerializer;
+        friend class spZonePortalNodeSerializer;
         friend class spOctreeNode;
         friend class spBSPNode;
         friend class spZonePortal;

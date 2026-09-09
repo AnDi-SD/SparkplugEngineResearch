@@ -163,8 +163,20 @@ namespace sparkplug::reconstruction
         const std::array<float,9>* cameraOrientation = nullptr; // explicit CPU billboard input
         bool failed = false;
         std::uint32_t depth = 0;
+        std::size_t maximumCreatedObjectsForAnalysis = 4096; // configurable HOST bound, not game format
         std::vector<std::shared_ptr<spBaseObject>> createdObjects;
         std::vector<std::shared_ptr<spBaseObject>> externalOwners;
+        // Explicit host ownership policy for native direct-delete families.
+        // Publish before reading, then transfer the unique owner when the real
+        // owning edge is read. Borrowed references never consume this owner.
+        // Null slots remain after transfer so the object limit still counts
+        // every allocation, including descendants owned by a resource.
+        std::vector<spClassID> directOwnedClassIDsForAnalysis;
+        std::vector<std::unique_ptr<spBaseObject>> pendingDirectObjectsForAnalysis;
+        [[nodiscard]] std::size_t GetCreatedObjectCountForAnalysis() const noexcept;
+        [[nodiscard]] spBaseObject* PublishObjectForAnalysis(std::unique_ptr<spBaseObject> object);
+        [[nodiscard]] std::unique_ptr<spBaseObject> TakeDirectOwnerForAnalysis(
+            spBaseObject* object, const spBaseObject* owner, std::string* error = nullptr);
         // Optional host observation of the completed file's FAT identities.
         // Borrowed pointers retain no additional ownership and live only as
         // long as the context/external owners. Native FAT cleanup is unchanged.
@@ -185,5 +197,12 @@ namespace sparkplug::reconstruction
         ~spSerializerReadContextForAnalysis();
         spSerializerReadContextForAnalysis(const spSerializerReadContextForAnalysis&) = delete;
         spSerializerReadContextForAnalysis& operator=(const spSerializerReadContextForAnalysis&) = delete;
+    private:
+        struct DirectObjectIdentityForAnalysis
+        {
+            spBaseObject* object;
+            const spBaseObject* owner;
+        };
+        std::vector<DirectObjectIdentityForAnalysis> directObjectIdentitiesForAnalysis_;
     };
 }

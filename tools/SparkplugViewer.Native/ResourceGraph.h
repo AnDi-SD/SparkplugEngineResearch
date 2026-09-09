@@ -16,6 +16,7 @@ public:
     std::uint32_t rootID=0;
     std::vector<Entry> entries;
     std::vector<std::shared_ptr<Object>> owners;
+    std::vector<std::unique_ptr<Object>> directOwners;
     std::vector<std::uint32_t> nodeIDs;
     std::shared_ptr<sparkplug::reconstruction::spPCRenderer> renderer;
     [[nodiscard]] Object* Find(std::uint32_t) const;

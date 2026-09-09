@@ -107,6 +107,14 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugPC/spPCVertexDeclaration.h
     Code/Sparkplug/spPartitionNode.cpp
     Code/Sparkplug/spPartitionNode.h
+    Code/Sparkplug/spPartitionSystem.cpp
+    Code/Sparkplug/spPartitionSystem.h
+    Code/Sparkplug/spPartitionRenderable.cpp
+    Code/Sparkplug/spPartitionRenderable.h
+    Code/SparkplugPC/spPCPartitionRenderable.cpp
+    Code/SparkplugPC/spPCPartitionRenderable.h
+    Code/Sparkplug/spZone.cpp
+    Code/Sparkplug/spZone.h
     Code/Sparkplug/spOctreeNode.cpp
     Code/Sparkplug/spOctreeNode.h
     Code/Sparkplug/spBSPNode.cpp
@@ -277,6 +285,21 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spRenderNode.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
+    Code/Sparkplug/spPartitionNodeSerializer.cpp
+    Code/Sparkplug/spPartitionNodeSerializer.h
+    Code/Sparkplug/spBSPNodeSerializer.cpp
+    Code/Sparkplug/spBSPNodeSerializer.h
+    Code/Sparkplug/spPartitionSystemSerializer.cpp
+    Code/Sparkplug/spPartitionSystemSerializer.h
+    Code/Sparkplug/spZoneSerializer.cpp
+    Code/Sparkplug/spZoneSerializer.h
+    Code/Sparkplug/spZonePortalSerializer.cpp
+    Code/Sparkplug/spZonePortalSerializer.h
+    Code/Sparkplug/spZonePortalNodeSerializer.cpp
+    Code/Sparkplug/spZonePortalNodeSerializer.h
+    Code/Sparkplug/spPartitionRenderableSerializer.cpp
+    Code/Sparkplug/spPartitionRenderableSerializer.h
+    Analysis/PC/spSpatialReadSupport.h
     Analysis/PC/spRenderSupport.h
     Code/Sparkplug/spStaticRenderObject.cpp
     Code/Sparkplug/spStaticRenderObject.h

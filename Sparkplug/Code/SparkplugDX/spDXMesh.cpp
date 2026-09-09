@@ -389,10 +389,11 @@ namespace sparkplug::reconstruction
                         !source.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(entry->offset)))
                         return fail("Invalid mesh FAT extent or seek failure");
                     auto* serializer=context.manager.FindForAnalysis(entry->classID);
-                    if(!serializer||context.createdObjects.size()>=4096)return fail("Missing mesh serializer or object budget exceeded");
+                    if(!serializer||context.GetCreatedObjectCountForAnalysis()>=context.maximumCreatedObjectsForAnalysis)
+                        return fail("Missing mesh serializer or object budget exceeded");
                     auto object=serializer->ReadObjectHeaderAndCreateForAnalysis(source);
                     if(!object)return fail("Mesh header/factory failed");
-                    auto* pointer=object.get();context.createdObjects.push_back(std::move(object));
+                    auto* pointer=context.PublishObjectForAnalysis(std::move(object));
                     bool loaded=false;
                     {
                         struct BatchScope final

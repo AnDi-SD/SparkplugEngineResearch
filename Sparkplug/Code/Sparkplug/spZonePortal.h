@@ -41,6 +41,10 @@ namespace sparkplug::reconstruction
         void SetDestinationForAnalysis(spZone* destination) noexcept;
         [[nodiscard]] spZone* GetDestinationZone() const noexcept;
         void SetOpenForAnalysis(bool open) noexcept;
+        // Original reader44DE7F stores the authored byte, without bool
+        // normalization. Runtime IsOpen interprets it as nonzero.
+        void SetOpenByteForAnalysis(std::uint8_t value) noexcept{open_=value;}
+        [[nodiscard]] std::uint8_t GetOpenByteForAnalysis() const noexcept{return open_;}
         [[nodiscard]] bool IsOpen() const noexcept;
         void SetVisibilityMarkForAnalysis(std::uint32_t mark) noexcept;
         [[nodiscard]] std::uint32_t GetVisibilityMarkForAnalysis() const noexcept;
@@ -48,7 +52,7 @@ namespace sparkplug::reconstruction
       private:
         spZone* destination_ = nullptr; // borrowed, neither retain nor release
         std::vector<Vector3> polygon_;  // native directly owned count18/array1C
-        bool open_ = true;
+        std::uint8_t open_ = 1;
         Plane plane_{}; // native ctor leaves plane uninitialized; see flag below
         bool planeKnown_ = false;
         std::uint32_t visibilityMark_ = 0;

@@ -2,12 +2,15 @@
 // Inferred path. PC465050 ->4742A0; PS21248E0. Metadata/ownership and
 // represented bounds effects only; no collision-manager/query facade.
 #include "spBoundingVolume.h"
+#include <vector>
 namespace sparkplug::reconstruction
 {
     class spNode;
+    class spPartitionNode;
     class spCollisionInfo final : public spBaseObject
     {
         friend class spNode;
+        friend class spPartitionNode;
     public:
         static constexpr spClassID ClassID=0x47A97C0E;
         using Vector3=spBoundingVolume::Vector3;
@@ -33,6 +36,8 @@ namespace sparkplug::reconstruction
         // Native4651E0 dereferences a null primitive; the tools boundary rejects
         // it explicitly. Scene partition/query notifications are unrepresented.
         [[nodiscard]] bool UpdateWorldForAnalysis() noexcept;
+        [[nodiscard]] const std::vector<spPartitionNode*>& GetPartitionsForAnalysis() const noexcept{return partitionRoots_;}
+        void RemovePartitionForAnalysis(spPartitionNode* root,bool notify=true) noexcept;
     private:
         spNode* node_=nullptr;
         std::shared_ptr<spBoundingVolume> primitive_;
@@ -42,5 +47,6 @@ namespace sparkplug::reconstruction
         Vector3 scale_{1,1,1};
         Vector3 boundingCenter_{};
         float boundingRadius_=0;
+        std::vector<spPartitionNode*> partitionRoots_; // borrowed native6C vector
     };
 }

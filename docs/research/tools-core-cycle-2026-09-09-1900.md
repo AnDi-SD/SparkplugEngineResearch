@@ -105,3 +105,18 @@ Color/state views и shared-instance metadata используют реальн�
 materials. Texture binding и применение instance material остаются далее.
 Native/оригинал повторно не запускались: их код не менялся.
 Досье: `docs/research/tool-renderable-references-shared-core-2026-09-09.md`.
+
+### Блок8: пространственные ресурсы общего загрузчика
+
+Семь shared readers и нужные Zone/Partition runtime classes подключены к
+ResourceGraph. Сохранены direct ownership, borrowed roots/portals, reciprocal
+collision links, реальные RTTI, NULL/repeat семантика и read-time debug colors.
+14 original-PC/source states совпали, Spatial74/ReadReference298/FullLoader213/
+RenderNode34/Collision54 checks прошли. Alfea02 полностью загружен как4266
+ресурсов/489 Node; FAT identities и Node parent/child проверены по исходному
+индексу. Это не Scene initialization/visibility. Host limit4096 мешал валидному
+файлу; после измерения47MiB peak предел ResourceGraph повышен до8192.
+5 managed samples:37284/36389/9343/3071/1608;3 consumer builds прошли.
+Native spatial inspectors в C# и material/texture runtime integration остаются
+следующими шагами; Octree reader ещё отсутствует. Релиз не собирался.
+Досье: `docs/research/tool-spatial-readers-shared-core-2026-09-09.md`.

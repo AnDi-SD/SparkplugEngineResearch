@@ -327,11 +327,11 @@ namespace sparkplug::reconstruction
                     return fail("Invalid FAT object extent or seek failure");
                 auto* serializer = FindForAnalysis(entry->classID);
                 if (!serializer) return fail("No serializer for FAT resource");
-                if (context.createdObjects.size() >= 4096) return fail("Resource object limit exceeded");
+                if (context.GetCreatedObjectCountForAnalysis() >= context.maximumCreatedObjectsForAnalysis)
+                    return fail("Resource object limit exceeded");
                 auto object = serializer->ReadObjectHeaderAndCreateForAnalysis(source);
                 if (!object) return fail("FAT resource header or factory failed");
-                auto* objectPointer = object.get();
-                context.createdObjects.push_back(std::move(object));
+                auto* objectPointer = context.PublishObjectForAnalysis(std::move(object));
                 entry->object = objectPointer;
                 bool loaded = false;
                 {

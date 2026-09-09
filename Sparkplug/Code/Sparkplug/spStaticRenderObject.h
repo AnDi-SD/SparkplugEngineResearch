@@ -6,6 +6,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spScene;
     class spStaticRenderObject : public spNamedObject
     {
     public:
@@ -26,6 +27,8 @@ namespace sparkplug::reconstruction
         // derive either matrix from the other; append observes the current world.
         void SetWorldMatrixForAnalysis(const Matrix4& value) noexcept { world_ = value; }
         void SetWorldInverseMatrixForAnalysis(const Matrix4& value) noexcept { inverse_ = value; }
+        void SetScenePointerForAnalysis(spScene* scene) noexcept { scene_ = scene; }
+        [[nodiscard]] spScene* GetSceneForAnalysis() const noexcept { return scene_; }
         [[nodiscard]] bool AttachRenderableForAnalysis(std::shared_ptr<spRenderable> value)
         { return support_.Append(std::move(value), world_); }
         [[nodiscard]] std::size_t GetRenderableCountForAnalysis() const noexcept
@@ -38,6 +41,7 @@ namespace sparkplug::reconstruction
         { return support_.worldSphere; }
     private:
         evidence::pc::RenderSupportForAnalysis support_;
+        spScene* scene_ = nullptr; // borrowed88, no registry operation implied
         // Actual6D38C0 shared identity startup, then constructor copies both.
         Matrix4 world_ = evidence::pc::render_node_math::Identity4;
         Matrix4 inverse_ = evidence::pc::render_node_math::Identity4;

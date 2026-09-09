@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
     class spRenderNode;
     class spRenderable;
 
-    class spRenderNodeSerializer final : public spNodeSerializer
+    class spRenderNodeSerializer : public spNodeSerializer
     {
     public:
         static constexpr spClassID ClassID = 0x66EF6060;
@@ -58,6 +58,9 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool AttachResolvedRenderableForAnalysis(
             spRenderNode& node,
             std::shared_ptr<spBaseObject> relationship) const;
+    protected:
+        [[nodiscard]] bool ReadRenderNodeFieldsForAnalysis(spSerializerReadContextForAnalysis&,
+            spStream&,std::uint32_t,spRenderNode&,bool requireExactEnd,std::string*) const;
     private:
         bool WriteSectionsForAnalysis(spSerializerManager*,spStream&,const spRenderNode&,std::string*) const;
     };

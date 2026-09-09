@@ -36,6 +36,20 @@
 #include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spParticleSystemSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
+#include "Code/Sparkplug/spPartitionNode.h"
+#include "Code/Sparkplug/spPartitionNodeSerializer.h"
+#include "Code/Sparkplug/spBSPNode.h"
+#include "Code/Sparkplug/spBSPNodeSerializer.h"
+#include "Code/Sparkplug/spPartitionSystem.h"
+#include "Code/Sparkplug/spPartitionSystemSerializer.h"
+#include "Code/Sparkplug/spZone.h"
+#include "Code/Sparkplug/spZoneSerializer.h"
+#include "Code/Sparkplug/spZonePortal.h"
+#include "Code/Sparkplug/spZonePortalSerializer.h"
+#include "Code/Sparkplug/spZonePortalNode.h"
+#include "Code/Sparkplug/spZonePortalNodeSerializer.h"
+#include "Code/Sparkplug/spPartitionRenderable.h"
+#include "Code/Sparkplug/spPartitionRenderableSerializer.h"
 #include <cstring>
 #include <stdexcept>
 
@@ -77,7 +91,18 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spAnimTexController,spAnimTexControllerSerializer>(manager);
     Register<spMaterialColorController,spMatColorControllerSerializer>(manager);
     Register<spParticleSystem,spParticleSystemSerializer>(manager);
+    Register<spPartitionNode,spPartitionNodeSerializer>(manager);
+    Register<spBSPNode,spBSPNodeSerializer>(manager);
+    Register<spPartitionSystem,spPartitionSystemSerializer>(manager);
+    Register<spZone,spZoneSerializer>(manager);
+    Register<spZonePortal,spZonePortalSerializer>(manager);
+    Register<spZonePortalNode,spZonePortalNodeSerializer>(manager);
+    Register<spPartitionRenderable,spPartitionRenderableSerializer>(manager);
     spSerializerReadContextForAnalysis context(manager,resources);
+    context.directOwnedClassIDsForAnalysis={spPartitionNode::ClassID,spPartitionRenderable::ClassID};
+    // Host limit: pristine Alfea02 has4266 resources and reached4096 at a
+    // measured47 MiB process peak. Keep a finite8192 ceiling and64 MiB input.
+    context.maximumCreatedObjectsForAnalysis=8192;
     context.pcRenderer=renderer.get();context.captureFileObjectIDsForAnalysis=true;
     spMemoryStream input;
     if(!input.ResizeAndSetSize(count))throw std::runtime_error("Cannot allocate bounded SMO stream");
@@ -89,6 +114,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     // it need not leave the stream at EOF. Each serializer enforces its extent.
     entries=std::move(context.fileObjectsForAnalysis);
     owners=context.createdObjects;
+    directOwners=std::move(context.pendingDirectObjectsForAnalysis);
     owners.insert(owners.end(),context.externalOwners.begin(),context.externalOwners.end());
     for(const auto& entry:entries) {
         if(!entry.object||!byID.emplace(entry.id,entry.object).second)

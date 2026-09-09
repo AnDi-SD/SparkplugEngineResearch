@@ -198,8 +198,61 @@ namespace sparkplug::reconstruction
         auto* fat = manager.GetFATForAnalysis();
         if (fat)
             for (auto* entry = fat->FirstForAnalysis(); entry; entry = fat->NextForAnalysis())
+            {
                 for (const auto& owned : createdObjects)
                     if (entry->object == owned.get()) { entry->object = nullptr; break; }
+                for (const auto& identity : directObjectIdentitiesForAnalysis_)
+                    if (entry->object == identity.object) { entry->object = nullptr; break; }
+            }
+    }
+
+    std::size_t spSerializerReadContextForAnalysis::GetCreatedObjectCountForAnalysis() const noexcept
+    {
+        return createdObjects.size() + directObjectIdentitiesForAnalysis_.size();
+    }
+
+    spBaseObject* spSerializerReadContextForAnalysis::PublishObjectForAnalysis(
+        std::unique_ptr<spBaseObject> object)
+    {
+        if (!object || failed) return nullptr;
+        auto* pointer = object.get();
+        for (const auto identity : directOwnedClassIDsForAnalysis)
+            if (object->IsKindOf(identity))
+            {
+                pendingDirectObjectsForAnalysis.push_back(std::move(object));
+                directObjectIdentitiesForAnalysis_.push_back({pointer, nullptr});
+                return pointer;
+            }
+        createdObjects.push_back(std::move(object));
+        return pointer;
+    }
+
+    std::unique_ptr<spBaseObject> spSerializerReadContextForAnalysis::TakeDirectOwnerForAnalysis(
+        spBaseObject* object, const spBaseObject* owner, std::string* error)
+    {
+        const auto fail = [&](const char* message) -> std::unique_ptr<spBaseObject> {
+            failed = true; if (error) *error = message; return nullptr;
+        };
+        if (failed || !object || !owner) return fail("Invalid direct ownership transfer");
+        // A malformed file must not create a unique_ptr cycle. Ownership is a
+        // host lifetime concern; native borrowed FAT publication stays intact.
+        for (const auto* ancestor = owner; ancestor;)
+        {
+            if (ancestor == object) return fail("Cyclic direct resource ownership");
+            const spBaseObject* next = nullptr;
+            for (const auto& identity : directObjectIdentitiesForAnalysis_)
+                if (identity.object == ancestor) { next = identity.owner; break; }
+            ancestor = next;
+        }
+        for (std::size_t i = 0; i < directObjectIdentitiesForAnalysis_.size(); ++i)
+            if (directObjectIdentitiesForAnalysis_[i].object == object)
+            {
+                if (!pendingDirectObjectsForAnalysis[i])
+                    return fail("Resource already has a direct owner");
+                directObjectIdentitiesForAnalysis_[i].owner = owner;
+                return std::move(pendingDirectObjectsForAnalysis[i]);
+            }
+        return fail("Resource lacks an explicit transferable direct owner");
     }
 
     std::shared_ptr<spBaseObject> spSerializerReadContextForAnalysis::ShareObjectForAnalysis(
@@ -306,12 +359,12 @@ namespace sparkplug::reconstruction
         if (inlineSize < 8 || !payloadSource.GetCurrentPosition(position) || !payloadSource.GetSize(&size) ||
             origin > size || position > size - origin || inlineSize > size - origin - position)
             return fail("Invalid inline object extent");
-        if (context.depth >= 64 || context.createdObjects.size() >= 4096)
-            return fail("Reference graph exceeds host depth/object bound");
+        if (context.depth >= 64) return fail("Reference graph exceeds host depth bound (64)");
+        if (context.GetCreatedObjectCountForAnalysis() >= context.maximumCreatedObjectsForAnalysis)
+            return fail("Reference graph exceeds configured host object bound");
         auto object = serializer->ReadObjectHeaderAndCreateForAnalysis(payloadSource);
         if (!object) return fail("Inline object header or factory failed");
-        auto* result = object.get();
-        context.createdObjects.push_back(std::move(object));
+        auto* result = context.PublishObjectForAnalysis(std::move(object));
         entry->object = result; // before any recursive payload callback
         struct DepthGuard final
         {

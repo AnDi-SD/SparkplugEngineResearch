@@ -15,6 +15,7 @@
 namespace sparkplug::reconstruction
 {
     class spCollisionInfo;
+    class spScene;
     class spNode : public spNamedObject
     {
         friend class spLight; // PC Light serializers share the native Node dirty word.
@@ -62,6 +63,9 @@ namespace sparkplug::reconstruction
         void SetOrientationForAnalysis(const Matrix3& value) noexcept;
 
         [[nodiscard]] std::uint32_t GetFlagsForAnalysis() const noexcept;
+        // Borrowed native3C field. Explicit pointer seam only; Scene registry
+        // attachment/notification is outside this class's reconstructed slice.
+        [[nodiscard]] spScene* GetSceneForAnalysis() const noexcept{return scene_;}
         // Proven by PC position/scale consumers and the resolved quaternion
         // setter. Cached state changes only when UpdateWorld is called.
         void MarkLocalTransformDirtyForAnalysis() noexcept;
@@ -141,6 +145,7 @@ namespace sparkplug::reconstruction
         Matrix3 worldOrientation_{1,0,0,0,1,0,0,0,1};
         std::uint32_t flags_ = NativeDefaultFlags;
         spNode* parent_ = nullptr;
+        spScene* scene_ = nullptr;
         std::vector<std::shared_ptr<spNode>> children_;
         std::vector<std::shared_ptr<spCollisionInfo>> collisions_;
     };

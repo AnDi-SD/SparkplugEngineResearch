@@ -1,5 +1,7 @@
 #include "spCollisionInfo.h"
 #include "spNode.h"
+#include "spPartitionNode.h"
+#include <algorithm>
 #include "Analysis/PC/spNodeTransformMath.h"
 namespace sparkplug::reconstruction
 {
@@ -10,7 +12,23 @@ namespace sparkplug::reconstruction
             &spBaseObject::StaticRTTI(),&Create,nullptr};
         const bool Registered=spRTTIManager::Instance().RegisterDeferredForAnalysis(Record);
     }
-    spCollisionInfo::~spCollisionInfo()=default; // Node clears the back pointer before releasing its host owner.
+    spCollisionInfo::~spCollisionInfo()
+    {
+        // Native deleting path drains reciprocal spatial registrations; Node
+        // clears the Node back pointer before releasing its host owner.
+        while(!partitionRoots_.empty())
+        {
+            partitionRoots_.back()->RemoveCollisionForAnalysis(this,false);
+            partitionRoots_.pop_back();
+        }
+    }
+    void spCollisionInfo::RemovePartitionForAnalysis(spPartitionNode* root,bool notify) noexcept
+    {
+        auto found=std::find(partitionRoots_.begin(),partitionRoots_.end(),root);
+        if(found==partitionRoots_.end())return;
+        *found=partitionRoots_.back();partitionRoots_.pop_back();
+        if(notify)root->RemoveCollisionForAnalysis(this,false); //464F70
+    }
     const spRTTIRecord& spCollisionInfo::StaticRTTI() noexcept{(void)Registered;return Record;}
     const spRTTIRecord& spCollisionInfo::vfunc_18() const noexcept{return Record;}
     std::unique_ptr<spBaseObject> spCollisionInfo::vfunc_10(spCloneManager& manager) const
