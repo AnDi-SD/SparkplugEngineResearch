@@ -5,6 +5,8 @@ using SmoExporter.Core;
 using SmoViewer.Core;
 
 int checks = 0;
+if (args is ["--loaded-node-export", string nodeSmo, string nodeOutput])
+    return LoadedNodeExportRegression.Run(nodeSmo, nodeOutput);
 
 if (args is ["--san-animation-regression", string sanOutput, string repository, string nativeReport])
     return SanAnimationRegression.Run(sanOutput, repository, nativeReport);

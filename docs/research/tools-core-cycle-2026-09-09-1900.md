@@ -164,3 +164,13 @@ builds чистые. Original proofs переиспользованы, UI виз
 их хранит, command model явно отклоняет REPEATED_RENDERABLE_AUTHORING до
 согласованной работы над адресацией таких ссылок. Пользователь уведомлён.
 Досье: `docs/research/tool-render-occurrences-shared-core-2026-09-09.md`.
+
+### Блок 12: Exporter использует actual Node pose
+
+Удалён второй C# FK, inverse-bind подстановка начальной позы и physical parent
+fallback. Exporter получает world/parents всех actual loaded Node; только
+target coordinate/local conversion остаётся в адаптере. Пять GLB readbacks:
+1985 Node, 37720 assertions, max linear error 5.364418e-7, translation
+0.00048828125. Три consumer builds чистые; native/оригинал не менялись.
+Дальше остаются полный occurrence/material export и material runtime.
+Досье: `docs/research/tool-exporter-node-pose-shared-core-2026-09-09.md`.

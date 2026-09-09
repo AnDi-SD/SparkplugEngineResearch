@@ -1,0 +1,167 @@
+{
+  "kind": "tools-core-exporter-nodes-block",
+  "status": "verified-static-pose-export",
+  "created_utc": "2026-09-09T11:02:37.361664+00:00",
+  "base_commit": "ad9a8f490f568d67fa7bf8b6de8ec2b224f1aedc",
+  "viewer_commit": "9b65c63cc3a04080bfb6f85af425dddbbaa46e3f",
+  "cycle_block": 12,
+  "sources": [
+    {
+      "path": "docs/research/tool-exporter-node-pose-shared-core-2026-09-09.md",
+      "sha256": "782FA90B13C78B4463996A375FBA1180FD04018C27AECA57D699CF460BC7F5CB"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "3B5AC4E4F6A49F89DCC62BF52FDBAE70493056B3B70CEC345AF9EC1C173F34CB"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "EAA75F76AA7A2DB25A10DCBD080A7568AD44C43D94A3B4FA82C969603ABC2B4F"
+    },
+    {
+      "path": "tools/SmoExporter/README.md",
+      "sha256": "12DCB438C496B45012507A132967B38934DFBD900CE2ED42209FF611F76E7012"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/SmoSceneBuilder.cs",
+      "sha256": "EB2F711534AE119E5F6E25404B4D66CD82833B5129864B5B5F966AC0E8DD5B4A"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/LoadedNodeExportRegression.cs",
+      "sha256": "1E36689DEDDBF432B3BC18F9B620C3B6FF326295BAFFAA76EFC3F1433EB6677C"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/Program.cs",
+      "sha256": "AFAAB37ACEBBE81533E1D793E64501471EB3F0D5AA25F191264FFFD764957A5F"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea01-attempt-1.glb",
+      "sha256": "54DB490FBCA6788C9D194684C6C0C939EEF04AAD7A07CA04AFAB2B1D17AE7A4C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea01-attempt-1.json",
+      "sha256": "DAA3C7975BEF702C9ECBA772F191ECB5782834C9BBACFE46B06BEB74220186DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea01-attempt-1.log",
+      "sha256": "2634F475E62E5364CE2E01864BBF540CD5BC8E2A7AAB84B07EE2200B9552C5F9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea02-attempt-1.glb",
+      "sha256": "74D56902FAD7EAB985B671D4D7D8921372A512F1E28433374D03FAFF3A83279D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea02-attempt-1.json",
+      "sha256": "956488697215C9AB7CD88C0703343895AB613C28E50609C61ADE23A98B4343B0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Alfea02-attempt-1.log",
+      "sha256": "1569BBBF4E6908B3AA4A69B3A86FBDD4EC95D204EEFE346B8413BB320DC2BF85"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/bloomx-attempt-1.glb",
+      "sha256": "C01444AB09F11BF0444F88D1BB9A9A2AD74F07D8CB33A2072DEFBDC405B97142"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/bloomx-attempt-1.json",
+      "sha256": "729E0072100BECE358DC5879D7E2F4BF975A3E9A6283AA1F442B4388E55CCC1C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/bloomx-attempt-1.log",
+      "sha256": "5A090656C6FE1862FB6A7E6FFB532207548CFF7FCE875011D98F2437EC1EBEAC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/build-attempt-1.json",
+      "sha256": "FA56C5630BFD2E13CB661D85A1AA62606E9E0330A8424810AAD2D7B017D57A2B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/build-dependents.json",
+      "sha256": "93510B22F0087746551EC189D6C7C277FCEBA5873E34FFC9AA74D3FF4379462B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/build_exporter_nodes.py",
+      "sha256": "2D21827024A81E17062D5A8FDF0649318CDB9C4A2A407CDC5BE5E30E3D9C5810"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Icy-attempt-1.glb",
+      "sha256": "03D8B6C4848EE7C88159C36C6B9052BFEA7DC304BD8E4C290CE6CA095AC5CBD0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Icy-attempt-1.json",
+      "sha256": "D6233047E000B6F25937ED359D07AA36596E0905E9EBCEFE2DC332C88D2AA697"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/Icy-attempt-1.log",
+      "sha256": "81F383FAC4FE384C48FBCCCE4B288897336ED408AF206C66935AB98096015C81"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/igmenu_opt_pc-attempt-1.glb",
+      "sha256": "0273EF63D7771E8066AB6C263B4793D6293DB4DA8E573D0AC6707BC5BD4290FF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/igmenu_opt_pc-attempt-1.json",
+      "sha256": "6E9F7BBF9572D631DEDA4ADF0A1337FF07B0E320590ABED53B232B0D04266012"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/igmenu_opt_pc-attempt-1.log",
+      "sha256": "B7CD6CA7EF8CE153859BD83EFDBBEA88411D3ED05062EAC7DBF09F9E3ECAB61F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/run_exporter_nodes.py",
+      "sha256": "7A214497D0F655EA90BFD0B79C7172CFC9D451F061F21387A27F8F4B22CC1E72"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/samples-attempt-1.json",
+      "sha256": "C3A22C5FA001231F27E0A3B21F441C6AA7B27DC2116EA95A4111C402C6306993"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/SmoExporter.FormatTests-attempt-1.log",
+      "sha256": "E390D2CBC23303144E613F464D62158A734E1BD9B0606627544B27024E949370"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/SmoImporter.FormatTests-dependents.log",
+      "sha256": "F7214BB63DD639A624C0FFB0505FCB71EDCD3231BBD0DEC8083A5A3CBE6A694A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/exporter-nodes/SmoLVLcreator.CoreTests-dependents.log",
+      "sha256": "65347251B00373A827E6AE94369C5BDD8DBF4C95ED784463FD6BBA5B00A25DB5"
+    }
+  ],
+  "reused_proofs": [
+    {
+      "path": "research/tools-core-loaded-scene-block-2026-09-09.json",
+      "sha256": "827AC795628B1E1D3A2AA90B0EC2A0E1A07E31E3F39B51A9273D62DC2782F163"
+    }
+  ],
+  "native_dll_sha256": "CD5F944957900E402520FB440E0D5D797A8B4363787CCBAA8FE2A14227E29299",
+  "native_copies": [
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "CD5F944957900E402520FB440E0D5D797A8B4363787CCBAA8FE2A14227E29299"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "CD5F944957900E402520FB440E0D5D797A8B4363787CCBAA8FE2A14227E29299"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "CD5F944957900E402520FB440E0D5D797A8B4363787CCBAA8FE2A14227E29299"
+    }
+  ],
+  "checks": {
+    "selected_files": 5,
+    "nodes": 1985,
+    "assertions": 37720,
+    "consumer_builds": 3,
+    "maximum_linear_error": 5.364418e-07,
+    "maximum_translation_error": 0.00048828125
+  },
+  "limitations": [
+    "Native algorithms unchanged; original proofs reused, native/probes not repeated.",
+    "Static file pose and GLB readback verified; animation conversion remains a separate scope.",
+    "Full occurrence/material variants export remains pending.",
+    "No FBX independent readback or visual UI run in this block."
+  ]
+}

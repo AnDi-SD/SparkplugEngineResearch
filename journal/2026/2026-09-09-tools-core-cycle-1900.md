@@ -122,3 +122,12 @@ consumer builds 0 warnings/errors. Релиз/визуальный UI-прого
 моделью команд LVLcreator. Workspace их сохраняет; прежнее молчаливое TryAdd
 склеивание заменено явным отказом и отложено до работы над authoring.
 Досье: `docs/research/tool-render-occurrences-shared-core-2026-09-09.md`.
+
+Блок 12: Exporter больше не пересчитывает Node hierarchy собственным FK и
+не подставляет inverse-bind pose. Actual ResourceGraph даёт все derived Node
+world/parents; форматный adapter только преобразует координаты/local matrix.
+Пять GLB прочитаны обратно: 1985 Node, 37720 assertions; max linear error
+5.364418e-7, translation 0.00048828125. Три consumer builds 0 warnings/errors.
+Native неизменен, probes/suites не повторялись. Полные occurrences и material
+variants Exporter остаются следующей работой; статическая поза проверена отдельно.
+Досье: `docs/research/tool-exporter-node-pose-shared-core-2026-09-09.md`.

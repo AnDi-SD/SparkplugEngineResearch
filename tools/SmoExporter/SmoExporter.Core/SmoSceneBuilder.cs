@@ -55,9 +55,9 @@ public static class SmoSceneBuilder
         List<SmoExportSkin> skins = [];
         if (includeSkeleton)
         {
-            SmoNodeHierarchy hierarchy = SmoNodeHierarchy.Decode(document);
-            IReadOnlyDictionary<int, Matrix4x4> bindWorld =
-                SmoSkinBindingResolver.ResolveBindWorldMatrices(document);
+            var loaded = SmoLoadedResources.Get(document);
+            if (loaded.LoadIssue is not null || loaded.SceneIssue is not null)
+                throw new InvalidDataException(loaded.LoadIssue ?? loaded.SceneIssue);
             foreach (SmoObjectEntry skinEntry in document.Objects.Where(
                          entry => entry.TypeHash == SmoClassIds.Skin))
             {
@@ -74,8 +74,8 @@ public static class SmoSceneBuilder
                         $"Skin [{skinEntry.Index}] {skinEntry.Name}: {skinError}");
                 }
             }
-            nodeWorld = BuildNodeWorldMatrices(document, hierarchy, bindWorld);
-            allNodes = BuildExportNodes(document, hierarchy, nodeWorld);
+            nodeWorld = loaded.NodeWorlds.ToDictionary(value => value.Key, value => value.Value);
+            allNodes = BuildExportNodes(document, loaded);
             skins = decodedSkins.Values.Select(skin => new SmoExportSkin(
                 skin.ObjectIndex,
                 skin.Name,
@@ -597,19 +597,24 @@ public static class SmoSceneBuilder
         float.IsFinite(value.Z) && float.IsFinite(value.W);
 
     private static List<SmoExportNode> BuildExportNodes(
-        SmoDocument document, SmoNodeHierarchy hierarchy,
-        IReadOnlyDictionary<int, Matrix4x4> worlds)
+        SmoDocument document, SmoLoadedResources loaded)
     {
         List<SmoExportNode> result = [];
-        foreach (SmoObjectEntry entry in document.Objects.Where(item =>
-                     item.TypeHash is SmoClassIds.Node or SmoClassIds.RenderNode))
+        foreach (var node in loaded.Nodes.Values)
         {
-            int? parent = GetLogicalParent(entry.Index, document.Objects, hierarchy);
-            Matrix4x4 world = worlds.GetValueOrDefault(entry.Index, Matrix4x4.Identity);
+            var entry = document.Objects[node.ObjectIndex];
+            int? parent = node.ParentObjectIndex;
+            Matrix4x4 world = node.World;
             Matrix4x4 local = world;
-            if (parent is int parentIndex && worlds.TryGetValue(parentIndex, out Matrix4x4 parentWorld) &&
-                Matrix4x4.Invert(parentWorld, out Matrix4x4 inverseParent))
+            if (parent is int parentIndex)
+            {
+                // Target-format local coordinates derived from actual game
+                // worlds; this is not a second implementation of Node FK.
+                if (!loaded.NodeWorlds.TryGetValue(parentIndex, out var parentWorld)
+                    || !Matrix4x4.Invert(parentWorld, out var inverseParent))
+                    throw new InvalidDataException($"EXPORT_PARENT_MATRIX_SINGULAR: Node [{entry.Index}] parent [{parentIndex}] cannot be represented by this export hierarchy.");
                 local = world * inverseParent;
+            }
             result.Add(new SmoExportNode(
                 entry.Index,
                 entry.Name,
@@ -619,38 +624,6 @@ public static class SmoSceneBuilder
         }
         return result;
     }
-
-    private static Dictionary<int, Matrix4x4> BuildNodeWorldMatrices(
-        SmoDocument document, SmoNodeHierarchy hierarchy,
-        IReadOnlyDictionary<int, Matrix4x4> bindWorld)
-    {
-        Dictionary<int, Matrix4x4> result = [];
-        HashSet<int> resolving = [];
-        Matrix4x4 Resolve(int index)
-        {
-            if (result.TryGetValue(index, out Matrix4x4 cached)) return cached;
-            if (bindWorld.TryGetValue(index, out Matrix4x4 bind)) return result[index] = bind;
-            if (!resolving.Add(index)) return Matrix4x4.Identity;
-            SmoObjectEntry entry = document.Objects[index];
-            Matrix4x4 local = SmoNodeTransformDecoder.TryDecode(
-                document, entry, out SmoNodeTransform? transform) && transform is not null
-                    ? transform.LocalMatrix : Matrix4x4.Identity;
-            int? parent = GetLogicalParent(index, document.Objects, hierarchy);
-            Matrix4x4 world = parent is int parentIndex && (uint)parentIndex < (uint)document.Objects.Count
-                ? local * Resolve(parentIndex) : local;
-            resolving.Remove(index);
-            return result[index] = world;
-        }
-        foreach (SmoObjectEntry entry in document.Objects.Where(item =>
-                     item.TypeHash is SmoClassIds.Node or SmoClassIds.RenderNode))
-            Resolve(entry.Index);
-        return result;
-    }
-
-    private static int? GetLogicalParent(
-        int index, IReadOnlyList<SmoObjectEntry> entries, SmoNodeHierarchy hierarchy) =>
-        hierarchy.ParentsByChild.TryGetValue(index, out IReadOnlyList<int>? parents) && parents.Count == 1
-            ? parents[0] : entries[index].ParentIndex;
 
     private static int? FindAncestorObjectIndex(
         IReadOnlyList<SmoObjectEntry> entries, SmoObjectEntry entry, uint typeHash)
