@@ -222,3 +222,10 @@ Dead end leaf допускает; это не validation полного Init. Na
 original logo Fog field. FullLoader213,пять builds. Raw float/type bits
 сохранены, game source не менялся. Inspector/Corpus используют прежний API.
 Досье: `tool-fog-inspection-shared-core-2026-09-09.md`.
+
+Остановка по сроку: **2026-09-09 18:58:22 МСК / 15:58:22 UTC**.
+22 проверенных блока; ROOT19f7fee / Viewerddd1c52 до итогового docs commit.
+Последние artifacts/native copies и PS2 static evidence сверены, полный корпус
+не повторялся. Все ядра ещё не готовы; остаток в tools-core-migration-status.
+PS2 factory/default/cleanup найден, PC MaterialColor factory остаётсяNULL.
+GitHub publication остаётся приостановленной после прежнего auto-review отказа.

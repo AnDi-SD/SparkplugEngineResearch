@@ -2,7 +2,8 @@
 
 Начат в 08:12 МСК от checkpoint `1495999`, Viewer `4a407fd`, TextureTool `1ddb50f`.
 Срок следующего отчёта: **2026-09-09 19:00 Europe/Moscow** (`16:00 UTC`).
-Статус: в работе. Предыдущий цикл закрыл 17 блоков; все ядра ещё не готовы.
+Статус: остановлен по сроку цикла, **2026-09-09 18:58:22 МСК**.
+Завершены22 проверенных блока текущего цикла; все ядра tools ещё не готовы.
 
 ## Уточнение пользователя и границы
 
@@ -294,3 +295,37 @@ zero;7 ABI guards,15 managed checks. Настоящее поле logo_screen.smo
 в прежнем inspector. FullLoader213 и пять builds passed. Game source не менялся,
 whole surrounding graph или GPU fog не заявлены; полный корпус не запускался.
 Досье: `docs/research/tool-fog-inspection-shared-core-2026-09-09.md`.
+
+### Дополнительный PS2 результат и остаточный аудит
+
+Для MaterialColorController подтверждены PS2 factory/ctor/dtor, allocation1E0,
+saved RGBA и embedded leaves. Найден static initializer цвета476CB0→FF000000;
+raw ELF zero не считается runtime default. PC factory остаётсяNULL, повторных
+capped запусков не было. Это дополнительная информация, не новый закрытый
+PC loader block. Досье: `material-color-ps2-constructor-2026-09-09.md`.
+
+Проверены оставшиеся C# readers и потребители в `tools/`; готовность всех ядер
+не заявлена. Приоритетный список с файлами и отдельным учётом TextureTool,
+SanToVmd и WinxHairPatcher: `tools-core-migration-status-2026-09-09.md`.
+Исторический измеритель16/16 снабжён указанием нового scope, старые оценки
+не переписаны и искусственный процент миграции не начислен.
+
+## Итог закрытия
+
+Завершены22 локальных этапа переноса; каждый сохранён отдельным root commit
+с соответствующим Viewer checkpoint. Последний код: ROOT19f7fee, Viewerddd1c52;
+TextureTool1ddb50f не менялся в этом цикле. Общие materials/Node/Skin/support
+references используются Viewer/Exporter/Importer/LVLworkspace; удалены
+самостоятельные FK, material/particle/Fog и несколько других C# readers.
+Особые runtime passes, оставшаяся запись и inspectors ещё открыты.
+
+Последняя проверка закрытия сверила18 артефактов Fog,4 текущих Viewer sources,
+5 native DLL copies и root sources по коммиту19f7fee, а также12 PS2 артефактов.
+Зафиксированы hashes22 block seals. Повторного полного корпуса/всех тестов нет;
+новый код после последнего проверенного блока не менялся.
+Подробная матрица и порядок продолжения: [срез переноса](tools-core-migration-status-2026-09-09.md).
+
+Проверочные сборки не упакованы в релиз. GitHub push не выполнялся:
+ранее автоматическая проверка одобрения отклонила публичную отправку и
+потребовала подтверждения конкретных репозиториев; оно остаётся без ответа.
+Это ограничение публикации, а не препятствие локальным коммитам и работе.

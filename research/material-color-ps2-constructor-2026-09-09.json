@@ -1,0 +1,84 @@
+{
+  "kind": "material-color-PS2-constructor-static-followup",
+  "created_utc": "2026-09-09T15:53:45.890270+00:00",
+  "status": "PS2-static-anchors-confirmed-PC-factory-still-unavailable",
+  "ps2_elf": {
+    "path": "local-data/Winx Club the game PS2/SLES_532.19",
+    "sha256": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/cycle_ps2_disasm.py",
+      "sha256": "0DB074CEF8F8326F509A4F0C23CB94231246F61E5CFBABCA78932880EEDA7E13"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/material_color_ps2_global.py",
+      "sha256": "A3216ABB94AB8AEB387247D26216EA22B9CB770FECDEF3B91CCB7127202B4A45"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/material_color_ps2_init.py",
+      "sha256": "54DCCCD61A98774128EACFCF2A150136106C1E99DE0378BB098314CA536F172A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/material_color_ps2_registration.py",
+      "sha256": "5CC821BF48B95AB601CB1B2B3136B901A21425DEF9022AD6E1D536AF5EDC56F9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-color-init-1.json",
+      "sha256": "F4F4D71EAAFCDE8A3B518EE1352B9F8E662207F1228F1CEB69CD912429883D6E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-color-init-1.txt",
+      "sha256": "058F6F0C43BC9A096BAAE7B989AC4DDB507BDB653C7FBD1F6997F0B0DDF89C27"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-constructor-1.txt",
+      "sha256": "31584CCD6B10E9C79E72BB7B4F374E7BE470DB2B4BB8FD55B7D5773C9D211214"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-destructor-scalar-1.txt",
+      "sha256": "92B3CBD0FD6230D97121DE48AA190A068004EB6640EE2EBE8325D01D3149181D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-factory-1.txt",
+      "sha256": "7E328D49DEEAA2F124FDBCFB19952AEDD6CCA086BAFB2AEA4454C4392F8952AF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-global-candidates-1.json",
+      "sha256": "F460545A0E924232AC3FCA2A9F1B9E4191951945BAD1D09996F23C7EDE79849E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-registration.json",
+      "sha256": "9D5A12E9AD589A54B409FB61301C9E821FC354CC0D1461D860ACADB267B90A46"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-color-factory/ps2-tables-base-1.txt",
+      "sha256": "B6B125C6949638015E57B8A5F03CB49DAEE8701796FBE3A27D344ED57691B53E"
+    }
+  ],
+  "documentation": {
+    "path": "docs/research/material-color-ps2-constructor-2026-09-09.md",
+    "sha256": "0A3E8D7EF5B960CDF76DF8D72D62A19682C527CD5C75C25F4255A9CB0E5EA216"
+  },
+  "unchanged_PC_factory": {
+    "path": "Sparkplug/Code/Sparkplug/spMaterialColorController.cpp",
+    "sha256": "A5B8EF35E7AEE34AA35E6C2637319C71A8EB2049A786B4F599F0EA7C88BB66AB"
+  },
+  "observed": {
+    "factory": "00134480",
+    "constructor": "0011B060",
+    "destructor": "0011AE70",
+    "PS2_allocation": "1E0",
+    "global_color": "00476CB0",
+    "initializer": "0047F2A0",
+    "store": "0047F2D8",
+    "stored_value": "FF000000",
+    "initializer_pointer_location": "0048BFCC"
+  },
+  "not_claimed": [
+    "PS2 execution or complete startup",
+    "PC constructor/destructor or factory allocation",
+    "enabled resource factory",
+    "new successful full resource graph"
+  ]
+}
