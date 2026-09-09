@@ -63,7 +63,7 @@ namespace sparkplug::reconstruction
 
         // PS2 sub_0017F570 reads count followed by five fields per entry and
         // validates every class ID against the global RTTI manager.
-        [[nodiscard]] bool LoadIndexForAnalysis(spStream& source);
+        [[nodiscard]] bool LoadIndexForAnalysis(spStream& source,std::string* diagnostic=nullptr);
 
         // Shared stream-reading portion of LoadIndex, before its RTTI/map
         // acceptance step. A raw inspector can observe unknown identities

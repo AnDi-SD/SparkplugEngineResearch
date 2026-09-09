@@ -56,13 +56,16 @@ namespace sparkplug::reconstruction
         return true;
     }
 
-    bool spResourceFATHelperForAnalysis::LoadIndexForAnalysis(spStream& source)
+    bool spResourceFATHelperForAnalysis::LoadIndexForAnalysis(spStream& source,std::string* diagnostic)
     {
+        if(diagnostic)diagnostic->clear();
         const bool read=ReadIndexEntriesForAnalysis(source,[&](auto entry,const auto&)
         {
 
             if (spRTTIManager::Instance().Find(entry->classID) == nullptr)
             {
+                // Host diagnostic only; preserve the original read/failure path.
+                if(diagnostic)*diagnostic="FAT class has no registered runtime type: "+std::to_string(entry->classID)+" (object ID "+std::to_string(entry->id)+")";
                 return false;
             }
 
@@ -71,6 +74,7 @@ namespace sparkplug::reconstruction
             // case in the portable boundary instead of reproducing corruption.
             if (resourcesByID_.find(entry->id) != resourcesByID_.end())
             {
+                if(diagnostic)*diagnostic="Duplicate FAT object ID: "+std::to_string(entry->id);
                 return false;
             }
 

@@ -1,0 +1,302 @@
+{
+  "kind": "tools-core-octree-reader-block",
+  "status": "verified-reader-real-metadata",
+  "created_utc": "2026-09-09T12:34:31.820640+00:00",
+  "base_commit": "1d6a0015ccd709efd3b11acb315dbb68d6e69ddf",
+  "viewer_commit": "564d23311e805ec7d87cb567ec19e0d3f04dfc0d",
+  "cycle_block": 15,
+  "sources": [
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "4EF8C03E439063D43428399190CDC0796529B9DEEA8D8195ECA84ED32390C211"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOctreeNode.h",
+      "sha256": "F1C099DA0FF209A983D9B51ADABE679C5D8D10456AB1A3629A7BD5BCBA6246F7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOctreeNodeSerializer.cpp",
+      "sha256": "C7B57413944C65CD923167876C7CB3BAC1A0025057BF3FF18F224CC1861473CB"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOctreeNodeSerializer.h",
+      "sha256": "821631F8E3B4B7234BB5F7F79199041C77377E8B54BE6621408929942CEBBBF9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "1237CCBA20E9A024B5EB48A2EEC8C9DADB439F108EA94C0CAD5CB4BEBF593774"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "B579AEAD9C9AE3B7B30EDEF2F52673846F8419D90E6D946C0F62E24E50229550"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "D662B86FD4A7C45E7F9C00BB2C634D16943C73BD7103DAFB46BF609D7906B3B6"
+    },
+    {
+      "path": "Sparkplug/Tests/spSpatialSerializationTests.cpp",
+      "sha256": "5961B54737B441DCB45B539957BBEFF78FDB77D077D6CD9F6EE74DC40BDE353D"
+    },
+    {
+      "path": "docs/research/tool-octree-reader-shared-core-2026-09-09.md",
+      "sha256": "4362B99686F33612B5032513D5091DE8CCEEFE0C6FC9417A4A0CF6F8AB775FB5"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "2A09F462BFDB79F7BD9D6AA26C5EB555C37A721963EE10E759838C425ED393BB"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "3D0E41C283503C7930197EC0373044840708553B279230DD7244916280175DEB"
+    },
+    {
+      "path": "research/probe_pc_spatial_serializers.py",
+      "sha256": "00920AE69F30F1201468E975EB146FC1766B4A3BCFA87364070EC8E0C1C91171"
+    },
+    {
+      "path": "research/validate_tools_octree_reader.py",
+      "sha256": "4223A8B945E6D8DAD7BC5275205648364953B915FB08E6D163D09B234C153B5C"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "68D17B127DE9DDE8AB7711F9A543C59F4DFEAF9C4DF4B82CBCC459A27B848FD2"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "9C47EADB1B1980949875EE19EE178A8111E045E949CF13E8711F824CE7BDC97B"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "4BAD1E62268CA9619701396C1828554C54682A5A4DC877A92E077077230E0774"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoOctreeNodeDecoder.cs",
+      "sha256": "7C3A25288AB457F3A21E654C795EF26D00E2ED9C7C8642142B776ADBFB874F3B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "A300F6F8C272F15735AF178890CC7F8D0F700B2D6BFC7FD127BD17BE7FA0B817"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoOctreeReaderRegression.cs",
+      "sha256": "EA4869938A9B692C65618839E1A3DEE44A07D796A850D2489E4C55EB80E43723"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs",
+      "sha256": "F90F03055999C76FD65A86CCD67C23DCECF32E02E35C264F1508675C3847FD37"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/BMS_02-metadata.json",
+      "sha256": "2FCEC1165EBFB4E51CBF3B2A03D7EFC7B7EB1E822F32E6879ADCE860F5EB4B5B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/BMS_02-metadata.log",
+      "sha256": "807038DC372A5EF1C9C08C65F3636AD141A5C5DF659A275D51D7781E97A92E21"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/build-attempt-1.json",
+      "sha256": "6C83BBE166175A1C65960F215EC93679DB771D014BAAF3B12F6B16D0DFED15CD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/build-attempt-2.json",
+      "sha256": "FF5D9CC8572121C777FBAA0EEFC5200720349594AA428D532419D52FD07292BA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/build_octree_managed.py",
+      "sha256": "12B2363F952E454DCD02090E6C6322FB2E54AD27C0F271507BA18083EA4C7680"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/check_octree_graphs.py",
+      "sha256": "D8F17410396730EA46F4A90C06596707CBE725480BBB68504CC75AE68F867ECF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/compare_octree_reader.py",
+      "sha256": "290ED7B4AFCC69475F1BAEA87F7BB658C6CE00F183B7AADDF861C39CF12AF958"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/cycle_pc_disasm.py",
+      "sha256": "3FC48D70B92EEDF5661482AA42C0505BF27458D3C2A7CDCA7E2DFD1A1E2AE2AB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/diagnostic-1-graphs.json",
+      "sha256": "8F475BF6D3D9FA8F4D726DA4F9B981A61817551AE9A5EB8B37DBEABBF9B8BD74"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/Gardenia02-metadata.json",
+      "sha256": "87BAC3DF3C3264B70D22BAC1ACD4B7FFB79CF11F8C3A977FB6D660F14203AF15"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/Gardenia02-metadata.log",
+      "sha256": "84D31136909C63A690844898882BDA0E0C29C44C3130DE8B3F08A877F7CB6C68"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/initial-graphs.json",
+      "sha256": "DE07E13BA4A159E97AD73F8AFAE84B4C78396BEB5342B1F6553EBEE1B781F55E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/managed-processes.json",
+      "sha256": "1896D19C123E7608C87914990E04900417CDE1B182448E643B75CBC480F11A6E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-ctest.log",
+      "sha256": "34E73AFE274FE602E1C699FCEEBEBB3A14710BE6EE19CDD3CA6EA464AA4AE7AA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-empty.log",
+      "sha256": "E16B896355F0547C6B682532D34DB1D5E44D7D02AE390648C0BF15813134FC33"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-partial.log",
+      "sha256": "155BFA5F6977C527587AA982A5149606410F36F6B45891E60237A9704FB31AE8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-raw.log",
+      "sha256": "CEC191D466F20CC8EA8F204146AD777AC213D8A35B100826048CD71937B5E230"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-validation-1/eight-children.smo",
+      "sha256": "0323B51F36E3149BBD45535F22893D22C06E35CFB4A62F0471AD3D5A785CB64C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-validation-1/report.json",
+      "sha256": "DA94AFC95F5BB9577579146523817F46039EDC16D985CE1C966EF27AD856AFBC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-validation-1/source-processes.json",
+      "sha256": "190E8293814D3C4BEE230A1E29F8F38B6268CFD379C3D244E2715AF4E337DF08"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/native-values.log",
+      "sha256": "5256D88DADE3DD0E8404D80CAE5B40CB5D78375BC7D3FFDE53FD3AF9CACDB3F9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/octree-build-1.log",
+      "sha256": "0974A6AC8E005BA9FED50B05C2313311A42FE8A8A89250E167DEE483AEE464E7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/octree-build-2.log",
+      "sha256": "075EB5E77709E8E7684A23395F2702F4C269C199F05B030E2944AEAB46E490ED"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/octree-build-3.log",
+      "sha256": "201BCFAA3F09B7CC5079C9879BB2A32D07E479F2255EF3E037D33984E254C197"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/octree-read-static.txt",
+      "sha256": "8729E7913887E4F61F790D71ACCEF4B59BF74CAA9E8418A0A55919B9D4A9F313"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/octree_registration.py",
+      "sha256": "CF03829C318FBBFF4B587D31EC981B36A1CD46A4D5AFC438E1A6236DA61E3571"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/original-readers.json",
+      "sha256": "752213CA5D4A772DE8D833A0EEE0EC61A693DB3923734CDE574D7694887FC9E0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/race_01-metadata.json",
+      "sha256": "6FDDC447A9476EBA691DBBE95B2150D72911D9F52898960318C236B61D375B6A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/race_01-metadata.log",
+      "sha256": "79F3FFF07C11C59986CCAB3846BC3BA00F681AA9243210D7C4A0DCF1B0984D66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/RedF01-metadata.json",
+      "sha256": "00262967167F1937CD7B94D8C6F8158CCB7B0B3618E06CF99318B1570F86E444"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/RedF01-metadata.log",
+      "sha256": "03902A9D71CB2252AA63840DB4795F6347E048304D664787CB76E91045B6BEEF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/registration.json",
+      "sha256": "0BC39CD0C982EBD899E99634764A8B3916EC36C4086219067A0E790A0EEA2CCD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/run_octree_managed.py",
+      "sha256": "DD5DEB3120620A86778CB21DD12F234F5757ACB3E044588136E2074AFF1D363F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoExporter.FormatTests-attempt-2.log",
+      "sha256": "332AAFC6D6D678FDF4C4250350FB3278F94721D947F61B5EB6F42536DC41AD22"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoImporter.FormatTests-attempt-2.log",
+      "sha256": "FA002E4EB3770224E58F03AB2ABE647138F03693C9911AF305290B186A6210C3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoLVLcreator.CoreTests-attempt-2.log",
+      "sha256": "7A2521FB4389AD74865D2F05990886F49FFF0FBFA97D907E6827E5BDF78D6C96"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoViewer-attempt-2.log",
+      "sha256": "14B4BE01C3AA2E341B49F3EF5B801CC171F66CAAF6AAA3E27A5A7B0A29D793CE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoViewer.FormatTests-attempt-1.log",
+      "sha256": "870D2E493FC720977FBD1E9D31CD96B49006C3BE46A026C30CE7D4F839951019"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/SmoViewer.FormatTests-attempt-2.log",
+      "sha256": "089A5C665175A188DFBB258BF0E9701F496746CD35A8CE573338BCBB16A67073"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/source-comparison.json",
+      "sha256": "ADBC06D5859A6D87E9395BFA1A56CAAF5840F940D3A9188F3E6B72FC6AF0F087"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/octree-reader/source-processes.json",
+      "sha256": "190E8293814D3C4BEE230A1E29F8F38B6268CFD379C3D244E2715AF4E337DF08"
+    }
+  ],
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "native_dll_sha256": "AF1CA1F095AD7228E43C18FE90E1E929F88D69AF5261B40A64C5BE0F6CE97ACE",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "AF1CA1F095AD7228E43C18FE90E1E929F88D69AF5261B40A64C5BE0F6CE97ACE"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "AF1CA1F095AD7228E43C18FE90E1E929F88D69AF5261B40A64C5BE0F6CE97ACE"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "AF1CA1F095AD7228E43C18FE90E1E929F88D69AF5261B40A64C5BE0F6CE97ACE"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "AF1CA1F095AD7228E43C18FE90E1E929F88D69AF5261B40A64C5BE0F6CE97ACE"
+    }
+  ],
+  "checks": {
+    "original_readers": 4,
+    "original_source_matches": 4,
+    "real_octree_nodes": 245,
+    "managed_checks": 984,
+    "abi_checks": 15,
+    "abi_guards": 11,
+    "whole_fixture_objects": 9,
+    "consumer_builds": 5,
+    "native_suites": [
+      "SpatialSerialization",
+      "FullLoader"
+    ]
+  },
+  "limitations": [
+    "Four complete real levels still require actual SkyBox; next narrow research task.",
+    "No new PS2 execution, full Scene/visibility scheduler or Octree writer.",
+    "Inherited Partition metadata restrictions remain distinct from full graph.",
+    "Native bridge LF endings restored after accidental CRLF formatting in block 14.",
+    "No visual UI run or release."
+  ]
+}

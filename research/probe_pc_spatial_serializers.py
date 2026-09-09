@@ -14,6 +14,7 @@ from probe_pc_node_serializer import field
 SPECS={
  'partition':(0x67672341,0x426910,4502448,0x44b660),
  'bsp':(0x7362ab22,0x480b90,4509136,0x44ceb0),
+ 'octree':(0x21a70829,0x41a760,0x44c800,0x44c8e0),
  'system':(0x912cc341,0x48e7c0,4501008,0x44af40),
  'zone':(0x61254ab3,0x480fd0,4511296,0x44d7a0),
  'portal':(0x6523ac37,0x481370,4512960,0x44dde0),
@@ -28,7 +29,15 @@ POLYGON=struct.pack('<I9f',3,2,0,0,2,1,0,2,0,1)
 def ref(identity):return struct.pack('<II',identity,0) if identity else bytes(4)
 def wire_for(mode):
     kind,variant=mode.split(':')
-    if variant=='empty':return b'\0'*(3 if kind=='system' else 2 if kind in ('bsp','zone','portal-node') else 1),()
+    if variant=='empty':return b'\0'*(3 if kind=='system' else 2 if kind in ('bsp','octree','zone','portal-node') else 1),()
+    if kind=='octree':
+        if variant=='raw':
+            return b'\0'+field(0,bytes.fromhex('4523c17f000080ff00000080'))+field(1,struct.pack('<3f',3,2,1))+field(2,struct.pack('<3f',-3,-2,-1))+b'\0',()
+        if variant=='partial':
+            return b'\0'+field(1,struct.pack('<3f',-9,-8,-7))+field(1,struct.pack('<3f',-6,-5,-4))+field(12,b'skip')+b'\0',()
+        if variant=='values':
+            base=field(1,struct.pack('<I',0x12345678))+field(2,struct.pack('<I',0)+ref(17))+field(2,struct.pack('<I',7)+ref(19))+field(3,ref(7))+field(5,ref(9))+b'\0'
+            return base+field(2,struct.pack('<3f',9,8,7))+field(0,struct.pack('<3f',2,3,4))+field(1,struct.pack('<3f',-1,-2,-3))+field(0,struct.pack('<3f',1,2,3))+b'\0',(7,9,17,19)
     if variant!='values':raise ValueError('Explicit empty or values case required')
     if kind=='partition':
         items=[(1,struct.pack('<I',0x11223344)),(3,ref(7)),(5,ref(9)),(4,ref(13)),(4,ref(13)),
@@ -52,7 +61,7 @@ def main(mode):
     renderer=p.allocate(0xca00);p.put_uint(0x75db68,renderer)
     f.call(0x6d38c0);f.call(0x6d38e0)
     for record,identity,parent in ((0x7555f8,0x44de07fd,0x755310),(0x75dd88,0x695c0f65,0x7555f8),
-        (0x75e1b8,0x67672341,0x755310),(0x7613f8,0x7362ab22,0x75e1b8),
+        (0x75e1b8,0x67672341,0x755310),(0x7613f8,0x7362ab22,0x75e1b8),(0x75da88,0x21a70829,0x75e1b8),
         (0x761458,0x61254ab3,0x75dd88),(0x762730,0x912cc341,0x75dd88),
         (0x7614b8,0x6523ac37,0x7555f8),(0x761518,0xabb5ab2c,0x75dd88),
         (0x75db08,0x56d67170,0x7555f8),(0x765938,0x94bbca2a,0x755310),
@@ -60,6 +69,8 @@ def main(mode):
         p.put_uint(record,identity);p.put_uint(record+0x48,parent)
     identity,factory,serializer_factory,reader=SPECS[kind]
     target=f.call(factory);serializer=f.call(serializer_factory);f.objects.extend((target,serializer))
+    if mode=='octree:partial':
+        p.put_floats(target+0x84,(1,2,3));p.put_floats(target+0xb0,(-1,-2,-3,9,8,7))
     refs={}
     for key in needed:
         type_id,create=REFS[key];obj=f.call(create);refs[key]=obj;f.objects.append(obj)
@@ -77,13 +88,15 @@ def main(mode):
         assert 0<=end-begin<=256 and (end-begin)%4==0
         return [key(p.uint(i)) for i in range(begin,end,4)]
     state={}
-    if kind in ('partition','bsp'):
+    if kind in ('partition','bsp','octree'):
         state={'color':p.uint(target+0x50),'zone':key(p.uint(target+0x60)),
           'system':key(p.uint(target+0x74)),'payload':key(p.uint(target+0x78)),
           'portals':ids(0x64),'statics':ids(0x30),'collisions':ids(0x10),
           'children':[key(p.uint(p.uint(target+0x58)+i*4)) for i in range(p.uint(target+0x5c))]}
         if kind=='bsp':state.update(plane=bytes(p.mu.mem_read(target+0x84,16)).hex() if mode.endswith('values') else None,
                                     polygon_count=p.uint(target+0xa8))
+        if kind=='octree':state.update(pivot=None if mode.endswith('empty') else bytes(p.mu.mem_read(target+0x84,12)).hex(),
+            mins=bytes(p.mu.mem_read(target+0xb0,12)).hex(),maxs=bytes(p.mu.mem_read(target+0xbc,12)).hex())
         if state['payload']:f.objects.remove(refs[state['payload']])
         for child in state['children']:
             if child:f.objects.remove(refs[child]);assert p.uint(refs[child]+0x54)==target

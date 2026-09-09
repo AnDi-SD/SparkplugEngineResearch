@@ -389,7 +389,9 @@ namespace sparkplug::reconstruction
         spSerializerFileHeader header;
         if (ReadAndValidateHeaderForAnalysis(source, PlatformPC, &header) != spSerializerFileHeaderStatus::Valid)
             return fail("Invalid PC FFPS header");
-        if (!fat_->LoadIndexForAnalysis(source)) return fail("Cannot read resource FAT index");
+        std::string indexDiagnostic;
+        if (!fat_->LoadIndexForAnalysis(source,&indexDiagnostic))
+            return fail(indexDiagnostic.empty()?"Cannot read resource FAT index":indexDiagnostic.c_str());
         if (!fat_->ReadDiscardedFileIndexForAnalysis(source)) return fail("Cannot read compatibility file index");
         if (!source.GetCurrentPosition(position) || position != header.dataOffset)
             return fail("FAT/file indices do not end at FFPS data offset");

@@ -89,6 +89,10 @@ SPV_API void spv_graph_destroy(void*) noexcept;
 SPV_API int spv_graph_info(void*,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept;
 SPV_API int spv_graph_object(void*,std::uint32_t ordinal,char* name,std::uint32_t capacity,SpvGraphObject*) noexcept;
 SPV_API int spv_graph_node(void*,std::uint32_t id,SpvGraphNode*) noexcept;
+struct SpvOctreeFields {std::uint32_t pivotKnown;float pivot[3],mins[3],maxs[3];};
+struct SpvGraphOctree {std::uint32_t parent,children[8];SpvOctreeFields fields;};
+SPV_API int spv_octree_fields_read(const std::uint8_t*,std::uint32_t,SpvOctreeFields*) noexcept;
+SPV_API int spv_graph_octree(void*,std::uint32_t id,SpvGraphOctree*) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical
 // loader/cache identity; zero means NULL, never an inferred default resource.
 struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};

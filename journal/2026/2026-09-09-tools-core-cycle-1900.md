@@ -151,3 +151,11 @@ Native MaterialController/UVFunction/FullLoader и пять builds прошли.
 не менялся; original proofs reuse. Автоматический frontend frame ещё не подключён,
 MaterialColorController factory не подменялась.
 Досье: `docs/research/tool-material-runtime-shared-core-2026-09-09.md`.
+
+Блок 15: общий Octree reader и metadata bridge; 4 original/source совпадения,
+15 ABI checks / 11 guards, тестовый полный граф 9 объектов. Четыре уровня
+дали 245 Octree / 984 checks. Full loader этих уровней останавливается раньше
+на SkyBox; добавлено указание class/object ID, SkyBox исследуется следующим.
+SpatialSerialization/FullLoader и пять managed builds passed. В Native bridge
+возвращены LF после случайного CRLF прошлого блока. Релиза нет.
+Досье: `docs/research/tool-octree-reader-shared-core-2026-09-09.md`.

@@ -40,6 +40,8 @@
 #include "Code/Sparkplug/spPartitionNodeSerializer.h"
 #include "Code/Sparkplug/spBSPNode.h"
 #include "Code/Sparkplug/spBSPNodeSerializer.h"
+#include "Code/Sparkplug/spOctreeNode.h"
+#include "Code/Sparkplug/spOctreeNodeSerializer.h"
 #include "Code/Sparkplug/spPartitionSystem.h"
 #include "Code/Sparkplug/spPartitionSystemSerializer.h"
 #include "Code/Sparkplug/spZone.h"
@@ -93,6 +95,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spParticleSystem,spParticleSystemSerializer>(manager);
     Register<spPartitionNode,spPartitionNodeSerializer>(manager);
     Register<spBSPNode,spBSPNodeSerializer>(manager);
+    Register<spOctreeNode,spOctreeNodeSerializer>(manager);
     Register<spPartitionSystem,spPartitionSystemSerializer>(manager);
     Register<spZone,spZoneSerializer>(manager);
     Register<spZonePortal,spZonePortalSerializer>(manager);

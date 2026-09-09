@@ -1,5 +1,7 @@
 #include "Code/Sparkplug/spPartitionNodeSerializer.h"
 #include "Code/Sparkplug/spBSPNodeSerializer.h"
+#include "Code/Sparkplug/spOctreeNodeSerializer.h"
+#include "Code/Sparkplug/spOctreeNode.h"
 #include "Code/Sparkplug/spPartitionSystemSerializer.h"
 #include "Code/Sparkplug/spZoneSerializer.h"
 #include "Code/Sparkplug/spZonePortalSerializer.h"
@@ -73,6 +75,7 @@ namespace
         std::unique_ptr<spBaseObject> target;std::unique_ptr<spSerializer> serializer;
         if(kind=="partition"){target=Make<spPartitionNode>();serializer=std::make_unique<spPartitionNodeSerializer>();}
         else if(kind=="bsp"){target=Make<spBSPNode>();serializer=std::make_unique<spBSPNodeSerializer>();}
+        else if(kind=="octree"){target=Make<spOctreeNode>();serializer=std::make_unique<spOctreeNodeSerializer>();}
         else if(kind=="system"){target=Make<spPartitionSystem>();serializer=std::make_unique<spPartitionSystemSerializer>();}
         else if(kind=="zone"){target=Make<spZone>();serializer=std::make_unique<spZoneSerializer>();}
         else if(kind=="portal"){target=Make<spZonePortal>();serializer=std::make_unique<spZonePortalSerializer>();}
@@ -82,11 +85,13 @@ namespace
         spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
         context.directOwnedClassIDsForAnalysis={spPartitionNode::ClassID,spPartitionRenderable::ClassID};
         auto* object=context.PublishObjectForAnalysis(std::move(target));
+        if(mode=="octree:partial")Check(static_cast<spOctreeNode*>(object)->SetGeometryForAnalysis({1,2,3},{-1,-2,-3},{9,8,7}),"explicit prior geometry input");
         std::vector<unsigned> needed;
         if(mode.find(":values")!=std::string::npos)
         {
             if(kind=="partition")needed={7,9,11,13,15,25};
             else if(kind=="bsp"||kind=="zone")needed={17,19};
+            else if(kind=="octree")needed={7,9,17,19};
             else if(kind=="system")needed={17};
             else if(kind=="portal")needed={7};
             else if(kind=="portal-node")needed={13};
@@ -137,6 +142,9 @@ namespace
             if(auto* bsp=dynamic_cast<spBSPNode*>(object))
                 out<<",\"plane\":"<<(bsp->HasPlaneForAnalysis()?"\""+Hex(bsp->GetPlane())+"\"":"null")
                     <<",\"polygon_count\":"<<bsp->GetPolygonVertexCount();
+            if(auto* octree=dynamic_cast<spOctreeNode*>(object))
+                out<<",\"pivot\":"<<(octree->HasGeometryForAnalysis()?"\""+Hex(octree->GetPivotForAnalysis())+"\"":"null")
+                    <<",\"mins\":\""<<Hex(octree->GetMinsForAnalysis())<<"\",\"maxs\":\""<<Hex(octree->GetMaxsForAnalysis())<<'"';
             if(refs.count(25))
             {
                 const auto& roots=static_cast<spCollisionInfo*>(refs.at(25))->GetPartitionsForAnalysis();
@@ -170,16 +178,18 @@ namespace
     }
     void Guards()
     {
-        for(const auto* kind:{"partition","bsp","system","zone","portal","portal-node","payload"})
+        for(const auto* kind:{"partition","bsp","octree","system","zone","portal","portal-node","payload"})
         {
             const std::string mode=std::string(kind)+":empty";
-            const auto count=std::string(kind)=="system"?3:std::string(kind)=="bsp"||std::string(kind)=="zone"||std::string(kind)=="portal-node"?2:1;
+            const auto count=std::string(kind)=="system"?3:std::string(kind)=="bsp"||std::string(kind)=="octree"||std::string(kind)=="zone"||std::string(kind)=="portal-node"?2:1;
             Check(!Capture(mode,Bytes(count,0)).empty(),"original permits empty spatial sections");
         }
         const std::pair<const char*,const char*> invalid[]{
             {"system:values","0000a0040000000000"},{"zone:values","00a0040000000000"},
             {"portal-node:values","00a0040000000000"},{"payload:values","a0040000000000"},
             {"bsp:values","a20c0200000011000000000000000000"},
+            {"octree:values","a20c0800000011000000000000000000"},
+            {"octree:empty","00a00b000000000000000000000000"},
             {"bsp:values","a20c000000001100000000000000a20c0100000011000000000000000000"},
             {"portal:values","a1040200000000"}};
         for(const auto& [mode,hex]:invalid)

@@ -203,3 +203,13 @@ renderer frame ещё не подключён. Пять файлов: 2191 mater
 consumer builds прошли. Original proofs переиспользованы, алгоритмы не менялись.
 MaterialColorController factory и full scheduler/shader остаются открытыми.
 Досье: `docs/research/tool-material-runtime-shared-core-2026-09-09.md`.
+
+### Блок 15: общий Octree reader
+
+Восстановлен spOctreeNodeSerializer, metadata inspector вызывает тот же native
+reader. Четыре original/source совпадения, raw/partial/omitted cases; полный
+тестовый граф 9 объектов, 15 ABI checks / 11 guards. Четыре уровня: 245 Octree,
+984 checks; их полные графы требуют ещё SkyBox 7A7124AF. FAT сообщает конкретный
+отсутствующий класс. Две native suites и пять managed builds прошли. Нет
+подмены SkyBox, видимость и authoring writer остаются открытыми.
+Досье: `docs/research/tool-octree-reader-shared-core-2026-09-09.md`.

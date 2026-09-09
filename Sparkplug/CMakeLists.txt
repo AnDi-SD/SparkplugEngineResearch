@@ -289,6 +289,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spPartitionNodeSerializer.h
     Code/Sparkplug/spBSPNodeSerializer.cpp
     Code/Sparkplug/spBSPNodeSerializer.h
+    Code/Sparkplug/spOctreeNodeSerializer.cpp
+    Code/Sparkplug/spOctreeNodeSerializer.h
     Code/Sparkplug/spPartitionSystemSerializer.cpp
     Code/Sparkplug/spPartitionSystemSerializer.h
     Code/Sparkplug/spZoneSerializer.cpp

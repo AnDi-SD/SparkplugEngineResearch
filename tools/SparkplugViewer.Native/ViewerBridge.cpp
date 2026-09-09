@@ -8,6 +8,8 @@
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObject.h"
 #include "Code/Sparkplug/spPartitionRenderable.h"
+#include "Code/Sparkplug/spOctreeNode.h"
+#include "Code/Sparkplug/spOctreeNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
@@ -658,6 +660,28 @@ const spMaterialPassLayer& graphPass(const spvhost::ResourceGraph& graph,std::ui
     const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material.GetPassForAnalysis(index));
     require(pass,"Unsupported runtime material pass");return *pass;
 }
+SpvOctreeFields octreeFields(const spOctreeNode& node) {
+    SpvOctreeFields output{};output.pivotKnown=node.HasGeometryForAnalysis()?1u:0u;
+    if(output.pivotKnown)std::copy(node.GetPivotForAnalysis().begin(),node.GetPivotForAnalysis().end(),output.pivot);
+    std::copy(node.GetMinsForAnalysis().begin(),node.GetMinsForAnalysis().end(),output.mins);
+    std::copy(node.GetMaxsForAnalysis().begin(),node.GetMaxsForAnalysis().end(),output.maxs);return output;
+}
+}
+static_assert(sizeof(SpvOctreeFields)==40&&sizeof(SpvGraphOctree)==76);
+SPV_API int spv_octree_fields_read(const std::uint8_t* bytes,std::uint32_t size,SpvOctreeFields* output) noexcept {
+    return guarded([&]{require(bytes&&size&&size<=1024u*1024u&&output,"Invalid bounded Octree fields input/output");
+        spOctreeNode node;spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);BorrowedInput source(bytes,size);std::string error;
+        if(!spOctreeNodeSerializer().ReadOctreeFieldsForAnalysis(context,source,size,node,&error))throw std::runtime_error(error);
+        *output=octreeFields(node);});
+}
+SPV_API int spv_graph_octree(void* handle,std::uint32_t id,SpvGraphOctree* output) noexcept {
+    return guarded([&]{require(output,"Missing graph Octree output");const auto& graph=graphForView(handle);
+        auto* loaded=dynamic_cast<spOctreeNode*>(graph.Find(id));require(loaded,"Expected loaded Octree node");
+        auto& node=*loaded;*output={};output->parent=graph.ID(node.GetParentForAnalysis());
+        require(node.GetChildCountForAnalysis()==8,"Octree factory must own eight child slots");
+        for(std::size_t i=0;i<8;++i)output->children[i]=graph.ID(node.GetChildForAnalysis(i));
+        output->fields=octreeFields(node);});
 }
 SPV_API int spv_graph_model(void* handle,std::uint32_t id,SpvGraphModel* output) noexcept {
     return guarded([&]{require(output,"Missing graph model output");const auto& graph=graphForView(handle);
