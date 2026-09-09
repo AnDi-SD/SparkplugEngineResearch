@@ -70,6 +70,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    освобождения входа. Время одной пары 0,06326 → 0,07645с: ускорение не заявлено.
    Native BorrowedInput44/FullLoader/ReferenceReadTrace и managed Text59 прошли.
    Ограничения 64МиБ и числа объектов не повышались.
+   Checkpoint: root `199f8b2`.
+5. [TextureTool header и SanToVmd output](tool-texture-header-vmd-output-2026-09-10.md):
+   удалён локальный header parser; подтверждённый OverflowException заменён
+   отказом общего reader (19/19). На двух SMO прошла 71 проверка, три PNG
+   совпали с исходной сборкой. Новый raw material snapshot не считается
+   before/after DTO comparison. Legacy material path остаётся неполным.
+   SanToVmd получил отдельный временный файл на операцию: два новых теста
+   воспроизвели прежнюю коллизию и прошли после исправления; старые 18 tests прошли.
+   TextureTool checkpoint: `e449096`.
 
 ## Новые границы и исправления
 
@@ -83,5 +92,8 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   до checkpoint и покрыты адресными проверками.
 - Коллизия backup в WinxHairPatcher исправлена и проверена; новых спорных
   изменений игровой логики этот блок не потребовал.
+- Попытка подключить animated textures к одному renderer pass выявила
+  несовпадение выбранного примера: actual BloomX Material89 имеет три passes.
+  Блок пока не считается готовым; неподдерживаемые passes не отбрасываются.
 
 Время остановки ещё не наступило; цикл продолжается.

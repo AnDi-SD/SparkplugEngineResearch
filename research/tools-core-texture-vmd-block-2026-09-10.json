@@ -1,0 +1,142 @@
+{
+  "scope": "Texture header reader and independent VMD temporary output ownership; legacy material DTO remains partial",
+  "sources": [
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.Core/SmoDocument.cs",
+      "sha256": "5f25b3ccf4dcd37aa8c4b3d01f50693cd528de74650c7f0045a2f941c80e171d",
+      "bytes": 30228
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/FieldHeaderRegression.cs",
+      "sha256": "aebe97b9a1f36e1c6ea552b9a0b1da2c640425becbcfe066264d77851bbe9d58",
+      "bytes": 5094
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/FocusedTextureRegression.cs",
+      "sha256": "d8f2b4a8993ea704d2422e0bf56fe10ef8a33293580e01f14bf6f809409e0566",
+      "bytes": 21296
+    },
+    {
+      "path": "tools/SMOTextureTool/SMOTextureTool.FormatTests/Program.cs",
+      "sha256": "ad4921d3614bffb21293882a11b7286a93ae5949a2200206a2c55fd191b8f878",
+      "bytes": 18962
+    },
+    {
+      "path": "tools/SanToVmd/san_to_vmd.py",
+      "sha256": "ace7b4724436408d583cc5f0606cef39084cf1acc8c0f01fcf751395ddf64758",
+      "bytes": 47062
+    },
+    {
+      "path": "tools/SanToVmd/tests/test_output_ownership.py",
+      "sha256": "ad0e6e29429763fe8923465aa7d41dd413c65b7cd378774e18c7c8325beaab7e",
+      "bytes": 2506
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/after/report.json",
+      "sha256": "3cb106d00764cbef112a3325a9a13fd4d6e33448868d1ec4b4d7118859ed3f58",
+      "bytes": 8641
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/before.json/report.json",
+      "sha256": "fb8d713fb3e24b5aea403615baa1dca8d9ad2bc3cef2f5dfddd8f547debac20a",
+      "bytes": 8722
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/build-after-2.log",
+      "sha256": "0ea1da01f103f7e36300e3acdd3e4aecb6a8030a3f9e1be96b40b016214d1df0",
+      "bytes": 2232
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/build-after.log",
+      "sha256": "9c9c5e4aec49f042c6d412f042faa76a7d05c45c0cccbdb470147cfae62f9fea",
+      "bytes": 2232
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/build-before.log",
+      "sha256": "ee29c9986c45c527049e9afa3dd7b26b690babe4ea6771c42f0dff983498d9ff",
+      "bytes": 3472
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/png-comparison.json",
+      "sha256": "7144bbf0e8f18392abcf8d38fe7c566ac4ab51bfdfca765a78c2bb8b3e5c52fe",
+      "bytes": 422
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-after/book-f8fc402e-png/tex_001_128x128_fmt16E0.png",
+      "sha256": "ea870527e8e2a66eb639ee8c8a4ef7d78ac261eebd52c9f5c96ce1dfd0beef72",
+      "bytes": 2861
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-after-2/Bloom_body-3316bce7-png/tex_001_256x256_fmt29E3.png",
+      "sha256": "05998cbf6c66b5737d76070de9557d36feb65ad32bac2c216565c98a5cec80ae",
+      "bytes": 70452
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-after-2/Bloom_body-3316bce7-png/tex_002_64x64_fmt29E3.png",
+      "sha256": "f8c2535ea55618763948c586445a39539908c03f614e1f72c1c9fe9b1399f49f",
+      "bytes": 2936
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-after-2/book-f8fc402e-png/tex_001_128x128_fmt16E0.png",
+      "sha256": "ea870527e8e2a66eb639ee8c8a4ef7d78ac261eebd52c9f5c96ce1dfd0beef72",
+      "bytes": 2861
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-after-2/report.json",
+      "sha256": "a9f074a75e7266a2f7539587f8b05dbbe9b8ea35cc92c16c032e8f7d04eb97f4",
+      "bytes": 4117
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-before/Bloom_body-3316bce7-png/tex_001_256x256_fmt29E3.png",
+      "sha256": "05998cbf6c66b5737d76070de9557d36feb65ad32bac2c216565c98a5cec80ae",
+      "bytes": 70452
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-before/Bloom_body-3316bce7-png/tex_002_64x64_fmt29E3.png",
+      "sha256": "f8c2535ea55618763948c586445a39539908c03f614e1f72c1c9fe9b1399f49f",
+      "bytes": 2936
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-before/book-f8fc402e-png/tex_001_128x128_fmt16E0.png",
+      "sha256": "ea870527e8e2a66eb639ee8c8a4ef7d78ac261eebd52c9f5c96ce1dfd0beef72",
+      "bytes": 2861
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/preview-before/report.json",
+      "sha256": "7a324d8a1519668739af321af943f3105cd8a7be7f64fdcd73f8d411145de8d2",
+      "bytes": 885
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/SMOTextureTool.Core.dll",
+      "sha256": "769c18f567edc609bf8022fc165c684fa4a2dbe549fba18d0806ef8911f6ba0b",
+      "bytes": 47104
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/SMOTextureTool.FormatTests.dll",
+      "sha256": "2291544c0b3ae5197b63e546caf4d12ff52382d2d151938f652186ca2eba5dbc",
+      "bytes": 69632
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-header/SparkplugViewerNative.dll",
+      "sha256": "a9b7f280bf09679f424cbf13e1c6b6224044f2fa842b512884f98f9170ebcf76",
+      "bytes": 1121280
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/vmd-output/after.log",
+      "sha256": "1e5794ff8fb0503be1dfeacf1f17581faea091ad1b7501538f8160154bb42c61",
+      "bytes": 1546
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/vmd-output/before.log",
+      "sha256": "3ddce326bcd6e3d1ea819d4a8dca576a02bbed74d494b69cf87e38f444b4d2a7",
+      "bytes": 11300
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/vmd-output/converter.log",
+      "sha256": "abbaab19e8c2e5a5f696cfcbc57744a0925818ca1326d0711182a0611213d7f2",
+      "bytes": 5960
+    }
+  ]
+}

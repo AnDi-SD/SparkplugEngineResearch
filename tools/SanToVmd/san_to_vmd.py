@@ -30,6 +30,7 @@ import math  # Корни, синусы и другие операции для 
 from pathlib import Path  # Работа с папками и файлами.
 import struct  # Превращает байты файла в числа и обратно.
 import sys  # Код завершения программы и настройка Windows-консоли.
+import tempfile  # Создаёт отдельный временный файл для каждой операции записи.
 import sparkplug_native as native  # Только владение C++-объектами и вызовы общего ядра.
 
 
@@ -615,9 +616,11 @@ def write_vmd(path, clip, retargeter, model_name):
     previous = {}
     # Временный файл позволяет не оставлять наполовину записанный VMD при ошибке.
     # Готовый результат заменяется только после успешного расчёта всех кадров.
-    temporary = path.with_suffix(".vmd.tmp")
+    temporary = None
     try:
-        with temporary.open("wb") as stream:
+        with tempfile.NamedTemporaryFile(mode="wb", dir=path.parent,
+                prefix=path.name + ".", suffix=".tmp", delete=False) as stream:
+            temporary = Path(stream.name)
             # Заголовок: 30 байтов сигнатуры формата + 20 байтов имени модели.
             stream.write(b"Vocaloid Motion Data 0002".ljust(30, b"\0") + model)
             stream.write(struct.pack("<I", count * len(names)))
@@ -647,8 +650,8 @@ def write_vmd(path, clip, retargeter, model_name):
     finally:
         # Убираем только собственный временный файл. При ошибке старый готовый
         # VMD остаётся на месте: замена выше происходит после успешной записи.
-        if temporary.exists():
-            temporary.unlink()
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return count, len(names)
 
 
