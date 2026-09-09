@@ -1,0 +1,642 @@
+{
+  "kind": "tools-core-spatial-light-inspection-block",
+  "status": "verified-shared-inspection",
+  "cycle_block": 1,
+  "created_utc": "2026-09-09T17:16:00.948519+00:00",
+  "base_commit": "c99abcafeab2f727e90343d5bee1f0f225c89e14",
+  "viewer_commit": "363250fe6b6dc2e8741ae564665255dbe6c94896",
+  "shared_source_tree_at_native_build": "d1c1d04e0045e4ecd389d5b07bb0e8cb2240fae7",
+  "game_source_tree_at_native_build": "a3e6b5c16a77397fce83c20e38c705f6674124fe",
+  "sources": [
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "6A502C086F78EE8DEAB47BA36244377D54C80223F93E6E9356D0653B93467645"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "C8DEAB140FC0C81C42E3D5F4B28FEC713CF2E25A1999DB845CE440980F54727D"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.h",
+      "sha256": "728ED3F3768188189E97ECBD9ACF83B77C2344EBDACFB04DA0B03C6A0E778665"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/SpatialView.cpp",
+      "sha256": "09860AFD287F26903C56F22750DFBDF9122A9F0DFE4B2C6BA0B58F56BE2CDB89"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/LightInspection.h",
+      "sha256": "89A93B07252F169A7ADA2ED75C12D620BD982AAA73438866A13F7D6CF2A22F99"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/LightInspection.cpp",
+      "sha256": "764992A7E1E2EEB38F971B9C836FBC9C9211BAEE1B0B2A1EA356A1568A338AB6"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "24546C5AD7A1890109BA43CA4EF8582A78CBC8953DB93624CD42CBF47DF1FD23"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "B99D0CC852241C6400565297833B7E02B469BFEEE47DFE97E60FA698B8C252BB"
+    },
+    {
+      "path": "docs/research/tool-spatial-inspection-shared-core-2026-09-10.md",
+      "sha256": "590A2DF5C09BCB86E326575D86C03A7C0673803D7D2CDBC3EB0CFC1CA2114E74"
+    },
+    {
+      "path": "docs/research/tool-light-inspection-shared-core-2026-09-10.md",
+      "sha256": "C55EDD7DB845FCC33734C0577F62D5CA296DB1F7C2B594434A9541AC26F906EA"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-10-0700.md",
+      "sha256": "379FBA65016D5EF3A9E4944E9DEF05F288EBB4E9AF7223DF8EA47B7A93C431BC"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-0700.md",
+      "sha256": "CD4C359F6BA507FC8290F02524E518BBACCFA8FA152365A5D94081A6489D065C"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoBspNodeDecoder.cs",
+      "sha256": "3D8A9CF652DBCD79C9C5285D16F56E0C00F728057AA38632B7F588228A5E8816"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLightDataDecoder.cs",
+      "sha256": "99EC6962D52174A06F9E6794ADB4AAA5CC93BF3F98982BF4818A05DB3B242F07"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "EC227013B58A7D5FED8344A33EB0167CA8D5BC0F950349AA3A2040D16735FCDA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoOctreeNodeDecoder.cs",
+      "sha256": "AC20B9A16B126148534CA51EABD68F054CCB2498F730542EF2CEC83C188D650B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoPartitionNodeDecoder.cs",
+      "sha256": "EC465382EE77BD223DC8505CA8937EA31C822F59238C2DADBD0BBE890A2A10CA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoPartitionRenderableDecoder.cs",
+      "sha256": "3CE38D82BDC4E7A64F252F63465333EB80DF3515902C5BF32B38A286F797A772"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoPartitionSystemDecoder.cs",
+      "sha256": "A0976676EE3769C786477AC2449717C4AD5370C8B3D0BC1C92CB3C792E6B14DA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSerializedFieldInspector.cs",
+      "sha256": "57CCCA1EE997356583B6055273FD499EC46DCF0EDBA2DDC92028E863D3FDC196"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSpatialProjection.cs",
+      "sha256": "397F4A73F3E8B954212313E7D37737649F3677A63BA1E2F965285BFDE1CFA586"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoZoneDecoder.cs",
+      "sha256": "3D0B2E2377E60AFF2FCED90364E90687086CC82ECE2AF3C54F9A1B89C5758AF7"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoZonePortalDecoder.cs",
+      "sha256": "1373B62388E07CEF532282E36BA5B17B8B6E866FCD4BEC5A7187F9D4CF2BC983"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoZonePortalNodeDecoder.cs",
+      "sha256": "A42FE1B471F24FEC9DF239AB742D0B47F71C1CA5DF4B364F566A856F1958CFDE"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.BspNode.cs",
+      "sha256": "8EDC9503161FEE4671EAE268B70B39AB6D2EE4B733FFE26837827DF6C33DC99B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.OctreeNode.cs",
+      "sha256": "87C1D2CDC80F9208ED4928B6A995596A03694222F12796A55551E903FCCD1AE9"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.PartitionNode.cs",
+      "sha256": "B7B8C4D4BEA52548A2C3575B2A4044FC8CAF8B474749B4ADC9B6F18A9957E14A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.PartitionRenderable.cs",
+      "sha256": "6A4581B13D965346CD62211272DE47512049589A56BE94E199842906F58999B9"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.PartitionSystem.cs",
+      "sha256": "2CE6D7A71769E8E248979C2C73CD0C50FB367B5022C422329194105DF3FE3CD3"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.SpatialWire.cs",
+      "sha256": "1F7B0E91CC88FC2313E878487160C8E77123791597BB010EEB5FFE1A5EDD1464"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.Zone.cs",
+      "sha256": "462D5C0A2CD4CA978C30EE4EECCE1AC2C19A2013B0DBF45E653EF0662E65720C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.ZonePortal.cs",
+      "sha256": "7E3185EB720D84B564A439869C56493C300BFFD595D0F0BAEAD844EB90FEDD13"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.ZonePortalNode.cs",
+      "sha256": "563BE6D07A676FAC201A43C6F2A4FE72246E4EE723EDF8E0E4155DCAFA3CD9F3"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.cs",
+      "sha256": "49E0F15FDF136D92856AAAC851F88DABB8DDD361F42ED18C2C840C0DB6EC975C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "02B8571A525F872F151B2E42A844DD45AB61FDF79F33B0BCA8693563FAE6473B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoLightInspectionRegression.cs",
+      "sha256": "61F1339D034DF095AC61D36C837A5B5575F33A891AB0DD2B4C3E66638849F045"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoOctreeReaderRegression.cs",
+      "sha256": "B2223B6E71C241B70081CCCACC6F9BEC88886949D47E3B1B23DCB990A18CD03A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoSpatialInspectionRegression.cs",
+      "sha256": "C6421B6F9C38B2880BE82995B09B5F15C2333A8CBE897B9BD3ADA309B11C54BA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Light.cs",
+      "sha256": "F030F5B117BE1054C0D9948D3AC378B3B535DC4FD81951A36059D505BBED883C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Spatial.cs",
+      "sha256": "477611D6080E533FC832221273DDF24B4A34BFAE8CFD68C9F62E9DA1A3C8012C"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/abi-2.json",
+      "sha256": "7707509E0605A3E07A530F8434E02280E9AA33B8D0371C3020E0065E4ECA37CB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/Alfea01-snapshot-2.json",
+      "sha256": "17A4FFC0C29657F422D5A1DE7BCA9C66556DE1D2FA93A883D0E71FB9F8F87051"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/build-1.json",
+      "sha256": "BA6F3305BC6C4EB02F0B594772495CA3652FAB468072D782BA6AD8C1B6F4D545"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/build_cycle_0700.py",
+      "sha256": "AC24289B4A09DAAC6C86020CA48833CAA328DC109C78EC5736DBFCB821CA859F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/check_spatial_inspection.py",
+      "sha256": "17335697760E07AE21A089A709F6D516274C7ED88DD6060AEC81B38AE1A599F5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-empty-2.smo",
+      "sha256": "C685B9A5E88EABA5E2DA9D23C81DAFC2ECB6246A152697D091251125FB76BC2A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-empty-2.smo.json",
+      "sha256": "B5B36FFBBDFE52271A4A7C6278859956806DCBD9B370DFD3FEF9D9ACB9FE6865"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-empty.smo",
+      "sha256": "C685B9A5E88EABA5E2DA9D23C81DAFC2ECB6246A152697D091251125FB76BC2A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-empty.smo.json",
+      "sha256": "B5B36FFBBDFE52271A4A7C6278859956806DCBD9B370DFD3FEF9D9ACB9FE6865"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-raw-plane-2.smo",
+      "sha256": "DC423BB744EDCCAC3716EDBC5872C3ED3FA6D6C82A4DA3D964672C00513A42E7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-raw-plane-2.smo.json",
+      "sha256": "33A89FCCE240E4D8D05AF705913020B6833BE1AC73F7C8E32006866A7CE1ACA8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-values-2.smo",
+      "sha256": "4BCB9078C8CE017EA19E24688A19C6330DEC4E4528451C831EFFB10445791138"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-values-2.smo.json",
+      "sha256": "8BC8F9793E8C128BF72D6CBB93A3F5EEB3F685E47A00DABDA62E8E15A2ADED13"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-values.smo",
+      "sha256": "4BCB9078C8CE017EA19E24688A19C6330DEC4E4528451C831EFFB10445791138"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-bsp-values.smo.json",
+      "sha256": "8BC8F9793E8C128BF72D6CBB93A3F5EEB3F685E47A00DABDA62E8E15A2ADED13"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-octree-default-2.smo",
+      "sha256": "B91880547530B21810C7EE71A516DBF09F43CD88CCD4F339FF8935AD723138D1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-octree-default-2.smo.json",
+      "sha256": "380C750757071ABF4DB6B6BDBEB16837B9998C01D0F9D5D86752C147629F7030"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-octree-raw-pivot-2.smo",
+      "sha256": "6CB00E2F3D5EACAADB41BAC19A6ED607EB47D4974D65A058E2C0975DA0DF98A1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-octree-raw-pivot-2.smo.json",
+      "sha256": "86A0AB91D492A73E53CBB790841383F8EA23908F34D2416E92B3076171718860"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-empty-2.smo",
+      "sha256": "C4863A40B95AD3A8FFE7968F4563E1FF8C6100EAECBD70F054378B1CB693246F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-empty-2.smo.json",
+      "sha256": "8F1C42CF24E227F5377AE5D9B2BC414E0CBF75D5485BD08C395157C1024B1B46"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-empty.smo",
+      "sha256": "C4863A40B95AD3A8FFE7968F4563E1FF8C6100EAECBD70F054378B1CB693246F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-empty.smo.json",
+      "sha256": "8F1C42CF24E227F5377AE5D9B2BC414E0CBF75D5485BD08C395157C1024B1B46"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-values-2.smo",
+      "sha256": "DE8EC4C64D0D04F2BBA1EF71C2F91A62EC18D759494ADBB0FD36E2CF5D8E2A1D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-values-2.smo.json",
+      "sha256": "C5694E0F5A82ABD390331A347A043A2800896BE571973BE50AFBC0A9404F10FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-values.smo",
+      "sha256": "DE8EC4C64D0D04F2BBA1EF71C2F91A62EC18D759494ADBB0FD36E2CF5D8E2A1D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-partition-values.smo.json",
+      "sha256": "C5694E0F5A82ABD390331A347A043A2800896BE571973BE50AFBC0A9404F10FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-empty-2.smo",
+      "sha256": "8413E4C7957EB983AD4E3F4D9D4CF744D80D75F64C1758136BBDA35BE712EEFB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-empty-2.smo.json",
+      "sha256": "0F730BE0A359A5E0080DCB9EB72D89DE676BF77636257A1B061F7B6D56ECF4C1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-empty.smo",
+      "sha256": "8413E4C7957EB983AD4E3F4D9D4CF744D80D75F64C1758136BBDA35BE712EEFB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-empty.smo.json",
+      "sha256": "0F730BE0A359A5E0080DCB9EB72D89DE676BF77636257A1B061F7B6D56ECF4C1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-values-2.smo",
+      "sha256": "79953274F57F4EDA2640CF8F1A5F8E077245EA959B6ABFFFB181ECC0FDEDF9EB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-values-2.smo.json",
+      "sha256": "6D873B9507B019AD88C7C41FD29378C60FE39B96579508B219D70B5CE6C1369A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-payload-values.smo",
+      "sha256": "461CD5124CC66A6B05C83B15877960DD326BEEC14CC8103AF44810E432A9F96A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-empty-2.smo",
+      "sha256": "F7E2A3BCCB878198CB25E995C7F4086E389E0790FC8E4927C69CF082E3FCF65B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-empty-2.smo.json",
+      "sha256": "6DB912D1BA8F48A0255F032700A36AAF1B17C8B3E5A381A226F3F9AC3B8F1AA7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-empty.smo",
+      "sha256": "F7E2A3BCCB878198CB25E995C7F4086E389E0790FC8E4927C69CF082E3FCF65B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-empty.smo.json",
+      "sha256": "6DB912D1BA8F48A0255F032700A36AAF1B17C8B3E5A381A226F3F9AC3B8F1AA7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-empty-2.smo",
+      "sha256": "6A60A152EC01502D6B15698145F5133218A8A312375887B0BAEA64E44F864A84"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-empty-2.smo.json",
+      "sha256": "CBAAD94B61CB2084901E052581672C8E862E03D2F482C41E4D332BD5CD916AB3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-empty.smo",
+      "sha256": "6A60A152EC01502D6B15698145F5133218A8A312375887B0BAEA64E44F864A84"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-empty.smo.json",
+      "sha256": "CBAAD94B61CB2084901E052581672C8E862E03D2F482C41E4D332BD5CD916AB3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-values-2.smo",
+      "sha256": "5F4A083F52E0CC657BE2ACB6EF99ABB7A41812E8F358C9D7A4092C0D00F9ECBC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-values-2.smo.json",
+      "sha256": "98C4FABE7C82AD2A90E441D399F595AA64021CDEA0EEEDEA93C55811D9689D73"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-values.smo",
+      "sha256": "5F4A083F52E0CC657BE2ACB6EF99ABB7A41812E8F358C9D7A4092C0D00F9ECBC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-node-values.smo.json",
+      "sha256": "98C4FABE7C82AD2A90E441D399F595AA64021CDEA0EEEDEA93C55811D9689D73"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-values-2.smo",
+      "sha256": "BEA5F89699DE9D336667AC335FB0F12EAFE43F6F0C3CE0F8511F7EBB71234DB7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-values-2.smo.json",
+      "sha256": "20FB6A2F965B98D971812CCB0AB4E1A59041A3CC19E04716932DDABDC3E05128"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-values.smo",
+      "sha256": "BEA5F89699DE9D336667AC335FB0F12EAFE43F6F0C3CE0F8511F7EBB71234DB7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-portal-values.smo.json",
+      "sha256": "20FB6A2F965B98D971812CCB0AB4E1A59041A3CC19E04716932DDABDC3E05128"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-empty-2.smo",
+      "sha256": "08C99A441326D6F39A64D9C56F64AE7137F4E64ED5B90F524311D7E1D4F92B9B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-empty-2.smo.json",
+      "sha256": "21A71D75F49850602A75D2CBB689EED4DE4D60574ABDD97617EAD0B7F4AFF61A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-empty.smo",
+      "sha256": "08C99A441326D6F39A64D9C56F64AE7137F4E64ED5B90F524311D7E1D4F92B9B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-empty.smo.json",
+      "sha256": "21A71D75F49850602A75D2CBB689EED4DE4D60574ABDD97617EAD0B7F4AFF61A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-values-2.smo",
+      "sha256": "07D15D045D1C1D231AE31CA0F91D49A45C0C45F0E1343548245CC641A44DAA17"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-values-2.smo.json",
+      "sha256": "18E7076FE2D33A3DFECAF241173D062ED354106F1B488276E5F13639EEBBDEC5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-values.smo",
+      "sha256": "07D15D045D1C1D231AE31CA0F91D49A45C0C45F0E1343548245CC641A44DAA17"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-system-values.smo.json",
+      "sha256": "18E7076FE2D33A3DFECAF241173D062ED354106F1B488276E5F13639EEBBDEC5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-empty-2.smo",
+      "sha256": "FFA81073EAE8A7FBF61B20498A0DDEE89958E001DA320BBA3C21933D2BE3FDA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-empty-2.smo.json",
+      "sha256": "78269321DDB2AA6A6ECCD2FDBED5A4DF9F50C523FC2C43E8B680FC16ABDE1A8C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-empty.smo",
+      "sha256": "FFA81073EAE8A7FBF61B20498A0DDEE89958E001DA320BBA3C21933D2BE3FDA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-empty.smo.json",
+      "sha256": "78269321DDB2AA6A6ECCD2FDBED5A4DF9F50C523FC2C43E8B680FC16ABDE1A8C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-values-2.smo",
+      "sha256": "02428910F78E9CC7CFBFB74377B2C8A7142E456FDDA797B46C11D37B8F21305F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-values-2.smo.json",
+      "sha256": "BE9261AA4CEA2761CB6F1EA121A056A26100D6CE65104CD75DF48000296FDE4A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-values.smo",
+      "sha256": "02428910F78E9CC7CFBFB74377B2C8A7142E456FDDA797B46C11D37B8F21305F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/fixture-zone-values.smo.json",
+      "sha256": "BE9261AA4CEA2761CB6F1EA121A056A26100D6CE65104CD75DF48000296FDE4A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/Gardenia02-snapshot-2.json",
+      "sha256": "485B3B58C5B02637276083207151113FE0840EE0797C2E67F4DA76A99D25BEDC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/managed-1.json",
+      "sha256": "EDC9BBA3E4ACDF7ACB3F392DC3610E1527271F30C062FC0FF2C7994815006F76"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/native-1.log",
+      "sha256": "16CAF78FE513250CF0A5B71BF635D15E52D828E6892EF68AB6784CA885E47AFE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/spatial-inspection/native-ctest.log",
+      "sha256": "FC49341A22B9BADD3887A0B9C5C76D229AD0CB92986A82E7E8AB77B784106102"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/abi-1.json",
+      "sha256": "CD8610CDE2BA2BAF338F35EC4EE61F7CBDBCB8FBAC6465E03B0D4ADB5900E0F4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/abi-color-ff9ed6ff-1.json",
+      "sha256": "572C0287E8C70F147A577006CDF4FE1B260D64DB9487A8303C4BB1B6D0933ECC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/check_light_inspection.py",
+      "sha256": "DE3C643EE06C1D71C4246086714DDCF540EDEBBCDB1D6FD6862D101DBCCFE1A2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/managed-1.json",
+      "sha256": "4A059B34D10AEEDF073E11B932E330A436FF1819846C1DCDB39B1118C1F4278F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/managed-2.json",
+      "sha256": "4F3AEACE99E572CA9E572EB4DFC4C66438BA9351A84A7C084EF4AD7C0BF4DEF2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-color-ff9ed6ff-1.log",
+      "sha256": "22B53578EBC8527DB598F920AAC72BBDDCDC3F01406F13D0BFA54071BA360B13"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-default-1.log",
+      "sha256": "599DC83EC7760CCB30686402E681EF3770FDEA168A5C6A1ECB21325FC6A20F09"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-disabled-1.log",
+      "sha256": "2941C9F2CC402B3B533A48AA9571F485112C619C7DA44781CEB00789A0C5B72A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-raw-bits-1.log",
+      "sha256": "8ED52E50A8A5CF0555E3F8E36284F1FBAFA5A58B7C050B23DA8F893C9B98988D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-repeat-1.log",
+      "sha256": "9F76B30C61E5D5C0B67E523B183E599F05FD5EE704303A0FDB5B3CA0D27B791D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-unknown-1.log",
+      "sha256": "3FAF89DE56F90A57768903C2A18689D7851076D58C99FD627D7CAC722B5BB820"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/light-inspection/pc-values-1.log",
+      "sha256": "2C6CA5357C33243A2244E2418036534AFDFE0D1A048495B01E0C1C12E056EAC4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/build-1.json",
+      "sha256": "7C23848418FAB75C344B3C8F4614B9FAB15C86E0776AE112FBC9B4D5B4D52B7E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/build-2.json",
+      "sha256": "F475E5032B071CE59A597A28B1CB53E0B3961B697B677BC1EF7E984638983917"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/build-3.json",
+      "sha256": "656847E0C8396EEB1522A914C83B562DC7BC29CB48896D4CD4D27A58C1EE1614"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-1.json",
+      "sha256": "4FCDF4481B22516E80AF1544F5F06D9A0D7EF5BF634BDDDC5E105DEACC347DC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-1.log",
+      "sha256": "79D2F20EFED2E1F0C304E0D3642D34BEF7C430FC090FA8CCD8EFB382803552D4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-2.json",
+      "sha256": "F91644A46FDE886709CF5949D54D941F4907B21EDFA454A8A400077933097616"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-2.log",
+      "sha256": "5EADBF3F77A45D2E07C701963964FC13C4A65ECB000364F7B6654FDF7D6E33E6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-3.json",
+      "sha256": "8E30ABAF440F0B8370A640E3871B0AC0BFCA1BBA2F51AF9F7E310250E9D27796"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/format-tests-3.log",
+      "sha256": "8E5FCCCAC875285C9EA3EA631003AD5C11D3CA8587181CE62F34E8B20D58F842"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoExporter.FormatTests-1.log",
+      "sha256": "095F589BF26D428D5B23B5FA6B3173D2AC73EA71570F0E604D26FD04DFA478D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoExporter.FormatTests-2.log",
+      "sha256": "83D8DF7D1F66E360BC395686B9483B92C420D110DA3B8E3054EBFBE5DF045459"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoImporter.FormatTests-1.log",
+      "sha256": "EA9629E1F5EA596068359E78932F10F3F14902CF4E03556367C4FD920EA0DA47"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoImporter.FormatTests-2.log",
+      "sha256": "F66B671974F4C52532487A8E232BA86ED55ECED15D2B596E6FDE98623E9D2AEC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoLVLcreator.CoreTests-1.log",
+      "sha256": "7775F18F9D01B672BD605D75F26032BA96EB6FB3294C04D1F2F7EE3D9708CDAE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoLVLcreator.CoreTests-2.log",
+      "sha256": "3B00D7715323DC9A9339C94CF5296369BB87F2486FA0D1276D8ED6067EBF4478"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoViewer-1.log",
+      "sha256": "BBA6B4FC0A2C827D549E6C055BBE1429FDB10F7C4733BB05FCE9D11063259BCC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoViewer-2.log",
+      "sha256": "F256546C19F7CE09AB93207BD64BF9115DA155213387D33A289DAC7FBC7590D0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoViewer.FormatTests-1.log",
+      "sha256": "FCB8B89D7F8EBCF7877C86B4C7537DAEF0F45D8CD9D17AB3FA590F4439CFD112"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoViewer.FormatTests-2.log",
+      "sha256": "3E7EC04A3DA19F11367F7AAB72C8C8D7B410957EB0BC83ED0C46C9A406051B6C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/managed/SmoViewer.FormatTests-3.log",
+      "sha256": "B3D6E775A5BED06B08CA03117DBB99430E674F19202C64DA5DE6384D755216D9"
+    }
+  ],
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415"
+    }
+  ],
+  "native_dll_sha256": "A41ED2AF61956D1A36B5E34F527F2C732640AAB9DF47FDAC7C5E960E38015415",
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "original_spatial_capture": {
+    "path": "local-data/results/tools-core-cycle-20260909-1900/spatial-readers/original-readers.json",
+    "sha256": "23159B2302CFD169D418CCB73E7E907BFEA707918E5222B8389AFF09E29A1436"
+  },
+  "checks": {
+    "spatial_original_source_cases": 14,
+    "spatial_ABI": 5578,
+    "spatial_managed": 15076,
+    "spatial_objects_managed": 560,
+    "spatial_pristine_files": 2,
+    "spatial_pristine_objects": 7628,
+    "light_fresh_original_ABI": 6,
+    "light_additional_original_color": 1,
+    "light_ABI_guards": 9,
+    "light_managed": 48,
+    "FullLoader": 213,
+    "SpatialSerialization": 97,
+    "LightSerialization": 205,
+    "general_FormatTests": 647,
+    "consumer_builds": 5
+  },
+  "reconstruction_changes": "None in this block. Spatial and Light source states were already reconstructed; tools now directly project them. Separate next-block Sphere/Box research is not counted as implementation here.",
+  "limitations": [
+    "PC actual resource graph, not proven PS2 runtime.",
+    "Eight historical combined PC/PS2 Corpus commands explicitly paused before database mutation.",
+    "No Scene visibility, spatial writer or new GPU pass.",
+    "Unknown BSP plane remains null; unknown Octree pivot is an explicit inspector failure.",
+    "Light field-list transport retains original writer lossless-header limits; document/section inputs use original bytes.",
+    "Reader modules are not whole-application readiness. No full corpus sweep, release or publication."
+  ],
+  "source_normalization": "Viewer source line endings normalized to repository CRLF after semantic checks; no code semantics changed."
+}

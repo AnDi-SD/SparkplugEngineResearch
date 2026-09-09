@@ -698,6 +698,16 @@ SPV_API int spv_graph_navigation_json(void* handle,std::uint8_t* output,std::uin
         if(!output)return;
         require(capacity>=json.size(),"Navigation snapshot buffer is too small");std::memcpy(output,json.data(),json.size());});
 }
+SPV_API int spv_graph_spatial_json(void* handle,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept {
+    return guarded([&]{require(size,"Missing spatial snapshot size");*size=0;
+        require(output||!capacity,"Missing spatial snapshot buffer");
+        const auto& json=graphForView(handle).SpatialJSON();*size=static_cast<std::uint32_t>(json.size());
+        if(!output)return;
+        require(capacity>=json.size(),"Spatial snapshot buffer is too small");std::memcpy(output,json.data(),json.size());});
+}
+SPV_API int spv_light_fields_read(const std::uint8_t* bytes,std::uint32_t size,SpvLightFields* output) noexcept {
+    return guarded([&]{require(output,"Missing Light inspection output");*output=spvhost::ReadLightInspection(bytes,size);});
+}
 SPV_API int spv_graph_renderable(void* handle,std::uint32_t id,SpvGraphRenderable* output) noexcept {
     return guarded([&]{require(output,"Missing Renderable output");const auto& graph=graphForView(handle);const auto& value=graphResource<spRenderable>(graph,id);
         *output={graph.ID(value.GetMaterialForAnalysis().get()),graph.ID(value.GetFogForAnalysis().get()),value.IsAlphaSortEnabledForAnalysis()?1u:0u,value.GetPriorityForAnalysis()};});

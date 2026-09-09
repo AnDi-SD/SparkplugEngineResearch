@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "LightInspection.h"
 #ifdef _WIN32
 #define SPV_API extern "C" __declspec(dllexport)
 #else
@@ -94,6 +95,9 @@ struct SpvGraphOctree {std::uint32_t parent,children[8];SpvOctreeFields fields;}
 SPV_API int spv_octree_fields_read(const std::uint8_t*,std::uint32_t,SpvOctreeFields*) noexcept;
 SPV_API int spv_graph_octree(void*,std::uint32_t id,SpvGraphOctree*) noexcept;
 SPV_API int spv_graph_navigation_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
+SPV_API int spv_graph_spatial_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
+using SpvLightFields=spvhost::LightInspection;
+SPV_API int spv_light_fields_read(const std::uint8_t*,std::uint32_t,SpvLightFields*) noexcept;
 struct SpvLensFlareInfo {std::uint32_t elements,renderNode;float radius,speed;};
 struct SpvGraphRenderable {std::uint32_t material,fog,alpha,priority;};
 SPV_API int spv_graph_renderable(void*,std::uint32_t id,SpvGraphRenderable*) noexcept;
