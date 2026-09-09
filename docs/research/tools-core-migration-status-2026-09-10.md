@@ -31,10 +31,12 @@ passes, а однопроходный Darcy материал принадлеж�
   [общего host encoder](tool-container-writer-boundary-2026-09-10.md)
   ожидает решения пользователя; существующий общий producer меняет lossless
   контракт и не может быть молча подставлен вместо них.
-- **Входной graph:** source-less TextureData и непрочитанный cached
-  TextureData 1848 `marble` в Alfea01 остаются границами. Reader trace не
-  объявляет skipped payload прочитанным. Palette authoring требует успешной
-  полной загрузки и подтверждённого покрытия нужных диапазонов.
+- **Входной graph:** действительно пустой source-less TextureData остаётся
+  границей. Cached1848 `marble` в Alfea01 содержит полноценные pixels и
+  совпадает с ранее прочитанным695; независимый source inspector это подтвердил.
+  [Остаток1848 относится к authoring coverage](tool-reference-inspector-cached-texture-2026-09-10.md),
+  а не к отсутствующему pixel reader. Reader trace не объявляет skipped payload
+  прочитанным. Palette authoring требует подтверждённого покрытия нужных диапазонов.
 - **Память:** [временная копия файла удалена](tool-resource-graph-memory-2026-09-10.md).
   На выбранном Alfea02 пик уменьшился на 16,33%; пределы 64 МиБ и числа
   объектов сохранены. Поддержка файлов свыше 64 МиБ этим не доказана.

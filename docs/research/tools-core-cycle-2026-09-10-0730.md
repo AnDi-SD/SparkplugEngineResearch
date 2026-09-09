@@ -115,6 +115,14 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    Исправлено старое ошибочное описание влияния field6 в class dossier.
    Legacy book остаётся metadata-only: original bool-success без Init
    не является доказательством созданной текстуры; [граница](tool-legacy-texture-source-boundary-2026-09-10.md).
+   Checkpoints texture блока: root `e157c03`, Viewer `f4977e7`, TextureTool `e27c054`.
+10. [Инспектор ссылок](tool-reference-inspector-cached-texture-2026-09-10.md):
+    удалён ручной ID/size parser, исправлен отказ на допустимом NULL4 Font.
+    Тот же новый test DLL воспроизвёл отказ со старым Core и прошёл70 checks
+    с новым, включая10 sequence cases и20 настоящих Text/TextNode menu.
+    Native/UI не менялись. Cached1848 `marble` уточнён отдельно: bytes совпадают
+    с прочитанным695, обе копии успешно читает общий PC source inspector.
+    Остаток1848 — skipped authoring coverage, не недостающий texture loader.
 
 ## Новые границы и исправления
 
