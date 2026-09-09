@@ -42,7 +42,7 @@ readback/write. Guest отброшен, не возобновлялся; selecto
 Во всех пробах неизменны30s child, один worker и micro caps. Static verifier:
 9 точных byte anchors и5 decoded push/call mappings.
 
-## Что остаётся неизвестным
+## Граница первоначальной пробы
 
 BLENDOP171 и начальные texture argument states2/3/5/6 не получают forced writes
 в этом body или известных material/texture maps. Они остаются unknown; SDK
@@ -71,3 +71,13 @@ Evidence: [машиночитаемый отчёт](../../research/tools-core-re
 Локальные listing, probes и captures:
 `local-data/results/tools-core-cycle-20260910-0730/material-preview/render-state-boundary/`.
 Production, UI, общий cycle report и builds этим блоком не менялись.
+
+## Последующее уточнение
+
+[Actual device probe](tool-pc-device-state-reference-2026-09-10.md) получил
+render171=1 и stage0..7 args2/3/5/6=`[2,1,2,1]` сразу после original CreateDevice
+на RTX3070. Прежняя unknown-граница сузилась: числовые значения наблюдались,
+но их сохранность до `004BD58C` проверяется отдельно. Также установлено,
+что холодный selector содержит конечный цикл более100k инструкций: прежняя
+остановка не доказывает недостающую инициализацию среды. Первоначальные
+неуспешные captures и их пределы сохранены без изменений.

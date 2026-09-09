@@ -1,0 +1,448 @@
+{
+  "scope": "Real x86 D3D9 on this host after original mapper/device-creation slices with declared windowed options. No shipped-options, full-startup, selector, later-state-init, pixels or OpenGL equivalence claim.",
+  "pc_sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "calls": [
+    {
+      "entry": "0060FBB0",
+      "end_ip": "32000000",
+      "instructions": 2,
+      "limits": {
+        "profile": "micro",
+        "instructionLimit": 100000,
+        "timeoutUs": 2000000
+      }
+    },
+    {
+      "entry": "004BD050",
+      "end_ip": "004BD284",
+      "instructions": 63,
+      "limits": {
+        "profile": "micro",
+        "instructionLimit": 100000,
+        "timeoutUs": 2000000
+      }
+    },
+    {
+      "entry": "004BCCF0",
+      "end_ip": "004BCE3F",
+      "instructions": 120,
+      "limits": {
+        "profile": "micro",
+        "instructionLimit": 100000,
+        "timeoutUs": 2000000
+      }
+    }
+  ],
+  "render_state171": {
+    "hresult": "00000000",
+    "value": 1
+  },
+  "stage_arguments": [
+    {
+      "stage": 0,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 0,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 0,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 0,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 1,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 1,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 1,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 1,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 2,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 2,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 2,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 2,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 3,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 3,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 3,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 3,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 4,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 4,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 4,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 4,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 5,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 5,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 5,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 5,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 6,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 6,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 6,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 6,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 7,
+      "state": 2,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 7,
+      "state": 3,
+      "hresult": "00000000",
+      "value": 1
+    },
+    {
+      "stage": 7,
+      "state": 5,
+      "hresult": "00000000",
+      "value": 2
+    },
+    {
+      "stage": 7,
+      "state": 6,
+      "hresult": "00000000",
+      "value": 1
+    }
+  ],
+  "declared_options": {
+    "width": 64,
+    "height": 64,
+    "format_selector": 2,
+    "depth_selector": 1,
+    "windowed_byte": 1,
+    "flags": 4,
+    "host_hwnd": 14288660,
+    "last_word": 0,
+    "provenance": "Explicit research windowed input, not shipped game defaults"
+  },
+  "mapped_present_words": [
+    64,
+    64,
+    22,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    80,
+    0,
+    0,
+    0
+  ],
+  "seconds": 2.8338477999932365,
+  "memory": {
+    "python_peak_ws": 148463616,
+    "worker_peak_ws": 31576064,
+    "sum_individual_peaks_upper_bound": 180039680
+  },
+  "cleanup": {
+    "device_release_result": 0,
+    "d3d_release_result": 0,
+    "window_destroyed": 1,
+    "worker_exit_code": 0
+  },
+  "limits": {
+    "instructions": 100000,
+    "guest_microseconds": 2000000,
+    "process_seconds": 30,
+    "serial_workers": 1
+  },
+  "same_helper_bytes_across_contexts": true,
+  "original_unchanged": true,
+  "intervening_startup_calls_proven": {
+    "scope": "Successful fresh null old-owner, original logger callback and allocator hooks; static callgraph plus exact CPU slices, not a second GPU readback",
+    "state_setting_calls": 0,
+    "device_calls": [
+      "CreateIndexBuffer"
+    ],
+    "cpu_instructions": [
+      3229,
+      1612,
+      35,
+      19
+    ],
+    "internal_seams": 0,
+    "unknown": [
+      "arbitrary custom callbacks",
+      "reused auxiliary-owner cleanup",
+      "shipped startup options",
+      "default material C9C0"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/com_worker.cpp",
+      "sha256": "7f2479ec1f9f5f994e397a6218df97d7de6889ea6821e5130d00e8ec11c40c42",
+      "bytes": 7509
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/com_worker.exe",
+      "sha256": "7e789922127fca5f6088fc6196c76cb9938328f07902eb73607247a3661bc19a",
+      "bytes": 103424
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/probe_device.py",
+      "sha256": "d384fd7c706197f98e5b1bb5e578f56df94906b83546b7d49d2acf47b9c493f3",
+      "bytes": 14409
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/report.json",
+      "sha256": "7037422f8f1fa721dbb2d8110712e58546b8195ee02fdf46a434353696dce9c6",
+      "bytes": 4521
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/diagnose_environment.py",
+      "sha256": "f4019f45f1409466ef21c5eb85e24f20d2e39b967f8345b8d88a53d37eebb5b4",
+      "bytes": 5952
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/environment-diagnostic.json",
+      "sha256": "5fe5f6fe16699401695f773e78a1b011a4244ea29fd0040041db85e995f3d834",
+      "bytes": 5458
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference/static-metadata.json",
+      "sha256": "b5d80cbdaac8ed8ff928edc759b0108b07807fd1499a2e7da0bdd2c6c1f47e75",
+      "bytes": 800
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/com_worker.cpp",
+      "sha256": "7f2479ec1f9f5f994e397a6218df97d7de6889ea6821e5130d00e8ec11c40c42",
+      "bytes": 7509
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/com_worker.exe",
+      "sha256": "7e789922127fca5f6088fc6196c76cb9938328f07902eb73607247a3661bc19a",
+      "bytes": 103424
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/probe_device.py",
+      "sha256": "d384fd7c706197f98e5b1bb5e578f56df94906b83546b7d49d2acf47b9c493f3",
+      "bytes": 14409
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/report.json",
+      "sha256": "788271cc7bfb04eea454621d7cad750599bfbb26ebbe836923f6e548f39b8f3d",
+      "bytes": 16949
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/diagnose_environment.py",
+      "sha256": "f4019f45f1409466ef21c5eb85e24f20d2e39b967f8345b8d88a53d37eebb5b4",
+      "bytes": 5952
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-reference-unrestricted/environment-diagnostic.json",
+      "sha256": "d578767a5486036b073c2dcaaec672956969667b10eb0da1f87eedd29d7d255e",
+      "bytes": 5468
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/selector-dependency/inspect_selector_entry.py",
+      "sha256": "8a8eadcd722414eab750f203a24371ee33969b8568d55a96ffe7c18270a00caf",
+      "bytes": 2713
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/selector-dependency/entry-observation.json",
+      "sha256": "709e2d3fdaa5e74b420347ac207ebaa77e23e094c6b623367f4bbcaba218943e",
+      "bytes": 4003
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/selector-dependency/probe_selector_last_iteration.py",
+      "sha256": "88025648a5df16bb4519859f6ba273c6c3d3822b266c02e1d0e710618b22d67b",
+      "bytes": 2518
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/selector-dependency/last-iteration-observation.json",
+      "sha256": "1a166d0d0d77a41d1811c3bf472b622a81f1e021741a52c1e36a5fb4cb268a2b",
+      "bytes": 948
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/selector-dependency/notes.md",
+      "sha256": "9a53d0b21e52d279532db29fb3fe3f78772274e92f68c98af53955aa1844e43d",
+      "bytes": 3380
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/allocator-observation.json",
+      "sha256": "3515167c684d407e08028b8f1c5ad7131a11718c7d621c1492f4379538c4ade7",
+      "bytes": 4657
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/allocator-prefix-trace.txt",
+      "sha256": "9f6f40209d480bc2e13d557bd7eafd42dfe6931cf133cd96d0ea62b9f4464f7e",
+      "bytes": 1188
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/allocator-spans.txt",
+      "sha256": "aeb70f435290fc71bc7ca99bb528b6fe26ec90512d004a235ec23561dc384f26",
+      "bytes": 1681
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/free-prefix-trace.txt",
+      "sha256": "1a0984c4a1484cfd0e11bcd03cbf8e72b56abcfb67a0f5a24011b8bd36ee3a8a",
+      "bytes": 674
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/index-constructor-trace.txt",
+      "sha256": "4bbecfb968c987069ee0c9d49755e19c1ae9228e5274ffb1cbaedb8fc4c317e5",
+      "bytes": 71978
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/inspect_allocator.py",
+      "sha256": "8c2f8ab4e30bcb51fff4c0f154d3522c2aefcbf92673137fea30d9b4631b223f",
+      "bytes": 2696
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/inspect_intervening.py",
+      "sha256": "08f05a23884f27aa1b31c900070af815baa1536cb38053a438bba16d3be962b9",
+      "bytes": 6262
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/logger-prefix-trace.txt",
+      "sha256": "8e80c417032ac2156417b4a3926e551d221d37162c442550852789b64ce70d00",
+      "bytes": 42560
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/notes.md",
+      "sha256": "4c7ec94de3e867cefa86c50c0074e4f28a7abf64124b5609ccd885658b5765b0",
+      "bytes": 5039
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/original-spans.txt",
+      "sha256": "9916a837b75a6d0e435d608c38d8fc03b455c43eb99c42b7c18bdcc2be699b3f",
+      "bytes": 10081
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/device-intervening/static-and-cpu-observation.json",
+      "sha256": "0acbcf206673fc9ebd794b62e3b280a91dbd25d4c18a89156036bd8c1fd74886",
+      "bytes": 131822
+    }
+  ]
+}

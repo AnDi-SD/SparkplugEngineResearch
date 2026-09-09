@@ -172,9 +172,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   его blend/depth/default границы исследуются точечно.
   [Начальные renderer states](tool-pc-renderer-startup-states-2026-09-10.md):
   original tail подтвердил пять desired states в двух exact-slice случаях.
-  Полный state-init остановлен на protected selector; BLENDOP171 и начальные
-  texture-stage args остаются unknown. Actual CreateDevice-цепочка найдена,
-  но не заменяет наблюдение этих значений. Multipass пока не подключён.
+  Полный state-init остановлен на protected selector. Последующая адресная
+  [проба actual device](tool-pc-device-state-reference-2026-09-10.md) получила
+  BLENDOP171=1 и32 начальных texture-stage args за2,8с/~172МиБ. Начальный
+  NOTAVAILABLE оказался зависим от restricted token песочницы; идентичный
+  разрешённый helper вне неё прошёл. Холодный selector имеет конечный цикл
+  более100k инструкций, а не доказанную недостающую среду. Сохранность новых
+  states до настройки материала доказана отдельным callgraph audit для
+  fresh/default callbacks. Следующий blocker — actual default materialC9C0
+  и shader/light inputs. Multipass не подключён.
 - Публикация Viewer остановлена автоматической проверкой дважды. Владелец
   `AnDi-SD` и admin/push права подтверждены read-only GitHub API; origin публичный.
   Проверка требует отдельного согласия на 47 commits до `00407c3` в
