@@ -276,3 +276,12 @@ managed67 и отдельный region-order test, пять builds passed. Дв�
 и unsupported whole graphs остаются открыты; исторические 1745 не пересчитаны
 и не заявлены как новое покрытие. Game source не менялся.
 Досье: `docs/research/tool-particle-reader-shared-core-2026-09-09.md`.
+
+### Блок 21: исходящие связи Occlusion edges
+
+PS2 counterpart помог найти readable PC4705A0. Метод перенесён в actual class;
+12 original/source states/results совпали, включая рекурсию, epsilon, порядок
+ссылок и partial-failure→repeat-success. Вся original память освобождена,
+max arena57168. OcclusionTopology63/FullLoader213 passed. C ABI/C# не менялись;
+full Init и новые уровни не заявлены. Protected capped entries не повторялись.
+Досье: `docs/research/tool-occlusion-connectivity-shared-core-2026-09-09.md`.

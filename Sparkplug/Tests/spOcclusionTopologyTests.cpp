@@ -14,7 +14,24 @@ bool Capture(const std::string& mode,bool emit)
     std::vector<Volume::PlaneForAnalysis> planes{{0,0,1,0},{0,0,1,7}};
     std::vector<Volume::PreparedEdgeForAnalysis> input{{0,1,0,{}},{1,2,1,{}},{2,3,1,{}}};
     int entry=0x46e820;
-    if(mode.rfind("convex:",0)==0){planes={{0,1,0,0},{0,0,std::stof(mode.substr(7)),0}};input={{0,1,0,1}};entry=0x46d670;}
+    if(mode.rfind("connect:",0)==0)
+    {
+        points={{0,0,0},{1,0,0},{1,1,0},{1,-1,0},{2,0,0},{1.0005F,0,0},{1.002F,0,0}};
+        planes={{0,0,1,0},{0,0,1,0}};entry=0x4705a0;input={{0,1,0,{}}};
+        if(mode=="connect:turn")input.push_back({1,2,0,{}});
+        else if(mode=="connect:concave")input.push_back({1,3,0,{}});
+        else if(mode=="connect:collinear")input.push_back({1,4,0,{}});
+        else if(mode=="connect:cycle"){input.push_back({1,2,0,{}});input.push_back({2,0,0,{}});}
+        else if(mode=="connect:reverse")input.push_back({1,0,0,{}});
+        else if(mode=="connect:internal"){input[0].opposite=1;input.push_back({1,3,0,{}});}
+        else if(mode=="connect:zero")input.push_back({1,1,0,{}});
+        else if(mode=="connect:tiny")input.push_back({1,5,0,{}});
+        else if(mode=="connect:near")input.push_back({5,2,0,{}});
+        else if(mode=="connect:far")input.push_back({6,2,0,{}});
+        else if(mode=="connect:partial"){input.push_back({1,2,0,{}});input.push_back({1,3,0,{}});}
+        else Check(mode=="connect:open","known connection capture");
+    }
+    else if(mode.rfind("convex:",0)==0){planes={{0,1,0,0},{0,0,std::stof(mode.substr(7)),0}};input={{0,1,0,1}};entry=0x46d670;}
     else if(mode.rfind("link:",0)==0){input={{0,1,0,{}},{1,0,1,{}}};entry=0x46e1a0;
         if(mode=="link:three")input.push_back({1,0,1,{}});
         if(mode=="link:concave")planes={{0,1,0,0},{0,0,-1,0}};}
@@ -33,6 +50,7 @@ bool Capture(const std::string& mode,bool emit)
         case 0x46e1a0:result=object.LinkOppositeEdgesForAnalysis();break;
         case 0x46eb10:result=object.RemoveCoplanarEdgesForAnalysis();break;
         case 0x46e3b0:result=object.CheckPlanarityForAnalysis();break;
+        case 0x4705a0:result=object.ConnectOutgoingEdgesForAnalysis(*object.GetEdgesForAnalysis()[0]);break;
         default:result=object.MergeCollinearEdgesForAnalysis();}
     if(emit)
     {
@@ -49,7 +67,19 @@ bool Capture(const std::string& mode,bool emit)
         std::cout<<"],\"deleted_edges\":[";comma=false;
         for(std::size_t i=0;i<before.size();++i)if(std::none_of(object.GetEdgesForAnalysis().begin(),object.GetEdgesForAnalysis().end(),[&](const auto& edge){return edge.get()==before[i];}))
         {if(comma)std::cout<<',';comma=true;std::cout<<i;}
-        std::cout<<"]}\n";
+        std::cout<<"]";
+        if(entry==0x4705a0)
+        {
+            std::cout<<",\"outgoing\":[";comma=false;
+            for(const auto& edge:object.GetEdgesForAnalysis())
+            {
+                if(comma)std::cout<<',';comma=true;std::cout<<'[';bool inner=false;
+                for(const auto* next:edge->outgoing){if(inner)std::cout<<',';inner=true;std::cout<<(std::find(before.begin(),before.end(),next)-before.begin());}
+                std::cout<<']';
+            }
+            std::cout<<"],\"repeat_result\":"<<object.ConnectOutgoingEdgesForAnalysis(*object.GetEdgesForAnalysis()[0]);
+        }
+        std::cout<<"}\n";
     }
     return result;
 }
@@ -62,6 +92,10 @@ int main(int argc,char** argv){try{
     for(const auto* mode:{"convex:0","convex:1","link:two","link:three","remove:distance","remove:normal","planar:same","planar:near","planar:closed","merge:chain","merge:turn","merge:zero"})
         Check(Capture(mode,false),"original positive geometry leaf");
     for(const auto* mode:{"convex:-1","link:concave","planar:far"})Check(!Capture(mode,false),"original rejecting leaf");
+    for(const auto* mode:{"open","turn","cycle","reverse","internal","zero","tiny","near","far"})
+        Check(Capture(std::string("connect:")+mode,false),"original outgoing graph acceptance");
+    for(const auto* mode:{"concave","collinear","partial"})
+        Check(!Capture(std::string("connect:")+mode,false),"original outgoing graph rejection");
     Check(!object.SetPreparedTopologyForAnalysis({{0,0,0}},{{0,0,1,0}},{{0,1,0,{}}},1,0),"invalid prepared pointer index");
     Check(object.SetPreparedTopologyForAnalysis({{0,0,0},{1,0,0}},{{0,0,1,0}},{{0,1,0,{}}},1,1),"clone source owns prepared topology");
     object.SetPositionForAnalysis({1,2,3});spCloneManager clones;auto clone=clones.Clone(object);

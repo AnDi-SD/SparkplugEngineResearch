@@ -1,7 +1,7 @@
 #pragma once
 
 // Original TU is proven by PC 006E8D14. This is the shared, partial class:
-// five readable geometry methods, not the still unresolved full Init/reader.
+// readable geometry methods, not the still unresolved full Init/reader.
 #include "spNode.h"
 #include <optional>
 
@@ -48,6 +48,7 @@ public:
     bool LinkOppositeEdgesForAnalysis();
     bool RemoveCoplanarEdgesForAnalysis();
     bool CheckPlanarityForAnalysis();
+    bool ConnectOutgoingEdgesForAnalysis(EdgeForAnalysis&);
     [[nodiscard]] const auto& GetEdgesForAnalysis() const noexcept{return edges_;}
     [[nodiscard]] const auto& GetFacesForAnalysis() const noexcept{return faces_;}
     [[nodiscard]] const auto& GetPointsForAnalysis() const noexcept{return points_;}

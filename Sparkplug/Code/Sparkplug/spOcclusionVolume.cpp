@@ -111,4 +111,32 @@ bool spOcclusionVolume::CheckPlanarityForAnalysis()
         if(!EqualComponents<4>(faces_[i].plane.data(),faces_[0].plane.data()))return false;
     planar_=1;return true;
 }
+bool spOcclusionVolume::ConnectOutgoingEdgesForAnalysis(EdgeForAnalysis& edge)
+{
+    // PC4705A0 / PS2 1CAF90. A nonempty list is the original visitation
+    // marker, including a partially appended list left by an earlier failure.
+    if(!edge.outgoing.empty())return true;
+    for(const auto& candidate:edges_)
+    {
+        if(!EqualComponents<3>(candidate->start->data(),edge.end->data())||
+            EqualComponents<3>(candidate->end->data(),candidate->start->data()))continue;
+        Vector3 first{},second{};
+        for(std::size_t k=0;k<3;++k){first[k]=(*edge.end)[k]-(*edge.start)[k];second[k]=(*candidate->end)[k]-(*candidate->start)[k];}
+        evidence::pc::node_math::Normalize(first);evidence::pc::node_math::Normalize(second);
+        const double dot=(double(second[2])*first[2]+double(second[1])*first[1])+double(second[0])*first[0];
+        if(std::abs(dot-1.)<=double(Epsilon))return false;
+        if(!edge.opposite)
+        {
+            const auto& normal=edge.own->plane;
+            // Original rounds cross X/Y to float temporaries; Z remains x87.
+            const float x=static_cast<float>(double(first[1])*normal[2]-double(normal[1])*first[2]);
+            const float y=static_cast<float>(double(first[2])*normal[0]-double(normal[2])*first[0]);
+            const double z=double(first[0])*normal[1]-double(first[1])*normal[0];
+            if((z*second[2]+double(y)*second[1])+double(x)*second[0]>double(Epsilon))return false;
+        }
+        edge.outgoing.push_back(candidate.get());
+    }
+    for(auto* next:edge.outgoing)if(!ConnectOutgoingEdgesForAnalysis(*next))return false;
+    return true; // a dead end is accepted by this leaf, not proof of full Init
+}
 }

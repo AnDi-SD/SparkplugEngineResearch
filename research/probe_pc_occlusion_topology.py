@@ -37,7 +37,18 @@ def main(mode):
     planes=[(0.,0.,1.,0.),(0.,0.,1.,7.)]
     specs=[(0,1,0,-1),(1,2,1,-1),(2,3,1,-1)]
     entry=0x46e820
-    if mode.startswith('convex'):
+    if mode.startswith('connect:'):
+        points=[(0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(1.,-1.,0.),(2.,0.,0.),(1.0005,0.,0.),(1.002,0.,0.)]
+        planes=[(0.,0.,1.,0.),(0.,0.,1.,0.)];entry=0x4705a0
+        variants={
+            'open':[(0,1,0,-1)],'turn':[(0,1,0,-1),(1,2,0,-1)],
+            'concave':[(0,1,0,-1),(1,3,0,-1)],'collinear':[(0,1,0,-1),(1,4,0,-1)],
+            'cycle':[(0,1,0,-1),(1,2,0,-1),(2,0,0,-1)],'reverse':[(0,1,0,-1),(1,0,0,-1)],
+            'internal':[(0,1,0,1),(1,3,0,-1)],'zero':[(0,1,0,-1),(1,1,0,-1)],
+            'tiny':[(0,1,0,-1),(1,5,0,-1)],'near':[(0,1,0,-1),(5,2,0,-1)],
+            'far':[(0,1,0,-1),(6,2,0,-1)],'partial':[(0,1,0,-1),(1,2,0,-1),(1,3,0,-1)]}
+        specs=variants[mode.split(':')[1]]
+    elif mode.startswith('convex'):
         planes=[(0.,1.,0.,0.),(0.,0.,float(mode.split(':')[1]),0.)]
         specs=[(0,1,0,1)];entry=0x46d670
     elif mode.startswith('link'):
@@ -67,7 +78,7 @@ def main(mode):
         p.mu.mem_write(edge+0x24,b'\1')
     p.put_uint(obj+0xd4,0 if mode=='planar:closed' else len(specs))
     p.mu.mem_write(obj+0x160,b'\x7f') # declared prior state; failure must preserve it.
-    result=f.call(entry,this=obj,args=(edges[0],) if mode.startswith('convex') else ())&255
+    result=f.call(entry,this=obj,args=(edges[0],) if mode.startswith(('convex','connect:')) else ())&255
     out_edges=[]
     for at in range(p.uint(obj+0xdc),p.uint(obj+0xe0),4):
         edge=p.uint(at)
@@ -75,6 +86,9 @@ def main(mode):
             'own':(p.uint(edge+12)-faces)//32,'opposite':(p.uint(edge+8)-faces)//32 if p.uint(edge+8) else -1,'border':bytes(p.mu.mem_read(edge+0x24,1))[0]})
     report={'mode':mode,'entry':hex(entry),'result':result,'border_count':p.uint(obj+0xd4),'planar':bytes(p.mu.mem_read(obj+0x160,1))[0],
         'edges':out_edges,'deleted_edges':[i for i,edge in enumerate(edges) if edge in f.freed]}
+    if mode.startswith('connect:'):
+        report['outgoing']=[[edges.index(p.uint(at)) for at in range(p.uint(edge+0x14),p.uint(edge+0x18),4)] for edge in edges]
+        report['repeat_result']=f.call(entry,this=obj,args=(edges[0],))&255
     cleanup(f,[obj]);report['all_native_allocations_freed']=set(f.allocations)==set(f.freed);report['arena_bytes']=p.allocated
     print('OCCLUSION_TOPOLOGY_CAPTURE',json.dumps(report),flush=True);return 0
 

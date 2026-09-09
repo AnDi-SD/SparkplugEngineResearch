@@ -209,3 +209,10 @@ Native46/213, ABI48/5guards, managed67 плюс отдельный member-order 
 старая test forward reference исправлена без изменения игрового reader.
 Looping runtime и rendering открыты, Corpus1745 остаётся историческим.
 Досье: `docs/research/tool-particle-reader-shared-core-2026-09-09.md`.
+
+Блок21: readable PC4705A0 подтверждён после PS2 counterpart1CAF90.
+Actual outgoing-edge method,12 original/source matches с повторным вызовом.
+Partial failure сохраняет ссылки; повторный вызов тогда возвращаетtrue.
+Dead end leaf допускает; это не validation полного Init. Native63/213,
+все guest allocations freed,max57168. C ABI/C# не менялись, новые уровни
+не заявлены. Досье: `tool-occlusion-connectivity-shared-core-2026-09-09.md`.
