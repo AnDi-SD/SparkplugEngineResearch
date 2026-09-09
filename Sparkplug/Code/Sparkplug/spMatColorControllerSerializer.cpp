@@ -50,16 +50,26 @@ namespace sparkplug::reconstruction
         {
             if(field->IsTerminator())return true;
             if(field->fieldID!=0){if(!cursor.Skip())return cursor.Fail("Cannot skip material color field");continue;}
-            const auto end=field->dataStreamPosition+field->payloadSize;spColorFuncEvalSerializer colorCodec;spFunctionEvalSerializer scalarCodec;
-            for(auto& color:controller->GetColorsForAnalysis())
-            {
-                std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return cursor.Fail("Missing packed ColorFunc section");
-                if(!colorCodec.ReadColorFieldsForAnalysis(context,source,end-pos,color,false,error))return false;
-            }
-            std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return cursor.Fail("Missing packed alpha Function section");
-            if(!scalarCodec.ReadFunctionFieldsForAnalysis(context,source,end-pos,controller->GetAlphaForAnalysis(),true,error))return false;
+            if(!ReadEvaluatorsForAnalysis(context,source,field->payloadSize,
+                controller->GetColorsForAnalysis(),controller->GetAlphaForAnalysis(),error))return false;
         }
         return false;
+    }
+    bool spMatColorControllerSerializer::ReadEvaluatorsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t size,std::array<spColorFuncEval,4>& colors,spFunctionEval& alpha,std::string* error)
+    {
+        const auto fail=[&](const char* message){context.failed=true;if(error)*error=message;return false;};
+        std::uint32_t start=0;
+        if(!source.GetCurrentPosition(start)||std::uint64_t(start)+size>0xffffffffu)
+            return fail("Packed material evaluators exceed stream positions");
+        const auto end=start+size;spColorFuncEvalSerializer colorCodec;spFunctionEvalSerializer scalarCodec;
+        for(auto& color:colors)
+        {
+            std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return fail("Missing packed ColorFunc section");
+            if(!colorCodec.ReadColorFieldsForAnalysis(context,source,end-pos,color,false,error))return false;
+        }
+        std::uint32_t pos=0;if(!source.GetCurrentPosition(pos)||pos>=end)return fail("Missing packed alpha Function section");
+        return scalarCodec.ReadFunctionFieldsForAnalysis(context,source,end-pos,alpha,true,error);
     }
     bool spMatColorControllerSerializer::WritePayloadForAnalysis(spStream& output,const spBaseObject& object,std::string* error) const
     {

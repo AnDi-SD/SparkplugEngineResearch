@@ -45,3 +45,10 @@ inline original graph прошли. C++ Controller488/Material554/FullLoader213;
 Старые BloomX tests исправлены по реальным связям и исходным opaque BGRA bytes.
 Это перенос чтения и индексатора; looping clock/UI bindings ещё не мигрированы.
 Досье: `docs/research/tool-animated-texture-reader-shared-core-2026-09-09.md`.
+
+Блок5: UV/MaterialColor field readers используют общие Trans/Color/Function
+serializers.7 свежих original scalar-state captures и4 guards совпали;
+UV386/Color118/MaterialColor225/FullLoader213 прошли.5 выборочных SMO:
+750/748/802/937/36350 assertions;3 consumer builds0 warnings/errors.
+Исправлена C# подстановка scale defaults удалением дублирующего decoder.
+Досье: `docs/research/tool-material-functions-shared-core-2026-09-09.md`.

@@ -136,6 +136,14 @@ SPV_API int spv_anim_texture_info(void*,SpvAnimTextureInfo*) noexcept;
 SPV_API int spv_anim_texture_frames(void*,SpvAnimTextureFrame*,std::uint32_t) noexcept;
 // Unwrapped track time: original end-time key selection, not a looping clock.
 SPV_API int spv_anim_texture_index(void*,float,std::int32_t*) noexcept;
+struct SpvFunctionInfo {std::uint32_t type;float frequency,amplitude,xOffset,yOffset,pitch;};
+struct SpvColorFunctionInfo {std::uint32_t first,second;SpvFunctionInfo function;};
+struct SpvUvFunctions {SpvFunctionInfo functions[7];float pivot[3],axis[3];};
+struct SpvColorFunctions {SpvColorFunctionInfo colors[4];SpvFunctionInfo alpha;};
+// Field bodies consumed by the original nested serializers, without controller
+// creation, a material binding, animation-manager registration or evaluation.
+SPV_API int spv_uv_functions_read(const std::uint8_t*,std::uint32_t,SpvUvFunctions*) noexcept;
+SPV_API int spv_color_functions_read(const std::uint8_t*,std::uint32_t,SpvColorFunctions*) noexcept;
 // Original field1/2 assignments with fresh constructor defaults; no reference
 // resolution, affine validation or relation between matrices is implied.
 SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,

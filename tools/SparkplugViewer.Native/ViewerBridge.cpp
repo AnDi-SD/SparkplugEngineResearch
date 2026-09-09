@@ -17,6 +17,9 @@
 #include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/Sparkplug/spAnimTexController.h"
 #include "Code/Sparkplug/spAnimTexControllerSerializer.h"
+#include "Code/Sparkplug/spTransFunctionEval.h"
+#include "Code/Sparkplug/spTransFunctionEvalSerializer.h"
+#include "Code/Sparkplug/spMatColorControllerSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
@@ -49,6 +52,10 @@ thread_local char lastError[2048]{};
 void require(bool value, const char* message) { if(!value) throw std::runtime_error(message); }
 SpvMaterialReference referenceForView(const std::optional<sparkplug::evidence::pc::serialization::InspectedReference>& value) {
     return value?SpvMaterialReference{value->offset,value->size}:SpvMaterialReference{};
+}
+SpvFunctionInfo functionForView(const spFunctionEval& value) {
+    const auto& state=value.GetStateForAnalysis();
+    return {state.functionType,state.frequency,state.amplitude,state.xOffset,state.yOffset,state.pitch};
 }
 template<class F> int guarded(F action) noexcept {
     try { std::lock_guard<std::mutex> lock(gate); lastError[0]=0; action(); return 1; }
@@ -669,6 +676,31 @@ SPV_API int spv_anim_texture_index(void* handle,float time,std::int32_t* output)
     return guarded([&]{require(handle&&output,"Invalid animated texture index request");std::optional<std::size_t> index;
         require(static_cast<AnimTextureView*>(handle)->track.SelectKeyIndexForAnalysis(time,index),"Texture timeline is outside the verified runtime domain");
         *output=index?static_cast<std::int32_t>(*index):-1;});
+}
+SPV_API int spv_uv_functions_read(const std::uint8_t* bytes,std::uint32_t count,SpvUvFunctions* output) noexcept {
+    return guarded([&]{
+        require(bytes&&count&&count<=16u*1024u*1024u&&output,"Invalid bounded UV function payload");
+        BorrowedInput source(bytes,count);spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);spTransFunctionEval transform;
+        spTransFunctionEvalSerializer serializer;std::string error;
+        if(!serializer.ReadPayloadForAnalysis(context,source,count,transform,&error))throw std::runtime_error(error);
+        SpvUvFunctions result{};
+        for(std::size_t i=0;i<7;++i)result.functions[i]=functionForView(transform.GetFunctionsForAnalysis()[i]);
+        std::copy(transform.GetPivotForAnalysis().begin(),transform.GetPivotForAnalysis().end(),result.pivot);
+        std::copy(transform.GetAxisForAnalysis().begin(),transform.GetAxisForAnalysis().end(),result.axis);*output=result;
+    });
+}
+SPV_API int spv_color_functions_read(const std::uint8_t* bytes,std::uint32_t count,SpvColorFunctions* output) noexcept {
+    return guarded([&]{
+        require(bytes&&count&&count<=16u*1024u*1024u&&output,"Invalid bounded color function payload");
+        BorrowedInput source(bytes,count);spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);std::array<spColorFuncEval,4> colors;spFunctionEval alpha;
+        std::string error;
+        if(!spMatColorControllerSerializer::ReadEvaluatorsForAnalysis(context,source,count,colors,alpha,&error))throw std::runtime_error(error);
+        SpvColorFunctions result{};
+        for(std::size_t i=0;i<4;++i)result.colors[i]={colors[i].GetColor1ForAnalysis(),colors[i].GetColor2ForAnalysis(),functionForView(colors[i].GetFunctionForAnalysis())};
+        result.alpha=functionForView(alpha);*output=result;
+    });
 }
 SPV_API int spv_model_info(void* handle,SpvModelInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Invalid Model/Skin view");*output=static_cast<ModelView*>(handle)->info;});

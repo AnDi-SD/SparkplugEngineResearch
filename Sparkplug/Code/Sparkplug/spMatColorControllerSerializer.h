@@ -4,6 +4,7 @@
 // an exact original translation-unit path has not yet been recovered.
 
 #include "spSerializer.h"
+#include "spColorFuncEval.h"
 
 #include <array>
 #include <cstdint>
@@ -63,6 +64,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept;
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spBaseObject&,std::string*) const override;
+        // The original field0 body: four ColorFunc sections and one Function.
+        // Shared by whole-controller loading and the field metadata inspector.
+        [[nodiscard]] static bool ReadEvaluatorsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,std::array<spColorFuncEval,4>&,spFunctionEval&,std::string*);
         [[nodiscard]] bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
 

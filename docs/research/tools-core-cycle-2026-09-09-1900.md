@@ -75,3 +75,12 @@ FullLoader213,5 адресно выбранных SMO и3 consumer builds про
 ожидания BloomX исправлены по реальным references и сохранённым BGRA байтам.
 Часы UI и эвристики bindings остаются следующей работой.
 Досье: `docs/research/tool-animated-texture-reader-shared-core-2026-09-09.md`.
+
+### Блок5: UV и material-color function readers
+
+Две C# грамматики заменены общими nested serializers. Семь original read-time
+state captures совпали с ABI побайтно;4 guards прошли. C++ UV386/Color118/
+MaterialColor225/FullLoader213;5 SMO:750/748/802/937/36350 assertions;
+3 consumer builds чистые. Удалена ошибочная C# подстановка scale yOffset0.
+Protected color ctor не использован: ABI читает настоящие leaf evaluators.
+Досье: `docs/research/tool-material-functions-shared-core-2026-09-09.md`.
