@@ -14,6 +14,8 @@
 #include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spLensFlare.h"
 #include "Code/Sparkplug/spParticleSystem.h"
+#include "Code/Sparkplug/spFog.h"
+#include "Code/Sparkplug/spFogSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -677,6 +679,17 @@ SPV_API int spv_octree_fields_read(const std::uint8_t* bytes,std::uint32_t size,
         spSerializerReadContextForAnalysis context(manager,resources);BorrowedInput source(bytes,size);std::string error;
         if(!spOctreeNodeSerializer().ReadOctreeFieldsForAnalysis(context,source,size,node,&error))throw std::runtime_error(error);
         *output=octreeFields(node);});
+}
+SPV_API int spv_fog_payload_read(const std::uint8_t* bytes,std::uint32_t size,SpvFogFields* output) noexcept {
+    static_assert(sizeof(SpvFogFields)==20);
+    return guarded([&]{require(bytes&&size==20&&output,"Fog inspection requires one twenty-byte payload");
+        spFog fog;spMemoryStream stream;require(stream.Open("tool.fog.inspection"),"Cannot open Fog inspection stream");
+        spDataBlockSerializer fields;
+        require(fields.BeginObjectForAnalysis(stream,&fog)&&fields.WriteFieldForAnalysis(stream,0,bytes,size)&&fields.FinalizeObjectForAnalysis(),"Cannot envelope Fog inspection payload");
+        std::uint32_t extent=0;require(stream.GetSize(&extent)&&stream.Seek(spStream::SeekSource::essStart,0),"Cannot rewind Fog inspection stream");
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);std::string error;
+        if(!spFogSerializer().ReadPayloadForAnalysis(context,stream,extent,fog,&error))throw std::runtime_error(error);
+        *output={static_cast<std::uint32_t>(fog.GetTypeForAnalysis()),fog.GetColorARGBForAnalysis(),fog.GetStartForAnalysis(),fog.GetEndForAnalysis(),fog.GetDensityForAnalysis()};});
 }
 SPV_API int spv_graph_navigation_json(void* handle,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept {
     return guarded([&]{require(size,"Missing navigation snapshot size");*size=0;

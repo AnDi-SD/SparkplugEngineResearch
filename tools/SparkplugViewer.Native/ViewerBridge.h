@@ -107,6 +107,8 @@ struct SpvParticleInfo {
     float region[8];std::uint32_t pool[5];
 };
 SPV_API int spv_graph_particle(void*,std::uint32_t id,SpvParticleInfo*) noexcept;
+struct SpvFogFields {std::uint32_t type,color;float start,end,density;};
+SPV_API int spv_fog_payload_read(const std::uint8_t*,std::uint32_t,SpvFogFields*) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical
 // loader/cache identity; zero means NULL, never an inferred default resource.
 struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};

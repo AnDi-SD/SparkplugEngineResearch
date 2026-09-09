@@ -285,3 +285,12 @@ PS2 counterpart помог найти readable PC4705A0. Метод перене
 max arena57168. OcclusionTopology63/FullLoader213 passed. C ABI/C# не менялись;
 full Init и новые уровни не заявлены. Protected capped entries не повторялись.
 Досье: `docs/research/tool-occlusion-connectivity-shared-core-2026-09-09.md`.
+
+### Блок 22: инспекция Fog без C# payload reader
+
+Inspector/Corpus используют actual Fog serializer через bounded field bridge.
+Три original-PC captures совпали с ABI/managed, включая raw enum/NaN/negative
+zero;7 ABI guards,15 managed checks. Настоящее поле logo_screen.smo проверено
+в прежнем inspector. FullLoader213 и пять builds passed. Game source не менялся,
+whole surrounding graph или GPU fog не заявлены; полный корпус не запускался.
+Досье: `docs/research/tool-fog-inspection-shared-core-2026-09-09.md`.

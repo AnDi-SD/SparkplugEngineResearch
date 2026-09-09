@@ -216,3 +216,9 @@ Partial failure сохраняет ссылки; повторный вызов �
 Dead end leaf допускает; это не validation полного Init. Native63/213,
 все guest allocations freed,max57168. C ABI/C# не менялись, новые уровни
 не заявлены. Досье: `tool-occlusion-connectivity-shared-core-2026-09-09.md`.
+
+Блок22: остаточный C# Fog reader удалён; общий DataBlock envelope→FogSerializer
+на actual Fog. Три PC/ABI/managed state matches,7guards,15 managed checks,
+original logo Fog field. FullLoader213,пять builds. Raw float/type bits
+сохранены, game source не менялся. Inspector/Corpus используют прежний API.
+Досье: `tool-fog-inspection-shared-core-2026-09-09.md`.
