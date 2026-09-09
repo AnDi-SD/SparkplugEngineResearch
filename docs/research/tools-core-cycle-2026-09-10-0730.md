@@ -86,7 +86,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    отдельный NULL reassignment guard14/14. Focused71 и три PNG неизменны.
    UI получил только вывод MaterialIssue. Viewer/FormatTests собраны чисто;
    TextureTool GUI собран с двумя прежними CS9057 analyzer/toolchain warnings.
-   Checkpoints: Viewer `1dc252a`, TextureTool `46e3cf2`.
+   Checkpoints: Viewer `1dc252a`, TextureTool `46e3cf2`, root `55160c9`.
+7. SanToVmd: один полный сценарий Icy/xiid → Miku_Hatsune_Ver2 VMD
+   проверен существующим независимым reader: **51 кадр, 51 дорожка, 2601 ключ**,
+   три позы и десять сегментов тела. Максимальная ошибка направления
+   `1,72e-6` при границе `0,002`. Конверсия и проверка заняли 0,242с,
+   пик working set 28 028 928 байт; исходные и staged файлы неизменны.
+   [Manifest](../../local-data/results/tools-core-cycle-20260910-0730/vmd-smoke/manifest.json),
+   [отчёт](../../local-data/results/tools-core-cycle-20260910-0730/vmd-smoke/report.json).
+   Это один адресный acceptance; визуальное воспроизведение MMD не проверялось.
 
 ## Новые границы и исправления
 
@@ -107,6 +115,11 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   нуждаются в реальных нескольких passes. Незавершённый patch сохранён
   отдельно и убран из рабочего кода. Нужен подтверждённый multipass backend;
   его blend/depth/default границы исследуются точечно.
+  [Начальные renderer states](tool-pc-renderer-startup-states-2026-09-10.md):
+  original tail подтвердил пять desired states в двух exact-slice случаях.
+  Полный state-init остановлен на protected selector; BLENDOP171 и начальные
+  texture-stage args остаются unknown. Actual CreateDevice-цепочка найдена,
+  но не заменяет наблюдение этих значений. Multipass пока не подключён.
 - Публикация Viewer остановлена автоматической проверкой дважды. Владелец
   `AnDi-SD` и admin/push права подтверждены read-only GitHub API; origin публичный.
   Проверка требует отдельного согласия на 47 commits до `00407c3` в
