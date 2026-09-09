@@ -114,3 +114,9 @@ resource replacement, skinned splitting и skeleton carrier. Девять origin
 field streams совпали; пять guards, C++346, replacement91 и clean-skinned26
 прошли. Все11 полных edited outputs побайтно равны baseline. Досье:
 `docs/research/tool-mesh-shared-writer-2026-09-09.md`.
+
+Шестнадцатый блок: MeshBV writer appender перенесён в общие owners/serializer.
+Два свежих original cases, три guards, C++83, три Alfea branches прошли;
+outputs точны baseline. Девять render writers повторно проверяют общую buffer
+preparation. Неподдерживаемые baseline inputs не обходились. Досье:
+`docs/research/tool-collision-shared-writer-2026-09-09.md`.

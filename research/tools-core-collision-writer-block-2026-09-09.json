@@ -1,0 +1,182 @@
+{
+  "kind": "tools-core-collision-writer-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T02:15:18.520917+00:00",
+  "base_commit": "94881007f3d773dd4272e0d69e8b187c570866c0",
+  "viewer_commit": "c0fba0ef7e25c92a4c7955413194709619c18fae",
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBVSerializer.cpp",
+      "sha256": "34C64BA39572EFB61E9A95C16FFC69540FE6629DAF0C728E18C91066BBFEE2EA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshBVSerializer.h",
+      "sha256": "A5009BA1BBFDF7ADA4AFBAE52673E4D1FBC0C854419E36539FB4B142251F3C86"
+    },
+    {
+      "path": "docs/research/tool-collision-shared-writer-2026-09-09.md",
+      "sha256": "53137EEA816151E414EA0BDFC3576CE16A6B0BED52231AECCAE88415FBA2B2F5"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-0730.md",
+      "sha256": "35F6ABC279587E2F59A261F55A9C810CA45EE68F1C97CA86CB3042000F697ADB"
+    },
+    {
+      "path": "journal/2026/2026-09-08-tools-core-cycle.md",
+      "sha256": "8DAF524DD7F36B7D4CECB37D76F06DAADC6EBD07269C3A8273C7A22AC242531F"
+    },
+    {
+      "path": "research/validate_tools_collision_writer.py",
+      "sha256": "820247DA839AE7FD2010DB0C71F5054DED97FC6D3EA040E069F1C30965CE321F"
+    },
+    {
+      "path": "tools/SmoImporter/README.md",
+      "sha256": "1D445B70E024C11C8D2F65EAA1CD950535C9A21DF1A2B0D19FF57D6C63F6B7D9",
+      "git_blob_sha256": "64A71FFE1179D6F564C92D76E207CBB05393DB1EE29002E162AC61C3A8F26272"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoCollisionBranchAppender.cs",
+      "sha256": "FB610E9E927F9681E129F9C72B8EDAB17A211CCC86A82AF0D03DBF6855D29FC8",
+      "git_blob_sha256": "968BE2B61E2E7CFC8951AD3AC79466E76E7B210F711297A9933401FAE0EF64FA"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/CollisionWriterRegression.cs",
+      "sha256": "CBFEA634843A40C967A9FF5B188B7FD36338E05112E5ECFEC60756CA6CBA93AB",
+      "git_blob_sha256": "BE1BBAB1A7D81F093DA505AAABD0DFDBDCB0B7828D8383465FD1695B6D529EB2"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "sha256": "EF300B40223764C7867E632F2A0CC802B701B706960C0824F9C9FD2CD771516D",
+      "git_blob_sha256": "4FA59B238C53BF04BA3369490E1C5F9281C1547E3D34710C75CB7ACD19163B22"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "59862D7A3D9AC38343AA53E6E8954E571FAB9EDAEFE23937E69139969C8B9499"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "B7AECD734561DCDD1204E3E796C2534E1B1135EC72A2DDEAFFEB112D579DDD46"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "73E476FEAC5EFA337469C98C4ACC9ACA7D72D99B2265C1EF960D987C914E9372",
+      "git_blob_sha256": "2B57B273CD18E72D4A12281B954F9CB0CD6B4FE49193B34E67E32AC235F8E841"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoMeshBoundingVolumeWriter.cs",
+      "sha256": "FB77868784FD64CC9E31F3B6C015DEA62B3765DD3870961401029410B47323F7",
+      "git_blob_sha256": "81223B0B2D53BD9AA8BDB5F74BDD9BFFDDAC061C6E884B76FC81D4CC6A9A792A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoMeshDataWriter.cs",
+      "sha256": "783A29A9B81C8DCA3CC1D6037A94F9CC14474319D37298DCAA14DB165EEBEC36",
+      "git_blob_sha256": "5698744CCF45EADACF198FE10A1C8EA2783EC1054C6B67BC1B14B64FECC788F6"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "09CFB27018B34FE90AF1DA084124E315EC153581AFD35E659C3EEBCB47AE55EB",
+      "git_blob_sha256": "8C827608AA307D245D8DBA286AABC2F4D923CFC7FDCA297BBDAE35281AA62AB8"
+    }
+  ],
+  "pc_exe_sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "native_dll_sha256": "27C2CE3D634671DC6ED885C44C3C2FBACF6D9284266FD517ABB1D35CC4DB5E46",
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-level/report.json",
+      "sha256": "8D3F53BC100A0AE4B625141AC416554391D5BF815C5716C8762B3B6602CF927B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-levels/report.json",
+      "sha256": "BF9365259AE007C34E71456306F219CC43749FB756744B3D72F0A0360E2B1BF5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/comparison.json",
+      "sha256": "60A9FB3ED7B5364C4DBC835E906CBCD81602B7197E986D80F07007A4804E4D66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/native.json",
+      "sha256": "725F6CCEB633DBFDA4B0314FAFDE4F5A5D94C21A8D3249EFA7D7401F59EB5448"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/original-tetrahedron.json",
+      "sha256": "FFAE062951D592F3F07BC39D220629D5B53FE1EB0D07D41B1EAFF0B1591EBCBD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/original-triangle.json",
+      "sha256": "7582E74A2959237E3C2F050873896D5E1406BE884AFF23D852A54A81123E7620"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/render-writer-regression.json",
+      "sha256": "0D4730A69FD52955754DEF2D979B7B44AAA796F79AACBF9B722252F9FBC594C6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/shared-levels/report.json",
+      "sha256": "BF9365259AE007C34E71456306F219CC43749FB756744B3D72F0A0360E2B1BF5"
+    }
+  ],
+  "check_logs": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-build-final.log",
+      "sha256": "9C15A5D5B8B24FFB5259BE27B0B6E677D2448A2A09F270B82D0BB5F599AF722A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-build.log",
+      "sha256": "90B9F7C8BAFACC5CFA0C92AFEB498E7B7A344AAB4A4E89C36A779A585000D4E4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-final.log",
+      "sha256": "1EDA94AA169CCFD312FBFDC6600A0F5D35161DDF8A2EF2109AED5F50B355AA1D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-level.log",
+      "sha256": "709DF775DD004B23A12B03A96D671F691C752BB32A3B37FD6C094F2B04591679"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline-levels.log",
+      "sha256": "DDBBA212B719D513971DA9618F52EBB12E9B43ADF0860FE4E66DCDFC4542A77E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/baseline.log",
+      "sha256": "3A9EE2679B69DE8D4924FCB7A7821BAEAECB25C8E985DEDDA72274C57A3EC01B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/managed-build.log",
+      "sha256": "57DC5A19D13640C3D704FB0F4C823E46E803370FBA0E7BDF8C980467C553568C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/native-build.log",
+      "sha256": "91AA190AD585C1AC36634ECFF69754781AF0BA5B0A39FCCF2CEE07D3FBF511BF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/native.log",
+      "sha256": "722BE56DDB399EB90FEDB68C7C209F60B363C5A2F1F4F32F7C8FE3FCFB3162ED"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/render-writer-regression.log",
+      "sha256": "E68E1353DBBC7EBD3BEF182319E8AE05247BD571F795557EB8FF70F5B76CF291"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/collision-writer/shared-levels.log",
+      "sha256": "DDBBA212B719D513971DA9618F52EBB12E9B43ADF0860FE4E66DCDFC4542A77E"
+    }
+  ],
+  "checks": {
+    "original_MeshBV_writers": 2,
+    "host_refusals": 3,
+    "cpp_MeshBV": 83,
+    "render_writer_regression": 9,
+    "exact_appended_containers": 3,
+    "exact_MeshBV_leaves": 3,
+    "Importer_build": "0 warnings, 0 errors"
+  },
+  "limits": [
+    "Geometry-only MeshBV output; no face records or OPCODE query implementation",
+    "Fresh owner assignment is a portable access facade over original direct stores",
+    "Level appender retains its existing minimum geometry and registered-template policies",
+    "Triangle baseline input rejected by preexisting minimum4 rule; tile_bad/menu rejected by preexisting template rule; final cases are Alfea01/02/03",
+    "Other CollisionInfo/registration/FAT editing remains",
+    "No release/full corpus/PS2 execution"
+  ]
+}

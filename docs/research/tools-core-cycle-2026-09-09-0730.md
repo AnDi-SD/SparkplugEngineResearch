@@ -223,3 +223,11 @@ IB/VB/mesh owners и serializers без изменений; host DTO без wire
 Девять original streams, пять host refusals, C++346, девять замен91 check,
 две clean-skinned пересборки26 checks. Все11 полных outputs побайтно прежние.
 Досье: `docs/research/tool-mesh-shared-writer-2026-09-09.md`.
+
+### Шестнадцатый блок: запись collision MeshBV
+
+Level appender использует исходный MeshBV writer и owning CPU classes. Два
+original cases/три guards, C++83 и три appended branches Alfea01/02/03 прошли;
+полные outputs побайтно прежние. Общая input preparation повторно проверена
+девятью render-mesh original cases. Исходные template/geometry ограничения
+appender сохранены. Досье: `docs/research/tool-collision-shared-writer-2026-09-09.md`.

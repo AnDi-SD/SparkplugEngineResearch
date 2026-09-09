@@ -7,6 +7,9 @@ MeshData/DXMeshData serializers и CPU buffers. Замена mesh resource, со
 skinned chunks и skeleton carrier используют один `SmoMeshDataWriter` через
 native DLL. Собственная C# wire serialization удалена; donor conversion,
 FAT repack и другие typed graph writers ещё требуют отдельной переработки.
+Создание MeshBV в collision appender также передано общему C++ writer. Подбор
+зарегистрированного шаблона, CollisionInfo/registration edits и FAT repack
+пока остаются host-операциями и отдельными задачами переноса.
 
 В 0.6.1 новые импортированные текстуры используют подтверждённый встроенный PC
 BGRA-контейнер, включая точные NPOT-размеры. Шаблон определяется структурой,

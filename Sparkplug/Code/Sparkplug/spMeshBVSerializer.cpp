@@ -20,8 +20,7 @@ std::unique_ptr<spCollisionMesh> spMeshBVSerializer::ReadGeometryForAnalysis(
     const auto fail=[&](const char* message)->std::unique_ptr<spCollisionMesh>{if(error)*error=message;return nullptr;};
     std::uint32_t start=0,position=0;
     if(!stream.GetCurrentPosition(start))return fail("Cannot observe MeshBV geometry position");
-    auto data=std::make_unique<spCollisionMesh>();
-    data->indices_=std::make_unique<spIndexBuffer>();data->vertices_=std::make_unique<spVertexBuffer>();
+    auto data=CreateGeometryForAnalysis(std::make_unique<spIndexBuffer>(),std::make_unique<spVertexBuffer>());
     if(!data->indices_->ReadForAnalysis(stream,size))return fail("Invalid MeshBV index buffer");
     if(!stream.GetCurrentPosition(position)||position<start||position-start>size)
         return fail("MeshBV index extent overflow");
@@ -31,6 +30,12 @@ std::unique_ptr<spCollisionMesh> spMeshBVSerializer::ReadGeometryForAnalysis(
             return fail("Cannot observe MeshBV vertex position");
         *vertexPayloadOffset=position-start-data->vertices_->GetVertexSizeForAnalysis();
     }
+    return data;
+}
+std::unique_ptr<spCollisionMesh> spMeshBVSerializer::CreateGeometryForAnalysis(
+    std::unique_ptr<spIndexBuffer> indices,std::unique_ptr<spVertexBuffer> vertices) {
+    auto data=std::make_unique<spCollisionMesh>();
+    data->indices_=std::move(indices);data->vertices_=std::move(vertices);
     return data;
 }
 bool spMeshBVSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,

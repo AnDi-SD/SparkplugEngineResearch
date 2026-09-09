@@ -583,44 +583,8 @@ public static class SmoCollisionBranchAppender
 
     private static byte[] BuildMeshObject(
         IReadOnlyList<Vector3> positions,
-        IReadOnlyList<int> indices)
-    {
-        int payloadSize = checked(
-            3 * sizeof(uint) +
-            indices.Count * sizeof(ushort) +
-            3 * sizeof(uint) +
-            positions.Count * 3 * sizeof(float));
-        byte[] result = new byte[checked(ObjectSignatureSize + 5 + payloadSize + 1)];
-        WriteUInt32(result, 0, SmoClassIds.MeshBoundingVolume);
-        "SBOO"u8.CopyTo(result.AsSpan(sizeof(uint)));
-        result[ObjectSignatureSize] = 0xE0; // field 0, UInt32 payload size
-        WriteUInt32(result, ObjectSignatureSize + 1, checked((uint)payloadSize));
-        int offset = ObjectSignatureSize + 5;
-        WriteUInt32(result, offset, 2);
-        WriteUInt32(result, offset + 4, checked((uint)(indices.Count / 3)));
-        WriteUInt32(result, offset + 8, 0);
-        offset += 3 * sizeof(uint);
-        foreach (int index in indices)
-        {
-            BinaryPrimitives.WriteUInt16LittleEndian(
-                result.AsSpan(offset), checked((ushort)index));
-            offset += sizeof(ushort);
-        }
-        WriteUInt32(result, offset, 0);
-        WriteUInt32(result, offset + 4, checked((uint)positions.Count));
-        WriteUInt32(result, offset + 8, 0);
-        offset += 3 * sizeof(uint);
-        foreach (Vector3 position in positions)
-        {
-            WriteSingle(result, offset, position.X);
-            WriteSingle(result, offset + 4, position.Y);
-            WriteSingle(result, offset + 8, position.Z);
-            offset += 3 * sizeof(float);
-        }
-        // Native spDataBlockSerializer objects end with an empty field. The
-        // array is zero-initialized, so the final byte is the canonical 0x00.
-        return result;
-    }
+        IReadOnlyList<int> indices) =>
+        SmoMeshBoundingVolumeWriter.CreateTriangleList(positions, indices);
 
     private static bool HasTerminalEmptyField(
         SmoDocument document,

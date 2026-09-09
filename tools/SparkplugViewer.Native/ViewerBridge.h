@@ -65,6 +65,9 @@ SPV_API void* spv_mesh_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind
 // kind1 PC native-only. UInt16 triangle lists; returned SerializedBytes owner.
 SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex*,std::uint32_t vertices,
     const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t componentFlags,std::uint32_t kind) noexcept;
+// Same typed input, positions only, original MeshBV geometry-only writer.
+SPV_API void* spv_mesh_bv_write_triangles(const SpvMeshVertex*,std::uint32_t vertices,
+    const std::uint32_t* indices,std::uint32_t indexCount) noexcept;
 SPV_API void spv_mesh_destroy(void*) noexcept;
 SPV_API int spv_mesh_info(void*,SpvMeshInfo*) noexcept;
 SPV_API int spv_mesh_vertices(void*,SpvMeshVertex*,std::uint32_t) noexcept;

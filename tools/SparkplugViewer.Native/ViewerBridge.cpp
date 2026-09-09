@@ -339,14 +339,12 @@ SPV_API int spv_serialized_bytes_copy(void* handle,std::uint8_t* output,std::uin
     return guarded([&]{require(handle&&output,"Missing serialized byte copy input/output");const auto& bytes=static_cast<SerializedBytes*>(handle)->bytes;
         require(bytes.size()==count,"Serialized output byte count differs");std::copy(bytes.begin(),bytes.end(),output);});
 }
-SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex* vertices,std::uint32_t vertexCount,
-    const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t flags,std::uint32_t kind) noexcept {
-    std::unique_ptr<SerializedBytes> result;
-    if(!guarded([&]{
+namespace {
+void PrepareTriangleBuffers(const SpvMeshVertex* vertices,std::uint32_t vertexCount,
+    const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t flags,spIndexBuffer& ib,spVertexBuffer& vb) {
         require(vertices&&indices&&vertexCount&&vertexCount<=65536&&indexCount&&indexCount<=3000000
-            &&indexCount%3==0&&kind<=1,"Invalid bounded triangle writer input");
+            &&indexCount%3==0,"Invalid bounded triangle writer input");
         require((flags&~0x197eu)==0&&((flags&0x1e)==0||(flags&0x1e)==0x1e),"Unsupported host vertex attributes");
-        spVertexBuffer vb;
         require(vb.InitializeForAnalysis(flags,0,0),"Cannot inspect original vertex layout");
         const auto layout=spvhost::RenderMeshView::Layout(vb);
         require(std::uint64_t(vertexCount)*layout.stride+std::uint64_t(indexCount)*2<=16u*1024u*1024u,
@@ -370,9 +368,18 @@ SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex* vertices,std::uint32
             copy(source.weights,layout.weights,sizeof(source.weights));copy(&source.color,layout.color,4);copy(&source.bones,layout.bones,4);
         }
         require(vb.SetDataForAnalysis(data),"Cannot assign original vertex buffer data");
-        spIndexBuffer ib;require(ib.InitializeForAnalysis(indexCount/3,spIndexBuffer::eIndexBufferType::Type2,0),"Cannot initialize original index buffer");
+        require(ib.InitializeForAnalysis(indexCount/3,spIndexBuffer::eIndexBufferType::Type2,0),"Cannot initialize original index buffer");
         for(std::uint32_t i=0;i<indexCount;++i)
             require(indices[i]<vertexCount&&ib.SetIndexForAnalysis(i,indices[i]),"Triangle index exceeds vertex buffer");
+}
+}
+SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex* vertices,std::uint32_t vertexCount,
+    const std::uint32_t* indices,std::uint32_t indexCount,std::uint32_t flags,std::uint32_t kind) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(kind<=1,"Unsupported mesh writer kind");
+        spIndexBuffer ib;spVertexBuffer vb;
+        PrepareTriangleBuffers(vertices,vertexCount,indices,indexCount,flags,ib,vb);
         spMeshData mesh;require(mesh.InitializeForAnalysis(ib,vb),"Cannot initialize original mesh owner");
         spMemoryStream output;require(output.Open("tool.mesh.output"),"Cannot open mesh output stream");
         require(spSerializer::WriteObjectHeaderForAnalysis(output,mesh),"Cannot write MeshData object header");
@@ -381,6 +388,22 @@ SPV_API void* spv_mesh_write_triangles(const SpvMeshVertex* vertices,std::uint32
         const bool written=kind==0?portable.WritePayloadWithContextForAnalysis(manager,output,mesh,&error)
             :pc.WritePayloadWithContextForAnalysis(manager,output,mesh,&error);
         if(!written)throw std::runtime_error(error);
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
+SPV_API void* spv_mesh_bv_write_triangles(const SpvMeshVertex* vertices,std::uint32_t vertexCount,
+    const std::uint32_t* indices,std::uint32_t indexCount) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        spIndexBuffer ib;spVertexBuffer vb;
+        PrepareTriangleBuffers(vertices,vertexCount,indices,indexCount,0,ib,vb);
+        auto geometry=spMeshBVSerializer::CreateGeometryForAnalysis(ib.CopyBufferForAnalysis(),vb.CopyBufferForAnalysis());
+        spMeshBV mesh;require(mesh.SetDataAndBoundsForAnalysis(std::move(geometry)),"Cannot prepare original MeshBV owner/bounds");
+        spMemoryStream output;require(output.Open("tool.mesh_bv.output"),"Cannot open MeshBV output stream");
+        require(spSerializer::WriteObjectHeaderForAnalysis(output,mesh),"Cannot write MeshBV object header");
+        std::string error;
+        if(!spMeshBVSerializer().WritePayloadForAnalysis(output,mesh,&error))throw std::runtime_error(error);
         result=std::make_unique<SerializedBytes>(output);
     }))return nullptr;
     return result.release();
