@@ -1318,7 +1318,7 @@ internal static class SmoSkinnedBranchSplitBuilder
             document, render, templateSkin);
         ReadOnlySpan<byte> renderBytes = ObjectBytes(document, render);
         byte[] header = renderBytes.Slice(wrapper.Offset, wrapper.HeaderSize).ToArray();
-        PatchPayloadSize(
+        SmoDataBlockWriter.PatchReservedHeader(
             header, 0, wrapper, checked((uint)(ObjectReferenceSize + skin.Data.Length)));
         byte[] fieldData = new byte[checked(
             header.Length + ObjectReferenceSize + skin.Data.Length)];
@@ -1815,7 +1815,7 @@ internal static class SmoSkinnedBranchSplitBuilder
         ICollection<ObjectPlacement> placements)
     {
         byte[] header = source.Slice(template.Offset, template.HeaderSize).ToArray();
-        PatchPayloadSize(
+        SmoDataBlockWriter.PatchReservedHeader(
             header, 0, template, checked((uint)(ObjectReferenceSize + child.Data.Length)));
         stream.Write(header);
         WriteUInt32(stream, child.Root.Id);
@@ -1836,36 +1836,10 @@ internal static class SmoSkinnedBranchSplitBuilder
         uint objectId)
     {
         byte[] header = source.Slice(template.Offset, template.HeaderSize).ToArray();
-        PatchPayloadSize(header, 0, template, ObjectReferenceSize);
+        SmoDataBlockWriter.PatchReservedHeader(header, 0, template, ObjectReferenceSize);
         stream.Write(header);
         WriteUInt32(stream, objectId);
         WriteUInt32(stream, 0);
-    }
-
-    private static void PatchPayloadSize(
-        Span<byte> header,
-        int headerOffset,
-        SmoDataBlockHeader template,
-        uint payloadSize)
-    {
-        int sizeOffset = headerOffset + template.HeaderSize;
-        switch (template.SizeKind)
-        {
-            case SmoDataBlockSizeCode.UInt8:
-                header[sizeOffset - 1] = checked((byte)payloadSize);
-                break;
-            case SmoDataBlockSizeCode.UInt16:
-                BinaryPrimitives.WriteUInt16LittleEndian(
-                    header[(sizeOffset - sizeof(ushort))..], checked((ushort)payloadSize));
-                break;
-            case SmoDataBlockSizeCode.UInt32:
-                BinaryPrimitives.WriteUInt32LittleEndian(
-                    header[(sizeOffset - sizeof(uint))..], payloadSize);
-                break;
-            default:
-                throw new InvalidDataException(
-                    $"Field type {template.FieldType} has no writable variable-size header.");
-        }
     }
 
     private static ReadOnlySpan<byte> ObjectBytes(

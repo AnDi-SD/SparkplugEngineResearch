@@ -1541,12 +1541,14 @@ public static class SmoLevelModelGraphReplacer
         uint typeHash,
         byte[] objectData)
     {
-        byte[] field = new byte[checked(5 + ObjectReferenceSize + objectData.Length)];
-        field[0] = checked((byte)(0xE0 | fieldType));
-        WriteUInt32(field, 1, checked((uint)(ObjectReferenceSize + objectData.Length)));
-        WriteUInt32(field, 5, objectId);
-        WriteUInt32(field, 9, checked((uint)objectData.Length));
-        objectData.CopyTo(field, 13);
+        byte[] header = SmoDataBlockWriter.BuildReservedHeader(fieldType,
+            checked((uint)(ObjectReferenceSize + objectData.Length)));
+        int objectOffset = checked(header.Length + ObjectReferenceSize);
+        byte[] field = new byte[checked(objectOffset + objectData.Length)];
+        header.CopyTo(field, 0);
+        WriteUInt32(field, header.Length, objectId);
+        WriteUInt32(field, header.Length + sizeof(uint), checked((uint)objectData.Length));
+        objectData.CopyTo(field, objectOffset);
         var attachment = new SmoVisualForestAttachment(
             ownerId,
             field,
@@ -1554,7 +1556,7 @@ public static class SmoLevelModelGraphReplacer
                 objectId,
                 Encoding.UTF8.GetBytes(name + '\0'),
                 typeHash,
-                13,
+                objectOffset,
                 checked((uint)objectData.Length))]);
         return SmoVisualForestInjector.Inject(document, ownerId, [attachment]);
     }
@@ -1583,11 +1585,11 @@ public static class SmoLevelModelGraphReplacer
         byte fieldType,
         uint referenceId)
     {
-        byte[] field = new byte[13];
-        field[0] = checked((byte)(0xE0 | fieldType));
-        WriteUInt32(field, 1, ObjectReferenceSize);
-        WriteUInt32(field, 5, referenceId);
-        WriteUInt32(field, 9, 0);
+        byte[] header = SmoDataBlockWriter.BuildReservedHeader(fieldType, ObjectReferenceSize);
+        byte[] field = new byte[checked(header.Length + ObjectReferenceSize)];
+        header.CopyTo(field, 0);
+        WriteUInt32(field, header.Length, referenceId);
+        WriteUInt32(field, header.Length + sizeof(uint), 0);
         return SmoVisualForestInjector.Inject(
             document,
             ownerId,

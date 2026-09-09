@@ -196,12 +196,12 @@ public static class SmoCollisionBranchAppender
             checked((uint)((int)collisionInfo.SerializedSize + delta)));
         WriteUInt32(fieldData, meshOffset - ObjectReferenceSize, meshId);
         WriteUInt32(fieldData, meshOffset - sizeof(uint), checked((uint)meshObject.Length));
-        WritePayloadSize(
+        SmoDataBlockWriter.PatchReservedHeader(
             fieldData,
             0,
             outerField,
             checked((uint)((int)outerField.PayloadSize + delta)));
-        WritePayloadSize(
+        SmoDataBlockWriter.PatchReservedHeader(
             fieldData,
             collisionOffset + meshField.Offset,
             meshField,
@@ -637,31 +637,6 @@ public static class SmoCollisionBranchAppender
             $"Inline field for collision object [{child.Index}] was not found.");
     }
 
-    private static void WritePayloadSize(
-        Span<byte> data,
-        int headerOffset,
-        SmoDataBlockHeader original,
-        uint value)
-    {
-        int sizeEnd = headerOffset + original.HeaderSize;
-        switch (original.SizeKind)
-        {
-            case SmoDataBlockSizeCode.UInt8:
-                data[sizeEnd - 1] = checked((byte)value);
-                break;
-            case SmoDataBlockSizeCode.UInt16:
-                BinaryPrimitives.WriteUInt16LittleEndian(
-                    data[(sizeEnd - sizeof(ushort))..], checked((ushort)value));
-                break;
-            case SmoDataBlockSizeCode.UInt32:
-                WriteUInt32(data, sizeEnd - sizeof(uint), value);
-                break;
-            default:
-                throw new NotSupportedException(
-                    $"Collision template uses non-resizable {original.SizeKind} field.");
-        }
-    }
-
     private static bool CanResizeTemplate(
         SmoDocument document,
         SmoCollisionMesh template,
@@ -679,15 +654,12 @@ public static class SmoCollisionBranchAppender
             (_, _, SmoDataBlockHeader inner) =
                 FindInlineField(document, collision, mesh);
             int delta = generatedMeshSize - checked((int)mesh.SerializedSize);
-            return CanStoreSize(
-                       outer.SizeKind,
-                       checked((int)outer.PayloadSize + delta)) &&
-                   CanStoreSize(
-                       inner.SizeKind,
-                       checked((int)inner.PayloadSize + delta));
+            _ = SmoDataBlockWriter.BuildReservedHeader(outer, checked((uint)((int)outer.PayloadSize + delta)));
+            _ = SmoDataBlockWriter.BuildReservedHeader(inner, checked((uint)((int)inner.PayloadSize + delta)));
+            return true;
         }
         catch (Exception exception) when (
-            exception is InvalidOperationException or OverflowException)
+            exception is InvalidOperationException or OverflowException or InvalidDataException or NotSupportedException)
         {
             return false;
         }
@@ -706,15 +678,6 @@ public static class SmoCollisionBranchAppender
                    out _) &&
                data?.CollisionGroup is not null;
     }
-
-    private static bool CanStoreSize(SmoDataBlockSizeCode kind, int value) =>
-        value >= 0 && kind switch
-        {
-            SmoDataBlockSizeCode.UInt8 => value <= byte.MaxValue,
-            SmoDataBlockSizeCode.UInt16 => value <= ushort.MaxValue,
-            SmoDataBlockSizeCode.UInt32 => true,
-            _ => false
-        };
 
     private static uint NextId(SmoDocument document, ref uint candidate)
     {

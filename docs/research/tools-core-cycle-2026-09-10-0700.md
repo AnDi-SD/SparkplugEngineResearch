@@ -99,6 +99,14 @@ ABI6writes/14guards/4locations, managed35+Renderable44, Icy13 и FormatTests647;
 Новый writer требует whole graph load и ровно одного canonical palette field;
 rare header/repeated shapes явно отклоняются. Reader counter остаётся30/3/2.
 
+**Блок7:** три resize-switch, отдельная C# capacity table и пять ручных UInt32
+header builders переведены на общий header writer. В in-place API запрещено
+расширение reservation; обычный BuildHeader сохраняет fallback. Header118,
+Collision Alfea02, Model50, Icy13, FormatTests647 и5 consumer builds прошли.
+Все5 полных integration outputs побайтно прежние. Native код/DLL не менялись;
+10 original dependencies и неизменность writer перепроверены.
+[Подробности](tool-reserved-header-authoring-2026-09-09.md).
+
 ## Отложенные случаи
 
 Сохраняется список из [предыдущего среза](tools-core-migration-status-2026-09-09.md).

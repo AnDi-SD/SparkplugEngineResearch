@@ -224,12 +224,14 @@ internal static class SmoVisualForestInjector
         SmoObjectEntry owner = current.Objects.Single(entry => entry.Id == ownerId);
         SmoDataBlockHeader reference = FindReferenceField(
             current, owner, fieldType, oldReferenceId);
-        byte[] field = new byte[checked(13 + objectData.Length)];
-        field[0] = checked((byte)(0xE0 | fieldType));
-        WriteUInt32(field, 1, checked((uint)(ObjectReferenceSize + objectData.Length)));
-        WriteUInt32(field, 5, newObjectId);
-        WriteUInt32(field, 9, checked((uint)objectData.Length));
-        objectData.CopyTo(field, 13);
+        byte[] header = SmoDataBlockWriter.BuildReservedHeader(fieldType,
+            checked((uint)(ObjectReferenceSize + objectData.Length)));
+        int objectOffset = checked(header.Length + ObjectReferenceSize);
+        byte[] field = new byte[checked(objectOffset + objectData.Length)];
+        header.CopyTo(field, 0);
+        WriteUInt32(field, header.Length, newObjectId);
+        WriteUInt32(field, header.Length + sizeof(uint), checked((uint)objectData.Length));
+        objectData.CopyTo(field, objectOffset);
         int fieldLogicalOffset = checked((int)owner.LogicalOffset + reference.Offset);
         return ReplaceReferenceField(
             current,
@@ -240,7 +242,7 @@ internal static class SmoVisualForestInjector
                 newObjectId,
                 rawName,
                 typeHash,
-                checked((uint)(fieldLogicalOffset + 13)),
+                checked((uint)(fieldLogicalOffset + objectOffset)),
                 checked((uint)objectData.Length)));
     }
 
@@ -294,12 +296,14 @@ internal static class SmoVisualForestInjector
             owner,
             child,
             fieldType);
-        byte[] field = new byte[checked(13 + objectData.Length)];
-        field[0] = checked((byte)(0xE0 | fieldType));
-        WriteUInt32(field, 1, checked((uint)(ObjectReferenceSize + objectData.Length)));
-        WriteUInt32(field, 5, newObjectId);
-        WriteUInt32(field, 9, checked((uint)objectData.Length));
-        objectData.CopyTo(field, 13);
+        byte[] header = SmoDataBlockWriter.BuildReservedHeader(fieldType,
+            checked((uint)(ObjectReferenceSize + objectData.Length)));
+        int objectOffset = checked(header.Length + ObjectReferenceSize);
+        byte[] field = new byte[checked(objectOffset + objectData.Length)];
+        header.CopyTo(field, 0);
+        WriteUInt32(field, header.Length, newObjectId);
+        WriteUInt32(field, header.Length + sizeof(uint), checked((uint)objectData.Length));
+        objectData.CopyTo(field, objectOffset);
         int fieldLogicalOffset = checked((int)owner.LogicalOffset + inline.Offset);
         return ReplaceReferenceField(
             current,
@@ -310,7 +314,7 @@ internal static class SmoVisualForestInjector
                 newObjectId,
                 rawName,
                 typeHash,
-                checked((uint)(fieldLogicalOffset + 13)),
+                checked((uint)(fieldLogicalOffset + objectOffset)),
                 checked((uint)objectData.Length)),
             removedObjectId: oldObjectId);
     }
@@ -459,7 +463,7 @@ internal static class SmoVisualForestInjector
                     int removed = RemovedWithin(entry.LogicalOffset + field.PayloadOffset,
                         entry.LogicalOffset + field.PayloadEnd);
                     if (removed > 0)
-                        WritePayloadSize(rewritten, Map(header), field, checked((uint)(field.PayloadSize - removed)));
+                        SmoDataBlockWriter.PatchReservedHeader(rewritten, Map(header), field, checked((uint)(field.PayloadSize - removed)));
                 }
                 offset = checked((int)field.PayloadEnd);
             }
@@ -544,11 +548,11 @@ internal static class SmoVisualForestInjector
 
         SmoDataBlockHeader inline = FindInlineField(
             current, owner, child, fieldType);
-        byte[] reference = new byte[13];
-        reference[0] = checked((byte)(0xE0 | fieldType));
-        WriteUInt32(reference, 1, ObjectReferenceSize);
-        WriteUInt32(reference, 5, objectId);
-        WriteUInt32(reference, 9, 0);
+        byte[] header = SmoDataBlockWriter.BuildReservedHeader(fieldType, ObjectReferenceSize);
+        byte[] reference = new byte[checked(header.Length + ObjectReferenceSize)];
+        header.CopyTo(reference, 0);
+        WriteUInt32(reference, header.Length, objectId);
+        WriteUInt32(reference, header.Length + sizeof(uint), 0);
         int fieldLogicalOffset = checked((int)owner.LogicalOffset + inline.Offset);
         return ReplaceReferenceField(
             current,
@@ -788,7 +792,7 @@ internal static class SmoVisualForestInjector
                 {
                     int mappedHeader = MapReplacedOffset(
                         absoluteHeader, fieldEnd, delta);
-                    WritePayloadSize(
+                    SmoDataBlockWriter.PatchReservedHeader(
                         rewritten,
                         mappedHeader,
                         field,
@@ -860,7 +864,7 @@ internal static class SmoVisualForestInjector
                         entry.LogicalOffset + field.Offset,
                         insertionLogical,
                         insertedFields.Length));
-                    WritePayloadSize(
+                    SmoDataBlockWriter.PatchReservedHeader(
                         result,
                         mappedHeader,
                         field,
@@ -969,31 +973,6 @@ internal static class SmoVisualForestInjector
 
     private static long MapOffset(long oldOffset, int insertionLogical, int insertedLength) =>
         oldOffset >= insertionLogical ? oldOffset + insertedLength : oldOffset;
-
-    private static void WritePayloadSize(
-        Span<byte> data,
-        int headerOffset,
-        SmoDataBlockHeader original,
-        uint value)
-    {
-        int sizeEnd = headerOffset + original.HeaderSize;
-        switch (original.SizeKind)
-        {
-            case SmoDataBlockSizeCode.UInt8:
-                data[sizeEnd - 1] = checked((byte)value);
-                break;
-            case SmoDataBlockSizeCode.UInt16:
-                BinaryPrimitives.WriteUInt16LittleEndian(
-                    data[(sizeEnd - sizeof(ushort))..], checked((ushort)value));
-                break;
-            case SmoDataBlockSizeCode.UInt32:
-                WriteUInt32(data, sizeEnd - sizeof(uint), value);
-                break;
-            default:
-                throw new InvalidOperationException(
-                    $"Resized ancestor field uses non-writable size form {original.SizeKind}.");
-        }
-    }
 
     private static void WriteUInt32(Span<byte> data, int offset, uint value) =>
         BinaryPrimitives.WriteUInt32LittleEndian(data[offset..], value);

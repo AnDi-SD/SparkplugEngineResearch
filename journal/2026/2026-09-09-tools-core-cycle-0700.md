@@ -65,3 +65,8 @@
   managed palette35/Renderable44/Icy13/FormatTests647. Icy output побайтно прежний;
   palette regression peak32,39MiB. Whole graph requirement и редкие формы
   сообщены пользователю; готовится локальный checkpoint.
+- 22:37 МСК: block6 сохранён root7d12c24 / Viewerd53bb78.
+- 22:38–22:46 МСК: block7 — общие reserved headers вместо трёх resize-switch,
+  capacity table и пяти ручных header builders. Header118, Collision Alfea02,
+  Model50, Icy13 и FormatTests647;5 builds прошли. Все5 integration outputs
+  побайтно прежние. Native source/DLL не изменялись;10 original deps проверены.

@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args is ["--reserved-header-authoring", string reservedHeaderOutput])
+{
+    try { return ReservedHeaderWriterRegression.Run(reservedHeaderOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--skin-palette-authoring", string skinPaletteSource, string skinPaletteOutput])
 {
     try { return SkinPaletteWriterRegression.Run(skinPaletteSource, skinPaletteOutput); }
