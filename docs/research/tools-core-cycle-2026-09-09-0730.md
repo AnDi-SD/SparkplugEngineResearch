@@ -203,3 +203,14 @@ ABI guards, C++266, четыре C# набора и три whole graphs прош
 whole graphs прошли. Кэш host ID index снизил managed allocations на проходе
 835 nodes с204.4 до1.7 МБ; это отдельный замер, не FPS. World placement policy
 ещё требует переноса. Досье: `docs/research/tool-node-scalars-shared-core-2026-09-09.md`.
+
+### Четырнадцатый блок: world matrices
+
+Удалены C# FK и inverse-bind подстановка из placement helpers; общий scene
+runtime даёт исходный Node world. Свежий original parent/child case и1054
+world matrices whole graphs совпали побитно. C++86, пять Viewer наборов,
+Alfea02 с132 collision meshes и WPF build прошли. Старый inverse editor при
+неравномерном parent scale даёт неверный world: финальная native проверка
+теперь явно отказывает; эта ветка приостановлена, предложен исследованный
+original inverse path либо согласованный общий editor adapter. Досье:
+`docs/research/tool-node-world-shared-core-2026-09-09.md`.

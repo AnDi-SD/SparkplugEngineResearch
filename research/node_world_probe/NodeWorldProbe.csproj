@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SmoViewer.Core"><HintPath>../../tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll</HintPath></Reference>
+    <Reference Include="SmoViewer.Sparkplug"><HintPath>../../tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll</HintPath></Reference>
+    <None Include="../../artifacts/native/viewer/Release/SparkplugViewerNative.dll" Link="SparkplugViewerNative.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

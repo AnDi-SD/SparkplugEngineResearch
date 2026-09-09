@@ -101,3 +101,10 @@ stop, пять ABI refusals, C++266, четыре C# файла и три whole 
 original cases, C++226, четыре C# набора и три whole graphs прошли. Host ID
 index cache:204.4→1.7 МБ managed allocations за835 nodes, без изменения native
 DLL/input/checksum. Досье: `docs/research/tool-node-scalars-shared-core-2026-09-09.md`.
+
+Четырнадцатый блок: world placement получает исходный Node runtime, C# FK и
+inverse-bind override удалены. Original nonunit-Q/nonuniform-scale case и1054
+whole-graph worlds совпали побитно; C++86, пять Viewer samples, Alfea02 и WPF
+build прошли. Неверная обратная запись редактора при parent scale остановлена
+финальной native world проверкой; решение нового inverse adapter ожидает
+согласования. Досье: `docs/research/tool-node-world-shared-core-2026-09-09.md`.

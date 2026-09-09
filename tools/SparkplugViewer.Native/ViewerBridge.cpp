@@ -577,8 +577,9 @@ SPV_API void* spv_scene_create(const SpvNode* input, std::uint32_t count) noexce
                 parent=input[parent].parent;
             }
             const auto q=values<4>(input[i].rotation);
-            double norm=0; for(auto v:q) norm+=double(v)*v;
-            require(std::abs(norm-1)<0.01,"Expected unit node quaternion");
+            // The original Node reader converts authored quaternions as-is.
+            // Finite input validation above is a host guard; unit length is
+            // not a game precondition (original PC scalar probe transforms).
             require(input[i].billboard<=2,"Unsupported billboard axis");
             result->orientations.push_back(sparkplug::evidence::pc::animation_math::ToMatrix(q));
             auto node=std::make_shared<spNode>();
