@@ -81,6 +81,13 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] static SizeCode SelectSizeCodeForAnalysis(
             std::uint32_t payloadSize) noexcept;
+        // Existing common header encoder, exposed for bounded metadata edits.
+        // Its historical direct-host corrections for ID31/size0 are NOT new
+        // native evidence. The tools bridge rejects those nonstandard forms
+        // and uses the original terminator operation explicitly when requested.
+        [[nodiscard]] static bool WriteHeaderWithCodeForAnalysis(
+            spStream& destination, std::uint32_t fieldID,
+            std::uint32_t payloadSize, SizeCode sizeCode) noexcept;
 
         // PC472710 stores the object and stream, without writing any bytes.
         // Writer API names are diagnostic-backed; ForAnalysis marks host
@@ -109,9 +116,6 @@ namespace sparkplug::reconstruction
             spStream& destination,
             std::uint32_t fieldID,
             std::uint32_t payloadSize) noexcept;
-        [[nodiscard]] static bool WriteHeaderWithCodeForAnalysis(
-            spStream& destination, std::uint32_t fieldID,
-            std::uint32_t payloadSize, SizeCode sizeCode) noexcept;
 
         spDataBlockHeaderForAnalysis currentHeader_{};
         spStream* writerStream_ = nullptr;

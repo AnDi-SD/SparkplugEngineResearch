@@ -68,6 +68,25 @@ public:
     bool WriteData(const void*, std::uint32_t) override { return false; }
     bool vfunc_WriteFromStream(spStream*, std::uint32_t) override { return false; }
 };
+// Small host memory backend for the original scalar header writer. No game
+// fields are decoded here and no allocation is needed per edited header.
+class HeaderOutput final : public spStream {
+    std::uint8_t* bytes_;std::uint32_t capacity_,position_=0;
+public:
+    HeaderOutput(std::uint8_t* bytes,std::uint32_t capacity):bytes_(bytes),capacity_(capacity){}
+    bool Open(const char*) override{return false;}
+    bool Open(std::uint32_t,const char*) override{return false;}
+    bool Close() override{return false;}
+    bool Seek(SeekSource,std::int32_t) override{return false;}
+    bool GetCurrentPosition(std::uint32_t& value) const override{value=position_;return true;}
+    bool GetSize(std::uint32_t* value) const override{if(!value)return false;*value=position_;return true;}
+    bool ReadData(void*,std::uint32_t) override{return false;}
+    bool WriteData(const void* bytes,std::uint32_t size) override{
+        if(size>capacity_-position_||(!bytes&&size))return false;
+        if(size)std::memcpy(bytes_+position_,bytes,size);position_+=size;return true;
+    }
+    bool vfunc_WriteFromStream(spStream*,std::uint32_t) override{return false;}
+};
 struct ContainerIndex {
     SpvContainerInfo info{};
     std::vector<SpvContainerEntry> entries;
@@ -440,6 +459,28 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
         }
     }))return nullptr;
     return result.release();
+}
+SPV_API int spv_write_field_header(std::uint32_t field,std::uint32_t payloadSize,std::uint32_t preferredCode,
+    std::uint32_t preferExtended,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept {
+    return guarded([&]{
+        require(field<=spDataBlockSerializer::ExtendedFieldIDLimit&&output&&size&&capacity>=6,"Invalid field header output");
+        using Code=spDataBlockSerializer::SizeCode;
+        // Host capacity guard for retaining a caller-observed reservation.
+        // The original low-level writer trusts it and can truncate a size.
+        const bool fits=preferredCode==0?payloadSize==0:preferredCode<=4?payloadSize==(1u<<(preferredCode-1))
+            :preferredCode==5?payloadSize<=255:preferredCode==6?payloadSize<=65535:preferredCode==7;
+        require(!(fits&&preferExtended&&field<31),"FIELD_HEADER_ESCAPE_UNSUPPORTED: preserving a forced extended ID is not supported");
+        HeaderOutput destination(output,capacity);
+        if(payloadSize==0) {
+            require(!fits||preferredCode==0,"FIELD_HEADER_EMPTY_UNSUPPORTED: original WriteHeader omits real zero-size fields");
+            require(spDataBlockSerializer::WriteTerminatorForAnalysis(destination),"Cannot write section terminator");
+        } else {
+            require(field!=31,"FIELD_HEADER_ID31_UNSUPPORTED: original WriteHeader encodes ID31 incorrectly");
+            const auto code=fits?static_cast<Code>(preferredCode):spDataBlockSerializer::SelectSizeCodeForAnalysis(payloadSize);
+            require(spDataBlockSerializer::WriteHeaderWithCodeForAnalysis(destination,field,payloadSize,code),"Cannot write original field header");
+        }
+        require(destination.GetCurrentPosition(*size),"Cannot observe header size");
+    });
 }
 SPV_API int spv_read_field(const std::uint8_t* data, std::uint32_t count, SpvFieldHeader* output) noexcept {
     return guarded([&]{

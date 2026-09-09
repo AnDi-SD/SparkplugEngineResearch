@@ -88,6 +88,12 @@ SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count
 SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;
+// preferredCode=FFFFFFFF selects the original automatic code. Unsupported
+// ID31/forced escapes/real zero-size fields fail explicitly. A zero payload
+// with no nonempty width preference is the legacy host shorthand for the
+// original section terminator. Output is at most six bytes, no payload copy.
+SPV_API int spv_write_field_header(std::uint32_t field,std::uint32_t payloadSize,std::uint32_t preferredCode,
+    std::uint32_t preferExtended,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept;
 SPV_API int spv_node_local(const SpvNode*, float*, std::uint32_t) noexcept;
 SPV_API int spv_skin_matrix(const float*, const float*, float*, std::uint32_t) noexcept;
 SPV_API void* spv_scene_create(const SpvNode*, std::uint32_t) noexcept;

@@ -175,3 +175,13 @@ C#9300/2975 и TextureTool4248+40 прошли. Source-wrapper/PS2 metadata и w
 ABI, C++1007, TextureTool4272 и Importer192 прошли. Все32 edited outputs
 побайтно прежние; generic editing/field encoder остаются следующим переносом.
 Досье: `docs/research/tool-texture-shared-writer-2026-09-09.md`.
+
+### Одиннадцатый блок: общий field header writer
+
+Удалён C# encoder заголовков полей; общая запись через шестибайтный borrowed
+stream.14 свежих original/ABI headers совпали, C++340 и C#9300/2975 прошли.
+Тестовый выбор поля уточнён из-за настоящего канонического terminator00.
+Оригинал не пишет size0 и неправильно выдаёт ID31; эти формы, а также forced
+extended low ID приостановлены с явной ошибкой. Предложен отдельный общий
+lossless-адаптер после решения пользователя. Досье:
+`docs/research/tool-field-header-shared-writer-2026-09-09.md`.

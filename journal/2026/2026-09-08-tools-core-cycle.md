@@ -83,3 +83,9 @@ raw NPOT и field1C0/2, embedded MemoryStream потребляется посл�
 буфера. Четыре writer cases11/11, два source cases7/7 owners освобождены;
 ABI bytes точны. C++1007, TextureTool4272, Importer192 прошли,32 edited SMO
 побайтно прежние. Досье: `docs/research/tool-texture-shared-writer-2026-09-09.md`.
+
+Одиннадцатый блок: общий encoder заголовков вместо C#.14 original/ABI cases,
+terminator, native quirks и явные отказы проверены; C++340, C#9300/2975 прошли.
+ID31/real empty/forced extended low ID приостановлены, предложен общий
+lossless-адаптер после решения пользователя. Досье:
+`docs/research/tool-field-header-shared-writer-2026-09-09.md`.
