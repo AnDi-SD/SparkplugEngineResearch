@@ -41,7 +41,7 @@ public static class GlbExporter
         var nodes = new List<object>();
         var gltfSkins = new List<object>();
         var gltfAnimations = new List<object>();
-        var gltfMeshIndices = new Dictionary<int, int>();
+        var gltfMeshIndices = new Dictionary<SmoExportMeshKey, int>();
         var bakedGltfMeshIndices = new Dictionary<int, int>();
         var textureIndices = new Dictionary<(int ObjectIndex, bool OpaqueRgb), int>();
         var nodeObjects = new Dictionary<int, Dictionary<string, object>>();
@@ -52,8 +52,8 @@ public static class GlbExporter
             .ToDictionary(item => item.ObjectIndex, item => item.index);
         Dictionary<int, SmoExportNode> sourceNodesByIndex = sourceNodes
             .ToDictionary(node => node.ObjectIndex);
-        Dictionary<int, SmoExportMesh> sourceMeshesByIndex = sourceMeshes
-            .ToDictionary(mesh => mesh.ObjectIndex);
+        Dictionary<SmoExportMeshKey, SmoExportMesh> sourceMeshesByIndex = sourceMeshes
+            .ToDictionary(mesh => mesh.VariantKey);
         Dictionary<int, List<int>> animationNodeIndices = sourceNodes
             .ToDictionary(node => node.ObjectIndex,
                 node => new List<int> { nodeIndices[node.ObjectIndex] });
@@ -227,37 +227,47 @@ public static class GlbExporter
 
         bool bakeInstances = scene.SceneMode ==
             SmoExportSceneMode.LevelWithBakedObjects;
-        (SmoExportMesh Mesh, int? PlacementObjectIndex)[] meshUnits = bakeInstances
-            ? sourcePlacements.Select(placement =>
+        (SmoExportMesh Mesh, int? PlacementOrdinal)[] meshUnits = bakeInstances
+            ? sourcePlacements.Select((placement, ordinal) =>
             {
                 if (!sourceMeshesByIndex.TryGetValue(
-                        placement.MeshObjectIndex, out SmoExportMesh? source))
+                        placement.EffectiveMeshKey, out SmoExportMesh? source))
                 {
                     throw new InvalidDataException(
                         $"Mesh placement {placement.SceneObjectIndex} ({placement.Name}) " +
                         $"references unavailable mesh {placement.MeshObjectIndex}.");
                 }
-                return (source, (int?)placement.SceneObjectIndex);
+                return (source, (int?)ordinal);
             }).ToArray()
             : sourceMeshes.Select(mesh => (mesh, (int?)null)).ToArray();
 
-        foreach ((SmoExportMesh mesh, int? placementObjectIndex) in meshUnits)
+        // Material variants share physical geometry accessors. Explicit baked
+        // mode keeps independently writable buffers for each requested copy.
+        var geometryAccessors = new Dictionary<Array, int>(ReferenceEqualityComparer.Instance);
+        int GeometryAccessor(Array values, Func<int> create)
         {
-            int positionAccessor = AddVector3Accessor(
-                binary, views, accessors, mesh.Positions, includeBounds: true, target: 34962);
+            if (bakeInstances) return create();
+            if (!geometryAccessors.TryGetValue(values, out int accessor))
+                geometryAccessors.Add(values, accessor = create());
+            return accessor;
+        }
+        foreach ((SmoExportMesh mesh, int? placementOrdinal) in meshUnits)
+        {
+            int positionAccessor = GeometryAccessor(mesh.Positions, () => AddVector3Accessor(
+                binary, views, accessors, mesh.Positions, includeBounds: true, target: 34962));
             var attributes = new Dictionary<string, int> { ["POSITION"] = positionAccessor };
             if (mesh.Normals.Length == mesh.Positions.Length)
-                attributes["NORMAL"] = AddVector3Accessor(
-                    binary, views, accessors, mesh.Normals, false, 34962);
+                attributes["NORMAL"] = GeometryAccessor(mesh.Normals, () => AddVector3Accessor(
+                    binary, views, accessors, mesh.Normals, false, 34962));
             if (mesh.TextureCoordinates0.Length == mesh.Positions.Length)
-                attributes["TEXCOORD_0"] = AddVector2Accessor(
-                    binary, views, accessors, mesh.TextureCoordinates0, 34962);
+                attributes["TEXCOORD_0"] = GeometryAccessor(mesh.TextureCoordinates0, () => AddVector2Accessor(
+                    binary, views, accessors, mesh.TextureCoordinates0, 34962));
             if (mesh.TextureCoordinates1.Length == mesh.Positions.Length)
-                attributes["TEXCOORD_1"] = AddVector2Accessor(
-                    binary, views, accessors, mesh.TextureCoordinates1, 34962);
+                attributes["TEXCOORD_1"] = GeometryAccessor(mesh.TextureCoordinates1, () => AddVector2Accessor(
+                    binary, views, accessors, mesh.TextureCoordinates1, 34962));
             if (mesh.Colors.Length == mesh.Positions.Length)
-                attributes["COLOR_0"] = AddVector4Accessor(
-                    binary, views, accessors, mesh.Colors, 34962);
+                attributes["COLOR_0"] = GeometryAccessor(mesh.Colors, () => AddVector4Accessor(
+                    binary, views, accessors, mesh.Colors, 34962));
             int? gltfSkinIndex = null;
             SkinPalette? meshPalette = null;
             if (mesh.SkinObjectIndex is int skinObjectIndex)
@@ -287,8 +297,8 @@ public static class GlbExporter
                     binary, views, accessors, remappedJoints, 34962);
             }
 
-            int indexAccessor = AddIndicesAccessor(
-                binary, views, accessors, mesh.TriangleIndices);
+            int indexAccessor = GeometryAccessor(mesh.TriangleIndices, () => AddIndicesAccessor(
+                binary, views, accessors, mesh.TriangleIndices));
 
             var primitive = new Dictionary<string, object>
             {
@@ -336,17 +346,18 @@ public static class GlbExporter
             gltfMeshes.Add(new
             {
                 name = CleanName(
-                    placementObjectIndex.HasValue
-                        ? mesh.Name + $"__placement_{placementObjectIndex.Value}"
+                    placementOrdinal.HasValue
+                        ? mesh.Name + $"__placement_{placementOrdinal.Value}"
                         : mesh.Name,
-                    placementObjectIndex.HasValue
-                        ? $"mesh_{mesh.ObjectIndex}_placement_{placementObjectIndex.Value}"
+                    placementOrdinal.HasValue
+                        ? $"mesh_{mesh.ObjectIndex}_placement_{placementOrdinal.Value}"
                         : $"mesh_{mesh.ObjectIndex}"),
                 primitives = new[] { primitive },
                 extras = new
                 {
                     sparkplugObjectIndex = mesh.ObjectIndex,
                     sparkplugObjectId = mesh.ObjectId,
+                    sparkplugRenderableObjectIndex = mesh.RenderableObjectIndex,
                     sparkplugMarker = $"0x{mesh.Marker:X2}",
                     sparkplugPrimitiveType = mesh.PrimitiveType,
                     sparkplugVertexFormat = $"0x{mesh.VertexFormat:X4}",
@@ -354,32 +365,33 @@ public static class GlbExporter
                     sparkplugRuntimeStride = mesh.RuntimeStride
                 }
             });
-            if (placementObjectIndex is int bakedPlacementObjectIndex)
+            if (placementOrdinal is int bakedPlacementOrdinal)
             {
                 if (!bakedGltfMeshIndices.TryAdd(
-                        bakedPlacementObjectIndex, gltfMeshes.Count - 1))
+                        bakedPlacementOrdinal, gltfMeshes.Count - 1))
                 {
                     throw new InvalidDataException(
-                        $"Mesh placement object index {bakedPlacementObjectIndex} " +
+                        $"Mesh placement ordinal {bakedPlacementOrdinal} " +
                         "occurs more than once.");
                 }
             }
-            else if (!gltfMeshIndices.TryAdd(mesh.ObjectIndex, gltfMeshes.Count - 1))
+            else if (!gltfMeshIndices.TryAdd(mesh.VariantKey, gltfMeshes.Count - 1))
             {
                 throw new InvalidDataException(
                     $"Mesh object index {mesh.ObjectIndex} occurs more than once.");
             }
         }
 
-        foreach (SmoExportMeshPlacement placement in sourcePlacements)
+        for (int placementOrdinal = 0; placementOrdinal < sourcePlacements.Count; ++placementOrdinal)
         {
+            var placement = sourcePlacements[placementOrdinal];
             bool hasMeshIndex = bakeInstances
                 ? bakedGltfMeshIndices.TryGetValue(
-                    placement.SceneObjectIndex, out int gltfMeshIndex)
+                    placementOrdinal, out int gltfMeshIndex)
                 : gltfMeshIndices.TryGetValue(
-                    placement.MeshObjectIndex, out gltfMeshIndex);
+                    placement.EffectiveMeshKey, out gltfMeshIndex);
             if (!sourceMeshesByIndex.TryGetValue(
-                    placement.MeshObjectIndex, out SmoExportMesh? mesh) ||
+                    placement.EffectiveMeshKey, out SmoExportMesh? mesh) ||
                 !hasMeshIndex)
             {
                 throw new InvalidDataException(
@@ -399,7 +411,9 @@ public static class GlbExporter
                     sparkplugMeshObjectIndex = placement.MeshObjectIndex,
                     sparkplugSharedInstance = placement.IsSharedInstance,
                     sparkplugStaticObjectIndex = placement.StaticObjectIndex,
-                    sparkplugMaterialObjectIndex = placement.MaterialObjectIndex
+                    sparkplugMaterialObjectIndex = placement.MaterialObjectIndex,
+                    sparkplugContainerObjectIndex = placement.OccurrenceKey?.ContainerObjectIndex,
+                    sparkplugMemberSlot = placement.OccurrenceKey?.MemberSlot
                 }
             };
             if (!Matrix4x4.Decompose(placement.LocalMatrix,

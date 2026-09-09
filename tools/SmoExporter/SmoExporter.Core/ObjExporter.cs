@@ -46,9 +46,9 @@ public static class ObjExporter
             obj.AppendLine($"mtllib {materialFile}");
         var writtenTextures = new Dictionary<int, string>();
         var writtenOpacityMasks = new Dictionary<int, string>();
-        var writtenMaterials = new HashSet<int>();
-        Dictionary<int, SmoExportMesh> meshesByObjectIndex = scene.Meshes
-            .ToDictionary(mesh => mesh.ObjectIndex);
+        var writtenMaterials = new HashSet<SmoExportMeshKey>();
+        Dictionary<SmoExportMeshKey, SmoExportMesh> meshesByObjectIndex = scene.Meshes
+            .ToDictionary(mesh => mesh.VariantKey);
         int vertexBase = 1;
         int uvBase = 1;
         int normalBase = 1;
@@ -56,7 +56,7 @@ public static class ObjExporter
         foreach (SmoExportMeshPlacement placement in scene.MeshPlacements)
         {
             if (!meshesByObjectIndex.TryGetValue(
-                    placement.MeshObjectIndex, out SmoExportMesh? mesh))
+                    placement.EffectiveMeshKey, out SmoExportMesh? mesh))
             {
                 throw new InvalidDataException(
                     $"OBJ placement [{placement.SceneObjectIndex}] {placement.Name} " +
@@ -65,7 +65,7 @@ public static class ObjExporter
             string name = SafeName(
                 placement.Name,
                 $"placement_{placement.SceneObjectIndex}");
-            string material = $"material_{mesh.ObjectIndex}";
+            string material = $"material_{mesh.ObjectIndex}" + (mesh.RenderableObjectIndex is int model ? $"_model_{model}" : string.Empty);
             obj.AppendLine($"o {name}");
             obj.AppendLine($"g {name}");
             if (includeMaterials)
@@ -116,7 +116,7 @@ public static class ObjExporter
                 obj.AppendLine($"f {corners[0]} {corners[1]} {corners[2]}");
             }
 
-            if (includeMaterials && writtenMaterials.Add(mesh.ObjectIndex))
+            if (includeMaterials && writtenMaterials.Add(mesh.VariantKey))
             {
                 mtl.AppendLine($"newmtl {material}");
                 mtl.AppendLine(FormattableString.Invariant(

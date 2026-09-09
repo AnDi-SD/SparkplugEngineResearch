@@ -174,3 +174,19 @@ target coordinate/local conversion остаётся в адаптере. Пят�
 0.00048828125. Три consumer builds чистые; native/оригинал не менялись.
 Дальше остаются полный occurrence/material export и material runtime.
 Досье: `docs/research/tool-exporter-node-pose-shared-core-2026-09-09.md`.
+
+### Блок 13: Exporter/Importer используют все actual occurrences
+
+Второй сборщик физических meshes/Static instances удалён. Exporter использует
+общую Scene, различает Mesh geometry / Model variant / support slot и сохраняет
+собственные material/Skin references. GLB/FBX переиспользуют rigid geometry;
+FBX export protocol v4 отделяет транспортные ordinals от реальных file IDs,
+v3 остаётся читаемым. Split/selection/CLI/GUI подключены к variant/slot keys.
+SMO importer разворачивает все actual placements со своими world matrices.
+Пять GLB/SDK FBX readbacks: 2379 placements, 2282 variants, 75534 checks;
+selection/baked/OBJ/guards 60, importer 5349, v3 compatibility 4. Пять consumer
+builds и native FBX прошли. Alfea01 GLB geometry 5,09 вместо 9,05 MB при копиях.
+Static selection Skin и importer multipass явно отклоняются, ограничения
+зафиксированы. Full material runtime/target shader projection остаются далее.
+Native game DLL не менялась, original probes не повторялись, релиза нет.
+Досье: `docs/research/tool-export-occurrences-shared-core-2026-09-09.md`.

@@ -8,10 +8,17 @@ public static class SmoExportSceneSplitter
         SmoExportScene scene, int meshObjectIndex)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        SmoExportMesh source = scene.Meshes.SingleOrDefault(mesh =>
-            mesh.ObjectIndex == meshObjectIndex) ?? throw new ArgumentException(
-                $"Scene does not contain mesh [{meshObjectIndex}].",
-                nameof(meshObjectIndex));
+        var candidates = scene.Meshes.Where(mesh => mesh.ObjectIndex == meshObjectIndex).ToArray();
+        if (candidates.Length != 1) throw new ArgumentException(
+            $"Mesh [{meshObjectIndex}] resolves {candidates.Length} export variants; select a concrete Mesh/Model key.", nameof(meshObjectIndex));
+        return CreateSingleMeshScene(scene, candidates[0].VariantKey);
+    }
+
+    public static SmoExportScene CreateSingleMeshScene(SmoExportScene scene, SmoExportMeshKey key)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        SmoExportMesh source = scene.Meshes.SingleOrDefault(mesh => mesh.VariantKey == key) ?? throw new ArgumentException(
+                $"Scene does not contain mesh variant {key}.", nameof(key));
         if (source.SkinObjectIndex is not null)
         {
             throw new InvalidOperationException(
@@ -31,10 +38,11 @@ public static class SmoExportSceneSplitter
             mesh.ObjectIndex,
             IsSharedInstance: false,
             StaticObjectIndex: null,
-            MaterialObjectIndex: null,
+            MaterialObjectIndex: scene.MeshPlacements.FirstOrDefault(value => value.EffectiveMeshKey == key)?.MaterialObjectIndex,
             ParentNodeObjectIndex: null,
             Matrix4x4.Identity,
-            Matrix4x4.Identity);
+            Matrix4x4.Identity)
+        { MeshVariantKey = key };
         SmoExportResourceTypes resources = scene.Resources &
             (SmoExportResourceTypes.Meshes |
              SmoExportResourceTypes.Materials |

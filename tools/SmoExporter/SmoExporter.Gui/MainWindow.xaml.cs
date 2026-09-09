@@ -833,13 +833,13 @@ public partial class MainWindow : Window
 
                 if (sceneMode == SmoExportSceneMode.SeparateMeshes)
                 {
-                    foreach (int meshObjectIndex in selectedMeshObjectIndices)
+                    foreach (var variant in scene.Meshes.Where(mesh => selectedMeshObjectIndices.Contains(mesh.ObjectIndex)))
                     {
                         SmoExportScene single =
                             SmoExportSceneSplitter.CreateSingleMeshScene(
-                                scene, meshObjectIndex);
+                                scene, variant.VariantKey);
                         SmoExportMesh mesh = single.Meshes[0];
-                        string fileStem = $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}";
+                        string fileStem = $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}_model_{mesh.RenderableObjectIndex}";
                         WriteFormats(single, fileStem);
                     }
                 }

@@ -1,8 +1,9 @@
 # SmoExporter
 
 Editor hosts can create one export scene from arbitrary rendered occurrences via
-`SmoExportSceneSelection.Create`. Each selection identifies both mesh and scene
-object and may override its current native world matrix. Coordinate reflection,
+`SmoExportSceneSelection.Create`. Each selection identifies mesh, Model/Skin and
+the container/member slot when that renderable repeats. It may override its
+current native world matrix. Coordinate reflection,
 placement filtering, shared geometry, and format writing remain in
 `SmoExporter.Core`; hosts do not need to duplicate exporters.
 
@@ -19,14 +20,24 @@ placement filtering, shared geometry, and format writing remain in
 и подстановка позы по inverse-bind удалены. Export adapter только переводит
 эти world matrices в координаты и local matrices целевого формата. Если матрица
 родителя вырождена, такой экспорт явно отклоняется вместо выдуманной identity.
-На пяти выбранных файлах проверена начальная поза после записи и чтения GLB;
-полный scene occurrence/material перенос Exporter пока продолжается.
+Общий SceneBuilder сохраняет все поддержанные reference slots и собственные
+material/Skin ссылки каждого Model. Пять сцен проверены после записи и чтения
+GLB/FBX, включая повторные Model. Это состав загруженных supports, не результат
+игрового visibility/culling. Полный material runtime ещё переносится; все
+исходные passes/layers сохранены в LoadedMaterial рядом с форматной проекцией.
 
 - `GLB` — самодостаточная сцена с meshes, normals, UV0/UV1, vertex colors, материалами, PNG-текстурами, skeleton/skin и выбранными SAN-анимациями.
 - `FBX` — бинарный FBX со скелетом, skin weights, bind pose, материалами, встроенными текстурами и выбранными animations. Файл создаётся напрямую Autodesk FBX SDK через поставляемый вместе с программой `SmoFbxBridge.exe`; Blender, Python и промежуточный GLB не используются.
 - `OBJ + MTL + PNG` — статический compatibility export.
 
-Каждый исходный `spMeshData` остаётся отдельным mesh. Triangle strips преобразуются в triangle lists. Для skin сохраняются palettes каждого `spSkin`, inverse bind matrices и четыре joint/weight компонента вершины, включая compact layout `0x093E`. SAN translation/rotation/scale tracks сопоставляются с узлами по имени. Rigid-меши экспортируются дочерними узлами соответствующих `spRenderNode`, поэтому аксессуары следуют за их SAN-анимацией.
+Геометрия одного `spMeshData` общая для вариантов разных Model/Skin; каждый
+вариант сохраняет собственный материал, а каждый reference slot — размещение.
+GLB использует общие accessors, FBX — общую rigid geometry. В режиме отдельных
+мешей каждый вариант записывается в свой файл с исходным Model index в имени.
+Triangle strips преобразуются в triangle lists. Для skin сохраняются palettes
+каждого `spSkin`, inverse bind matrices и четыре joint/weight компонента вершины,
+включая compact layout `0x093E`. SAN translation/rotation/scale tracks сопоставляются
+с узлами по имени. Rigid-меши подключаются к фактическому support Node.
 
 Общий с Viewer sampler поддерживает PC SAN representations 1–4, cubic/Squad,
 независимые scalar-оси и неединичный scale. Имена сравниваются с учётом регистра;

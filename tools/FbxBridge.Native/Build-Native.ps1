@@ -24,7 +24,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $FbxSdkRoot 'include\fbxsdk.h'))) {
 $cmake = @($cmakeCandidates)[0]
 & $cmake -S $sourceRoot -B $buildRoot -A x64 "-DFBX_SDK_ROOT=$FbxSdkRoot"
 if ($LASTEXITCODE -ne 0) { throw "CMake configure failed with exit code $LASTEXITCODE." }
-& $cmake --build $buildRoot --config $Configuration
+& $cmake --build $buildRoot --config $Configuration --parallel 2
 if ($LASTEXITCODE -ne 0) { throw "Native FBX bridge build failed with exit code $LASTEXITCODE." }
 
 $output = Join-Path $buildRoot "bin\$Configuration\SmoFbxBridge.exe"

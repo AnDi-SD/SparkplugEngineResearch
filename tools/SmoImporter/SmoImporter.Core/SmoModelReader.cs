@@ -82,7 +82,22 @@ public static class SmoModelReader
         cancellationToken.ThrowIfCancellationRequested();
 
         var warnings = new List<string>(source.Warnings);
-        SmoExportMesh[] meshes = source.Meshes
+        // ImportedScene stores flattened occurrences. The shared source scene
+        // keeps geometry variants separately from actual support reference slots.
+        var variants = source.Meshes.ToDictionary(mesh => mesh.VariantKey);
+        SmoExportMesh[] meshes = source.MeshPlacements.Select(placement =>
+            {
+                if (!variants.TryGetValue(placement.EffectiveMeshKey, out var mesh))
+                    throw new InvalidDataException(
+                        $"SMO placement {placement.PlacementKey} references unavailable mesh variant {placement.EffectiveMeshKey}.");
+                return mesh with
+                {
+                    Name = placement.Name,
+                    ParentNodeObjectIndex = placement.ParentNodeObjectIndex,
+                    BindWorldMatrix = placement.WorldMatrix,
+                    BindLocalMatrix = placement.LocalMatrix
+                };
+            })
             .Where(mesh =>
             {
                 bool renderable = HasRenderableTriangle(mesh);
@@ -99,12 +114,14 @@ public static class SmoModelReader
             throw new InvalidDataException("The donor SMO has no renderable mesh geometry.");
 
         SmoExportMesh[] layered = meshes
-            .Where(mesh => mesh.EffectTexture is not null)
+            .Where(mesh => mesh.EffectTexture is not null ||
+                mesh.LoadedMaterial is { } material &&
+                (material.Passes.Count > 1 || material.Passes.Any(pass => pass.Layers.Count > 1)))
             .ToArray();
         if (layered.Length > 0)
         {
             throw new InvalidDataException(
-                "The donor SMO contains multi-layer materials which cannot yet be " +
+                "MATERIAL_IMPORT_SHAPE: the donor SMO contains multiple material passes or layers which cannot yet be " +
                 "represented by ImportedScene without dropping a texture layer: " +
                 string.Join(", ", layered.Select(mesh =>
                     $"[{mesh.ObjectIndex}] {mesh.Name}")) + ".");

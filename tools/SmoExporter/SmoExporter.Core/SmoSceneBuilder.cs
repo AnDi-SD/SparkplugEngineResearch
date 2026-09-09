@@ -22,314 +22,122 @@ public static class SmoSceneBuilder
         bool includeServiceNodes = Includes(resources, SmoExportResourceTypes.ServiceNodes);
         ValidateSceneMode(options.SceneMode, options.SelectedMeshObjectIndices);
 
+        var loaded = SmoLoadedResources.Get(document);
+        if (loaded.LoadIssue is not null || loaded.SceneIssue is not null)
+            throw new InvalidDataException(loaded.LoadIssue ?? loaded.SceneIssue);
+        var catalog = SmoRenderableCatalog.Get(document);
+        var prepared = includeMeshes ? SmoViewer.Scene.SmoSceneBuilder.Build(document) : null;
         var warnings = new List<string>();
-        var meshes = new List<SmoExportMesh>();
-        var exportTextures = new Dictionary<int, SmoExportTexture>();
-        SmoExportTexture GetExportTexture(SmoTexture texture)
+        if (prepared is not null)
         {
-            if (!exportTextures.TryGetValue(texture.ObjectIndex, out SmoExportTexture? exported))
-            {
-                exported = BuildExportTexture(texture);
-                exportTextures.Add(texture.ObjectIndex, exported);
-            }
+            warnings.AddRange(prepared.DecodeErrors);
+            warnings.AddRange(prepared.TextureIssues);
+        }
+        var meshes = new List<SmoExportMesh>();
+        var placements = new List<SmoExportMeshPlacement>();
+        var textures = new Dictionary<int, SmoExportTexture>();
+        SmoExportTexture ExportTexture(SmoTexture texture)
+        {
+            if (!textures.TryGetValue(texture.ObjectIndex, out var exported))
+                textures.Add(texture.ObjectIndex, exported = BuildExportTexture(texture));
             return exported;
         }
-        var meshPlacements = new List<SmoExportMeshPlacement>();
-        IReadOnlyDictionary<int, SmoTextureBinding> materialBindings =
-            includeMaterials
-                ? SmoTextureBindingResolver.ResolveAll(document)
-                : new Dictionary<int, SmoTextureBinding>();
-        IReadOnlyDictionary<int, uint> materialColors =
-            includeMaterials
-                ? SmoMaterialColorResolver.ResolveAll(document)
-                : new Dictionary<int, uint>();
-        IReadOnlyDictionary<int, uint> materialFlags =
-            includeMaterials
-                ? SmoMaterialRenderState.ResolveAll(document)
-                : new Dictionary<int, uint>();
-        Dictionary<int, SmoSkin> decodedSkins = [];
-        Dictionary<int, string> skinDecodeErrors = [];
-        Dictionary<int, Matrix4x4> nodeWorld = [];
-        List<SmoExportNode> allNodes = [];
-        List<SmoExportNode> nodes = [];
-        List<SmoExportSkin> skins = [];
-        if (includeSkeleton)
+        var decodedSkins = includeSkeleton
+            ? catalog.ByObjectIndex.Values.Where(value => value.Skin is not null).ToDictionary(value => value.ObjectIndex, value => value.Skin!)
+            : new Dictionary<int, SmoSkin>();
+        var skins = decodedSkins.Values.Select(skin => new SmoExportSkin(skin.ObjectIndex, skin.Name,
+            skin.Bones.Select(bone => bone.NodeObjectIndex).ToArray(),
+            skin.Bones.Select(bone => SmoExportCoordinateSystem.ToExportMatrix(bone.InverseBindMatrix)).ToArray())).ToList();
+        var allNodes = includeSkeleton ? BuildExportNodes(document, loaded) : new List<SmoExportNode>();
+        var geometry = new Dictionary<int, ExportGeometry>();
+        var variants = new Dictionary<SmoExportMeshKey, SmoExportMesh>();
+        var seenMeshes = new HashSet<int>();
+        foreach (var occurrence in prepared?.Meshes ?? Array.Empty<SmoViewer.Scene.SmoSceneMesh>())
         {
-            var loaded = SmoLoadedResources.Get(document);
-            if (loaded.LoadIssue is not null || loaded.SceneIssue is not null)
-                throw new InvalidDataException(loaded.LoadIssue ?? loaded.SceneIssue);
-            foreach (SmoObjectEntry skinEntry in document.Objects.Where(
-                         entry => entry.TypeHash == SmoClassIds.Skin))
+            var source = occurrence.Mesh;
+            int renderableIndex = occurrence.RenderableObjectIndex
+                ?? throw new InvalidDataException("Export occurrence has no actual renderable identity.");
+            if (options.SceneMode == SmoExportSceneMode.SeparateMeshes
+                && !options.SelectedMeshObjectIndices!.Contains(source.ObjectIndex)) continue;
+            // Retain the existing LevelOnly storage-selection mode as a host
+            // filter over actual occurrences, never as a native visibility claim.
+            if (options.SceneMode == SmoExportSceneMode.LevelOnly
+                && (!catalog.TryGetStoredMeshOwner(document.Objects[source.ObjectIndex], out var storedOwner)
+                    || storedOwner.ObjectIndex != renderableIndex)) continue;
+
+            bool exportSkin = includeSkeleton && source.HasSkinningData && occurrence.SkinObjectIndex.HasValue;
+            if (exportSkin && !decodedSkins.ContainsKey(occurrence.SkinObjectIndex!.Value))
+                throw new InvalidDataException($"Skin [{occurrence.SkinObjectIndex}] is unavailable for Model [{renderableIndex}].");
+            Matrix4x4 world = options.ApplyWorldTransforms ? occurrence.WorldTransform : Matrix4x4.Identity;
+            Matrix4x4 local = world;
+            int? parent = null;
+            if (includeSkeleton && options.ApplyWorldTransforms && occurrence.RigidNodeObjectIndex is int nodeIndex)
             {
-                if (SmoSkinDecoder.TryDecode(
-                        document, skinEntry, out SmoSkin? skin, out string skinError) &&
-                    skin is not null)
-                {
-                    decodedSkins[skin.ObjectIndex] = skin;
-                }
-                else
-                {
-                    skinDecodeErrors[skinEntry.Index] = skinError;
-                    warnings.Add(
-                        $"Skin [{skinEntry.Index}] {skinEntry.Name}: {skinError}");
-                }
+                if (!loaded.NodeWorlds.TryGetValue(nodeIndex, out var parentWorld)
+                    || !Matrix4x4.Invert(parentWorld, out var inverseParent))
+                    throw new InvalidDataException($"EXPORT_PARENT_MATRIX_SINGULAR: Model [{renderableIndex}] support [{nodeIndex}].");
+                parent = nodeIndex;
+                local = world * inverseParent;
             }
-            nodeWorld = loaded.NodeWorlds.ToDictionary(value => value.Key, value => value.Value);
-            allNodes = BuildExportNodes(document, loaded);
-            skins = decodedSkins.Values.Select(skin => new SmoExportSkin(
-                skin.ObjectIndex,
-                skin.Name,
-                skin.Bones.Select(bone => bone.NodeObjectIndex).ToArray(),
-                skin.Bones.Select(bone =>
-                    SmoExportCoordinateSystem.ToExportMatrix(
-                        bone.InverseBindMatrix)).ToArray())).ToList();
+            var worldExport = SmoExportCoordinateSystem.ToExportMatrix(world);
+            var localExport = SmoExportCoordinateSystem.ToExportMatrix(local);
+            var key = new SmoExportMeshKey(source.ObjectIndex, renderableIndex);
+            if (!variants.TryGetValue(key, out var mesh))
+            {
+                if (!geometry.TryGetValue(source.ObjectIndex, out var converted))
+                    geometry.Add(source.ObjectIndex, converted = ConvertGeometry(source, includeMaterials));
+                var texture = includeTextures && occurrence.Texture is not null ? ExportTexture(occurrence.Texture) : null;
+                Vector4 color = includeMaterials ? occurrence.LoadedMaterial?.Colors[1] ?? Vector4.One : Vector4.One;
+                // Existing target-format color policy is retained here while
+                // full engine material/shader execution is migrated separately.
+                if (includeMaterials && texture is null && converted.UniformDiffuse is Vector4 diffuse) color = diffuse;
+                bool alpha = includeMaterials && (occurrence.UsesAlphaBlend || color.W < 1f || converted.Colors.Any(value => value.W < 1f));
+                mesh = new SmoExportMesh(source.ObjectIndex, document.Objects[source.ObjectIndex].Id,
+                    source.Name, source.Marker, source.PrimitiveType, source.VertexFormat, source.Stride, source.RuntimeStride,
+                    converted.Positions, converted.Normals, converted.Uv0, converted.Uv1, converted.Colors,
+                    exportSkin ? converted.Weights : [], exportSkin ? converted.Joints : [], converted.Triangles,
+                    texture, null, color, alpha, exportSkin ? occurrence.SkinObjectIndex : null, parent, worldExport, localExport)
+                { RenderableObjectIndex = renderableIndex, LoadedMaterial = occurrence.LoadedMaterial };
+                variants.Add(key, mesh);meshes.Add(mesh);
+            }
+            var container = loaded.RenderContainersByObjectIndex[occurrence.OccurrenceKey!.Value.ContainerObjectIndex];
+            var sourceModel = loaded.Models[renderableIndex];
+            placements.Add(new SmoExportMeshPlacement(renderableIndex, document.Objects[renderableIndex].Name,
+                source.ObjectIndex, !seenMeshes.Add(source.ObjectIndex),
+                container.Kind == SmoRenderContainerKind.StaticRenderObject ? container.ObjectIndex : null,
+                sourceModel.Material?.ObjectIndex, parent, worldExport, localExport)
+            { MeshVariantKey = key, OccurrenceKey = occurrence.OccurrenceKey });
         }
-
-        IEnumerable<SmoObjectEntry> meshEntries = includeMeshes
-            ? document.Objects.Where(item => item.TypeHash == SmoClassIds.MeshData)
-            : Enumerable.Empty<SmoObjectEntry>();
-        if (options.SceneMode == SmoExportSceneMode.SeparateMeshes)
-        {
-            IReadOnlySet<int> selected = options.SelectedMeshObjectIndices!;
-            meshEntries = meshEntries.Where(entry => selected.Contains(entry.Index));
-        }
-        foreach (SmoObjectEntry entry in meshEntries)
-        {
-            if (!SmoMeshDecoder.TryDecode(document, entry, out SmoMesh? mesh, out string error) ||
-                mesh is null)
-            {
-                warnings.Add(error);
-                continue;
-            }
-
-            int? skinObjectIndex = includeSkeleton
-                ? FindAncestorObjectIndex(document.Objects, entry, SmoClassIds.Skin)
-                : null;
-            if (includeSkeleton && mesh.HasSkinningData && skinObjectIndex is null)
-            {
-                throw new InvalidDataException(
-                    $"Skinned mesh [{entry.Index}] {entry.Name} has no owning skin object; " +
-                    "exporting it as a static mesh would change the model.");
-            }
-            if (includeSkeleton && mesh.HasSkinningData &&
-                skinObjectIndex is int requiredSkinIndex &&
-                !decodedSkins.ContainsKey(requiredSkinIndex))
-            {
-                string detail = skinDecodeErrors.GetValueOrDefault(
-                    requiredSkinIndex, "the referenced skin was not decoded");
-                throw new InvalidDataException(
-                    $"Skinned mesh [{entry.Index}] {entry.Name} requires skin " +
-                    $"[{requiredSkinIndex}], but it is unavailable: {detail}. " +
-                    "Exporting it as a static mesh would change the model.");
-            }
-            bool exportSkin = includeSkeleton && mesh.HasSkinningData &&
-                              skinObjectIndex is int skinIndex &&
-                              decodedSkins.ContainsKey(skinIndex);
-
-            int? parentNodeObjectIndex = null;
-            Matrix4x4 world = Matrix4x4.Identity;
-            Matrix4x4 local = Matrix4x4.Identity;
-            if (options.ApplyWorldTransforms && !exportSkin)
-            {
-                world = SmoNodeTransformDecoder.ResolveModelWorldMatrix(document, entry);
-                int? rigidNodeObjectIndex = includeSkeleton && !mesh.HasSkinningData
-                    ? SmoRigidBindingResolver.ResolveAnimationNodeObjectIndex(document, entry)
-                    : null;
-                if (rigidNodeObjectIndex is int rigidIndex &&
-                    nodeWorld.TryGetValue(rigidIndex, out Matrix4x4 parentWorld) &&
-                    Matrix4x4.Invert(parentWorld, out Matrix4x4 inverseParent))
-                {
-                    parentNodeObjectIndex = rigidIndex;
-                    local = world * inverseParent;
-                }
-                else
-                {
-                    local = world;
-                }
-            }
-
-            Vector3[] positions = mesh.Positions.Select(value =>
-                new Vector3(value.X, value.Y, -value.Z)).ToArray();
-            Vector3[] normals = mesh.HasNormals
-                ? mesh.Normals.Select(value =>
-                {
-                    Vector3 transformed = new(value.X, value.Y, -value.Z);
-                    return transformed.LengthSquared() > 0.000001f
-                        ? Vector3.Normalize(transformed)
-                        : Vector3.UnitY;
-                }).ToArray()
-                : [];
-            uint[] triangles = mesh.TriangleIndices.ToArray();
-            for (int index = 0; index < triangles.Length; index += 3)
-                (triangles[index + 1], triangles[index + 2]) =
-                    (triangles[index + 2], triangles[index + 1]);
-
-            SmoExportTexture? texture = null;
-            SmoExportTexture? effectTexture = null;
-            bool usesAlphaBlend = includeMaterials &&
-                materialFlags.TryGetValue(entry.Index, out uint flags) &&
-                SmoMaterialRenderState.UsesAlphaBlend(flags);
-            SmoTextureBinding? binding = materialBindings.GetValueOrDefault(entry.Index);
-            if (includeMaterials && binding is not null)
-                usesAlphaBlend |= binding.UsesAlphaBlend;
-            if (includeTextures && binding is not null)
-            {
-                if (binding.Issue is not null)
-                    warnings.Add(binding.Issue);
-                else if (binding.Texture is not null)
-                {
-                    SmoTexture source = binding.BaseTexture ?? binding.Texture;
-                    texture = GetExportTexture(source);
-                    if (binding.BaseTexture is not null)
-                    {
-                        SmoTexture effect = binding.Texture;
-                        effectTexture = GetExportTexture(effect);
-                        if (binding.AnimationFrames is { Count: > 1 })
-                        {
-                            warnings.Add(
-                                $"ANIMATED_TEXTURE_FIRST_FRAME_ONLY: Mesh [{entry.Index}] " +
-                                $"\"{entry.Name}\" exports the first of " +
-                                $"{binding.AnimationFrames.Count} material frames.");
-                        }
-                    }
-                }
-            }
-
-            Vector4 materialColor = Vector4.One;
-            if (includeMaterials)
-            {
-                if (materialColors.TryGetValue(entry.Index, out uint argb))
-                    materialColor = DecodeArgb(argb);
-                else if (binding?.DiffuseArgb is uint inheritedArgb)
-                    materialColor = DecodeArgb(inheritedArgb);
-            }
-            bool hasUniformDiffuse = includeMaterials && mesh.HasDiffuseColors &&
-                mesh.DiffuseColorsArgb.Skip(1)
-                    .All(color => color == mesh.DiffuseColorsArgb[0]);
-            if (texture is null && hasUniformDiffuse)
-                materialColor = DecodeArgb(mesh.DiffuseColorsArgb[0]);
-            // Some skinned assets serialize an all-zero diffuse channel as a
-            // placeholder. glTF COLOR_0 multiplies baseColorTexture, so exporting
-            // that placeholder would turn a valid textured model completely black.
-            // Keep COLOR_0 only when it carries actual RGB information.
-            bool hasRenderableDiffuse = includeMaterials && mesh.HasDiffuseColors &&
-                !hasUniformDiffuse &&
-                mesh.DiffuseColorsArgb.Any(color => (color & 0x00FFFFFF) != 0);
-            Vector4[] colors = hasRenderableDiffuse
-                ? mesh.DiffuseColorsArgb.Select(DecodeArgb).ToArray()
-                : [];
-            // glTF ignores every alpha source while alphaMode remains OPAQUE.
-            // Texture atlases may contain unused/service alpha, so they still
-            // require the confirmed material blend state above. An explicit
-            // material factor or an exported COLOR_0 alpha, however, is already
-            // part of this mesh's rendered colour and must enable blending.
-            usesAlphaBlend |= materialColor.W < 1f ||
-                              colors.Any(color => color.W < 1f);
-            var exportMesh = new SmoExportMesh(
-                entry.Index,
-                entry.Id,
-                mesh.Name,
-                mesh.Marker,
-                mesh.PrimitiveType,
-                mesh.VertexFormat,
-                mesh.Stride,
-                mesh.RuntimeStride,
-                positions,
-                normals,
-                mesh.TextureCoordinates.ToArray(),
-                mesh.TextureCoordinates1.ToArray(),
-                colors,
-                exportSkin ? mesh.BlendWeights.ToArray() : [],
-                exportSkin ? mesh.BlendIndices.Select(value => new Vector4(
-                    value.X, value.Y, value.Z, value.W)).ToArray() : [],
-                triangles,
-                texture,
-                effectTexture,
-                materialColor,
-                usesAlphaBlend,
-                exportSkin ? skinObjectIndex : null,
-                parentNodeObjectIndex,
-                SmoExportCoordinateSystem.ToExportMatrix(world),
-                SmoExportCoordinateSystem.ToExportMatrix(local));
-            meshes.Add(exportMesh);
-            meshPlacements.Add(new SmoExportMeshPlacement(
-                entry.Index,
-                entry.Name,
-                entry.Index,
-                IsSharedInstance: false,
-                StaticObjectIndex: FindAncestorObjectIndex(
-                    document.Objects, entry, SmoClassIds.StaticRenderObject),
-                MaterialObjectIndex: FindAncestorObjectIndex(
-                    document.Objects, entry, SmoClassIds.MaterialData),
-                parentNodeObjectIndex,
-                exportMesh.BindWorldMatrix,
-                exportMesh.BindLocalMatrix));
-        }
-
-        if (includeMeshes && options.SceneMode is
-            SmoExportSceneMode.All or
-            SmoExportSceneMode.LevelWithBakedObjects or
-            SmoExportSceneMode.LevelWithInstances)
-        {
-            Dictionary<int, SmoExportMesh> meshesByObjectIndex = meshes
-                .ToDictionary(mesh => mesh.ObjectIndex);
-            foreach (SmoSharedMeshInstanceInfo instance in
-                     SmoSharedMeshInstanceResolver.ResolveAll(document))
-            {
-                if (!meshesByObjectIndex.TryGetValue(
-                        instance.SourceMeshObjectIndex, out SmoExportMesh? sourceMesh))
-                {
-                    warnings.Add(
-                        $"SHARED_MESH_INSTANCE_SOURCE_MISSING: Model " +
-                        $"[{instance.ModelObjectIndex}] {instance.ModelObjectName} references " +
-                        $"mesh [{instance.SourceMeshObjectIndex}], but that mesh was not exported.");
-                    continue;
-                }
-                if (sourceMesh.SkinObjectIndex is not null)
-                {
-                    throw new InvalidDataException(
-                        $"Shared level placement [{instance.ModelObjectIndex}] " +
-                        $"{instance.ModelObjectName} references skinned mesh " +
-                        $"[{sourceMesh.ObjectIndex}] {sourceMesh.Name}. A rigid instance cannot " +
-                        "preserve that skin binding without duplicating geometry.");
-                }
-
-                Matrix4x4 world = options.ApplyWorldTransforms
-                    ? SmoExportCoordinateSystem.ToExportMatrix(
-                        instance.WorldTransform)
-                    : Matrix4x4.Identity;
-                string placementName = string.IsNullOrWhiteSpace(instance.ModelObjectName)
-                    ? instance.StaticObjectName
-                    : instance.ModelObjectName;
-                meshPlacements.Add(new SmoExportMeshPlacement(
-                    instance.ModelObjectIndex,
-                    placementName,
-                    instance.SourceMeshObjectIndex,
-                    IsSharedInstance: true,
-                    instance.StaticObjectIndex,
-                    instance.MaterialObjectIndex,
-                    ParentNodeObjectIndex: null,
-                    world,
-                    world));
-            }
-        }
-
-        if (includeSkeleton)
-        {
-            nodes = includeServiceNodes
-                ? allNodes
-                : FilterServiceNodes(allNodes, skins, meshes);
-        }
-
-        List<SmoExportAnimation> animations = includeAnimations
-            ? BuildAnimations(options.AnimationPaths, nodes, warnings)
-            : [];
-
+        var nodes = includeSkeleton
+            ? includeServiceNodes ? allNodes : FilterServiceNodes(allNodes, skins, placements)
+            : new List<SmoExportNode>();
+        var animations = includeAnimations ? BuildAnimations(options.AnimationPaths, nodes, warnings) : [];
         string sourcePath = document.SourcePath ?? "memory.smo";
         string hash = Convert.ToHexString(SHA256.HashData(document.Data.Span));
-        return new SmoExportScene(
-            sourcePath, hash, document.Header.PlatformMask, resources, options.SceneMode,
-            meshes, meshPlacements, nodes, skins, animations, warnings);
+        return new SmoExportScene(sourcePath, hash, document.Header.PlatformMask, resources, options.SceneMode,
+            meshes, placements, nodes, skins, animations, warnings.Distinct().ToArray());
+    }
+
+    private sealed record ExportGeometry(Vector3[] Positions, Vector3[] Normals,
+        Vector2[] Uv0, Vector2[] Uv1, Vector4[] Colors, Vector4[] Weights, Vector4[] Joints,
+        uint[] Triangles, Vector4? UniformDiffuse);
+
+    private static ExportGeometry ConvertGeometry(SmoMesh mesh, bool includeMaterials)
+    {
+        var positions = mesh.Positions.Select(value => new Vector3(value.X, value.Y, -value.Z)).ToArray();
+        var normals = mesh.HasNormals ? mesh.Normals.Select(value =>
+        {
+            var converted = new Vector3(value.X, value.Y, -value.Z);
+            return converted.LengthSquared() > .000001f ? Vector3.Normalize(converted) : Vector3.UnitY;
+        }).ToArray() : [];
+        var triangles = mesh.TriangleIndices.ToArray();
+        for (int i = 0; i < triangles.Length; i += 3) (triangles[i+1],triangles[i+2]) = (triangles[i+2],triangles[i+1]);
+        bool uniform = includeMaterials && mesh.HasDiffuseColors && mesh.DiffuseColorsArgb.Skip(1).All(value => value == mesh.DiffuseColorsArgb[0]);
+        bool vertexColors = includeMaterials && mesh.HasDiffuseColors && !uniform && mesh.DiffuseColorsArgb.Any(value => (value & 0xFFFFFF) != 0);
+        return new(positions, normals, mesh.TextureCoordinates.ToArray(), mesh.TextureCoordinates1.ToArray(),
+            vertexColors ? mesh.DiffuseColorsArgb.Select(DecodeArgb).ToArray() : [], mesh.BlendWeights.ToArray(),
+            mesh.BlendIndices.Select(value => new Vector4(value.X,value.Y,value.Z,value.W)).ToArray(), triangles,
+            uniform ? DecodeArgb(mesh.DiffuseColorsArgb[0]) : null);
     }
 
     private static bool Includes(
@@ -397,7 +205,7 @@ public static class SmoSceneBuilder
     private static List<SmoExportNode> FilterServiceNodes(
         IReadOnlyList<SmoExportNode> nodes,
         IReadOnlyList<SmoExportSkin> skins,
-        IReadOnlyList<SmoExportMesh> meshes)
+        IReadOnlyList<SmoExportMeshPlacement> placements)
     {
         Dictionary<int, SmoExportNode> nodesByObjectIndex =
             nodes.ToDictionary(node => node.ObjectIndex);
@@ -419,10 +227,9 @@ public static class SmoSceneBuilder
                 AddAncestorClosure(jointObjectIndex);
         }
 
-        foreach (SmoExportMesh mesh in meshes)
+        foreach (SmoExportMeshPlacement placement in placements)
         {
-            if (mesh.SkinObjectIndex is null &&
-                mesh.ParentNodeObjectIndex is int parentNodeObjectIndex)
+            if (placement.ParentNodeObjectIndex is int parentNodeObjectIndex)
             {
                 AddAncestorClosure(parentNodeObjectIndex);
             }
@@ -623,18 +430,6 @@ public static class SmoSceneBuilder
                 SmoExportCoordinateSystem.ToExportMatrix(local)));
         }
         return result;
-    }
-
-    private static int? FindAncestorObjectIndex(
-        IReadOnlyList<SmoObjectEntry> entries, SmoObjectEntry entry, uint typeHash)
-    {
-        SmoObjectEntry? cursor = entry;
-        while (cursor.ParentIndex is int parentIndex && (uint)parentIndex < (uint)entries.Count)
-        {
-            cursor = entries[parentIndex];
-            if (cursor.TypeHash == typeHash) return cursor.Index;
-        }
-        return null;
     }
 
     private static SmoExportTexture BuildExportTexture(SmoTexture source)

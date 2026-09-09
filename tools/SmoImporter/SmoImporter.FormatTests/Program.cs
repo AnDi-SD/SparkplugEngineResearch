@@ -1,5 +1,8 @@
 using SmoImporter.Core;
 
+if (args is ["--smo-occurrences", string occurrenceSource, string layeredSource, string occurrenceOutput])
+    return SmoOccurrenceImportRegression.Run(occurrenceSource, layeredSource, occurrenceOutput);
+
 if (args.Length >= 3 && args[0] == "--collision-writer-regression")
 {
     try { CollisionWriterRegression.Run(args[1], args.Skip(2).ToArray()); return 0; }

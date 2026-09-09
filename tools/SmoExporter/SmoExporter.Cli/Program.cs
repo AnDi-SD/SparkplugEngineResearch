@@ -90,12 +90,12 @@ try
     }
     if (sceneMode == SmoExportSceneMode.SeparateMeshes)
     {
-        foreach (int meshObjectIndex in selectedMeshes)
+        foreach (var variant in scene.Meshes.Where(mesh => selectedMeshes.Contains(mesh.ObjectIndex)))
         {
             SmoExportScene single = SmoExportSceneSplitter.CreateSingleMeshScene(
-                scene, meshObjectIndex);
+                scene, variant.VariantKey);
             SmoExportMesh mesh = single.Meshes[0];
-            ExportFormats(single, $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}");
+            ExportFormats(single, $"{stem}_{SafeFileName(mesh.Name)}_{mesh.ObjectIndex}_model_{mesh.RenderableObjectIndex}");
         }
     }
     else

@@ -7,6 +7,7 @@
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <limits>
@@ -23,7 +24,7 @@ namespace fs = std::filesystem;
 namespace
 {
 constexpr std::array<char, 8> ExportMagic{'S', 'M', 'O', 'F', 'B', 'X', 'E', '1'};
-constexpr std::uint32_t ProtocolVersion = 3;
+constexpr std::uint32_t ProtocolVersion = 4;
 constexpr std::uint32_t ResourceSkeleton = 2;
 constexpr std::uint32_t ResourceMaterials = 4;
 constexpr std::uint32_t ResourceTextures = 8;
@@ -151,6 +152,7 @@ struct TextureData
 
 struct MeshData
 {
+    std::int32_t transportIndex{}; // payload-local ordinal, separate from file identity
     std::int32_t objectIndex{};
     std::uint32_t objectId{};
     std::string name;
@@ -174,6 +176,9 @@ struct MeshData
 
 struct PlacementData
 {
+    std::int32_t meshTransportIndex{};
+    std::int32_t containerObjectIndex{-1};
+    std::int32_t memberSlot{-1};
     std::int32_t sceneObjectIndex{};
     std::string name;
     std::int32_t meshObjectIndex{};
@@ -184,6 +189,18 @@ struct PlacementData
     Mat4 world{};
     Mat4 local{};
 };
+
+template<class T> bool SameArray(const std::vector<T>& a, const std::vector<T>& b)
+{
+    static_assert(std::is_trivially_copyable_v<T>);
+    return a.size() == b.size() && (a.empty() || std::memcmp(a.data(), b.data(), a.size() * sizeof(T)) == 0);
+}
+
+bool SameRigidGeometry(const MeshData& a, const MeshData& b)
+{
+    return a.objectId == b.objectId && SameArray(a.positions,b.positions) && SameArray(a.normals,b.normals)
+        && SameArray(a.uv0,b.uv0) && SameArray(a.uv1,b.uv1) && SameArray(a.colors,b.colors) && SameArray(a.indices,b.indices);
+}
 
 struct NodeData
 {
@@ -244,10 +261,12 @@ std::optional<TextureData> ReadTexture(BinaryReader& reader)
     return result;
 }
 
-MeshData ReadMesh(BinaryReader& reader)
+MeshData ReadMesh(BinaryReader& reader, std::uint32_t version)
 {
     MeshData result;
+    if (version >= 4) result.transportIndex = reader.Pod<std::int32_t>();
     result.objectIndex = reader.Pod<std::int32_t>();
+    if (version < 4) result.transportIndex = result.objectIndex;
     result.objectId = reader.Pod<std::uint32_t>();
     result.name = reader.String();
     result.positions = reader.Array<Vec3>("position", [&] { return reader.Vector3(); });
@@ -270,12 +289,19 @@ MeshData ReadMesh(BinaryReader& reader)
     return result;
 }
 
-PlacementData ReadPlacement(BinaryReader& reader)
+PlacementData ReadPlacement(BinaryReader& reader, std::uint32_t version)
 {
     PlacementData result;
+    if (version >= 4)
+    {
+        result.meshTransportIndex = reader.Pod<std::int32_t>();
+        result.containerObjectIndex = reader.Pod<std::int32_t>();
+        result.memberSlot = reader.Pod<std::int32_t>();
+    }
     result.sceneObjectIndex = reader.Pod<std::int32_t>();
     result.name = reader.String();
     result.meshObjectIndex = reader.Pod<std::int32_t>();
+    if (version < 4) result.meshTransportIndex = result.meshObjectIndex;
     result.sharedInstance = reader.Boolean();
     result.staticObjectIndex = reader.Pod<std::int32_t>();
     result.materialObjectIndex = reader.Pod<std::int32_t>();
@@ -339,15 +365,16 @@ ExportData ReadPayload(const fs::path& path)
     std::array<char, 8> magic{};
     reader.Bytes(magic.data(), magic.size());
     if (magic != ExportMagic) throw std::runtime_error("Invalid FBX export payload signature.");
-    if (reader.Pod<std::uint32_t>() != ProtocolVersion)
+    const auto version = reader.Pod<std::uint32_t>();
+    if (version != 3 && version != ProtocolVersion)
         throw std::runtime_error("Unsupported FBX export payload version.");
     ExportData result;
     result.resources = reader.Pod<std::uint32_t>();
     result.sceneMode = reader.Pod<std::uint32_t>();
     result.sourcePath = reader.String();
-    result.meshes = reader.Array<MeshData>("mesh", [&] { return ReadMesh(reader); });
+    result.meshes = reader.Array<MeshData>("mesh", [&] { return ReadMesh(reader, version); });
     result.placements = reader.Array<PlacementData>(
-        "mesh placement", [&] { return ReadPlacement(reader); });
+        "mesh placement", [&] { return ReadPlacement(reader, version); });
     result.nodes = reader.Array<NodeData>("node", [&] { return ReadNode(reader); });
     result.skins = reader.Array<SkinData>("skin", [&] { return ReadSkin(reader); });
     result.animations = reader.Array<AnimationData>(
@@ -646,6 +673,17 @@ FbxNode* BuildMeshPlacementNode(
     std::string name = SafeName(
         placement.name, "placement_" + std::to_string(placement.sceneObjectIndex));
     FbxNode* node = FbxNode::Create(state.scene, name.c_str());
+    const auto metadata = [node](const char* key, std::int32_t value)
+    {
+        auto property = FbxProperty::Create(node, FbxIntDT, key);
+        property.ModifyFlag(FbxPropertyFlags::eUserDefined, true);
+        property.Set<FbxInt>(value);
+    };
+    metadata("SparkplugSceneObjectIndex", placement.sceneObjectIndex);
+    metadata("SparkplugMeshObjectIndex", placement.meshObjectIndex);
+    metadata("SparkplugMaterialObjectIndex", placement.materialObjectIndex);
+    metadata("SparkplugContainerObjectIndex", placement.containerObjectIndex);
+    metadata("SparkplugMemberSlot", placement.memberSlot);
     // Reusing one FbxMesh node attribute is native FBX instancing: placement
     // transforms remain per-node while control points/polygons are serialized once.
     node->SetNodeAttribute(mesh);
@@ -949,32 +987,42 @@ void ExportScene(const ExportData& data, const fs::path& outputPath, const fs::p
         FbxNode* node{};
     };
     std::unordered_map<std::int32_t, MeshAsset> meshAssets;
+    std::unordered_map<std::int32_t, std::pair<const MeshData*, FbxMesh*>> rigidGeometry;
     bool bakeMeshInstances =
         data.sceneMode == SceneModeLevelWithBakedObjects;
     for (std::size_t index = 0; index < data.meshes.size(); ++index)
     {
         const MeshData& source = data.meshes[index];
-        FbxMesh* attribute = bakeMeshInstances
-            ? nullptr
-            : BuildMeshAttribute(state, source);
+        FbxMesh* attribute = nullptr;
+        if (!bakeMeshInstances && source.skinObjectIndex < 0)
+        {
+            auto found = rigidGeometry.find(source.objectIndex);
+            if (found == rigidGeometry.end())
+                found = rigidGeometry.emplace(source.objectIndex, std::make_pair(&source, BuildMeshAttribute(state, source))).first;
+            else if (!SameRigidGeometry(*found->second.first, source))
+                throw std::runtime_error("FBX variants disagree about the same physical mesh geometry.");
+            attribute = found->second.second;
+        }
         FbxSurfaceMaterial* material =
             (data.resources & ResourceMaterials) != 0
                 ? BuildMaterial(state, source, index)
                 : nullptr;
         if (!meshAssets.emplace(
-                source.objectIndex,
+                source.transportIndex,
                 MeshAsset{&source, attribute, material, index}).second)
-            throw std::runtime_error("Duplicate FBX mesh object index.");
+            throw std::runtime_error("Duplicate FBX mesh transport index.");
     }
     std::vector<PlacedMesh> placedMeshes;
     placedMeshes.reserve(data.placements.size());
     for (const PlacementData& placement : data.placements)
     {
-        auto found = meshAssets.find(placement.meshObjectIndex);
+        auto found = meshAssets.find(placement.meshTransportIndex);
         if (found == meshAssets.end())
             throw std::runtime_error("FBX placement references a missing mesh.");
         MeshAsset& asset = found->second;
-        FbxMesh* placementAttribute = bakeMeshInstances
+        // Skin deformers own per-placement bind context; do not attach a second
+        // Skin to a shared FbxMesh attribute when a Skin resource repeats.
+        FbxMesh* placementAttribute = bakeMeshInstances || asset.source->skinObjectIndex >= 0
             ? BuildMeshAttribute(state, *asset.source)
             : asset.attribute;
         FbxNode* node = BuildMeshPlacementNode(

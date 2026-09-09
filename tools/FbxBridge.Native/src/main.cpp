@@ -22,6 +22,7 @@
 namespace fs = std::filesystem;
 
 int ExportCommandNative(int argc, wchar_t** argv);
+int InspectExportCommandNative(int argc, wchar_t** argv);
 
 namespace
 {
@@ -792,13 +793,15 @@ int wmain(int argc, wchar_t** argv)
             return ImportCommand(argc, argv);
         if (argc >= 2 && std::wstring(argv[1]) == L"export")
             return ExportCommandNative(argc, argv);
+        if (argc >= 2 && std::wstring(argv[1]) == L"inspect-export")
+            return InspectExportCommandNative(argc, argv);
         if (argc >= 2 && std::wstring(argv[1]) == L"--version")
         {
             std::cout << "SmoFbxBridge protocol " << ProtocolVersion
                       << ", Autodesk FBX SDK " << FBXSDK_VERSION_STRING << '\n';
             return 0;
         }
-        throw std::runtime_error("Expected command 'import', 'export' or '--version'.");
+        throw std::runtime_error("Expected command 'import', 'export', 'inspect-export' or '--version'.");
     }
     catch (const std::exception& exception)
     {

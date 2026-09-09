@@ -1,4 +1,5 @@
 using System.Numerics;
+using SmoViewer.Core;
 
 namespace SmoExporter.Core;
 
@@ -6,7 +7,10 @@ namespace SmoExporter.Core;
 public sealed record SmoExportPlacementSelection(
     int MeshObjectIndex,
     int SceneObjectIndex,
-    Matrix4x4 NativeWorldMatrix);
+    Matrix4x4 NativeWorldMatrix)
+{
+    public SmoRenderOccurrenceKey? OccurrenceKey { get; init; }
+}
 
 /// <summary>
 /// Projects a decoded level scene to an arbitrary set of visible placements.
@@ -23,29 +27,29 @@ public static class SmoExportSceneSelection
         ArgumentNullException.ThrowIfNull(selections);
         SmoExportPlacementSelection[] requested = selections
             .DistinctBy(selection =>
-                (selection.MeshObjectIndex, selection.SceneObjectIndex))
+                (selection.MeshObjectIndex, selection.SceneObjectIndex, selection.OccurrenceKey))
             .ToArray();
         if (requested.Length == 0)
             throw new ArgumentException(
                 "At least one visual placement must be selected.",
                 nameof(selections));
 
-        Dictionary<(int Mesh, int Scene), SmoExportMeshPlacement> available =
-            scene.MeshPlacements.ToDictionary(
+        var available = scene.MeshPlacements.ToLookup(
                 placement =>
                     (placement.MeshObjectIndex, placement.SceneObjectIndex));
         var placements = new List<SmoExportMeshPlacement>(requested.Length);
         foreach (SmoExportPlacementSelection selection in requested)
         {
-            if (!available.TryGetValue(
-                    (selection.MeshObjectIndex, selection.SceneObjectIndex),
-                    out SmoExportMeshPlacement? placement))
+            var matches = available[(selection.MeshObjectIndex, selection.SceneObjectIndex)]
+                .Where(value => selection.OccurrenceKey is null || value.OccurrenceKey == selection.OccurrenceKey).ToArray();
+            if (matches.Length != 1)
             {
                 throw new InvalidDataException(
-                    $"Export scene has no placement for mesh " +
+                    $"Export selection resolves {matches.Length} placements; select an explicit container/member slot for mesh " +
                     $"[{selection.MeshObjectIndex}] / scene " +
                     $"[{selection.SceneObjectIndex}].");
             }
+            var placement = matches[0];
             Matrix4x4 world = SmoExportCoordinateSystem.ToExportMatrix(
                 selection.NativeWorldMatrix);
             placements.Add(placement with
@@ -56,11 +60,11 @@ public static class SmoExportSceneSelection
             });
         }
 
-        HashSet<int> meshIndices = placements
-            .Select(placement => placement.MeshObjectIndex)
+        HashSet<SmoExportMeshKey> meshIndices = placements
+            .Select(placement => placement.EffectiveMeshKey)
             .ToHashSet();
         SmoExportMesh[] meshes = scene.Meshes
-            .Where(mesh => meshIndices.Contains(mesh.ObjectIndex))
+            .Where(mesh => meshIndices.Contains(mesh.VariantKey))
             .Select(mesh => mesh with
             {
                 SkinObjectIndex = null,
@@ -73,14 +77,15 @@ public static class SmoExportSceneSelection
             .ToArray();
         if (meshes.Length != meshIndices.Count)
         {
-            int[] missing = meshIndices
-                .Except(meshes.Select(mesh => mesh.ObjectIndex))
-                .Order()
+            var missing = meshIndices
+                .Except(meshes.Select(mesh => mesh.VariantKey))
                 .ToArray();
             throw new InvalidDataException(
                 $"Selected placements reference unavailable meshes: " +
                 string.Join(", ", missing));
         }
+        if (scene.Meshes.Any(mesh => meshIndices.Contains(mesh.VariantKey) && mesh.SkinObjectIndex is not null))
+            throw new InvalidDataException("EXPORT_SKIN_SELECTION: a static placement selection cannot discard an actual Skin; use skeleton export or an explicit posed-mesh conversion.");
 
         SmoExportResourceTypes resources = scene.Resources &
             (SmoExportResourceTypes.Meshes |

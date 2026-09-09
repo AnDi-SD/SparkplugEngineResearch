@@ -8,7 +8,8 @@ internal static class FbxExportPayloadWriter
 {
     private static readonly byte[] Magic = "SMOFBXE1"u8.ToArray();
     // v3 textures with material alpha < 1 contain the combined opacity already.
-    private const uint ProtocolVersion = 3;
+    // v4 adds transport mesh ordinals and actual reference-slot provenance.
+    private const uint ProtocolVersion = 4;
 
     public static void Write(SmoExportScene scene, string path)
     {
@@ -20,6 +21,8 @@ internal static class FbxExportPayloadWriter
         writer.Write((uint)scene.SceneMode);
         WriteString(writer, scene.SourcePath);
         var variants = new Dictionary<(SmoExportTexture Texture, float Alpha), SmoExportTexture>();
+        var meshOrdinals = scene.Meshes.Select((mesh, ordinal) => (mesh.VariantKey, ordinal))
+            .ToDictionary(value => value.VariantKey, value => value.ordinal);
         WriteItems(writer, scene.Meshes, (output, mesh) =>
         {
             SmoExportTexture? texture = mesh.Texture;
@@ -41,9 +44,16 @@ internal static class FbxExportPayloadWriter
                 }
                 mesh = mesh with { Texture = variant };
             }
+            output.Write(meshOrdinals[mesh.VariantKey]); // host transport index, never a file object ID
             WriteMesh(output, mesh);
         });
-        WriteItems(writer, scene.MeshPlacements, WritePlacement);
+        WriteItems(writer, scene.MeshPlacements, (output, placement) =>
+        {
+            output.Write(meshOrdinals[placement.EffectiveMeshKey]);
+            output.Write(placement.OccurrenceKey?.ContainerObjectIndex ?? -1);
+            output.Write(placement.OccurrenceKey?.MemberSlot ?? -1);
+            WritePlacement(output, placement);
+        });
         WriteItems(writer, scene.Nodes, WriteNode);
         WriteItems(writer, scene.Skins, WriteSkin);
         WriteItems(writer, scene.Animations, WriteAnimation);

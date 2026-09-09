@@ -42,6 +42,10 @@ public sealed record SmoExportTexture(
     byte[]? OpaqueRgbPngBytes = null,
     ReadOnlyMemory<byte> Bgra32Pixels = default);
 
+/// <summary>Host export variant identity; both components remain real file indices.</summary>
+public readonly record struct SmoExportMeshKey(int MeshObjectIndex, int? RenderableObjectIndex);
+public readonly record struct SmoExportPlacementKey(int SceneObjectIndex, SmoRenderOccurrenceKey? OccurrenceKey);
+
 public sealed record SmoExportMesh(
     int ObjectIndex,
     uint ObjectId,
@@ -66,7 +70,12 @@ public sealed record SmoExportMesh(
     int? SkinObjectIndex,
     int? ParentNodeObjectIndex,
     Matrix4x4 BindWorldMatrix,
-    Matrix4x4 BindLocalMatrix);
+    Matrix4x4 BindLocalMatrix)
+{
+    public int? RenderableObjectIndex { get; init; }
+    public SmoLoadedMaterial? LoadedMaterial { get; init; }
+    public SmoExportMeshKey VariantKey => new(ObjectIndex, RenderableObjectIndex);
+}
 
 /// <summary>
 /// A scene node which places one physical mesh. Multiple placements may point
@@ -81,7 +90,13 @@ public sealed record SmoExportMeshPlacement(
     int? MaterialObjectIndex,
     int? ParentNodeObjectIndex,
     Matrix4x4 WorldMatrix,
-    Matrix4x4 LocalMatrix);
+    Matrix4x4 LocalMatrix)
+{
+    public SmoExportMeshKey? MeshVariantKey { get; init; }
+    public SmoRenderOccurrenceKey? OccurrenceKey { get; init; }
+    public SmoExportMeshKey EffectiveMeshKey => MeshVariantKey ?? new(MeshObjectIndex, null);
+    public SmoExportPlacementKey PlacementKey => new(SceneObjectIndex, OccurrenceKey);
+}
 
 public sealed record SmoExportNode(
     int ObjectIndex,

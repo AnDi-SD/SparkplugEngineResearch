@@ -131,3 +131,13 @@ world/parents; форматный adapter только преобразует к
 Native неизменен, probes/suites не повторялись. Полные occurrences и material
 variants Exporter остаются следующей работой; статическая поза проверена отдельно.
 Досье: `docs/research/tool-exporter-node-pose-shared-core-2026-09-09.md`.
+
+Блок 13: Exporter переведён на общий SceneBuilder и все actual support slots.
+Mesh/Model variants и repeated slots больше не склеиваются. Геометрия общая,
+материал/Skin собственный; private FBX v4 имеет отдельные transport ordinals,
+v3 читается. SDK readback пяти сцен: 2379 placements, 2282 variants, 75534 checks.
+Selection/baked/OBJ/FBX guards 60, importer menu/Icy 5349, v3 fixture 4.
+Importer больше не теряет repeated placements. Несколько passes/layers явно
+отклоняются его ограниченным ImportedScene; static selection не отбрасывает Skin.
+Пять .NET builds и native FBX passed. Full shader/material clock остаются далее.
+Досье: `docs/research/tool-export-occurrences-shared-core-2026-09-09.md`.

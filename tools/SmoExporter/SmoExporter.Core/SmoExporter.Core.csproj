@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SmoViewer\SmoViewer.Core\SmoViewer.Core.csproj" />
+    <ProjectReference Include="..\..\SmoViewer\SmoViewer.Scene\SmoViewer.Scene.csproj" />
   </ItemGroup>
 </Project>

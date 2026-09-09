@@ -5,6 +5,12 @@ using SmoExporter.Core;
 using SmoViewer.Core;
 
 int checks = 0;
+if (args is ["--export-selection", string selectionSmo, string selectionSkin, string selectionOutput])
+    return ExportSelectionRegression.Run(selectionSmo, selectionSkin, selectionOutput);
+if (args is ["--export-occurrences", string occurrenceSmo, string occurrenceOutput])
+    return ExportOccurrenceRegression.Run(occurrenceSmo, occurrenceOutput, false);
+if (args is ["--export-occurrences", string fbxOccurrenceSmo, string fbxOccurrenceOutput, "--fbx"])
+    return ExportOccurrenceRegression.Run(fbxOccurrenceSmo, fbxOccurrenceOutput, true);
 if (args is ["--loaded-node-export", string nodeSmo, string nodeOutput])
     return LoadedNodeExportRegression.Run(nodeSmo, nodeOutput);
 

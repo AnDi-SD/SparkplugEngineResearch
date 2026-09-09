@@ -11,7 +11,7 @@ if(NOT EXISTS "${FBX_SDK_ROOT}/include/fbxsdk.h")
     message(FATAL_ERROR "FBX SDK was not found at: ${FBX_SDK_ROOT}")
 endif()
 
-add_executable(SmoFbxBridge src/main.cpp src/export.cpp)
+add_executable(SmoFbxBridge src/main.cpp src/export.cpp src/inspect_export.cpp)
 target_compile_features(SmoFbxBridge PRIVATE cxx_std_20)
 target_compile_definitions(SmoFbxBridge PRIVATE FBXSDK_SHARED NOMINMAX WIN32_LEAN_AND_MEAN)
 target_include_directories(SmoFbxBridge PRIVATE "${FBX_SDK_ROOT}/include")
