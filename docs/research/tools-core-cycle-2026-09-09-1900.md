@@ -134,3 +134,19 @@ texture, выбранной loader; снимок кешируется, native gr
 старую имитацию не подставляем. Пользователь уведомлён о потере части эффектов.
 Полный draw list/placement и renderer states остаются далее.
 Досье: `docs/research/tool-loaded-materials-shared-core-2026-09-09.md`.
+
+### Блок 10: настоящие Node/Skin и render support
+
+Runtime сохраняет загруженные Node с реальными классами и Skin bone bindings;
+отдельный C# граф базовых Node и inverse-bind подстановка начальной позы удалены.
+Снимок включает ordered support membership с повторами и исходными матрицами.
+Пять файлов: 1985 Node, 2039 supports, 2380 members, 6078 managed checks;
+Python сверил 1296 palette matrices, пять SAN кадров и 32 ABI guards.
+Native 32/86/213/34/52/74 passed; три consumer builds чистые.
+Пойман и исправлен неверный перенос transform PartitionSystem на baked room:
+compatibility placement теперь использует фактический support Model.
+Пять общих SMO regressions прошли. PS2-tagged menu runtime явно остановлен
+на известном неподтверждённом material-color factory (53 контроллера);
+metadata inspection не выдаётся за полноценный runtime. Пользователь уведомлён.
+Полный Scene occurrence list, visibility и material runtime остаются далее.
+Досье: `docs/research/tool-loaded-scene-shared-core-2026-09-09.md`.

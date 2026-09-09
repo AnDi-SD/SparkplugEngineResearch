@@ -7,6 +7,8 @@
 #include "Code/Sparkplug/spNodeController.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObject.h"
+#include "Code/Sparkplug/spPartitionRenderable.h"
+#include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -340,6 +342,7 @@ struct Scene {
     std::vector<SpvNode> initial;
     std::vector<spNode::Matrix3> orientations;
     std::vector<std::shared_ptr<spNode>> nodes;
+    std::unordered_map<const spNode*,std::int32_t> nodeOrdinals;
     std::shared_ptr<spAnimation> animation;
     std::vector<std::unique_ptr<Binding>> bindings;
     void reset() {
@@ -360,6 +363,27 @@ struct Scene {
     }
 };
 Scene& scene(void* handle) { require(handle!=nullptr,"Null scene handle"); return *static_cast<Scene*>(handle); }
+std::unique_ptr<Scene> makeGraphScene(std::shared_ptr<spvhost::ResourceGraph> graph,
+    const std::uint32_t* ids,std::uint32_t count) {
+    require(graph&&count<=16384&&(ids||!count),"Invalid graph scene selection");
+    auto result=std::make_unique<Scene>();result->graph=std::move(graph);
+    auto& indices=result->nodeOrdinals;
+    for(std::uint32_t i=0;i<count;++i) {
+        auto node=result->graph->Node(ids[i]);
+        require(indices.emplace(node.get(),static_cast<std::int32_t>(i)).second,"Repeated node in graph scene");
+        result->nodes.push_back(std::move(node));
+    }
+    for(const auto& node:result->nodes) {
+        SpvNode rest{};rest.parent=-1;rest.billboard=node->GetBillboardAxisForAnalysis();
+        if(const auto* parent=node->GetParentForAnalysis()) {
+            auto i=indices.find(parent);require(i!=indices.end(),"Graph scene selection omits a parent");rest.parent=i->second;
+        }
+        const auto& p=node->GetPositionForAnalysis();const auto& s=node->GetScaleForAnalysis();
+        std::copy(p.begin(),p.end(),rest.position);std::copy(s.begin(),s.end(),rest.scale);
+        result->initial.push_back(rest);result->orientations.push_back(node->GetOrientationForAnalysis());
+    }
+    return result;
+}
 Clip& clip(void* handle) { require(handle!=nullptr,"Null clip handle"); return *static_cast<Clip*>(handle); }
 std::vector<float> keyTimes(const spAnimTrack& track, std::uint32_t role) {
     require(role<3,"Invalid PRS role");
@@ -709,26 +733,87 @@ static_assert(sizeof(SpvGraphModel)==24&&sizeof(SpvGraphMaterial)==128&&sizeof(S
 SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_t count) noexcept {
     std::unique_ptr<Scene> result;
     if(!guarded([&]{
-        require(handle&&count<=16384&&(ids||!count),"Invalid graph scene selection");
-        result=std::make_unique<Scene>();result->graph=static_cast<spvhost::GraphHandle*>(handle)->graph;
-        std::unordered_map<const spNode*,std::int32_t> indices;
-        for(std::uint32_t i=0;i<count;++i) {
-            auto node=result->graph->Node(ids[i]);
-            require(indices.emplace(node.get(),static_cast<std::int32_t>(i)).second,"Repeated node in graph scene");
-            result->nodes.push_back(std::move(node));
-        }
-        for(const auto& node:result->nodes) {
-            SpvNode rest{};rest.parent=-1;rest.billboard=node->GetBillboardAxisForAnalysis();
-            if(const auto* parent=node->GetParentForAnalysis()) {
-                auto i=indices.find(parent);require(i!=indices.end(),"Graph scene selection omits a parent");rest.parent=i->second;
-            }
-            const auto& p=node->GetPositionForAnalysis();const auto& s=node->GetScaleForAnalysis();
-            std::copy(p.begin(),p.end(),rest.position);std::copy(s.begin(),s.end(),rest.scale);
-            result->initial.push_back(rest);result->orientations.push_back(node->GetOrientationForAnalysis());
-        }
+        require(handle,"Missing graph scene handle");
+        result=makeGraphScene(static_cast<spvhost::GraphHandle*>(handle)->graph,ids,count);
     }))return nullptr;
     return result.release();
 }
+SPV_API void* spv_graph_scene_all(void* handle) noexcept {
+    std::unique_ptr<Scene> result;
+    if(!guarded([&]{
+        const auto& graph=graphForView(handle);std::vector<std::uint32_t> ids;
+        for(auto id:graph.nodeIDs)if(graph.ID(graph.Find(id))==id)ids.push_back(id);
+        result=makeGraphScene(static_cast<spvhost::GraphHandle*>(handle)->graph,ids.data(),static_cast<std::uint32_t>(ids.size()));
+    }))return nullptr;
+    return result.release();
+}
+SPV_API int spv_scene_node_count(void* handle,std::uint32_t* count) noexcept {
+    return guarded([&]{require(count,"Missing scene node count output");*count=static_cast<std::uint32_t>(scene(handle).nodes.size());});
+}
+SPV_API int spv_scene_graph_node_ids(void* handle,std::uint32_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& value=scene(handle);require(bool(value.graph),"Scene has no loaded resource graph");
+        require(count==value.nodes.size()&&(output||!count),"Scene node ID output size mismatch");
+        for(std::uint32_t i=0;i<count;++i)output[i]=value.graph->ID(value.nodes[i].get());});
+}
+SPV_API int spv_scene_graph_skin_info(void* handle,std::uint32_t id,std::uint32_t* weights,std::uint32_t* bones) noexcept {
+    return guarded([&]{const auto& value=scene(handle);require(value.graph&&weights&&bones,"Missing loaded scene/skin outputs");
+        const auto& skin=graphResource<spSkin>(*value.graph,id);*weights=skin.GetWeightCountForAnalysis();*bones=static_cast<std::uint32_t>(skin.GetBoneCountForAnalysis());});
+}
+SPV_API int spv_scene_graph_skin_palette(void* handle,std::uint32_t id,float* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& value=scene(handle);require(bool(value.graph),"Scene has no loaded resource graph");
+        const auto& skin=graphResource<spSkin>(*value.graph,id);const auto& bones=skin.GetBoneBindingsForAnalysis();
+        require(count==bones.size()*16&&(output||!count),"Loaded skin palette output size mismatch");
+        for(std::size_t i=0;i<bones.size();++i) {
+            const auto node=bones[i].GetBoneForAnalysis();require(bool(node),"Loaded Skin bone is no longer owned");
+            require(value.nodeOrdinals.find(node.get())!=value.nodeOrdinals.end(),"Loaded Skin bone is outside this scene selection");
+            const auto matrix=spSkin::ComposePaletteMatrixForAnalysis(bones[i].inverseBindMatrix,node->GetWorldMatrixForAnalysis());
+            for(auto component:matrix)require(std::isfinite(component),"Non-finite loaded Skin palette result");
+            std::copy(matrix.begin(),matrix.end(),output+i*16);
+        }});
+}
+SPV_API int spv_graph_render_containers(void* handle,SpvGraphRenderContainer* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{require(count,"Missing render container count output");const auto& graph=graphForView(handle);
+        std::vector<SpvGraphRenderContainer> containers;
+        for(const auto& entry:graph.entries) {
+            if(graph.ID(entry.object)!=entry.id)continue;
+            SpvGraphRenderContainer value{};value.id=entry.id;
+            if(auto* node=dynamic_cast<spRenderNode*>(entry.object)) {
+                value.kind=0;value.renderables=static_cast<std::uint32_t>(node->GetRenderableCountForAnalysis());
+                if(output) {
+                    node->UpdateRenderMatricesForAnalysis();
+                    const auto& world=node->GetCachedRenderMatrixForAnalysis();const auto& inverse=node->GetCachedRenderInverseForAnalysis();
+                    std::copy(world.begin(),world.end(),value.world);std::copy(inverse.begin(),inverse.end(),value.inverse);
+                }
+            } else if(const auto* object=dynamic_cast<const spStaticRenderObject*>(entry.object)) {
+                value.kind=1;value.renderables=static_cast<std::uint32_t>(object->GetRenderableCountForAnalysis());
+                const auto& world=object->GetWorldMatrixForAnalysis();const auto& inverse=object->GetWorldInverseMatrixForAnalysis();
+                std::copy(world.begin(),world.end(),value.world);std::copy(inverse.begin(),inverse.end(),value.inverse);
+            } else if(const auto* partition=dynamic_cast<const spPartitionRenderable*>(entry.object)) {
+                value.kind=2;value.renderables=static_cast<std::uint32_t>(partition->GetRenderablesForAnalysis().size());
+                const auto& world=partition->GetWorldMatrixForAnalysis();const auto& inverse=partition->GetWorldInverseMatrixForAnalysis();
+                std::copy(world.begin(),world.end(),value.world);std::copy(inverse.begin(),inverse.end(),value.inverse);
+            } else continue;
+            containers.push_back(value);
+        }
+        *count=static_cast<std::uint32_t>(containers.size());
+        if(!output){require(capacity==0,"Missing render container output array");return;}
+        require(capacity==containers.size(),"Render container output count mismatch");
+        std::copy(containers.begin(),containers.end(),output);
+    });
+}
+SPV_API int spv_graph_render_members(void* handle,std::uint32_t id,std::uint32_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& graph=graphForView(handle);const auto* object=graph.Find(id);
+        const auto* node=dynamic_cast<const spRenderNode*>(object);
+        const auto* fixed=dynamic_cast<const spStaticRenderObject*>(object);
+        const auto* partition=dynamic_cast<const spPartitionRenderable*>(object);
+        require(node||fixed||partition,"Expected an actual render support container");
+        const auto size=node?node->GetRenderableCountForAnalysis():fixed?fixed->GetRenderableCountForAnalysis():partition->GetRenderablesForAnalysis().size();
+        require(count==size&&(output||!count),"Render membership output count mismatch");
+        for(std::uint32_t i=0;i<count;++i)output[i]=graph.ID(node?node->GetRenderableForAnalysis(i):
+            fixed?fixed->GetRenderableForAnalysis(i):partition->GetRenderablesForAnalysis()[i].get());
+    });
+}
+static_assert(sizeof(SpvGraphRenderContainer)==140);
 SPV_API void* spv_material_read(const std::uint8_t* bytes,std::uint32_t count) noexcept {
     std::unique_ptr<MaterialView> result;
     if(!guarded([&]{result=std::make_unique<MaterialView>(bytes,count);}))return nullptr;

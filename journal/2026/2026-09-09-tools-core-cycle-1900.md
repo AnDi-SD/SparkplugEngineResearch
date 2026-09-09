@@ -97,3 +97,15 @@ BloomX имеет три passes и два38-key controllers; прежний ра
 clock ещё не подключены, часть прежних имитаций эффектов временно отключена.
 Полный draw list/placement и renderer state execution остаются следующими.
 Досье: `docs/research/tool-loaded-materials-shared-core-2026-09-09.md`.
+
+Блок 10: Node/Skin runtime сохраняет actual ResourceGraph, derived virtual
+world dispatch и исходные Skin bindings. Начальная поза больше не берётся
+из обращения inverse-bind. Добавлен ordered support snapshot с повторами.
+Пять файлов: 6078 managed checks, 1985 Node, 2039 supports, 2380 members;
+1296 palette matrices, пять SAN frames и 32 ABI guards совпали с C ABI.
+Native suites 32/86/213/34/52/74; три consumer builds 0 warnings/errors.
+Регрессия комнаты Alfea02 исправлена в адаптере выбора placement, не в игре.
+Пять общих SMO tests прошли; PS2-tagged menu не проходит настоящий runtime
+из-за 53 MaterialColorController с пока неподтверждённым PC factory.
+Провал и исходные логи сохранены, fake graph не возвращён, пользователь уведомлён.
+Досье: `docs/research/tool-loaded-scene-shared-core-2026-09-09.md`.

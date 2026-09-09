@@ -18,6 +18,12 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const auto& GetRenderablesForAnalysis() const noexcept{return support_.renderables;}
         [[nodiscard]] const auto& GetLocalBoundingSphereForAnalysis() const noexcept{return support_.localSphere;}
         [[nodiscard]] const auto& GetWorldBoundingSphereForAnalysis() const noexcept{return support_.worldSphere;}
+        // Actual4D7260 submits both shared760058 pointers initialized by
+        //6D38C0. These analytical getters expose that state, not a new inverse.
+        [[nodiscard]] const evidence::pc::render_node_math::Matrix4& GetWorldMatrixForAnalysis() const noexcept
+        {return evidence::pc::render_node_math::Identity4;}
+        [[nodiscard]] const evidence::pc::render_node_math::Matrix4& GetWorldInverseMatrixForAnalysis() const noexcept
+        {return evidence::pc::render_node_math::Identity4;}
         // Borrowed pointer assignment only, not Scene attachment/initialization.
         void SetScenePointerForAnalysis(spScene* scene) noexcept{scene_=scene;}
         [[nodiscard]] spScene* GetSceneForAnalysis() const noexcept{return scene_;}

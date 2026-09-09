@@ -116,6 +116,19 @@ SPV_API int spv_graph_texture_keys(void*,std::uint32_t,SpvGraphTextureKey*,std::
 // Select actual loaded Node objects, including every parent of the selection.
 // The scene retains their whole resource graph and preserves authored matrices.
 SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count) noexcept;
+// Select all canonical loaded Nodes (including actual derived classes). Scene
+// owns the graph after the external graph handle is destroyed.
+SPV_API void* spv_graph_scene_all(void*) noexcept;
+SPV_API int spv_scene_node_count(void*,std::uint32_t*) noexcept;
+SPV_API int spv_scene_graph_node_ids(void*,std::uint32_t*,std::uint32_t) noexcept;
+SPV_API int spv_scene_graph_skin_info(void*,std::uint32_t skin,std::uint32_t* weights,std::uint32_t* bones) noexcept;
+SPV_API int spv_scene_graph_skin_palette(void*,std::uint32_t skin,float*,std::uint32_t floats) noexcept;
+// Actual support membership, not visibility traversal or a frame draw order.
+// kind0 RenderNode,1 StaticRenderObject,2 PartitionRenderable. Query with null
+// output/capacity0 first; matrices reflect the current world/cache state.
+struct SpvGraphRenderContainer {std::uint32_t id,kind,renderables;float world[16],inverse[16];};
+SPV_API int spv_graph_render_containers(void*,SpvGraphRenderContainer*,std::uint32_t capacity,std::uint32_t* count) noexcept;
+SPV_API int spv_graph_render_members(void*,std::uint32_t container,std::uint32_t* ids,std::uint32_t count) noexcept;
 SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;
