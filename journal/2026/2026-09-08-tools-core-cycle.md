@@ -127,3 +127,19 @@ C++54, пять C# samples и три appender outputs прошли. Stored PRS �
 итогом runtime owner/registration; whole level loader требует дополнительных
 классов и отдельного бюджета. Досье:
 `docs/research/tool-collision-scalars-shared-core-2026-09-09.md`.
+
+## Закрытие после сообщения о перезагрузке — 09.09.2026 07:57:51 МСК
+
+Цикл остановлен по просьбе пользователя. Последний сохранившийся результат
+исследования до сообщения: 05:39:36 МСК; checkpoint ядра 3b23bc1
+от05:34:55 МСК. Точное время аварийного прерывания не установлено.
+Завершены17 проверенных блоков, все ядра tools ещё не готовы. Сохранён последний
+StaticRenderObject constructor scout; его reader/writer не внедрены.
+После исправления числа выводимых secondary slots короткий fresh probe прошёл;
+остальное совпало с прежним результатом. Проверены 27 hashes последнего
+snapshot и native DLL, исходники ядер не менялись; широкая регрессия не повторялась.
+Три отложенных случая: packed cached byteSize, редкие lossless field headers,
+inverse world editing при неравномерном parent scale. Решения и рекомендации
+сведены в [итог цикла](../../docs/research/tools-core-cycle-2026-09-09-0730.md).
+Публикация остаётся заблокированной прежним automatic approval review;
+локальная фиксация разрешена, повторный push не выполнялся.

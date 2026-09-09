@@ -1,0 +1,144 @@
+{
+  "kind": "tools-core-cycle-stop",
+  "status": "stopped-at-user-request-after-reboot-report",
+  "planned_deadline_utc": "2026-09-09T04:30:00Z",
+  "last_preserved_research_result_utc": "2026-09-09T02:39:36.508321+00:00",
+  "last_preserved_research_result_basis": "LastWriteTimeUtc of local-data/results/tools-core-cycle-20260909-0730/static-matrices/scout-with-renderer.log",
+  "reboot_time": null,
+  "closed_utc": "2026-09-09T04:57:51.150496+00:00",
+  "closed_moscow": "2026-09-09T07:57:51.150496+03:00",
+  "completed_migration_blocks": 17,
+  "all_tools_cores_complete": false,
+  "core_checkpoint": "3b23bc1c20089795db355f468d4d5b6222956b86",
+  "viewer_checkpoint": "4a407fd5cfc56d6a901bffbbef00dcbac209efe5",
+  "texture_checkpoint": "1ddb50f0b43238af0261b9dbbbefe14d032b0f85",
+  "last_block_snapshot_files_verified_before_report_update": [
+    "Sparkplug/Code/Sparkplug/spCollisionInfoSerializer.cpp",
+    "Sparkplug/Code/Sparkplug/spCollisionInfoSerializer.h",
+    "docs/research/tool-collision-scalars-shared-core-2026-09-09.md",
+    "docs/research/tools-core-cycle-2026-09-09-0730.md",
+    "journal/2026/2026-09-08-tools-core-cycle.md",
+    "research/validate_tools_collision_scalars.py",
+    "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+    "tools/SparkplugViewer.Native/ViewerBridge.h",
+    "tools/SmoViewer/README.md",
+    "tools/SmoViewer/SmoViewer.Core/SmoCollisionInfoTransform.cs",
+    "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+    "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/appender/report.json",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/appender-comparison.json",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/native.json",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/Alfea02.smo-final.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/appender.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/Icy.smo-final.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/igmenu_opt_pc.smo-final.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/igmenu_opt_pc.smo.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/igmenu_opt_ps2.smo-final.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/importer-build.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/managed-build-final.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/managed-build.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/native-build.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/native.log",
+    "local-data/results/tools-core-cycle-20260909-0730/collision-scalars/tile_bad.smo-final.log"
+  ],
+  "native_dll_verified": true,
+  "closing_scout_result": {
+    "object_size": 268,
+    "serializer_size": 20,
+    "object_vtable": "0x6e65e8",
+    "serializer_vtable": "0x6e662c",
+    "secondary_vtable": "0x6e6620",
+    "secondary_slots": [
+      "0x450140",
+      "0x44fe30",
+      "0x44fe90"
+    ],
+    "world": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "inverse": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "released": 2
+  },
+  "closing_scout_scope": "Constructor/startup/teardown only; explicit zero renderer cache storage; no serializer read/write or integration claim",
+  "paused_cases": [
+    "packed MeshCombiner cached byteSize",
+    "lossless field header forms",
+    "inverse world editing under nonuniform parent scale"
+  ],
+  "github_push": "Not attempted; earlier automatic approval rejection and pending repository confirmation remain unresolved",
+  "artifacts": [
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-0730.md",
+      "sha256": "9386059CB0B64FD42C372294CAF6D773D1F6C1D9BE00B811C9D638DFABD8C793"
+    },
+    {
+      "path": "journal/2026/2026-09-08-tools-core-cycle.md",
+      "sha256": "BD6AA91D51C549C4ECC76D587C1987AB12AE2ED826DCA9A219484903B2B44833"
+    },
+    {
+      "path": "research/probe_pc_static_matrices.py",
+      "sha256": "2D3D2C30A3D9B3F69985C18EB6543115321A38E057A031F119D85966855FFFC8"
+    },
+    {
+      "path": "research/tools-core-collision-scalars-block-2026-09-09.json",
+      "sha256": "A761EEFB5D82751741E932AE36FE680BFB8A57C58AA1ABCE08449D7C5FE1B2C0"
+    },
+    {
+      "path": "research/pc_serializer_fixtures.py",
+      "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029"
+    },
+    {
+      "path": "research/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/static-matrices/scout-with-renderer.log",
+      "sha256": "7AB11F91168EFB552A4221728ADEBFCC568177E1DF51F3E89A5ACFD0E4BD2224"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/static-matrices/closing-scout.log",
+      "sha256": "AB02BDFB9EE83E943ED112011F38B56D0A00F9FDA09109329D9608FE9E1FA9FD"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "sha256": "50BBB67FB9168CD918711FD74F9BBAAE62D0C27569C3114BEB7E9BD892EC4173"
+    }
+  ],
+  "historical_snapshot_policy": "Block manifests unchanged; cycle report and journal hashes above supersede their historical versions only for this closing snapshot"
+}
