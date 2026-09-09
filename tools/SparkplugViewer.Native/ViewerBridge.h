@@ -89,6 +89,15 @@ SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;
 struct SpvReferencePrefix { std::uint32_t id,inlineSize,encoding,classID; };
+struct SpvNodeField { std::uint32_t field,offset,size; };
+struct SpvNodeValues {
+    float position[3],rotation[4],scale[3],orientation[9];
+    std::uint32_t flags,billboard,bone,isStatic,animated;
+};
+// Apply schema-selected scalar fields to a real fresh Node. Raw authored flags
+// and quaternion are observed separately from its effective flags/orientation.
+// References are inspected elsewhere; this is not a resolved resource graph.
+SPV_API int spv_node_values(const std::uint8_t*,std::uint32_t,const SpvNodeField*,std::uint32_t,SpvNodeValues*) noexcept;
 // kind0 reads a retained prefix with declared full extent; kind1 also inspects
 // the inline object header from the full payload. No FAT/cache resolution.
 SPV_API int spv_reference_prefix(const std::uint8_t*,std::uint32_t count,std::uint32_t payloadSize,

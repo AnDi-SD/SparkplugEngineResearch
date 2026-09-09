@@ -95,3 +95,9 @@ Short nonnull legacy допущение удалено; старые synthetic f
 к доказанному формату. Три original paths, split stream, controlled failed-size
 stop, пять ABI refusals, C++266, четыре C# файла и три whole graphs прошли.
 Досье: `docs/research/tool-reference-prefix-shared-core-2026-09-09.md`.
+
+Тринадцатый блок: Node scalar body общий с full loader. C# normalization и
+угадывание transform удалены, authored/effective flags разделены явно. Пять
+original cases, C++226, четыре C# набора и три whole graphs прошли. Host ID
+index cache:204.4→1.7 МБ managed allocations за835 nodes, без изменения native
+DLL/input/checksum. Досье: `docs/research/tool-node-scalars-shared-core-2026-09-09.md`.

@@ -143,6 +143,58 @@ namespace sparkplug::reconstruction
         return ReadNodeFieldsForAnalysis(context,source,byteCount,*node,true,error);
     }
 
+    bool spNodeSerializer::ReadScalarFieldForAnalysis(spStream& source,
+        const spDataBlockHeaderForAnalysis& header,spNode& node,bool& handled,
+        ScalarObservationForAnalysis* observation,std::string* error)
+    {
+        handled=header.fieldID<=8&&header.fieldID!=5&&header.fieldID!=7;
+        if(!handled)return true;
+        const auto fail=[&](const char* message){if(error)*error=message;return false;};
+        const auto read=[&](auto& value){return header.payloadSize==sizeof(value)&&source.ReadData(&value,sizeof(value));};
+        switch(static_cast<Field>(header.fieldID))
+        {
+            case Field::Position:case Field::Scale:
+            {
+                spNode::Vector3 value{};
+                if(!read(value)||!std::all_of(value.begin(),value.end(),[](float v){return std::isfinite(v);}))
+                    return fail("Invalid Node vector payload");
+                if(header.fieldID==0)node.SetPositionForAnalysis(value);else node.SetScaleForAnalysis(value);
+                node.MarkLocalTransformDirtyForAnalysis();break;
+            }
+            case Field::Rotation:
+            {
+                evidence::pc::animation_math::Quaternion value{};
+                if(!read(value)||!std::all_of(value.begin(),value.end(),[](float v){return std::isfinite(v);}))
+                    return fail("Invalid Node quaternion payload");
+                node.SetOrientationForAnalysis(evidence::pc::animation_math::ToMatrix(value));
+                if(observation)observation->rotation=value;
+                node.MarkLocalTransformDirtyForAnalysis();break;
+            }
+            case Field::IsBone:case Field::IsStatic:case Field::IsAnimated:
+            {
+                std::uint8_t value=0;if(!read(value))return fail("Invalid Node flag payload");
+                if(header.fieldID==3)node.SetBoneForAnalysis(value!=0);
+                else if(value&&header.fieldID==4)node.SetStaticForAnalysis(true);
+                else if(value)node.SetAnimatedForAnalysis(true);
+                if(observation) {
+                    if(header.fieldID==3)observation->bone=value;
+                    else if(header.fieldID==4)observation->isStatic=value;
+                    else observation->animated=value;
+                }
+                // Original reader intentionally does NOT clear Static/Animated
+                // on false. A fresh default Node keeps Animated even from0.
+                break;
+            }
+            case Field::BillboardAxis:
+            {
+                std::uint32_t value=0;if(!read(value))return fail("Invalid Node billboard field");
+                node.SetBillboardAxisForAnalysis(value);break;
+            }
+        default:break;
+        }
+        return true;
+    }
+
     bool spNodeSerializer::ReadNodeFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t byteCount,spNode& node,bool requireExactEnd,std::string* error) const
     {
@@ -172,40 +224,10 @@ namespace sparkplug::reconstruction
                 return node.UpdateWorldForAnalysis(2,context.cameraOrientation)
                     ?true:fail("Node world update rejected a camera basis or unresolved dependency");
             }
-            const auto read=[&](auto& value){return header->payloadSize==sizeof(value)&&source.ReadData(&value,sizeof(value));};
-            switch(static_cast<Field>(header->fieldID))
+            bool handled=false;
+            if(!ReadScalarFieldForAnalysis(source,*header,node,handled,nullptr,error)){context.failed=true;return false;}
+            if(!handled)switch(static_cast<Field>(header->fieldID))
             {
-            case Field::Position:case Field::Scale:
-            {
-                spNode::Vector3 value{};
-                if(!read(value)||!std::all_of(value.begin(),value.end(),[](float v){return std::isfinite(v);}))
-                    return fail("Invalid Node vector payload");
-                if(header->fieldID==0)node.SetPositionForAnalysis(value);else node.SetScaleForAnalysis(value);
-                node.MarkLocalTransformDirtyForAnalysis();break;
-            }
-            case Field::Rotation:
-            {
-                evidence::pc::animation_math::Quaternion value{};
-                if(!read(value)||!std::all_of(value.begin(),value.end(),[](float v){return std::isfinite(v);}))
-                    return fail("Invalid Node quaternion payload");
-                node.SetOrientationForAnalysis(evidence::pc::animation_math::ToMatrix(value));
-                node.MarkLocalTransformDirtyForAnalysis();break;
-            }
-            case Field::IsBone:case Field::IsStatic:case Field::IsAnimated:
-            {
-                std::uint8_t value=0;if(!read(value))return fail("Invalid Node flag payload");
-                if(header->fieldID==3)node.SetBoneForAnalysis(value!=0);
-                else if(value&&header->fieldID==4)node.SetStaticForAnalysis(true);
-                else if(value)node.SetAnimatedForAnalysis(true);
-                // Original reader intentionally does NOT clear Static/Animated
-                // on false. A fresh default Node keeps Animated even from0.
-                break;
-            }
-            case Field::BillboardAxis:
-            {
-                std::uint32_t value=0;if(!read(value))return fail("Invalid Node billboard field");
-                node.SetBillboardAxisForAnalysis(value);break;
-            }
             case Field::Child:
             {
                 auto* relationship=ReadFieldReferenceForAnalysis(context,spNode::ClassID,source,*header,error);

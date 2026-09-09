@@ -59,6 +59,17 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,
             spBaseObject& object) const override;
 
+        struct ScalarObservationForAnalysis {
+            std::array<float,4> rotation{0,0,0,1};
+            std::uint8_t bone=0,isStatic=0,animated=0;
+        };
+        // Shared scalar field body from PC463A70. Optional observation retains
+        // authored bytes for an inspector, separate from effective Node flags.
+        // Child/Collision/unknown fields return handled=false without reading.
+        [[nodiscard]] static bool ReadScalarFieldForAnalysis(spStream& source,
+            const spDataBlockHeaderForAnalysis& header,spNode& node,bool& handled,
+            ScalarObservationForAnalysis* observation=nullptr,std::string* error=nullptr);
+
     protected:
         [[nodiscard]] bool IndexNodeRelationshipsForAnalysis(spSerializerManager& manager,spNode& node) const;
         // Derived native serializers contain sequential base/derived sections.

@@ -194,3 +194,12 @@ legacy short nonnull ссылка; тестовые Node/Model исправле�
 подтверждённый null. Три original пути, split stream, failed-size stop, пять
 ABI guards, C++266, четыре C# набора и три whole graphs прошли. Досье:
 `docs/research/tool-reference-prefix-shared-core-2026-09-09.md`.
+
+### Тринадцатый блок: Node scalars и transform adapter
+
+Общий scalar reader вместо C# PRS/flag parser, quaternion без нормализации,
+явное разделение authored/effective flags. Запасное угадывание transform удалено.
+Пять свежих original cases совпали побитно; C++226, четыре C# набора и три
+whole graphs прошли. Кэш host ID index снизил managed allocations на проходе
+835 nodes с204.4 до1.7 МБ; это отдельный замер, не FPS. World placement policy
+ещё требует переноса. Досье: `docs/research/tool-node-scalars-shared-core-2026-09-09.md`.

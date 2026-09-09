@@ -5,6 +5,7 @@
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeController.h"
+#include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
@@ -459,6 +460,29 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
         }
     }))return nullptr;
     return result.release();
+}
+SPV_API int spv_node_values(const std::uint8_t* bytes,std::uint32_t count,const SpvNodeField* fields,
+    std::uint32_t fieldCount,SpvNodeValues* output) noexcept {
+    return guarded([&]{
+        require(bytes&&count&&output&&(!fieldCount||fields)&&fieldCount<=65536,"Invalid Node field observation input");
+        spNode node;spNodeSerializer::ScalarObservationForAnalysis observed;
+        for(std::uint32_t i=0;i<fieldCount;++i) {
+            const auto& field=fields[i];
+            require(field.offset<=count&&field.size<=count-field.offset,"Node scalar field exceeds input");
+            BorrowedInput source(bytes+field.offset,field.size);
+            spDataBlockHeaderForAnalysis header;header.fieldID=field.field;header.payloadSize=field.size;
+            bool handled=false;std::string error;
+            if(!spNodeSerializer::ReadScalarFieldForAnalysis(source,header,node,handled,&observed,&error))throw std::runtime_error(error);
+            require(handled,"Node scalar observation received a non-scalar field");
+        }
+        require(node.UpdateWorldForAnalysis(2),"Cannot update isolated Node scalar state");
+        *output={};const auto& p=node.GetPositionForAnalysis();const auto& s=node.GetScaleForAnalysis();
+        const auto& r=node.GetOrientationForAnalysis();
+        std::copy(p.begin(),p.end(),output->position);std::copy(s.begin(),s.end(),output->scale);
+        std::copy(r.begin(),r.end(),output->orientation);std::copy(observed.rotation.begin(),observed.rotation.end(),output->rotation);
+        output->flags=node.GetFlagsForAnalysis();output->billboard=node.GetBillboardAxisForAnalysis();
+        output->bone=observed.bone;output->isStatic=observed.isStatic;output->animated=observed.animated;
+    });
 }
 SPV_API int spv_reference_prefix(const std::uint8_t* bytes,std::uint32_t count,std::uint32_t payloadSize,
     std::uint32_t kind,SpvReferencePrefix* output) noexcept {
