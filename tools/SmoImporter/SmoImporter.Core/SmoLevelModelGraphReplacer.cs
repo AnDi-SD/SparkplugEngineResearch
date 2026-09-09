@@ -1355,41 +1355,11 @@ public static class SmoLevelModelGraphReplacer
             SmoObjectEntry material = document.Objects.Single(entry =>
                 entry.Id == materialId &&
                 entry.TypeHash == SmoClassIds.MaterialData);
-            bool patchedStates = false;
-            bool patchedBlend = false;
-            foreach (SmoDataBlockHeader field in Fields(document, material))
-            {
-                int payload = checked(
-                    (int)material.PhysicalOffset + field.PayloadOffset);
-                if (field.FieldType == 0 &&
-                    field.PayloadSize ==
-                        RigidTextureAlphaMaterialRenderStates.Length * sizeof(uint))
-                {
-                    for (int index = 0;
-                         index < RigidTextureAlphaMaterialRenderStates.Length;
-                         index++)
-                    {
-                        WriteUInt32(
-                            result,
-                            payload + index * sizeof(uint),
-                            RigidTextureAlphaMaterialRenderStates[index]);
-                    }
-                    patchedStates = true;
-                }
-                else if (field.FieldType == 3 &&
-                         field.PayloadSize == sizeof(uint))
-                {
-                    // FinalBlendOp=2 plus companion RS[8]=2 is the confirmed
-                    // rigid texture-alpha surface contract in shipped levels.
-                    WriteUInt32(result, payload, 2);
-                    patchedBlend = true;
-                }
-            }
-            if (!patchedStates || !patchedBlend)
-            {
-                throw new InvalidDataException(
-                    $"Material {materialId} has no writable rigid alpha render state.");
-            }
+            // FinalBlendOp=2 plus companion RS[8]=2 is the confirmed
+            // rigid texture-alpha surface contract in shipped levels.
+            byte[] patched = SmoMaterialScalarWriter.PatchAllPasses(
+                document, material, RigidTextureAlphaMaterialRenderStates, 2);
+            patched.CopyTo(result, checked((int)material.PhysicalOffset));
         }
 
         SmoDocument verified = SmoDocument.ParseOwned(result, document.SourcePath);

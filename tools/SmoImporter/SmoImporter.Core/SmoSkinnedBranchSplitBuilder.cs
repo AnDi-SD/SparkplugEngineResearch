@@ -980,7 +980,9 @@ internal static class SmoSkinnedBranchSplitBuilder
         IReadOnlyList<uint> materialRenderStates,
         IReadOnlyList<uint> lightingTextureStates)
     {
-        ReadOnlySpan<byte> source = ObjectBytes(document, context.OpaqueMaterial);
+        ReadOnlySpan<byte> source = SmoMaterialScalarWriter.PatchSingleStandardLayer(
+            document, context.OpaqueMaterial, materialRenderStates,
+            finalBlendOperation, lightingTextureStates);
         SmoDataBlockHeader textureField = FindInlineChildField(
             document, context.OpaqueMaterial, context.Texture);
         using var stream = new MemoryStream();
@@ -999,25 +1001,6 @@ internal static class SmoSkinnedBranchSplitBuilder
                     WriteResizedInlineField(stream, source, field, inlineTexture, placements);
                 else
                     WriteReferenceOnlyField(stream, source, field, textureObjectId);
-            }
-            else if (field.FieldType == 0 &&
-                     field.PayloadSize == materialRenderStates.Count * sizeof(uint))
-            {
-                stream.Write(source.Slice(field.Offset, field.HeaderSize));
-                foreach (uint value in materialRenderStates)
-                    WriteUInt32(stream, value);
-            }
-            else if (field.FieldType == 3 && field.PayloadSize == sizeof(uint))
-            {
-                stream.Write(source.Slice(field.Offset, field.HeaderSize));
-                WriteUInt32(stream, finalBlendOperation);
-            }
-            else if (field.FieldType == 17 &&
-                     field.PayloadSize == lightingTextureStates.Count * sizeof(uint))
-            {
-                stream.Write(source.Slice(field.Offset, field.HeaderSize));
-                foreach (uint value in lightingTextureStates)
-                    WriteUInt32(stream, value);
             }
             else
             {
@@ -2552,37 +2535,7 @@ internal static class SmoSkinnedBranchSplitBuilder
             SmoObjectEntry material,
             SmoObjectEntry texture)
         {
-            ReadOnlySpan<byte> source = ObjectBytes(target, material);
             _ = FindInlineChildField(target, material, texture);
-            int stateFieldCount = 0;
-            int operationFieldCount = 0;
-            int lightingTextureStateFieldCount = 0;
-            int offset = ObjectSignatureSize;
-            while (offset < source.Length &&
-                   SmoDataBlockReader.TryReadHeader(
-                       source, offset, out SmoDataBlockHeader field))
-            {
-                if (field.FieldType == 0 &&
-                    field.PayloadSize ==
-                    SkinnedTransparentSurfaceMaterialRenderStates.Length * sizeof(uint))
-                {
-                    stateFieldCount++;
-                }
-                if (field.FieldType == 3 && field.PayloadSize == sizeof(uint))
-                    operationFieldCount++;
-                if (field.FieldType == 17 &&
-                    field.PayloadSize ==
-                    SkinnedTransparentSurfaceLightingTextureStates.Length * sizeof(uint))
-                {
-                    lightingTextureStateFieldCount++;
-                }
-                offset = checked((int)field.PayloadEnd);
-            }
-            if (offset != source.Length || stateFieldCount != 1 ||
-                operationFieldCount != 1 || lightingTextureStateFieldCount != 1)
-                throw new NotSupportedException(
-                    "Target material does not expose exactly one native writable " +
-                    "MRS, FinalBlendOp, and LTS field.");
         }
 
         private static void ValidateSkinTemplate(

@@ -181,6 +181,7 @@ internal static class ForestReferenceRemapRegression
             "Changed bytes cannot reuse provenance sealed for another range.");
         Check(File.ReadAllBytes(templatePath).AsSpan().SequenceEqual(original), "Original mesh template is unchanged.");
         Directory.CreateDirectory(output);
+        VerifyBatchCapture();
         File.WriteAllBytes(Path.Combine(output, "additive.smo"), additiveBytes);
         File.WriteAllBytes(Path.Combine(output, "remapped.smo"), once.Data.ToArray());
         File.WriteAllBytes(Path.Combine(output, "remapped-twice.smo"), repeated.Data.ToArray());
@@ -197,6 +198,79 @@ internal static class ForestReferenceRemapRegression
 
         SmoDocument Install(SmoAdditiveForestPlan value, string name) => SmoDocument.ParseOwned(
             SmoVisualForestInjector.Inject(source, 1, value.Operations.Select(item => item.Attachment).ToArray()), name);
+        void VerifyBatchCapture()
+        {
+            var batchRoot = new FixtureObject(1, SmoClassIds.Node);
+            var sibling = new FixtureObject(8, SmoClassIds.Node);
+            var leaf = new FixtureObject(9, SmoClassIds.Node);
+            leaf.Field(3, [1]); leaf.End();
+            sibling.Reference(5, leaf, inline: true); sibling.End();
+            batchRoot.Reference(5, render, inline: true);
+            batchRoot.Reference(5, sibling, inline: true); batchRoot.End();
+            byte[] batchBytes = Container(batchRoot);
+            var batchDocument = SmoDocument.ParseOwned(batchBytes, "remap-batch-additive");
+            var batchLoaded = SmoLoadedResources.Get(batchDocument);
+            Check(!batchDocument.HasErrors && batchLoaded.LoadIssue is null && batchLoaded.ReferenceTrace is not null,
+                batchLoaded.ReferenceTraceIssue ?? batchLoaded.LoadIssue ?? "Both distinct batch branches must load actual objects.");
+            var batchPlan = SmoAdditiveForestPlanner.Create(source, batchDocument);
+            Check(batchPlan.Operations.Count == 2 && batchPlan.ReferenceRanges?.Count == 2 &&
+                batchPlan.Operations.Select(item => item.Attachment.Entries[0].Id).SequenceEqual(new uint[] { 2, 8 }),
+                "Create preserves the ordering of two distinct forests and their batched provenance.");
+            var requests = batchPlan.Operations.Select(operation =>
+            {
+                var entry = operation.Attachment.Entries[0];
+                int start = checked((int)batchDocument.Objects.Single(value => value.Id == entry.Id).PhysicalOffset - entry.RelativeOffset);
+                return (PhysicalOffset: start, Length: operation.Attachment.FieldData.Length);
+            }).Reverse().ToArray();
+            var batchTrace = batchLoaded.ReferenceTrace!;
+            var captured = batchTrace.CaptureRanges(batchDocument, requests);
+            Check(captured.Count == 2 && captured[0].Objects[0].ObjectId == 8 && captured[1].Objects[0].ObjectId == 2,
+                "Batch capture follows request order even when it reverses physical order.");
+            var batchMap = batchPlan.GeneratedObjectIds.ToDictionary(id => id, id => id + 300);
+            var batchMapped = SmoAdditiveForestPlanner.RemapObjectIds(batchPlan, batchMap);
+            var singleContext = new SmoFileReferenceRemapContext(batchMap);
+            var batchContext = new SmoFileReferenceRemapContext(batchMap);
+            for (int index = 0; index < requests.Length; ++index)
+            {
+                var request = requests[index];
+                int operationIndex = requests.Length - 1 - index;
+                var single = batchTrace.CaptureRange(batchDocument, request.PhysicalOffset, request.Length);
+                var batchRange = captured[index];
+                var plannedRange = batchPlan.ReferenceRanges![operationIndex];
+                var singleTransport = single.ExportWorkerTransport();
+                var batchTransport = batchRange.ExportWorkerTransport();
+                Check(single.Sites.SequenceEqual(batchRange.Sites) && single.Objects.SequenceEqual(batchRange.Objects) &&
+                    singleTransport.ContentSha256 == batchTransport.ContentSha256 &&
+                    singleTransport.CatalogSha256 == batchTransport.CatalogSha256 &&
+                    singleTransport.CatalogIds.SequenceEqual(batchTransport.CatalogIds),
+                    "Single and batch capture preserve the same sites, object metadata and sealed bytes.");
+                Check(plannedRange.Sites.SequenceEqual(single.Sites) && plannedRange.Objects.SequenceEqual(single.Objects),
+                    "Create aligns each operation with its own provenance after sorting.");
+                byte[] field = batchPlan.Operations[operationIndex].Attachment.FieldData;
+                var singleMapped = single.Remap(field, singleContext);
+                var capturedMapped = batchRange.Remap(field, batchContext);
+                Check(singleMapped.Data.AsSpan().SequenceEqual(capturedMapped.Data) &&
+                    singleMapped.Data.AsSpan().SequenceEqual(batchMapped.Operations[operationIndex].Attachment.FieldData) &&
+                    singleMapped.Provenance.Sites.SequenceEqual(capturedMapped.Provenance.Sites) &&
+                    singleMapped.Provenance.Objects.SequenceEqual(capturedMapped.Provenance.Objects),
+                    "Batch capture, single capture and the complete plan produce identical exact remapping.");
+            }
+            byte originalTerminal = batchBytes[^1];
+            batchBytes[^1] ^= 1; // Outside both copied ranges: only the whole-source guard detects this.
+            try
+            {
+                Reject(() => batchTrace.CaptureRanges(batchDocument, requests),
+                    "Source mutation outside all requested ranges is rejected before batch capture.");
+            }
+            finally { batchBytes[^1] = originalTerminal; }
+            var installed = Install(batchMapped, "remap-batch-installed");
+            Verify(installed, 300);
+            Check(installed.Objects.Single(entry => entry.Id == 309).ParentIndex ==
+                installed.Objects.Single(entry => entry.Id == 308).Index,
+                "The second remapped forest retains its distinct child ownership.");
+            File.WriteAllBytes(Path.Combine(output, "batch-additive.smo"), batchBytes);
+            File.WriteAllBytes(Path.Combine(output, "batch-remapped.smo"), installed.Data.ToArray());
+        }
         void Verify(SmoDocument document, uint shift)
         {
             var actual = SmoLoadedResources.Get(document);

@@ -72,6 +72,16 @@ ID words. 42 managed remap checks; worker LVLcreator создал две вет�
 Это две функции authoring, а не завершение всей записи графов. Счётчик35 readers
 остаётся30/3/2; следующий срез — оставшиеся ручные Material builders.
 
+**Блок 4:** MRS/pass-blend/LTS запись в двух Importer сценариях передана общему
+Material writer. Native5 suites, ABI4 positive/33 guards, managed44, Icy
+end-to-end101 objects/13110B; пять consumer builds и FormatTests647 прошли.
+Пакетная подготовка reference ranges удаляет повторные whole-file SHA: на20
+маленьких диапазонах Alfea02 измерено94,866→5,585мс (16,99 раза для этой операции).
+Reference remap60 checks сохраняют coverage, порядок и отказ при mutation source.
+[Подробности](tool-material-scalar-authoring-2026-09-10.md).
+Остальная структурная запись Material/Skin/контейнера ещё не завершена;
+35-reader counter по-прежнему30/3/2.
+
 ## Отложенные случаи
 
 Сохраняется список из [предыдущего среза](tools-core-migration-status-2026-09-09.md).
@@ -95,3 +105,8 @@ CP115–116; его успешно проверенный Box scalar не счи
 Trace не выдаёт skipped bytes за coverage; remap содержащей их ветви приостановлен.
 Нужны подтверждённое чтение именно этой копии либо явно согласованная замена
 ветви через общий writer. Прочие покрытые ветви продолжают работать.
+
+Полный Material writer для шаблонов без инициализированного original DX power
+остаётся отложенным. Частичные scalar writers это значение не читают и не
+подставляют default. Single-layer authoring для legacy/orphan/repeated LTS
+требует отдельного определения операции; такие формы явно отклоняются.

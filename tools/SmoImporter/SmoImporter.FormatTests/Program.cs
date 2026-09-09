@@ -1,5 +1,17 @@
 using SmoImporter.Core;
 
+if (args is ["--reference-range-benchmark", string rangeSource, string rangeOutput])
+{
+    try { return ReferenceRangeBatchBenchmark.Run(rangeSource, rangeOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--material-scalar-authoring", string materialTemplate, string materialOutput])
+{
+    try { return MaterialScalarWriterRegression.Run(materialTemplate, materialOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--forest-reference-remap", string remapTemplate, string remapOutput])
 {
     try { return ForestReferenceRemapRegression.Run(remapTemplate, remapOutput); }

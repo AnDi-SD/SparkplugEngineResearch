@@ -34,3 +34,12 @@
   remap приостановлен, пользователь уведомлён. Large-file audit отдельно
   подтвердил исторический1015,77MiB peak и дополнительные16MiB guards; limits
   не менялись. Следующий блок — общая запись скалярных Material параметров.
+- 21:27 МСК: третий блок сохранён rootfda6b91 / Viewer3ebdfd0.
+- 21:32–21:48 МСК: четвёртый блок — общие Material scalar writer slices и
+  перенос двух Importer callers. Native5 suites, ABI4/33, managed44, remap60,
+  общий FormatTests647; пять consumer builds прошли. Icy end-to-end пересобран
+  в101 объект/13110B через BuildMaterial, original file не изменён.
+- CaptureRanges проверяет source SHA один раз на batch. На20 covered extents
+  pristine Alfea02:94,866→5,585мс (16,99× для capture operation), peak58,30MiB.
+  Полное время импорта таким коэффициентом не оценивается. Unknown DX power
+  и неоднозначные single-layer LTS формы остаются явными ограничениями.

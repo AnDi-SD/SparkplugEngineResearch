@@ -251,6 +251,96 @@ namespace
         Bytes bad;Field(bad,6,std::array<std::uint32_t,2>{7,32});bad.push_back(0);Open(input,bad);
         spDXMaterial invalid;Check(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(bad.size()),invalid,observation,&error),"inspection rejects truncated inline body");
     }
+    void ScalarWriterSlices()
+    {
+        spDXMaterial material;spMaterialPassLayer pass;spMaterialTexture texture;
+        const std::array<std::uint32_t,11> states{9,8,7,6,5,4,3,2,1,0,0xffffffff};
+        for(std::size_t i=0;i<states.size();++i)Check(material.SetRenderStateForAnalysis(i,states[i]),"explicit scalar authoring state");
+        pass.SetFinalBlendOperationForAnalysis(2);
+        for(std::size_t i=0;i<9;++i)texture.SetTextureStateForAnalysis(i,static_cast<std::uint32_t>(9-i));
+        for(std::size_t i=9;i<12;++i)texture.SetTextureStateForAnalysis(i,0xfeed0000u+static_cast<std::uint32_t>(i));
+        std::string error;spMemoryStream output;Open(output);
+        Check(spMaterialSerializer::WriteRenderStatesFieldForAnalysis(output,material,&error),error.c_str());
+        // Exact original writer slices, not test-authored header expectations.
+        // material-reader/scalar-values-original.log SHA256 FC655CE79277AE4E
+        // 6946B0E5B7C2D175EAF589162A33EA811DAE3BC886BC2988 (2026-09-09 seal).
+        Check(Hex(Data(output))=="a02c09000000080000000700000006000000050000000400000003000000020000000100000000000000ffffffff",
+            "MRS helper matches original PC scalar-values writer field");
+        Open(output);Check(spMaterialSerializer::WritePassBlendFieldForAnalysis(output,pass,&error),error.c_str());
+        // material-reader/layers-uv-repeat-original.log SHA256 BA6065D3602223B3
+        // F80BE1B3BC52032686421512DA1F9E7CDDB01D4F859D094B.
+        Check(Hex(Data(output))=="6302000000","blend helper matches original PC pass field");
+        Open(output);Check(spMaterialSerializer::WriteTextureStatesFieldForAnalysis(output,texture,&error),error.c_str());
+        Check(Hex(Data(output))=="b124090000000800000007000000060000000500000004000000030000000200000001000000",
+            "LTS helper matches original PC nine-word field and omits host slots 9..11");
+        Check(!material.HasInitializedSpecularPowerForAnalysis(),"scalar writer slices never initialize missing DX power");
+        Open(output);Check(!spMaterialDataSerializer{}.WritePayloadForAnalysis(output,material,&error)&&Data(output).empty(),
+            "full material writer still rejects unknown DX power before writing");
+    }
+    void InspectedScalarAssignments()
+    {
+        using Seen=spMaterialSerializer::InspectedScalarFieldForAnalysis;
+        struct Expected{std::uint32_t field,offset,size,pass,layer;bool applied;};
+        Bytes bytes;std::vector<Expected> expected;
+        const auto add=[&](std::uint8_t id,const auto& value,std::uint32_t pass,std::uint32_t layer,bool applied)
+        {
+            const auto offset=static_cast<std::uint32_t>(bytes.size()+2);Bytes payload;Add(payload,value);
+            Field(bytes,id,payload);expected.push_back({id,offset,static_cast<std::uint32_t>(payload.size()),pass,layer,applied});
+        };
+        const std::array<std::uint32_t,11> mrsA{9,8,7,6,5,4,3,2,1,0,0xffffffff},mrsB{0,1,2,3,4,5,6,7,8,9,10};
+        const std::array<std::uint32_t,9> ltsA{9,8,7,6,5,4,3,2,1},ltsB{0,1,2,3,4,5,6,7,8};
+        add(17,std::uint8_t(0x7f),Seen::NoIndex,Seen::NoIndex,false); // Original skips even a short orphan.
+        add(0,mrsA,Seen::NoIndex,Seen::NoIndex,true);
+        add(3,2u,0,Seen::NoIndex,true);
+        add(8,ltsA,0,Seen::NoIndex,false);
+        Field(bytes,4,spStdLayer::ClassID);
+        add(17,ltsA,0,0,true);add(8,ltsB,0,0,true);
+        Field(bytes,4,spStdLayer::ClassID);add(17,ltsA,0,1,true);
+        add(0,mrsB,Seen::NoIndex,Seen::NoIndex,true);
+        add(3,3u,1,Seen::NoIndex,true);
+        add(17,ltsA,1,Seen::NoIndex,false);
+        Field(bytes,4,spStdLayer::ClassID);add(8,ltsA,1,0,true);add(17,ltsB,1,0,true);
+        Field(bytes,18,std::array<std::uint32_t,2>{7,0});bytes.push_back(0);
+        // A nonzero stream start must not leak into payload-relative offsets.
+        Bytes prefixed{0xaa,0xbb,0xcc,0xdd,0xee};prefixed.insert(prefixed.end(),bytes.begin(),bytes.end());
+        spMemoryStream input;Open(input,prefixed);Check(input.Seek(spStream::SeekSource::essStart,5),"offset material input");
+        spDXMaterial material;spMaterialSerializer::InspectionForAnalysis observation;std::string error;
+        Check(spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(bytes.size()),material,observation,&error),error.c_str());
+        Check(observation.scalarFields.size()==expected.size(),"observe only actual scalar encounters, including orphans");
+        Check(material.GetPassCountForAnalysis()==2&&material.GetRenderStatesForAnalysis()==mrsB,"multipass and repeated MRS preserve actual final state");
+        for(std::size_t i=0;i<expected.size();++i)
+        {
+            const auto& want=expected[i];const auto& got=observation.scalarFields[i];
+            Check(static_cast<std::uint32_t>(got.field)==want.field&&got.payloadOffset==want.offset&&got.payloadSize==want.size
+                &&got.assignmentOrder==i&&got.passIndex==want.pass&&got.layerIndex==want.layer&&got.applied==want.applied,
+                "scalar observation preserves relative wire location, actual scope and encounter order");
+            if(want.pass==Seen::NoIndex)Check(!got.pass&&!got.layer&&!got.texture,"material/orphan scalar has no invented pass owner");
+            else
+            {
+                const auto* pass=dynamic_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(want.pass));
+                Check(pass&&got.pass==pass,"observed pass is the retained actual object");
+                if(want.layer==Seen::NoIndex)Check(!got.layer&&!got.texture,"pass/orphan scalar has no invented layer owner");
+                else
+                {
+                    const auto* layer=dynamic_cast<const spStdLayer*>(pass->GetLayerForAnalysis(want.layer).get());
+                    Check(layer&&got.layer==layer&&got.texture==layer->GetMaterialTextureForAnalysis().get(),"observed layer and holder are the actual direct owners");
+                }
+            }
+        }
+        const auto* pass0=static_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(0));
+        const auto* pass1=static_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(1));
+        Check(pass0->GetFinalBlendOperationForAnalysis()==2&&pass1->GetFinalBlendOperationForAnalysis()==3,"pass words remain distinct");
+        const auto* first=pass0->GetLayerForAnalysis(0)->GetMaterialTextureForAnalysis().get();
+        const auto* second=pass0->GetLayerForAnalysis(1)->GetMaterialTextureForAnalysis().get();
+        const auto* third=pass1->GetLayerForAnalysis(0)->GetMaterialTextureForAnalysis().get();
+        Check(observation.layers.at(first).textureStatesField==8&&observation.layers.at(second).textureStatesField==17
+            &&observation.layers.at(third).textureStatesField==17,"last legacy/current LTS assignment belongs to its actual holder");
+        for(std::size_t i=0;i<9;++i)Check(first->GetTextureStatesForAnalysis()[i]==ltsB[i]
+            &&second->GetTextureStatesForAnalysis()[i]==ltsA[i]&&third->GetTextureStatesForAnalysis()[i]==ltsB[i],
+            "repeated legacy/current LTS applies to the selected actual layer only");
+        std::uint32_t position=0;Check(input.GetCurrentPosition(position)&&position==prefixed.size(),"inspected scalar stream consumes exact complete section");
+        Check(!material.HasInitializedSpecularPowerForAnalysis(),"observing scalar fields does not supply uninitialized color power");
+    }
     void FailuresAndOwners()
     {
         for(int mode=0;mode<7;++mode)
@@ -297,7 +387,7 @@ int main(int argc,char** argv)
         for(const auto* mode:{"default","states","repeat","legacy","uv","uv-zero","uv-repeat"})(void)Layer(mode);
         for(const auto* mode:{"inline","repeat","clear","prebound"})(void)Graph(mode);
         for(const auto* mode:{"inline","repeat","two-layers","null-after","orphan"})(void)TextureGraph(mode);
-        DXIdentityAndCopy();TextureFallbackOwners();InspectedReferences();FailuresAndOwners();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC material codecs, actual DX identity, owners and safe bounds\n";return 0;
+        DXIdentityAndCopy();TextureFallbackOwners();InspectedReferences();ScalarWriterSlices();InspectedScalarAssignments();FailuresAndOwners();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC material codecs, actual DX identity, owners and safe bounds\n";return 0;
     }
     catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

@@ -90,6 +90,8 @@ namespace sparkplug::reconstruction
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
         if(error)error->clear();SectionCursor cursor(context,source,size,true,error);
+        std::uint32_t sectionStart=0;
+        if(observation&&!source.GetCurrentPosition(sectionStart))return cursor.Fail("Cannot locate material inspection payload");
         auto* material=dynamic_cast<spMaterial*>(&object);
         if(!material||(!object.IsExactly(spMaterialData::ClassID)&&!object.IsExactly(spDXMaterial::ClassID)))return cursor.Fail("PC material target mismatch");
         const auto lastPass=[&]() -> spMaterialPassLayer*
@@ -98,6 +100,27 @@ namespace sparkplug::reconstruction
         {auto* pass=lastPass();if(!pass||!pass->GetLayerCountForAnalysis())return nullptr;
             const auto* layer=dynamic_cast<spStdLayer*>(pass->GetLayerForAnalysis(pass->GetLayerCountForAnalysis()-1).get());
             return layer?layer->GetMaterialTextureForAnalysis().get():nullptr;};
+        const auto observeScalar=[&](const spDataBlockHeaderForAnalysis& header,
+            const spMaterialPassLayer* pass,const spMaterialTexture* texture,bool applied)
+        {
+            if(!observation)return;
+            InspectedScalarFieldForAnalysis field;
+            field.field=static_cast<Field>(header.fieldID);
+            field.payloadOffset=header.dataStreamPosition-sectionStart;
+            field.payloadSize=header.payloadSize;
+            field.assignmentOrder=static_cast<std::uint32_t>(observation->scalarFields.size());
+            field.pass=pass;field.texture=texture;field.applied=applied;
+            if(pass)
+            {
+                field.passIndex=static_cast<std::uint32_t>(material->GetPassCountForAnalysis()-1);
+                if(texture)
+                {
+                    field.layerIndex=static_cast<std::uint32_t>(pass->GetLayerCountForAnalysis()-1);
+                    field.layer=static_cast<const spStdLayer*>(pass->GetLayerForAnalysis(field.layerIndex).get());
+                }
+            }
+            observation->scalarFields.push_back(field);
+        };
         const auto color=[](std::uint32_t argb)
         {
             constexpr float unit=1.0F/255.0F; // PC424700 multiplies this float constant
@@ -111,7 +134,8 @@ namespace sparkplug::reconstruction
             case Field::RenderStates:
             {
                 spMaterial::RenderStates states{};if(!cursor.Read(states))return cursor.Fail("Material requires eleven render states");
-                for(std::size_t i=0;i<states.size();++i)(void)material->SetRenderStateForAnalysis(i,states[i]);break;
+                for(std::size_t i=0;i<states.size();++i)(void)material->SetRenderStateForAnalysis(i,states[i]);
+                observeScalar(*header,nullptr,nullptr,true);break;
             }
             case Field::VertexAlpha:
             {
@@ -132,7 +156,8 @@ namespace sparkplug::reconstruction
                 std::uint32_t blend=0;if(!cursor.Read(blend)||material->GetPassCountForAnalysis()>=spMaterial::MaximumPassCount)
                     return cursor.Fail("Material pass field exceeds size or eight-slot capacity");
                 auto pass=std::make_shared<spMaterialPassLayer>();pass->SetFinalBlendOperationForAnalysis(blend);
-                if(!material->SetPassForAnalysis(material->GetPassCountForAnalysis(),pass))return cursor.Fail("Cannot retain material pass");break;
+                if(!material->SetPassForAnalysis(material->GetPassCountForAnalysis(),pass))return cursor.Fail("Cannot retain material pass");
+                observeScalar(*header,pass.get(),nullptr,true);break;
             }
             case Field::Layer:
             {
@@ -148,10 +173,15 @@ namespace sparkplug::reconstruction
             case Field::LegacyTextureStates:
             case Field::TextureStates:
             {
-                auto* texture=lastTexture();if(!texture){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan texture states");break;}
+                auto* texture=lastTexture();if(!texture)
+                {
+                    if(!cursor.Skip())return cursor.Fail("Cannot skip orphan texture states");
+                    observeScalar(*header,lastPass(),nullptr,false);break;
+                }
                 std::array<std::uint32_t,9> states{};if(!cursor.Read(states))return cursor.Fail("PC material texture requires nine states");
                 if(observation)observation->layers[texture].textureStatesField=static_cast<std::int32_t>(header->fieldID);
-                for(std::size_t i=0;i<states.size();++i)texture->SetTextureStateForAnalysis(i,states[i]);break;
+                for(std::size_t i=0;i<states.size();++i)texture->SetTextureStateForAnalysis(i,states[i]);
+                observeScalar(*header,lastPass(),texture,true);break;
             }
             case Field::StaticUVTransform:
             {
@@ -239,6 +269,41 @@ namespace sparkplug::reconstruction
         spStream& destination,const spBaseObject& object,std::string* error) const
     {return WriteMaterialFieldsForAnalysis(&manager,destination,object,error);}
 
+    bool spMaterialSerializer::WriteRenderStatesFieldForAnalysis(spStream& stream,
+        const spMaterial& material,std::string* error)
+    {
+        if(error)error->clear();
+        // PC476BDC..476C2D: field0 contains material+18's eleven words.
+        const auto& states=material.GetRenderStatesForAnalysis();
+        static_assert(sizeof(states)==RenderStateCount*sizeof(std::uint32_t));
+        if(!spDataBlockSerializer{}.WriteFieldForAnalysis(stream,0,states.data(),sizeof(states)))
+        {if(error)*error="Cannot write material states";return false;}
+        return true;
+    }
+
+    bool spMaterialSerializer::WritePassBlendFieldForAnalysis(spStream& stream,
+        const spMaterialPassLayer& pass,std::string* error)
+    {
+        if(error)error->clear();
+        // PC476CB1/476CC2: field3 contains the actual pass's blend word+10.
+        const auto blend=pass.GetFinalBlendOperationForAnalysis();
+        if(!spDataBlockSerializer{}.WriteFieldForAnalysis(stream,3,&blend,sizeof(blend)))
+        {if(error)*error="Cannot write material pass";return false;}
+        return true;
+    }
+
+    bool spMaterialSerializer::WriteTextureStatesFieldForAnalysis(spStream& stream,
+        const spMaterialTexture& texture,std::string* error)
+    {
+        if(error)error->clear();
+        // PC476270..476286: field17 copies exactly 36 bytes from holder+10.
+        // The portable holder has twelve slots; the PC wire owns only nine.
+        const auto& states=texture.GetTextureStatesForAnalysis();
+        if(!spDataBlockSerializer{}.WriteFieldForAnalysis(stream,17,states.data(),TextureStateCount*sizeof(std::uint32_t)))
+        {if(error)*error="Cannot write standard layer states";return false;}
+        return true;
+    }
+
     bool spMaterialSerializer::WriteMaterialFieldsForAnalysis(spSerializerManager* manager,
         spStream& stream,const spBaseObject& object,std::string* error) const
     {
@@ -266,17 +331,17 @@ namespace sparkplug::reconstruction
         if(!blocks.BeginObjectForAnalysis(stream,material))return fail("Cannot begin material");
         const auto alpha=material->GetVertexAlphaByteForAnalysis();
         if(alpha&&!blocks.WriteFieldForAnalysis(stream,1,&alpha,sizeof(alpha)))return fail("Cannot write material alpha");
-        const auto& states=material->GetRenderStatesForAnalysis();
-        if(!blocks.WriteFieldForAnalysis(stream,0,states.data(),sizeof(states)))return fail("Cannot write material states");
+        if(!WriteRenderStatesFieldForAnalysis(stream,*material,error))return false;
         for(std::size_t i=0;i<material->GetPassCountForAnalysis();++i)
         {
-            const auto* pass=static_cast<const spMaterialPassLayer*>(material->GetPassForAnalysis(i));const auto blend=pass->GetFinalBlendOperationForAnalysis();
-            if(!blocks.WriteFieldForAnalysis(stream,3,&blend,sizeof(blend)))return fail("Cannot write material pass");
+            const auto* pass=static_cast<const spMaterialPassLayer*>(material->GetPassForAnalysis(i));
+            if(!WritePassBlendFieldForAnalysis(stream,*pass,error))return false;
             for(std::size_t j=0;j<pass->GetLayerCountForAnalysis();++j)
             {
                 const auto* layer=static_cast<const spStdLayer*>(pass->GetLayerForAnalysis(j).get());const auto* texture=layer->GetMaterialTextureForAnalysis().get();
-                const std::uint32_t identity=spStdLayer::ClassID;const auto& textureStates=texture->GetTextureStatesForAnalysis();
-                if(!blocks.WriteFieldForAnalysis(stream,4,&identity,4)||!blocks.WriteFieldForAnalysis(stream,17,textureStates.data(),36))return fail("Cannot write standard layer states");
+                const std::uint32_t identity=spStdLayer::ClassID;
+                if(!blocks.WriteFieldForAnalysis(stream,4,&identity,4))return fail("Cannot write standard layer states");
+                if(!WriteTextureStatesFieldForAnalysis(stream,*texture,error))return false;
                 if(texture->HasStaticTransformForAnalysis())
                 {
                     struct UV{std::uint32_t enabled;std::array<float,9> matrix;};const UV uv{1,texture->GetUVTransformForAnalysis()};

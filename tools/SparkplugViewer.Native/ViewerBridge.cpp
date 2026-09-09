@@ -1050,6 +1050,99 @@ SPV_API void* spv_material_read(const std::uint8_t* bytes,std::uint32_t count) n
     if(!guarded([&]{result=std::make_unique<MaterialView>(bytes,count);}))return nullptr;
     return result.release();
 }
+SPV_API void* spv_material_patch_scalars(const std::uint8_t* bytes,std::uint32_t count,
+    const std::uint32_t* states,std::uint32_t stateCount,std::uint32_t blend,
+    const std::uint32_t* textureStates,std::uint32_t textureStateCount,std::uint32_t kind) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(bytes&&count&&count<=16u*1024u*1024u&&states&&stateCount==11&&kind<=1&&
+            (kind==0?(textureStates&&textureStateCount==9):(!textureStates&&textureStateCount==0)),
+            "MATERIAL_SCALAR_SHAPE: invalid bounded scalar edit input");
+        BorrowedInput input(bytes,count);spDXMaterial material;
+        spMaterialSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,count,material,observed,&error))
+            throw std::runtime_error(error);
+        std::uint32_t end=0;
+        require(input.GetCurrentPosition(end)&&end==count,"MATERIAL_SCALAR_SHAPE: unread trailing material bytes");
+        using Field=spMaterialSerializer::Field;
+        using Observation=spMaterialSerializer::InspectedScalarFieldForAnalysis;
+        std::vector<const Observation*> stateFields,passFields,textureFields;
+        for(const auto& field:observed.scalarFields) {
+            if(field.field==Field::RenderStates) {
+                require(field.applied&&field.payloadSize==44,"MATERIAL_SCALAR_SHAPE: unsupported render-state extent");
+                stateFields.push_back(&field);
+            } else if(field.field==Field::Pass) {
+                require(field.applied&&field.pass&&field.payloadSize==4&&
+                    material.GetPassForAnalysis(field.passIndex)==field.pass,
+                    "MATERIAL_SCALAR_SHAPE: pass assignment has no exact owner");
+                passFields.push_back(&field);
+            } else if(kind==0&&(field.field==Field::LegacyTextureStates||field.field==Field::TextureStates)) {
+                require(field.field==Field::TextureStates&&field.applied&&field.layer&&field.texture&&field.payloadSize==36,
+                    "MATERIAL_SCALAR_SHAPE: legacy or orphan texture states require a separate authoring decision");
+                textureFields.push_back(&field);
+            }
+        }
+        require(!stateFields.empty()&&!passFields.empty()&&passFields.size()==material.GetPassCountForAnalysis(),
+            "MATERIAL_SCALAR_SHAPE: missing authored render states or pass blend");
+        spMaterialTexture* texture=nullptr;
+        if(kind==0) {
+            require(stateFields.size()==1&&passFields.size()==1&&textureFields.size()==1,
+                "MATERIAL_SCALAR_SHAPE: expected one render-state, pass and effective field17 assignment");
+            auto* pass=dynamic_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(0));
+            require(pass&&pass->GetLayerCountForAnalysis()==1,"MATERIAL_SCALAR_SHAPE: expected one actual standard layer");
+            auto* layer=dynamic_cast<spStdLayer*>(pass->GetLayerForAnalysis(0).get());
+            require(layer&&layer->GetMaterialTextureForAnalysis(),"MATERIAL_SCALAR_SHAPE: missing actual texture holder");
+            texture=layer->GetMaterialTextureForAnalysis().get();
+            const auto& observedTexture=*textureFields.front();
+            require(observedTexture.pass==pass&&observedTexture.layer==layer&&observedTexture.texture==texture&&
+                observedTexture.passIndex==0&&observedTexture.layerIndex==0,
+                "MATERIAL_SCALAR_SHAPE: field17 belongs to another layer");
+            for(std::size_t i=0;i<9;++i)texture->SetTextureStateForAnalysis(i,textureStates[i]);
+        }
+        for(std::size_t i=0;i<11;++i)(void)material.SetRenderStateForAnalysis(i,states[i]);
+        for(std::size_t i=0;i<material.GetPassCountForAnalysis();++i) {
+            auto* pass=dynamic_cast<spMaterialPassLayer*>(material.GetPassForAnalysis(i));
+            require(pass!=nullptr,"MATERIAL_SCALAR_SHAPE: unsupported actual pass");
+            pass->SetFinalBlendOperationForAnalysis(blend);
+        }
+        // This byte copy is a host edit of observed extents, not another field
+        // serializer. The original helper owns the written scalar payload.
+        spMemoryStream output;
+        require(output.Open("tool.material.patch")&&output.WriteData(bytes,count),"Cannot copy material template");
+        const auto patch=[&](const Observation& destination,spMemoryStream& encoded) {
+            require(encoded.Seek(spStream::SeekSource::essStart,0),"Cannot rewind written scalar field");
+            spDataBlockSerializer blocks;
+            const auto* header=blocks.ReadHeaderForAnalysis(encoded);
+            std::uint32_t encodedSize=0;
+            require(header&&header->fieldID==static_cast<std::uint32_t>(destination.field)&&
+                header->payloadSize==destination.payloadSize&&encoded.GetSize(&encodedSize)&&
+                std::uint64_t(header->dataStreamPosition)+header->payloadSize==encodedSize&&
+                std::uint64_t(destination.payloadOffset)+destination.payloadSize<=count,
+                "MATERIAL_SCALAR_SHAPE: shared writer output differs from observed scalar extent");
+            require(output.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(destination.payloadOffset))&&
+                output.WriteData(static_cast<const std::uint8_t*>(encoded.GetBuffer())+header->dataStreamPosition,header->payloadSize),
+                "Cannot apply material scalar payload");
+        };
+        spMemoryStream writtenStates;
+        require(writtenStates.Open("tool.material.states"),"Cannot open scalar writer stream");
+        if(!spMaterialSerializer::WriteRenderStatesFieldForAnalysis(writtenStates,material,&error))throw std::runtime_error(error);
+        for(const auto* field:stateFields)patch(*field,writtenStates);
+        for(const auto* field:passFields) {
+            spMemoryStream writtenBlend;
+            require(writtenBlend.Open("tool.material.blend"),"Cannot open scalar writer stream");
+            if(!spMaterialSerializer::WritePassBlendFieldForAnalysis(writtenBlend,*field->pass,&error))throw std::runtime_error(error);
+            patch(*field,writtenBlend);
+        }
+        if(texture) {
+            spMemoryStream writtenTexture;
+            require(writtenTexture.Open("tool.material.texture.states"),"Cannot open scalar writer stream");
+            if(!spMaterialSerializer::WriteTextureStatesFieldForAnalysis(writtenTexture,*texture,&error))throw std::runtime_error(error);
+            patch(*textureFields.front(),writtenTexture);
+        }
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
 SPV_API void spv_material_destroy(void* handle) noexcept { (void)guarded([&]{delete static_cast<MaterialView*>(handle);}); }
 SPV_API int spv_material_info(void* handle,SpvMaterialInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Invalid material view");*output=static_cast<MaterialView*>(handle)->info;});

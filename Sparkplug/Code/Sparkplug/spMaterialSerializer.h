@@ -13,6 +13,9 @@
 
 namespace sparkplug::reconstruction
 {
+    class spMaterial;
+    class spMaterialPassLayer;
+    class spStdLayer;
     class spMaterialTexture;
     class spMaterialSerializer : public spSerializer
     {
@@ -107,6 +110,23 @@ namespace sparkplug::reconstruction
             bool hasUVField=false;
             std::array<std::optional<InspectedReferenceForAnalysis>,3> references;
         };
+        struct InspectedScalarFieldForAnalysis
+        {
+            static constexpr std::uint32_t NoIndex = UINT32_MAX;
+            Field field = Field::RenderStates;
+            // Relative to the start passed to InspectPayload, excluding the
+            // material's eight-byte object header, not a physical file offset.
+            std::uint32_t payloadOffset = 0;
+            std::uint32_t payloadSize = 0;
+            // Scalar encounter order, including skipped orphan fields.
+            std::uint32_t assignmentOrder = 0;
+            std::uint32_t passIndex = NoIndex;
+            std::uint32_t layerIndex = NoIndex;
+            const spMaterialPassLayer* pass = nullptr;
+            const spStdLayer* layer = nullptr;
+            const spMaterialTexture* texture = nullptr;
+            bool applied = false;
+        };
         // Host inspection of authored fields and unresolved relationship IDs.
         // Uses the same material field loop, pass/layer factories and scalar
         // assignments. Referenced resources are NOT instantiated or attached;
@@ -116,9 +136,26 @@ namespace sparkplug::reconstruction
             std::optional<ColorPayloadForAnalysis> color;
             std::optional<InspectedReferenceForAnalysis> colorController;
             std::unordered_map<const spMaterialTexture*,InspectedLayerForAnalysis> layers;
+            // Host observations of fields 0,3,8,17 in the actual read loop.
+            // Only valid after successful inspection. Pointers borrow the
+            // partial graph; changing its pass/layer ownership invalidates
+            // them. Repeated assignments remain ordered; orphan 8/17 fields
+            // have applied=false and never designate a texture holder.
+            // SectionCursor's existing field limit also bounds this vector.
+            std::vector<InspectedScalarFieldForAnalysis> scalarFields;
         };
         [[nodiscard]] bool InspectPayloadForAnalysis(spStream& source,std::uint32_t byteCount,
             spBaseObject& partialObject,InspectionForAnalysis& observation,std::string* error) const;
+        // Shared slices of PC476B50 and StdLayer477350 -> 476270. Each emits
+        // one complete field (0/44,3/4,17/36), without a section terminator.
+        // They do not read colors/specular power or serialize relationships;
+        // emitting a slice is NOT permission to save a partial material graph.
+        [[nodiscard]] static bool WriteRenderStatesFieldForAnalysis(spStream& destination,
+            const spMaterial& material,std::string* error = nullptr);
+        [[nodiscard]] static bool WritePassBlendFieldForAnalysis(spStream& destination,
+            const spMaterialPassLayer& pass,std::string* error = nullptr);
+        [[nodiscard]] static bool WriteTextureStatesFieldForAnalysis(spStream& destination,
+            const spMaterialTexture& texture,std::string* error = nullptr);
         [[nodiscard]] bool WritePayloadForAnalysis(spStream& destination,
             const spBaseObject& object,std::string* error) const override;
         [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,

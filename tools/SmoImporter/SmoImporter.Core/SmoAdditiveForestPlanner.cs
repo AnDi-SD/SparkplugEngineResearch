@@ -122,7 +122,7 @@ public static class SmoAdditiveForestPlanner
                 new SmoVisualForestOperation(
                     new SmoVisualForestAttachment(parent.Id, fieldData, forestEntries),
                     SmoVisualForestInsertionKind.BeforeTerminal),
-                trace.CaptureRange(additiveResult, fieldPhysicalOffset, fieldLength)));
+                fieldPhysicalOffset));
         }
 
         if (!assignedIds.SetEquals(generatedIds))
@@ -135,14 +135,15 @@ public static class SmoAdditiveForestPlanner
         ValidateOwnerSuffixes(source, additiveResult, sourceById, resultById, extracted);
         ValidateUnchangedObjects(source, additiveResult, sourceById, resultById, extracted);
         ExtractedOperation[] ordered = extracted
-            .OrderBy(item => additiveResult.Objects.Single(entry =>
-                entry.Id == item.TargetOwnerId).LogicalOffset)
+            .OrderBy(item => resultById[item.TargetOwnerId].LogicalOffset)
             .ThenBy(item => item.FieldOffset)
             .ToArray();
+        IReadOnlyList<SmoFileReferenceRange> referenceRanges = trace.CaptureRanges(additiveResult,
+            ordered.Select(item => (item.FieldPhysicalOffset, item.FieldLength)).ToArray());
         return new SmoAdditiveForestPlan(
             ordered.Select(item => item.Operation).ToArray(),
             generated.Select(entry => entry.Id).ToArray())
-        { ReferenceRanges = ordered.Select(item => item.ReferenceRange).ToArray() };
+        { ReferenceRanges = referenceRanges };
     }
 
     /// <summary>
@@ -379,5 +380,5 @@ public static class SmoAdditiveForestPlanner
         int FieldOffset,
         int FieldLength,
         SmoVisualForestOperation Operation,
-        SmoFileReferenceRange ReferenceRange);
+        int FieldPhysicalOffset);
 }

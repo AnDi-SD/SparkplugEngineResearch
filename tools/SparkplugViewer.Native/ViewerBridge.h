@@ -211,6 +211,14 @@ SPV_API void spv_material_destroy(void*) noexcept;
 SPV_API int spv_material_info(void*,SpvMaterialInfo*) noexcept;
 SPV_API int spv_material_layers(void*,SpvMaterialLayer*,std::uint32_t) noexcept;
 SPV_API int spv_material_passes(void*,SpvMaterialPass*,std::uint32_t) noexcept;
+// Host template edit: actual partial reader associates scalar assignments;
+// original writer slices supply replacement payloads. Existing headers and all
+// other bytes remain intact. kind0 requires one standard layer and field17;
+// kind1 edits render states and blend in every pass, without texture edits.
+// Returns SerializedBytes containing the same-length material field stream.
+SPV_API void* spv_material_patch_scalars(const std::uint8_t*,std::uint32_t,
+    const std::uint32_t* states,std::uint32_t stateCount,std::uint32_t blend,
+    const std::uint32_t* textureStates,std::uint32_t textureStateCount,std::uint32_t kind) noexcept;
 struct SpvModelInfo {
     std::uint32_t alpha,priority,projection,weights,renderableMask,modelMask,skinMask,bones;
     SpvMaterialReference material,fog,mesh;
