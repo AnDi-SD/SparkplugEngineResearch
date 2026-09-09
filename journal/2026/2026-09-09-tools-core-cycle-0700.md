@@ -70,3 +70,12 @@
   capacity table и пяти ручных header builders. Header118, Collision Alfea02,
   Model50, Icy13 и FormatTests647;5 builds прошли. Все5 integration outputs
   побайтно прежние. Native source/DLL не изменялись;10 original deps проверены.
+- 22:50 МСК: block7 сохранён root34fd921 / Viewer21b43a5.
+- 22:51–22:56 МСК: Text static audit подтвердил raw byte strings и UInt32 wrap,
+  ошибочно трактуемые старым C# parser как UTF-16/Single. Font original factory
+  оставляет baseline неинициализированным; одна fresh micro проба прошла,
+ 4512B освобождены, caps не повышались. Concrete классы ещё не подключены.
+- Проверены SHA525 immutable локальных reports из7 блоков и61 относительная
+  ссылка в изменённых документах;3,92с, без corpus rerun. Завершается отчёт.
+- 22:58:22 МСК: код и исследование остановлены; активных сборок/guest нет.
+  Завершающая фиксация отчёта к23:00, цель готовности всех ядер остаётся незавершённой.

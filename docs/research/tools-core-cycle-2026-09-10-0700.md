@@ -107,6 +107,15 @@ Collision Alfea02, Model50, Icy13, FormatTests647 и5 consumer builds прошл
 10 original dependencies и неизменность writer перепроверены.
 [Подробности](tool-reserved-header-authoring-2026-09-09.md).
 
+После7 блоков выполнен [нужный Text аудит](tool-text-inspection-audit-2026-09-09.md):
+24 PC regions/5884B подтвердили ошибочную UTF-16/Single интерпретацию в C#.
+TextNode использует RenderNode serializer. Одна fresh Font factory/dtor проба
+установила неинициализированный baseline; allocation4512B полностью освобождён,
+caps сохранены. Actual Font/Text перенос ещё не реализован.
+
+Сжатый [итоговый отчёт к23:00](tools-core-cycle-report-2026-09-09-2300.md) отдельно
+фиксирует готовность, ограничения и дальнейшую очередь.
+
 ## Отложенные случаи
 
 Сохраняется список из [предыдущего среза](tools-core-migration-status-2026-09-09.md).

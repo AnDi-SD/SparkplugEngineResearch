@@ -1,0 +1,185 @@
+{
+  "kind": "tools-core-cycle-close",
+  "status": "timed-cycle-complete-cores-incomplete",
+  "deadline_utc": "2026-09-09T20:00:00Z",
+  "research_stopped_utc": "2026-09-09T19:58:22Z",
+  "last_original_probe_sealed_utc": "2026-09-09T19:56:25.915644Z",
+  "code_commit": "34fd921",
+  "viewer_commit": "21b43a5",
+  "verified_implementation_blocks": 7,
+  "decoder_modules": {
+    "total": 35,
+    "shared_before": 18,
+    "shared_after": 30,
+    "mixed": 3,
+    "legacy": 2
+  },
+  "docs": [
+    {
+      "path": "docs/research/tool-text-inspection-audit-2026-09-09.md",
+      "sha256": "4336AEC102ADBEA6A3B34883923C0FACF93DA84C9F5AE87735C30D814799E42A"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-report-2026-09-09-2300.md",
+      "sha256": "7B2C487623290F01892BB5B39A6A39225A1C678530BC069BA2452935A9F183A5"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-10-0700.md",
+      "sha256": "C7930A99821E6FADFA8308F034CF541D35E9234CF0B69E3BA13B7D533075CB93"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-0700.md",
+      "sha256": "E80E62509EBDC2F449958C376F167E771A8DD8F3119938D860F4B4125717C743"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/color-default.txt",
+      "sha256": "9EAA3B9DD9564259908B04892A2218CCC216447515C01493FB9E9A2914D38638"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/database-excerpt.json",
+      "sha256": "A03B855B6FE67E37901A1642C04858CCB3FAE8EF3E16556ECB964D58A6479B8D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-factory.txt",
+      "sha256": "103EF2156DAB481C65448D61DF66CF7EF7569A120A5692AC8C1E5099D3857F2B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-glyph-assignment.txt",
+      "sha256": "D366B4C5C45E2D93F55BF015578A019A36C441124BB81AAA4825CB1541414F93"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-manager-measure-delegate.txt",
+      "sha256": "06CB0F7B36AE7A69ED649A35D710F27FC5AAD813724FE982EEACE8EE8B73A30C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-reader.txt",
+      "sha256": "58B497F735B10DA173AA2AF994B1EBCE86A4148A8CE10544B15F7963A48BFBE1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-serializer-factory.txt",
+      "sha256": "86EFEC686AF48CFD463C05C6EE6AD2A230C437864E7D618B6B1DCC2AD03C0A22"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-serializer-vtables.txt",
+      "sha256": "008ABEED87268F2EEDA39A78A1D384E363DAD32B9A98F7EC0073856D8F8559BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-string-width.txt",
+      "sha256": "21067AC87A2B4C713A84CA7793021E5B33BFD3FD3F5782D132D686D0B4F32DE7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/font-writer.txt",
+      "sha256": "0DA7786869E9F3843A1F2CFBEFDB8A0FFC39E25A69E76C53082112FE3E3FA3CA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/manifest.json",
+      "sha256": "53866B73B6D6BA4C54772CA65785887AB4DCA4C3FD041E386D364D7A06E9B0A0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/notes.md",
+      "sha256": "9B674926C86FBE9D6F268CD7FD0FC31EAF3C4AC18124D64DF59E54DF629A3EF1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/registration-font.txt",
+      "sha256": "4B9504D49B38404E4A44EE19DB66B313E911A16632F20F080635BDC2F4A5FF9F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/registrations-serializers.txt",
+      "sha256": "8A844C31D3828F6084AB5716579746CFDAA3B4103B7C9F532A723CA5EF6A41EC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/registrations-text-classes.txt",
+      "sha256": "AE1AA9551564F0BDCFB1FC16397B544D825304F57166BE372B4197191D8C1DA8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/shared-read-string.txt",
+      "sha256": "7FF27A7EE300D0F394E5E1337B27F6E68D5F895F3394F70F047AAF167A210CC7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/source-hashes.json",
+      "sha256": "3807AE7D79615F302EEE9A490D77A8D766BF82D2674CC6A27D606A5AFD42C57E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/static-ranges.json",
+      "sha256": "53F30F57441E0C31533062D13C678C52A79C554A0810CA13015A65873287AD4C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-factory.txt",
+      "sha256": "CEBE70A7922ABFA1DBCD99D4140C3A07F77BB2F94CBA0134D8A083852016CF1E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-layout-needed-argument.txt",
+      "sha256": "EA721D7366D172C9D8E4CD5415E9DD421DF69ACF6DDA086037B11E0E8AA9294E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-reader.txt",
+      "sha256": "11AEFDAF7D35A1EEF7370AF45ED88C61D6D5F0C6D93008044AB9699CB576CB6E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-serializer-destructor.txt",
+      "sha256": "F0DBB776AB25A29B0F9E2E2BE258BDC89CBA1DFEB4B7C7218EB7C19249A312EA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-serializer-factory.txt",
+      "sha256": "1A4BAC6BC4C1BF8229663C05FBE205FC5CC9465D743E74D02B675368082F6C68"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-serializer-vtables.txt",
+      "sha256": "184C3F9C0AAD263272F0E836A28C323AF142FA92F25BF0E1AA3B5915E6290A10"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/text-writer.txt",
+      "sha256": "079601EB45E337FC895617017B09F79C5B203956B084764BCC6680D5D950C4F1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/textnode-delegates.txt",
+      "sha256": "914F3B397ACDC6DAE4865828F994F6D517D8A4DC5A0BFD8302986D74FC0D2C36"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/textnode-factory.txt",
+      "sha256": "3253FF81BAEEC98D65EC794F05DE793C1AF310CF91A1A0899D1E3643DB8D9CC8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/textnode-serializer-factory.txt",
+      "sha256": "8C4060C74F8B173CE71094430AA494AF85C719BA529206A09D213CF1D96378CF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/text-inspection-audit/textnode-serializer-vtables.txt",
+      "sha256": "472AF9CD8ABFC53BED37184A8066CFBA522370A7C119A00AF72F86B01C8BAC14"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/font-factory-micro/font-after-factory.bin",
+      "sha256": "BA0E44B6A32DDF07652429B1965BB263EEFC59C9672960642399303D32418165"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/font-factory-micro/manifest.json",
+      "sha256": "787EE8BF50AEF18BF11C36B0A02D13081197A63C35B2F392B83E9F725A1A4A9F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/font-factory-micro/notes.md",
+      "sha256": "863F902C392FEEAA0633C29FA3FCE905096B7BD1E20EA17AE7C97AEFDF9EBA26"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/font-factory-micro/original.json",
+      "sha256": "7AD577B31CEFBA09BA4AFFF35975EF46D74AF4372CF2EBFD5AFCE09BA3ED3EEA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/font-factory-micro/probe_font_factory.py",
+      "sha256": "0EE29080CF981BB686D6120322AA3F90A975B9AA1D17893D14D35FDA45662CA5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/closing-2300/integrity-1.json",
+      "sha256": "7DBA02C9BB6ADD9B0CA51FEB5F0EE8EC988ADD74B559C54D667A1E983BDEC863"
+    }
+  ],
+  "additional_research": {
+    "text_static_regions": 24,
+    "text_static_bytes_with_overlap": 5884,
+    "font_factory_fresh_guests": 1,
+    "font_original_calls": 2,
+    "production_changes": false
+  },
+  "limitations": "All-core readiness is not achieved. Existing editor/FAT/whole-load/runtime boundaries and next Text actual-class work are recorded in the closing report. No release or publication."
+}
