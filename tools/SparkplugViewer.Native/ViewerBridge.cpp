@@ -13,6 +13,7 @@
 #include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spLensFlare.h"
+#include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -696,6 +697,20 @@ SPV_API int spv_graph_lens_flare_element(void* handle,std::uint32_t id,std::uint
     return guarded([&]{require(output,"Missing LensFlare element output");const auto& graph=graphForView(handle);const auto& flare=graphResource<spLensFlare>(graph,id);
         const auto* element=&flare.GetPrimaryForAnalysis();if(ordinal!=0xffffffffu){require(ordinal<flare.GetElementsForAnalysis().size(),"LensFlare element index out of range");element=flare.GetElementsForAnalysis()[ordinal].get();}
         *output={graph.ID(element->quad.GetMaterialForAnalysis().get()),element->color,element->distance,element->scale};});
+}
+SPV_API int spv_graph_particle(void* handle,std::uint32_t id,SpvParticleInfo* output) noexcept {
+    static_assert(sizeof(SpvParticleInfo)==172);
+    return guarded([&]{require(output,"Missing ParticleSystem output");const auto& graph=graphForView(handle);
+        const auto& particle=graphResource<spParticleSystem>(graph,id);const auto& p=particle.Parameters();
+        require(p.region.size()<=8,"Particle region exceeds projection capacity");*output={};
+        for(std::size_t i=0;i<2;++i)std::copy(p.acceleration[i].begin(),p.acceleration[i].end(),output->acceleration+i*3);
+        std::copy(p.direction.begin(),p.direction.end(),output->direction);std::copy(p.velocity.begin(),p.velocity.end(),output->velocity);
+        std::copy(p.angle.begin(),p.angle.end(),output->angle);std::copy(p.scale.begin(),p.scale.end(),output->scale);
+        std::copy(p.colors.begin(),p.colors.end(),output->colors);std::copy(p.times.begin(),p.times.end(),output->times);
+        std::copy(p.sphere.begin(),p.sphere.end(),output->sphere);output->rate=p.rate;
+        std::copy(p.flags.begin(),p.flags.end(),output->flags);output->regionType=p.regionType;
+        output->regionValues=static_cast<std::uint32_t>(p.region.size());output->renderNode=graph.ID(particle.GetRenderNodeForAnalysis().get());
+        std::copy(p.region.begin(),p.region.end(),output->region);const auto& pool=particle.GetPoolStateForAnalysis();std::copy(pool.begin(),pool.end(),output->pool);});
 }
 SPV_API int spv_graph_octree(void* handle,std::uint32_t id,SpvGraphOctree* output) noexcept {
     return guarded([&]{require(output,"Missing graph Octree output");const auto& graph=graphForView(handle);

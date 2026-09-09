@@ -199,3 +199,13 @@ original constructor scalar defaults и Node-only clone. PS2 static помога
 Diagnostic fixture потребовал действительное имя, существующие CRT helpers и
 штатное отключение console output; geometry branches не заменялись. C# не менялся.
 Досье: `docs/research/tool-occlusion-topology-shared-core-2026-09-09.md`.
+
+Блок20: C# particle parser заменён actual loaded snapshot. Общий Renderable
+projector используется ParticleSystem и LensFlare. Инспектор исправил
+height/radii и больше не отбрасывает raw mode3. Десять сохранённых original-PC
+captures совпали с текущим source/ABI/managed; оригинал не повторялся.
+Native46/213, ABI48/5guards, managed67 плюс отдельный member-order test;
+пять builds. Два SFX (3 emitters) и Bloom control,254 объектов. Ошибочная
+старая test forward reference исправлена без изменения игрового reader.
+Looping runtime и rendering открыты, Corpus1745 остаётся историческим.
+Досье: `docs/research/tool-particle-reader-shared-core-2026-09-09.md`.

@@ -1,0 +1,347 @@
+{
+  "kind": "tools-core-particle-reader-block",
+  "status": "verified-shared-reader-with-explicit-runtime-boundaries",
+  "cycle_block": 20,
+  "created_utc": "2026-09-09T15:27:36.047531+00:00",
+  "base_commit": "e192c3fdd3e045991481166f22d136ecf3942e3d",
+  "viewer_commit": "c1c8c3bc583b840b9e023ba4cb2a863417460bde",
+  "sources": [
+    {
+      "path": "docs/research/tool-particle-reader-shared-core-2026-09-09.md",
+      "sha256": "0177C53AC1F9DF5794E6A48B4ED5955FC2338F3AA00EFC86FD90C3A309283E7B"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "91F5A1FD9E370ABA17D7C0823C245E66F99C0010069111B061CE8D0D144611E6"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "E3ABFB5008126CAF02508BF38A9C838B0780446A85EE57E1BE11D67D5498E606"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "CCDA60C8CC71E845EBC3ABDF46AAEA9595F755A9570B226A4B013D08198C8E28"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "9F08F4213AF6401E98B0BB6C154923A0946DF066F3A7408C362108AE8D2204DC"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "48929C5AA2A1E0641AF738D72B07380F412EE8F7E7AF41699E843E5FA003463C"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "5F6373C45DE2BCAC4A7179CAB8FAB0F253DCE542BEB26CF3B4E98E23B41BFEE0"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "51BEBF345C8A82ED36E280EBBE856D949FADFFE76B9FCB721DEC40DFE1EDFF3D"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoParticleSystemDecoder.cs",
+      "sha256": "22AB6B8EBE0C00C493A4C9A1E8F40E332334365263BC0CD7D9A3FE2471232193"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSerializedFieldInspector.cs",
+      "sha256": "32E56E4D45249B71D5CF21517E6A4614312321164B7C1867A4FFA5210C14B23D"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextDecoders.cs",
+      "sha256": "DB91AD02237B3D3491B0E4636806E3EA213EA86BB93145A2E928106995D3767E"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Corpus/SmoResearchDatabase.ParticleSystem.cs",
+      "sha256": "D84D6620EBA4F718EC63382551D732B2341DBE61BF90DEDCA4EF420183F5E864"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "1A96B1C0B849B0D54B53C7D66B008CD5841C675CB55AAB7AA194E3833E69A9AE"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoParticleReaderRegression.cs",
+      "sha256": "42CF9FE5AED495682BB5C7ED2F29C5FCEDD2F0371702428901B69C30CC9DEE69"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs",
+      "sha256": "931821F549713E8B605A3D18EBF76FF547DE9DC302A5C442A46941DFB97B7C28"
+    }
+  ],
+  "unchanged_dependencies": [
+    {
+      "path": "research/compare_pc_particle_parameters.py",
+      "sha256": "85C1CC052AF987E93723C4C74D44C296412D3EC8F8A325809B988B9048391C1E"
+    },
+    {
+      "path": "Sparkplug/Tests/spParticleCapture.h",
+      "sha256": "C6236E6E04A27C2AFB3D350A31008F9EDB1BD47DEEA91F79A679542AE95EA200"
+    },
+    {
+      "path": "Sparkplug/Tests/spParticleSerializationTests.cpp",
+      "sha256": "B4AB35EF08E5CF952202CA072CD30B45546F552D91D7EA8DF59CDF74B0A557CE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystem.h",
+      "sha256": "AB6C1F5845FE075D69686234F86D51FFD0CFD1FC705F01F54B435486CB754438"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystem.cpp",
+      "sha256": "B1E6842C92C515D49D2EC740EFC142114B22B7BFF90B0E5C284E6505FED64745"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystemSerializer.cpp",
+      "sha256": "2750E0C29A8E9FA940FAA081B2D72ED6A257C0F9FDFB78FF7155035EB2FCEC1B"
+    },
+    {
+      "path": "tools/SanToVmd/sparkplug_native.py",
+      "sha256": "8C3ED68775590576D204F31443848DAB886485122DE236C1C1111F680478EE9D"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/abi-1.json",
+      "sha256": "69DD6760FAA1F0B45432CD61CE1AEB8925FC65B4558A0CABF95DFDB58549C4CA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build-1.json",
+      "sha256": "B0E118C464063AD9E27A907C5F3D9B2E802B6A5D14B5C4754B9E2A5B0D9C5F29"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build-2.json",
+      "sha256": "E8E85E314E5DDC992DC978A8F0906E14EE140509E83B5901DD2BF44BAD4EF4EB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build-3.json",
+      "sha256": "32E284639326CE3BFDE8D868AE910A0ACD7F117183E96CF26BFE5C38FA0BE56E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build-4.json",
+      "sha256": "9B769F25115638D6C63FA479A37AAB2AB59F5463A601177F0878B894DEA14C55"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build-native-1.log",
+      "sha256": "ECD2878EDA31F55731CF00C18C7E9450F10B89A532389DCD1708335BD0E5A582"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build_lens_managed.py",
+      "sha256": "1D7EB2CC60D3862C534ADBB95B93FB29626EC15F7F5EB8FF0930601B4A5A69A7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/build_particle_managed.py",
+      "sha256": "0B79A792730C29DBC4714FF89797B7F0882EEEDC0CBF62A644F2D15B91AE6155"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/check_particle_abi.py",
+      "sha256": "33125592E5EC42F382C9ABF0F6E7A3627C52B52595F640BF23A5F601C3D64399"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-12.smo",
+      "sha256": "18A014AE40E05D7CDED1E5F9DBDC65D463BD89AE482D8855EE230862495300A9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-13.smo",
+      "sha256": "46A6B9E5DFD71B9E2B6EDA0D504BA9D2D504B0B7D69B63963BCC66B946AF7122"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-14.smo",
+      "sha256": "9641B87DBA51ED86E66F6E98FFF7B71AD04062AF98CE43C7CFA812A8BD776136"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-15.smo",
+      "sha256": "C5296F651E198D57C8DDB1FC90621424044811A12A173C55343EC8BE0AA522E5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-16.smo",
+      "sha256": "1FB9AD7E27FB64FFEAD1D395E79ACF7A6EB7623A4AEBB36308223D5D12BBBFA3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-17.smo",
+      "sha256": "9361851A3B5BA04C7C1E916609E74337C3887F04475D14FA8A3C286D2C761BE5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-custom-18.smo",
+      "sha256": "9E8E7BC15457692BFD669DDB96C45BD9CAAC440F4A753519B81005B4FB172DE2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-defaults-12.smo",
+      "sha256": "53675E6ABB8925D5C477C04A0A08181DB60D24208342FFD0EF36E1076471DA45"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-direction-negative-12.smo",
+      "sha256": "373FAED37204BA563B404AD3E43A500B214DCB7F3E2049E8B24E1FA8FFD3E4E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-direction-tiny-12.smo",
+      "sha256": "8058DDA6D7ABB6CD38E91D8C80180FEAF8DC41B1F5EBFECFF5DD5EA66E269E64"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/fixture-looping.smo",
+      "sha256": "4BF82C201ECDD808A71D1297B23669699A45893547C6474140B74730513C3ABD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/managed-2.json",
+      "sha256": "DBD29D5F8482167784EB1CD52EF9E7F496904527041C2A728BA91D21A568916B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/native-ctest.log",
+      "sha256": "AC4A26F420CF242B47900B615BDCEBAF414ABEBB7FBC79900F6CF8E2B41B7A35"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoExporter.FormatTests-1.log",
+      "sha256": "5F0B1C3E9E37B9816DA1E0611D8E838DDE438591F4A0A85A9D42ADA1A66B74F5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoExporter.FormatTests-2.log",
+      "sha256": "08287C5FF6FDEA5BC54B4099D21793A86566DFE8EC56CCF9F27333CD24EC6D9D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoImporter.FormatTests-1.log",
+      "sha256": "786CDEFC62ECAC886598AF6BE015CDF5155AFFA2FE103D77BA6EB0A41ED2C650"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoImporter.FormatTests-2.log",
+      "sha256": "E9A59E9C28EC1BF8DBFD362D3EE5972780CBE2421974920676009587660A53A5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoLVLcreator.CoreTests-1.log",
+      "sha256": "2B2AC599DAA5CE840514804419E8795F1B0B26067C00459D51F5752CB27510A6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoLVLcreator.CoreTests-2.log",
+      "sha256": "FD8E4EF40C10A680BA944AA2787DD17E2F97E76C557E60E49F7C5B80D9FB3002"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer-1.log",
+      "sha256": "06038D96A6C3BFBDC6DC12F492EA1FF8FFE493941FEEDDFE1B8ACFD03F4955E9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer-2.log",
+      "sha256": "F3DF2D86875233CCA9C44E3EFBD9537C3008DEB1FD51DAAE722052F0EFAF2990"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer.FormatTests-1.log",
+      "sha256": "8B97491F9827AFAD8DD1A426EC8E8D0EA727E166C6B7B2E60715D6325B84476F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer.FormatTests-2.log",
+      "sha256": "43270EED944668CDC1E4CF9F0459DD63789326933016D09DB3C37AC7679EDEFB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer.FormatTests-3.log",
+      "sha256": "7073F85A5B728C8D73CD82FE90E6D070962640FADB174164FE2B51CB57055162"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/particle-reader/SmoViewer.FormatTests-4.log",
+      "sha256": "ED34BA095DEFDA8DB223244883E54C1D0B4A4F6AE601FFC28AFA27163613D2A0"
+    }
+  ],
+  "original_reports_reused": [
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-12-0.json",
+      "sha256": "875903F8DBBA00B7D608B451B000961F04ABAEA96F48977FCD67F564FB56E36E"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-13-0.json",
+      "sha256": "14A653AD083A0FDED550CBB64A9B4C0C65FE84670ADB2738D9C2DD8139B7BB84"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-14-0.json",
+      "sha256": "3C890C44628775C61CC5F4F19395E145028C55A68A5CCE1FEE5182953CBF850D"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-15-0.json",
+      "sha256": "93E1774C1CDB93AD34AAC7136FA58B17E1788C403F4DF8C44BE255EC59F22CEC"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-16-0.json",
+      "sha256": "B52828827AF3BC609B591B969F8321CE23CDD3174D690759E367E287F3894968"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-17-0.json",
+      "sha256": "4ECD9A606494AE3F116DED5C4C1979AC49D95D40B85453806213A5F16B56DA5C"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-custom-18-0.json",
+      "sha256": "90487E92C721AF0D4C1CF64975874AA609C038A1E4CEAF81A6F9FC145D695664"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-defaults-12-0.json",
+      "sha256": "C25BA8AF226E1E7328EF8B7675A6A672FF9E49320F9C40239EFE2F656351A873"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-direction-tiny-12-0.json",
+      "sha256": "83366C889D825D5482E3CFDB3D794566A37060D293EF46E49F51598354BA38E9"
+    },
+    {
+      "path": "local-data/results/cycle-20260908-0700/cp120-particle-direction-negative-12-0.json",
+      "sha256": "AE0D985B8B19715F46C347B31405DB83B09650D2860CB88C1F15D6A58B1674EC"
+    }
+  ],
+  "real_files": [
+    {
+      "path": "local-data/pc-pristine/Media/SFX/pickup_ptc.smo",
+      "sha256": "D8CB2C06BCAC278B54E3335129E2FFA851244159DCA8ADDC07F83D251A295757"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/SFX/tile_bad.smo",
+      "sha256": "E4497C217F49FE8BF7A3645533F10B19AA8DEEFD07063E44C8CE84CEE18484C6"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Characters/Bloom/bloom_jeans.smo",
+      "sha256": "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA"
+    }
+  ],
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "native_dll_sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "55FF3460A0096CE8833CA1434173EF09EF14EC95794C79F4D2EB8B9A4B04A4F7"
+    }
+  ],
+  "checks": {
+    "original_archived_inputs_states_writers": 10,
+    "new_original_executions": 0,
+    "abi_checks": 48,
+    "abi_guards": 5,
+    "managed_checks": 67,
+    "managed_fixtures": 10,
+    "extra_member_order_test": true,
+    "real_graphs": 3,
+    "real_particle_graphs": 2,
+    "real_particles": 3,
+    "real_objects": 254,
+    "ParticleSerialization": 46,
+    "FullLoader": 213,
+    "consumer_builds": 5
+  },
+  "reconstruction_changes": "None. Existing shared ParticleSystem serializer/initializer reused; old C# reader removed and inspector height/radius order corrected.",
+  "limitations": [
+    "Finite non-looping initialization with one region and 1..1024 particles only; live emission/simulation/render backend remain unavailable.",
+    "Typed inspection requires a whole actual graph; unsupported neighbours remain explicit errors.",
+    "The 1745-object historical Corpus profile was not rerun and is not current shared-loader coverage.",
+    "TextRenderable still has one explicitly legacy Renderable helper.",
+    "PS2 runtime, universal x87 bit identity, UI layout work, release and remote publication are not claimed."
+  ]
+}

@@ -263,3 +263,16 @@ OcclusionTopology38/FullLoader213 passed. PS2 дала порядок полно
 класс не включён в ResourceGraph. Новые уровни не заявлены. C# не менялся,
 полный корпус и managed builds не повторялись. Старые capped entries не трогались.
 Досье: `docs/research/tool-occlusion-topology-shared-core-2026-09-09.md`.
+
+### Блок 20: ParticleSystem из общего ResourceGraph
+
+Удалён C# particle reader. Actual параметры/defaults/region/pool/RenderNode
+проецируются через ABI; inherited ссылки берутся из общего Renderable API.
+Инспектор исправил порядок height/radius для cylinder/cone и сохраняет raw
+mode bytes. Десять архивных PC input/state/writer captures совпали с текущим
+C++/ABI/managed; новых original runs не было. Native46/213, ABI48/5guards,
+managed67 и отдельный region-order test, пять builds passed. Два SFX графа
+с тремя emitters плюс Bloom control: 254 объекта. Looping simulation, GPU draw
+и unsupported whole graphs остаются открыты; исторические 1745 не пересчитаны
+и не заявлены как новое покрытие. Game source не менялся.
+Досье: `docs/research/tool-particle-reader-shared-core-2026-09-09.md`.

@@ -100,6 +100,13 @@ SPV_API int spv_graph_renderable(void*,std::uint32_t id,SpvGraphRenderable*) noe
 struct SpvLensFlareElement {std::uint32_t material,color;float distance,scale;};
 SPV_API int spv_graph_lens_flare(void*,std::uint32_t id,SpvLensFlareInfo*) noexcept;
 SPV_API int spv_graph_lens_flare_element(void*,std::uint32_t id,std::uint32_t ordinal,SpvLensFlareElement*) noexcept;
+struct SpvParticleInfo {
+    float acceleration[6],direction[3],velocity[2],angle[2],scale[2];
+    std::uint32_t colors[2];float times[2],sphere[4],rate;
+    std::uint32_t flags[3],regionType,regionValues,renderNode;
+    float region[8];std::uint32_t pool[5];
+};
+SPV_API int spv_graph_particle(void*,std::uint32_t id,SpvParticleInfo*) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical
 // loader/cache identity; zero means NULL, never an inferred default resource.
 struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};
