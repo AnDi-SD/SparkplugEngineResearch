@@ -16,6 +16,7 @@
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/Sparkplug/spAnimTexController.h"
+#include "Code/Sparkplug/spUVController.h"
 #include "Code/Sparkplug/spAnimTexControllerSerializer.h"
 #include "Code/Sparkplug/spTransFunctionEval.h"
 #include "Code/Sparkplug/spTransFunctionEvalSerializer.h"
@@ -619,6 +620,92 @@ SPV_API int spv_graph_node(void* handle,std::uint32_t id,SpvGraphNode* output) n
         std::copy(p.begin(),p.end(),output->position);std::copy(r.begin(),r.end(),output->orientation);std::copy(s.begin(),s.end(),output->scale);
         std::copy(q.begin(),q.end(),output->rotation);});
 }
+namespace {
+const spvhost::ResourceGraph& graphForView(void* handle) {
+    require(handle,"Missing graph handle");return *static_cast<spvhost::GraphHandle*>(handle)->graph;
+}
+template<class T> const T& graphResource(const spvhost::ResourceGraph& graph,std::uint32_t id) {
+    const auto* value=dynamic_cast<const T*>(graph.Find(id));
+    require(value,"Graph resource has an unexpected runtime class");return *value;
+}
+const spMaterialPassLayer& graphPass(const spvhost::ResourceGraph& graph,std::uint32_t id,std::uint32_t index) {
+    const auto& material=graphResource<spMaterial>(graph,id);
+    require(index<material.GetPassCountForAnalysis(),"Graph material pass index out of range");
+    const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material.GetPassForAnalysis(index));
+    require(pass,"Unsupported runtime material pass");return *pass;
+}
+}
+SPV_API int spv_graph_model(void* handle,std::uint32_t id,SpvGraphModel* output) noexcept {
+    return guarded([&]{require(output,"Missing graph model output");const auto& graph=graphForView(handle);
+        const auto& model=graphResource<spModel>(graph,id);
+        *output={graph.ID(model.GetBaseMeshForAnalysis().get()),graph.ID(model.GetMaterialForAnalysis().get()),
+            graph.ID(model.GetFogForAnalysis().get()),model.IsAlphaSortEnabledForAnalysis()?1u:0u,
+            model.GetPriorityForAnalysis(),model.GetProjectionGroupForAnalysis()};});
+}
+SPV_API int spv_graph_material(void* handle,std::uint32_t id,SpvGraphMaterial* output) noexcept {
+    return guarded([&]{require(output,"Missing graph material output");const auto& graph=graphForView(handle);
+        const auto& material=graphResource<spMaterial>(graph,id);*output={};
+        const auto& states=material.GetRenderStatesForAnalysis();std::copy(states.begin(),states.end(),output->states);
+        output->vertexAlpha=material.GetVertexAlphaByteForAnalysis();
+        output->powerInitialized=material.HasInitializedSpecularPowerForAnalysis()?1u:0u;
+        if(output->powerInitialized)output->power=material.GetSpecularPowerForAnalysis();
+        const std::array colors{material.GetAmbientColorForAnalysis(),material.GetDiffuseColorForAnalysis(),
+            material.GetSpecularColorForAnalysis(),material.GetEmissiveColorForAnalysis()};
+        for(std::size_t i=0;i<colors.size();++i)std::copy(colors[i].begin(),colors[i].end(),output->colors+4*i);
+        output->colorController=graph.ID(material.GetMaterialColorControllerForAnalysis());
+        output->passes=static_cast<std::uint32_t>(material.GetPassCountForAnalysis());});
+}
+SPV_API int spv_graph_pass(void* handle,std::uint32_t id,std::uint32_t index,SpvGraphPass* output) noexcept {
+    return guarded([&]{require(output,"Missing graph pass output");const auto& pass=graphPass(graphForView(handle),id,index);
+        *output={pass.GetFinalBlendOperationForAnalysis(),static_cast<std::uint32_t>(pass.GetLayerCountForAnalysis())};});
+}
+SPV_API int spv_graph_layer(void* handle,std::uint32_t id,std::uint32_t passIndex,std::uint32_t index,SpvGraphLayer* output) noexcept {
+    return guarded([&]{require(output,"Missing graph layer output");const auto& graph=graphForView(handle);
+        const auto& pass=graphPass(graph,id,passIndex);require(index<pass.GetLayerCountForAnalysis(),"Graph layer index out of range");
+        const auto& layer=pass.GetLayerForAnalysis(index);require(bool(layer),"Missing runtime material layer");
+        const auto& texture=layer->GetMaterialTextureForAnalysis();require(bool(texture),"Missing runtime material texture holder");
+        *output={};output->classID=layer->vfunc_18().classID;output->texture=graph.ID(texture->GetTextureForAnalysis());
+        output->animation=graph.ID(texture->GetAnimTextureControllerForAnalysis());output->uvController=graph.ID(texture->GetUVControllerForAnalysis());
+        output->uvEnabled=texture->HasStaticTransformForAnalysis()?1u:0u;
+        const auto* animation=dynamic_cast<const spAnimTexController*>(texture->GetAnimTextureControllerForAnalysis());
+        const auto* uv=dynamic_cast<const spUVController*>(texture->GetUVControllerForAnalysis());
+        output->animationBoundHere=animation&&animation->GetMaterialForAnalysis()==texture.get()?1u:0u;
+        output->uvBoundHere=uv&&uv->GetMaterialForAnalysis()==texture.get()?1u:0u;
+        const auto& states=texture->GetTextureStatesForAnalysis();std::copy(states.begin(),states.end(),output->states);
+        const auto& matrix=texture->GetUVTransformForAnalysis();std::copy(matrix.begin(),matrix.end(),output->uv);});
+}
+SPV_API int spv_graph_texture(void* handle,std::uint32_t id,SpvGraphTexture* output) noexcept {
+    return guarded([&]{require(output,"Missing graph texture output");
+        const auto& texture=graphResource<spDXTexture>(graphForView(handle),id);
+        require(texture.IsInitializedForAnalysis(),"Runtime texture is not initialized");
+        *output={texture.GetWidthForAnalysis(),texture.GetHeightForAnalysis(),texture.GetSurfaceFormatForAnalysis(),
+            static_cast<std::uint32_t>(texture.GetMipsForAnalysis().size())};});
+}
+SPV_API int spv_graph_texture_bgra(void* handle,std::uint32_t id,std::uint8_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& texture=graphResource<spDXTexture>(graphForView(handle),id);
+        require(texture.IsInitializedForAnalysis()&&!texture.GetMipsForAnalysis().empty(),"Runtime texture has no initialized mip");
+        const auto& mip=texture.GetMipsForAnalysis().front();const auto format=texture.GetSurfaceFormatForAnalysis();
+        require(format==3||format==4,"Runtime texture surface format is not exposed by the BGRA upload adapter");
+        require(count<=16u*1024u*1024u&&count==std::uint64_t(mip.width)*mip.height*4&&output,"Runtime texture output size mismatch");
+        require(mip.rowBytes==mip.width*4&&mip.rows==mip.height&&mip.packedBytes.size()==count,"Runtime BGRA mip layout mismatch");
+        if(format==3)std::memcpy(output,mip.packedBytes.data(),count);
+        else for(std::uint32_t i=0;i<count;i+=4) {
+            const auto color=sparkplug::evidence::pc::texture_mips::DecodeRawPixel(mip.packedBytes.data()+i,1);
+            for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
+        }});
+}
+SPV_API int spv_graph_texture_track(void* handle,std::uint32_t id,std::uint32_t* keys,float* duration) noexcept {
+    return guarded([&]{require(keys&&duration,"Missing texture track output");
+        const auto& track=graphResource<spAnimTexController>(graphForView(handle),id).GetTextureTrackForAnalysis();
+        *keys=static_cast<std::uint32_t>(track.GetTimesForAnalysis().size());*duration=track.GetDurationForAnalysis();});
+}
+SPV_API int spv_graph_texture_keys(void* handle,std::uint32_t id,SpvGraphTextureKey* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& graph=graphForView(handle);const auto& track=graphResource<spAnimTexController>(graph,id).GetTextureTrackForAnalysis();
+        const auto& times=track.GetTimesForAnalysis();const auto& textures=track.GetTexturesForAnalysis();
+        require(count==times.size()&&(output||!count),"Texture track output count mismatch");
+        for(std::uint32_t i=0;i<count;++i)output[i]={times[i],graph.ID(textures[i].get())};});
+}
+static_assert(sizeof(SpvGraphModel)==24&&sizeof(SpvGraphMaterial)==128&&sizeof(SpvGraphLayer)==112&&sizeof(SpvGraphTextureKey)==8);
 SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_t count) noexcept {
     std::unique_ptr<Scene> result;
     if(!guarded([&]{

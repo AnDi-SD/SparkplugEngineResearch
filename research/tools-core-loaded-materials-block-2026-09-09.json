@@ -1,0 +1,404 @@
+{
+  "kind": "tools-core-loaded-materials-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T09:39:45.677180+00:00",
+  "base_commit": "fe46d3e608a0e3da1d1bd4f01dfc77fc64d38f05",
+  "viewer_commit": "169480e4953eb3c242b413376d5923e8ef2181e2",
+  "cycle_block": 9,
+  "sources": [
+    {
+      "path": "docs/research/tool-loaded-materials-shared-core-2026-09-09.md",
+      "sha256": "D38EEA4DB31BE4201DBF2F6EE0616357555BC24DA940CE89A3FF35EE299DC6B3"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "445B7628511700EA3E262E8C2185C39D9623D5B89E18339C714021D3B5226BE5"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "9E2FDD5F6C8AE483D4343802F2E03E537680F138265345C504018778C55ABF9C"
+    },
+    {
+      "path": "research/validate_tools_loaded_materials.py",
+      "sha256": "56F224A6D3E8A3771B0DE56B648959D6DDF78E2375530F8BAEF331DB4A79C548"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "ED7C610D468D5E04E8E17AD9056D95FF6F888AEF664BD137CB57A8B90C335929"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "78F9A67E84B3BBD3B4F3231F4054A091EBA3C32B195B14C52337AA80A52BD67F"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "E8504A79ED04480BF71FA57C291ECCF374DD2E84294BD94E6463BCCACCBD3251"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "3D9F29060E36D52F7FD1740E79285F1DC6D06D4F30E9FFBE84BC5E8D0CE5DF27"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureBindingResolver.cs",
+      "sha256": "FC797721999C46BFAC64FD18C502891B19EE64D2531BF0348AFFE406E875C691"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureDataDecoder.cs",
+      "sha256": "33F46B3F89FC9EB783A765613A07CEFB40DB7F363D6FBA6A819951A2883383C8"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "A3E8777DE4A593E4CC3CD17DD9D1F9942FAC740C4FA67E41D457DF1C4DC74064"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoLoadedResourceRegression.cs",
+      "sha256": "A88AA25FBDDB7888CF21D681E0304B4247615D9B817DC140068198A41CB70D5F"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoViewer.FormatTests.csproj",
+      "sha256": "F0763A3572A4EE25F69EE57F21D7FFC809705D8D3AFA41BB69F8BA9658123406"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "sha256": "07CCEA5F22B54A8BA9B7E02966FCBA349988CFB6555586628C60E6F6F2DEB7C0"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs",
+      "sha256": "AEB60E32DDBA63141F2C2EE1B88FAFECD496DD3620EC0F91110894278BBD004D"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "1F2D6F7004E19D9175DDC0AE6282747EB21A12338730141FA13430FD6B787C2D"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-attempt-1.json",
+      "sha256": "103CC0E8A77815AD338FB86FCA469490A35A3B14FE45BEA231D75D1FC31D1458"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-attempt-1.log",
+      "sha256": "7228DEB931E426A79C5086EC9F9743CE1D5CA324AC789F841DFCEBD1715A0605"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-bridge-final.json",
+      "sha256": "CC7D054D519CC441305FBE840AD9CA75E67E99C06EB77AD702456B0AC4AE07D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-bridge.json",
+      "sha256": "4998CA2F7FD4E0EF697EC83EFEC5F639E846A5E4E9393643C3B1B1B73D54596E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-final.json",
+      "sha256": "01E994CD2C85DC06050289EEB93BAE9A4EE9B8DAAB514DFC3F1757264AE3A050"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea01-final.log",
+      "sha256": "4AC8EBDC8CF3202ED6E8719E82C201276ED9EEB122739D66A2C4778FB6E3C670"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-attempt-1.json",
+      "sha256": "C6CE6F70DC4C63B582B69D52D01E0A2E802E294233D1EDCD5269659137FC42BF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-attempt-1.log",
+      "sha256": "1270AE4E5C98C5A611EED92990D091FE2C567633AA5204306C81D97904BCE334"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-bridge-final.json",
+      "sha256": "46BCCFFA57F2B200CFFB6EC6C8DAAFC6FB84CB50483D9F5D62794136B773C27E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-bridge.json",
+      "sha256": "C123523621A7BD5AA34274C3C9045A7ACCA45B2EE9B1B604CBDEB4093B4C6B22"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-final.json",
+      "sha256": "FEB181B7613412C895076310E8F9580A1E9FD0F23FFCCD7FCCA149C670C57163"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Alfea02-final.log",
+      "sha256": "0D1DD392DB3767EA578E8278786CD23CAF72B7AC0A9E4EB32183F3411FB6B07F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/BloomX-attempt-1.log",
+      "sha256": "1540D5469C12B04C267817284FEC1D2FAC0778285EF23F53FD4032AD257C24F2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-attempt-2.json",
+      "sha256": "48EC58D448EC05C1978F605DDF12CBD4E96807B459A00D77309E1C50EBF7E0A6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-attempt-2.log",
+      "sha256": "B95E6D430F0A4C016BDD3CA668E433B87A0A3C364BCCF2329B989A9165FE2561"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-bridge-attempt-1.json",
+      "sha256": "F8966E3C4C2E33CEBD19A0B024D81D2B026471F23CCE9C1424D57310E72F6571"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-bridge-final.json",
+      "sha256": "5C85BE58CDAF2DF423D28A9787591EE0062F904224C5784D916B418E14BEFFA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-final.json",
+      "sha256": "D85AF95A16901C10660C2615909883FC52573A16600D5139C73A5BD2C54FC940"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/bloomx-final.log",
+      "sha256": "EB8D699BF24E92A8004A222CC5858D05228600B69001D03144030AEB60690164"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/build-attempt-1.json",
+      "sha256": "02C9EE004217367769A9CCF37672F468E9D56D5A29E92BAF1B366D68CB066C46"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/build-attempt-2.json",
+      "sha256": "A854204DEBC9E65ECEE6ED0B6CA9CB5871B1536757DD4739F3871ACC7C0A5020"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/build-final-2.json",
+      "sha256": "22ABE437C8DB34189CD8156FFB54E33910CE8106491CB86CC31D22E2E2D51DA6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/build-final.json",
+      "sha256": "A2F33CDD8B7A98EF6182197566DEF3E2C4560470F5446158C67BDFF9EC3CB6A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/build_loaded_materials_managed.py",
+      "sha256": "844457D1D251023B038185B71EAB51A283F54735F2C8C9A232782FDB5B61757B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-attempt-1.json",
+      "sha256": "564D8EC0BD2335BFE418012FCDDCECD4CC71E8C22D332F17C7A5899FCD8357D0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-attempt-1.log",
+      "sha256": "B940F119F5EC5FF978C451CD536EA711E9EDD73A8E8548A43772C72823889BAE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-bridge-final.json",
+      "sha256": "73186B8BA25BEF34031B4CD5B4970094D868319CDF27ADED25AE03846E587AFD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-bridge.json",
+      "sha256": "8460A75DDB474FC8951E68018F4A5AA403DBE70454A787E6C691DB0FC7632240"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-final.json",
+      "sha256": "A3B846C0731002649372FE6077A62927561B8A8B86E5A875D3F0DB9D0A266052"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/Icy-final.log",
+      "sha256": "22FC36632F33377B29E92AFC758590F921983D309EBCD641BBD37EE54CAE2614"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-attempt-1.json",
+      "sha256": "8310476EE5BC4B50C69CC7658E92E5E4BB2BFE00DA0A2B3AC5F0F2CB34CB15A5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-attempt-1.log",
+      "sha256": "8838C60724FE8C2128B481AF9B977C26C145F4C7B28CCC997A97F6855E863666"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-bridge-final.json",
+      "sha256": "56AA0339960298E71A9FABABEEE18214736D03930AA5196E3700667D6867AF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-bridge.json",
+      "sha256": "374472D78BD3932E23A17A4BED8BF6E8DE23BE7DE993E8DC7B39BF169BFA42B8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-final.json",
+      "sha256": "CFE59D89C4643B1E096AA7BAF9D20489C25435E848D5EC28B48C81D762EF31D7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/igmenu_opt_pc-final.log",
+      "sha256": "517E52E72C5FF68AD3929EA5A94B55E410E507E4CFF372ADC6F7AC6A889159EA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/Alfea01.log",
+      "sha256": "845F22F82C0A6752E59DD4EC209D0F688D78D41C3E294B0499B1D1519CEA874D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/Alfea02.log",
+      "sha256": "4399AFFE1F8525F072902913D702A32418AABC41189BFF78ADFF267CFC91A9B1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/bloomx.log",
+      "sha256": "5C159856857B29CB5BD852854F8E71652412B045EC415C7129BF2AA863F6FDC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/Icy.log",
+      "sha256": "EFE49E14E0629A66ED75825E625669ECD9F33302C47613DA9CCA65A90FEC2614"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/igmenu_opt_pc.log",
+      "sha256": "7D71D7502E51E1F4761D8281AA7486FAA1B3A3CF2E09D5158EFB845E0E6F9AAC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/igmenu_opt_ps2.log",
+      "sha256": "5FD36CCD07E6C8F1B9380B9FD892CD0D087614A57BB31D326BDF42DF0677C583"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy/samples.json",
+      "sha256": "0FD2CF06DD62366DC4CC893001261D558C9AF631D886CADE6BD041381823A949"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/Alfea01.log",
+      "sha256": "845F22F82C0A6752E59DD4EC209D0F688D78D41C3E294B0499B1D1519CEA874D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/Alfea02.log",
+      "sha256": "4399AFFE1F8525F072902913D702A32418AABC41189BFF78ADFF267CFC91A9B1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/bloomx.log",
+      "sha256": "05A176DF546CE40E4EA8C99D601DD2B242DD98E0B01BDAB04B546AB66AA307B7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/Icy.log",
+      "sha256": "EFE49E14E0629A66ED75825E625669ECD9F33302C47613DA9CCA65A90FEC2614"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/igmenu_opt_pc.log",
+      "sha256": "7D71D7502E51E1F4761D8281AA7486FAA1B3A3CF2E09D5158EFB845E0E6F9AAC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/igmenu_opt_ps2.log",
+      "sha256": "5FD36CCD07E6C8F1B9380B9FD892CD0D087614A57BB31D326BDF42DF0677C583"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/legacy-final/samples.json",
+      "sha256": "6A8001A330649C7041FCDB7236981EE9C6CF9CEF4DEDDB9B63DA8AC0E296526F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/native-build.log",
+      "sha256": "A4C5014E371624CC5ADFB7969DA1147ADD5E54DC68F102498897A2C3C1B8D9C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/native-ctest.log",
+      "sha256": "7A17D79DD3C02013B99D87CA6C50EE8F4FBC04EAEA8AEF17BD4C13F079CB355C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/run_loaded_materials_legacy_samples.py",
+      "sha256": "3BA34F67865292A6F7E17C1A81032A42C3465A070B8D8B0410954CF0E10B812A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/run_loaded_materials_samples.py",
+      "sha256": "A3629218DB63172A6AE38DDD7B1F40547377BE4BC1F154835E760137D9D2929D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/samples-attempt-1.json",
+      "sha256": "67A4C103C75E606E65296ECE628F53DEEA1839CB18CF7DF19B793C5FD470DB7F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/samples-attempt-2.json",
+      "sha256": "5F27B67CE4D8062026C60FA21096350417E8E23A861BA1A6B6168A1296412DC9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/samples-final.json",
+      "sha256": "C49D65A1D1D17C2471DA980BC66652FF79E3369017BD28092CAE745C702F5D61"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoImporter.FormatTests-build-attempt-2.log",
+      "sha256": "B98F317184B7D1A4999B99A325B1DDCF873BB203DEE3C396AFCEE728D4DDB21D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoImporter.FormatTests-build-final-2.log",
+      "sha256": "85C189DDE8F2B54250FF7A9758821EF318928800796B2CACFC9441BD03A20868"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoImporter.FormatTests-build-final.log",
+      "sha256": "6D1F5D643D0FC6CEB6D0543E784B6ACFCD97BE1BF9E423F44A30A3FA571DA216"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoLVLcreator.CoreTests-build-attempt-2.log",
+      "sha256": "ECEBD2E46CE0CDC4B70472C04B8DD4701BF95A1A8CFC3A0E883CB4D5D9C62728"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoLVLcreator.CoreTests-build-final-2.log",
+      "sha256": "D991229725A7DCCBC9D374F867F9A79DC7FB2C5B6B2498F4C5590F2D52240A4D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoLVLcreator.CoreTests-build-final.log",
+      "sha256": "409CB927A6DE65E0FF1FDC9945B7230C58B9FA8232B91FDE85841F4994458005"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoViewer.FormatTests-build-attempt-1.log",
+      "sha256": "3F1D8DD8D07FAE573CF560E6E239D0E547EED4F8CE2AAB27BF725B6F3CBD12B1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoViewer.FormatTests-build-attempt-2.log",
+      "sha256": "C813E534426B47B2314653CEB721435B751546FBA16D57C268FC6EF0DD26FBCF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoViewer.FormatTests-build-final-2.log",
+      "sha256": "6D8857946C7382D7D0DB4D14C3767D5DCF6401079D9CCA5B320E3FCB999252C6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/loaded-materials/SmoViewer.FormatTests-build-final.log",
+      "sha256": "569EF2A63BDD32C79BB49FAF8F287CFAEA323452E96F4456A5438A299919248B"
+    }
+  ],
+  "reused_reader_proofs": [
+    {
+      "path": "research/tools-core-material-reader-block-2026-09-09.json",
+      "sha256": "0F330FFD7DC99DF8C3710CA63A67543B75BD69C971CE32806639C0D7A6A7EE52"
+    },
+    {
+      "path": "research/tools-core-model-skin-reader-block-2026-09-09.json",
+      "sha256": "E15673EE3923A67B2D4D52040208CF19F615B5917A1DE2124102846CD215F69A"
+    },
+    {
+      "path": "research/tools-core-animated-texture-reader-block-2026-09-09.json",
+      "sha256": "B54AD57C0E8CDEDBF75F1CAFAD24D7079EB2E7C5A4BCD7D641FF35725F88D3C6"
+    },
+    {
+      "path": "research/tools-core-material-functions-block-2026-09-09.json",
+      "sha256": "1B5E2C2661AD0831F0C215541AB029BC7F6024772CCEA042E154267B12FC9A70"
+    },
+    {
+      "path": "research/tools-core-spatial-readers-block-2026-09-09.json",
+      "sha256": "3B4830B4A5EFACEA068A0497E5E8CF816FF4D60E2D6089181044F4FFEBC082E5"
+    }
+  ],
+  "native_dll_sha256": "11D125C08DA8528EB2BC749B56BAEFA9EB81F3C319313EB439BCD5440B468A62",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "11D125C08DA8528EB2BC749B56BAEFA9EB81F3C319313EB439BCD5440B468A62"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "11D125C08DA8528EB2BC749B56BAEFA9EB81F3C319313EB439BCD5440B468A62"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "11D125C08DA8528EB2BC749B56BAEFA9EB81F3C319313EB439BCD5440B468A62"
+    }
+  ],
+  "checks": {
+    "native": {
+      "MaterialSerialization": 554,
+      "MaterialController": 488,
+      "FullLoader": 213
+    },
+    "selected_graph_files": 5,
+    "models": 2282,
+    "snapshot_scene_assertions": 30432,
+    "pixel_upload_comparisons": 168,
+    "abi_guards": 31,
+    "general_smo_files": 6,
+    "consumer_builds": 3
+  },
+  "limitations": [
+    "No new original semantics/probes; shared reader proofs reused.",
+    "Immutable loaded-resource snapshots are not animation runtimes.",
+    "Single-pass/single-layer frontend limit is explicit; no legacy uniform texture timer output.",
+    "UV/multipass runtime, full occurrence/placement selection and renderer states remain pending.",
+    "NULL Material and unavailable full-graph factories are not replaced with guessed resources."
+  ]
+}

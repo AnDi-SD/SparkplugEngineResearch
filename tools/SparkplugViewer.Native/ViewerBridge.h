@@ -89,6 +89,30 @@ SPV_API void spv_graph_destroy(void*) noexcept;
 SPV_API int spv_graph_info(void*,std::uint32_t* objects,std::uint32_t* nodes,std::uint32_t* rootID) noexcept;
 SPV_API int spv_graph_object(void*,std::uint32_t ordinal,char* name,std::uint32_t capacity,SpvGraphObject*) noexcept;
 SPV_API int spv_graph_node(void*,std::uint32_t id,SpvGraphNode*) noexcept;
+// Read-only projections of actual loaded resources. IDs preserve canonical
+// loader/cache identity; zero means NULL, never an inferred default resource.
+struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};
+struct SpvGraphMaterial {
+    std::uint32_t states[11],vertexAlpha,powerInitialized;
+    float colors[16],power;std::uint32_t colorController,passes;
+};
+struct SpvGraphPass {std::uint32_t blend,layers;};
+struct SpvGraphLayer {
+    std::uint32_t classID,texture,animation,uvController,uvEnabled,animationBoundHere,uvBoundHere;
+    std::uint32_t states[12];float uv[9];
+};
+struct SpvGraphTexture {std::uint32_t width,height,surfaceFormat,mips;};
+struct SpvGraphTextureKey {float time;std::uint32_t texture;};
+SPV_API int spv_graph_model(void*,std::uint32_t,SpvGraphModel*) noexcept;
+SPV_API int spv_graph_material(void*,std::uint32_t,SpvGraphMaterial*) noexcept;
+SPV_API int spv_graph_pass(void*,std::uint32_t material,std::uint32_t pass,SpvGraphPass*) noexcept;
+SPV_API int spv_graph_layer(void*,std::uint32_t material,std::uint32_t pass,std::uint32_t layer,SpvGraphLayer*) noexcept;
+SPV_API int spv_graph_texture(void*,std::uint32_t,SpvGraphTexture*) noexcept;
+// BGRA host upload projection of an already selected/initialized CPU texture.
+// Does not inspect a different serialized representation as a fallback.
+SPV_API int spv_graph_texture_bgra(void*,std::uint32_t,std::uint8_t*,std::uint32_t) noexcept;
+SPV_API int spv_graph_texture_track(void*,std::uint32_t,std::uint32_t* keys,float* duration) noexcept;
+SPV_API int spv_graph_texture_keys(void*,std::uint32_t,SpvGraphTextureKey*,std::uint32_t) noexcept;
 // Select actual loaded Node objects, including every parent of the selection.
 // The scene retains their whole resource graph and preserves authored matrices.
 SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count) noexcept;

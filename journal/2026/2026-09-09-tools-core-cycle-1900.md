@@ -82,3 +82,18 @@ Alfea02:4266 ресурсов/489 Node; database FAT metadata и Node hierarchy 
 содержат прежнее C4756 в spVertexBounds; .NET builds имеют0 warnings/errors.
 Octree и последующее подключение material/texture runtime остаются в работе.
 Досье: `docs/research/tool-spatial-readers-shared-core-2026-09-09.md`.
+
+Блок9: удалён старый1154-строчный texture resolver. Actual loaded ResourceGraph
+отдаёт все material passes/layers, canonical IDs, UV и texture end-time keys;
+BGRA upload берётся из выбранной native CPU texture. Lazy cache оставляет один
+снимок на документ, native graph после копирования освобождается. Исправлены
+материалы существующих shared instances и перенос чужой Skin palette в Model.
+Пять файлов:30432 snapshot/scene assertions; Python/C#168 pixel hashes совпали,
+31 ABI guard прошёл. Native Material554/Controller488/FullLoader213 прошли.
+Шесть общих SMO regressions:37288/36395/9355/3093/1609/1904 assertions.
+Viewer/Importer/LVLcreator CoreTests builds:0 warnings/errors.
+BloomX имеет три passes и два38-key controllers; прежний равномерный playback
+не подставляется. Пользователь уведомлён: многопроходный frontend/UV/точный
+clock ещё не подключены, часть прежних имитаций эффектов временно отключена.
+Полный draw list/placement и renderer state execution остаются следующими.
+Досье: `docs/research/tool-loaded-materials-shared-core-2026-09-09.md`.

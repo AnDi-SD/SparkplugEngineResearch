@@ -120,3 +120,17 @@ RenderNode34/Collision54 checks прошли. Alfea02 полностью заг�
 Native spatial inspectors в C# и material/texture runtime integration остаются
 следующими шагами; Octree reader ещё отсутствует. Релиз не собирался.
 Досье: `docs/research/tool-spatial-readers-shared-core-2026-09-09.md`.
+
+### Блок9: material/texture bindings загруженного графа
+
+Удалён старый1154-строчный texture resolver с подбором по именам/соседству и
+равномерной анимацией. ResourceGraph отдаёт все actual passes/layers,
+canonical references, raw colors/UV и texture keys. BGRA приходит из CPU
+texture, выбранной loader; снимок кешируется, native graph затем освобождается.
+Каждый существующий scene instance получает собственный material; Model не
+наследует чужую Skin palette. Пять файлов:2282 Model/Skin,168 uploads,
+30432 snapshot/scene assertions и31 ABI guard. Native554/488/213 прошли.
+Многопроходный frontend/UV/точный clock ещё не подключены: данные сохранены,
+старую имитацию не подставляем. Пользователь уведомлён о потере части эффектов.
+Полный draw list/placement и renderer states остаются далее.
+Досье: `docs/research/tool-loaded-materials-shared-core-2026-09-09.md`.
