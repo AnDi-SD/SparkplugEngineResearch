@@ -1,7 +1,7 @@
 param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switch]$Fresh, [switch]$RunChecks,
     [string]$VisualStudioPath,
     [ValidateRange(1,4)][int]$BuildWorkers = 2,
-    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter','ReadReference','SaveReference','NodeSerialization','MeshReader','RenderNode','StaticRenderObject','MaterialSerialization','MaterialController','MaterialColor','SkinSerialization','SkinRender','UVFunction','ColorFunction','SpatialSerialization','SceneSerialization','SkyBox','NavigationSerialization','LensFlare','OcclusionTopology','ParticleSerialization','LightSerialization','SimpleBVSerialization','OBBScalar','ReferenceReadTrace','FontSerialization','TextInspection')]
+    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter','ReadReference','SaveReference','NodeSerialization','MeshReader','RenderNode','StaticRenderObject','MaterialSerialization','MaterialController','MaterialColor','SkinSerialization','SkinRender','UVFunction','ColorFunction','SpatialSerialization','SceneSerialization','SkyBox','NavigationSerialization','LensFlare','OcclusionTopology','ParticleSerialization','LightSerialization','SimpleBVSerialization','OBBScalar','ReferenceReadTrace','FontSerialization','TextInspection','BorrowedInput')]
     [ValidateNotNullOrEmpty()]
     [string[]]$CheckSuites = @('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader'))
 $ErrorActionPreference = 'Stop'

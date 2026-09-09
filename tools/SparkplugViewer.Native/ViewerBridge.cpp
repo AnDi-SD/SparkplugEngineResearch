@@ -1,5 +1,6 @@
 #include "ViewerBridge.h"
 #include "ResourceGraph.h"
+#include "BorrowedInput.h"
 #include "RenderMeshView.h"
 #include "Code/Sparkplug/spAnimationSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
@@ -88,30 +89,7 @@ template<std::size_t N> std::array<float,N> values(const float* input) {
     return result;
 }
 struct Clip { std::shared_ptr<spAnimation> animation; };
-// Host memory adapter: borrows one pinned C# span without copying the SMO or
-// allocating a stream buffer per field. All field grammar stays in Sparkplug.
-class BorrowedInput final : public spStream {
-    const std::uint8_t* data_; std::uint32_t size_, position_ = 0;
-public:
-    BorrowedInput(const std::uint8_t* data, std::uint32_t size) : data_(data), size_(size) {}
-    bool Open(const char*) override { return false; }
-    bool Open(std::uint32_t, const char*) override { return false; }
-    bool Close() override { return false; }
-    bool Seek(SeekSource source, std::int32_t offset) override {
-        std::int64_t base = source == SeekSource::essStart ? 0 : source == SeekSource::essCurrent ? position_ : size_;
-        if(source != SeekSource::essStart && source != SeekSource::essCurrent && source != SeekSource::essEnd) return false;
-        const auto next=base+offset; if(next<0 || next>size_) return false;
-        position_=static_cast<std::uint32_t>(next); return true;
-    }
-    bool GetCurrentPosition(std::uint32_t& position) const override { position=position_; return true; }
-    bool GetSize(std::uint32_t* size) const override { if(!size) return false; *size=size_; return true; }
-    bool ReadData(void* destination, std::uint32_t count) override {
-        if(count>size_-position_ || (!destination && count)) return false;
-        if(count) std::memcpy(destination,data_+position_,count); position_+=count; return true;
-    }
-    bool WriteData(const void*, std::uint32_t) override { return false; }
-    bool vfunc_WriteFromStream(spStream*, std::uint32_t) override { return false; }
-};
+using spvhost::BorrowedInput;
 // Small host memory backend for the original scalar header writer. No game
 // fields are decoded here and no allocation is needed per edited header.
 class HeaderOutput final : public spStream {

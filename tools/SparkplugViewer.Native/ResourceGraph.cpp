@@ -1,4 +1,5 @@
 #include "ResourceGraph.h"
+#include "BorrowedInput.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
@@ -50,7 +51,6 @@
 #include "Code/Sparkplug/spMatColorControllerSerializer.h"
 #include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spParticleSystemSerializer.h"
-#include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spPartitionNode.h"
 #include "Code/Sparkplug/spPartitionNodeSerializer.h"
 #include "Code/Sparkplug/spBSPNode.h"
@@ -67,7 +67,6 @@
 #include "Code/Sparkplug/spZonePortalNodeSerializer.h"
 #include "Code/Sparkplug/spPartitionRenderable.h"
 #include "Code/Sparkplug/spPartitionRenderableSerializer.h"
-#include <cstring>
 #include <stdexcept>
 
 namespace spvhost {
@@ -130,9 +129,10 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     // measured47 MiB process peak. Keep a finite8192 ceiling and64 MiB input.
     context.maximumCreatedObjectsForAnalysis=8192;
     context.pcRenderer=renderer.get();context.captureFileObjectIDsForAnalysis=true;
-    spMemoryStream input;
-    if(!input.ResizeAndSetSize(count))throw std::runtime_error("Cannot allocate bounded SMO stream");
-    std::memcpy(input.GetBuffer(),bytes,count);
+    // C ABI callers pin immutable input for this constructor. The common
+    // readers copy resource data into its actual owners; neither this stream
+    // nor any input pointer survives the synchronous load.
+    BorrowedInput input(bytes,count);
     if(captureReadTrace)context.fileReadTraceSourceForAnalysis=&input;
     std::string error;
     auto* root=manager.LoadResourcesForAnalysis(input,context,&error);

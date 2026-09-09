@@ -23,10 +23,9 @@ root3d483e0 / Viewer21b43a5. Все ядра пока не готовы.
 
 ## Текущий блок
 
-Общий Font/Text reader: исправить доказанные byte-string/UInt32-wrap ошибки,
-убрать дубли inherited readers. Проверить недостающие constructor/setter
-границы адресно. Независимо — StaticRenderObject matrix authoring по
-подготовленному досье. Непроверенные реализации не считаются результатом.
+Font/Text metadata и Static matrix authoring перенесены в общий код.
+Далее — память загрузки и ближайшие реально используемые остатки TextureTool
+и material runtime. Непроверенные реализации не считаются результатом.
 
 ## Сохранённые ограничения
 
@@ -63,6 +62,14 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    TextNode reader это не означает. Native TextInspection/RenderNode прошли;
    managed 59 проверок с 20 Text/TextNode объектов menu; общий Viewer 609,
    Viewer и FormatTests builds без warnings/errors. Документация исправлена.
+   Checkpoint: root `57a5218`, Viewer `00407c3`.
+4. [Память ResourceGraph](tool-resource-graph-memory-2026-09-10.md): удалена
+   полная временная копия входного SMO; один общий read-only host stream.
+   На Alfea02 пик working set 44 359 680 → 37 113 856 байт (−16,33%).
+   Объекты, узлы, trace и выбранная texture совпали, включая чтение после
+   освобождения входа. Время одной пары 0,06326 → 0,07645с: ускорение не заявлено.
+   Native BorrowedInput44/FullLoader/ReferenceReadTrace и managed Text59 прошли.
+   Ограничения 64МиБ и числа объектов не повышались.
 
 ## Новые границы и исправления
 
