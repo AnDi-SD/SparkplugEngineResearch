@@ -7,9 +7,12 @@
 
 #include <cstdint>
 #include <vector>
+#include <optional>
+#include <unordered_map>
 
 namespace sparkplug::reconstruction
 {
+    class spMaterialTexture;
     class spMaterialSerializer : public spSerializer
     {
     public:
@@ -94,6 +97,28 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
             spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
+        struct ColorPayloadForAnalysis
+        { std::uint32_t ambient=0,diffuse=0,specular=0,emissive=0;float power=0; };
+        struct InspectedReferenceForAnalysis
+        { std::uint32_t offset=0,size=0,id=0,inlineSize=0; };
+        struct InspectedLayerForAnalysis
+        {
+            std::int32_t textureStatesField=-1;
+            bool hasUVField=false;
+            std::array<std::optional<InspectedReferenceForAnalysis>,3> references;
+        };
+        // Host inspection of authored fields and unresolved relationship IDs.
+        // Uses the same material field loop, pass/layer factories and scalar
+        // assignments. Referenced resources are NOT instantiated or attached;
+        // the resulting object is an explicit partial state, not a loaded graph.
+        struct InspectionForAnalysis
+        {
+            std::optional<ColorPayloadForAnalysis> color;
+            std::optional<InspectedReferenceForAnalysis> colorController;
+            std::unordered_map<const spMaterialTexture*,InspectedLayerForAnalysis> layers;
+        };
+        [[nodiscard]] bool InspectPayloadForAnalysis(spStream& source,std::uint32_t byteCount,
+            spBaseObject& partialObject,InspectionForAnalysis& observation,std::string* error) const;
         [[nodiscard]] bool WritePayloadForAnalysis(spStream& destination,
             const spBaseObject& object,std::string* error) const override;
         [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,
@@ -102,6 +127,8 @@ namespace sparkplug::reconstruction
             spBaseObject& object) const override;
 
     private:
+        [[nodiscard]] bool ReadMaterialFieldsForAnalysis(spSerializerReadContextForAnalysis&,
+            spStream&,std::uint32_t,spBaseObject&,std::string*,InspectionForAnalysis*) const;
         [[nodiscard]] bool WriteMaterialFieldsForAnalysis(spSerializerManager* manager,
             spStream& destination,const spBaseObject& object,std::string* error) const;
 

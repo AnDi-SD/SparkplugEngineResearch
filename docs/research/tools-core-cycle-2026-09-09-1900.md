@@ -40,3 +40,16 @@ C++ Static52/RenderNode34/FullLoader213 прошли. Настоящий кла�
 получает его из standalone mesh, где native84 и physical84 совпадают.
 Combiner cached120 не является указанием увеличить чтение этого пути.
 Ветка отложена и не задерживает перенос других readers.
+
+### Блок2: MaterialData reader
+
+C# grammar/state/color/UV parser заменён общим `spMaterialSerializer` через
+явную metadata-инспекцию на настоящих DXMaterial/pass/layer/texture-holder.
+Ссылки не материализуются подставными объектами; полный reader сохраняет
+канонических владельцев. Original9 cases, source/ABI comparisons и3 host guards
+прошли. C++ MaterialSerialization554/Controller393/Color225/FullLoader213,
+5 выбранных SMO и сборки Viewer/Importer/LVLcreator CoreTests прошли.
+Сохранены NULL preserve для controllers, NULL clear для Texture и исходное
+UV-zero поведение; сняты лишние C# ограничения на порядок и флаги.
+Ограничение старого C# DTO одним стандартным слоем на проход явно отделено
+от возможностей общего ядра. Досье: `docs/research/tool-material-reader-shared-core-2026-09-09.md`.

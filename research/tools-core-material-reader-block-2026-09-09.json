@@ -1,0 +1,269 @@
+{
+  "kind": "tools-core-material-reader-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T06:09:02.116524+00:00",
+  "base_commit": "9df73fb8755dff9f3ef8b7d200f7de227b95182c",
+  "viewer_commit": "3a6b81808f6d5bf6c0be9ed1cf6c0451536d76ad",
+  "cycle_block": 2,
+  "previous_cycle_blocks": 17,
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialSerializer.cpp",
+      "sha256": "EDB981164354C7581A43500796C0171739926D5DF47959A24F1EEF8D07F2E0E0"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMaterialSerializer.h",
+      "sha256": "412D850D0DD2479845079C69E558BFADD38D5A50EA982E0ED1B528E1448D0FFE"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialSerializationTests.cpp",
+      "sha256": "56998ED1333D664C1F145489E06A704EFCEBF4CA68500FE26BF6E63CE192C201"
+    },
+    {
+      "path": "docs/research/tool-material-reader-shared-core-2026-09-09.md",
+      "sha256": "9666B11DB4B0A7EAA8F6424C3E1C6F08091064B8011EC1BF93993FAD99EA02ED"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "4A3FA6491AFC803251D8576427A4B1F54E4EC6718458E8633110660A5B07FF1E"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "957A5608F1A72D6DAADE1A0CA8B6359F419F0C32A70256C23E80A0EB57F61E4F"
+    },
+    {
+      "path": "research/validate_tools_material_reader.py",
+      "sha256": "F0D59E4CBF550A6DA6C28E00D430DCA74D193CF0C50A575E7F91D52F1C108ECC"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "62C209B8CB8B14A3C470187E9A3AFEDDFBB54E50F36079E9426FD7A3FABA3389"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "2C4085B5CF145A0F07DCCEED5F4821754F39D0C0D93EEBE347C4D5D4F5CE5A52"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "00F6FBD70A218C9572D64B6713418F893B318D62A25673C2180487366819F629"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "CB5D8EA587E6CF94514FD2CC5EAFA9B91A94766EB882CEF40C725E94F06FD6A1"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "5B97009DBA96CBFEF018905DE74B6DB8FCB3E4D2265BB03E5E65FDFDA22B6DB7",
+      "git_blob_sha256": "A7EA344BBFFED0FB339DE2CD992150052D2E98CE149A909BEE29484BC4C2C2F2"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMaterialDataDecoder.cs",
+      "sha256": "36CF161B677EF5197F037B344FFF3A6E4CD4F3CEC45D54769DDDDD23DCFCCCD7",
+      "git_blob_sha256": "A28CBF5AE71D28D35095BEF8A7FB840DD8C6FC21108893458CDAAB3BDC12F75B"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNodeDecoder.cs",
+      "sha256": "3DE4423608A13A4012627399308CBA862FF1F4C51F3BEAF9A918801FC2A13137",
+      "git_blob_sha256": "88A9B484ADD0761C8ACE8B7F2AAD92EE9F9060BB712A7890CC467B9B91987F01"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "DA068AF4F966D82A4904D8D9436328BD629CB69B943DB0DDA6F3F513B6D738FF",
+      "git_blob_sha256": "2B819DC9471FCD76FAED0B40FDF51AB2EEB4C2268F1EEE93430F46C75302F127"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "1A26560C04D185B1C66F2BDF2E79BCC987EBE66EA0E97D290F7A25796680A377",
+      "git_blob_sha256": "B75F3ACE4FF43A89A2C4B2803588D1AFD5FAB2FD484F326FA549FC973F7CBAB3"
+    }
+  ],
+  "native_dll_sha256": "547C6ACCFF15E26FB61DE31BE7658E1E71E64590C27169D50752783939B2EAA0",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "547C6ACCFF15E26FB61DE31BE7658E1E71E64590C27169D50752783939B2EAA0"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "547C6ACCFF15E26FB61DE31BE7658E1E71E64590C27169D50752783939B2EAA0"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "547C6ACCFF15E26FB61DE31BE7658E1E71E64590C27169D50752783939B2EAA0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/animation_links-null-after-original.log",
+      "sha256": "3AD8B963FBE7E1C0E0012DAAC557FDF9846F9D6B0AFBAD94D77324F8C21881BC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/color_links-null-after-original.log",
+      "sha256": "6EA26C179C45452A9612A19B6DCA9C2C2A666D16BB04DAC84EE4FD4F9D601EB1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/comparison.json",
+      "sha256": "0A0C50326AEA1BE95ECC80FBA2C02A956631A3A2E523764384E6925A0DB4BF3D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/icy.log",
+      "sha256": "441D7EFA1CCB1E684B4DFE1CB6F071B248ACDF155AE448559D4688E2C2EFD88B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/importer-build.log",
+      "sha256": "B7B160EE9631D96013B871498AB6597F950CF74D46D0C847E4CAD6927BF40AFA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/layers-default-original.log",
+      "sha256": "67ACAD1BA2B28DFE5901D64AFA3BB243395650078B72CC940EAA1E11BAFF7A70"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/layers-uv-repeat-original.log",
+      "sha256": "BA6065D3602223B3F80BE1B3BC52032686421512DA1F9E7CDDB01D4F859D094B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/layers-uv-zero-original.log",
+      "sha256": "BED21F569170B656B8D4728903F8F83D10EB4C280C433F73378E226DA31F1653"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/level-build.log",
+      "sha256": "23176841DBC7F13FED93BB1649641469C358A8535F67592EDC6FB8A539FEFA8E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/managed-samples-final.json",
+      "sha256": "46027230AEA13A009634BAB0324F733982ED8AB812C9B4E7E3C9109D114C7E2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/native-build.log",
+      "sha256": "C790470C25EDCE8D75DEDA0DE92A7012E4C9D5B52BDD22DB1622B823FAD16D69"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/original.json",
+      "sha256": "6C4721FA193D1E7B4AFCF698DE0E00A3E01B2DF68D7C20876E431E20226026E0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-menu.log",
+      "sha256": "40D9F91A87D41098123E225AC2F2702A62AC7057F6D48DF381FC21D5D41F4089"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-pristine-alfea01.log",
+      "sha256": "DE97E474FFF00CC2B0BE112DF17859438607251C769CD79A5831247ADE8C6A8F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-pristine-alfea02.log",
+      "sha256": "4DA5A00F98340935FEEB3C0FCFB01C7BA685600B669FE0E7E261B08BB17DBBFC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/ps2-menu.log",
+      "sha256": "0D167BEEA9150886D6E9A402F2B2C05EB21030E6051A3CD5BE32C26E8C579644"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/scalar-repeat-original.log",
+      "sha256": "FF9D269381F3B0D85047F70AB3FE6B3C7FD43901AF9B36B661655E326ED60273"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/scalar-values-original.log",
+      "sha256": "FC655CE79277AE4E6946B0E5B7C2D175EAF589162A33EA811DAE3BC886BC2988"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/source-tests.log",
+      "sha256": "90CEAF48BBB7EC288348D5227A0F089239E3E1E22BB2EE502712711FE6CC6A0E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/texture_links-null-after-original.log",
+      "sha256": "5066A0CB442E50969356371A320ABE846DC9B7A8D2F9D94A9F84A8FD7708044A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/uv_links-null-after-original.log",
+      "sha256": "61C692E194904FBB18D0434C6367B137D685615974576835EA979CF862B47199"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/material-reader/viewer-build.log",
+      "sha256": "43915C16C336FF0D72D6CD2B849C4335C0302FEEF838D0963DB9B6100330118C"
+    }
+  ],
+  "checks": {
+    "original_selected_cases": 9,
+    "exact_source_reader_writer_captures": 6,
+    "inspection_cases": 9,
+    "host_refusals": 3,
+    "cpp_MaterialSerialization": 554,
+    "cpp_MaterialController": 393,
+    "cpp_MaterialColor": 225,
+    "cpp_FullLoader": 213,
+    "CSharp_samples": [
+      {
+        "name": "pc-pristine-alfea01",
+        "path": "local-data/pc-pristine/Media/Levels/Alfea/Alfea01.smo",
+        "reason": "material colors, multiple passes and level graph consumers",
+        "bytes": 5945520,
+        "sha256": "629232691534A2730E97E63A4B2A2B5D26962D9AF5B4DCEBE98D1D945D94A514",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-pristine-alfea01.log",
+        "result": [
+          "PASS: 37097 assertions"
+        ]
+      },
+      {
+        "name": "pc-pristine-alfea02",
+        "path": "local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+        "reason": "pristine level material/texture and controller identities",
+        "bytes": 7106313,
+        "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-pristine-alfea02.log",
+        "result": [
+          "PASS: 36322 assertions"
+        ]
+      },
+      {
+        "name": "pc-menu",
+        "path": "local-data/pc-pristine/Media/Menus/igmenu_opt_pc.smo",
+        "reason": "PC menu material/texture relationships",
+        "bytes": 4079540,
+        "sha256": "D6ED2606BFCA4C4EED41F59869D1EC1C20DFAFE7A3BFD8E7FEC6C5F109052F0E",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/material-reader/pc-menu.log",
+        "result": [
+          "PASS: 9326 assertions"
+        ]
+      },
+      {
+        "name": "ps2-menu",
+        "path": "local-data/pc-pristine/Media/Menus/igmenu_opt_ps2.smo",
+        "reason": "PS2-tagged metadata regression, no PS2 execution",
+        "bytes": 380648,
+        "sha256": "42765C63D4E2040F72FD6DFC4A9C7141A26B001EF0EFE0210CCCC305757A83E4",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/material-reader/ps2-menu.log",
+        "result": [
+          "PASS: 3001 assertions"
+        ]
+      },
+      {
+        "name": "icy",
+        "path": "local-data/pc-pristine/Media/Characters/Icy/Icy.smo",
+        "reason": "character skin material references",
+        "bytes": 509977,
+        "sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/material-reader/icy.log",
+        "result": [
+          "PASS: 1573 assertions"
+        ]
+      }
+    ],
+    "Viewer_Importer_LevelCoreTests_build": "0 warnings, 0 errors"
+  },
+  "limits": [
+    "Inspection observes source field loop on actual material/pass/layer/holder, without resolving referenced objects",
+    "Existing CSharp consumer view supports one standard layer per pass and authored color/power; native retains up to8x8",
+    "Metadata catalog checks are not full original reference loader equivalence",
+    "Unknown environment/camera/cubemap/movie branches remain explicit unsupported core paths",
+    "Original guest UV/color later runtime output is not treated as reader state",
+    "Host extent,16MiB and element guards do not claim original malformed-input refusal policy",
+    "No full level, PS2 execution, full corpus, GPU integration or release"
+  ]
+}

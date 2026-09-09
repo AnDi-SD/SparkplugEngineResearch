@@ -9,6 +9,7 @@
 #include "spUVController.h"
 #include "spMaterialColorController.h"
 #include "spSerializerManager.h"
+#include "spResourceManager.h"
 #include "spDataBlockSerializer.h"
 #include "Analysis/PC/spSectionCursor.h"
 #include <cmath>
@@ -73,6 +74,19 @@ namespace sparkplug::reconstruction
 
     bool spMaterialSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const
+    { return ReadMaterialFieldsForAnalysis(context,source,size,object,error,nullptr); }
+
+    bool spMaterialSerializer::InspectPayloadForAnalysis(spStream& source,std::uint32_t size,
+        spBaseObject& object,InspectionForAnalysis& observation,std::string* error) const
+    {
+        spSerializerManager manager;spResourceManager resources;
+        spSerializerReadContextForAnalysis context(manager,resources);observation={};
+        return ReadMaterialFieldsForAnalysis(context,source,size,object,error,&observation);
+    }
+
+    bool spMaterialSerializer::ReadMaterialFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& source,std::uint32_t size,spBaseObject& object,std::string* error,
+        InspectionForAnalysis* observation) const
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
         if(error)error->clear();SectionCursor cursor(context,source,size,true,error);
@@ -106,9 +120,9 @@ namespace sparkplug::reconstruction
             }
             case Field::Color:
             {
-                struct Payload{std::uint32_t ambient,diffuse,specular,emissive;float power;};
-                Payload value{};static_assert(sizeof(value)==20);
+                ColorPayloadForAnalysis value{};static_assert(sizeof(value)==20);
                 if(!cursor.Read(value))return cursor.Fail("Material color field requires twenty bytes");
+                if(observation)observation->color=value;
                 material->SetAmbientColorForAnalysis(color(value.ambient));material->SetDiffuseColorForAnalysis(color(value.diffuse));
                 material->SetSpecularColorForAnalysis(color(value.specular));material->SetEmissiveColorForAnalysis(color(value.emissive));
                 material->SetSpecularPowerForAnalysis(value.power);break;
@@ -119,22 +133,6 @@ namespace sparkplug::reconstruction
                     return cursor.Fail("Material pass field exceeds size or eight-slot capacity");
                 auto pass=std::make_shared<spMaterialPassLayer>();pass->SetFinalBlendOperationForAnalysis(blend);
                 if(!material->SetPassForAnalysis(material->GetPassCountForAnalysis(),pass))return cursor.Fail("Cannot retain material pass");break;
-            }
-            case Field::ColorController:
-            {
-                // The native NULL branch does NOT clear an existing controller.
-                // Prebound references use the canonical common owner. Inline
-                // factory remains NULL until protected construction is proven.
-                auto* referenced=spSerializer::ReadFieldReferenceForAnalysis(context,spMaterialColorController::ClassID,source,*header,error);
-                if(context.failed)return false;
-                if(referenced)
-                {
-                    auto* controller=dynamic_cast<spMaterialColorController*>(referenced);
-                    auto owner=context.ShareObjectForAnalysis(referenced);
-                    if(!controller||!owner)return cursor.Fail("Material color reference requires canonical confirmed target");
-                    material->SetMaterialColorControllerForAnalysis(std::move(owner));
-                }
-                break;
             }
             case Field::Layer:
             {
@@ -152,6 +150,7 @@ namespace sparkplug::reconstruction
             {
                 auto* texture=lastTexture();if(!texture){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan texture states");break;}
                 std::array<std::uint32_t,9> states{};if(!cursor.Read(states))return cursor.Fail("PC material texture requires nine states");
+                if(observation)observation->layers[texture].textureStatesField=static_cast<std::int32_t>(header->fieldID);
                 for(std::size_t i=0;i<states.size();++i)texture->SetTextureStateForAnalysis(i,states[i]);break;
             }
             case Field::StaticUVTransform:
@@ -159,44 +158,77 @@ namespace sparkplug::reconstruction
                 auto* texture=lastTexture();if(!texture){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan UV field");break;}
                 struct UV{std::uint32_t enabled;std::array<float,9> matrix;};UV uv{};static_assert(sizeof(uv)==40);
                 if(!cursor.Read(uv))return cursor.Fail("Static UV requires flag and nine floats");
+                if(observation)observation->layers[texture].hasUVField=true;
                 // Native consumes the matrix even if disabled; zero leaves
                 // prior matrix/flag intact, not ClearStaticUVTransform.
                 if(uv.enabled)texture->SetStaticUVTransformForAnalysis(uv.matrix);break;
             }
+            case Field::ColorController:
             case Field::AnimationController:
-            {
-                auto* holder=lastTexture();
-                if(!holder){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan animation controller");break;}
-                auto* referenced=spSerializer::ReadFieldReferenceForAnalysis(context,spAnimTexController::ClassID,source,*header,error);
-                if(context.failed)return false;
-                if(!referenced)break; // actual47799D guards NULL; preserve old
-                auto owned=std::dynamic_pointer_cast<spAnimTexController>(context.ShareObjectForAnalysis(referenced));
-                if(!owned)return cursor.Fail("Material animation controller has no canonical owner");
-                holder->SetOwnedAnimTextureControllerForAnalysis(std::move(owned));break;
-            }
             case Field::UVController:
-            {
-                auto* holder=lastTexture();
-                if(!holder){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan UV controller");break;}
-                auto* referenced=spSerializer::ReadFieldReferenceForAnalysis(context,spUVController::ClassID,source,*header,error);
-                if(context.failed)return false;
-                if(!referenced)break; // native4779ED skips NULL, does not clear
-                auto owned=std::dynamic_pointer_cast<spUVController>(context.ShareObjectForAnalysis(referenced));
-                if(!owned)return cursor.Fail("Material UV controller has no canonical owner");
-                holder->SetOwnedUVControllerForAnalysis(std::move(owned));break;
-            }
             case Field::Texture:
             {
-                auto* holder=lastTexture();
-                if(!holder){if(!cursor.Skip())return cursor.Fail("Cannot skip orphan texture reference");break;}
-                auto* referencedObject=spSerializer::ReadFieldReferenceForAnalysis(context,spTexture::ClassID,source,*header,error);
-                if(context.failed)return false;
-                auto owned=std::dynamic_pointer_cast<spTexture>(context.ShareObjectForAnalysis(referencedObject));
-                if(referencedObject&&!owned)return cursor.Fail("Material texture reference has no canonical texture owner");
-                // Actual477944 calls41E870 even for NULL; unlike controllers,
-                // this field clears the prior fallback. Host context pinning
-                // deliberately avoids the original stale FAT pointer lifetime.
-                holder->SetOwnedFallBackTextureForAnalysis(std::move(owned));break;
+                const auto field=static_cast<Field>(header->fieldID);
+                auto* holder=field==Field::ColorController?nullptr:lastTexture();
+                if(field!=Field::ColorController&&!holder)
+                {if(!cursor.Skip())return cursor.Fail("Cannot skip orphan material reference");break;}
+                const auto expected=field==Field::ColorController?spMaterialColorController::ClassID:
+                    field==Field::AnimationController?spAnimTexController::ClassID:
+                    field==Field::UVController?spUVController::ClassID:spTexture::ClassID;
+                spBaseObject* resolved=nullptr;bool nonnull=false;InspectedReferenceForAnalysis inspected{};
+                if(observation)
+                {
+                    spSerializer::ReferencePrefixForAnalysis prefix;
+                    if(!spSerializer::ReadReferencePrefixForAnalysis(source,source,prefix,error,header->payloadSize))
+                        return cursor.Fail("Cannot inspect material reference prefix");
+                    const auto prefixBytes=prefix.id?8u:4u;
+                    if(header->payloadSize<prefixBytes||prefix.inlineSize!=header->payloadSize-prefixBytes||prefix.inlineSize>0x7fffffffu
+                        ||!source.Seek(spStream::SeekSource::essCurrent,static_cast<std::int32_t>(prefix.inlineSize)))
+                        return cursor.Fail("Invalid bounded material reference extent");
+                    inspected={header->dataStreamPosition,header->payloadSize,prefix.id,prefix.inlineSize};
+                    nonnull=prefix.id!=0;
+                }
+                else
+                {
+                    resolved=spSerializer::ReadFieldReferenceForAnalysis(context,expected,source,*header,error);
+                    if(context.failed)return false;
+                    nonnull=resolved!=nullptr;
+                }
+                // One shared original policy: controllers preserve on NULL;
+                // fallback Texture calls41E870 even for NULL and clears it.
+                if(!nonnull&&field!=Field::Texture)break;
+                if(observation)
+                {
+                    if(field==Field::ColorController)observation->colorController=inspected;
+                    else observation->layers[holder].references[field==Field::Texture?0:field==Field::AnimationController?1:2]=inspected;
+                    break;
+                }
+                if(field==Field::ColorController)
+                {
+                    auto* controller=dynamic_cast<spMaterialColorController*>(resolved);
+                    auto owner=context.ShareObjectForAnalysis(resolved);
+                    if(!controller||!owner)return cursor.Fail("Material color reference requires canonical confirmed target");
+                    material->SetMaterialColorControllerForAnalysis(std::move(owner));
+                }
+                else if(field==Field::AnimationController)
+                {
+                    auto owned=std::dynamic_pointer_cast<spAnimTexController>(context.ShareObjectForAnalysis(resolved));
+                    if(!owned)return cursor.Fail("Material animation controller has no canonical owner");
+                    holder->SetOwnedAnimTextureControllerForAnalysis(std::move(owned));
+                }
+                else if(field==Field::UVController)
+                {
+                    auto owned=std::dynamic_pointer_cast<spUVController>(context.ShareObjectForAnalysis(resolved));
+                    if(!owned)return cursor.Fail("Material UV controller has no canonical owner");
+                    holder->SetOwnedUVControllerForAnalysis(std::move(owned));
+                }
+                else
+                {
+                    auto owned=std::dynamic_pointer_cast<spTexture>(context.ShareObjectForAnalysis(resolved));
+                    if(resolved&&!owned)return cursor.Fail("Material texture reference has no canonical texture owner");
+                    holder->SetOwnedFallBackTextureForAnalysis(std::move(owned));
+                }
+                break;
             }
             default:
                 if(IsKnownReadFieldForAnalysis(header->fieldID))return cursor.Fail("Material layer dependency is not restored");

@@ -98,6 +98,22 @@ SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) 
 struct SpvReferencePrefix { std::uint32_t id,inlineSize,encoding,classID; };
 struct SpvNodeField { std::uint32_t field,offset,size; };
 struct SpvStaticMatrices { float world[16],inverse[16]; std::uint32_t fieldMask; };
+struct SpvMaterialReference { std::uint32_t offset,size; };
+struct SpvMaterialInfo {
+    std::uint32_t states[11],vertexAlpha,hasColor,colors[4];float power;
+    SpvMaterialReference colorController;std::uint32_t passes,layers;
+};
+struct SpvMaterialLayer {
+    std::uint32_t pass,index,classID,blend;std::int32_t statesField;
+    std::uint32_t states[9],hasUV,uvEnabled;float uvMatrix[9];
+    SpvMaterialReference texture,animation,uvController;
+};
+// Same original material grammar with explicit metadata-only references.
+// No referenced resources are instantiated. Offsets are relative to this field stream.
+SPV_API void* spv_material_read(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_material_destroy(void*) noexcept;
+SPV_API int spv_material_info(void*,SpvMaterialInfo*) noexcept;
+SPV_API int spv_material_layers(void*,SpvMaterialLayer*,std::uint32_t) noexcept;
 // Original field1/2 assignments with fresh constructor defaults; no reference
 // resolution, affine validation or relation between matrices is implied.
 SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,

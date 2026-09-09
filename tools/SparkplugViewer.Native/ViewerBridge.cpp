@@ -8,6 +8,11 @@
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObject.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
+#include "Code/Sparkplug/spMaterialDataSerializer.h"
+#include "Code/Sparkplug/spMaterialPassLayer.h"
+#include "Code/Sparkplug/spStdLayer.h"
+#include "Code/Sparkplug/spMaterialTexture.h"
+#include "Code/SparkplugDX/spDXMaterial.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
@@ -168,6 +173,49 @@ struct TextureSectionView {
         }
     }
 };
+struct MaterialView {
+    SpvMaterialInfo info{};
+    std::vector<SpvMaterialLayer> layers;
+    MaterialView(const std::uint8_t* bytes,std::uint32_t size) {
+        require(bytes&&size&&size<=16u*1024u*1024u,"Invalid bounded material field stream");
+        BorrowedInput input(bytes,size);spDXMaterial material;
+        spMaterialSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,size,material,observed,&error))throw std::runtime_error(error);
+        const auto reference=[](const std::optional<spMaterialSerializer::InspectedReferenceForAnalysis>& value) {
+            return value?SpvMaterialReference{value->offset,value->size}:SpvMaterialReference{};
+        };
+        const auto& states=material.GetRenderStatesForAnalysis();std::copy(states.begin(),states.end(),info.states);
+        info.vertexAlpha=material.GetVertexAlphaByteForAnalysis();
+        if(observed.color) {
+            const auto& c=*observed.color;info.hasColor=1;
+            info.colors[0]=c.ambient;info.colors[1]=c.diffuse;info.colors[2]=c.specular;info.colors[3]=c.emissive;info.power=c.power;
+        }
+        info.colorController=reference(observed.colorController);
+        info.passes=static_cast<std::uint32_t>(material.GetPassCountForAnalysis());
+        for(std::uint32_t i=0;i<info.passes;++i) {
+            const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material.GetPassForAnalysis(i));
+            require(pass!=nullptr,"Material pass has no supported view");
+            for(std::uint32_t j=0;j<pass->GetLayerCountForAnalysis();++j) {
+                const auto* layer=dynamic_cast<const spStdLayer*>(pass->GetLayerForAnalysis(j).get());
+                require(layer&&layer->GetMaterialTextureForAnalysis(),"Material layer has no supported texture holder");
+                const auto* holder=layer->GetMaterialTextureForAnalysis().get();
+                SpvMaterialLayer result{};result.pass=i;result.index=j;result.classID=layer->vfunc_18().classID;
+                result.blend=pass->GetFinalBlendOperationForAnalysis();result.statesField=-1;
+                const auto& textureStates=holder->GetTextureStatesForAnalysis();std::copy_n(textureStates.begin(),9,result.states);
+                result.uvEnabled=holder->HasStaticTransformForAnalysis();
+                const auto& matrix=holder->GetUVTransformForAnalysis();std::copy(matrix.begin(),matrix.end(),result.uvMatrix);
+                const auto at=observed.layers.find(holder);
+                if(at!=observed.layers.end()) {
+                    const auto& fields=at->second;result.statesField=fields.textureStatesField;result.hasUV=fields.hasUVField;
+                    result.texture=reference(fields.references[0]);result.animation=reference(fields.references[1]);result.uvController=reference(fields.references[2]);
+                }
+                layers.push_back(result);
+            }
+        }
+        info.layers=static_cast<std::uint32_t>(layers.size());
+    }
+};
+static_assert(sizeof(SpvMaterialReference)==8&&sizeof(SpvMaterialInfo)==88&&sizeof(SpvMaterialLayer)==124);
 static_assert(sizeof(SpvTextureSectionInfo)==32&&sizeof(SpvTextureMip)==28);
 struct SerializedBytes {
     std::vector<std::uint8_t> bytes;
@@ -535,6 +583,19 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
         }
     }))return nullptr;
     return result.release();
+}
+SPV_API void* spv_material_read(const std::uint8_t* bytes,std::uint32_t count) noexcept {
+    std::unique_ptr<MaterialView> result;
+    if(!guarded([&]{result=std::make_unique<MaterialView>(bytes,count);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_material_destroy(void* handle) noexcept { (void)guarded([&]{delete static_cast<MaterialView*>(handle);}); }
+SPV_API int spv_material_info(void* handle,SpvMaterialInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid material view");*output=static_cast<MaterialView*>(handle)->info;});
+}
+SPV_API int spv_material_layers(void* handle,SpvMaterialLayer* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Invalid material view");const auto& layers=static_cast<MaterialView*>(handle)->layers;
+        require(count==layers.size()&&(!count||output),"Material layer output size mismatch");std::copy(layers.begin(),layers.end(),output);});
 }
 SPV_API int spv_static_matrices(const std::uint8_t* bytes,std::uint32_t count,
     const SpvNodeField* fields,std::uint32_t fieldCount,SpvStaticMatrices* output) noexcept {

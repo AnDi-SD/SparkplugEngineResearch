@@ -20,3 +20,12 @@ StaticRenderObject scout и перенос нужного reader без C#-ду�
 Editing без изменения и оставлен на LVLcreator review. Viewer/Importer/LVLcreator
 CoreTests builds прошли0 warnings/errors. Детали/выборка/ограничения:
 `docs/research/tool-static-render-object-shared-core-2026-09-09.md`.
+
+Блок2: общий MaterialData reader подключён к C# вместо самостоятельного
+декодера; инспекция ID не создаёт substitute referents. Original9 selected
+cases и3 host guards прошли,6 полных source reader/writer captures совпали.
+MaterialSerialization554/Controller393/Color225/FullLoader213 прошли;
+5 SMO:37097/36322/9326/3001/1573 assertions. Сборки Viewer/Importer/LVLcreator
+CoreTests без предупреждений/ошибок. Проверка текущего DTO одним слоем на проход
+остаётся явным host-пределом, native поддерживает8×8. Следующая задача Model/Skin.
+Досье: `docs/research/tool-material-reader-shared-core-2026-09-09.md`.

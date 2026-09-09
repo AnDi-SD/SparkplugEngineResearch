@@ -58,7 +58,13 @@ namespace
         spMemoryStream input;Open(input,bytes);std::string error;
         Check(serializer.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(bytes.size()),material,&error),error.c_str());
         std::uint32_t position=0;Check(input.GetCurrentPosition(position)&&position==bytes.size()&&!context.failed,"exact bounded material input");
-        const auto state=State(material);spMemoryStream output;Open(output);
+        const auto state=State(material);
+        spMaterialData inspected;spMemoryStream inspection;Open(inspection,bytes);
+        spMaterialSerializer::InspectionForAnalysis observation;
+        if(!serializer.InspectPayloadForAnalysis(inspection,static_cast<std::uint32_t>(bytes.size()),inspected,observation,&error))throw std::runtime_error(error);
+        Check(state==State(inspected)&&material.GetPassCountForAnalysis()==inspected.GetPassCountForAnalysis(),"inspection shares actual scalar assignments and pass creation");
+        Check(bool(observation.color)==(mode=="values"||mode=="repeat"),"inspector preserves authored color presence separately from native defaults");
+        spMemoryStream output;Open(output);
         Check(serializer.WritePayloadForAnalysis(output,material,&error),error.c_str());Check(state==State(material),"writer preserves material");
         Check(serializer.IndexRelationshipsWithContextForAnalysis(manager,material),"scalar/pass-only index requires no invented resource");
         spMemoryStream dxOutput;Open(dxOutput);Check(spDXMaterialDataSerializer{}.WritePayloadWithContextForAnalysis(manager,dxOutput,material,&error),error.c_str());
@@ -84,6 +90,14 @@ namespace
         Check(pass&&pass->GetLayerCountForAnalysis()==1,"one direct-owned layer");const auto* layer=dynamic_cast<const spStdLayer*>(pass->GetLayerForAnalysis(0).get());
         Check(layer&&layer->GetMaterialTextureForAnalysis(),"actual standard-layer factory owns texture");const auto& texture=*layer->GetMaterialTextureForAnalysis();
         Bytes state;for(std::size_t i=0;i<9;++i)Add(state,texture.GetTextureStatesForAnalysis()[i]);Add(state,texture.GetUVTransformForAnalysis());Add(state,std::uint8_t(texture.HasStaticTransformForAnalysis()));
+        spMaterialData inspected;spMemoryStream inspection;Open(inspection,bytes);spMaterialSerializer::InspectionForAnalysis observation;
+        if(!serializer.InspectPayloadForAnalysis(inspection,static_cast<std::uint32_t>(bytes.size()),inspected,observation,&error))throw std::runtime_error(error);
+        const auto* inspectedPass=dynamic_cast<spMaterialPassLayer*>(inspected.GetPassForAnalysis(0));
+        Check(inspectedPass&&inspectedPass->GetLayerCountForAnalysis()==1,"inspector creates original pass/layer owners");
+        const auto* inspectedTexture=inspectedPass->GetLayerForAnalysis(0)->GetMaterialTextureForAnalysis().get();
+        Check(inspectedTexture&&inspectedTexture->GetTextureStatesForAnalysis()==texture.GetTextureStatesForAnalysis()
+            &&inspectedTexture->GetUVTransformForAnalysis()==texture.GetUVTransformForAnalysis()
+            &&inspectedTexture->HasStaticTransformForAnalysis()==texture.HasStaticTransformForAnalysis(),"inspection and resolved reader share texture state and enabled/disabled UV semantics");
         Check(serializer.IndexRelationshipsWithContextForAnalysis(manager,material),"standard layer without external refs indexes");
         spMemoryStream output;Open(output);Check(serializer.WritePayloadWithContextForAnalysis(manager,output,material,&error),error.c_str());
         std::ostringstream row;row<<"[\""<<mode<<"\",\""<<Hex(bytes)<<"\",\""<<Hex(state)<<"\",\""<<Hex(Data(output))<<"\"]";return row.str();
@@ -216,6 +230,27 @@ namespace
         material.SetUVControllerForAnalysis(&borrowed);
         Check(!material.Clone(),"unknown nonempty controller clone is rejected, not shallow-aliased");
     }
+    void InspectedReferences()
+    {
+        Bytes bytes;Field(bytes,3,2u);Field(bytes,4,spStdLayer::ClassID);
+        for(const auto field:{6,10,11,12})
+        {Field(bytes,static_cast<std::uint8_t>(field),std::array<std::uint32_t,2>{7,0});Field(bytes,static_cast<std::uint8_t>(field),0u);}
+        bytes.push_back(0);spMemoryStream input;Open(input,bytes);spDXMaterial partial;
+        spMaterialSerializer::InspectionForAnalysis observation;std::string error;
+        if(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(bytes.size()),partial,observation,&error))throw std::runtime_error(error);
+        const auto* pass=dynamic_cast<spMaterialPassLayer*>(partial.GetPassForAnalysis(0));
+        Check(pass&&pass->GetLayerCountForAnalysis()==1,"reference inspector retains real inline pass/layer");
+        const auto* holder=pass->GetLayerForAnalysis(0)->GetMaterialTextureForAnalysis().get();const auto& seen=observation.layers.at(holder);
+        Check(observation.colorController&&observation.colorController->id==7,"null color controller preserves observed previous assignment");
+        Check(seen.references[0]&&seen.references[0]->id==0&&seen.references[0]->size==4,"null fallback texture clears observed assignment");
+        Check(seen.references[1]&&seen.references[1]->id==7&&seen.references[2]&&seen.references[2]->id==7,"null animation/UV controllers preserve observed previous assignment");
+        Check(!partial.GetMaterialColorControllerForAnalysis()&&!holder->GetFallBackTextureForAnalysis()
+            &&!holder->GetAnimTextureControllerForAnalysis()&&!holder->GetUVControllerForAnalysis(),"inspection creates no substitute referenced resource objects");
+        Check(!partial.HasInitializedSpecularPowerForAnalysis()&&!observation.color,"inspection does not initialize original unspecified DX power");
+        // Host bounds reject inconsistent inline length before moving the stream.
+        Bytes bad;Field(bad,6,std::array<std::uint32_t,2>{7,32});bad.push_back(0);Open(input,bad);
+        spDXMaterial invalid;Check(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(bad.size()),invalid,observation,&error),"inspection rejects truncated inline body");
+    }
     void FailuresAndOwners()
     {
         for(int mode=0;mode<7;++mode)
@@ -262,7 +297,7 @@ int main(int argc,char** argv)
         for(const auto* mode:{"default","states","repeat","legacy","uv","uv-zero","uv-repeat"})(void)Layer(mode);
         for(const auto* mode:{"inline","repeat","clear","prebound"})(void)Graph(mode);
         for(const auto* mode:{"inline","repeat","two-layers","null-after","orphan"})(void)TextureGraph(mode);
-        DXIdentityAndCopy();TextureFallbackOwners();FailuresAndOwners();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC material codecs, actual DX identity, owners and safe bounds\n";return 0;
+        DXIdentityAndCopy();TextureFallbackOwners();InspectedReferences();FailuresAndOwners();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC material codecs, actual DX identity, owners and safe bounds\n";return 0;
     }
     catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }
