@@ -60,3 +60,11 @@ UV386/Color118/MaterialColor225/FullLoader213 прошли.5 выборочны�
 Медиана узкого повторного чтения10 материалов:5,8782→1,4136ms;
 managed allocations-17,16%, без заявления общего ускорения Viewer.
 Досье: `docs/research/tool-material-inspection-shared-core-2026-09-09.md`.
+
+Блок7: общий каталог Model/Skin references, скалярные материал-потребители,
+active mesh и shared-instance metadata.5 SMO:37284/36389/9343/1888/1608;
+3 consumer builds проверены. Native DLL неизменна, original/source suites
+не повторялись. Alfea02:83 общих mesh с разными material IDs у потребителей,
+5 NULL; Icy9 и BloomX4 nonlocal material links. Texture binding и фактическое
+применение материала отдельного экземпляра продолжаются следующим блоком.
+Досье: `docs/research/tool-renderable-references-shared-core-2026-09-09.md`.

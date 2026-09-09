@@ -1,0 +1,196 @@
+{
+  "kind": "tools-core-renderable-references-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T07:54:45.768868+00:00",
+  "base_commit": "3f2a09874397f2181130a79b482c7e31e25a4ead",
+  "viewer_commit": "8fe196a454ea262ff681605c94bdb0410d2a821e",
+  "cycle_block": 7,
+  "previous_cycle_blocks": 17,
+  "sources": [
+    {
+      "path": "docs/research/tool-renderable-references-shared-core-2026-09-09.md",
+      "sha256": "8EADEA4101C4A5AA8E06E692E771348F7396E8E8098AD43F00FF49D55A1A5480"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "B295D084C0D008BB9BDF3030862F3C2CFE03CE44AAD1880FFC444F0BC214AA61"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "3C67CA4599C92D2B660FBD383C820FFDCA5EF298B1F51EAB16DB20EF442AA452"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "EF2F99C26A25DFC6BF95771E3E68218C4D6C811A1ECB15E82255B5D2B3D7E142",
+      "git_blob_sha256": "976258F7BC1C3F8D832139464D6B4BE5082527381F79862B8BB357FF2883B73F"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoActiveVisualResourceResolver.cs",
+      "sha256": "EF77786AD04DC88F00C882125F795BD2C6B2285683E6EB726062ED9DBEFED4B5",
+      "git_blob_sha256": "4193D66F0AE38D19D0FE88B3615A4E657EFA6E1B68D654423B97365C6F7429DA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMaterialColorResolver.cs",
+      "sha256": "8139D0C0F8EA6310306D3B95562F7FC2DECF38F8655AD154CFAB59D1E1AFBCD1",
+      "git_blob_sha256": "5FF9CB861196D1DA9FC8BE267DB9E478390E6B838024A680AB7DB25F7059A349"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMaterialRenderState.cs",
+      "sha256": "C52C06524E9CA948DAD6228D8BC9CDC81CDCDA8055A7D9594AB7D980C53FF02E",
+      "git_blob_sha256": "F7747032880347DEF765ADBE602DEB768568A084B911879E242C63F3828D5857"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoRenderableCatalog.cs",
+      "sha256": "7BC10A7BE3C58B1FFA2081B2F14CA5E8071EF04C517F59BFC876E3748363AF2B",
+      "git_blob_sha256": "647E61A059D8C8B55CD6BD1AD2CB226A95495A2D35E09BC55303B91C55CDBBFB"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSharedMeshInstanceResolver.cs",
+      "sha256": "5E46EF507FCE03307C8D2B9E1CB4E638553C513ECB5B453F618428B820C0365B",
+      "git_blob_sha256": "32120F9C45B097970B2B32925484B12C8C0BAA1078A3866FF776D14A0775467C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "E340BB7BFB990ED4B5CA8E57A1DEAD8CFCCCFFB521666B8AD144F03FFA601C1E",
+      "git_blob_sha256": "B65514CC69A3530BB3888950A2F33EAFF9714E62125251325579452ADE1030A8"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "sha256": "B242648072F03B6596D31BA9835F7C8C3F2BF41F019318C63C5631375A8D08DA",
+      "git_blob_sha256": "17C565A031E9DF78C0DA5587ADC2F4EE60E3F5AF55886D9C29FF37F2DDFC2A5D"
+    }
+  ],
+  "native_dll_sha256": "C2D9D3E3329547FAEDC18D6B4F4527DD98E9E265A09AB4FAF6341D5108A6C3C3",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C2D9D3E3329547FAEDC18D6B4F4527DD98E9E265A09AB4FAF6341D5108A6C3C3"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C2D9D3E3329547FAEDC18D6B4F4527DD98E9E265A09AB4FAF6341D5108A6C3C3"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "C2D9D3E3329547FAEDC18D6B4F4527DD98E9E265A09AB4FAF6341D5108A6C3C3"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/bloom-x.log",
+      "sha256": "5DB3CEAE44422195538B224EDB5CDF6140252D96F4AF3AF1881B0DF41516A497"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/catalog-diagnostic-provenance.json",
+      "sha256": "52A0D03FAE603B22548DFE7420D1B58A1098E61789ACDF2DF77929FDACCDBA69"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/catalog-diagnostic.json",
+      "sha256": "3957C6BCA7F27B92257D1B1E60617F985E02669CEF1EBE09BF9B159D74943188"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/diagnostic-Program.cs.txt",
+      "sha256": "12D682D1D6C3DD28F6CA3839FD628B763DCEDA2BD70E6517EEF49FB5316BE1EF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/icy.log",
+      "sha256": "9A351443C45E057AE3E706E0C067D61D15EDFD31A7E453CFE703F7FBA1D2E688"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/managed-samples-final.json",
+      "sha256": "0799E5DE6E31CA8CC5E61DB65B52B03C2F6CDF4B100A05C590BC0177C0A46280"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-menu.log",
+      "sha256": "870D59457DD45ECDABEC10244A0F55428FBF59A8E0CD5D9D93BBA4245E6502AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-pristine-alfea01.log",
+      "sha256": "9FBC437F26B965678DBAA80FB0DE096B38C1B3629783E1418A9D98FB6B119AF7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-pristine-alfea02.log",
+      "sha256": "76F89ED7740076D7F9B5B7A733346F230E8DCDBB73F25D8C8B88811A2B52D92F"
+    }
+  ],
+  "checks": {
+    "CSharp_samples": [
+      {
+        "name": "pc-pristine-alfea01",
+        "path": "local-data/pc-pristine/Media/Levels/Alfea/Alfea01.smo",
+        "reason": "level explicit Model material/mesh references",
+        "bytes": 5945520,
+        "sha256": "629232691534A2730E97E63A4B2A2B5D26962D9AF5B4DCEBE98D1D945D94A514",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-pristine-alfea01.log",
+        "result": [
+          "PASS: 37284 assertions"
+        ]
+      },
+      {
+        "name": "pc-pristine-alfea02",
+        "path": "local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+        "reason": "shared mesh instances with distinct material IDs",
+        "bytes": 7106313,
+        "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-pristine-alfea02.log",
+        "result": [
+          "PASS: 36389 assertions"
+        ]
+      },
+      {
+        "name": "pc-menu",
+        "path": "local-data/pc-pristine/Media/Menus/igmenu_opt_pc.smo",
+        "reason": "PC menu Model resources",
+        "bytes": 4079540,
+        "sha256": "D6ED2606BFCA4C4EED41F59869D1EC1C20DFAFE7A3BFD8E7FEC6C5F109052F0E",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/pc-menu.log",
+        "result": [
+          "PASS: 9343 assertions"
+        ]
+      },
+      {
+        "name": "bloom-x",
+        "path": "local-data/pc-pristine/Media/Characters/BloomX/bloomx.smo",
+        "reason": "shared and animated material reference metadata",
+        "bytes": 591685,
+        "sha256": "49E2C2D22FAE3211C20D9A3767EBB43934048507606ABD0C32B16B093823C012",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/bloom-x.log",
+        "result": [
+          "PASS: 1888 assertions"
+        ]
+      },
+      {
+        "name": "icy",
+        "path": "local-data/pc-pristine/Media/Characters/Icy/Icy.smo",
+        "reason": "Skin nonlocal material references",
+        "bytes": 509977,
+        "sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+        "exit_code": 0,
+        "log": "local-data/results/tools-core-cycle-20260909-1900/renderable-references/icy.log",
+        "result": [
+          "PASS: 1608 assertions"
+        ]
+      }
+    ],
+    "Viewer_Importer_LevelCoreTests_build": "0 warnings, 0 errors",
+    "native_suites": "Not rerun: native implementation/DLL unchanged from block6",
+    "original_probes": "Not rerun: Model/Material/Skin reader evidence remains blocks2/3",
+    "pristine_diagnostic_files": 3,
+    "alfea02_renderables": 1008,
+    "alfea02_meshes_with_distinct_material_ids": 83,
+    "alfea02_null_materials": 5
+  },
+  "limits": [
+    "Catalog metadata only; no runtime fallback material selection or whole-scene load",
+    "Physical storage owner only selects the compatibility view of a stored mesh; per-renderable occurrences remain separate",
+    "Shared-instance metadata material identity corrected, but SceneBuilder material application remains for the next block",
+    "Texture binding and placement association policy still contain legacy behavior",
+    "No full corpus, new original execution, PS2 execution, GPU integration or release"
+  ]
+}

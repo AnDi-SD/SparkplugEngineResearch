@@ -94,3 +94,14 @@ C++ Material554/FullLoader213,3 consumer builds и5 SMO прошли. Узкий
 повторных чтений:5,88→1,41ms, allocations-17%; это не общий FPS/load time.
 Выбор материала по физическим соседям остаётся следующей задачей.
 Досье: `docs/research/tool-material-inspection-shared-core-2026-09-09.md`.
+
+### Блок7: каталог настоящих Model/Skin resource links
+
+Color/state views и shared-instance metadata используют реальные ссылки,
+удалены подбор по соседству и ручной field0 scan активного меша. Каталог хранит
+отдельные renderable occurrences; SceneBuilder получает общие Skin DTO/ошибки.
+5 SMO:37284/36389/9343/1888/1608 assertions;3 consumer builds проверены.
+В Alfea02 обнаружены83 общих mesh с разными material IDs у экземпляров и5 NULL
+materials. Texture binding и применение instance material остаются далее.
+Native/оригинал повторно не запускались: их код не менялся.
+Досье: `docs/research/tool-renderable-references-shared-core-2026-09-09.md`.
