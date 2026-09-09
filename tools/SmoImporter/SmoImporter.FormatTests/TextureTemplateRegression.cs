@@ -16,7 +16,8 @@ internal static class TextureTemplateRegression
         if (probe) args = args.Skip(1).ToArray();
         if (args.Length is < 2 or > 7) throw new ArgumentException("OUTPUT SMO [up to6 specimens]");
         string output = Path.GetFullPath(args[0]); Directory.CreateDirectory(output);
-        var watch = Stopwatch.StartNew(); var rows = new List<object>(); int checks = 0, failures = 0;
+        var watch = Stopwatch.StartNew(); var rows = new List<object>(); int checks = 0, failures = 0, destinationGuards = 0;
+        SmoDocument? pcGuardSource = null;
         var imports = new List<(ImportedTexture Texture,byte[] Pixels)>();
         foreach (var size in new[] {(8,8),(17,9)})
         {
@@ -29,6 +30,16 @@ internal static class TextureTemplateRegression
         {
             byte[] source = File.ReadAllBytes(path); var doc = SmoDocument.ParseOwned(source);
             if (doc.HasErrors) throw new InvalidDataException("Invalid source catalog");
+            if ((doc.Header.PlatformMask & 2) == 0)
+            {
+                int rejected = VerifyNonPcDestination(doc, imports[0].Texture);
+                destinationGuards += rejected;
+                rows.Add(new { source = Path.GetFullPath(path), sourceSha256 = Hash(source),
+                    operation = "non-PC destination rejected before texture serialization", passed = true, checks = rejected });
+                if (!File.ReadAllBytes(path).AsSpan().SequenceEqual(source)) throw new InvalidDataException("Source was changed");
+                continue;
+            }
+            pcGuardSource ??= doc;
             var entries = doc.Objects.Where(e => e.TypeHash == SmoClassIds.TextureData)
                 .Where(e => SmoTextureDataDecoder.TryDecode(doc,e,out var d,out _) &&
                     (d.SourceKind == SmoTextureSourceKind.LegacyCrossPlatform || SmoTextureDataWriter.CanReplace(d,out _))).Take(3).ToArray();
@@ -82,7 +93,7 @@ internal static class TextureTemplateRegression
                             else if(writer=="canonical")
                             {
                                 var method=typeof(SmoLevelModelGraphReplacer).GetMethod("BuildCanonicalTextureObject",BindingFlags.NonPublic|BindingFlags.Static)!;
-                                replacement=(byte[])method.Invoke(null,new object[] {imported})!;
+                                replacement=(byte[])method.Invoke(null,new object[] {fixture,imported})!;
                             }
                             else
                             {
@@ -95,7 +106,7 @@ internal static class TextureTemplateRegression
                             bool valid = !after.HasErrors && SmoTextureDataDecoder.TryDecode(after,after.Objects[current.Index],out _,out _);
                             if (!valid) throw new InvalidDataException("Written object no longer decodes");
                             SmoTextureDataDecoder.TryDecode(after,after.Objects[current.Index],out var actual,out _);
-                            var mip = (actual!.CrossPlatform ?? actual.PlatformSpecific)!.MipLevels.Single();
+                            var mip = actual!.SelectedRepresentation!.MipLevels.Single();
                             if (mip.Width!=imported.Width || mip.Height!=imported.Height || !mip.PixelData.Span.SequenceEqual(expected))
                                 throw new InvalidDataException("Wrong dimensions or BGRA pixels");
                             if (actual.SourceKind != SmoTextureSourceKind.Embedded || actual.CrossPlatform is not null ||
@@ -117,8 +128,8 @@ internal static class TextureTemplateRegression
             }
             if(!File.ReadAllBytes(path).AsSpan().SequenceEqual(source))throw new InvalidDataException("Source was changed");
         }
-        int guardChecks=VerifyUnsupportedTemplates(SmoDocument.Load(args[1]),imports[0].Texture);
-        File.WriteAllText(Path.Combine(output,"report.json"),JsonSerializer.Serialize(new {status=failures==0?"passed":"failed",checks,failures,guardChecks,
+        int guardChecks=pcGuardSource is null ? 0 : VerifyUnsupportedTemplates(pcGuardSource,imports[0].Texture);
+        File.WriteAllText(Path.Combine(output,"report.json"),JsonSerializer.Serialize(new {status=failures==0?"passed":"failed",checks,failures,guardChecks,destinationGuards,
             elapsedSeconds=watch.Elapsed.TotalSeconds,peakWorkingSet=Process.GetCurrentProcess().PeakWorkingSet64,rows},new JsonSerializerOptions {WriteIndented=true}));
         if(failures>0 && !probe)throw new InvalidDataException($"{failures}/{checks} texture-template checks failed");
     }
@@ -131,6 +142,29 @@ internal static class TextureTemplateRegression
     }
     private static Exception Unwrap(Exception e)=>e is TargetInvocationException {InnerException:not null} t?t.InnerException!:e;
     private static string Hash(ReadOnlySpan<byte> raw)=>Convert.ToHexString(SHA256.HashData(raw));
+
+    private static int VerifyNonPcDestination(SmoDocument source,ImportedTexture imported)
+    {
+        var entry=source.Objects.First(e=>e.TypeHash==SmoClassIds.TextureData);
+        Action[] operations=
+        [
+            ()=>typeof(SmoLevelModelGraphReplacer).GetMethod("FindTextureTemplate",BindingFlags.NonPublic|BindingFlags.Static)!
+                .Invoke(null,new object[]{source,new Dictionary<uint,uint[]>(),false}),
+            ()=>SmoLevelModelGraphReplacer.BuildTextureObject(source,entry,imported),
+            ()=>typeof(SmoSkinnedBranchSplitBuilder).GetMethod("BuildTextureObject",BindingFlags.NonPublic|BindingFlags.Static)!
+                .Invoke(null,new object[]{source,entry,1u,"guard",imported}),
+            ()=>typeof(SmoLevelModelGraphReplacer).GetMethod("BuildCanonicalTextureObject",BindingFlags.NonPublic|BindingFlags.Static)!
+                .Invoke(null,new object[]{source,imported})
+        ];
+        foreach(var operation in operations)
+        {
+            try { operation(); throw new InvalidDataException("Non-PC destination accepted a new PC texture"); }
+            catch(Exception error) when(Unwrap(error) is NotSupportedException unsupported &&
+                unsupported.Message.StartsWith("TEXTURE_DESTINATION_PLATFORM:",StringComparison.Ordinal)) {}
+        }
+        Console.WriteLine($"PASS non-PC destination mask={source.Header.PlatformMask}: {operations.Length} early guards");
+        return operations.Length;
+    }
 
     private static int VerifyUnsupportedTemplates(SmoDocument source,ImportedTexture imported)
     {
@@ -151,7 +185,15 @@ internal static class TextureTemplateRegression
                 ? Object(Field(0,Join(Field(5,Join(UInt(8),UInt(8),UInt(4),UInt(4),new byte[256])),new byte[]{0})))
                 : Object(Field(3,local));
             var doc=SmoDocument.ParseOwned(SmoLeafObjectReplacer.Replace(source,index,replacement));
-            if(!SmoTextureDataDecoder.TryDecode(doc,doc.Objects[index],out var data,out _) || SmoTextureDataWriter.CanReplace(data,out _))
+            bool decoded=SmoTextureDataDecoder.TryDecode(doc,doc.Objects[index],out var data,out var diagnostic);
+            if(kind=="legacy-invalid-format")
+            {
+                // A bare source field0 is skipped by the actual PC factory;
+                // the old metadata-only decoder did not prove initialization.
+                if(decoded || !diagnostic.StartsWith("TEXTURE_PC_SOURCE_INVALID:",StringComparison.Ordinal))
+                    throw new InvalidDataException("Bare cross source unexpectedly initialized a PC texture");
+            }
+            else if(!decoded || SmoTextureDataWriter.CanReplace(data!,out _))
                 throw new InvalidDataException("Expected structurally decoded but unwritable fixture: "+kind);
             checks++;
             foreach(string writer in new[]{"level","skin-branch"})
@@ -163,7 +205,9 @@ internal static class TextureTemplateRegression
                         .Invoke(null,new object[]{doc,doc.Objects[index],1u,"guard",imported});
                     throw new InvalidDataException("Unsupported template was accepted: "+kind);
                 }
-                catch(Exception error) when(Unwrap(error) is NotSupportedException){checks++;}
+                catch(Exception error) when(Unwrap(error) is NotSupportedException ||
+                    (kind=="legacy-invalid-format" && Unwrap(error) is InvalidDataException invalid &&
+                     invalid.Message.StartsWith("TEXTURE_PC_SOURCE_INVALID:",StringComparison.Ordinal))){checks++;}
             }
         }
         return checks;

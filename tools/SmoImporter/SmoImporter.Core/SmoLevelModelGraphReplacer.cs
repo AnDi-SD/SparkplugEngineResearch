@@ -397,7 +397,7 @@ public static class SmoLevelModelGraphReplacer
                     textureIndex,
                     textureTemplate is null
                         ? BuildCanonicalTextureObject(
-                            replacement.Textures[textureIndex])
+                            document, replacement.Textures[textureIndex])
                         : BuildTextureObject(
                             document,
                             textureTemplate,
@@ -1087,7 +1087,7 @@ public static class SmoLevelModelGraphReplacer
             {
                 _ = textureTemplate is null
                     ? BuildCanonicalTextureObject(
-                        replacement.Textures[textureIndex])
+                        document, replacement.Textures[textureIndex])
                     : BuildTextureObject(
                         document,
                         textureTemplate,
@@ -1449,6 +1449,7 @@ public static class SmoLevelModelGraphReplacer
         IReadOnlyDictionary<uint, uint[]> oldTextureIdsByMaterial,
         bool allowMissing = false)
     {
+        RequirePcTextureDestination(document);
         HashSet<uint> preferred = oldTextureIdsByMaterial.Values
             .SelectMany(ids => ids).ToHashSet();
         foreach (SmoObjectEntry entry in document.Objects
@@ -1457,17 +1458,7 @@ public static class SmoLevelModelGraphReplacer
         {
             if (SmoTextureDataDecoder.TryDecode(
                     document, entry, out SmoTextureDataInfo? data, out _) &&
-                data is
-                {
-                    SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
-                    CrossPlatform.FormatValue: 0 or 1,
-                    CrossPlatform.Kind:
-                        SmoTextureRepresentationKind.CrossPlatformBgra32
-                })
-            {
-                return entry;
-            }
-            if (data is not null && SmoTextureDataWriter.CanReplace(data, out _))
+                SmoTextureDataWriter.CanReplace(data, out _))
             {
                 return entry;
             }
@@ -1478,8 +1469,20 @@ public static class SmoLevelModelGraphReplacer
             "The level has no confirmed BGRA texture template for a new resource.");
     }
 
-    private static byte[] BuildCanonicalTextureObject(ImportedTexture imported)
+    private static void RequirePcTextureDestination(SmoDocument document)
     {
+        // New texture objects use the shared DX writer. A legacy-common or
+        // PS2 container selects another original factory; accepting its raw
+        // metadata does not establish that this new resource initializes.
+        if ((document.Header.PlatformMask & 2) == 0)
+            throw new NotSupportedException(
+                "TEXTURE_DESTINATION_PLATFORM: New PC textures require a PC-compatible destination container. " +
+                "Legacy-common/PS2 container conversion is not implemented.");
+    }
+
+    private static byte[] BuildCanonicalTextureObject(SmoDocument document, ImportedTexture imported)
+    {
+        RequirePcTextureDestination(document);
         if (!SmoTextureSerializationLimits.IsSizeRepresentable(imported.Width, imported.Height))
         {
             throw new InvalidDataException(
@@ -1498,16 +1501,11 @@ public static class SmoLevelModelGraphReplacer
         SmoObjectEntry templateEntry,
         ImportedTexture imported)
     {
+        RequirePcTextureDestination(document);
         if (!SmoTextureDataDecoder.TryDecode(
                 document, templateEntry, out SmoTextureDataInfo? data, out string error))
             throw new InvalidDataException(error);
-        bool legacy = data is
-        {
-            SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
-            CrossPlatform.Kind: SmoTextureRepresentationKind.CrossPlatformBgra32,
-            CrossPlatform.FormatValue: 0 or 1
-        };
-        if (!legacy && !SmoTextureDataWriter.CanReplace(data, out string reason))
+        if (!SmoTextureDataWriter.CanReplace(data, out string reason))
             throw new NotSupportedException(reason);
         if (!SmoTextureSerializationLimits.IsSizeRepresentable(imported.Width, imported.Height))
         {
@@ -1521,12 +1519,6 @@ public static class SmoLevelModelGraphReplacer
                 $"Texture {imported.Name} dimensions do not match its image payload.");
         byte[] pixels = EncodeBgra(image);
 
-        if (legacy)
-        {
-            // A new imported resource uses the native PC wrapper. Copying the
-            // old bare field0 section does not initialize the game's DX reader.
-            return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, pixels);
-        }
         return SmoTextureDataWriter.BuildReplacementObjectBgra(
             document, templateEntry.Index, image.Width, image.Height, pixels);
     }

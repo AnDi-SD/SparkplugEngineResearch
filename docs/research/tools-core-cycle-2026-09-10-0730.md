@@ -123,6 +123,14 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     Native/UI не менялись. Cached1848 `marble` уточнён отдельно: bytes совпадают
     с прочитанным695, обе копии успешно читает общий PC source inspector.
     Остаток1848 — skipped authoring coverage, не недостающий texture loader.
+    Checkpoints: Viewer `2ae9262`, root `9277638`.
+11. [Importer texture destination](tool-importer-texture-destination-2026-09-10.md):
+    прежняя вставка PC texture в legacy-common book больше не проходит по одному
+    лишь metadata decode. Все три creation consumers требуют PC destination,
+    удалены legacy template special cases. До исправления6 book write checks
+    обнаружили неподтверждённый output; после —42 PC checks,9 source guards
+    и4 ранних legacy refusals PASS. Сборка чистая, исходники игры неизменны.
+    Конверсия legacy/PS2 контейнера приостановлена как отдельное предложение.
 
 ## Новые границы и исправления
 
