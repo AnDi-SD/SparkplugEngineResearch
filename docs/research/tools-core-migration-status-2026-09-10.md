@@ -4,7 +4,9 @@
 Text metadata, WinxHairPatcher, уменьшение памяти ResourceGraph, общий
 TextureTool header и исправление временных файлов SanToVmd. Цикл до 07:30 МСК продолжается;
 [его журнал](tools-core-cycle-2026-09-10-0730.md) фиксирует следующие результаты.
-Texture source metadata и подключение material clock пока остаются в работе.
+PC TextureData теперь использует actual source reader; PS2 native metadata
+перенесена отдельно, без заявления готовности PS2 runtime. Legacy source
+оболочки и подключение material clock остаются в работе.
 Material reader TextureTool теперь использует общий snapshot, включая field8
 и constructor defaults; [70+14 адресных checks](tool-texture-material-inspection-2026-09-10.md).
 Первый узкий renderer-срез не подтверждён: выбранный BloomX требует нескольких
@@ -15,11 +17,11 @@ passes, а однопроходный Darcy материал принадлеж�
 
 | Приложение | Проверенные операции ядра | Конкретный остаток или граница проверки |
 | --- | --- | --- |
-| Viewer | Общий SMO graph и SAN; actual Node/Model/Skin/material/texture связи и render slots; spatial, Light, Sphere/Box/OBB; общие Font и Text/TextNode metadata inspectors | Texture header/source формы и material clock ещё в работе; специальные render passes не завершены. Полные Text/TextNode runtime readers и layout не реализованы; metadata inspection их не заменяет. Сохраняются общие границы загрузки и runtime ниже. |
+| Viewer | Общий SMO graph и SAN; actual Node/Model/Skin/material/texture связи и render slots; spatial, Light, Sphere/Box/OBB; общие Font и Text/TextNode metadata inspectors; PC TextureData source dispatch с выбранным представлением и PS2 native metadata | Legacy-common/PS2 source оболочки и material clock ещё в работе; специальные render passes не завершены. Полные Text/TextNode runtime readers и layout не реализованы; metadata inspection их не заменяет. Сохраняются общие границы загрузки и runtime ниже. |
 | Exporter | Поза и parents из actual Node; общая geometry, Model variants и placements в GLB/FBX/OBJ; общий SAN | Полная проекция material passes/layers в целевые форматы ещё не закрыта. Ограничения общего graph loader распространяются на экспорт; новый полный acceptance Exporter в этом цикле не заявлен. |
 | Importer | Actual Model/Material selection; перенос ID по подтверждённому reader trace; общие mesh/texture writers, Material scalar/LTS, Renderable sort/priority, Skin palette с настоящими Node owners; Static matrix writer | FAT/envelope writer остаётся приостановленным предложением. Multipass donor отклоняется как `MATERIAL_IMPORT_SHAPE`; неизвестный DX power мешает полному Material writer. Legacy/orphan/repeated LTS и неоднозначные scalar/palette assignments требуют отдельного определения операции. |
 | LVLcreator | Workspace сохраняет actual support slots; общие scene/mesh/collision/pose операции, reference trace и Static matrix authoring; worker передаёт общий каталог один раз | Собственная сборка контейнера ещё не перенесена. Команды отклоняют повторные slots как `REPEATED_RENDERABLE_AUTHORING`; нужна адресация конкретного слота. Пользовательские отсрочки inverse-world и lossless-форм перечислены ниже. |
-| TextureTool | Общие texture sections, codecs, writers, header reader и material snapshot; legacy/current/default material states проверены, stale reference диагностируется; три PNG до/после идентичны | Source metadata остаётся активным переносом. Покрытие PS2 и старых source форм не объявлено завершённым. Source-less/cached TextureData требует адресного решения. Отдельный полный acceptance TextureTool текущим циклом не подтверждён. |
+| TextureTool | Общие texture sections, codecs, writers, header reader и material snapshot; PC preview использует actual source selection. Проверены три PNG и шесть вариантов замены на одном Bloom_body; stale material reference диагностируется | FAT/envelope остаётся отдельным writer. Legacy-common/PS2 source оболочки и полный PS2 runtime не завершены. Пустой source-less/cached TextureData требует адресного решения. Выбранные acceptance не являются проверкой всего корпуса. |
 | SanToVmd | Общие SMO/SAN graph и native pose sampler; VMD/PMD conversion остаётся кодом целевого формата. Исправлена коллизия временных файлов, два новых и 18 существующих converter tests прошли. Один полный Icy/xiid acceptance: независимый reader подтвердил 51 кадр и 2601 ключ, включая позы | Ограничения входного ResourceGraph сохраняются; один acceptance не является полной проверкой корпуса или визуальным воспроизведением в MMD. |
 | WinxHairPatcher | Операция сигнатурной EXE patch проверена по прежнему original evidence; коллизия backup-имён исправлена, 38 assertions и build прошли | Для проверенной файловой операции нового блокера не найдено. Визуальная проверка всех игровых комбинаций остаётся прежней границей. Patch bytes и файловый IO являются собственной операцией инструмента, а не копией игровой симуляции. |
 
@@ -43,7 +45,7 @@ passes, а однопроходный Darcy материал принадлеж�
 - **Отложено пользователем до LVLcreator:** cached 120/physical 84, редкие
   lossless headers и inverse-world при nonuniform parent. Эти решения не
   отменены переносом отдельных writers.
-- **PC/PS2 Corpus:** восемь старых combined rerun-профилей остановлены guard
+- **PC/PS2 Corpus:** девять старых combined rerun-профилей остановлены guard
   до записи БД. Нужны раздельные operations/evidence; новый PC reader не
   доказывает PS2 equivalence, исторические результаты сохранены.
 
@@ -57,6 +59,8 @@ passes, а однопроходный Darcy материал принадлеж�
 и [Text metadata](tool-text-shared-inspection-2026-09-10.md) также перенесены.
 Они не должны повторно попадать в очередь как отсутствующие операции.
 Полный runtime Text остаётся отдельной незавершённой функцией.
+PC TextureData source и PS2 native-section inspection также не следует
+повторно считать отсутствующими; остающиеся source/runtime границы перечислены выше.
 
 Число **30 из 35** относится только к историческому reader-срезу предыдущего
 цикла. После новых блоков полный пересчёт этого набора здесь не выполнялся;

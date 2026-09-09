@@ -23,9 +23,11 @@ root3d483e0 / Viewer21b43a5. Все ядра пока не готовы.
 
 ## Текущий блок
 
-Font/Text metadata и Static matrix authoring перенесены в общий код.
-Далее — память загрузки и ближайшие реально используемые остатки TextureTool
-и material runtime. Непроверенные реализации не считаются результатом.
+Font/Text metadata, Static matrix authoring и PC TextureData source перенесены
+в общий код; PS2 native metadata подключена отдельно. Сохранение текущего
+texture блока и следующая используемая операция ядра; material runtime
+ограничен пока неподтверждёнными renderer defaults. Непроверенные реализации
+не считаются результатом.
 
 ## Сохранённые ограничения
 
@@ -95,6 +97,24 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    [Manifest](../../local-data/results/tools-core-cycle-20260910-0730/vmd-smoke/manifest.json),
    [отчёт](../../local-data/results/tools-core-cycle-20260910-0730/vmd-smoke/report.json).
    Это один адресный acceptance; визуальное воспроизведение MMD не проверялось.
+8. [PC TextureData source](tool-pc-texture-source-inspection-2026-09-10.md):
+   C# source dispatch заменён наблюдением actual DX reader. Сохраняются
+   порядок, repeated fields, выбранное представление, stored/runtime mips
+   и opaque skipped fields. Новый cache повторно использует только metadata.
+   Native TextureSerialization1219/FullLoader213 PASS; архивный original icebat
+   совпал по5460 mip bytes. Managed58: четыре реальные текстуры и десять
+   synthetic source-форм; Viewer610. TextureTool71 при экспорте3PNG и2052
+   assertions для6замен одного Bloom_body; прежние PNG побайтно совпали.
+   Исправлен новый XRGB preview defect на повторных field5 до checkpoint.
+   Запись неподтверждённых source форм явно закрыта; FAT остаётся предложением.
+9. [PS2 native metadata](tool-ps2-texture-native-inspection-2026-09-10.md):
+   удалён C# native header/palette/mip parser. Общий inspector сохраняет raw
+   flag, descriptors и wire dataSize; нулевой flag не скрывает данные.
+   Native204, real fixture15, managed15 PASS на noisesm из redf03.
+   Mip dimensions помечены неизвестными; PS2 source/runtime/swizzle не закрыты.
+   Исправлено старое ошибочное описание влияния field6 в class dossier.
+   Legacy book остаётся metadata-only: original bool-success без Init
+   не является доказательством созданной текстуры; [граница](tool-legacy-texture-source-boundary-2026-09-10.md).
 
 ## Новые границы и исправления
 
@@ -108,6 +128,11 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   до checkpoint и покрыты адресными проверками.
 - Коллизия backup в WinxHairPatcher исправлена и проверена; новых спорных
   изменений игровой логики этот блок не потребовал.
+- Три новых texture test ожидания исправлены по существующим контрактам:
+  cap одной секции, допустимый нулевой header02 и normalization1→2.
+  Production readers не подгонялись под тесты. Новый PC source observer
+  не закрывает пустой cached TextureData; combined TextureData Corpus profile
+  остановлен девятым guard до записи БД.
 - Попытка подключить animated textures к одному renderer pass выявила
   несовпадение выбранного примера: actual BloomX Material89 имеет три passes.
   [Проверены пять входов](tool-animated-texture-preview-boundary-2026-09-10.md):

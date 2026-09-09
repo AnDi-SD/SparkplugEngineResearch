@@ -127,6 +127,36 @@ namespace sparkplug::reconstruction
         return true;
     }
 
+    bool spDXTextureDataSerializer::InspectPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t byteCount,spDXTexture& texture,
+        spTextureReadInspectionForAnalysis& inspection,std::string* error) const
+    {
+        if(error)error->clear();
+        if(context.textureReadInspectionForAnalysis==&inspection)
+        {if(error)*error="Cannot reuse an active texture inspection";return false;}
+        inspection={};
+        const auto initialDepth=context.depth;
+        if(!stream.GetCurrentPosition(inspection.inputOffset))
+        {if(error)*error="Cannot locate texture inspection input";return false;}
+        inspection.inputSize=byteCount;inspection.inputStream_=&stream;
+        struct Restore final
+        {
+            spSerializerReadContextForAnalysis& context;
+            spTextureReadInspectionForAnalysis* previous;
+            const spStream*& input;
+            ~Restore(){context.textureReadInspectionForAnalysis=previous;input=nullptr;}
+        } restore{context,context.textureReadInspectionForAnalysis,inspection.inputStream_};
+        context.textureReadInspectionForAnalysis=&inspection;
+        const bool read=ReadPayloadForAnalysis(context,stream,byteCount,texture,error);
+        const bool positionKnown=stream.GetCurrentPosition(inspection.finalPosition);
+        inspection.complete=read&&!context.failed&&!inspection.truncated&&positionKnown&&
+            std::uint64_t(inspection.inputOffset)+byteCount==inspection.finalPosition&&context.depth==initialDepth;
+        if(!inspection.complete&&read&&error)
+            *error=inspection.truncated?"Texture inspection observation limit reached":
+                "Texture inspection ended with an incomplete cursor or recursion scope";
+        return inspection.complete;
+    }
+
     bool spDXTextureDataSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& stream,std::uint32_t byteCount,spBaseObject& object,std::string* error) const
     {
@@ -134,26 +164,74 @@ namespace sparkplug::reconstruction
         if(error)error->clear();SectionCursor guard(context,stream,byteCount,false,error);
         auto* texture=dynamic_cast<spDXTexture*>(&object);
         if(!texture||!object.IsExactly(spDXTexture::ClassID))return guard.Fail("DX native data requires actual runtime DXTexture target");
+        auto* const inspection=context.textureReadInspectionForAnalysis;
+        std::uint32_t frameStart=0;
+        if(inspection&&!stream.GetCurrentPosition(frameStart))return guard.Fail("Cannot locate observed DX texture frame");
         bool handled=false;std::uint32_t remaining=0;
         if(!ReadSourceWrapperForAnalysis(context,stream,byteCount,object,remaining,handled,error))return false;
         if(handled)return remaining==0?true:guard.Fail("Trailing bytes after embedded DX source");
         SectionCursor local(context,stream,remaining,true,error);auto platform=context.manager.GetPlatformMaskForAnalysis();bool initialized=false;
         while(const auto* field=local.Next())
         {
-            if(field->IsTerminator())return initialized?true:local.Fail("No restored native DX mip payload");
-            if(field->fieldID==6){if(!local.Read(platform))return local.Fail("Invalid DX platform field");continue;}
+            const auto observed=inspection?inspection->BeginFieldForAnalysis(stream,*field,
+                spTextureReadInspectionForAnalysis::Scope::Derived,frameStart,byteCount,context.depth,platform,handled):
+                spTextureReadInspectionForAnalysis::NoField;
+            const auto finish=[&](spTextureReadInspectionForAnalysis::Outcome outcome)
+            {if(inspection)inspection->FinishFieldForAnalysis(observed,outcome,platform,handled);};
+            if(field->IsTerminator())
+            {finish(spTextureReadInspectionForAnalysis::Outcome::Terminator);return initialized?true:local.Fail("No restored native DX mip payload");}
+            if(field->fieldID==6)
+            {
+                if(!local.Read(platform))return local.Fail("Invalid DX platform field");
+                finish(spTextureReadInspectionForAnalysis::Outcome::Platform);continue;
+            }
             if(field->fieldID==0&&!(platform&PCNativeLoadFlagMask))
             {
+                CrossReadObserverForAnalysis observeCross;
+                if(inspection&&observed!=spTextureReadInspectionForAnalysis::NoField)
+                    observeCross=[&](const spTextureBuffer& buffer,std::uint32_t pixelOffset)
+                    {
+                        spTextureReadInspectionForAnalysis::Representation representation;
+                        representation.kind=spTextureReadInspectionForAnalysis::RepresentationKind::Cross;
+                        representation.fieldIndex=observed;representation.width=buffer.GetWidthForAnalysis();
+                        representation.height=buffer.GetHeightForAnalysis();representation.format=buffer.GetPixelFormatForAnalysis();
+                        representation.auxiliary=buffer.GetPixelSizeForAnalysis();representation.bitsPerPixel=representation.auxiliary*8;
+                        representation.mips.push_back({representation.width,representation.height,representation.width,
+                            representation.width*representation.auxiliary,representation.height,pixelOffset,
+                            static_cast<std::uint32_t>(buffer.GetBufferForAnalysis().size())});
+                        inspection->AddRepresentationForAnalysis(std::move(representation));
+                    };
                 if(!ReadCrossSectionForAnalysis(context,stream,field->payloadSize,[&](const spTextureBuffer& buffer)
                 {
                     return InitializeCrossDXForAnalysis(context,buffer,*texture);
-                },initialized,error))return false;
+                },initialized,error,observeCross))return false;
+                finish(spTextureReadInspectionForAnalysis::Outcome::Cross);
                 continue;
             }
             if(field->fieldID!=1||!(platform&PCNativeLoadFlagMask))
-            {if(!local.Skip())return local.Fail("Cannot skip inactive DX texture field");continue;}
+            {
+                if(!local.Skip())return local.Fail("Cannot skip inactive DX texture field");
+                finish(spTextureReadInspectionForAnalysis::Outcome::Skipped);continue;
+            }
             NativeReadForAnalysis input;
             if(!ReadNativeSectionForAnalysis(context,stream,field->payloadSize,input,error))return false;
+            // Capture only the stored records before generation mutates this
+            // vector. The input pixel buffers remain owned by the normal reader.
+            if(inspection&&observed!=spTextureReadInspectionForAnalysis::NoField)
+            {
+                spTextureReadInspectionForAnalysis::Representation representation;
+                representation.kind=spTextureReadInspectionForAnalysis::RepresentationKind::Native;
+                representation.fieldIndex=observed;representation.width=input.width;representation.height=input.height;
+                representation.format=input.flags;representation.bitsPerPixel=input.flags?(input.flags==1?4u:8u):32u;
+                representation.nativeFlag=input.nativeFlag;representation.field1C=input.field1C;
+                for(std::size_t i=0;i<input.mips.size();++i)
+                {
+                    const auto& mip=input.mips[i];
+                    representation.mips.push_back({mip.width,mip.height,mip.width,mip.rowBytes,mip.rows,
+                        input.pixelOffsets[i],static_cast<std::uint32_t>(mip.packedBytes.size())});
+                }
+                inspection->AddRepresentationForAnalysis(std::move(representation));
+            }
             const auto width=input.width,height=input.height,flags=input.flags;const auto field1C=input.field1C;
             auto& mips=input.mips;
             while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
@@ -173,6 +251,7 @@ namespace sparkplug::reconstruction
             if(!texture->InitializeNativeMipShadowForAnalysis(width,height,flags,field1C,std::move(mips)))
                 return local.Fail("Invalid complete native mip chain");
             initialized=true;
+            finish(spTextureReadInspectionForAnalysis::Outcome::Native);
         }
         return false;
     }

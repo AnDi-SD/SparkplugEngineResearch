@@ -14,6 +14,36 @@
 
 namespace sparkplug::reconstruction
 {
+    std::uint32_t spTextureReadInspectionForAnalysis::BeginFieldForAnalysis(const spStream& stream,
+        const spDataBlockHeaderForAnalysis& header,Scope scope,std::uint32_t frameOffset,std::uint32_t frameSize,
+        std::uint32_t depth,std::uint32_t platform,bool handled)
+    {
+        if(fields.size()>=MaximumFields){truncated=true;return NoField;}
+        Field field;field.scope=scope;field.frameOffset=frameOffset;field.frameSize=frameSize;field.depth=depth;
+        field.fieldID=header.fieldID;field.headerOffset=header.headerStreamPosition;
+        field.payloadOffset=header.dataStreamPosition;field.payloadSize=header.payloadSize;
+        field.platformBefore=field.platformAfter=platform;field.handledBefore=field.handledAfter=handled;
+        field.inputStream=&stream==inputStream_;
+        const auto index=static_cast<std::uint32_t>(fields.size());fields.push_back(field);return index;
+    }
+
+    void spTextureReadInspectionForAnalysis::FinishFieldForAnalysis(std::uint32_t index,Outcome outcome,
+        std::uint32_t platform,bool handled) noexcept
+    {
+        if(index>=fields.size())return;
+        auto& field=fields[index];field.outcome=outcome;field.complete=true;
+        field.platformAfter=platform;field.handledAfter=handled;
+    }
+
+    void spTextureReadInspectionForAnalysis::AddRepresentationForAnalysis(Representation representation)
+    {
+        if(representation.fieldIndex==NoField)return;
+        if(representations.size()>=MaximumRepresentations||representation.mips.size()>MaximumStoredMips-storedMipCount)
+        {truncated=true;return;}
+        storedMipCount+=static_cast<std::uint32_t>(representation.mips.size());
+        representations.push_back(std::move(representation));
+    }
+
     namespace
     {
         std::unique_ptr<spBaseObject> CreateTextureDataSerializer()
@@ -121,8 +151,9 @@ namespace sparkplug::reconstruction
             if(!source.ReadData(bytes.data(),static_cast<std::uint32_t>(size)))return pixelsSection.Fail("Truncated raw pixels");
             spTextureBuffer buffer;
             if(!buffer.InitializeForAnalysis(static_cast<std::uint16_t>(raw.width),static_cast<std::uint16_t>(raw.height),1,raw.format)
-                ||!buffer.SetDataForAnalysis(bytes)||!initialize(buffer))return pixelsSection.Fail("Cannot initialize texture from common pixel buffer");
+                ||!buffer.SetDataForAnalysis(bytes))return pixelsSection.Fail("Cannot initialize texture from common pixel buffer");
             if(observer)observer(buffer,pixelsHeader->dataStreamPosition+sizeof(raw));
+            if(!initialize(buffer))return pixelsSection.Fail("Cannot initialize texture from common pixel buffer");
             initialized=true;
         }
         return terminated;
@@ -134,13 +165,19 @@ namespace sparkplug::reconstruction
         using sparkplug::evidence::pc::serialization::SectionCursor;
         SectionCursor wrapper(context,source,byteCount,false,error);std::uint32_t start=0;handled=false;remaining=0;
         if(!source.GetCurrentPosition(start))return wrapper.Fail("Cannot locate texture source section");
+        auto* const inspection=context.textureReadInspectionForAnalysis;
         while(const auto* header=wrapper.Next())
         {
+            const auto observed=inspection?inspection->BeginFieldForAnalysis(source,*header,
+                spTextureReadInspectionForAnalysis::Scope::SourceWrapper,start,byteCount,context.depth,
+                context.manager.GetPlatformMaskForAnalysis(),handled):spTextureReadInspectionForAnalysis::NoField;
+            const auto finish=[&](spTextureReadInspectionForAnalysis::Outcome outcome)
+            {if(inspection)inspection->FinishFieldForAnalysis(observed,outcome,context.manager.GetPlatformMaskForAnalysis(),handled);};
             if(header->IsTerminator())
             {
                 std::uint32_t position=0;
                 if(!source.GetCurrentPosition(position)||position<start||position-start>byteCount)return wrapper.Fail("Invalid texture source extent");
-                remaining=byteCount-(position-start);return true;
+                remaining=byteCount-(position-start);finish(spTextureReadInspectionForAnalysis::Outcome::Terminator);return true;
             }
             if(header->fieldID==4)
             {
@@ -175,20 +212,22 @@ namespace sparkplug::reconstruction
                     ||size-origin-position>16u*1024u*1024u)return wrapper.Fail("Invalid external texture stream extent");
                 struct DepthGuard{spSerializerReadContextForAnalysis& context;explicit DepthGuard(spSerializerReadContextForAnalysis& c):context(c){++context.depth;}~DepthGuard(){--context.depth;}} depth(context);
                 if(!ReadPayloadForAnalysis(context,*external,size-origin-position,object,error))return false;
-                handled=true;
+                handled=true;finish(spTextureReadInspectionForAnalysis::Outcome::ExternalSource);
             }
             else if(header->fieldID==3)
             {
                 if(context.depth>=64)return wrapper.Fail("Embedded texture recursion limit");
                 struct DepthGuard{spSerializerReadContextForAnalysis& context;explicit DepthGuard(spSerializerReadContextForAnalysis& c):context(c){++context.depth;}~DepthGuard(){--context.depth;}} depth(context);
                 const bool ok=ReadPayloadForAnalysis(context,source,header->payloadSize,object,error);
-                if(!ok)return false;handled=true;
+                if(!ok)return false;handled=true;finish(spTextureReadInspectionForAnalysis::Outcome::EmbeddedSource);
             }
             else
             {
                 if(!wrapper.Skip())return wrapper.Fail("Cannot skip texture source field");
                 // Actual42EC44 skips SourceNone payload, then resets handled.
                 if(header->fieldID==2)handled=false;
+                finish(header->fieldID==2?spTextureReadInspectionForAnalysis::Outcome::SourceNone:
+                    spTextureReadInspectionForAnalysis::Outcome::Skipped);
             }
         }
         return false;

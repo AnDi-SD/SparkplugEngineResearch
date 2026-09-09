@@ -16,6 +16,53 @@ namespace sparkplug::reconstruction
     class spTextureBuffer;
     class spDXTexture;
 
+    // HOST observations of the existing reader, not a second texture parser.
+    // Offsets retain their source-stream coordinate system. inputStream=false
+    // explicitly prevents an external stream's offsets becoming input slices.
+    struct spTextureReadInspectionForAnalysis final
+    {
+        enum class Scope : std::uint32_t { SourceWrapper, Derived };
+        enum class Outcome : std::uint32_t
+        { Pending, Skipped, SourceNone, EmbeddedSource, ExternalSource, Platform, Cross, Native, Terminator };
+        enum class RepresentationKind : std::uint32_t { Cross, Native };
+        static constexpr std::uint32_t MaximumFields=65536,MaximumRepresentations=4096,MaximumStoredMips=65536;
+        static constexpr std::uint32_t NoField=0xffffffffu;
+        struct Field final
+        {
+            Scope scope=Scope::SourceWrapper;
+            Outcome outcome=Outcome::Pending;
+            std::uint32_t frameOffset=0,frameSize=0,depth=0,fieldID=0;
+            std::uint32_t headerOffset=0,payloadOffset=0,payloadSize=0;
+            std::uint32_t platformBefore=0,platformAfter=0;
+            bool inputStream=false,complete=false,handledBefore=false,handledAfter=false;
+        };
+        struct StoredMip final
+        {
+            std::uint32_t width=0,height=0,descriptor0=0,descriptor1=0,descriptor2=0;
+            std::uint32_t pixelOffset=0,pixelSize=0;
+        };
+        struct Representation final
+        {
+            RepresentationKind kind=RepresentationKind::Cross;
+            std::uint32_t fieldIndex=NoField,width=0,height=0,format=0,auxiliary=0,bitsPerPixel=0;
+            std::uint8_t nativeFlag=0,field1C=0;
+            std::vector<StoredMip> mips; // Source metadata only; no copied pixel buffers.
+        };
+        std::vector<Field> fields;
+        std::vector<Representation> representations;
+        std::uint32_t inputOffset=0,inputSize=0,finalPosition=0,storedMipCount=0;
+        bool complete=false,truncated=false;
+
+        [[nodiscard]] std::uint32_t BeginFieldForAnalysis(const spStream&,
+            const spDataBlockHeaderForAnalysis&,Scope,std::uint32_t frameOffset,std::uint32_t frameSize,
+            std::uint32_t depth,std::uint32_t platform,bool handled);
+        void FinishFieldForAnalysis(std::uint32_t index,Outcome,std::uint32_t platform,bool handled) noexcept;
+        void AddRepresentationForAnalysis(Representation);
+    private:
+        friend class spDXTextureDataSerializer;
+        const spStream* inputStream_=nullptr; // Borrowed only during InspectPayloadForAnalysis.
+    };
+
     class spTextureDataSerializer : public spSerializer
     {
     public:
@@ -87,7 +134,8 @@ namespace sparkplug::reconstruction
             BuildCrossPlatformPayloadHeaderForAnalysis(
                 const spTextureData& textureData) noexcept;
         // Same field5 reader for explicit inspection. Observation is the input
-        // pixel offset after the actual four-word header; no runtime state.
+        // pixel offset after actual buffer initialization/data copy and before
+        // the destination initializer can resample or generate runtime mips.
         using CrossReadObserverForAnalysis=std::function<void(const spTextureBuffer&,std::uint32_t pixelOffset)>;
         [[nodiscard]] static bool ReadCrossSectionForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
             std::uint32_t,const std::function<bool(const spTextureBuffer&)>& initialize,bool& initialized,std::string*,

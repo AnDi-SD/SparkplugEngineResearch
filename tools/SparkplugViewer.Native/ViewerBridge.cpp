@@ -51,6 +51,7 @@
 #include "Code/Sparkplug/spCollisionInfoSerializer.h"
 #include "Code/Sparkplug/spCollisionInfo.h"
 #include "Code/Sparkplug/spDXTextureDataSerializer.h"
+#include "Code/Sparkplug/spPS2TextureDataSerializer.h"
 #include "Code/Sparkplug/spTextureBuffer.h"
 #include "Code/wxFaceData.h"
 #include "Analysis/PC/spAnimationMath.h"
@@ -70,6 +71,12 @@ using Cache = spTransformTrackEval::KeyCacheForAnalysis;
 std::mutex gate; // reconstructed RTTI/singletons are not a concurrent host API
 thread_local char lastError[2048]{};
 void require(bool value, const char* message) { if(!value) throw std::runtime_error(message); }
+void projectXrgb(const std::byte* input,std::uint8_t* output,std::size_t count) {
+    for(std::size_t i=0;i<count;i+=4) {
+        const auto color=sparkplug::evidence::pc::texture_mips::DecodeRawPixel(input+i,1);
+        for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
+    }
+}
 SpvMaterialReference referenceForView(const std::optional<sparkplug::evidence::pc::serialization::InspectedReference>& value) {
     return value?SpvMaterialReference{value->offset,value->size}:SpvMaterialReference{};
 }
@@ -183,6 +190,72 @@ struct TextureSectionView {
         }
     }
 };
+struct TextureSourceView {
+    SpvTextureSourceInfo info{};
+    std::vector<SpvTextureSourceField> fields;
+    std::vector<SpvTextureSourceRepresentation> representations;
+    std::vector<SpvTextureMip> mips;
+    TextureSourceView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t platformMask) {
+        require(bytes&&size&&size<=16u*1024u*1024u&&(platformMask&spSerializerManager::PlatformPC),"Invalid bounded PC texture source");
+        BorrowedInput input(bytes,size);spSerializerManager manager;spResourceManager resources;
+        manager.SetDispatchContextForAnalysis(platformMask,1);
+        spSerializerReadContextForAnalysis context(manager,resources);spDXTexture texture;
+        spTextureReadInspectionForAnalysis observed;std::string error;
+        if(!spDXTextureDataSerializer{}.InspectPayloadForAnalysis(context,input,size,texture,observed,&error))
+            throw std::runtime_error(error);
+        require(observed.complete&&!observed.truncated&&observed.finalPosition==size,"Incomplete PC texture source inspection");
+        for(const auto& field:observed.fields) {
+            require(field.inputStream&&field.complete,"Texture source observation is not a completed input field");
+            require(std::uint64_t(field.payloadOffset)+field.payloadSize<=size,"Observed texture field is outside its input");
+            fields.push_back({static_cast<std::uint32_t>(field.scope),static_cast<std::uint32_t>(field.outcome),
+                field.frameOffset,field.frameSize,field.depth,field.fieldID,field.headerOffset,field.payloadOffset,field.payloadSize,
+                field.platformBefore,field.platformAfter,field.inputStream,field.complete,field.handledBefore,field.handledAfter});
+        }
+        for(const auto& representation:observed.representations) {
+            require(representation.fieldIndex<fields.size(),"Texture representation has no observed source field");
+            const auto& field=fields[representation.fieldIndex];
+            representations.push_back({static_cast<std::uint32_t>(representation.kind),representation.fieldIndex,
+                representation.width,representation.height,representation.format,representation.auxiliary,
+                representation.bitsPerPixel,representation.nativeFlag,representation.field1C,
+                static_cast<std::uint32_t>(mips.size()),static_cast<std::uint32_t>(representation.mips.size())});
+            for(const auto& mip:representation.mips) {
+                require(mip.pixelOffset>=field.payloadOffset&&std::uint64_t(mip.pixelOffset)+mip.pixelSize<=
+                    std::uint64_t(field.payloadOffset)+field.payloadSize,"Stored mip is outside its observed source field");
+                mips.push_back({mip.width,mip.height,mip.descriptor0,mip.descriptor1,mip.descriptor2,mip.pixelOffset,mip.pixelSize});
+            }
+        }
+        info={static_cast<std::uint32_t>(fields.size()),static_cast<std::uint32_t>(representations.size()),
+            static_cast<std::uint32_t>(mips.size()),observed.finalPosition,texture.GetWidthForAnalysis(),
+            texture.GetHeightForAnalysis(),static_cast<std::uint32_t>(texture.GetMipsForAnalysis().size())};
+    }
+};
+static_assert(sizeof(SpvTextureSourceInfo)==28&&sizeof(SpvTextureSourceField)==60&&sizeof(SpvTextureSourceRepresentation)==44);
+struct Ps2TextureView {
+    SpvPs2TextureInfo info{};
+    std::vector<SpvPs2TextureField> fields;
+    std::vector<SpvPs2TextureImage> images;
+    std::vector<SpvPs2TextureMip> mips;
+    Ps2TextureView(const std::uint8_t* bytes,std::uint32_t size) {
+        require(bytes&&size&&size<=16u*1024u*1024u,"Invalid bounded PS2 texture section");
+        BorrowedInput input(bytes,size);spPS2TextureDataSerializer::NativeSectionInspectionForAnalysis observed;std::string error;
+        if(!spPS2TextureDataSerializer::InspectNativeSectionForAnalysis(input,size,observed,&error))throw std::runtime_error(error);
+        require(observed.complete&&observed.finalPosition==size,"Incomplete PS2 texture metadata inspection");
+        for(const auto& field:observed.fields) {
+            require(field.complete,"Incomplete PS2 texture field observation");
+            fields.push_back({field.fieldID,field.headerOffset,field.payloadOffset,field.payloadSize,field.imageIndex,field.terminator});
+        }
+        for(const auto& image:observed.images) {
+            require(image.complete,"Incomplete PS2 texture image observation");
+            images.push_back({image.fieldIndex,image.nativeFlag,image.pixelFormat,image.width,image.height,image.auxiliaryValue,
+                image.paletteOffset,image.paletteByteCount,static_cast<std::uint32_t>(mips.size()),static_cast<std::uint32_t>(image.mips.size())});
+            for(const auto& mip:image.mips)
+                mips.push_back({mip.descriptor0,mip.descriptor1,mip.descriptor2,mip.dataSize,mip.descriptorOffset,mip.dataOffset});
+        }
+        info={static_cast<std::uint32_t>(fields.size()),static_cast<std::uint32_t>(images.size()),
+            static_cast<std::uint32_t>(mips.size()),observed.finalPosition};
+    }
+};
+static_assert(sizeof(SpvPs2TextureInfo)==16&&sizeof(SpvPs2TextureField)==24&&sizeof(SpvPs2TextureImage)==40&&sizeof(SpvPs2TextureMip)==24);
 struct MaterialView {
     SpvMaterialInfo info{};
     std::vector<SpvMaterialLayer> layers;
@@ -448,6 +521,48 @@ SPV_API int spv_mesh_bounds(const std::uint8_t* bytes,std::uint32_t size,float* 
         std::copy(bounds.minimum.begin(),bounds.minimum.end(),output);std::copy(bounds.maximum.begin(),bounds.maximum.end(),output+3);
     });
 }
+SPV_API void* spv_texture_source_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t platformMask) noexcept {
+    std::unique_ptr<TextureSourceView> result;
+    if(!guarded([&]{result=std::make_unique<TextureSourceView>(bytes,size,platformMask);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_texture_source_destroy(void* handle) noexcept {guarded([&]{delete static_cast<TextureSourceView*>(handle);});}
+SPV_API int spv_texture_source_info(void* handle,SpvTextureSourceInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing texture source info");*output=static_cast<TextureSourceView*>(handle)->info;});
+}
+SPV_API int spv_texture_source_fields(void* handle,SpvTextureSourceField* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing texture source handle");const auto& data=static_cast<TextureSourceView*>(handle)->fields;
+        require(count==data.size()&&(output||!count),"Texture source field count differs");std::copy(data.begin(),data.end(),output);});
+}
+SPV_API int spv_texture_source_representations(void* handle,SpvTextureSourceRepresentation* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing texture source handle");const auto& data=static_cast<TextureSourceView*>(handle)->representations;
+        require(count==data.size()&&(output||!count),"Texture source representation count differs");std::copy(data.begin(),data.end(),output);});
+}
+SPV_API int spv_texture_source_mips(void* handle,SpvTextureMip* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing texture source handle");const auto& data=static_cast<TextureSourceView*>(handle)->mips;
+        require(count==data.size()&&(output||!count),"Texture source mip count differs");std::copy(data.begin(),data.end(),output);});
+}
+SPV_API void* spv_ps2_texture_inspect(const std::uint8_t* bytes,std::uint32_t size) noexcept {
+    std::unique_ptr<Ps2TextureView> result;
+    if(!guarded([&]{result=std::make_unique<Ps2TextureView>(bytes,size);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_ps2_texture_destroy(void* handle) noexcept {guarded([&]{delete static_cast<Ps2TextureView*>(handle);});}
+SPV_API int spv_ps2_texture_info(void* handle,SpvPs2TextureInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing PS2 texture info");*output=static_cast<Ps2TextureView*>(handle)->info;});
+}
+SPV_API int spv_ps2_texture_fields(void* handle,SpvPs2TextureField* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing PS2 texture handle");const auto& data=static_cast<Ps2TextureView*>(handle)->fields;
+        require(count==data.size()&&(output||!count),"PS2 texture field count differs");std::copy(data.begin(),data.end(),output);});
+}
+SPV_API int spv_ps2_texture_images(void* handle,SpvPs2TextureImage* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing PS2 texture handle");const auto& data=static_cast<Ps2TextureView*>(handle)->images;
+        require(count==data.size()&&(output||!count),"PS2 texture image count differs");std::copy(data.begin(),data.end(),output);});
+}
+SPV_API int spv_ps2_texture_mips(void* handle,SpvPs2TextureMip* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing PS2 texture handle");const auto& data=static_cast<Ps2TextureView*>(handle)->mips;
+        require(count==data.size()&&(output||!count),"PS2 texture mip count differs");std::copy(data.begin(),data.end(),output);});
+}
 SPV_API void* spv_texture_section_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) noexcept {
     std::unique_ptr<TextureSectionView> result;
     if(!guarded([&]{result=std::make_unique<TextureSectionView>(bytes,size,kind);}))return nullptr;
@@ -464,11 +579,12 @@ SPV_API int spv_texture_section_mips(void* handle,SpvTextureMip* output,std::uin
 SPV_API int spv_texture_section_bgra(void* handle,std::uint8_t* output,std::uint32_t count) noexcept {
     return guarded([&]{require(handle&&output,"Missing texture preview input/output");const auto& view=*static_cast<TextureSectionView*>(handle);
         require(view.info.kind==0&&view.info.format==1&&count==view.xrgb.size(),"This projection requires stored XRGB pixels");
-        for(std::size_t i=0;i<view.xrgb.size();i+=4) {
-            const auto color=sparkplug::evidence::pc::texture_mips::DecodeRawPixel(view.xrgb.data()+i,1);
-            for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
-        }
+        projectXrgb(view.xrgb.data(),output,view.xrgb.size());
     });
+}
+SPV_API int spv_texture_xrgb_bgra(const std::uint8_t* input,std::uint32_t count,std::uint8_t* output,std::uint32_t outputCount) noexcept {
+    return guarded([&]{require(input&&output&&count&&count%4==0&&count<=16u*1024u*1024u&&outputCount==count,"Invalid bounded XRGB projection");
+        projectXrgb(reinterpret_cast<const std::byte*>(input),output,count);});
 }
 SPV_API int spv_texture_section_field1c(void* handle,std::uint32_t* output) noexcept {
     return guarded([&]{require(handle&&output,"Missing texture field1C input/output");*output=static_cast<TextureSectionView*>(handle)->field1C;});
@@ -908,10 +1024,7 @@ SPV_API int spv_graph_texture_bgra(void* handle,std::uint32_t id,std::uint8_t* o
         require(count<=16u*1024u*1024u&&count==std::uint64_t(mip.width)*mip.height*4&&output,"Runtime texture output size mismatch");
         require(mip.rowBytes==mip.width*4&&mip.rows==mip.height&&mip.packedBytes.size()==count,"Runtime BGRA mip layout mismatch");
         if(format==3)std::memcpy(output,mip.packedBytes.data(),count);
-        else for(std::uint32_t i=0;i<count;i+=4) {
-            const auto color=sparkplug::evidence::pc::texture_mips::DecodeRawPixel(mip.packedBytes.data()+i,1);
-            for(unsigned c=0;c<4;++c)output[i+c]=static_cast<std::uint8_t>(sparkplug::evidence::pc::texture_mips::EncodeRawChannel(color[c],255,.5));
-        }});
+        else projectXrgb(mip.packedBytes.data(),output,count);});
 }
 SPV_API int spv_graph_texture_track(void* handle,std::uint32_t id,std::uint32_t* keys,float* duration) noexcept {
     return guarded([&]{require(keys&&duration,"Missing texture track output");

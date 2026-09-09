@@ -1,0 +1,285 @@
+{
+  "kind": "tools-core-ps2-texture-native-inspection-block",
+  "status": "native-and-managed-metadata-inspection-verified",
+  "created_utc": "2026-09-09T22:38:34.267188+00:00",
+  "scope": "Shared bounded PS2 native-section serialized metadata only; not a reconstructed successful PS2 runtime/GPU load",
+  "implementation": {
+    "class": "spPS2TextureDataSerializer",
+    "method": "InspectNativeSectionForAnalysis",
+    "ordered_observations": [
+      "fields",
+      "images for every field0",
+      "raw mip descriptors and byte offsets"
+    ],
+    "offset_coordinate_system": "original source stream logical positions",
+    "completion": "terminator at exact supplied section end",
+    "partial_observations_retained_on_failure": true,
+    "pixel_bytes_copied_by_inspector": false,
+    "raw_zero_flag_is_not_presence_gate": true,
+    "cursor_uses_fourth_mip_wire_word": true,
+    "width_times_height_size_inference": false
+  },
+  "original_evidence": {
+    "PS2_ELF_sha256": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE",
+    "native_reader": "00176A10..00176CEC",
+    "outer_reader": "00176CF0..00177074",
+    "PC_counterparts": [
+      "0042D6C0",
+      "0042D910"
+    ],
+    "original_PC_source_anchor": "Z:\\Sparkplug\\Code\\Sparkplug\\spPS2TextureDataSerializer.cpp",
+    "native_reader_sha256": "0E05B734FC11095F7A1F4B5D8638EA4C8B6231682FDB342DDF6DCA7E2E9EF223",
+    "outer_reader_sha256": "57DED5EB4C0390B8A775A21518A50A30083B22D1369CC743DF1359268ABF0750",
+    "static_JAL_checks": 14,
+    "other_word_checks": 5,
+    "MIPS_guest_executed": false,
+    "runtime_differential_comparison": false,
+    "oracle": "original MIPS instructions plus existing DB-selected actual wire bytes; not legacy C# parser"
+  },
+  "host_caps": {
+    "input_bytes": 16777216,
+    "fields_including_terminator": 65536,
+    "images": 4096,
+    "total_mips": 65536,
+    "UInt32_extent_overflow_guard": true,
+    "bounds_guard_even_for_common_header_size_bytes": true,
+    "native_unchecked_partial_read_equivalence_claimed": false
+  },
+  "positive": {
+    "database": "local-data/results/smo-corpus-v2.sqlite",
+    "file_id": 10013,
+    "object_index": 465,
+    "object_id": 466,
+    "name": "noisesm",
+    "resource": "data/levels/redf/redf03.smo",
+    "PCK_path": "local-data/Winx Club the game PS2/DATA/PCK/2/ST25.PCK",
+    "PCK_file_offset": 5785600,
+    "file_bytes": 1664662,
+    "file_sha256": "425B79D1865C972CDADBE9ABAC776873B80C8350AAAC93946F0985CCC5FC7263",
+    "object_file_offset": 568306,
+    "object_bytes": 267,
+    "object_sha256": "01DD193E83066DE03F839870E486E1105A49EDDEED480BA409C7C418E0CD98C1",
+    "native_section_object_offset": 30,
+    "native_section_bytes": 235,
+    "native_section_sha256": "03AF28442DE125BDB9B521573950309411FE9DBBDF92B36837BD93C37D9C4A05"
+  },
+  "source_positive_capture": {
+    "metadataOnly": true,
+    "runtimeOrGpuCompleted": false,
+    "complete": true,
+    "inputSize": 235,
+    "finalPosition": 235,
+    "fieldCount": 2,
+    "imageCount": 1,
+    "nativeFlag": 1,
+    "pixelFormat": 0,
+    "width": 16,
+    "height": 16,
+    "auxiliaryValue": 99590,
+    "paletteOffset": 26,
+    "paletteByteCount": 64,
+    "mipCount": 1,
+    "descriptor": [
+      0,
+      16,
+      16,
+      128
+    ],
+    "descriptorOffset": 90,
+    "dataOffset": 106
+  },
+  "validation": {
+    "native_build": "PASS, executed by root agent",
+    "native_suites": {
+      "PS2TextureInspection": "PASS",
+      "FullLoader": "PASS",
+      "TextureSerialization": "PASS"
+    },
+    "real_fixture_CLI": "--fixture noisesm.native-section.bin source-positive.json",
+    "real_fixture_checks": 15,
+    "real_fixture_result": "PASS",
+    "synthetic_guards": [
+      "raw flags0/2",
+      "unknown format",
+      "zero mips",
+      "arbitrary wire dataSize",
+      "unknown and repeated fields",
+      "positioned source offsets",
+      "truncated scalar/palette/descriptor/data",
+      "termination and trailing bytes",
+      "UInt32 overflow",
+      "host field/image/mip/byte caps"
+    ],
+    "managed_real_file": {
+      "status": "PASS",
+      "checks": 15,
+      "report": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/managed-run1/report.json",
+      "scope": "One real PS2 object plus zero-flag and malformed-field variants; metadata only, no PS2 runtime or pixel preview.",
+      "fixture_palette_and_mip_sha256_verified": true,
+      "runtime_or_pixel_preview_completed": false,
+      "editing_path_verified": false
+    },
+    "native_suite_checks": {
+      "PS2TextureInspection": 204,
+      "FullLoader": 213,
+      "TextureSerialization": 1219
+    }
+  },
+  "thin_adapter": {
+    "C_ABI": [
+      "spv_ps2_texture_inspect",
+      "spv_ps2_texture_destroy",
+      "spv_ps2_texture_info",
+      "spv_ps2_texture_fields",
+      "spv_ps2_texture_images",
+      "spv_ps2_texture_mips"
+    ],
+    "managed_decoder": "SmoTextureDataDecoder.TryParsePs2 calls common inspector",
+    "per_mip_dimensions": {
+      "DimensionsKnown": false,
+      "Width": 0,
+      "Height": 0,
+      "meaning": "unknown, not proven dimensions"
+    },
+    "NativeDataFlag": "nullable raw byte",
+    "unknown_formats": "Ps2Raw metadata",
+    "legacy_DTO_image_count": "single image only; explicit unsupported result for multiple images, common inspector retains all"
+  },
+  "dossier_correction": {
+    "claim_removed": "field6 has no observed effect on reader decision",
+    "proof": [
+      "00176DB4/BC manager+10 seeds stack88",
+      "00176E1C reads field6 into stack88",
+      "00176E58/E60 and00176EEC/EF0 use same word with mask8"
+    ],
+    "effect": "each subsequent cross/native field is dispatched using current effective platform word",
+    "full_PS2_wrapper_implemented": false
+  },
+  "open_boundaries": [
+    "PS2 source wrapper still legacy C# migration work",
+    "runtime target24767C83 lifetime/attachment",
+    "original failure allocation and partial mutation behavior",
+    "semantic names of descriptor0/1/2; per-mip dimensions unknown",
+    "PS2 swizzle/channel conversion/pixel preview",
+    "GPU/backend"
+  ],
+  "original_assets_added_to_git": false,
+  "cycle_report_or_status_modified_by_this_report": false,
+  "artifacts": [
+    {
+      "path": "docs/research/tool-ps2-texture-native-inspection-2026-09-10.md",
+      "sha256": "2ADA3B6BA058787F620F2AB50FA9E30F573CEF9DDC1588C521C7F284473D57B4"
+    },
+    {
+      "path": "docs/research/native-class-sp-ps2-texture-data-serializer.md",
+      "sha256": "F59FF8F9A10A3FF1EB811A783EC92D570DCC69717A7FB74C7B91D6204947A15B"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2TextureDataSerializer.h",
+      "sha256": "F795458DDF0CFA9CF286DA81452FE94EAFC8998A6E8C38C545888783B35BB8C9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spPS2TextureDataSerializer.cpp",
+      "sha256": "CEC702E7777C539ECC8DDA36F2FE5B85E616A1E30866ADE17A0804A0F381805C"
+    },
+    {
+      "path": "Sparkplug/Tests/spPS2TextureInspectionTests.cpp",
+      "sha256": "4A3290DB2CE900C6583D0D05D6951855D24702196373F1254604D77879B53A06"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDataBlockSerializer.cpp",
+      "sha256": "492E565CF13EF7827859B554F1F86330C3F635E0A91ADCF38EBC7953FE4A5811"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "07DA91C99E3609C5555927F922B95D41BBDA7B25ED7D97B796FA15FF82CAB452"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "ED9FD2F824968BA6E017931153A21C004B78ADB05D9E72A142FF9211FB36F672"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "3A114E714E8C57A6F17D9C04EDE5153A29430B9BBE120CCECCF4DD3CFEE770F7"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTextureDataDecoder.cs",
+      "sha256": "5BF0713EAF67C8E7A6F176F7AE0E28A1EC0456FD37E856540B62DB0442FD85B8"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "91CD1672B85BD9B06CDE3A62D2F7D39AF24E0103A606ABB9D4BEFD9487BAA7BF"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "sha256": "119428039547A0A9AF83A3D4BCCD5507253A0DB4EB8A47D41317E9C913D9D133"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/inspect_ps2_texture_fixture.py",
+      "sha256": "FBE30AF505454EB199D8C87CE58793964C733622B26874F3E2653BEC32A042D1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/noisesm.native-section.bin",
+      "sha256": "03AF28442DE125BDB9B521573950309411FE9DBBDF92B36837BD93C37D9C4A05"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/noisesm.object.bin",
+      "sha256": "01DD193E83066DE03F839870E486E1105A49EDDEED480BA409C7C418E0CD98C1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/notes.md",
+      "sha256": "5B560D51C5FA0F8535B526038767DD388F2FBFB311288473548CCFFEAF785BEE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/original-mips-listing.txt",
+      "sha256": "EE6E06DEA0D435D9C58549E7634A80734A1BD9E860CEE582EBD462A0210B4F26"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/positive.json",
+      "sha256": "61EDC010F54355C37616B29276C160CE8741996BE42F37F1A7D1ADAAA644652D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/source-positive.json",
+      "sha256": "78AAA76DD1DAE997429B201A752C770EE0EBEB8E5758E3B60B97697A4F67EF8B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/ps2-texture-native-inspection/managed-run1/report.json",
+      "sha256": "C323601041C8EEAA9AE0C99CAC4A69BA5891E66AB0D8A6F05CAE8E726A960A04"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoTextureSourceRegression.cs",
+      "sha256": "875672DF2CC57221C2F2E1C11B3775AEA95D6822311C053DDCEBE0E0531B7375"
+    }
+  ],
+  "updated_utc": "2026-09-09T22:58:40.018563+00:00",
+  "managed_positive_capture": {
+    "status": "passed",
+    "checks": 15,
+    "object_file": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tools-core-cycle-20260910-0730\\ps2-texture-native-inspection\\noisesm.object.bin",
+    "source_sha256": "01dd193e83066de03f839870e486e1105a49eddeed480ba409c7c418e0cd98c1",
+    "image_width": 16,
+    "image_height": 16,
+    "FormatValue": 0,
+    "AuxiliaryValue": 99590,
+    "native_flag": 1,
+    "zero_native_flag": 0,
+    "DimensionsKnown": false,
+    "Width": 0,
+    "Height": 0,
+    "descriptors": [
+      0,
+      16,
+      16
+    ],
+    "palette_sha256": "dd32140130dae813eaf708657b3574d69bc33e4134b33cf34e4cdf60f22697f8",
+    "raw_mip_sha256": "c44687f3de59e33edc974aaa11addebee77d90a8a948e03ef658306d520c4207",
+    "editingIssue": "Texture source editing path has not been verified.",
+    "previewError": "PS2_TEXTURE_PREVIEW_UNSUPPORTED: native palette/swizzle data is not prepared for this BGRA32 backend.",
+    "malformedError": "PS2 texture metadata image did not consume its exact field extent",
+    "native_sha256": "795b80a549251abc90f45cf881dfad07c3bfaf5b5ac690009c424542edb5591c",
+    "core_assembly_sha256": "036e46c32bca9fca9de90892ad23bb8d58945ca4bcf656a47ac59b4d0b505dd1",
+    "test_assembly_sha256": "248fd112973059cdd689ce9e900b9b7ff267f8cf30d74a62b22f9b6ca2d9ba5f",
+    "scope": "One real PS2 object plus zero-flag and malformed-field variants; metadata only, no PS2 runtime or pixel preview."
+  },
+  "artifact_fingerprints_scope": "Current files at updated_utc; historical executed native/managed hashes are preserved in managed_positive_capture."
+}

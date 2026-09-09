@@ -1,6 +1,7 @@
 #include "Code/Sparkplug/spTextureData.h"
 #include "Code/Sparkplug/spTextureDataSerializer.h"
 #include "Code/Sparkplug/spDXTextureDataSerializer.h"
+#include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/SparkplugDX/spDXTexture.h"
@@ -375,6 +376,202 @@ namespace
             Check(fixture.destroyed==fixture.opened&&fixture.closed==(mode==2||mode==6?1u:0u),"external failure owns and releases stream");
         }
     }
+    bool CompareInspection(const Bytes& data,spTextureReadInspectionForAnalysis& inspection,spDXTexture& observedTexture,
+        std::uint32_t initialDepth=0)
+    {
+        spSerializerManager plainManager,observedManager;spResourceManager plainResources,observedResources;
+        plainManager.SetDispatchContextForAnalysis(2,1);observedManager.SetDispatchContextForAnalysis(2,1);
+        spSerializerReadContextForAnalysis plainContext(plainManager,plainResources),observedContext(observedManager,observedResources);
+        const auto pitch=[](void*,std::uint32_t,std::uint32_t row) noexcept{return row+4;};
+        plainContext.pcTexturePitchForAnalysis=pitch;observedContext.pcTexturePitchForAnalysis=pitch;
+        plainContext.depth=observedContext.depth=initialDepth;
+        spTextureReadInspectionForAnalysis previous;observedContext.textureReadInspectionForAnalysis=&previous;
+        spMemoryStream plainInput,observedInput;Open(plainInput,data);Open(observedInput,data);
+        spDXTexture plainTexture;spDXTextureDataSerializer serializer;std::string plainError,observedError;
+        const bool plain=serializer.ReadPayloadForAnalysis(plainContext,plainInput,static_cast<std::uint32_t>(data.size()),plainTexture,&plainError);
+        const bool observed=serializer.InspectPayloadForAnalysis(observedContext,observedInput,static_cast<std::uint32_t>(data.size()),observedTexture,inspection,&observedError);
+        Check(observedContext.textureReadInspectionForAnalysis==&previous&&previous.fields.empty(),"inspection restores the prior borrowed observer without writing it");
+        Check(plainContext.depth==initialDepth&&observedContext.depth==initialDepth&&plainContext.failed==observedContext.failed,
+            "observation preserves actual recursion depth and runtime failure state");
+        Check(inspection.complete==observed,"inspection success requires complete observation");
+        if(inspection.truncated)Check(plain&&!observed&&!observedError.empty(),"observation cap rejects incomplete metadata while the unchanged runtime succeeds");
+        else Check(plain==observed&&plainError==observedError,"observation preserves actual read success and error");
+        std::uint32_t plainPosition=0,observedPosition=0;
+        Check(plainInput.GetCurrentPosition(plainPosition)&&observedInput.GetCurrentPosition(observedPosition)&&
+            plainPosition==observedPosition&&observedPosition==inspection.finalPosition,"observation preserves final input cursor");
+        Check(Data(plainInput)==data&&Data(observedInput)==data,"both readers leave all input bytes unchanged");
+        Check(plainTexture.GetField18ForAnalysis()==observedTexture.GetField18ForAnalysis()&&
+            plainTexture.GetField1CForAnalysis()==observedTexture.GetField1CForAnalysis()&&
+            plainTexture.GetTextureFlagsForAnalysis()==observedTexture.GetTextureFlagsForAnalysis()&&
+            plainTexture.IsInitializedForAnalysis()==observedTexture.IsInitializedForAnalysis()&&
+            plainTexture.GetWidthForAnalysis()==observedTexture.GetWidthForAnalysis()&&
+            plainTexture.GetHeightForAnalysis()==observedTexture.GetHeightForAnalysis()&&
+            plainTexture.GetSurfaceFormatForAnalysis()==observedTexture.GetSurfaceFormatForAnalysis()&&
+            plainTexture.GetNativeByteCountForAnalysis()==observedTexture.GetNativeByteCountForAnalysis()&&
+            plainTexture.HasInitializedRuntimeFormatForAnalysis()==observedTexture.HasInitializedRuntimeFormatForAnalysis()&&
+            (!plainTexture.HasInitializedRuntimeFormatForAnalysis()||plainTexture.GetRuntimeFormatForAnalysis()==observedTexture.GetRuntimeFormatForAnalysis()),
+            "observation preserves actual texture state without inventing native runtime format44");
+        const auto& plainMips=plainTexture.GetMipsForAnalysis();const auto& observedMips=observedTexture.GetMipsForAnalysis();
+        bool sameMips=plainMips.size()==observedMips.size();
+        for(std::size_t i=0;sameMips&&i<plainMips.size();++i)
+        {
+            const auto& a=plainMips[i];const auto& b=observedMips[i];
+            sameMips=a.width==b.width&&a.height==b.height&&a.rowBytes==b.rowBytes&&a.rows==b.rows&&
+                a.physicalPitch==b.physicalPitch&&a.packedBytes==b.packedBytes;
+        }
+        Check(sameMips,"all stored/generated mip bytes and declared physical pitches remain identical");
+        bool fieldRanges=true;spMemoryStream verify;Open(verify,data);spDataBlockSerializer headerReader;
+        for(const auto& field:inspection.fields)
+        {
+            if(!field.inputStream)continue;
+            if(std::uint64_t(field.frameOffset)+field.frameSize>data.size()||field.headerOffset<field.frameOffset||
+                std::uint64_t(field.payloadOffset)+field.payloadSize>std::uint64_t(field.frameOffset)+field.frameSize||
+                !verify.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(field.headerOffset)))
+            {fieldRanges=false;break;}
+            const auto* header=headerReader.ReadHeaderForAnalysis(verify);
+            if(!header||header->fieldID!=field.fieldID||header->dataStreamPosition!=field.payloadOffset||header->payloadSize!=field.payloadSize)
+            {fieldRanges=false;break;}
+        }
+        Check(fieldRanges,"every observed root field/frame range matches its actual input header");
+        bool mipRanges=true;
+        for(const auto& representation:inspection.representations)
+        {
+            if(representation.fieldIndex>=inspection.fields.size()){mipRanges=false;break;}
+            const auto& field=inspection.fields[representation.fieldIndex];
+            for(const auto& mip:representation.mips)
+                if(mip.pixelOffset<field.payloadOffset||std::uint64_t(mip.pixelOffset)+mip.pixelSize>
+                    std::uint64_t(field.payloadOffset)+field.payloadSize)mipRanges=false;
+        }
+        Check(mipRanges,"stored mip observations remain within their representation field, without generated offsets");
+        Check(plainContext.createdObjects.empty()&&observedContext.createdObjects.empty(),"standalone texture inspection creates no substitute resource graph owners");
+        return plain;
+    }
+    std::string InspectNative()
+    {
+        std::string hex;Check(bool(std::cin>>hex)&&hex.size()<=16384&&hex.size()%2==0,"bounded inspected native payload hex");
+        Bytes data;for(std::size_t i=0;i<hex.size();i+=2)data.push_back(static_cast<std::uint8_t>(std::stoul(hex.substr(i,2),nullptr,16)));
+        spTextureReadInspectionForAnalysis inspection;spDXTexture texture;
+        Check(CompareInspection(data,inspection,texture)&&inspection.complete,"standalone inspected payload succeeds");
+        std::ostringstream out;out<<std::boolalpha<<"{\"checks\":"<<checks<<",\"complete\":"<<inspection.complete
+            <<",\"truncated\":"<<inspection.truncated<<",\"inputBytes\":"<<data.size()<<",\"finalPosition\":"<<inspection.finalPosition
+            <<",\"state\":["<<texture.GetField18ForAnalysis()<<','<<unsigned(texture.GetField1CForAnalysis())<<','
+            <<texture.GetTextureFlagsForAnalysis()<<','<<unsigned(texture.IsInitializedForAnalysis())<<','
+            <<texture.GetWidthForAnalysis()<<','<<texture.GetHeightForAnalysis()<<"],\"fields\":[";
+        bool first=true;
+        for(const auto& f:inspection.fields)
+        {
+            if(!first)out<<',';first=false;
+            out<<"{\"scope\":"<<static_cast<unsigned>(f.scope)<<",\"outcome\":"<<static_cast<unsigned>(f.outcome)
+                <<",\"frameOffset\":"<<f.frameOffset<<",\"frameSize\":"<<f.frameSize<<",\"depth\":"<<f.depth
+                <<",\"field\":"<<f.fieldID<<",\"headerOffset\":"<<f.headerOffset<<",\"payloadOffset\":"<<f.payloadOffset
+                <<",\"payloadSize\":"<<f.payloadSize<<",\"platformBefore\":"<<f.platformBefore<<",\"platformAfter\":"<<f.platformAfter
+                <<",\"inputStream\":"<<f.inputStream<<",\"complete\":"<<f.complete<<",\"handledBefore\":"<<f.handledBefore
+                <<",\"handledAfter\":"<<f.handledAfter<<'}';
+        }
+        out<<"],\"representations\":[";first=true;
+        for(const auto& r:inspection.representations)
+        {
+            if(!first)out<<',';first=false;
+            out<<"{\"kind\":"<<static_cast<unsigned>(r.kind)<<",\"fieldIndex\":"<<r.fieldIndex<<",\"width\":"<<r.width
+                <<",\"height\":"<<r.height<<",\"format\":"<<r.format<<",\"nativeFlag\":"<<unsigned(r.nativeFlag)
+                <<",\"field1C\":"<<unsigned(r.field1C)<<",\"mips\":[";
+            bool firstMip=true;for(const auto& mip:r.mips)
+            {
+                if(!firstMip)out<<',';firstMip=false;
+                out<<"{\"width\":"<<mip.width<<",\"height\":"<<mip.height<<",\"descriptor0\":"<<mip.descriptor0
+                    <<",\"descriptor1\":"<<mip.descriptor1<<",\"descriptor2\":"<<mip.descriptor2
+                    <<",\"pixelOffset\":"<<mip.pixelOffset<<",\"pixelSize\":"<<mip.pixelSize<<'}';
+            }
+            out<<"]}";
+        }
+        out<<"],\"levels\":[";first=true;
+        for(const auto& mip:texture.GetMipsForAnalysis())
+        {
+            if(!first)out<<',';first=false;Bytes packed;for(auto value:mip.packedBytes)packed.push_back(std::uint8_t(value));
+            out<<"{\"width\":"<<mip.width<<",\"height\":"<<mip.height<<",\"packedHex\":\""<<Hex(packed)<<"\"}";
+        }
+        out<<"]}";return out.str();
+    }
+    void TextureInspectionGuards()
+    {
+        using Inspection=spTextureReadInspectionForAnalysis;
+        {
+            auto input=NativeInput(0,2,true);Inspection inspection;spDXTexture texture;
+            Check(CompareInspection(input,inspection,texture),"embedded native inspection uses the actual selected reader");
+            Check(inspection.fields.front().outcome==Inspection::Outcome::EmbeddedSource&&inspection.fields.front().handledAfter&&
+                std::any_of(inspection.fields.begin(),inspection.fields.end(),[](const auto& f){return f.depth==1&&f.scope==Inspection::Scope::Derived;}),
+                "embedded source records the same object's recursive derived frame");
+            Check(inspection.representations.size()==1&&inspection.representations[0].kind==Inspection::RepresentationKind::Native&&
+                inspection.representations[0].mips.size()==2,"native observation contains only stored mip records");
+        }
+        {
+            const auto input=Input(0,4);Inspection inspection;spDXTexture texture;
+            Check(CompareInspection(input,inspection,texture),"cross inspection still performs actual CPU shadow initialization");
+            Check(inspection.representations.size()==1&&inspection.representations[0].kind==Inspection::RepresentationKind::Cross&&
+                inspection.representations[0].mips.size()==1&&texture.GetMipsForAnalysis().size()==2,
+                "one stored cross buffer stays distinct from its generated runtime mip");
+        }
+        {
+            auto input=NativeInput(0,1);input.insert(input.begin()+10,{0xa0,3,0xff,0xef,0xaa});
+            Inspection inspection;spDXTexture texture;Check(CompareInspection(input,inspection,texture),"inactive cross bytes are skipped by actual PC dispatch");
+            Check(std::any_of(inspection.fields.begin(),inspection.fields.end(),[](const auto& f)
+                {return f.scope==Inspection::Scope::Derived&&f.fieldID==0&&f.outcome==Inspection::Outcome::Skipped&&f.payloadSize==3&&f.platformBefore==6;})&&
+                inspection.representations.size()==1&&inspection.representations[0].kind==Inspection::RepresentationKind::Native,
+                "inactive representation remains an opaque extent, never a successful cross decode");
+        }
+        {
+            auto input=NativeInput(0,1);input[2]=0x7f;Inspection inspection;spDXTexture texture;
+            Check(CompareInspection(input,inspection,texture)&&inspection.fields.front().outcome==Inspection::Outcome::SourceNone,
+                "SourceNone payload is skipped without inventing a zero-byte-only rule");
+        }
+        {
+            const Bytes input{0xa2,1,0,0,0};Inspection inspection;spDXTexture texture;
+            Check(!CompareInspection(input,inspection,texture)&&!inspection.complete&&texture.GetMipsForAnalysis().empty(),
+                "fresh SourceNone without pixels retains its actual load failure");
+        }
+        {
+            auto input=NativeInput(0,1,true);Inspection inspection;spDXTexture texture;
+            Check(!CompareInspection(input,inspection,texture,64)&&!inspection.fields.empty()&&!inspection.fields.front().complete,
+                "recursion cap preserves the unfinished source event and actual failure");
+            input.pop_back();Inspection truncated;spDXTexture partial;
+            Check(!CompareInspection(input,truncated,partial)&&!truncated.complete,"missing wrapper terminator cannot become completed inspection");
+        }
+        {
+            Bytes input;input.reserve(Inspection::MaximumFields*2+100);
+            // SectionCursor separately caps each section at 65536 fields.
+            // Exceed the aggregate observer cap across two valid sections,
+            // without first triggering the unchanged runtime section guard.
+            for(std::uint32_t i=0;i<Inspection::MaximumFields/2;++i)input.insert(input.end(),{0x3e,0x55});
+            const auto tail=NativeInput(0,1);input.insert(input.end(),tail.begin(),tail.begin()+4); // SourceNone + terminator.
+            for(std::uint32_t i=0;i<Inspection::MaximumFields/2;++i)input.insert(input.end(),{0x3e,0x55});
+            input.insert(input.end(),tail.begin()+4,tail.end());
+            Inspection inspection;spDXTexture texture;Check(CompareInspection(input,inspection,texture),"field cap changes metadata availability, not runtime load");
+            Check(inspection.truncated&&!inspection.complete&&inspection.fields.size()==Inspection::MaximumFields&&
+                inspection.representations.empty(),"field observation memory remains capped with an explicit incomplete result");
+        }
+        {
+            Bytes reference;const std::string filename="image.tex";Add(reference,std::uint16_t(filename.size()+1));
+            reference.insert(reference.end(),filename.begin(),filename.end());reference.push_back(0);
+            Bytes input;Field(input,4,reference);input.push_back(0);
+            spMemoryStream stream;Check(stream.Open("C:\\Media\\scene.smo"),"named inspection parent");Open(stream,input);
+            spSerializerManager manager;manager.SetDispatchContextForAnalysis(2,1);spResourceManager resources;
+            spSerializerReadContextForAnalysis context(manager,resources);Inspection inspection,previous;spDXTexture texture;std::string error;
+            context.textureReadInspectionForAnalysis=&previous;
+            context.textureSourceStreamFactoryForAnalysis=[](void*)->std::unique_ptr<spStream>{throw std::runtime_error("directed factory exception");};
+            bool threw=false;try{(void)spDXTextureDataSerializer{}.InspectPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(input.size()),texture,inspection,&error);}
+            catch(const std::runtime_error& value){threw=std::string(value.what())=="directed factory exception";}
+            Check(threw&&context.textureReadInspectionForAnalysis==&previous&&context.depth==0&&!inspection.complete,
+                "exception unwinding restores the scoped borrowed observer");
+            ExternalFixture fixture{NativeInput(0,1),"C:\\Media\\image.tex"};
+            context.textureSourceStreamFactoryForAnalysis=ExternalFactory;context.textureSourceStreamContext=&fixture;Open(stream,input);
+            Check(spDXTextureDataSerializer{}.InspectPayloadForAnalysis(context,stream,static_cast<std::uint32_t>(input.size()),texture,inspection,&error),
+                "existing owned external stream branch remains usable under observation");
+            Check(fixture.opened==1&&fixture.closed==1&&fixture.destroyed==1&&
+                std::any_of(inspection.fields.begin(),inspection.fields.end(),[](const auto& f){return !f.inputStream;})&&
+                !inspection.representations.empty()&&!inspection.fields[inspection.representations[0].fieldIndex].inputStream,
+                "external ownership is unchanged and its pixel offsets are explicitly outside the root input");
+        }
+    }
     void MissingMipGuards()
     {
         namespace filter=sparkplug::evidence::pc::texture_mips;
@@ -524,6 +721,8 @@ int main(int argc,char** argv)
         if(argc==2&&std::string(argv[1])=="--optimize-blocks-trace"){OptimizeBlocks(true);return 0;}
         if(argc==2&&std::string(argv[1])=="--decode-blocks"){DecodeBlocks();return 0;}
         if(argc==2&&std::string(argv[1])=="--missing-native"){std::cout<<MissingMips()<<'\n';return 0;}
+        if(argc==2&&std::string(argv[1])=="--inspect-native"){std::cout<<InspectNative()<<'\n';return 0;}
+        if(argc==2&&std::string(argv[1])=="--inspect-guards"){TextureInspectionGuards();std::cout<<"PASS "<<checks<<" texture inspection checks\n";return 0;}
         if(argc==2&&std::string(argv[1])=="--cross-upload"){std::cout<<MissingMips(true)<<'\n';return 0;}
         if(argc==2&&std::string(argv[1])=="--cross-upload-common"){std::cout<<MissingMips(true,true)<<'\n';return 0;}
         if(argc==4&&(std::string(argv[1])=="--external-source"||std::string(argv[1])=="--external-source-common"))
@@ -538,6 +737,7 @@ int main(int argc,char** argv)
         RuntimeBoundsAndHeaders();
         for(const auto* mode:{"raw","dxt1","dxt3","dxt5","raw-2","raw-4","dxt1-4","dxt3-2","dxt5-4","raw-2-embedded","dxt1-4-embedded"})(void)Native(mode);
         NativeBounds();
+        TextureInspectionGuards();
         MissingMipGuards();
         CrossUploadGuards();
         ExternalSourceGuards();

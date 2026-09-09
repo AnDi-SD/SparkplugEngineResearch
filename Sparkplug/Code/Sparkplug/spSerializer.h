@@ -18,6 +18,7 @@ namespace sparkplug::reconstruction
     class spDXMeshCombiner;
     struct spSerializerReadContextForAnalysis;
     struct spDataBlockHeaderForAnalysis;
+    struct spTextureReadInspectionForAnalysis;
 
     struct spSerializerObjectHeaderForAnalysis final
     {
@@ -160,6 +161,9 @@ namespace sparkplug::reconstruction
         using TextureSourceStreamFactoryForAnalysis=std::unique_ptr<spStream> (*)(void*);
         TextureSourceStreamFactoryForAnalysis textureSourceStreamFactoryForAnalysis=nullptr;
         void* textureSourceStreamContext=nullptr;
+        // Optional borrowed metadata observer; the scoped texture inspection
+        // entry point restores it even when an allocation/callback throws.
+        spTextureReadInspectionForAnalysis* textureReadInspectionForAnalysis=nullptr;
         const std::array<float,9>* cameraOrientation = nullptr; // explicit CPU billboard input
         bool failed = false;
         std::uint32_t depth = 0;

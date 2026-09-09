@@ -36,6 +36,35 @@ struct SpvMeshVertex {float position[3],normal[3],uv0[2],uv1[2],weights[4];std::
 struct SpvPs2MeshHeader {float sphere[4];std::uint32_t primitives,vertices,componentFlags,packetQwords,additionalUVCount,weightCount;};
 struct SpvTextureSectionInfo {std::uint32_t kind,width,height,format,auxiliary,bitsPerPixel,pixelDataPresent,mips;};
 struct SpvTextureMip {std::uint32_t width,height,descriptor0,descriptor1,descriptor2,pixelOffset,pixelSize;};
+struct SpvTextureSourceInfo {std::uint32_t fields,representations,mips,finalPosition,runtimeWidth,runtimeHeight,runtimeMips;};
+struct SpvTextureSourceField {
+    std::uint32_t scope,outcome,frameOffset,frameSize,depth,fieldID,headerOffset,payloadOffset,payloadSize;
+    std::uint32_t platformBefore,platformAfter,inputStream,complete,handledBefore,handledAfter;
+};
+struct SpvTextureSourceRepresentation {
+    std::uint32_t kind,fieldIndex,width,height,format,auxiliary,bitsPerPixel,nativeFlag,field1C,firstMip,mips;
+};
+// Complete PC source dispatch on a real spDXTexture CPU owner. These arrays
+// observe the original reader; skipped fields remain opaque. Stored mip slices
+// precede generated runtime mips. No retained pointer into the borrowed input.
+SPV_API void* spv_texture_source_read(const std::uint8_t*,std::uint32_t,std::uint32_t platformMask) noexcept;
+SPV_API void spv_texture_source_destroy(void*) noexcept;
+SPV_API int spv_texture_source_info(void*,SpvTextureSourceInfo*) noexcept;
+SPV_API int spv_texture_source_fields(void*,SpvTextureSourceField*,std::uint32_t) noexcept;
+SPV_API int spv_texture_source_representations(void*,SpvTextureSourceRepresentation*,std::uint32_t) noexcept;
+SPV_API int spv_texture_source_mips(void*,SpvTextureMip*,std::uint32_t) noexcept;
+struct SpvPs2TextureInfo {std::uint32_t fields,images,mips,finalPosition;};
+struct SpvPs2TextureField {std::uint32_t fieldID,headerOffset,payloadOffset,payloadSize,imageIndex,terminator;};
+struct SpvPs2TextureImage {std::uint32_t fieldIndex,nativeFlag,format,width,height,auxiliary,paletteOffset,paletteSize,firstMip,mips;};
+struct SpvPs2TextureMip {std::uint32_t descriptor0,descriptor1,descriptor2,dataSize,descriptorOffset,dataOffset;};
+// Serialized PS2 native-section metadata only. No source dispatch, target
+// initialization, inferred mip dimensions, pixel decoding or GPU operation.
+SPV_API void* spv_ps2_texture_inspect(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_ps2_texture_destroy(void*) noexcept;
+SPV_API int spv_ps2_texture_info(void*,SpvPs2TextureInfo*) noexcept;
+SPV_API int spv_ps2_texture_fields(void*,SpvPs2TextureField*,std::uint32_t) noexcept;
+SPV_API int spv_ps2_texture_images(void*,SpvPs2TextureImage*,std::uint32_t) noexcept;
+SPV_API int spv_ps2_texture_mips(void*,SpvPs2TextureMip*,std::uint32_t) noexcept;
 // Explicit serialized representation inspection: kind0 cross field, kind1 PC
 // native field. Stored levels/offsets only; runtime attachment generates mips
 // separately through the same engine classes. Input is borrowed for one call.
@@ -46,6 +75,9 @@ SPV_API int spv_texture_section_mips(void*,SpvTextureMip*,std::uint32_t) noexcep
 // XRGB inspector preview through the restored raw decoder/encoder. Stored
 // bytes above remain untouched; this is an explicit BGRA output projection.
 SPV_API int spv_texture_section_bgra(void*,std::uint8_t*,std::uint32_t) noexcept;
+// Explicit stored XRGB pixel projection through the same restored codec used
+// for section previews and graph uploads. Input/output lengths must match.
+SPV_API int spv_texture_xrgb_bgra(const std::uint8_t*,std::uint32_t,std::uint8_t*,std::uint32_t) noexcept;
 SPV_API int spv_texture_section_field1c(void*,std::uint32_t*) noexcept;
 // One supplied BGRA base mip. kind0: whole embedded CPU TextureData object;
 // kind1: raw first-mip record for a lossless editor field replacement.

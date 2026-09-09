@@ -6,6 +6,7 @@
 #include "spTextureDataSerializer.h"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace sparkplug::reconstruction
@@ -33,6 +34,55 @@ namespace sparkplug::reconstruction
             std::uint32_t mipCount = 0;
             std::uint32_t paletteByteCount = 0;
         };
+
+        // Host observation of PS2 native section176A10, not a PS2 runtime
+        // target, attachment, pixel decoder or GPU operation. All offsets use
+        // the input stream's logical coordinate system. Limits are host guards.
+        static constexpr std::uint32_t MaximumInspectionBytes = 16u * 1024u * 1024u;
+        static constexpr std::uint32_t MaximumInspectionFields = 65536;
+        static constexpr std::uint32_t MaximumInspectionImages = 4096;
+        static constexpr std::uint32_t MaximumInspectionMips = 65536;
+        static constexpr std::uint32_t NoImageForAnalysis = 0xffffffffu;
+
+        struct NativeMipInspectionForAnalysis final
+        {
+            std::uint32_t descriptor0 = 0, descriptor1 = 0, descriptor2 = 0;
+            std::uint32_t dataSize = 0, descriptorOffset = 0, dataOffset = 0;
+        };
+
+        struct NativeImageInspectionForAnalysis final
+        {
+            std::uint32_t fieldIndex = 0;
+            std::uint8_t nativeFlag = 0; // Raw byte, not a presence gate.
+            std::uint32_t pixelFormat = 0, width = 0, height = 0;
+            std::uint32_t auxiliaryValue = 0, mipCount = 0;
+            std::uint32_t paletteOffset = 0, paletteByteCount = 0;
+            std::vector<NativeMipInspectionForAnalysis> mips;
+            bool complete = false;
+        };
+
+        struct NativeFieldInspectionForAnalysis final
+        {
+            std::uint32_t fieldID = 0, headerOffset = 0, payloadOffset = 0, payloadSize = 0;
+            std::uint32_t imageIndex = NoImageForAnalysis;
+            bool terminator = false, complete = false;
+        };
+
+        struct NativeSectionInspectionForAnalysis final
+        {
+            std::uint32_t inputOffset = 0, inputSize = 0, finalPosition = 0;
+            std::vector<NativeFieldInspectionForAnalysis> fields;
+            std::vector<NativeImageInspectionForAnalysis> images;
+            bool complete = false;
+        };
+
+        // Repeated field0 images and unknown fields remain ordered observations.
+        // Completion requires a terminator at the exact supplied section end.
+        // On failure completed observations are retained, complete stays false,
+        // and finalPosition is the observed cursor; there is no rollback claim.
+        [[nodiscard]] static bool InspectNativeSectionForAnalysis(
+            spStream&, std::uint32_t size, NativeSectionInspectionForAnalysis&,
+            std::string* error = nullptr);
 
         spPS2TextureDataSerializer() noexcept = default;
         ~spPS2TextureDataSerializer() override;

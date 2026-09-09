@@ -80,6 +80,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept override;
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
             std::uint32_t,spBaseObject&,std::string*) const override;
+        // Executes the same virtual reader on an actual owned CPU shadow.
+        // Observation never replaces initialization or consumes object ownership.
+        [[nodiscard]] bool InspectPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spDXTexture&,spTextureReadInspectionForAnalysis&,std::string*) const;
         [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
             const spBaseObject&,std::string*) const override;
 
