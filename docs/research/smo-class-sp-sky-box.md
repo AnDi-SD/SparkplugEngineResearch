@@ -1,7 +1,9 @@
 # Полный разбор `spSkyBox`
 
 `spSkyBox` (`0x7A7124AF`) имеет сериализуемую node-секцию и упорядоченный
-список из 1..3 inline `spModel`. Это **не direct C++ inheritance от `spNode`**:
+список renderables; в исследованном корпусе это 1..3 inline `spModel`.
+Количество и inline encoding не являются ограничениями reader.
+Это **не direct C++ inheritance от `spNode`**:
 PC runtime RTTI/factory подтверждают `spSkyBox -> spRenderNode -> spNode`,
 exact1D4. Строго декодированы 126 объектов
 (43/43/40) и все 159 вложенных models. Собственная секция содержит только
@@ -27,3 +29,8 @@ position наследуется, orientation сохраняется local overri
 no-op. [Доказательства](native-pc-scene-special-managers.md). Геометрический
 результат structural reorder в игре ещё не проверен; он отложен до relationship writer. План:
 [`smo-runtime-validation-plan.md`](smo-runtime-validation-plan.md).
+
+9 сентября общий tools core подключил actual SkyBox и тот же
+RenderNodeSerializer, который оригинал регистрирует в 6D4B00. Три
+reader/writer cases и два raw world cases совпали с PC. Отдельного
+SkyBoxSerializer нет. [Досье внедрения](tool-skybox-shared-core-2026-09-09.md).

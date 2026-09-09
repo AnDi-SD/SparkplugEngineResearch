@@ -141,6 +141,8 @@ SPV_API int spv_scene_graph_skin_palette(void*,std::uint32_t skin,float*,std::ui
 // Actual support membership, not visibility traversal or a frame draw order.
 // kind0 RenderNode,1 StaticRenderObject,2 PartitionRenderable. Query with null
 // output/capacity0 first; matrices reflect the current world/cache state.
+// kind: 0 RenderNode, 1 StaticRenderObject, 2 PartitionRenderable, 3 SkyBox.
+// Membership is an inspection view, not a normal/special pass schedule.
 struct SpvGraphRenderContainer {std::uint32_t id,kind,renderables;float world[16],inverse[16];};
 SPV_API int spv_graph_render_containers(void*,SpvGraphRenderContainer*,std::uint32_t capacity,std::uint32_t* count) noexcept;
 SPV_API int spv_graph_render_members(void*,std::uint32_t container,std::uint32_t* ids,std::uint32_t count) noexcept;

@@ -2,6 +2,7 @@
 #include "Code/Sparkplug/spRenderableSerializer.h"
 #include "Code/Sparkplug/spModelSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
+#include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spModel.h"
 #include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/Sparkplug/spSkin.h"
@@ -61,7 +62,7 @@ namespace
         if(ok){spMemoryStream stream;Open(stream);Check(serializer->WritePayloadForAnalysis(stream,*object,&error),error.c_str());output='"'+Hex(Data(stream))+'"';}
         std::ostringstream row;row<<"[\""<<kind<<"\",\""<<mode<<"\",\""<<Hex(bytes)<<"\","<<ok<<','<<Position(input)<<','<<state.str()<<','<<output<<']';return row.str();
     }
-    std::string Graph(const std::string& mode)
+    std::string Graph(const std::string& mode,bool skybox=false)
     {
         Bytes body;Add(body,spModel::ClassID);Add(body,0x4f4f4253u);Field(body,2,0u);Field(body,3,17u);body.push_back(0);Field(body,1,9u);body.push_back(0);
         Bytes reference;Add(reference,7u);Add(reference,mode=="prebound"?0u:static_cast<std::uint32_t>(body.size()));if(mode!="prebound")Append(reference,body);
@@ -70,10 +71,12 @@ namespace
         spSerializerManager manager;spResourceManager resources;spMemoryStream index;Open(index,directory);
         auto* fat=manager.GetFATForAnalysis();Check(fat->LoadIndexForAnalysis(index),"Model FAT");
         Check(manager.RegisterForAnalysis(spRenderNode::ClassID,std::make_shared<spRenderNodeSerializer>(),0xff,3),"register RenderNode");
+        if(skybox)Check(manager.RegisterForAnalysis(spSkyBox::ClassID,std::make_shared<spRenderNodeSerializer>(),0xff,3),"original SkyBox shared serializer mapping");
         Check(manager.RegisterForAnalysis(spModel::ClassID,std::make_shared<spModelSerializer>(),0xff,3),"register Model");
         manager.SetDispatchContextForAnalysis(2,1);spSerializerReadContextForAnalysis context(manager,resources);
         if(mode=="prebound"){auto model=std::make_shared<spModel>();fat->FindByIDForAnalysis(7)->object=model.get();context.externalOwners.push_back(model);}
-        spRenderNode node;spRenderNodeSerializer serializer;spMemoryStream input;Open(input,payload);std::string error;
+        std::unique_ptr<spRenderNode> owned=skybox?std::unique_ptr<spRenderNode>(std::make_unique<spSkyBox>()):std::make_unique<spRenderNode>();
+        spRenderNode& node=*owned;spRenderNodeSerializer serializer;spMemoryStream input;Open(input,payload);std::string error;
         Check(serializer.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(payload.size()),node,&error),error.c_str());
         const auto count=node.GetRenderableCountForAnalysis();Check(count==(mode=="repeat"?2u:1u),"native per-occurrence renderable aliases");
         auto* model=dynamic_cast<spModel*>(node.GetRenderableForAnalysis(0));Check(model!=nullptr,"real common Model factory/reader");
@@ -169,11 +172,13 @@ int main(int argc,char** argv)
         if(argc==3&&std::string(argv[1])=="--asset-file-uv"){std::cout<<scene_file_test::Capture(argv[2],true,true)<<'\n';return 0;}
         if(argc==4&&std::string(argv[1])=="--capture"){std::cout<<Scalar(argv[2],argv[3])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--graph"){std::cout<<Graph(argv[2])<<'\n';return 0;}
+        if(argc==3&&std::string(argv[1])=="--sky-graph"){std::cout<<Graph(argv[2],true)<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--fog"){std::cout<<Fog(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--fog-graph"){std::cout<<FogGraph(argv[2])<<'\n';return 0;}
         for(const auto* kind:{"render-node","renderable","model"})for(const auto* mode:{"empty","values","repeat","failed-scalar","null-links"})
             if(std::string(kind)!="render-node"||(std::string(mode)=="empty"||std::string(mode)=="values"))(void)Scalar(kind,mode);
         for(const auto* mode:{"inline","repeat","prebound"})(void)Graph(mode);
+        for(const auto* mode:{"inline","repeat","prebound"})(void)Graph(mode,true);
         for(const auto* mode:{"empty","values","repeat","raw-bits","logo-field"})(void)Fog(mode);
         for(const auto* mode:{"inline","repeat","clear","prebound","named"})(void)FogGraph(mode);
         FogFailures();Failures();std::cout<<"PASS "<<checks<<'/'<<checks<<": derived scene sections, actual common graph interfaces and bounds\n";return 0;

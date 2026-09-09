@@ -126,6 +126,7 @@ namespace sparkplug::reconstruction
     private:
         friend class spActor; // original discovery sets ownership bit2000
         friend class spRenderNode; // PC world/bounds dirty bits in the common B0 word
+        friend class spSkyBox; // original49E440 overrides world orientation after base update
         static void SetMaskedFlag(
             std::uint32_t& flags,
             std::uint32_t mask,

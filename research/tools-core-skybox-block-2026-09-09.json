@@ -1,0 +1,373 @@
+{
+  "kind": "tools-core-skybox-block",
+  "status": "verified-resource-and-world-core",
+  "created_utc": "2026-09-09T12:57:19.563520+00:00",
+  "base_commit": "e7ce9e4ae0dc99c961e2cb29259b487ac9ce5f73",
+  "viewer_commit": "09c2890f4b70782bba0125b01a4b6bd637e78982",
+  "cycle_block": 16,
+  "sources": [
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "0A38FB69E9D3ECE1318CF260516228BCAA57F84FB7B0DCAEF9B87D4B7011C915"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.h",
+      "sha256": "7AB2CC34DC391FD22A5903B0246C92195F0D3D47D7C582AA2541E24A5046E741"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNodeSerializer.cpp",
+      "sha256": "6DAA1B935608A1536D5FD53620111FF0784B4A84A53683C52684CEF981A301EE"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkyBox.cpp",
+      "sha256": "7A562123799998DBD76DA31D8AD05ADC06EC0308D7F3272FC2DBA30E534236DA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkyBox.h",
+      "sha256": "21A912F01B5C53AB6A07678F85338F61BE5E903930C534206F63698A0FCE3D52"
+    },
+    {
+      "path": "Sparkplug/Tests/spSceneSerializationTests.cpp",
+      "sha256": "1509709446F817B3856DC5A52651292D827D8C3F14A5EDCC84F0DC60B83FB4DF"
+    },
+    {
+      "path": "Sparkplug/Tests/spSkyBoxTests.cpp",
+      "sha256": "6B3963EB24745CB4773BC081F001B9960E5200B6B599F8012C38D0C7CFBF7F8A"
+    },
+    {
+      "path": "docs/research/smo-class-sp-sky-box.md",
+      "sha256": "1D8BC62F4D8BBDB3D2F802586E79BAB1127111685F03B68C2A333003F83FD81D"
+    },
+    {
+      "path": "docs/research/tool-skybox-shared-core-2026-09-09.md",
+      "sha256": "4A95DD3A09BA42FF04CA148D28CB471396F11037124B93CB3AECE85DF2361932"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "D967B2F4F518A42106C3E4EB1E8BD1EBDFF150FB111107B9FE0B3680883D0770"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "45460F6D8D6977C43C277897C07F087717AC22FE88F182998369966D1B910E50"
+    },
+    {
+      "path": "research/probe_pc_render_node_sections.py",
+      "sha256": "2BC3012635A987841E4768A816DCB01228EBC2DFAB3C64B0C55AFED427C13756"
+    },
+    {
+      "path": "research/probe_pc_sky_box_world_core.py",
+      "sha256": "EF96F6175996BF1F445F0743E77A5CAE2FFE9496DB41264D6D8ABDAF626D94BB"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "6771D6156A96648529F18A535C36D3F13C16913C12D41E735AEC65CBF682ADBD"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "823EA41A622063ED02A5A5BBB9AC69E58AF8BCFE405C64009D450EBE811A5F23"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "20448AEFC9CF915752A86351BA591089BC397FA3590EC1D14D388C57C874F32E"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "F3CCFD2E5D99443C9819C58ECC82C2EDB979F12695F8EB454A1AE81A990F25B3"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "AC623DC2E8F4212843B425C6FE954D59276219C7673921A4422592F332787B18"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "E6F13FE17E3D69EDF08ED95108AC5886F42EF9A9AF6156E3E207C5CC052D7F7E"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoRenderNodeDecoder.cs",
+      "sha256": "4283A0AAE6D6568679CFFCC2114E107311695E4C604EAB316A3C094192CB9C06"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSkyBoxDecoder.cs",
+      "sha256": "5896F2E329BD54C14BAF5E0B551292C509F397C15F28F112CB0883421443F2EC"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "B7E663898E0C3C1BA265F936320AB4C7DE8ACF0D618CA974A0E0EB933036FB61"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoSkyBoxReaderRegression.cs",
+      "sha256": "15C63C300ADBBDF99AF51AD9224E7780655CB1CB42F4A066AC497170DCA91123"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "sha256": "56A8755AB18DBD559AD57CE166871BA67FFA8C7DCC2D9F2ED4367DCDD08C70A9"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "sha256": "9825FD76778D41A0DEF6380D52C55EAB3892D0601E0C462E456C4FB623FDBFA3"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/additional-samples.json",
+      "sha256": "F197D1903B93ACD816DD4CD259E329F0FDA73ABEDA2D1FFA4B58CD16E9747195"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/build-attempt-1.json",
+      "sha256": "A3E03AF4379339D29F62D0E79D0911177F4E967585B2F8752B0D837F8173C197"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/build-attempt-2.json",
+      "sha256": "86DA27D8F91301E109400063B457E084E2719AF12D882C3DBD75DD6DD37E60F0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/build-attempt-3.json",
+      "sha256": "E2993666D95A4062996C13D198A8FC2AD80E0920CAF3ADA2BAAF732141FDA16D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/build_skybox_managed.py",
+      "sha256": "AD67688F3F027771A9EEB99E0F3521CBAC4310A8BFF361B6C136A6F42A4E87D4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/check_skybox_graphs.py",
+      "sha256": "0F169B7C8A15391B7F6DC283EEEFB5C40E6D22F950842C220FB2FCBDD4144F63"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/dating-samples.json",
+      "sha256": "25DAE8F71505FE5506D07A8BAD96035E1E73486AA50DA2A0A577F26CE43DE85A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/find_skybox_control.py",
+      "sha256": "4BD2E91D521B950A08FF1BC7A234BB411E1F4200BC09EFF0BFDB4C3537980BE4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/loaded-1-graphs.json",
+      "sha256": "A8C8F35D1A51DB7FA2D64ADC4407038CB291BF0595FD34980E4862D0DB0FF966"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/managed-processes.json",
+      "sha256": "7577708C8AA36D933FED0F86640ACF82D703484F8ECB85FD57C526727D1306A2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/mini_level_date_02-render-occurrences-1.json",
+      "sha256": "6B5925E8F0F9F86867CE5734235DF831BC23FDA9F514D0492158FAC16638B684"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/mini_level_date_02-render-occurrences-1.log",
+      "sha256": "C89C58C6306222F4D2DDB29A962F13E1BC074A30FB746C88B95F6DE16BE2BE02"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/mini_level_date_02-skybox-readers-1.json",
+      "sha256": "0C31A4BD6807FC4CC5D67029D35284D7071D4ED8729E575C65EE4E90362C3A23"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/mini_level_date_02-skybox-readers-1.log",
+      "sha256": "0EB8793FC2718B5F5F738488D772A665AA90ADCAB185C5A5C3BA44CC1246BA47"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/native-ctest.log",
+      "sha256": "755E45C24435BD553FE831C3593F8642A3A98F64F9EAFC32115DFF3AF937AF3A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/original-captures.json",
+      "sha256": "BDB88C9EEDF315D20D993861F0BB39145023D963BEC1A123574E3BC030207D45"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/original-inline.log",
+      "sha256": "22C872379142CEF5616FC9813DAD9B550795E195F9B0BD99FEA5A87E3026B3AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/original-prebound.log",
+      "sha256": "C9FCC2DDC7E0DD7B03A421C207CBF2484C8B327534AF206FD0ECF8479B201E5C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/original-repeat.log",
+      "sha256": "E4CFAE9BEFD804B3B276836C71CF007DEE670BD7981A870E14F7006EBEDAB905"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/original-world.log",
+      "sha256": "BE3DE9B8E8F3672499348E3C0A5E2C8FC95A0C8F67B48E6881CC2D7FD165AA97"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/prepare_skybox_checks.py",
+      "sha256": "BF368A324F787E459856C09DECE7830C3BE291528E4857BA6538148A820BCCA0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/race_01-render-occurrences-1.json",
+      "sha256": "52678C4A49C95059E01FA7EC7D52D2806209867F292213AD14F0F378EBF6D214"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/race_01-render-occurrences-1.log",
+      "sha256": "FAFA863AC7FA4DC45BB14A1F5C2E84BD94C5B1EBFBDAC9FEE7B34A7DB507B024"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/race_01-skybox-readers-1.json",
+      "sha256": "7485580A66382D8E3513D0C31E48E9C505779EE7A50460A1EDD4796B92D28608"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/race_01-skybox-readers-1.log",
+      "sha256": "600100B043B1D043BD697D235F544A60214DDAADCDEF1079146BE8FBC84A49C5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/registration.json",
+      "sha256": "4D46FD62D920E0C71B0DFB164AD44F74868DBED7FA5DC3586F32D12EA6C441A7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/run_skybox_managed.py",
+      "sha256": "F60282DD5D09C3B17B1A026274CF2AD59F5F3AAB9380294A8A678E2B66D85CA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/select_skybox_samples.py",
+      "sha256": "440178720751C22ECFFD8E32D89539E650A45A0C3F5D145902554CE9D0E02E4A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-build-1.log",
+      "sha256": "5795F480B33588DCF4AF2075E3235E03C6B89381AF9234DC6CFA53FAFE9BCBD1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-build-2.log",
+      "sha256": "F02E0083AEDB8B299BE8E1CC82DD0C178668A29FEF192A6ABD0F2BF19A63993E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-dispatch-static-1.txt",
+      "sha256": "2BEBDEAF327C2C37B61DC83D1D039D2282A1ED3F27605F2B78979E102ED4BF21"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-world-original-1.log",
+      "sha256": "302D1CB932EC94847C98A47E00599C02602A411C4F0BD58DC46B20144AB434B9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-world-original-2.log",
+      "sha256": "190B6A0644EA6B87D68CFA1A4C9339C5CEFF20866D08B728E94570DECBB7F7B9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-world-original-3.log",
+      "sha256": "BE3DE9B8E8F3672499348E3C0A5E2C8FC95A0C8F67B48E6881CC2D7FD165AA97"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox-world-static-1.txt",
+      "sha256": "4B9AE8C5A4E7DA935B19E35C193ABECDBA2B18DABB41F7B0F39B7D94B68A0395"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox_registration.py",
+      "sha256": "28BE795BC55B048270CCC423A9E6CDEA93BE1D4377ADD33E3352C5BF5F11DD18"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/skybox_xrefs.py",
+      "sha256": "CF37BB063FDACE2B68DB1EE33AAEEBACABA0BFFE474E209B193652193DCD5DE8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoExporter.FormatTests-attempt-2.log",
+      "sha256": "401E4D10F51F2AC426636F49E5D77B27D737412E4728852716FFC0A30DCDF127"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoExporter.FormatTests-attempt-3.log",
+      "sha256": "84A09D708D099E1A21E6730533E5925F6FA90D95212EC58A09CE5A26624F1EC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoImporter.FormatTests-attempt-2.log",
+      "sha256": "6629FFDCD394C39FA7988A946DBA6166187F91ECB27B1609CF679F9F86958CAD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoImporter.FormatTests-attempt-3.log",
+      "sha256": "BD0CD38D29FDEFFD958A9F21EFF7B9D512C67FEB5BCFA95455916D0E905EEEFE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoLVLcreator.CoreTests-attempt-2.log",
+      "sha256": "5FCC6D04125855582791837D1829E7A5C7705B9716673A90BCF2222D4F05E221"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoLVLcreator.CoreTests-attempt-3.log",
+      "sha256": "ED1BA2449D4F8D626E913BE33A197A43A8390D732A6EF5FF10F0F8F993E97C43"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoViewer-attempt-2.log",
+      "sha256": "2F5E4F7EF688849900ECEC8F083809C16442FE794C57937B1F30E80BC388BD30"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoViewer-attempt-3.log",
+      "sha256": "7AB3B93CDD429158A3A034AF60ED635C3CF7BC02021873E6E41CC23E70AE483F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoViewer.FormatTests-attempt-1.log",
+      "sha256": "C7594075CB9F0018F73E86AF945842F56AD36AA695D4D7D91792BA236B47D719"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoViewer.FormatTests-attempt-2.log",
+      "sha256": "7E483E9D1FB288E143C0A5252B0BDDD9A72200DB757E36DF3AE50815CC283587"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/SmoViewer.FormatTests-attempt-3.log",
+      "sha256": "0C6156ACC1DDFABA9AAB364350694E3EE4281AC42C685A392A00F0CD3820872F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/source-comparison.json",
+      "sha256": "701E5BE4DB67F18909D73C0B31B86B61E745B01743B0F46FBC84E9BEC3876C72"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/skybox-reader/source-processes.json",
+      "sha256": "DC53D27354332DC0C3582FEE138BAA1B4C9E3F90E7B1F476E0A39288A7A45597"
+    }
+  ],
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "native_dll_sha256": "2B6FC0F318853EFF0CA7BA91B8BA90FE0CAC75311711B15B2DB4EEC986E3E0C5",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "2B6FC0F318853EFF0CA7BA91B8BA90FE0CAC75311711B15B2DB4EEC986E3E0C5"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "2B6FC0F318853EFF0CA7BA91B8BA90FE0CAC75311711B15B2DB4EEC986E3E0C5"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "2B6FC0F318853EFF0CA7BA91B8BA90FE0CAC75311711B15B2DB4EEC986E3E0C5"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "2B6FC0F318853EFF0CA7BA91B8BA90FE0CAC75311711B15B2DB4EEC986E3E0C5"
+    }
+  ],
+  "reused_proofs": [
+    {
+      "path": "research/native-research-2026-09-06-pc-scene-special.json",
+      "sha256": "2988D0561F8FA0AF25F3586881AD9AE590F12C46298482D037E1E0ACD41D3E59"
+    },
+    {
+      "path": "research/probe_pc_sky_box_runtime.py",
+      "sha256": "60000C6D295565E98D2727624F3F022BE6256E67E4123533034C3A411460E1C0"
+    },
+    {
+      "path": "docs/research/native-pc-scene-special-managers.md",
+      "sha256": "C0F296232676C651FF789522FFA43AF6FC3C9E03E3FE76A14262D05F1D4BB247"
+    }
+  ],
+  "checks": {
+    "reader_writer_matches": 3,
+    "world_matches": 2,
+    "whole_real_scenes": 2,
+    "objects": 3399,
+    "occurrences": 979,
+    "sky_checks": 18,
+    "occurrence_checks": 7350,
+    "FullLoader": 213,
+    "RenderNode": 34,
+    "SceneSerialization": 469,
+    "SkyBox": 13,
+    "consumer_builds": 5
+  },
+  "reconstruction_correction": "Exact RenderNode read/index/write guard contradicted original6D4B00 mapping and actual SkyBox executions; shared serializer now accepts RenderNode family.",
+  "limitations": [
+    "Camera-follow manager and dedicated frontend pass pending; ordinary GL pass omits SkyBox with explicit Scene diagnostic.",
+    "SkyBox nonempty clone/copy explicitly unavailable.",
+    "OcclusionVolume, NavigationGraph and LensFlare remain whole-graph dependencies on other levels.",
+    "Initial world fixture scale offsets corrected after bounded faults; no guest cap raised.",
+    "No new PS2 execution, visual UI run or release."
+  ]
+}

@@ -3,6 +3,7 @@
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
+#include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spRenderNodeSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObject.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
@@ -77,6 +78,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     spSerializerManager manager;spResourceManager resources;
     Register<spNode,spNodeSerializer>(manager);
     Register<spRenderNode,spRenderNodeSerializer>(manager);
+    Register<spSkyBox,spRenderNodeSerializer>(manager); // exact original6D4B00 mapping
     Register<spStaticRenderObject,spStaticRenderObjectSerializer>(manager);
     Register<spModel,spModelSerializer>(manager);
     Register<spSkin,spSkinSerializer>(manager);

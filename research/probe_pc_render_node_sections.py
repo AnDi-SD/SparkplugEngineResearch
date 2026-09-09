@@ -18,7 +18,8 @@ def check(value,label):
     checks+=1
     if not value:raise AssertionError(label)
 
-def main(mode,return_capture=False):
+def main(mode,return_capture=False,target='render-node'):
+    if target not in {'render-node','skybox'}:raise ValueError('explicit actual render support class')
     if mode=='null':raise ValueError('Disabled whole NULL diagnostic: formatting IAT4169DF->0033D03C unmapped; use distinct stop-before diagnostic boundary, never forward host API')
     if mode not in {'inline','repeat','prebound','null-stop'}:raise ValueError('explicit bounded RenderNode relation case')
     body=struct.pack('<II',0x763277db,0x4f4f4253)+field(2,struct.pack('<I',0))+field(3,struct.pack('<I',17))+b'\0'+field(1,struct.pack('<I',9))+b'\0'
@@ -34,13 +35,16 @@ def main(mode,return_capture=False):
     p.put_uint(entry_node+12,0x763277db);p.put_uint(entry_node+16,0x760cf8);p.put_uint(0x760cf8+0x4c,0x479ed0)
     for record,identity,parent in ((0x75e150,0x603625d0,0x75dd88),(0x75e030,0x4fda4542,0x7555f8),(0x760cf8,0x763277db,0x75e030)):
         p.put_uint(record,identity);p.put_uint(record+0x48,parent)
+    p.put_uint(0x762e10,0x7a7124af);p.put_uint(0x762e10+0x48,0x75e150)
     p.put_uint(0x75db68,p.allocate(0xc9c8))
     fat=empty_fat(f);manager,_=empty_manager(f);p.put_uint(manager+0x28,fat)
     p.put_uint(manager+0x10,2);p.put_uint(manager+0x14,1);p.put_uint(manager+0x18,2);p.put_uint(0x75dde8,manager)
     serializer=f.call(0x469040);model_serializer=f.call(0x4934c0)
     f.call(0x422d90,this=manager,args=(0x603625d0,serializer,0xff,3));f.call(0x422d90,this=manager,args=(0x763277db,model_serializer,0xff,3))
+    if target=='skybox':f.call(0x6d4b00) # actual registration creates the same RenderNode serializer
     check(f.call(0x466b90,this=fat,args=(f.stream,))&255==1,'actual FAT model membership')
-    entry=f.call(0x4664c0,this=fat,args=(7,));node=f.call(0x425520)
+    entry=f.call(0x4664c0,this=fat,args=(7,));node=f.call(0x49e4c0 if target=='skybox' else 0x425520)
+    if target=='skybox':check(f.allocations[node]==0x1d4 and p.uint(node)==0x6eecec,'actual SkyBox factory/type/extent')
     if mode=='prebound':p.put_uint(entry+0x20,f.call(0x479ed0))
     if mode=='null-stop':
         p.run(0x469190,this=serializer+0x10,args=(f.stream,node),stop_at=0x469288)
@@ -80,14 +84,14 @@ def main(mode,return_capture=False):
     else:
         check(p.uint(node+0xbc)==0,'NULL relation never appended')
         captured=[mode,payload.hex(),None,None]
-    f.call(0x466760,this=fat);f.call(0x4255d0,this=node,args=(1,));f.call(0x4228a0,this=manager)
+    f.call(0x466760,this=fat);f.call(0x49e590 if target=='skybox' else 0x4255d0,this=node,args=(1,));f.call(0x4228a0,this=manager)
     for address in (0x75db90,0x75db78,0x75526c,0x755264):
         owned=p.uint(address)
         if owned:f.call(p.uint(p.uint(owned)),this=owned,args=(1,))
     check(set(f.allocations)==set(f.freed),'all native graph/serializer/storage allocations released')
-    print('RN_CAPTURE',captured,flush=True);print(f'PASS {checks}/{checks}: actual RenderNode/Model {mode}')
+    print('RN_CAPTURE',captured,flush=True);print(f'PASS {checks}/{checks}: actual {target}/Model {mode}')
     return captured if return_capture else 0
 
 if __name__=='__main__':
-    if sys.argv[1:2]==['--guest']:raise SystemExit(main(sys.argv[2]))
+    if sys.argv[1:2]==['--guest']:raise SystemExit(main(sys.argv[2],target=sys.argv[3] if len(sys.argv)>3 else 'render-node'))
     raise SystemExit(run_bounded(Path(__file__),sys.argv[1:]))

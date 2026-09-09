@@ -159,3 +159,13 @@ MaterialColorController factory не подменялась.
 SpatialSerialization/FullLoader и пять managed builds passed. В Native bridge
 возвращены LF после случайного CRLF прошлого блока. Релиза нет.
 Досье: `docs/research/tool-octree-reader-shared-core-2026-09-09.md`.
+
+Блок 16: actual SkyBox/world/dedicated draw boundary и original регистрация
+RenderNodeSerializer вместо нового serializer. Exact-class guard был ошибкой
+реконструкции; три original/source reader-writer matches и два raw world matches.
+race_01 + mini_level_date_02: 3399 объектов, 979 occurrences, 18 + 7350 checks.
+Четыре native suites, пять consumer builds. Sky metadata projector общий,
+special pass identity сохранён; в обычном GL pass небо пропущено с диагностикой.
+Camera-follow frontend ещё открыт. Далее OcclusionVolume/NavigationGraph,
+дополнительный battle_01 также требует LensFlare. Релиза нет.
+Досье: `docs/research/tool-skybox-shared-core-2026-09-09.md`.

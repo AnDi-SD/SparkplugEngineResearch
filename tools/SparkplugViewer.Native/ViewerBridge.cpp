@@ -11,6 +11,7 @@
 #include "Code/Sparkplug/spOctreeNode.h"
 #include "Code/Sparkplug/spOctreeNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
+#include "Code/Sparkplug/spSkyBox.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -849,7 +850,7 @@ SPV_API int spv_graph_render_containers(void* handle,SpvGraphRenderContainer* ou
             if(graph.ID(entry.object)!=entry.id)continue;
             SpvGraphRenderContainer value{};value.id=entry.id;
             if(auto* node=dynamic_cast<spRenderNode*>(entry.object)) {
-                value.kind=0;value.renderables=static_cast<std::uint32_t>(node->GetRenderableCountForAnalysis());
+                value.kind=node->IsExactly(spSkyBox::ClassID)?3u:0u;value.renderables=static_cast<std::uint32_t>(node->GetRenderableCountForAnalysis());
                 if(output) {
                     node->UpdateRenderMatricesForAnalysis();
                     const auto& world=node->GetCachedRenderMatrixForAnalysis();const auto& inverse=node->GetCachedRenderInverseForAnalysis();

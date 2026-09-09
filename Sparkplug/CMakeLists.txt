@@ -283,6 +283,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spRenderable.h
     Code/Sparkplug/spRenderNode.cpp
     Code/Sparkplug/spRenderNode.h
+    Code/Sparkplug/spSkyBox.cpp
+    Code/Sparkplug/spSkyBox.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
     Code/Sparkplug/spPartitionNodeSerializer.cpp
@@ -627,6 +629,10 @@ if(BUILD_TESTING)
     add_test(NAME SparkplugNodeSerializationTests COMMAND SparkplugNodeSerializationTests)
     set_tests_properties(SparkplugNodeSerializationTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSceneSerializationTests Tests/spSceneSerializationTests.cpp)
+    add_executable(SparkplugSkyBoxTests Tests/spSkyBoxTests.cpp)
+    target_link_libraries(SparkplugSkyBoxTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugSkyBoxTests COMMAND SparkplugSkyBoxTests)
+    set_tests_properties(SparkplugSkyBoxTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugParticleSerializationTests Tests/spParticleSerializationTests.cpp)
     target_link_libraries(SparkplugParticleSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugParticleSerializationTests COMMAND SparkplugParticleSerializationTests)

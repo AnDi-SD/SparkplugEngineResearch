@@ -213,3 +213,16 @@ reader. Четыре original/source совпадения, raw/partial/omitted c
 отсутствующий класс. Две native suites и пять managed builds прошли. Нет
 подмены SkyBox, видимость и authoring writer остаются открытыми.
 Досье: `docs/research/tool-octree-reader-shared-core-2026-09-09.md`.
+
+### Блок 16: SkyBox и общая регистрация RenderNodeSerializer
+
+Оригинал регистрирует существующий RenderNodeSerializer для SkyBox; ошибочная
+exact-class проверка реконструкции исправлена по original initializer и трём
+reader/index/writer executions. Два world PRS captures совпали побайтно.
+Собственный C# SkyBox parser заменён общим metadata projector. Две реальные
+сцены загрузили 3399 объектов / 979 occurrences, 18 + 7350 checks. Native
+четыре suites / пять consumer builds прошли. SkyBox помечен отдельным pass,
+обычный GL model pass его пропускает с SKY_PASS_PENDING. Camera-follow и
+frontend pass ещё не подключены. Следующие blockers: OcclusionVolume,
+NavigationGraph; LensFlare встречен в дополнительном контрольном уровне.
+Досье: `docs/research/tool-skybox-shared-core-2026-09-09.md`.

@@ -82,7 +82,8 @@ namespace sparkplug::reconstruction
     {
         if(error)error->clear();
         auto* node=dynamic_cast<spRenderNode*>(&object);
-        if(!node||!object.IsExactly(spRenderNode::ClassID))
+        // Original6D4B00 registers this same serializer for spSkyBox.
+        if(!node||!object.IsKindOf(spRenderNode::ClassID))
         {context.failed=true;if(error)*error="RenderNode section target mismatch";return false;}
         return ReadRenderNodeFieldsForAnalysis(context,source,size,*node,true,error);
     }
@@ -108,7 +109,7 @@ namespace sparkplug::reconstruction
 
     bool spRenderNodeSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
     {
-        auto* node=dynamic_cast<spRenderNode*>(&object);if(!node||!object.IsExactly(spRenderNode::ClassID))return false;
+        auto* node=dynamic_cast<spRenderNode*>(&object);if(!node||!object.IsKindOf(spRenderNode::ClassID))return false;
         if(!IndexNodeRelationshipsForAnalysis(manager,*node))return false;
         for(std::size_t i=0;i<node->GetRenderableCountForAnalysis();++i)
             if(!IndexReferenceForAnalysis(manager,node->GetRenderableForAnalysis(i)))return false;
@@ -134,7 +135,7 @@ namespace sparkplug::reconstruction
     bool spRenderNodeSerializer::WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const
     {
         const auto* node=dynamic_cast<const spRenderNode*>(&object);
-        if(!node||!object.IsExactly(spRenderNode::ClassID)){if(error)*error="RenderNode write target mismatch";return false;}
+        if(!node||!object.IsKindOf(spRenderNode::ClassID)){if(error)*error="RenderNode write target mismatch";return false;}
         return WriteSectionsForAnalysis(nullptr,stream,*node,error);
     }
 
@@ -142,7 +143,7 @@ namespace sparkplug::reconstruction
         spStream& stream,const spBaseObject& object,std::string* error) const
     {
         const auto* node=dynamic_cast<const spRenderNode*>(&object);
-        if(!node||!object.IsExactly(spRenderNode::ClassID)){if(error)*error="RenderNode write target mismatch";return false;}
+        if(!node||!object.IsKindOf(spRenderNode::ClassID)){if(error)*error="RenderNode write target mismatch";return false;}
         return WriteSectionsForAnalysis(&manager,stream,*node,error);
     }
 
