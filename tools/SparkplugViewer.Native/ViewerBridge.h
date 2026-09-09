@@ -256,6 +256,15 @@ SPV_API int spv_model_palette_fields(void*,SpvSkinPaletteField*,std::uint32_t ca
     std::uint32_t* count) noexcept;
 struct SpvAnimTextureInfo {std::uint32_t frames,hasTrack;float duration;};
 struct SpvAnimTextureFrame {float time;SpvMaterialReference reference;};
+// Scalar/reference observation only; derived Text layout is not available.
+struct SpvTextInspectionInfo {
+    std::uint32_t renderableMask,fieldMask,alpha,priority,color,wrapWidth,alignment,textLength,textByteCount,textFlags;
+    SpvMaterialReference material,fog,font;
+};
+SPV_API void* spv_text_inspection_read(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_text_inspection_destroy(void*) noexcept;
+SPV_API int spv_text_inspection_info(void*,SpvTextInspectionInfo*) noexcept;
+SPV_API int spv_text_inspection_bytes(void*,std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void* spv_anim_texture_read(const std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void spv_anim_texture_destroy(void*) noexcept;
 SPV_API int spv_anim_texture_info(void*,SpvAnimTextureInfo*) noexcept;

@@ -55,12 +55,20 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    игровых комбинаций остаётся прежним ограничением, не результатом этого блока.
    [Локальные команды и evidence](../../local-data/results/tools-core-cycle-20260910-0730/hair-core/notes.md),
    [manifest](../../local-data/results/tools-core-cycle-20260910-0730/hair-core/manifest.json).
+   Checkpoint: root `ca604e7`.
+3. [Text metadata inspection](tool-text-shared-inspection-2026-09-10.md):
+   удалены отдельные C# Text/inherited Renderable parsers, исправлены
+   byte-string/UInt32 wrap, сохранены raw bytes и явная граница layout unavailable.
+   TextNode делегирует общей RenderNode metadata-проекции; полного runtime
+   TextNode reader это не означает. Native TextInspection/RenderNode прошли;
+   managed 59 проверок с 20 Text/TextNode объектов menu; общий Viewer 609,
+   Viewer и FormatTests builds без warnings/errors. Документация исправлена.
 
 ## Новые границы и исправления
 
 - Font baseline отсутствует до reader assignment: nullable, не выдуманный ноль.
-- Full runtime Text остаётся незавершённым; следующая полезная операция —
-  общий metadata inspector с явной границей невыполненного layout.
+- Text metadata inspector готов; full runtime Text остаётся незавершённым.
+  TextNode использует общий metadata adapter, не полный runtime loader.
 - Original null-Font setter и TextNode teardown упёрлись в недостающую среду;
   успешный setter проверен отдельно с настоящим Font. Остатки общей
   инфраструктуры не выдаются за успешное полное освобождение.

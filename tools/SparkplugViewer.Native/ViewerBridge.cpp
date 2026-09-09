@@ -18,6 +18,7 @@
 #include "Code/Sparkplug/spFogSerializer.h"
 #include "Code/Sparkplug/spFont.h"
 #include "Code/Sparkplug/spFontSerializer.h"
+#include "Code/Sparkplug/spTextRenderableSerializer.h"
 #include "Code/Sparkplug/spSphereBV.h"
 #include "Code/Sparkplug/spSphereBVSerializer.h"
 #include "Code/Sparkplug/spBoxBV.h"
@@ -279,6 +280,24 @@ struct ModelView {
 };
 static_assert(sizeof(SpvModelInfo)==56&&sizeof(SpvSkinBone)==80);
 static_assert(sizeof(SpvSkinPaletteField)==16&&sizeof(SpvSkinPaletteBinding)==68);
+struct TextInspectionView {
+    SpvTextInspectionInfo info{};
+    std::string text;
+    TextInspectionView(const std::uint8_t* bytes,std::uint32_t size) {
+        require(bytes&&size&&size<=16u*1024u*1024u,"Invalid bounded Text inspection input");
+        BorrowedInput input(bytes,size);spTextRenderableSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spTextRenderableSerializer{}.InspectPayloadForAnalysis(input,size,observed,&error))
+            throw std::runtime_error(error.empty()?"Cannot inspect Text fields":error);
+        info.renderableMask=observed.renderable.fieldMask;info.fieldMask=observed.fieldMask;
+        info.alpha=observed.partial.IsAlphaSortEnabledForAnalysis();info.priority=observed.partial.GetPriorityForAnalysis();
+        info.color=observed.color;info.wrapWidth=observed.wrapWidth;info.alignment=observed.alignment;
+        info.textLength=static_cast<std::uint32_t>(observed.text.size());info.textByteCount=observed.textByteCount;
+        info.textFlags=(observed.textWasNull?1u:0u)|(observed.textHadTrailingNull?2u:0u);
+        info.material=referenceForView(observed.renderable.material);info.fog=referenceForView(observed.renderable.fog);
+        info.font=referenceForView(observed.font);text=std::move(observed.text);
+    }
+};
+static_assert(sizeof(SpvTextInspectionInfo)==64);
 struct AnimTextureView {
     SpvAnimTextureInfo info{};
     std::vector<SpvAnimTextureFrame> frames;
@@ -1748,5 +1767,23 @@ SPV_API int spv_scene_palette(void* handle,const SpvBone* bones,std::uint32_t co
             for(auto value:matrix) require(std::isfinite(value),"Non-finite palette result");
             std::memcpy(output+i*16,matrix.data(),64);
         }
+    });
+}
+
+SPV_API void* spv_text_inspection_read(const std::uint8_t* bytes,std::uint32_t size) noexcept {
+    std::unique_ptr<TextInspectionView> result;
+    if(!guarded([&]{result=std::make_unique<TextInspectionView>(bytes,size);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_text_inspection_destroy(void* handle) noexcept {
+    (void)guarded([&]{delete static_cast<TextInspectionView*>(handle);});
+}
+SPV_API int spv_text_inspection_info(void* handle,SpvTextInspectionInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid Text inspection view");*output=static_cast<TextInspectionView*>(handle)->info;});
+}
+SPV_API int spv_text_inspection_bytes(void* handle,std::uint8_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Invalid Text inspection view");const auto& text=static_cast<TextInspectionView*>(handle)->text;
+        require(count==text.size()&&(output||!count),"Invalid Text observation buffer");
+        if(count)std::memcpy(output,text.data(),count);
     });
 }

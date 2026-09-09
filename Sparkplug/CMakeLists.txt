@@ -235,6 +235,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spFont.h
     Code/Sparkplug/spFontSerializer.cpp
     Code/Sparkplug/spFontSerializer.h
+    Code/Sparkplug/spTextRenderableSerializer.cpp
+    Code/Sparkplug/spTextRenderableSerializer.h
     Code/Sparkplug/spMatColorControllerSerializer.cpp
     Code/Sparkplug/spMatColorControllerSerializer.h
     Code/Sparkplug/spLightControllerSerializer.cpp
@@ -512,6 +514,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugRenderNodeTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugRenderNodeTests COMMAND SparkplugRenderNodeTests)
     add_executable(SparkplugFontSerializationTests Tests/spFontSerializationTests.cpp)
+    add_executable(SparkplugTextInspectionTests Tests/spTextInspectionTests.cpp)
+    target_link_libraries(SparkplugTextInspectionTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTextInspectionTests COMMAND SparkplugTextInspectionTests)
+    set_tests_properties(SparkplugTextInspectionTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugFontSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugFontSerializationTests COMMAND SparkplugFontSerializationTests)
     set_tests_properties(SparkplugFontSerializationTests PROPERTIES TIMEOUT 20)

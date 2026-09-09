@@ -1,6 +1,14 @@
-# Полный разбор `spFont`
+# `spFont`: общий reader и корпусный профиль
 
-`spFont` (`0x4693490A`) полностью разобран для чтения. В доступных SMO класс
+Уточнение 10 сентября 2026: подключён общий `spFont`/`spFontSerializer`.
+Factory обнуляет height/image/glyphs, **baseline оставляет неинициализированным**.
+Общий код представляет его optional до reader assignment. Неизвестные и
+повторные fields допускаются. Ограничения UV ниже описывают только выбранный
+корпус: оригинал сохраняет raw Float bits и UInt32 metrics без нормализации.
+Writer/clone/font renderer не восстановлены этим срезом.
+[Реализация и проверки](tool-font-static-shared-core-2026-09-10.md).
+
+`spFont` (`0x4693490A`) имеет подтверждённый PC reader данных. В доступных SMO класс
 встречается только на PC: по 10 объектов в двух копиях `Menus/menu.smo`, итого
 20. PS2 executable содержит тот же class/serializer, но PS2-корпус не содержит
 экземпляров.
