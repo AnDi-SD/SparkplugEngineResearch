@@ -189,6 +189,7 @@ struct TextureSectionView {
 struct MaterialView {
     SpvMaterialInfo info{};
     std::vector<SpvMaterialLayer> layers;
+    std::vector<SpvMaterialPass> passes;
     MaterialView(const std::uint8_t* bytes,std::uint32_t size) {
         require(bytes&&size&&size<=16u*1024u*1024u,"Invalid bounded material field stream");
         BorrowedInput input(bytes,size);spDXMaterial material;
@@ -205,6 +206,7 @@ struct MaterialView {
         for(std::uint32_t i=0;i<info.passes;++i) {
             const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material.GetPassForAnalysis(i));
             require(pass!=nullptr,"Material pass has no supported view");
+            passes.push_back({pass->GetFinalBlendOperationForAnalysis(),static_cast<std::uint32_t>(pass->GetLayerCountForAnalysis())});
             for(std::uint32_t j=0;j<pass->GetLayerCountForAnalysis();++j) {
                 const auto* layer=dynamic_cast<const spStdLayer*>(pass->GetLayerForAnalysis(j).get());
                 require(layer&&layer->GetMaterialTextureForAnalysis(),"Material layer has no supported texture holder");
@@ -652,6 +654,10 @@ SPV_API int spv_material_info(void* handle,SpvMaterialInfo* output) noexcept {
 SPV_API int spv_material_layers(void* handle,SpvMaterialLayer* output,std::uint32_t count) noexcept {
     return guarded([&]{require(handle,"Invalid material view");const auto& layers=static_cast<MaterialView*>(handle)->layers;
         require(count==layers.size()&&(!count||output),"Material layer output size mismatch");std::copy(layers.begin(),layers.end(),output);});
+}
+SPV_API int spv_material_passes(void* handle,SpvMaterialPass* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Invalid material view");const auto& passes=static_cast<MaterialView*>(handle)->passes;
+        require(count==passes.size()&&(!count||output),"Material pass output size mismatch");if(count)std::copy(passes.begin(),passes.end(),output);});
 }
 SPV_API void* spv_model_read(const std::uint8_t* bytes,std::uint32_t count,std::uint32_t kind) noexcept {
     std::unique_ptr<ModelView> result;

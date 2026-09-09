@@ -84,3 +84,13 @@ MaterialColor225/FullLoader213;5 SMO:750/748/802/937/36350 assertions;
 3 consumer builds чистые. Удалена ошибочная C# подстановка scale yOffset0.
 Protected color ctor не использован: ABI читает настоящие leaf evaluators.
 Досье: `docs/research/tool-material-functions-shared-core-2026-09-09.md`.
+
+### Блок6: единая material inspection для трёх потребителей
+
+MaterialData, diffuse и render-state views используют общий reader и один
+снимок на неизменяемый документ. Удалены ещё два C# parsers; сохранены последнее
+state assignment и authored black. Original9 captures переиспользованы;
+C++ Material554/FullLoader213,3 consumer builds и5 SMO прошли. Узкий замер
+повторных чтений:5,88→1,41ms, allocations-17%; это не общий FPS/load time.
+Выбор материала по физическим соседям остаётся следующей задачей.
+Досье: `docs/research/tool-material-inspection-shared-core-2026-09-09.md`.

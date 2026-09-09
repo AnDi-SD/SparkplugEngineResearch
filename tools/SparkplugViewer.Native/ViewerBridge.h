@@ -108,12 +108,14 @@ struct SpvMaterialLayer {
     std::uint32_t states[9],hasUV,uvEnabled;float uvMatrix[9];
     SpvMaterialReference texture,animation,uvController;
 };
+struct SpvMaterialPass {std::uint32_t blend,layers;};
 // Same original material grammar with explicit metadata-only references.
 // No referenced resources are instantiated. Offsets are relative to this field stream.
 SPV_API void* spv_material_read(const std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void spv_material_destroy(void*) noexcept;
 SPV_API int spv_material_info(void*,SpvMaterialInfo*) noexcept;
 SPV_API int spv_material_layers(void*,SpvMaterialLayer*,std::uint32_t) noexcept;
+SPV_API int spv_material_passes(void*,SpvMaterialPass*,std::uint32_t) noexcept;
 struct SpvModelInfo {
     std::uint32_t alpha,priority,projection,weights,renderableMask,modelMask,skinMask,bones;
     SpvMaterialReference material,fog,mesh;

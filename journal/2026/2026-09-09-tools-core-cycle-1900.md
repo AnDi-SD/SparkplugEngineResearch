@@ -52,3 +52,11 @@ UV386/Color118/MaterialColor225/FullLoader213 прошли.5 выборочны�
 750/748/802/937/36350 assertions;3 consumer builds0 warnings/errors.
 Исправлена C# подстановка scale defaults удалением дублирующего decoder.
 Досье: `docs/research/tool-material-functions-shared-core-2026-09-09.md`.
+
+Блок6: общий material snapshot для полного DTO, цвета и состояний. Два parser
+удалены; последняя запись состояний и чёрный diffuse больше не теряются.
+9 прежних original captures,3 empty-pass ABI cases, Material554/FullLoader213
+прошли.5 SMO:37182/36353/9341/3069/1588;3 consumer builds чистые.
+Медиана узкого повторного чтения10 материалов:5,8782→1,4136ms;
+managed allocations-17,16%, без заявления общего ускорения Viewer.
+Досье: `docs/research/tool-material-inspection-shared-core-2026-09-09.md`.
