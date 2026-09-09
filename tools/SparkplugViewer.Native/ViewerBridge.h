@@ -110,6 +110,11 @@ SPV_API int spv_graph_navigation_json(void*,std::uint8_t*,std::uint32_t capacity
 SPV_API int spv_graph_spatial_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
 using SpvLightFields=spvhost::LightInspection;
 SPV_API int spv_light_fields_read(const std::uint8_t*,std::uint32_t,SpvLightFields*) noexcept;
+// Font inspection DTOs. An absent baseline is explicitly unknown; image is an
+// observed wire extent, not a loaded texture. Glyph layout is host-only.
+struct SpvFontInfo {std::uint32_t height,baseline,hasBaseline,hasImage,imageOffset,imageSize;};
+struct SpvFontGlyph {std::uint32_t width;float uv0[2],uv1[2];};
+SPV_API int spv_font_read(const std::uint8_t*,std::uint32_t,SpvFontInfo*,SpvFontGlyph*,std::uint32_t) noexcept;
 // Scalar observation from an actual BV. Values contain the requested field;
 // halfExtents/boundingRadius describe size fields only, not extra game members.
 struct SpvBVField {float values[4],halfExtents[3],boundingRadius;};
@@ -269,6 +274,10 @@ SPV_API int spv_color_functions_read(const std::uint8_t*,std::uint32_t,SpvColorF
 // resolution, affine validation or relation between matrices is implied.
 SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,
     const SpvNodeField*,std::uint32_t,SpvStaticMatrices*) noexcept;
+// Two independent finite authoring matrices (16 floats each). Calls the actual
+// zero-renderable StaticRenderObject writer; returns its fields + terminator.
+// Finite input is a host editing guard, not an original matrix-reader rule.
+SPV_API void* spv_static_write_matrix_fields(const float* world,const float* inverse) noexcept;
 struct SpvCollisionInfoValues {
     float position[3],rotation[4],scale[3],orientation[9];
     std::uint32_t group,fieldMask;

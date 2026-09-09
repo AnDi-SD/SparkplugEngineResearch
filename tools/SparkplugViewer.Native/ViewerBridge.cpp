@@ -16,6 +16,8 @@
 #include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spFog.h"
 #include "Code/Sparkplug/spFogSerializer.h"
+#include "Code/Sparkplug/spFont.h"
+#include "Code/Sparkplug/spFontSerializer.h"
 #include "Code/Sparkplug/spSphereBV.h"
 #include "Code/Sparkplug/spSphereBVSerializer.h"
 #include "Code/Sparkplug/spBoxBV.h"
@@ -769,6 +771,24 @@ SPV_API int spv_graph_spatial_json(void* handle,std::uint8_t* output,std::uint32
 SPV_API int spv_light_fields_read(const std::uint8_t* bytes,std::uint32_t size,SpvLightFields* output) noexcept {
     return guarded([&]{require(output,"Missing Light inspection output");*output=spvhost::ReadLightInspection(bytes,size);});
 }
+SPV_API int spv_font_read(const std::uint8_t* bytes,std::uint32_t size,SpvFontInfo* output,
+    SpvFontGlyph* glyphs,std::uint32_t count) noexcept {
+    static_assert(sizeof(SpvFontInfo)==24&&sizeof(SpvFontGlyph)==20);
+    return guarded([&]{require(bytes&&size&&size<=16u*1024u*1024u&&output&&glyphs&&count==spFont::GlyphCount,
+            "Invalid bounded Font inspection input/output");
+        BorrowedInput input(bytes,size);spFont partial;spFontSerializer::InspectionForAnalysis observed;std::string error;
+        if(!spFontSerializer{}.InspectPayloadForAnalysis(input,size,partial,observed,&error))
+            throw std::runtime_error(error.empty()?"Cannot read Font inspection section":error);
+        const auto& baseline=partial.GetBaselineForAnalysis();
+        *output={partial.GetHeightForAnalysis(),baseline.value_or(0),baseline.has_value(),observed.hasImage,
+            observed.image.offset,observed.image.size};
+        const auto& values=partial.GetGlyphsForAnalysis();
+        for(std::size_t i=0;i<values.size();++i) {
+            glyphs[i].width=values[i].width;
+            std::memcpy(glyphs[i].uv0,values[i].uv0.data(),8);std::memcpy(glyphs[i].uv1,values[i].uv1.data(),8);
+        }
+    });
+}
 SPV_API int spv_bv_scalar_read(std::uint32_t classID,std::uint32_t field,
     const std::uint8_t* bytes,std::uint32_t size,SpvBVField* output) noexcept {
     static_assert(sizeof(SpvBVField)==32);
@@ -1355,6 +1375,32 @@ SPV_API int spv_static_matrices(const std::uint8_t* bytes,std::uint32_t count,
     });
 }
 static_assert(sizeof(SpvStaticMatrices)==132);
+SPV_API void* spv_static_write_matrix_fields(const float* world,const float* inverse) noexcept {
+    std::unique_ptr<SerializedBytes> result;
+    if(!guarded([&]{
+        require(world&&inverse,"STATIC_MATRIX_INPUT: both matrix values are required");
+        // Existing editor finite-input policy only. The original stores two
+        // independent raw matrices; no affine/inverse calculation is added.
+        for(std::size_t i=0;i<16;++i)
+            require(std::isfinite(world[i])&&std::isfinite(inverse[i]),
+                "STATIC_MATRIX_INPUT: authoring matrices must be finite");
+        spStaticRenderObject object;
+        spStaticRenderObject::Matrix4 worldValue{},inverseValue{};
+        std::memcpy(worldValue.data(),world,sizeof(worldValue));
+        std::memcpy(inverseValue.data(),inverse,sizeof(inverseValue));
+        object.SetWorldMatrixForAnalysis(worldValue);
+        object.SetWorldInverseMatrixForAnalysis(inverseValue);
+        spMemoryStream output;
+        require(output.Open("tool.static.matrices"),"Cannot open StaticRenderObject matrix writer stream");
+        std::string error;
+        // PC450140's empty actual renderable list is independently captured;
+        // use the existing writer as-is, without a parallel matrix serializer.
+        if(!spStaticRenderObjectSerializer{}.WritePayloadForAnalysis(output,object,&error))
+            throw std::runtime_error(error.empty()?"Cannot write StaticRenderObject matrix fields":error);
+        result=std::make_unique<SerializedBytes>(output);
+    }))return nullptr;
+    return result.release();
+}
 SPV_API int spv_collision_info_values(const std::uint8_t* bytes,std::uint32_t count,
     const SpvNodeField* fields,std::uint32_t fieldCount,SpvCollisionInfoValues* output) noexcept {
     return guarded([&]{

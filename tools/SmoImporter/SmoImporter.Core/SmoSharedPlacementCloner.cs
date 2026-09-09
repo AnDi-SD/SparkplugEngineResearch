@@ -641,25 +641,8 @@ public static class SmoSharedPlacementCloner
             throw new InvalidOperationException(
                 "The shared placement template has no writable matrix pair.");
         }
-        WriteMatrix(serialized.Slice(forwardField.PayloadOffset, 64), forward);
-        WriteMatrix(serialized.Slice(inverseField.PayloadOffset, 64), inverse);
-    }
-
-    private static void WriteMatrix(Span<byte> data, Matrix4x4 value)
-    {
-        ReadOnlySpan<float> values =
-        [
-            value.M11, value.M12, value.M13, value.M14,
-            value.M21, value.M22, value.M23, value.M24,
-            value.M31, value.M32, value.M33, value.M34,
-            value.M41, value.M42, value.M43, value.M44
-        ];
-        for (int index = 0; index < values.Length; index++)
-        {
-            BinaryPrimitives.WriteInt32LittleEndian(
-                data[(index * 4)..],
-                BitConverter.SingleToInt32Bits(values[index]));
-        }
+        SmoStaticMatrixWriter.PatchPayloads(serialized,
+            forwardField.PayloadOffset, inverseField.PayloadOffset, forward, inverse);
     }
 
     private static float MatrixMaxDifference(Matrix4x4 left, Matrix4x4 right)

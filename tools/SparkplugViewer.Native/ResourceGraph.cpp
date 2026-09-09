@@ -29,6 +29,8 @@
 #include "Code/Sparkplug/spLightDataSerializer.h"
 #include "Code/Sparkplug/spFog.h"
 #include "Code/Sparkplug/spFogSerializer.h"
+#include "Code/Sparkplug/spFont.h"
+#include "Code/Sparkplug/spFontSerializer.h"
 #include "Code/Sparkplug/spCollisionInfo.h"
 #include "Code/Sparkplug/spCollisionInfoSerializer.h"
 #include "Code/Sparkplug/spOBBBV.h"
@@ -103,6 +105,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     Register<spTextureData,spDXTextureDataSerializer>(manager);
     Register<spLightData,spLightDataSerializer>(manager);
     Register<spFog,spFogSerializer>(manager);
+    Register<spFont,spFontSerializer>(manager);
     Register<spCollisionInfo,spCollisionInfoSerializer>(manager);
     Register<spOBBBV,spOBBBVSerializer>(manager);
     Register<spSphereBV,spSphereBVSerializer>(manager);

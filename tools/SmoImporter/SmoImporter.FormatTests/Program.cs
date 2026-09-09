@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args is ["--static-matrix-authoring", string staticMatrixOutput])
+{
+    try { return StaticMatrixWriterRegression.Run(staticMatrixOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--reserved-header-authoring", string reservedHeaderOutput])
 {
     try { return ReservedHeaderWriterRegression.Run(reservedHeaderOutput); }
