@@ -676,6 +676,13 @@ SPV_API int spv_octree_fields_read(const std::uint8_t* bytes,std::uint32_t size,
         if(!spOctreeNodeSerializer().ReadOctreeFieldsForAnalysis(context,source,size,node,&error))throw std::runtime_error(error);
         *output=octreeFields(node);});
 }
+SPV_API int spv_graph_navigation_json(void* handle,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept {
+    return guarded([&]{require(size,"Missing navigation snapshot size");*size=0;
+        require(output||!capacity,"Missing navigation snapshot buffer");
+        const auto& json=graphForView(handle).NavigationJSON();*size=static_cast<std::uint32_t>(json.size());
+        if(!output)return;
+        require(capacity>=json.size(),"Navigation snapshot buffer is too small");std::memcpy(output,json.data(),json.size());});
+}
 SPV_API int spv_graph_octree(void* handle,std::uint32_t id,SpvGraphOctree* output) noexcept {
     return guarded([&]{require(output,"Missing graph Octree output");const auto& graph=graphForView(handle);
         auto* loaded=dynamic_cast<spOctreeNode*>(graph.Find(id));require(loaded,"Expected loaded Octree node");
@@ -1054,16 +1061,17 @@ SPV_API int spv_node_values(const std::uint8_t* bytes,std::uint32_t count,const 
 SPV_API int spv_reference_prefix(const std::uint8_t* bytes,std::uint32_t count,std::uint32_t payloadSize,
     std::uint32_t kind,SpvReferencePrefix* output) noexcept {
     return guarded([&]{
-        require(bytes&&output&&kind<=1&&count>=4&&payloadSize>=4,"Invalid reference prefix input");
+        require(bytes&&output&&kind<=2&&count>=4&&payloadSize>=4,"Invalid reference prefix input");
         *output={}; BorrowedInput source(bytes,std::min(count,payloadSize));
         spSerializer::ReferencePrefixForAnalysis prefix;std::string error;
         if(!spSerializer::ReadReferencePrefixForAnalysis(source,source,prefix,&error))throw std::runtime_error(error);
-        require(prefix.id?(payloadSize>=8&&prefix.inlineSize==payloadSize-8):payloadSize==4,
+        require(kind==2?(prefix.id?(payloadSize>=8&&prefix.inlineSize<=payloadSize-8):payloadSize>=4):
+            (prefix.id?(payloadSize>=8&&prefix.inlineSize==payloadSize-8):payloadSize==4),
             "Reference extent differs from enclosing field");
         require(!prefix.inlineSize||prefix.inlineSize>=8,"Inline object header is truncated");
         output->id=prefix.id;output->inlineSize=prefix.inlineSize;
         output->encoding=prefix.id?(prefix.inlineSize?2:1):0;
-        if(kind==1) {
+        if(kind>=1) {
             require(count==payloadSize,"Full reference inspection requires the entire payload");
             if(prefix.inlineSize) {
                 spSerializerObjectHeaderForAnalysis header;

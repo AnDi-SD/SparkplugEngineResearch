@@ -1,0 +1,546 @@
+{
+  "kind": "tools-core-navigation-block",
+  "status": "verified-shared-navigation-readers",
+  "cycle_block": 17,
+  "created_utc": "2026-09-09T13:55:22.361920+00:00",
+  "base_commit": "b1e13be1474e3caa7f3bebd3d60787960127dfc3",
+  "viewer_commit": "7c90c98ef6ebaacccda0e8a2097ca1e9e08fa124",
+  "sources": [
+    {
+      "path": "Sparkplug/Analysis/PC/spNavigationStorage.h",
+      "sha256": "BA4A3441393A061D54C2C01DF6162377998FEF508AC94825DAB7365164DE342B"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spSectionCursor.h",
+      "sha256": "F17800D0B7D509EACC46137EBFBA0FBD5508DBB3AF118E2E1B0FAAF926B5B292"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "F72F6B3DC88B95E228FFB1651007F0F8688C9AE0F4C95C2A3379D727C1490CE9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshNavigationSet.cpp",
+      "sha256": "E93DC57D9C794091BBFB41F2972BFF64073E1A76175E06EA9DE2273D088EF672"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshNavigationSet.h",
+      "sha256": "00C40AFEAA5CE89D530E5D881CD1F9EA32E90B7B0CED9AA936F03A457A075547"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshNavigationSetSerializer.cpp",
+      "sha256": "AA5EFAAA54219B2A0A723021B24F714E5855626FFF8882017934091489BEA2F6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spMeshNavigationSetSerializer.h",
+      "sha256": "F0914A3B1EC6242154D8F4DF848B6526F1D68979BA8771E49B31B3E08E5D4748"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationGraph.cpp",
+      "sha256": "CBFB9A66A3BB559795F861696EB8985A3BFAE6799C0D4289EAFF07622372AE24"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationGraph.h",
+      "sha256": "AD372E57CD6CCA9162F843AD630D2256F11B549F5259BECF5B5F2F162D1C038E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationGraphSerializer.cpp",
+      "sha256": "50C3C4BFFC1E57D43CE7E091FAE6ED41D7F53D2EE45D416C19FB4A80BC0F3E76"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationGraphSerializer.h",
+      "sha256": "10D365D7483410993214CA7308FDD8CAB5226436C36619186EDF89B2603B4606"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationPortal.cpp",
+      "sha256": "67004FA915A9014207C24C7D5608F4E8A7BA11A6204D283C555632B2963AC74C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationPortal.h",
+      "sha256": "B83430959076F941DA74A7AE3E450AD5B9679E00E3A3BBAC83884DA10498881D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationPortalSerializer.cpp",
+      "sha256": "DE7E4DB1912DC092269CFC30C2EBDB1B5D3343F80875D79897829D3279AB8E1E"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationPortalSerializer.h",
+      "sha256": "325693799E46733034CB4DD9750522EED482837E60B75B42A50539EA95ED85B6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationSet.cpp",
+      "sha256": "2FA42C0B30A450CE00FA69F151C239E7DC4A5DE3E85DD4B8BFD5574D76549E3F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationSet.h",
+      "sha256": "D802C9EED07B401F81A08864F028CB0A1B778069B2DEBC237D563A71CB262132"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationSetSerializer.cpp",
+      "sha256": "02B100E70E49C1E43E37839C128E41209646986BD975458617D03162335DA796"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNavigationSetSerializer.h",
+      "sha256": "0575B15A6731A6173220B8D739EE91C48AFB4022AA53F86DB3BFAEC24063FEEA"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "170BA49B2628CC6AF5F7E31FA29A15F66C04E1EFBAEA4933D7244FDF3A820D47"
+    },
+    {
+      "path": "Sparkplug/Tests/spNavigationSerializationTests.cpp",
+      "sha256": "ABA343A88848B7E6EB54AB0F72A2EF7FD39D2C0DEC3CAD6DBA64AC6158A64A31"
+    },
+    {
+      "path": "docs/research/smo-class-sp-mesh-navigation-set.md",
+      "sha256": "7C26A8DACBC4A10A3DFBBDEB4AB8C333EED9BF0183694774717D945BACFF6C1D"
+    },
+    {
+      "path": "docs/research/smo-class-sp-navigation-graph.md",
+      "sha256": "B0B1D4D5E88AFFAD62620BC0D0927CC32F9858ECA50A38E2A0BC7BBBFD8AB70F"
+    },
+    {
+      "path": "docs/research/smo-class-sp-navigation-portal.md",
+      "sha256": "CA6165D3B9C837329C1C9060BB842F16B6159285ACB06469D5A115FBDEBED84C"
+    },
+    {
+      "path": "docs/research/tool-navigation-readers-shared-core-2026-09-09.md",
+      "sha256": "EFF2908C5B136E3F8A5AE4A97080AA05C89065E1E93EF61A88460F2B2815D88F"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-1900.md",
+      "sha256": "278E5E9A276C75A15001AB051FEE9B3E231DCABA8BBB8E6E191566FDDA7773B0"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-1900.md",
+      "sha256": "7A020C327A5576C5D29F7F43B2C0DC0A77D0BE207E8B3F5A62AEF84BC15B35B3"
+    },
+    {
+      "path": "research/probe_pc_navigation_links.py",
+      "sha256": "EA9A18D55DF915F5FE8DB0E2AA3968468A2CEF0B3550E906EAF33443AF7041F3"
+    },
+    {
+      "path": "research/probe_pc_navigation_mesh_binding.py",
+      "sha256": "6182A99E277A71A5397A028C3D9DB4FC5948B0154A658783FE8501E96854665C"
+    },
+    {
+      "path": "research/probe_pc_navigation_readers.py",
+      "sha256": "11ADFCA427448B4EE095BA568534F27A41C5F91DB11D48BEF6C775BCD139779C"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "71231C6437452ADD45268C0FDF926C6D7FC1D4629FBB14BCEBEE52909E765BC9"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "E11A90D170DA172CA19C449D1F8319B37A2320382407F1E7F8BEABA4332D57DA"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/NavigationView.cpp",
+      "sha256": "D829609A4A7B34A4E3C79EB5E1E1EA0DDCEFAF4FFEA6FA6226015428FA6EC412"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "F176B63EDC715C8C3132FFDFADC4091CC6C55FBC47E8BE3E887A227A8FE70DCB"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.h",
+      "sha256": "3BDCC4178B9191BE7E959EFD058AADF6E3817040CDE734BA14BD2E1C9079043E"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "613DAA6229DE4BEFE74A67C1FF7DC9854FB37AFBCA77B1C08568212EF0C65EC7"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "E3C4DF0CC9C36769D8D9B4BAE4A6C5D9B5F347DD5765B8D88D9D2D0114197B55"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "sha256": "72BC72A8F066619DE946646B40AAE6B60DED64A135E89659600DD2E1115DA323"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMeshNavigationSetDecoder.cs",
+      "sha256": "35AFAF60F017870F1984EF3970F9C07BB03DB9A70C2F91CAE5BF9ABEE2686ED8"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNavigationGraphDecoder.cs",
+      "sha256": "52EBEBF0E88AD574813D29087D5F07A0CC1EE13E3D00F9CF4F637A5EA7A4AC0D"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNavigationPortalDecoder.cs",
+      "sha256": "AD672A5F27BE0DEB468ABDA531802F2E340B82765390C4F43BCC944083E1D3DA"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNavigationProjection.cs",
+      "sha256": "07BA9D3DA181C06C1E6E5BDCBA723863FB627360260DD55F6CEFD7A2B79393A3"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSerializedFieldInspector.cs",
+      "sha256": "3AD52554D3C862CAF7DFCFF68F80D2FF5F146B4B69D1526292DC77B80D71EC0E"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "8239B4FB40D2CCFF55D956F2BC08B0F62625CE06893F863C516BCE252B2E6FA1"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoNavigationReaderRegression.cs",
+      "sha256": "B1D2E41B196295870602FA8007645F04D32357A7112B6FC88BA8F28F8953FA13"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs",
+      "sha256": "E302B769E46D7A04D09AD72CF208DEBCD5E3A7976F7A89E737E5E43303415190"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/abi-1.json",
+      "sha256": "3B5B45BA781C93A1FF118FF56ADCC4F29A1FDD81032B8D99C0CB50BFE4A5C721"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/battle_02-navigation-2.json",
+      "sha256": "C64D0DFC4D3150298E7DC2248FBB81D1788B5856A89862A3C4A1AF798298E427"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/battle_02-navigation-2.log",
+      "sha256": "9B434E7B2F57B76F4D59DC33454A10FF7FEED9B83FC42AA18C79877BF0126E70"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/battle_02-snapshot-1.json",
+      "sha256": "51C08614421C4CA787A6D619D2A5F4E130E9F5343F606443F692CBF212D6C49D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/build-1.json",
+      "sha256": "F036A5FA68EE8BA83E15E6928A1561568EABA0169CE1F7C0C0A205EC57A992D2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/build-2.json",
+      "sha256": "A79CBAA4A6140132F55062E0877997B8E2FC4E48D820BF406743E124D93ABC7B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/build_navigation_managed.py",
+      "sha256": "5FE8FEA6CE3AB632B8C06D8773F0F42CAECBBC22331FB2BDB9491A198EF6EA42"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/check_navigation_abi.py",
+      "sha256": "F8D51FFC3FC9CA31669D2AFDBD9CE7F5E37E846EA21A134F6D285DBAEA630528"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/check_navigation_graphs.py",
+      "sha256": "AB1703D085E3B7D8D9BFC1F247F19C1B64C6E7068F25A0D57E334CDD8778D229"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/check_navigation_original_snapshot.py",
+      "sha256": "7DDF332BF8800F819A1EF288F3317810C08FC5678839220F6F869B837D0F89DC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/check_navigation_prefix.py",
+      "sha256": "0BFA8CE489B619A86C22FAE50226E692EF3C9A9E2206843D3196842E6F5F12FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/compare_navigation_readers.py",
+      "sha256": "79D9ACB2B9E54E113CC28F460481198D529A0E9A5BD8227BCDC944CF375904DD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/Gardenia02-navigation-1.json",
+      "sha256": "FA5B01C806C93CBC457446BB957471C619D0B19404F6B5BEBC9E71103CA97321"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/Gardenia02-navigation-2.json",
+      "sha256": "8289F8F3E712CC39D1D7465CCF858386B16D8B617D3BEA3A334FEFD3865A3711"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/Gardenia02-navigation-2.log",
+      "sha256": "35BD4F9BA2407380D2E82C05E2B887A7D4A5BC6B430C4A5CC9F95EB7F122A795"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/Gardenia02-snapshot-1.json",
+      "sha256": "065A848742CA140EBA6D3900404755F6192B2058DE22317B6F910037A98126BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/loaded-1-graphs.json",
+      "sha256": "5F9E36C6B96841910614A3A1034206C3EB622C8E4512FAABCB46CFF1CE06EB4B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/managed-processes-1.json",
+      "sha256": "C7A7F7C37E686A599D14912D3F54DEBDC45D2AE1A7122BB881FB470FCE446C8D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/managed-processes-2.json",
+      "sha256": "8F7FAE217B2FB16A25037FD4A0481CDC89DC302059254C94741519C1494392B2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/native-ctest.log",
+      "sha256": "8535A5E63FA78EF8AB605766ADC128B39CC5A624BF2C03D4D6FE8EEFA7C652BC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-build-1.log",
+      "sha256": "27F6237D1F5BF5A829EF742E2B956315936B960C8851E9CC815743704C2F328E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-build-2.log",
+      "sha256": "7F39DF7E41542E48EABEA86B67CA29FCAF1EC951B0775D02094850031A235D91"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-build-3.log",
+      "sha256": "F3EB41CF4FDDA1BF753D47ED088BF553AC975C32E9AB2D74FF71EC62F205CEA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-collection-static-1.txt",
+      "sha256": "8FAF2BF83E427F39B05C5B8DF061256BA262716018C9DDA278B9EBCD70C9ECF5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-factories-static-1.txt",
+      "sha256": "79D5B7D4B85758F05C7A8F48C8D1BE67582589715EE8803968D56FC4E79AB93C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-factories-static-2.txt",
+      "sha256": "2F25C7F307DF8A82F4C72DA2A37A576D9DBBE6688B29F212C0BA5D0843D2694B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-graph-empty-1.log",
+      "sha256": "60FF0E18DAE6B76BBDF39FF899EE3E1C087DF766D75C256A0ACFE13AE42A50FA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-graph-links-1.log",
+      "sha256": "D496A680764D649229F82EF4B1AD375A3F5081DBA1D135932B7A297D9DC82985"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-graph-links-2.log",
+      "sha256": "D934E567935340CE776BC8E24A5F9ED8E37070C7E7D27C064F33975CA3A61A2E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-graph-resize-1.log",
+      "sha256": "178A3273768758AC8B625C61B5A8E78B447F465E5D85033EB2257CFEDAE6901B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-graph-values-1.log",
+      "sha256": "329DA3B1A669FCA76655C7FEBCC94FDCEF70355D59769F5CFAAA28B3C13DF38E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-mesh-binding-1.log",
+      "sha256": "68FBE21C10014425E275852D607A626EA7A9A2434DE4F5F242BC9924839487CE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-mesh-binding-static.txt",
+      "sha256": "EA332553FC89F204802015DB32A8A0821D6B075AC9D660C1962DA7DAF142D9A6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-mesh-bounds-static.txt",
+      "sha256": "84F13D14371BC51A6F76AB44AB843F63E49B066A12D106D30E703EE3A231975E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-portal-empty-1.log",
+      "sha256": "6387C103A2CC7129D42AB6B25F4EA720CEF341FC4F41A2162DFD6E3F993AC7DE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-portal-links-1.log",
+      "sha256": "D3AA03DA67698516FE09BC5153C56EC3F85BD20A5D458A2865A31E0F78E435CD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-portal-values-1.log",
+      "sha256": "71D06459A78AC3135591E5DEA616F891AA2AC2BE71E495122D5567FA1B010DDF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-readers-static-1.txt",
+      "sha256": "BFC527F62592DD07B42D6FF6E2857F7451940F178CED410756A06386681A8555"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-set-empty-1.log",
+      "sha256": "A0D76514F59207132C6BEEFDE7F03F4054A3E6E1846DA50368E2955E1C7DD463"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-set-empty-2.log",
+      "sha256": "39FAF0BF03B882FEB62FD98FD068BB83E7487B2FA77AEABB08C0326457902FDD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-set-empty-3.log",
+      "sha256": "B2FB97DD6331AE4E09CC42DA3AE17D71F1A467ADC47E5F7E277DB96C4D411D04"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-set-links-1.log",
+      "sha256": "E597A5078D62C9A2D639F8523D305C1E4F742287B6384E9EB10253389DD14FEA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-set-values-1.log",
+      "sha256": "D9513B64CE1CCC56310D07664D27A2DC1A3849478D627F28AB0D156DDCD20093"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation-table-init-static.txt",
+      "sha256": "A71B13BFBA64C2E605AFB0C07BD0D6D4D819855906A857AFB658BDF627FA0E0E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation_registration.py",
+      "sha256": "871B0D46A43442585A41246F2C9E32347E33F3BFAB4B77DE3476176FEA42179F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/navigation_test_world.py",
+      "sha256": "3DBEA2C65160B76F94E274D60EA6B31C1762B0C22CAB6EA60752382997C31AC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-captures.json",
+      "sha256": "81C8B8F62B8BA6A3FFEA89C79A4470CFD7DB5443A12FEF70B8672C5CF4503CDF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-graph-empty.log",
+      "sha256": "3B4104E0E04ADA9EB35704A2F63C1F741DE9B23B9D741FA606139A08F2ADE542"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-graph-links.log",
+      "sha256": "D06335C0AFEA78819E3243CB0B78A356579F7413236201753965AC3F8EA20992"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-graph-values.log",
+      "sha256": "035867DC200D5ABD175A471E755B193E92BF9A89FF9611AC585380578DBD2216"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-mesh-binding.log",
+      "sha256": "988BEE84D7992FC2A228A32E3084B6A3F7C804E1474936364AFEF2978658BBFE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-portal-empty.log",
+      "sha256": "D9A10C937612FC04B67DB91770D9E72FC2DBE638A18578F72901D7662D0BB84C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-portal-links.log",
+      "sha256": "03DB02A40D1B8B3FEBCB5BAD771E0A4F895CE7681E0E1C5891A2F2B2660751BE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-portal-values.log",
+      "sha256": "B8DB8E3C2C0D678DDD0951CFC7FBC23C33FE4567F33A796C123A37FA8F7BE39C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-set-empty.log",
+      "sha256": "5B4761A260318C6A997A281DFC0FBEF05286536248CCF7913478228AD446F04B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-set-links.log",
+      "sha256": "2BBAFDEE337132592E4B1C5F2593D672F12CA702877420D36BADCB66F4CC351B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-set-values.log",
+      "sha256": "FE76E5D91D94F279FE867BE0C5640444C7689A4A023EA96C257A88E46B06A74E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/original-snapshot-comparison-1.json",
+      "sha256": "DA2535D6C72F61D09FC9EA9E74225E9906CEC1511249B40F79C223FB8F9B678D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/RedF01-navigation-1.json",
+      "sha256": "9D3454D529B297D84FAC84A61A9C12644CB867E3D929184CF653D9DA1E74F73A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/RedF01-navigation-2.json",
+      "sha256": "720D65E92533B7679A614526DF0B583C15D53315A4E87DA5868D04608CD73A24"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/RedF01-navigation-2.log",
+      "sha256": "196026DDE3C90BA64EC4090DB0B17EEEE680C6A61E7525158871332076761750"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/RedF01-snapshot-1.json",
+      "sha256": "C7450F8DC2F0960360451F99F47BCDBDF7A07594D09082A15F638632220C5B62"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/reference-sequence-1.json",
+      "sha256": "708B35A01307AE20FCE5105F86626ED59AFFCC9C51ABFA3A621917AAC39FB9D1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/registration.json",
+      "sha256": "CEEDA093B0745310BD6E4345A3C355A9745A023D2F42CA4B3A3A761D9D997817"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/run_navigation_managed.py",
+      "sha256": "0B92D8F819B1C43E130E8F4DD57B9AAF4E524240EC513D5155BEEA1A4B15BD78"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoExporter.FormatTests-2.log",
+      "sha256": "5A751BD43FA330B0C6B5C1D159D95110D15244803AC1A42A62AC6234B881F34E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoImporter.FormatTests-2.log",
+      "sha256": "A65C277BB04AA2DB636AA972B11F031FE0A90A1019B0EE1AE07B447024C85956"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoLVLcreator.CoreTests-2.log",
+      "sha256": "635C1BB458D902C99DB76DC7A43388E64DF87FF0C5669A27FD9DBECC20FEA5FF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoViewer-2.log",
+      "sha256": "9CE1B059FCABF99D56909C98C02288D55AFC3D53FB21F0BD5F70F5D76B9A04BA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoViewer.FormatTests-1.log",
+      "sha256": "7C1BB4A7A27E359F8B1716E2FD874650F692BCC2A99F8D4B7D641DCC1A126661"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/SmoViewer.FormatTests-2.log",
+      "sha256": "27C8380319332E97A054F99AD52F4454BF2E792D3C473DEAE2944C6450CEAB81"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/source-comparison-1.json",
+      "sha256": "F876E721CC0800511709E759397FC86ED95D458AFB420DACC58A4B27DA838D11"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/source-processes-1.json",
+      "sha256": "E0F2301BCC43252B581EE988EB3E00DB1C927B2DFD5BD9C8E4CFFDA0B2372838"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/navigation-readers/test_world_navmesh-navigation-1.log",
+      "sha256": "6216362F352A4817302FDB32A6F49D8041ACD396F0DED066A4BAF33753340959"
+    }
+  ],
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "native_dll_sha256": "6E2E7BB98869EA661482ACCC15D84F4FCF30BA535B4E8B10CB1E87AB8356C0F5",
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "6E2E7BB98869EA661482ACCC15D84F4FCF30BA535B4E8B10CB1E87AB8356C0F5"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "6E2E7BB98869EA661482ACCC15D84F4FCF30BA535B4E8B10CB1E87AB8356C0F5"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "6E2E7BB98869EA661482ACCC15D84F4FCF30BA535B4E8B10CB1E87AB8356C0F5"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "6E2E7BB98869EA661482ACCC15D84F4FCF30BA535B4E8B10CB1E87AB8356C0F5"
+    }
+  ],
+  "checks": {
+    "original_scalar_matches": 6,
+    "original_relationship_matches": 3,
+    "original_mesh_binding_states": 2,
+    "original_scalar_abi_matches": 6,
+    "sequence_prefix_checks": 6,
+    "abi_checks": 86,
+    "abi_guards": 12,
+    "whole_real_scenes": 3,
+    "objects": 10228,
+    "sets": 13,
+    "graphs": 3,
+    "portals": 10,
+    "matrix_cells": 20623,
+    "managed_checks": 21533,
+    "FullLoader": 213,
+    "ReadReference": 298,
+    "NavigationSerialization": 34,
+    "consumer_builds": 5
+  },
+  "reconstruction_changes": "Actual navigation classes/readers added from PC execution; existing reader semantics unchanged. Inline ID/class and first-error preservation are host diagnostics.",
+  "limitations": [
+    "Repeated nonempty Graph table replacement explicitly rejected after original duplicate release; no invented resize algorithm.",
+    "Pathfinding/movement runtime and clone/copy/index/write remain unavailable.",
+    "Host limits and incomplete legacy DTO representation are explicit; JSON is a private host snapshot, not a game serializer.",
+    "test_world_navmesh currently stops at source-only TextureData ID5; independent follow-up, not a navigation stub.",
+    "Occlusion Init and earlier protected factories remain unresolved; capped calls were not retried.",
+    "No new PS2 execution, full corpus sweep, UI visual session or release."
+  ]
+}

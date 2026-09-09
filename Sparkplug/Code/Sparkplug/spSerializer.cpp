@@ -376,6 +376,7 @@ namespace sparkplug::reconstruction
         {
             context.failed = true;
             if (error && error->empty()) *error = "Inline resource payload failed";
+            if (error) *error += " [inline ID " + std::to_string(prefix.id) + ", class " + std::to_string(result->vfunc_18().classID) + "]";
             return nullptr;
         }
         std::uint32_t end = 0;

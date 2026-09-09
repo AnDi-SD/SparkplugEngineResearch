@@ -93,6 +93,7 @@ struct SpvOctreeFields {std::uint32_t pivotKnown;float pivot[3],mins[3],maxs[3];
 struct SpvGraphOctree {std::uint32_t parent,children[8];SpvOctreeFields fields;};
 SPV_API int spv_octree_fields_read(const std::uint8_t*,std::uint32_t,SpvOctreeFields*) noexcept;
 SPV_API int spv_graph_octree(void*,std::uint32_t id,SpvGraphOctree*) noexcept;
+SPV_API int spv_graph_navigation_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical
 // loader/cache identity; zero means NULL, never an inferred default resource.
 struct SpvGraphModel {std::uint32_t mesh,material,fog,alpha,priority,projection;};

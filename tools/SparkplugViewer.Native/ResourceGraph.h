@@ -22,7 +22,10 @@ public:
     [[nodiscard]] Object* Find(std::uint32_t) const;
     [[nodiscard]] std::uint32_t ID(const Object*) const;
     [[nodiscard]] std::shared_ptr<sparkplug::reconstruction::spNode> Node(std::uint32_t) const;
+    // Immutable navigation inspection DTO, never a game serialization format.
+    [[nodiscard]] const std::string& NavigationJSON() const;
 private:
+    mutable std::optional<std::string> navigationJSON;
     std::unordered_map<std::uint32_t,Object*> byID;
     std::unordered_map<const Object*,std::uint32_t> ids;
 };

@@ -4,6 +4,12 @@
 #include "Code/Sparkplug/spNodeSerializer.h"
 #include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spSkyBox.h"
+#include "Code/Sparkplug/spNavigationGraph.h"
+#include "Code/Sparkplug/spNavigationPortal.h"
+#include "Code/Sparkplug/spMeshNavigationSet.h"
+#include "Code/Sparkplug/spNavigationGraphSerializer.h"
+#include "Code/Sparkplug/spNavigationPortalSerializer.h"
+#include "Code/Sparkplug/spMeshNavigationSetSerializer.h"
 #include "Code/Sparkplug/spRenderNodeSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObject.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
@@ -79,6 +85,9 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spNode,spNodeSerializer>(manager);
     Register<spRenderNode,spRenderNodeSerializer>(manager);
     Register<spSkyBox,spRenderNodeSerializer>(manager); // exact original6D4B00 mapping
+    Register<spNavigationGraph,spNavigationGraphSerializer>(manager);
+    Register<spNavigationPortal,spNavigationPortalSerializer>(manager);
+    Register<spMeshNavigationSet,spMeshNavigationSetSerializer>(manager);
     Register<spStaticRenderObject,spStaticRenderObjectSerializer>(manager);
     Register<spModel,spModelSerializer>(manager);
     Register<spSkin,spSkinSerializer>(manager);

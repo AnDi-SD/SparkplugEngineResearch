@@ -1,13 +1,19 @@
-# Полный разбор `spNavigationGraph`
+# `spNavigationGraph`: структура данных и общий reader
 
 ## Результат
 
-`spNavigationGraph` (`0x188A161F`) полностью разобран для чтения на PC и PS2:
-27 + 27 + 26 объектов в трёх корпусах, всего 80. Иерархия serializer-секций:
+Обновление 9 сентября: инструменты используют восстановленный C++ reader.
+Свежие PC executions показали, что ограничения старого строгого decoder
+на связность, полный порядок строк и reserved=0 не являются условиями reader.
+См. [общие классы навигации](tool-navigation-readers-shared-core-2026-09-09.md).
+Routing runtime и writers ещё не перенесены.
+
+Ниже сохранён результат структурного анализа `spNavigationGraph` (`0x188A161F`):
+27 + 27 + 26 объектов в трёх корпусах, всего 80. Наблюдавшиеся секции:
 
 ```text
 spNode
-  -> пустая секция spRenderNode
+  -> секция spRenderNode (пустая в этих образцах)
   -> spNavigationGraph
 ```
 
@@ -17,7 +23,7 @@ spNode
 |---:|---|---|
 | 0 | navigation sets | повторяемая relationship на `spMeshNavigationSet` |
 | 1 | portals | повторяемая relationship на `spNavigationPortal` |
-| 2 | table size | `UInt32`, равно числу sets |
+| 2 | table size | `UInt32`, в корпусе равно числу sets |
 | 3 | path row | повторяемая запись ниже |
 
 ```text
@@ -30,7 +36,7 @@ repeat alternativeCount:
     UInt8 reserved       // всегда 0 в исследованном корпусе
 ```
 
-Записи идут row-major и образуют полную квадратную таблицу. `255` у
+В исследованном корпусе записи идут row-major и образуют полную квадратную таблицу. `255` у
 `nextPortal` означает self/unreachable. Проверены все 2 507 строк: 1 282
 достижимых направления, 870 недостижимых и 355 диагоналей. Все 2 344
 альтернативы восстановлены по endpoint topology; их первый portal и весь маршрут

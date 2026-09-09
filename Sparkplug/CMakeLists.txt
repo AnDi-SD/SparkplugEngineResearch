@@ -285,6 +285,23 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spRenderNode.h
     Code/Sparkplug/spSkyBox.cpp
     Code/Sparkplug/spSkyBox.h
+    Code/Sparkplug/spNavigationSet.cpp
+    Code/Sparkplug/spNavigationSet.h
+    Code/Sparkplug/spNavigationPortal.cpp
+    Code/Sparkplug/spNavigationPortal.h
+    Code/Sparkplug/spNavigationGraph.cpp
+    Code/Sparkplug/spNavigationGraph.h
+    Code/Sparkplug/spMeshNavigationSet.cpp
+    Code/Sparkplug/spMeshNavigationSet.h
+    Code/Sparkplug/spNavigationSetSerializer.cpp
+    Code/Sparkplug/spNavigationSetSerializer.h
+    Code/Sparkplug/spNavigationPortalSerializer.cpp
+    Code/Sparkplug/spNavigationPortalSerializer.h
+    Code/Sparkplug/spNavigationGraphSerializer.cpp
+    Code/Sparkplug/spNavigationGraphSerializer.h
+    Code/Sparkplug/spMeshNavigationSetSerializer.cpp
+    Code/Sparkplug/spMeshNavigationSetSerializer.h
+    Analysis/PC/spNavigationStorage.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
     Code/Sparkplug/spPartitionNodeSerializer.cpp
@@ -630,6 +647,10 @@ if(BUILD_TESTING)
     set_tests_properties(SparkplugNodeSerializationTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSceneSerializationTests Tests/spSceneSerializationTests.cpp)
     add_executable(SparkplugSkyBoxTests Tests/spSkyBoxTests.cpp)
+    add_executable(SparkplugNavigationSerializationTests Tests/spNavigationSerializationTests.cpp)
+    target_link_libraries(SparkplugNavigationSerializationTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugNavigationSerializationTests COMMAND SparkplugNavigationSerializationTests)
+    set_tests_properties(SparkplugNavigationSerializationTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugSkyBoxTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugSkyBoxTests COMMAND SparkplugSkyBoxTests)
     set_tests_properties(SparkplugSkyBoxTests PROPERTIES TIMEOUT 20)

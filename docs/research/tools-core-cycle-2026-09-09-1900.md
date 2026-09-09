@@ -226,3 +226,18 @@ reader/index/writer executions. Два world PRS captures совпали поб�
 frontend pass ещё не подключены. Следующие blockers: OcclusionVolume,
 NavigationGraph; LensFlare встречен в дополнительном контрольном уровне.
 Досье: `docs/research/tool-skybox-shared-core-2026-09-09.md`.
+
+### Блок 17: общая навигация и удаление C# readers
+
+Восстановлены actual NavigationGraph/NavigationSet/MeshNavigationSet/Portal и
+четыре serializers. Шесть scalar, три relationship и два MeshBV binding
+original-PC captures совпали с C++. Сохранены byte indices, borrowed repeated
+refs, raw enabled, двухбитная matrix и исходные правила bounds/sphere.
+Три C# reader заменены проекторами того же ResourceGraph. Gardenia02/RedF01/
+battle_02: 10 228 объектов, 13 sets, 10 portals, 20 623 cells / 21 533 checks.
+Три native suites и пять managed builds прошли. Routing и writer не заявлены.
+Повторная замена непустой Graph table явно отклоняется после original duplicate
+release; пользователь уведомлён. PC-only test_world_navmesh упёрся в старый
+source-only TextureData, который исследуется следующим. Occlusion Init остаётся
+неподтверждённым; capped вызов не повторялся и не заменялся заглушкой.
+Досье: `docs/research/tool-navigation-readers-shared-core-2026-09-09.md`.

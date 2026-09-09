@@ -169,3 +169,15 @@ special pass identity сохранён; в обычном GL pass небо пр�
 Camera-follow frontend ещё открыт. Далее OcclusionVolume/NavigationGraph,
 дополнительный battle_01 также требует LensFlare. Релиза нет.
 Досье: `docs/research/tool-skybox-shared-core-2026-09-09.md`.
+
+Блок 17: actual NavigationGraph/NavigationSet/MeshNavigationSet/Portal,
+четыре serializers и общий immutable bridge. Удалены три C# reader с
+дополнительными ограничениями маршрутов. 6 scalar / 3 relationship /
+2 MeshBV raw captures совпали, scalar ABI также 6/6. Три уровня:
+10 228 объектов, 13 sets, 10 portals, 20 623 cells / 21 533 checks.
+FullLoader213/ReadReference298/Navigation34, пять builds прошли.
+Repeated populated table resize в оригинале дал duplicate release, такой ввод
+явно отклоняется; пользователь уведомлён. Маленький test_world_navmesh требует
+source-only TextureData reader; уточнена inline diagnostic chain. Следующая
+независимая задача — этот texture input. Релиза и полной готовности ядер нет.
+Досье: `docs/research/tool-navigation-readers-shared-core-2026-09-09.md`.

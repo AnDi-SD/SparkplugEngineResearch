@@ -24,7 +24,8 @@ namespace sparkplug::evidence::pc::serialization
             :source_(source),context_(context),error_(error),exact_(exact)
         {
             std::uint32_t start=0,physical=0;
-            if(context.failed||!size||size>16u*1024u*1024u||!source.GetCurrentPosition(start)||!source.GetSize(&physical)
+            if(context.failed)return; // Preserve the first reader's diagnostic.
+            if(!size||size>16u*1024u*1024u||!source.GetCurrentPosition(start)||!source.GetSize(&physical)
                 ||source.GetLogicalOriginForAnalysis()>physical){Fail("Invalid bounded derived section");return;}
             physical-=source.GetLogicalOriginForAnalysis();
             if(start>physical||size>physical-start){Fail("Derived section exceeds logical file extent");return;}
