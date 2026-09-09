@@ -460,6 +460,30 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
     }))return nullptr;
     return result.release();
 }
+SPV_API int spv_reference_prefix(const std::uint8_t* bytes,std::uint32_t count,std::uint32_t payloadSize,
+    std::uint32_t kind,SpvReferencePrefix* output) noexcept {
+    return guarded([&]{
+        require(bytes&&output&&kind<=1&&count>=4&&payloadSize>=4,"Invalid reference prefix input");
+        *output={}; BorrowedInput source(bytes,std::min(count,payloadSize));
+        spSerializer::ReferencePrefixForAnalysis prefix;std::string error;
+        if(!spSerializer::ReadReferencePrefixForAnalysis(source,source,prefix,&error))throw std::runtime_error(error);
+        require(prefix.id?(payloadSize>=8&&prefix.inlineSize==payloadSize-8):payloadSize==4,
+            "Reference extent differs from enclosing field");
+        require(!prefix.inlineSize||prefix.inlineSize>=8,"Inline object header is truncated");
+        output->id=prefix.id;output->inlineSize=prefix.inlineSize;
+        output->encoding=prefix.id?(prefix.inlineSize?2:1):0;
+        if(kind==1) {
+            require(count==payloadSize,"Full reference inspection requires the entire payload");
+            if(prefix.inlineSize) {
+                spSerializerObjectHeaderForAnalysis header;
+                require(spSerializer::ReadObjectHeaderForAnalysis(source,header),"Cannot inspect inline object header");
+                // Canonical marker is a raw inspector guard, not a factory rule.
+                require(header.marker==0x4F4F4253u,"Inline object marker is not SBOO");
+                output->classID=header.classID;
+            }
+        }
+    });
+}
 SPV_API int spv_write_field_header(std::uint32_t field,std::uint32_t payloadSize,std::uint32_t preferredCode,
     std::uint32_t preferExtended,std::uint8_t* output,std::uint32_t capacity,std::uint32_t* size) noexcept {
     return guarded([&]{

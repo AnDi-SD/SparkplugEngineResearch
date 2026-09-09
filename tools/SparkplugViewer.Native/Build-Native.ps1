@@ -1,6 +1,6 @@
 param([ValidateSet('Debug','Release')][string]$Configuration = 'Release', [switch]$Fresh, [switch]$RunChecks,
     [string]$VisualStudioPath,
-    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter')]
+    [ValidateSet('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader','TextureSerialization','DataBlockWriter','ReadReference')]
     [ValidateNotNullOrEmpty()]
     [string[]]$CheckSuites = @('AnimationKey','AnimationRuntime','NodeWorld','TransformInput','SanReader','CollisionCore','MeshBVCore','FullLoader'))
 $ErrorActionPreference = 'Stop'

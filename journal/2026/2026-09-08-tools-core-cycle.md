@@ -89,3 +89,9 @@ terminator, native quirks и явные отказы проверены; C++340,
 ID31/real empty/forced extended low ID приостановлены, предложен общий
 lossless-адаптер после решения пользователя. Досье:
 `docs/research/tool-field-header-shared-writer-2026-09-09.md`.
+
+Двенадцатый блок: reference prefix общий для resolver и C# Node/material.
+Short nonnull legacy допущение удалено; старые synthetic fixtures приведены
+к доказанному формату. Три original paths, split stream, controlled failed-size
+stop, пять ABI refusals, C++266, четыре C# файла и три whole graphs прошли.
+Досье: `docs/research/tool-reference-prefix-shared-core-2026-09-09.md`.

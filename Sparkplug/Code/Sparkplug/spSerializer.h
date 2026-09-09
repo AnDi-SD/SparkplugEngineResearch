@@ -117,6 +117,12 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static spBaseObject* ReadReferenceForAnalysis(
             spSerializerReadContextForAnalysis& context, spClassID expectedClassID,
             spStream& idSource, spStream& payloadSource, std::string* error = nullptr);
+        struct ReferencePrefixForAnalysis { std::uint32_t id=0, inlineSize=0; };
+        // The original resolver's two stream reads. A null ID consumes no
+        // size word. This observation does not resolve FAT/cache or own objects.
+        [[nodiscard]] static bool ReadReferencePrefixForAnalysis(spStream& idSource,
+            spStream& payloadSource,ReferencePrefixForAnalysis& prefix,std::string* error=nullptr,
+            std::uint32_t availableBytes=0xFFFFFFFFu);
         // Host guard around the SAME resolver: validate ID/inline extent inside
         // the enclosing field before dispatch/allocation, then restore cursor.
         [[nodiscard]] static spBaseObject* ReadFieldReferenceForAnalysis(

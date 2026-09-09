@@ -185,3 +185,12 @@ stream.14 свежих original/ABI headers совпали, C++340 и C#9300/297
 extended low ID приостановлены с явной ошибкой. Предложен отдельный общий
 lossless-адаптер после решения пользователя. Досье:
 `docs/research/tool-field-header-shared-writer-2026-09-09.md`.
+
+### Двенадцатый блок: общие reference prefixes
+
+Node/material helpers удалили собственную reference grammar. Общий resolver,
+его bounded guards и inspector используют один prefix reader. Убрана выдуманная
+legacy short nonnull ссылка; тестовые Node/Model исправлены, BSP Zone проверяет
+подтверждённый null. Три original пути, split stream, failed-size stop, пять
+ABI guards, C++266, четыре C# набора и три whole graphs прошли. Досье:
+`docs/research/tool-reference-prefix-shared-core-2026-09-09.md`.

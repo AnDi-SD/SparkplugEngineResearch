@@ -1,0 +1,126 @@
+{
+  "kind": "tools-core-reference-prefix-block",
+  "status": "verified-scoped-core",
+  "created_utc": "2026-09-09T00:41:43.352890+00:00",
+  "base_commit": "36f79cea858635d41cea7e9289bcfc7d8f7edc5b",
+  "viewer_commit": "ffe8d2bf592eaeb144cacc8deff76067e3d2771e",
+  "sources": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "506EE9D3E5D713E7A6ADC943ED47CE7D6228BBC286C5A15FEC64C4F800AD0688"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "D8EB49278CD4BA1CCB6F065A4E2A51B4695FF1DC836FEAAF2CC9918B7030BA69"
+    },
+    {
+      "path": "docs/research/tool-reference-prefix-shared-core-2026-09-09.md",
+      "sha256": "4A5508C60F547B5CBC2626FDB7183CED8D127D6936980496F3BEA5F7B1044F42"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-09-0730.md",
+      "sha256": "E220CF1B1E163C616BD67D3CD07BF2468484278B289B77458CB84646422A461D"
+    },
+    {
+      "path": "journal/2026/2026-09-08-tools-core-cycle.md",
+      "sha256": "498AA1A49B05628EC81F190F6EC0B7BA6A18D9065D2E5EDC7DC28D370550028A"
+    },
+    {
+      "path": "research/validate_tools_reference_prefix.py",
+      "sha256": "052558E449F0C89111003B62FD174F9F0F5174F2E75742C7C73D4D29358E3B98"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "01A2C60E96F7F7708A82360E44685387AE17D68092249B7E4D8143E71AD81CF1"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "73154DE4128658F74D81ED940601959465DF10A0C92EE8A4C9EDE00D5C773B57"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "847B584858D331DFB320354CB961BB6C17C5A78B3827125E7511772A3D7A291C"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "3C610DF614A756DCE2275EF8691C441FA1D7C49287FFC46C531FF47A3039CD07"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/README.md",
+      "sha256": "7F6340C82C3DE1E4F2487C310CE36C6A312C465D3EED6709AC6D7A152B4803A9",
+      "git_blob_sha256": "F505CF9F86AB680DE643A5D314791E2C0134A8D90BF0EA2A2CC80413AD237A10"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMaterialDataDecoder.cs",
+      "sha256": "6DF9B8ADB53D2017C0861EC80EF8F30A6872FD418B07AE8C0097BB87AB2709EB",
+      "git_blob_sha256": "8A31417DD7C3282D70BA434DB1A3D0D7515D964E3B63E061C353CDEE2916F777"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNodeDecoder.cs",
+      "sha256": "E764B43C43673BB6EBA594B638794F1CDC141E77CFBDEB9A91BA8C800A5E9BC8",
+      "git_blob_sha256": "A1D1BE89D64CB61C392F7AD687B5670111920235616B099C105E5734AA503622"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "D3C8F5DCB3C4A670082B6B0D3152BA1C1047BDFB97C37C4B8209A74F6896BCF3",
+      "git_blob_sha256": "C2DDA60AC610D85167AD75F76A054730269AA93F9FF2F26822ABCC537F3A6955"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "91DCFC4FA9B5CD9BD46456BE79F6273AD34D5D089C9ECA3B3707F906E9C01FB5",
+      "git_blob_sha256": "618111E283B7EF59FF09D88FD642FE74053CF55C346D97B115584B79FB7C9FF0"
+    }
+  ],
+  "native_dll_sha256": "051C18F2FB5C6AFE17447E91277073052D4A724D36A1BF3BD7F25FD7A7A759A2",
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/bloom_jeans.smo.log",
+      "sha256": "16A8C5D6919C4E71FFA2FAB9A26F676BBE108D78341C87AE2D01642DE4F140F8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/igmenu_opt_pc.smo.log",
+      "sha256": "31A38A9015EE32908A33A3C7331C3CE2F793DCC2AEB8CE27A47B33368F5DC30C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/igmenu_opt_ps2.smo.log",
+      "sha256": "B2A9EAB00928C8E2698276DFA0EF3BC549915A58A7079FEB3C0C2FAADB60E575"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/managed-build.log",
+      "sha256": "59DF259EF6CD8DCE781B03AC05F48C5310D3D735DFF48A8F552EA5F12DCE9515"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/native-abi.json",
+      "sha256": "E0B01AED20C38EF5D5783582B7511C8514C5836B1D5C9213E4B5AA19915AC361"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/resource-graphs.json",
+      "sha256": "4422C4A4993E24ABA485497801268FA2EBA360959855E951CAC0AFEB4EA9D279"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-0730/reference-prefix/tile_bad.smo.log",
+      "sha256": "C4E92BF693BC20E6B34974EA9CD1FE179C3A3206A5265692777C482F65BEF9ED"
+    }
+  ],
+  "checks": {
+    "original_paths": 3,
+    "original_split_stream": true,
+    "failed_size_controlled_stop": "467698",
+    "host_rejections": 5,
+    "cpp_ReadReference": 266,
+    "viewer_pc_menu": 9302,
+    "viewer_ps2_menu": 2977,
+    "viewer_bloom_jeans": 1525,
+    "viewer_tile_bad": 1535,
+    "whole_resource_graphs": 3
+  },
+  "limits": [
+    "Reference metadata ABI does not resolve targets or load resources",
+    "Legacy nonnull four-byte reference acceptance removed; Node/Model/BSP synthetic expectations corrected",
+    "Native failed-size continues unchecked; host rejection is explicit and not native failure equivalence",
+    "Other typed decoders remain; BSP nonnull Zone encoding not established by this block",
+    "No full corpus, GUI release or PS2 runtime"
+  ]
+}

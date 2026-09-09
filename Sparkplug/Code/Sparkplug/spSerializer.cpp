@@ -218,14 +218,14 @@ namespace sparkplug::reconstruction
         const auto fail = [&](const char* message) -> spBaseObject* {
             context.failed = true; if (error) *error = message; return nullptr;
         };
-        std::uint32_t position = 0, id = 0, inlineSize = 0;
+        std::uint32_t position = 0;
+        ReferencePrefixForAnalysis prefix;
         if (context.failed || !source.GetCurrentPosition(position)
             || position != field.dataStreamPosition || field.payloadSize < 4
-            || !source.Read(id)) return fail("Cannot inspect bounded reference field");
-        if (id)
+            || !ReadReferencePrefixForAnalysis(source,source,prefix,error,field.payloadSize)) return fail("Cannot inspect bounded reference field");
+        if (prefix.id)
         {
-            if (field.payloadSize < 8 || !source.Read(inlineSize)
-                || inlineSize != field.payloadSize - 8)
+            if (field.payloadSize < 8 || prefix.inlineSize != field.payloadSize - 8)
                 return fail("Inline reference extent differs from enclosing field");
         }
         else if (field.payloadSize != 4) return fail("Null reference field has trailing bytes");
@@ -240,19 +240,30 @@ namespace sparkplug::reconstruction
         spStream& source,std::uint32_t sequenceEnd,std::string* error)
     {
         const auto fail=[&](const char* message)->spBaseObject*{context.failed=true;if(error)*error=message;return nullptr;};
-        std::uint32_t position=0,id=0,inlineSize=0,extent=4;
-        if(context.failed||!source.GetCurrentPosition(position)||position>sequenceEnd||sequenceEnd-position<4||!source.Read(id))
+        std::uint32_t position=0,extent=4;
+        ReferencePrefixForAnalysis prefix;
+        if(context.failed||!source.GetCurrentPosition(position)||position>sequenceEnd||sequenceEnd-position<4
+            ||!ReadReferencePrefixForAnalysis(source,source,prefix,error,sequenceEnd-position))
             return fail("Cannot inspect reference sequence entry");
-        if(id)
+        if(prefix.id)
         {
-            if(sequenceEnd-position<8||!source.Read(inlineSize)||inlineSize>sequenceEnd-position-8)
+            if(sequenceEnd-position<8||prefix.inlineSize>sequenceEnd-position-8)
                 return fail("Reference sequence entry exceeds field");
-            extent=inlineSize+8;
+            extent=prefix.inlineSize+8;
         }
         if(position>std::uint32_t(std::numeric_limits<std::int32_t>::max())
             ||!source.Seek(spStream::SeekSource::essStart,static_cast<std::int32_t>(position)))return fail("Cannot restore reference sequence cursor");
         spDataBlockHeaderForAnalysis entry;entry.dataStreamPosition=position;entry.payloadSize=extent;
         return ReadFieldReferenceForAnalysis(context,expectedClassID,source,entry,error);
+    }
+
+    bool spSerializer::ReadReferencePrefixForAnalysis(spStream& idSource,spStream& payloadSource,
+        ReferencePrefixForAnalysis& prefix,std::string* error,std::uint32_t availableBytes)
+    {
+        prefix={};
+        if(availableBytes<4||!idSource.Read(prefix.id)){if(error)*error="Cannot read reference ID";return false;}
+        if(prefix.id&&(availableBytes<8||!payloadSource.Read(prefix.inlineSize))){if(error)*error="Cannot read reference inline size";return false;}
+        return true;
     }
 
     spBaseObject* spSerializer::ReadReferenceForAnalysis(
@@ -267,10 +278,10 @@ namespace sparkplug::reconstruction
             return nullptr;
         };
         if (context.failed) return fail("Discard failed reference-read context before retry");
-        std::uint32_t id = 0, inlineSize = 0;
-        if (!idSource.Read(id)) return fail("Cannot read reference ID");
+        ReferencePrefixForAnalysis prefix;
+        if(!ReadReferencePrefixForAnalysis(idSource,payloadSource,prefix,error)){context.failed=true;return nullptr;}
+        const auto id=prefix.id,inlineSize=prefix.inlineSize;
         if (!id) return nullptr;
-        if (!payloadSource.Read(inlineSize)) return fail("Cannot read reference inline size");
         auto* fat = context.manager.GetFATForAnalysis();
         auto* entry = fat ? fat->FindByIDForAnalysis(id) : nullptr;
         if (!entry) return fail("Reference ID is absent from FAT");

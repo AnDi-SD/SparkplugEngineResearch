@@ -88,6 +88,11 @@ SPV_API void* spv_graph_scene(void*,const std::uint32_t* ids,std::uint32_t count
 SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;
+struct SpvReferencePrefix { std::uint32_t id,inlineSize,encoding,classID; };
+// kind0 reads a retained prefix with declared full extent; kind1 also inspects
+// the inline object header from the full payload. No FAT/cache resolution.
+SPV_API int spv_reference_prefix(const std::uint8_t*,std::uint32_t count,std::uint32_t payloadSize,
+    std::uint32_t kind,SpvReferencePrefix*) noexcept;
 // preferredCode=FFFFFFFF selects the original automatic code. Unsupported
 // ID31/forced escapes/real zero-size fields fail explicitly. A zero payload
 // with no nonempty width preference is the legacy host shorthand for the
