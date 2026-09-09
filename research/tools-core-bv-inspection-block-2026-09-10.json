@@ -1,0 +1,780 @@
+{
+  "kind": "tools-core-bv-inspection-block",
+  "status": "verified-shared-inspection",
+  "cycle_block": 2,
+  "created_utc": "2026-09-09T17:47:06.624563+00:00",
+  "base_commit": "d3d59148fa89ea770bbea047f4f8ae5eb4ae6137",
+  "viewer_commit": "af69d81a5e6f26566c19e0a4908b80b92a6183f3",
+  "base_shared_tree": "d1c1d04e0045e4ecd389d5b07bb0e8cb2240fae7",
+  "shared_changes": [
+    {
+      "path": "Sparkplug/Analysis/PC/spBoundingVolumeSize.h",
+      "sha256": "54D17279D6E15F4FF51F52BEFCFEF68885066FA438DB43430E4A9EBC6EB0C844"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "D21B8AD69433346516B5021C252A2A1453F8B8612340A84F248B6B749F514C70"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.h",
+      "sha256": "21C310DA66E7F990E8500E2E64BC62290CBF83099BBEAD533B07F78BAFCDF356"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.cpp",
+      "sha256": "055601B57E2639C033AD7D266413899490358514D36F7A469862486FEA223D30"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.h",
+      "sha256": "492189E30C592DF5B880D67F945072F341A949B1ED678F1E1819ADA334444E91"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBV.cpp",
+      "sha256": "611B980E431DB27539F20AFF3E5F23201575A8672FD480456CD7F2C9F7B84F4F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBV.h",
+      "sha256": "5BCFB806AA888C1086FBEF87D1696B8902BCB6E8CA80E1F94EFF0614C161DDAF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.cpp",
+      "sha256": "FE365962D44F6BB59FCD0ED58C0D204D57D4F3622EE5FF1935E4D3F18741FF11"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.h",
+      "sha256": "FF32BE8BC95B7103BCC2FE3558F0EB16138BD88853C64EC0C516912E16061FE7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.cpp",
+      "sha256": "1A198D9959B31036465A7843F5E91FDC0E845C66B6762F1850E8296472CBD3E1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.h",
+      "sha256": "42D667A90C225743475DCFC343A3AF786EA47C316A7B909931AE00FF236BE32C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBV.cpp",
+      "sha256": "F16A27FD5220332C2AD91548F44A2FDC078C263A2C24504427042CEC2D2A49C9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBV.h",
+      "sha256": "4A331C06C72F5D1F0738A4E0965098A60378C3CFDCBB23C46F28BBB623DC42F2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.cpp",
+      "sha256": "0B328FA83B84D6118495B45B481C2C984830F7A00381E19BEC3232A31597B7C7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.h",
+      "sha256": "133DE5D479F3C960D6AA5C90866341E5D92A844BD96A2DBE5C14C44A1EB1CB9B"
+    },
+    {
+      "path": "Sparkplug/Tests/spOBBScalarTests.cpp",
+      "sha256": "21DD934D832B4664BD8B346FE7FCC3309A88A79B077EAA970FDA225EB7AD3431"
+    },
+    {
+      "path": "Sparkplug/Tests/spSimpleBVSerializationTests.cpp",
+      "sha256": "E90FCD7FD05BC3866496B93705694621003932F526FFDB5BA52979647857D8FB"
+    }
+  ],
+  "sources": [
+    {
+      "path": "Sparkplug/Analysis/PC/spBoundingVolumeSize.h",
+      "sha256": "54D17279D6E15F4FF51F52BEFCFEF68885066FA438DB43430E4A9EBC6EB0C844"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "sha256": "D21B8AD69433346516B5021C252A2A1453F8B8612340A84F248B6B749F514C70"
+    },
+    {
+      "path": "Sparkplug/Code/SparkBase/spBaseObject.h",
+      "sha256": "21C310DA66E7F990E8500E2E64BC62290CBF83099BBEAD533B07F78BAFCDF356"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.cpp",
+      "sha256": "055601B57E2639C033AD7D266413899490358514D36F7A469862486FEA223D30"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoundingVolume.h",
+      "sha256": "492189E30C592DF5B880D67F945072F341A949B1ED678F1E1819ADA334444E91"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBV.cpp",
+      "sha256": "611B980E431DB27539F20AFF3E5F23201575A8672FD480456CD7F2C9F7B84F4F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBV.h",
+      "sha256": "5BCFB806AA888C1086FBEF87D1696B8902BCB6E8CA80E1F94EFF0614C161DDAF"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.cpp",
+      "sha256": "FE365962D44F6BB59FCD0ED58C0D204D57D4F3622EE5FF1935E4D3F18741FF11"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spBoxBVSerializer.h",
+      "sha256": "FF32BE8BC95B7103BCC2FE3558F0EB16138BD88853C64EC0C516912E16061FE7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.cpp",
+      "sha256": "1A198D9959B31036465A7843F5E91FDC0E845C66B6762F1850E8296472CBD3E1"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOBBBVSerializer.h",
+      "sha256": "42D667A90C225743475DCFC343A3AF786EA47C316A7B909931AE00FF236BE32C"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBV.cpp",
+      "sha256": "F16A27FD5220332C2AD91548F44A2FDC078C263A2C24504427042CEC2D2A49C9"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBV.h",
+      "sha256": "4A331C06C72F5D1F0738A4E0965098A60378C3CFDCBB23C46F28BBB623DC42F2"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.cpp",
+      "sha256": "0B328FA83B84D6118495B45B481C2C984830F7A00381E19BEC3232A31597B7C7"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSphereBVSerializer.h",
+      "sha256": "133DE5D479F3C960D6AA5C90866341E5D92A844BD96A2DBE5C14C44A1EB1CB9B"
+    },
+    {
+      "path": "Sparkplug/Tests/spOBBScalarTests.cpp",
+      "sha256": "21DD934D832B4664BD8B346FE7FCC3309A88A79B077EAA970FDA225EB7AD3431"
+    },
+    {
+      "path": "Sparkplug/Tests/spSimpleBVSerializationTests.cpp",
+      "sha256": "E90FCD7FD05BC3866496B93705694621003932F526FFDB5BA52979647857D8FB"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "sha256": "9907AE5AC761EE47DA0DDDB11805C5D85D0A4C7C2DD9897BF59C22F561D7ACFF"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "sha256": "3CFEE8FE55F1EF117AEF0407A08A570955B6C67BCD0CF360D87E446E2A830F86"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "72CAB3497F66D0B8FCF84C111A67CC086CC9E35588D8C5BE2A8A54FCCFA44B1D"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "B6B75CC7BF27D098E115D1534750637078F4E6E9CDBA4218F85D672FA7ABA600"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "010E51C8BA149830D454197B531AEC6EA52295D4FE602947B5E9A00EC832587E"
+    },
+    {
+      "path": "docs/research/tool-simple-bv-shared-core-2026-09-10.md",
+      "sha256": "C7C0ECFA6D855291CBA101F8F72D531DF9F61303400A9CE635B890AB51726409"
+    },
+    {
+      "path": "docs/research/tool-obb-inspection-shared-core-2026-09-10.md",
+      "sha256": "5CBE56704F8CB8916595F3A89ED3EA791C7D8AB8553205E0C8F2BCAF2324B60E"
+    },
+    {
+      "path": "docs/research/tools-core-cycle-2026-09-10-0700.md",
+      "sha256": "43A25213611C8823B82F834398FC3CD15028C213202B594E3E53F79753F27AF7"
+    },
+    {
+      "path": "journal/2026/2026-09-09-tools-core-cycle-0700.md",
+      "sha256": "0AFC2A4560435BFC718F27A767B61B49375D2F1E2C863437447BA047C05D39FC"
+    }
+  ],
+  "viewer_sources": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoBoundingVolumeFieldProjection.cs",
+      "sha256": "9B82F8C0F5C11D19404313373B165C7CAA99FEBE495E573BC2141C49BADEBBC9"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoBoxBoundingVolumeDecoder.cs",
+      "sha256": "395AB0862553155D16C8CE4668508773979D01E184E807BD9A1D3B4379041D72"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoOrientedBoxBoundingVolumeDecoder.cs",
+      "sha256": "92658E4ADB828EE1F5EB76D296A2645DD6E766F02660AF4E33B2F30CC7A1BC25"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSphereBoundingVolumeDecoder.cs",
+      "sha256": "0F7D3485319FBD19A6B3C46A8FF928C1D8ED1E3C48450CDAFBE8B12AEB6C22D2"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "sha256": "945FD9CDD40E18E6FFDAEF424417E03F9526465B1F5FDA5D5017DA10C6D206E5"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoBoundingVolumeInspectionRegression.cs",
+      "sha256": "E9D6A21A1201FC17EB36ED2A296043E79E4EFBEF34343A5F03FF6359BBE77095"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.BoundingVolume.cs",
+      "sha256": "AF9AEF785DDC7BEE14F1F9009D54F2C9A77D06D3747036E6BC6AB9FCF3CC3E76"
+    }
+  ],
+  "reports": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-clone.json",
+      "sha256": "330837A3408069538117EC26BF94CB034C696E594C047FCED7D193D0FB3E3AD3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-clone.log",
+      "sha256": "EB7D258B91D0F85532E44236A789905F98FDE0B1B045329F37F8AFAB6A26B55D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-corpus-qc.json",
+      "sha256": "6791B5F242A8825BFEE7DD484DD2EAE001D2D8CF42F552A08FDAE123B3836D10"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-corpus-qc.log",
+      "sha256": "1F168DACCC07BB30CCF575979A866FA0E9F14DFF503F7007356ABDCD3460A88C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-corpus.json",
+      "sha256": "0D447481889228E4E25249CFB530A53FC9E59F70214812657B201AFBF9FCB553"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-corpus.log",
+      "sha256": "5E48C22C382046EA2D2BA1E6AA1BCB45942028C8247A2CFCE73B737F0D67AC34"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-empty.json",
+      "sha256": "5CC2E0202D74E6C04476CD7C83C9121C985E01581BB738556D9D866A746083E6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-failed-value.json",
+      "sha256": "588E876D77665899625E3A4AAB60FA8EC011FE8F7B333EC94030983147C17999"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-failed-value.log",
+      "sha256": "ACEE42FFE9D629C41A7AA4863BF7B5C43557C76554A3D3CF9E5378AC16F0D9F5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-raw-bits.json",
+      "sha256": "008873DDAC2B4E163AD3F6838A16246FB6DFDF051F4483C412C60B42210BBBD1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-raw-bits.log",
+      "sha256": "A4269F96C1BA122ACC4B02B541585083AA3521B756322A364AB789375E1FDCA4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-repeat.json",
+      "sha256": "8746AAD45C0391160CEE42D0137264949856F629EE7D2DAE611E43C197FC58C3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-repeat.log",
+      "sha256": "35A93A67172DDB3723D4DEA23CC99406C8F52D21C96137BA7B889BFA4E2BF384"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-rounding.json",
+      "sha256": "40693BB7FD214759B7A2B32597440A44179BD54D1530B2EE75E9C5475B75FEB5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-transform.json",
+      "sha256": "D0D9719F60A39D5815247C5A09DF7FE2598E09E435F793C2B8C5AAC9A2DD3EDB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-transform.log",
+      "sha256": "168D687EDF990686B2F83B654F50767919F77EC7CF9EF61452539FBCA169F43C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-values.json",
+      "sha256": "0BB243573AB6456EBFB7495A57BDAF80B8510580E21157998CAB17EC02DD6B7C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/box-values.log",
+      "sha256": "322B3A46963AC40B479E1ED2F9B30A1C7CCFC876DEBBFFDF97569512C01A4CFF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/abi-1.json",
+      "sha256": "221296FB1BA2A99CA13F64276A887C0B45CDAFF10BB675823FFA5C3DB3E20505"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/blooming-flower-diagnosis.json",
+      "sha256": "600264C473B7D904D7FA78AEC50B0DDE8C5FD88A90836C52CA9E15316CE5EC84"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/blooming-flower-diagnosis.md",
+      "sha256": "F976F9D34815218DA5D649883B1D67460EA8F8092A92A27574A1EB6A41A0FEB2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/build-1.json",
+      "sha256": "E8D9D3FEA23EDF607493DD2FDD28B52756197AE2287F3EF930599462F593C1E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/build-2.json",
+      "sha256": "98AE4665F985C107E1F2091285A171A5AF9F4665A33E9945FE6513BAE694D01F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/build_cycle_0700.py",
+      "sha256": "8D73D1C55D08E73CFFDA9FBC4CA2031682DEFCDBF266CB8E915004EC1D652B01"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/check_bv_integration.py",
+      "sha256": "D5A00EA746753C10985DE04B53070721CE158365982D23886414AAEA1F352C40"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/compare_obb_scalar_cycle.py",
+      "sha256": "645BFC8A889F122EDADE4965C3A7133E03946C095CEB3F441267BBF39E24C24D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/build-1.json",
+      "sha256": "F3043DD59E855EC69C7DE29EC958BEBFC1BA57244196E97E434F2CFB01C346B2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/build-2.json",
+      "sha256": "D6CD85D0D9B3325FB8627BF48FDE08A0FEC2B32EA34F907F3D402875EF300B3F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/format-tests-1.json",
+      "sha256": "D858CA994D3C9420BD6EF1F40E60FC10C26DF54398452C048ECC44482E66FAA7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/format-tests-1.log",
+      "sha256": "8E5FCCCAC875285C9EA3EA631003AD5C11D3CA8587181CE62F34E8B20D58F842"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/SmoExporter.FormatTests-2.log",
+      "sha256": "BF9D84EFCA34F485AE1072B3391DB1F8F70D5A02197BD213404F0ABC1EEBF4DA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/SmoViewer-2.log",
+      "sha256": "CD68B38594FB23157595E770B84A01A591087E800A297C16733B7F32325620B4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed/SmoViewer.FormatTests-1.log",
+      "sha256": "F64F37ADA3C28C2210C2F5264517D449DCB6DF2A0EEACB8712DE62A462588BB3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/managed-1.json",
+      "sha256": "BD626493F6D8D961906488E788CADF04BCC97F96C830238E713E610F6E6D1F30"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/native-1.log",
+      "sha256": "1C56F67EB1E77140A1D62AB56D6EEBCCEF2A983CE2053939CD24E4A7CE9C110A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/native-2.log",
+      "sha256": "9575C60750C98F1DF7E30119BF26304D8FE8292CF26675A91697C9E5FAD52287"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/native-ctest.log",
+      "sha256": "F2F6D617DB7E5AB2F8FC3607C48851A887F7ECCD909B2F4428329419CAFDA00D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/run_cycle_check.py",
+      "sha256": "3FD7D9B3BF5CEF46522B7B9F0BFE80DD09472C8B34E66A97F90279B945E6BD42"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/seal_bv_0700.py",
+      "sha256": "562A74FF658D0BA4900C536F4AC69F9789B003F4103F9E31A73EAD21954D678A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-clone-1.json",
+      "sha256": "083E513ECF845E5D7401D418C249554397020AFACE008558128AB8773BBD9601"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-corpus-1.json",
+      "sha256": "5454AC8403D6E83D1CB1A999F1571A5666665DA26B67A0C83D65B2B8CE745C23"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-corpus-qc-1.json",
+      "sha256": "BAB509F11A683F540D72736EE4013B1C17C8B410DC69B1511F4D29721EAEB230"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-empty-1.json",
+      "sha256": "E52EBF5A33F9198A9C0082660F1CD008EFC5430FA01B2A207FD6FD253C80F90D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-failed-value-1.json",
+      "sha256": "802EB1BE45B7A8569891C52AA3CF7E50D3A1D6B7C2AE2F89FDDEDB19B7ACDC2D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-raw-bits-1.json",
+      "sha256": "7361BC20F17B3BFE0B03623EA275CA70021975DDDFFFC695D015325DA193375C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-repeat-1.json",
+      "sha256": "C830E36158E736E4229072EEE1E871589C7431A50E964852B3F626EF0EE91645"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-rounding-1.json",
+      "sha256": "85EDC011A2EB9C35C38A60E30CCD3227C4775801CFEDD40FF0ED9533C59876B7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-transform-1.json",
+      "sha256": "98954DAB9918F0E4EB10CFDACC557FC66BAD0EF0B20E1F7EDBE1AC4A1A914051"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-box-values-1.json",
+      "sha256": "258066144D64D5B61AC1375914E162A7F55753AE1AD459996DBCF7FEDD1D996F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-clone-1.json",
+      "sha256": "DF4F1C361DDBD85FE18732F3639BDDABDF0FA7F350D7BD2E38FF66E9172044C8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-corpus-1.json",
+      "sha256": "1E0B8EE4B085B4AF02E865A5192B59EC3DFEF1811A9187AE34D173C5E4013D7B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-empty-v2-1.json",
+      "sha256": "437FB1920E907F9864D0A1721C0C5AA1E0A456D2F62D1E7A8F8544BCAF2ECE5F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-failed-value-v2-1.json",
+      "sha256": "6FC9E911A780DF432F9E2899A19F94A5150C56207A83E17B2E23CC28EADFC1CC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-raw-bits-1.json",
+      "sha256": "222A869DACE15C6808A37AF8B0C5277427B00EC698BD5EBFCF1FEE48989C034B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-repeat-1.json",
+      "sha256": "52CF294B1B7C2AB0FE90CD71AB0B39291D41FAE8BA38413CD88B8E412EDDABD5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-transform-1.json",
+      "sha256": "3D7E2BECC1779146F6049FFC82D95C35E82E9BB86A5BC77A4AB045F3042DB2DE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/integration/source-sphere-values-1.json",
+      "sha256": "DB66370F116B8253D05456445BF14BB6C742F6A7FD5BEF72406056C653EC5D33"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/probe-v1.py",
+      "sha256": "580FB8F4925B625E5A0180CAF840E6766B7F46598015B09EF6EE95C49B90C948"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/probe-v2.py",
+      "sha256": "9CD319290F968C569FEDA398F1A543A9BB619424CC754311EF52431C08A9B7FD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/probe-v3.py",
+      "sha256": "DA7790B3B4BB020D63C0D2F8C4C4B37CC8F07E8AC848B55B0F5A88D9AFC79C86"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/probe-v4.py",
+      "sha256": "9F144961E3D199E09FE78EA0EB17D7D2A020F93A7BBA626AE868C252A0CEAA65"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/probe-v5.py",
+      "sha256": "D3BCE9DE40FDE72A18C5EE718B9E518988BA65EF0D54B683C9031764496F9C7C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/research-summary.json",
+      "sha256": "7F49841760149515BF6D775F1E137D845867860395E409F1CC56DB10705B287E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-clone.json",
+      "sha256": "5D8132E6C208344018E25FA9B34A53B98F224CFF332015D0990C1497AEC59439"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-clone.log",
+      "sha256": "CA4DB9882BF048A20DBDC9FCF80ECF3230A49A7DF7F457A566F35186CB9B75E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-corpus.json",
+      "sha256": "BF3F0EAAB9F7474FAA97AF40072DD5525F0CF0F09F0EDF5BDB509328338DD4AA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-corpus.log",
+      "sha256": "BB18866F8279AAE023ADBB55F38D221401A6478E47050FDE6ADE50EE21191196"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-empty-v2.json",
+      "sha256": "168D99817E9BAC5A4E807909610A22E39134E34A43E3E9B9BF35A72AC57EDF8A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-empty-v2.log",
+      "sha256": "FC53F4C6CDF007648B08001C1563812899C948FA6E120D5478997F222E117D2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-empty.json",
+      "sha256": "74A8187AC217B9B5C98408349BFEBBC57FD136C97D3A947FC21B8EA3A9758704"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-failed-value-v2.json",
+      "sha256": "77F64C377394054C1E8F828BE92A0E6402D17FD2CC7538D35C0099D510F97E44"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-failed-value-v2.log",
+      "sha256": "94A9ED39E0073103E58679D221748BBF8544830B099C26B6A8DB9FA7EB5FCA1A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-failed-value.log",
+      "sha256": "8B24C21A1C7381BF83F4E1243C1591EA756536D210AF973472DB7A71F22B5815"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-raw-bits.json",
+      "sha256": "ED3F9EDC70703E04F84A781B1A76072C5354EA0B736832DC71DD4C324EB9F3A4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-raw-bits.log",
+      "sha256": "AEC92DFC3344D0E7603394CB04CB27CBB7A37A2DE5478574395574C974B14734"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-repeat.json",
+      "sha256": "D7187D420C950183ED24B65024E84E27C683274FAB08244ACC38276EC7CE708B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-repeat.log",
+      "sha256": "D26E53856FA465F3250015368BEF7C9B58D6691B6DB7B0B93F3972456FAAB3D2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-transform.json",
+      "sha256": "F80304ACB1F4F51F586CF5FE737A8045007966817A4B22B776F28888F796E0F2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-transform.log",
+      "sha256": "D5FED0A4360A4239046177D2B255386FFCDA2A640E27BED3D9CB05E6917634FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-values.json",
+      "sha256": "7464BD38A841B478AA496A9790C629F760DA1D7C5F406AA6FBA12657BCA04F5B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/sphere-values.log",
+      "sha256": "AB01723AF9043494A4718620228CCC221ABB184C1FB80D4BC36D118903030882"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/static-evidence.json",
+      "sha256": "8B91EF6FBF1E0CB34540FE989997ECAB4112A16A3E7B279DC5E17E0E91FB6C6E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/simple-bv/static-evidence.log",
+      "sha256": "02A06A715551891BF163ACF8E64CF1C3221B4A9781827F14796FAD744EBB3FE7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/defaults-v2.json",
+      "sha256": "A5DDBEB81AB579B50B6EC00715D955791747955FE57FF80DD28D5541C15B0E4B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/defaults-v2.log",
+      "sha256": "8784090856F99E129D44B07EF0E79D77388C0F14E1903D4DF9C1B20439ABCF87"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/duplicates-unknown-v2.json",
+      "sha256": "ACC9677125CEC41D13713A9525F569F514D1C737AAEC49BDE47B2598D6E2237C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/duplicates-unknown-v2.log",
+      "sha256": "E7A6318A63297CB88C41E01FFB532C24EBB72D38BC53BFF635DE73BCA91B2007"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/nonunit-quaternion-v2.json",
+      "sha256": "D8FEF6E582493180F8A1122194A0261886446EB1CB15BA13BDA502909D65ABC3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/nonunit-quaternion-v2.log",
+      "sha256": "F4386C8A9DE576DBC5169DFDC3C1102D7A972F0AF4EED0CC7D1803B8175CDF5E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/pc-obb-reader-disassembly.log",
+      "sha256": "A3B193913A0C2F7E3A3CA4EAFCF8ACBE909800BCF44678756494D51D4FB37D7F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/position-raw-bits-v2.json",
+      "sha256": "7D41B81F9586F9ECA89CF4AB8571FB89215599BF58A16338ACF1E593AA1FC5B8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/position-raw-bits-v2.log",
+      "sha256": "538C82977713C57140C34C44230B53A826FBA8DAE49D8F4AF719C2196B0252EA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/position-v2.json",
+      "sha256": "EBF01DF73AD510A6593524C12FFE932520CBBDA7A5AC9880BB736322F9BB6321"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/position-v2.log",
+      "sha256": "B17E4137C15BEE9A4764AAD8C099B7356378EBC32B294B01616057D9A4A0126D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/quaternion-raw-bits-v2.json",
+      "sha256": "5A42526BE10EEC85310F3973EFA75DDF48924DCAF62746B5BB8A97FA8EDE4540"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/quaternion-raw-bits-v2.log",
+      "sha256": "ED26C565FF4CB12CE7F1CC129CD531DE3F58E35DA48B45889E5615107B723589"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-exact-v2.json",
+      "sha256": "C3E011D98B5222D6FB4BFC4B65E416CC99CA946E47490D2C1376507FFCB189B0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-exact-v2.log",
+      "sha256": "A213BCC5CA942CA1344C641100E639EA4E66419D3F8D02610F40AB86174BEBCA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-huge-v2.json",
+      "sha256": "8D818EB6522342900537EF5ECA9AADAAA748C0AD1E2E89423F19528990ABA87D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-huge-v2.log",
+      "sha256": "C4004A3D2D2A128E637CD8B3CD8AEE3B5BFD2A7AD12E181AD7E8CCC5EEF3C9A0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-negative-v2.json",
+      "sha256": "CA122699AC99F47F8054C40C27332BD745CC813633D95D9940360F480F45529A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-negative-v2.log",
+      "sha256": "B8D84B7ADF4684183850A46F6D34FA7FEB16AC66876ADF4039DA054FCABE780D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-rounding-v2.json",
+      "sha256": "B48C8F8575F047110D38BC3622326AE7D05D68E2A08BD68F1A276C8182EF9F00"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-rounding-v2.log",
+      "sha256": "61DE75B969599D3FD24A3649AF8E91627B9BE937EFD50E0374BA5E2EDD4725F4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-rounding.json",
+      "sha256": "374A67659080377BCD940266F075F701DFF9D534786164FCECFDF6015052E7B8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-subnormal-v2.json",
+      "sha256": "20C6ED73BB035EF409BC474A6D7B3C89B060E8A6EA7F78F31274F46C76072A1C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/size-subnormal-v2.log",
+      "sha256": "2DEEA2107AE797884336272C728EF3CD8B84C2B20A52CCABA424C61139A62D56"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-comparison.json",
+      "sha256": "5A5760DBF755395B90478E1DBC2A3B51C7BC95AA18936B02556767BB2FFA914A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-defaults.json",
+      "sha256": "5290DEF66722C7EE7CC25B2038167B0A17002D0A31D8BCEAC7C8E9F0434CCAAB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-duplicates-unknown.json",
+      "sha256": "2A5A8CFDCB28A04713F065400224D47A5C26D0D799C60D5F18E973558E239F06"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-nonunit-quaternion.json",
+      "sha256": "C4AF514348D7AA08B38093BB49A71511FD62AE41E953B8E5A4EDADAED11BACC5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-position-raw-bits.json",
+      "sha256": "D738AB3E6415C9A125C5D781DA573B29DC44EB4CB9AFE7F856E1DBFF1B2DDAE5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-position.json",
+      "sha256": "29F88DA615EDB8625959C37FC32B497FF381CD10B3F76641E4AEA06C8D5E3F96"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-quaternion-raw-bits.json",
+      "sha256": "5F29DBF5B2A3E26D9236450008CECCDD34D9EC1AAAA63931D857B9FAF8F05F16"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-size-exact.json",
+      "sha256": "6833DA2070762BAF2A2DFEA3FD9E17793A49352444EDD2D0ED322F0DB9B7A039"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-size-huge.json",
+      "sha256": "A88529E106F52CABB66B6C2ED86425F27F2A58FB75A49C4B3E182956E7754B2C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-size-negative.json",
+      "sha256": "20A9DE83F3B874F354940D82B722BB8EFE6DC5AA72B53AE9C2A5EDD3321A728D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-size-rounding.json",
+      "sha256": "6FA67D4C88AB79CE96860D6F84EB2A1A5CAFEA6105CFAD88EF7803C76C340C73"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0700/obb-inspection/source-size-subnormal.json",
+      "sha256": "2D29C831FB5A456BD197CC7950B96F46F1D3A8D68ACA23B1FE4DC874A538BB42"
+    }
+  ],
+  "native_copies": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "D5FDE86B13D86B9CBCCE11F6EEE74022BE180DDDB590D13C4463639DC7CE00B5"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "sha256": "D5FDE86B13D86B9CBCCE11F6EEE74022BE180DDDB590D13C4463639DC7CE00B5"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "sha256": "D5FDE86B13D86B9CBCCE11F6EEE74022BE180DDDB590D13C4463639DC7CE00B5"
+    }
+  ],
+  "native_dll_sha256": "D5FDE86B13D86B9CBCCE11F6EEE74022BE180DDDB590D13C4463639DC7CE00B5",
+  "pc_exe": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "checks": {
+    "simple_bv_original_source_cases": 18,
+    "obb_original_source_cases": 11,
+    "scalar_rows": 35,
+    "ABI_and_source": 196,
+    "managed": 166,
+    "SimpleBVSerialization": 130,
+    "OBBScalar": 86,
+    "CollisionCore": 54,
+    "FullLoader": 213,
+    "SpatialSerialization": 97,
+    "general_FormatTests": 647,
+    "consumer_builds": 3
+  },
+  "reconstruction_changes": "Actual SphereBV and BoxBV tool-needed class slices and readers/writers; common OBB scalar entry point. Proven Box/OBB radius rounding correction using wider intermediates in original z2+y2+x2 order; rounding-sensitive original result 3F0DF579, old helper 3F0DF578.",
+  "real_files": [
+    {
+      "source": "local-data/pc-pristine/Media/SFX/vase.smo",
+      "sha256": "316AAC3CE14AE91BE2E4BFF660A60A72CCAAAB3AC830A3681FE81DECC94E090B",
+      "status": "passed",
+      "objects": 77,
+      "nodes": 28,
+      "volumes": [
+        {
+          "id": 4,
+          "class_id": 956909266
+        }
+      ],
+      "seconds": 0.00480999999854248
+    },
+    {
+      "source": "local-data/pc-pristine/Media/SFX/blooming_flower.smo",
+      "sha256": "28FF90A536E40FBC84FBD8BF06150A3118D25B1CB7B4AAFB9641D8AFDF19C9A1",
+      "status": "failed",
+      "error": "Invalid bounded derived section [inline ID 6, class 1060524470] [inline ID 5, class 2038118892] [inline ID 4, class 1526340175] [inline ID 3, class 1614161360] [inline ID 2, class 1767640933]",
+      "seconds": 0.001405000002705492
+    },
+    {
+      "source": "local-data/pc-pristine/Media/Characters/QuietusCarnivorous/Qc.smo",
+      "sha256": "E8D040BCF5D38D42FEDC31092ACA5443ACBE3C0027F6A32BC98ADA640CC7A66F",
+      "status": "passed",
+      "objects": 50,
+      "nodes": 38,
+      "volumes": [
+        {
+          "id": 49,
+          "class_id": 2068580470
+        }
+      ],
+      "seconds": 0.006666199995379429
+    }
+  ],
+  "limitations": [
+    "No full collision runtime or intersection/contact queries.",
+    "Original/source matrix equality excludes nonfinite quaternion matrix; authored quaternion bits are compared. Existing OBB full-graph finite guard retained.",
+    "blooming_flower whole load remains failed at known source-less TextureData ID6 before independently proved Box ID36. No synthetic wrapper added.",
+    "No fresh nonfinite writer execution claim; finite/default/negative/real writer captures only.",
+    "No universal double/x87 bit-identity claim.",
+    "PC execution only; no new PS2 execution, GUI run, GPU pass, full corpus sweep, release or publication.",
+    "Three downstream builds in this block; Importer/LVLcreator authoring edits belong to the following block."
+  ],
+  "reader_module_count": {
+    "total": 35,
+    "shared": 30,
+    "mixed": 3,
+    "legacy": 2,
+    "scope": "Reader modules only, not whole-core progress."
+  }
+}

@@ -61,6 +61,10 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spBoundingVolume.h
     Code/Sparkplug/spOBBBV.cpp
     Code/Sparkplug/spOBBBV.h
+    Code/Sparkplug/spSphereBV.cpp
+    Code/Sparkplug/spSphereBV.h
+    Code/Sparkplug/spBoxBV.cpp
+    Code/Sparkplug/spBoxBV.h
     Code/Sparkplug/spCollisionInfo.cpp
     Code/Sparkplug/spCollisionInfo.h
     Code/Sparkplug/spCollisionInfoSerializer.cpp

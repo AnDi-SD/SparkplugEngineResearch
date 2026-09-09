@@ -98,6 +98,11 @@ SPV_API int spv_graph_navigation_json(void*,std::uint8_t*,std::uint32_t capacity
 SPV_API int spv_graph_spatial_json(void*,std::uint8_t*,std::uint32_t capacity,std::uint32_t* size) noexcept;
 using SpvLightFields=spvhost::LightInspection;
 SPV_API int spv_light_fields_read(const std::uint8_t*,std::uint32_t,SpvLightFields*) noexcept;
+// Scalar observation from an actual BV. Values contain the requested field;
+// halfExtents/boundingRadius describe size fields only, not extra game members.
+struct SpvBVField {float values[4],halfExtents[3],boundingRadius;};
+SPV_API int spv_bv_scalar_read(std::uint32_t classID,std::uint32_t field,
+    const std::uint8_t*,std::uint32_t,SpvBVField*) noexcept;
 struct SpvLensFlareInfo {std::uint32_t elements,renderNode;float radius,speed;};
 struct SpvGraphRenderable {std::uint32_t material,fog,alpha,priority;};
 SPV_API int spv_graph_renderable(void*,std::uint32_t id,SpvGraphRenderable*) noexcept;

@@ -45,10 +45,22 @@ spatial ABI5578 и managed15 076 checks на560 spatial объектах; Light:
 runtime/authoring и блокеры из прежнего среза остаются. Блок1 закрывает один
 связный этап из новой серии; девять модулей не считаются девятью готовыми ядрами.
 
-Следующий адресный шаг: Sphere/Box/OBB. Для Sphere/Box получены18 коротких
-original-PC captures на настоящих factory objects. Доказана ошибка округления
-прежнего общего Box helper, исправление готовится по оригиналу. Это ещё
-исследовательский результат, не подключённый к приложениям класс.
+**Блок 2:** Sphere/Box/OBB подключены к общему коду и инспектору. Восстановлены
+нужные части actual Sphere/Box; текущий C++ совпал с 18 original-PC cases.
+OBB — ещё 11 fresh original/source cases. Доказанная ошибка округления общего
+Box/OBB size helper исправлена по PC: `(0.1f,0.1f,1.1f)` даёт радиус `3F0DF579`.
+Пять native suites прошли; 35 scalar rows, 196 ABI/source и 166 managed checks;
+общий FormatTests — 647. Viewer FormatTests, Viewer GUI и Exporter FormatTests
+собраны без ошибок/предупреждений. Whole graph vase/Qc — 77/50 объектов;
+blooming_flower остаётся отдельным source-less texture случаем. Подробности:
+[Sphere/Box](tool-simple-bv-shared-core-2026-09-10.md) и
+[OBB](tool-obb-inspection-shared-core-2026-09-10.md).
+
+Срез 35 decoder-модулей после блока 2: **30** с основным чтением в общем коде
+(85,7%), **3** смешанных, **2** самостоятельных. Это процент модулей чтения,
+не готовности всех ядер. Следующий крупный участок — использование настоящих
+Model/Material связей и общей записи графа в Importer/LVLcreator; основные
+игровые writers уже доступны, повторный широкий реверс не требуется.
 
 ## Отложенные случаи
 
@@ -58,3 +70,11 @@ original-PC captures на настоящих factory objects. Доказана �
 новый PC runtime не доказывает PS2 equivalence. Guard срабатывает до записи БД,
 архивные данные доступны. Подробности и предложение разделить операции —
 [spatial dossier](tool-spatial-inspection-shared-core-2026-09-10.md).
+
+`blooming_flower.smo` упирается в прежний source-less TextureData контракт
+CP115–116; его успешно проверенный Box scalar не считается whole-file load.
+Аудит Importer также выявил несовпадение диапазона применения: общий ResourceGraph
+ограничен 64 МиБ, тогда как редактор рассчитан в том числе на 80+ МиБ уровни.
+Пока операция использует явный LoadIssue; старый C# обход не добавляется.
+Следующий шаг для больших входов — измерить объём actual graph и обосновать
+допустимый host limit в пределах бюджета памяти.

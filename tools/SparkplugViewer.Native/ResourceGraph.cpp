@@ -33,6 +33,10 @@
 #include "Code/Sparkplug/spCollisionInfoSerializer.h"
 #include "Code/Sparkplug/spOBBBV.h"
 #include "Code/Sparkplug/spOBBBVSerializer.h"
+#include "Code/Sparkplug/spSphereBV.h"
+#include "Code/Sparkplug/spSphereBVSerializer.h"
+#include "Code/Sparkplug/spBoxBV.h"
+#include "Code/Sparkplug/spBoxBVSerializer.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/wxFaceData.h"
@@ -101,6 +105,8 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count) {
     Register<spFog,spFogSerializer>(manager);
     Register<spCollisionInfo,spCollisionInfoSerializer>(manager);
     Register<spOBBBV,spOBBBVSerializer>(manager);
+    Register<spSphereBV,spSphereBVSerializer>(manager);
+    Register<spBoxBV,spBoxBVSerializer>(manager);
     Register<spMeshBV,spMeshBVSerializer>(manager);
     (void)winx::reconstruction::wxFaceData::StaticRTTI();
     Register<spUVController,spUVControllerSerializer>(manager);

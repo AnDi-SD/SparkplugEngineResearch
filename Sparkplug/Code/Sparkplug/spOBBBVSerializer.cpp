@@ -2,9 +2,11 @@
 #include "spOBBBV.h"
 #include "Analysis/PC/spSectionCursor.h"
 #include "Analysis/PC/spAnimationMath.h"
+#include "Analysis/PC/spBoundingVolumeSize.h"
 #include <algorithm>
 
 #include <cmath>
+#include <cstring>
 #include <memory>
 #include <utility>
 
@@ -132,19 +134,39 @@ namespace sparkplug::reconstruction
     spOBBBVSerializer::DerivedSizeState
     spOBBBVSerializer::DecodeSizeForAnalysis(const Vector3& fullSize) noexcept
     {
-        const Vector3 half{
-            fullSize.x * 0.5F,
-            fullSize.y * 0.5F,
-            fullSize.z * 0.5F,
-        };
-        return {half, std::sqrt(
-            half.x * half.x + half.y * half.y + half.z * half.z)};
+        const auto state=evidence::pc::bounding_volume::DecodeSize({fullSize.x,fullSize.y,fullSize.z});
+        return {{state.halfExtents[0],state.halfExtents[1],state.halfExtents[2]},state.boundingSphereRadius};
     }
 
     bool spOBBBVSerializer::IsKnownReadFieldForAnalysis(
         const std::uint32_t fieldID) noexcept
     {
         return fieldID <= static_cast<std::uint32_t>(Field::Rotation);
+    }
+
+    bool spOBBBVSerializer::ReadScalarFieldForAnalysis(spOBBBV& object,
+        std::uint32_t fieldID,const void* bytes,std::uint32_t size,
+        std::array<float,4>* observedQuaternion,std::string* error)
+    {
+        if(error)error->clear();
+        const auto fail=[&](const char* message){if(error)*error=message;return false;};
+        if(!bytes)return fail("Missing OBBBV scalar payload");
+        if(fieldID<=static_cast<std::uint32_t>(Field::Size))
+        {
+            spOBBBV::Vector3 value{};
+            if(size!=sizeof(value))return fail("Invalid OBBBV vector extent");
+            std::memcpy(value.data(),bytes,sizeof(value));
+            if(fieldID==static_cast<std::uint32_t>(Field::Position))object.SetPositionForAnalysis(value);
+            else object.SetSizeForAnalysis(value);
+            return true;
+        }
+        if(fieldID!=static_cast<std::uint32_t>(Field::Rotation))return fail("Unknown OBBBV scalar field");
+        evidence::pc::animation_math::Quaternion quaternion{};
+        if(size!=sizeof(quaternion))return fail("Invalid OBBBV quaternion extent");
+        std::memcpy(quaternion.data(),bytes,sizeof(quaternion));
+        object.SetOrientationForAnalysis(evidence::pc::animation_math::ToMatrix(quaternion));
+        if(observedQuaternion)*observedQuaternion=quaternion;
+        return true;
     }
 
     bool spOBBBVSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
@@ -161,14 +183,16 @@ namespace sparkplug::reconstruction
                 spOBBBV::Vector3 value{};
                 if(!cursor.Read(value)||!std::all_of(value.begin(),value.end(),[](float v){return std::isfinite(v);}))
                     return cursor.Fail("Invalid OBBBV vector");
-                if(header->fieldID==0)obb->SetPositionForAnalysis(value);else obb->SetSizeForAnalysis(value);
+                if(!ReadScalarFieldForAnalysis(*obb,header->fieldID,value.data(),sizeof(value)))
+                    return cursor.Fail("Cannot apply OBBBV vector");
             }
             else if(header->fieldID==2)
             {
                 evidence::pc::animation_math::Quaternion q{};
                 if(!cursor.Read(q)||!std::all_of(q.begin(),q.end(),[](float v){return std::isfinite(v);}))
                     return cursor.Fail("Invalid OBBBV quaternion");
-                obb->SetOrientationForAnalysis(evidence::pc::animation_math::ToMatrix(q));
+                if(!ReadScalarFieldForAnalysis(*obb,header->fieldID,q.data(),sizeof(q)))
+                    return cursor.Fail("Cannot apply OBBBV quaternion");
             }
             else if(!cursor.Skip())return cursor.Fail("Cannot skip OBBBV field");
         }

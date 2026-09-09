@@ -14,3 +14,13 @@
   Box rounding defect. Реализация следующего блока ещё выполняется.
 - 20:13 МСК: первый блок проверен: Light48 managed, общий FormatTests647;
   актуальные5 consumer builds зелёные. Готовится локальный commit; цикл продолжается.
+- 20:37–20:44 МСК: второй блок — actual Sphere/Box и общий OBB scalar reader.
+  C++ совпал с 18+11 original cases; пять native suites прошли. Удалены три C#
+  scalar/size реализации; 35 ABI rows и 166 managed checks, FormatTests647.
+  Viewer GUI/FormatTests и Exporter FormatTests собраны без замечаний.
+- Vase/Qc whole graphs загружаются. Blooming_flower останавливается раньше Box
+  на прежнем source-less TextureData; причина и offsets зафиксированы отдельно,
+  не добавлен искусственный source-wrapper. Пользователь уведомлён.
+- Следующий блок — Model/Material selection и authoring reference provenance
+  Importer/LVLcreator. Аудит обнаружил host loader limit 64 МиБ при сценариях
+  80+ МиБ; сообщено, обходной C# parser не вводится, нужны замеры памяти.

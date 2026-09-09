@@ -10,6 +10,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spSphereBV;
     class spSphereBVSerializer : public spSerializer
     {
     public:
@@ -68,5 +69,15 @@ namespace sparkplug::reconstruction
             const Vector3& position) noexcept;
         [[nodiscard]] static bool IsKnownReadFieldForAnalysis(
             std::uint32_t fieldID) noexcept;
+        // PC43A2E0 scalar branches; raw values are copied without finite/range
+        // filtering. The whole reader and field inspectors share this method.
+        [[nodiscard]] static bool ReadScalarFieldForAnalysis(std::uint32_t fieldID,
+            spStream& stream,spSphereBV& object);
+        [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+            spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool WritePayloadForAnalysis(spStream& stream,
+            const spBaseObject& object,std::string* error) const override;
+        [[nodiscard]] bool IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,
+            spBaseObject& object) const override;
     };
 }

@@ -16,6 +16,12 @@
 #include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spFog.h"
 #include "Code/Sparkplug/spFogSerializer.h"
+#include "Code/Sparkplug/spSphereBV.h"
+#include "Code/Sparkplug/spSphereBVSerializer.h"
+#include "Code/Sparkplug/spBoxBV.h"
+#include "Code/Sparkplug/spBoxBVSerializer.h"
+#include "Code/Sparkplug/spOBBBV.h"
+#include "Code/Sparkplug/spOBBBVSerializer.h"
 #include "Code/Sparkplug/spStaticRenderObjectSerializer.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
@@ -707,6 +713,39 @@ SPV_API int spv_graph_spatial_json(void* handle,std::uint8_t* output,std::uint32
 }
 SPV_API int spv_light_fields_read(const std::uint8_t* bytes,std::uint32_t size,SpvLightFields* output) noexcept {
     return guarded([&]{require(output,"Missing Light inspection output");*output=spvhost::ReadLightInspection(bytes,size);});
+}
+SPV_API int spv_bv_scalar_read(std::uint32_t classID,std::uint32_t field,
+    const std::uint8_t* bytes,std::uint32_t size,SpvBVField* output) noexcept {
+    static_assert(sizeof(SpvBVField)==32);
+    return guarded([&]{require(bytes&&output,"Missing bounding volume scalar input/output");
+        SpvBVField result{};
+        if(classID==spSphereBV::ClassID){
+            require(field<=1&&size==(field?4u:12u),"Invalid SphereBV scalar field/extent");
+            spSphereBV object;BorrowedInput input(bytes,size);
+            require(spSphereBVSerializer::ReadScalarFieldForAnalysis(field,input,object),"Cannot read SphereBV scalar");
+            if(field)result.values[0]=object.GetRadiusForAnalysis();
+            else std::copy(object.GetPositionForAnalysis().begin(),object.GetPositionForAnalysis().end(),result.values);
+        }else if(classID==spBoxBV::ClassID){
+            require(field<=1&&size==12,"Invalid BoxBV scalar field/extent");
+            spBoxBV object;BorrowedInput input(bytes,size);
+            require(spBoxBVSerializer::ReadScalarFieldForAnalysis(field,input,object),"Cannot read BoxBV scalar");
+            const auto& value=field?object.GetSizeForAnalysis():object.GetPositionForAnalysis();
+            std::copy(value.begin(),value.end(),result.values);
+            if(field){const auto derived=spBoxBVSerializer::DecodeSizeForAnalysis({value[0],value[1],value[2]});
+                result.halfExtents[0]=derived.halfExtents.x;result.halfExtents[1]=derived.halfExtents.y;result.halfExtents[2]=derived.halfExtents.z;
+                result.boundingRadius=object.GetBoundingRadiusForAnalysis();}
+        }else if(classID==spOBBBV::ClassID){
+            require(field<=2&&size==(field==2?16u:12u),"Invalid OBBBV scalar field/extent");
+            spOBBBV object;std::array<float,4> quaternion{};std::string error;
+            if(!spOBBBVSerializer::ReadScalarFieldForAnalysis(object,field,bytes,size,&quaternion,&error))throw std::runtime_error(error);
+            if(field==2)std::copy(quaternion.begin(),quaternion.end(),result.values);
+            else{const auto& value=field?object.GetSizeForAnalysis():object.GetPositionForAnalysis();
+                std::copy(value.begin(),value.end(),result.values);
+                if(field){const auto derived=spOBBBVSerializer::DecodeSizeForAnalysis({value[0],value[1],value[2]});
+                    result.halfExtents[0]=derived.halfExtents.x;result.halfExtents[1]=derived.halfExtents.y;result.halfExtents[2]=derived.halfExtents.z;
+                    result.boundingRadius=object.GetBoundingRadiusForAnalysis();}}
+        }else throw std::runtime_error("Unsupported bounding volume scalar class");
+        *output=result;});
 }
 SPV_API int spv_graph_renderable(void* handle,std::uint32_t id,SpvGraphRenderable* output) noexcept {
     return guarded([&]{require(output,"Missing Renderable output");const auto& graph=graphForView(handle);const auto& value=graphResource<spRenderable>(graph,id);

@@ -11,6 +11,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spOBBBV;
     class spOBBBVSerializer : public spSerializer
     {
     public:
@@ -96,6 +97,12 @@ namespace sparkplug::reconstruction
             const Vector3& fullSize) noexcept;
         [[nodiscard]] static bool IsKnownReadFieldForAnalysis(
             std::uint32_t fieldID) noexcept;
+        // Original field bodies for a bounded, already extracted payload.
+        // Raw quaternion is an inspector observation; the object stores Matrix3.
+        // This scalar inspection does not impose the whole-reader finite guard.
+        [[nodiscard]] static bool ReadScalarFieldForAnalysis(spOBBBV& object,
+            std::uint32_t fieldID,const void* bytes,std::uint32_t size,
+            std::array<float,4>* observedQuaternion=nullptr,std::string* error=nullptr);
         [[nodiscard]] bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
             spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const override;
         [[nodiscard]] bool WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const override;

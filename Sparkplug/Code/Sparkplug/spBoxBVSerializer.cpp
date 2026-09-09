@@ -1,4 +1,7 @@
 #include "spBoxBVSerializer.h"
+#include "spBoxBV.h"
+#include "Analysis/PC/spSectionCursor.h"
+#include "Analysis/PC/spBoundingVolumeSize.h"
 
 #include <cmath>
 #include <memory>
@@ -101,18 +104,64 @@ namespace sparkplug::reconstruction
     spBoxBVSerializer::DerivedSizeState
     spBoxBVSerializer::DecodeSizeForAnalysis(const Vector3& fullSize) noexcept
     {
-        const Vector3 half{
-            fullSize.x * 0.5F,
-            fullSize.y * 0.5F,
-            fullSize.z * 0.5F,
-        };
-        return {half, std::sqrt(
-            half.x * half.x + half.y * half.y + half.z * half.z)};
+        const auto state=evidence::pc::bounding_volume::DecodeSize({fullSize.x,fullSize.y,fullSize.z});
+        return {{state.halfExtents[0],state.halfExtents[1],state.halfExtents[2]},state.boundingSphereRadius};
     }
 
     bool spBoxBVSerializer::IsKnownReadFieldForAnalysis(
         const std::uint32_t fieldID) noexcept
     {
         return fieldID <= static_cast<std::uint32_t>(Field::Size);
+    }
+    bool spBoxBVSerializer::ReadScalarFieldForAnalysis(std::uint32_t field,
+        spStream& stream,spBoxBV& object)
+    {
+        if(!IsKnownReadFieldForAnalysis(field))return false;
+        spBoxBV::Vector3 value{};
+        if(!stream.Read(value))return false;
+        if(field==static_cast<std::uint32_t>(Field::Position))object.SetPositionForAnalysis(value);
+        else object.SetSizeForAnalysis(value);
+        return true;
+    }
+    bool spBoxBVSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size,true,error);
+        auto* box=dynamic_cast<spBoxBV*>(&object);
+        if(!box)return cursor.Fail("BoxBV target mismatch");
+        while(const auto* header=cursor.Next())
+        {
+            if(header->IsTerminator())return true;
+            if(IsKnownReadFieldForAnalysis(header->fieldID))
+            {
+                // Exact field extent belongs to the bounded host envelope.
+                if(header->payloadSize!=12||!ReadScalarFieldForAnalysis(header->fieldID,stream,*box))
+                    return cursor.Fail("Invalid BoxBV scalar field");
+            }
+            else if(!cursor.Skip())return cursor.Fail("Cannot skip BoxBV field");
+        }
+        return false;
+    }
+    bool spBoxBVSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,
+        spBaseObject& object) const
+    {return object.IsExactly(TargetClassID);}
+    bool spBoxBVSerializer::WritePayloadForAnalysis(spStream& stream,
+        const spBaseObject& object,std::string* error) const
+    {
+        if(error)error->clear();
+        const auto fail=[&](const char* text){if(error)*error=text;return false;};
+        const auto* box=dynamic_cast<const spBoxBV*>(&object);
+        if(!box)return fail("BoxBV write target mismatch");
+        const auto& position=box->GetPositionForAnalysis();const auto& size=box->GetSizeForAnalysis();
+        spDataBlockSerializer blocks;
+        if(!blocks.BeginObjectForAnalysis(stream,&object))return fail("Cannot begin BoxBV section");
+        for(const auto field:BuildWritePlanForAnalysis({{position[0],position[1],position[2]},{size[0],size[1],size[2]}}))
+        {
+            const auto& value=field==Field::Position?position:size;
+            if(!blocks.WriteFieldForAnalysis(stream,static_cast<std::uint32_t>(field),value.data(),sizeof(value)))
+                return fail("Cannot write BoxBV field");
+        }
+        return blocks.FinalizeObjectForAnalysis();
     }
 }

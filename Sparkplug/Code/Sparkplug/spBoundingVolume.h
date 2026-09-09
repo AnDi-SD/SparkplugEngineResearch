@@ -26,6 +26,10 @@ namespace sparkplug::reconstruction
             const Vector3& scale) const noexcept=0;
     protected:
         spBoundingVolume() noexcept=default;
+        // Shared PC4723B0 in Sphere/Box slot1C; named from this tools slice.
+        // Other BV subclasses retain their own original transform behavior.
+        static void ApplySimplePositionForAnalysis(const Vector3& localPosition,
+            Vector3& position,const Matrix3& orientation) noexcept;
         Vector3 boundingCenter_{};
         float boundingRadius_=0;
     };
