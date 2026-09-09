@@ -1,6 +1,7 @@
 #pragma once
 // Inferred path. PC438A80/438E20; identity6D2DB0, PS24835C0.
 #include "spSerializer.h"
+#include <array>
 namespace sparkplug::reconstruction
 {
     class spCollisionInfo;
@@ -21,6 +22,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool WritePayloadForAnalysis(spStream& stream,const spBaseObject& object,std::string* error) const override;
         [[nodiscard]] bool WritePayloadWithContextForAnalysis(spSerializerManager& manager,spStream& stream,
             const spBaseObject& object,std::string* error) const override;
+        // Original field1/2 bodies. Optional raw quaternion is an inspector
+        // observation; the actual CollisionInfo stores the converted Matrix3.
+        static bool ReadScalarFieldForAnalysis(std::uint32_t field,spStream&,spCollisionInfo&,
+            std::array<float,4>* observedQuaternion=nullptr);
     private:
         bool WriteFields(spSerializerManager* manager,spStream& stream,const spBaseObject& object,std::string* error) const;
     };

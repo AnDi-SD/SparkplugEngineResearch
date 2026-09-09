@@ -231,3 +231,12 @@ original cases/три guards, C++83 и три appended branches Alfea01/02/03 п
 полные outputs побайтно прежние. Общая input preparation повторно проверена
 девятью render-mesh original cases. Исходные template/geometry ограничения
 appender сохранены. Досье: `docs/research/tool-collision-shared-writer-2026-09-09.md`.
+
+### Семнадцатый блок: CollisionInfo scalars
+
+Общие field1/2 bodies вместо C# numeric reader/normalization; preserved raw Q,
+native defaults, repeated/unknown fields. Матрица stored PRS — общий affine.
+Пять original states/matrices точны; C++54, пять C# samples и три collision
+append прошли. Runtime owner/registration и финальный collision placement
+отделены от stored PRS и остаются задачей. Досье:
+`docs/research/tool-collision-scalars-shared-core-2026-09-09.md`.

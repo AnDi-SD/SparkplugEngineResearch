@@ -44,21 +44,36 @@ namespace sparkplug::reconstruction
             }
             case Field::Group:
             {
-                std::uint32_t group=0;if(!cursor.Read(group))return cursor.Fail("Invalid CollisionInfo group");
-                info->SetGroupForAnalysis(group);break;
+                if(header->payloadSize!=4||!ReadScalarFieldForAnalysis(header->fieldID,stream,*info))
+                    return cursor.Fail("Invalid CollisionInfo group");
+                break;
             }
             case Field::Transform:
             {
-                std::array<float,10> value{};
-                if(!cursor.Read(value)||!Finite(value))return cursor.Fail("Invalid CollisionInfo transform");
-                info->SetTransformForAnalysis({value[0],value[1],value[2]},
-                    evidence::pc::animation_math::ToMatrix({value[3],value[4],value[5],value[6]}),
-                    {value[7],value[8],value[9]});break;
+                if(header->payloadSize!=40||!ReadScalarFieldForAnalysis(header->fieldID,stream,*info))
+                    return cursor.Fail("Invalid CollisionInfo transform");
+                break;
             }
             default:if(!cursor.Skip())return cursor.Fail("Cannot skip CollisionInfo field");break;
             }
         }
         return false;
+    }
+    bool spCollisionInfoSerializer::ReadScalarFieldForAnalysis(std::uint32_t field,
+        spStream& stream,spCollisionInfo& info,std::array<float,4>* observedQuaternion)
+    {
+        if(field==static_cast<std::uint32_t>(Field::Group)) {
+            std::uint32_t group=0;if(!stream.Read(group))return false;
+            info.SetGroupForAnalysis(group);return true;
+        }
+        if(field!=static_cast<std::uint32_t>(Field::Transform))return false;
+        std::array<float,10> value{};
+        if(!stream.Read(value)||!Finite(value))return false;
+        const std::array<float,4> quaternion{value[3],value[4],value[5],value[6]};
+        info.SetTransformForAnalysis({value[0],value[1],value[2]},
+            evidence::pc::animation_math::ToMatrix(quaternion),{value[7],value[8],value[9]});
+        if(observedQuaternion)*observedQuaternion=quaternion;
+        return true;
     }
     bool spCollisionInfoSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
     {

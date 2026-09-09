@@ -120,3 +120,10 @@ field streams совпали; пять guards, C++346, replacement91 и clean-sk
 outputs точны baseline. Девять render writers повторно проверяют общую buffer
 preparation. Неподдерживаемые baseline inputs не обходились. Досье:
 `docs/research/tool-collision-shared-writer-2026-09-09.md`.
+
+Семнадцатый блок: CollisionInfo numeric fields/affine получают общий код,
+ошибочная normalization удалена. Пять original states/matrices, три guards,
+C++54, пять C# samples и три appender outputs прошли. Stored PRS не объявляется
+итогом runtime owner/registration; whole level loader требует дополнительных
+классов и отдельного бюджета. Досье:
+`docs/research/tool-collision-scalars-shared-core-2026-09-09.md`.

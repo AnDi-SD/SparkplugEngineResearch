@@ -15,6 +15,8 @@
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
 #include "Code/Sparkplug/spDXMeshDataSerializer.h"
 #include "Code/Sparkplug/spMeshData.h"
+#include "Code/Sparkplug/spCollisionInfoSerializer.h"
+#include "Code/Sparkplug/spCollisionInfo.h"
 #include "Code/Sparkplug/spDXTextureDataSerializer.h"
 #include "Code/Sparkplug/spTextureBuffer.h"
 #include "Code/wxFaceData.h"
@@ -532,6 +534,28 @@ SPV_API void* spv_graph_scene(void* handle,const std::uint32_t* ids,std::uint32_
     }))return nullptr;
     return result.release();
 }
+SPV_API int spv_collision_info_values(const std::uint8_t* bytes,std::uint32_t count,
+    const SpvNodeField* fields,std::uint32_t fieldCount,SpvCollisionInfoValues* output) noexcept {
+    return guarded([&]{
+        require(bytes&&count&&output&&(!fieldCount||fields)&&fieldCount<=65536,"Invalid bounded CollisionInfo scalar input");
+        spCollisionInfo info;std::array<float,4> quaternion{0,0,0,1};std::uint32_t mask=0;
+        for(std::uint32_t i=0;i<fieldCount;++i) {
+            const auto& f=fields[i];
+            require((f.field==1&&f.size==4)||(f.field==2&&f.size==40),"Unsupported CollisionInfo scalar descriptor");
+            require(f.offset<=count&&f.size<=count-f.offset,"CollisionInfo scalar exceeds input extent");
+            BorrowedInput input(bytes+f.offset,f.size);
+            require(spCollisionInfoSerializer::ReadScalarFieldForAnalysis(f.field,input,info,&quaternion),"Invalid CollisionInfo scalar payload");
+            mask|=1u<<f.field;
+        }
+        SpvCollisionInfoValues result{};
+        std::copy(info.GetPositionForAnalysis().begin(),info.GetPositionForAnalysis().end(),result.position);
+        std::copy(quaternion.begin(),quaternion.end(),result.rotation);
+        std::copy(info.GetScaleForAnalysis().begin(),info.GetScaleForAnalysis().end(),result.scale);
+        std::copy(info.GetOrientationForAnalysis().begin(),info.GetOrientationForAnalysis().end(),result.orientation);
+        result.group=info.GetGroupForAnalysis();result.fieldMask=mask;*output=result;
+    });
+}
+static_assert(sizeof(SpvCollisionInfoValues)==84);
 SPV_API int spv_node_values(const std::uint8_t* bytes,std::uint32_t count,const SpvNodeField* fields,
     std::uint32_t fieldCount,SpvNodeValues* output) noexcept {
     return guarded([&]{
