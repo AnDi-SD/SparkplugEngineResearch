@@ -73,6 +73,10 @@ namespace sparkplug::reconstruction
         // This does not compute world transforms from local spNode state.
         [[nodiscard]] static Matrix4 ComposePaletteMatrixForAnalysis(
             const Matrix4& inverseBind, const Matrix4& boneWorld) noexcept;
+        // PC46A240 publishes identity after building world-space bone palettes.
+        // Shared with the reconstructed render body and host inspection bridge.
+        [[nodiscard]] static constexpr Matrix4 GetRenderWorldMatrixForAnalysis() noexcept
+        { return {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}; }
         // PC46A240 complete palette -> world setter -> mesh/pass/draw chain,
         // with declared alpha/fog/light/material and shader inputs.
         // Context carries explicit renderer/SDK inputs, no live GPU.

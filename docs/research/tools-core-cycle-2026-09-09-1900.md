@@ -150,3 +150,17 @@ compatibility placement теперь использует фактический
 metadata inspection не выдаётся за полноценный runtime. Пользователь уведомлён.
 Полный Scene occurrence list, visibility и material runtime остаются далее.
 Досье: `docs/research/tool-loaded-scene-shared-core-2026-09-09.md`.
+
+### Блок 11: все поддержанные render occurrences
+
+SceneBuilder использует actual container/member slots, сохраняет повторы и
+собственный material/Skin каждого Model, декодирует общий Mesh один раз.
+Alfea01: 1050→1141, Alfea02: 954→1008; оба состава дошли до LVLcreator editable
+документа. PC menu: 99→207 слотов на 110 Model. Пять файлов: 18057 checks,
+2379 C ABI comparisons, 21 guards. Три Workspace cases: 4726 checks.
+Native SkinRender 237, SkinSerialization/FullLoader passed; четыре consumer
+builds чистые. Original proofs переиспользованы, UI визуально не проверялся.
+Новый отложенный случай: редактор склеивал повторные slots; Workspace теперь
+их хранит, command model явно отклоняет REPEATED_RENDERABLE_AUTHORING до
+согласованной работы над адресацией таких ссылок. Пользователь уведомлён.
+Досье: `docs/research/tool-render-occurrences-shared-core-2026-09-09.md`.

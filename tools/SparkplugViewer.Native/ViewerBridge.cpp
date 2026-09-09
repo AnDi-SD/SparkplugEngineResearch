@@ -814,6 +814,33 @@ SPV_API int spv_graph_render_members(void* handle,std::uint32_t id,std::uint32_t
     });
 }
 static_assert(sizeof(SpvGraphRenderContainer)==140);
+SPV_API int spv_graph_render_occurrence(void* handle,std::uint32_t id,std::uint32_t slot,SpvGraphRenderOccurrence* output) noexcept {
+    return guarded([&]{
+        require(output,"Missing render occurrence output");const auto& graph=graphForView(handle);
+        auto* object=graph.Find(id);const spRenderable* member=nullptr;
+        const spSkin::Matrix4* world=nullptr;std::uint32_t rigidNode=0;
+        if(auto* node=dynamic_cast<spRenderNode*>(object)) {
+            require(slot<node->GetRenderableCountForAnalysis(),"Render occurrence slot out of range");
+            member=node->GetRenderableForAnalysis(slot);node->UpdateRenderMatricesForAnalysis();
+            world=&node->GetCachedRenderMatrixForAnalysis();rigidNode=graph.ID(node);
+        } else if(const auto* fixed=dynamic_cast<const spStaticRenderObject*>(object)) {
+            require(slot<fixed->GetRenderableCountForAnalysis(),"Render occurrence slot out of range");
+            member=fixed->GetRenderableForAnalysis(slot);world=&fixed->GetWorldMatrixForAnalysis();
+        } else if(const auto* partition=dynamic_cast<const spPartitionRenderable*>(object)) {
+            require(slot<partition->GetRenderablesForAnalysis().size(),"Render occurrence slot out of range");
+            member=partition->GetRenderablesForAnalysis()[slot].get();world=&partition->GetWorldMatrixForAnalysis();
+        } else throw std::runtime_error("Expected an actual render support container");
+        require(dynamic_cast<const spModel*>(member),"Render occurrence is not a supported Model/Skin");
+        *output={};output->renderable=graph.ID(member);
+        if(const auto* skin=dynamic_cast<const spSkin*>(member)) {
+            const auto skinWorld=skin->GetRenderWorldMatrixForAnalysis();
+            std::copy(skinWorld.begin(),skinWorld.end(),output->world);
+        } else {
+            output->rigidNode=rigidNode;std::copy(world->begin(),world->end(),output->world);
+        }
+    });
+}
+static_assert(sizeof(SpvGraphRenderOccurrence)==72);
 SPV_API void* spv_material_read(const std::uint8_t* bytes,std::uint32_t count) noexcept {
     std::unique_ptr<MaterialView> result;
     if(!guarded([&]{result=std::make_unique<MaterialView>(bytes,count);}))return nullptr;

@@ -58,14 +58,17 @@ public sealed class SmoLevelDocument
                 var id = new SmoPlacementId(
                     asset.ObjectIndex,
                     placement.SceneObjectIndex);
-                _placements.TryAdd(
+                if (!_placements.TryAdd(
                     id,
                     new SmoEditablePlacement(
                         id,
                         asset,
                         placement,
                         placement.WorldTransform,
-                        placement.WorldTransform));
+                        placement.WorldTransform)))
+                    throw new InvalidDataException(
+                        $"REPEATED_RENDERABLE_AUTHORING: mesh [{asset.ObjectIndex}], renderable [{placement.SceneObjectIndex}] has multiple actual support slots. " +
+                        "Workspace preserves their OccurrenceKey values; the current editor command model cannot address these slots independently.");
             }
         }
 

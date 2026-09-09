@@ -168,7 +168,8 @@ namespace sparkplug::reconstruction
             std::memcpy(state.constants.blendMatrices[i].data(),palette.data(),sizeof(palette));
         }
         R::MatrixStateForAnalysis::RawMatrix identity{};
-        identity[0]=identity[5]=identity[10]=identity[15]=0x3f800000;
+        const auto renderWorld=GetRenderWorldMatrixForAnalysis();
+        std::memcpy(identity.data(),renderWorld.data(),sizeof(identity));
         // Original publishes the bone count AFTER world SetTransform. Device
         // HRESULT is ignored by the original setter and its shared source core.
         if(!R::SetInputMatrixForAnalysis(state.matrices,0,identity,0,state.setMatrix,state.device.context))return false;

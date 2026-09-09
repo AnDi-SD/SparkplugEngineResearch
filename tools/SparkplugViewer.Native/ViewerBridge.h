@@ -129,6 +129,10 @@ SPV_API int spv_scene_graph_skin_palette(void*,std::uint32_t skin,float*,std::ui
 struct SpvGraphRenderContainer {std::uint32_t id,kind,renderables;float world[16],inverse[16];};
 SPV_API int spv_graph_render_containers(void*,SpvGraphRenderContainer*,std::uint32_t capacity,std::uint32_t* count) noexcept;
 SPV_API int spv_graph_render_members(void*,std::uint32_t container,std::uint32_t* ids,std::uint32_t count) noexcept;
+// One actual Model/Skin occurrence. This projects the confirmed input matrix
+// (support for Model, original Skin render-world getter for Skin), not a draw.
+struct SpvGraphRenderOccurrence {std::uint32_t renderable,rigidNode;float world[16];};
+SPV_API int spv_graph_render_occurrence(void*,std::uint32_t container,std::uint32_t slot,SpvGraphRenderOccurrence*) noexcept;
 SPV_API std::uint32_t spv_abi_version() noexcept;
 SPV_API const char* spv_last_error() noexcept;
 SPV_API int spv_read_field(const std::uint8_t*, std::uint32_t, SpvFieldHeader*) noexcept;

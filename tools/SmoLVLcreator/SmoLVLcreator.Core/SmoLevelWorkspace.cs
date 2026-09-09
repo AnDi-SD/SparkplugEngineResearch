@@ -100,13 +100,12 @@ public sealed class SmoLevelWorkspace
             SmoLevelPlacement[] placements = group.Select(item =>
                 new SmoLevelPlacement(
                     item.SceneObjectIndex,
-                    item.SharedInstance?.ModelObjectIndex ??
-                        modelAncestor?.Index,
-                    item.SharedInstance?.ModelObjectName ??
-                        modelAncestor?.Name ??
-                        effectiveName,
+                    item.RenderableObjectIndex,
+                    item.RenderableObjectIndex is int renderableIndex
+                        ? document.Objects[renderableIndex].Name : effectiveName,
                     item.WorldTransform,
-                    item.SharedInstance is not null)).ToArray();
+                    item.SharedInstance is not null)
+                { OccurrenceKey = item.OccurrenceKey }).ToArray();
             string? issue = preparedScene.TextureIssues.FirstOrDefault(candidate =>
                 candidate.Contains(
                     $"[{entry.Index}]", StringComparison.OrdinalIgnoreCase) ||
@@ -225,7 +224,10 @@ public sealed record SmoLevelPlacement(
     int? ModelObjectIndex,
     string Name,
     Matrix4x4 WorldTransform,
-    bool IsSharedInstance);
+    bool IsSharedInstance)
+{
+    public SmoRenderOccurrenceKey? OccurrenceKey { get; init; }
+}
 
 public sealed record SmoLevelTexture(
     int ObjectIndex,

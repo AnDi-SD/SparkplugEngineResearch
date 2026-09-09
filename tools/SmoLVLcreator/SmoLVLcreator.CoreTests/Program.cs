@@ -22,6 +22,8 @@ internal static class Program
     {
         try
         {
+            if (args.Length == 3 && args[0] == "--render-occurrence-workspace")
+                return SmoOccurrenceWorkspaceRegression.Run(args[1], args[2]);
             if (args.Length == 2 && args[0].Equals(
                     "--isolated-external-model-batch",
                     StringComparison.OrdinalIgnoreCase))

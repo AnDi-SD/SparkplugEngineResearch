@@ -109,3 +109,16 @@ Native suites 32/86/213/34/52/74; три consumer builds 0 warnings/errors.
 из-за 53 MaterialColorController с пока неподтверждённым PC factory.
 Провал и исходные логи сохранены, fake graph не возвращён, пользователь уведомлён.
 Досье: `docs/research/tool-loaded-scene-shared-core-2026-09-09.md`.
+
+Блок 11: общий SceneBuilder теперь перечисляет actual support slots вместо
+physical mesh + Static-only extension. Alfea01 1141, Alfea02 1008 размещений;
+PC menu 207 ссылок/110 Model. Удалён name filter trail_mesh; неподдержанный
+ParticleSystem явно диагностируется. Skin world getter разделяется с Render
+body, повторный container transform не применяется. Viewer key включает slot.
+18057 managed checks, 2379 C ABI comparisons, 21 guards; LVL Workspace 4726
+checks. Native SkinRender 237, SkinSerialization/FullLoader passed; четыре
+consumer builds 0 warnings/errors. Релиз/визуальный UI-прогон не выполнялись.
+Пользователь уведомлён: повторные ссылки нельзя независимо адресовать старой
+моделью команд LVLcreator. Workspace их сохраняет; прежнее молчаливое TryAdd
+склеивание заменено явным отказом и отложено до работы над authoring.
+Досье: `docs/research/tool-render-occurrences-shared-core-2026-09-09.md`.
