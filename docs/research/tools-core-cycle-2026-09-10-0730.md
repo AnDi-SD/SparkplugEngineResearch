@@ -79,6 +79,14 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    SanToVmd получил отдельный временный файл на операцию: два новых теста
    воспроизвели прежнюю коллизию и прошли после исправления; старые 18 tests прошли.
    TextureTool checkpoint: `e449096`.
+   Root checkpoint: `7b6c76e`.
+6. [Material reader TextureTool](tool-texture-material-inspection-2026-09-10.md):
+   удалён второй parser состояний/pass/layer, общий native snapshot исправляет
+   legacy field8 и пустые LTS getters. Старый DLL: 8 failures из70, новый70/70;
+   отдельный NULL reassignment guard14/14. Focused71 и три PNG неизменны.
+   UI получил только вывод MaterialIssue. Viewer/FormatTests собраны чисто;
+   TextureTool GUI собран с двумя прежними CS9057 analyzer/toolchain warnings.
+   Checkpoints: Viewer `1dc252a`, TextureTool `46e3cf2`.
 
 ## Новые границы и исправления
 
@@ -94,6 +102,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   изменений игровой логики этот блок не потребовал.
 - Попытка подключить animated textures к одному renderer pass выявила
   несовпадение выбранного примера: actual BloomX Material89 имеет три passes.
-  Блок пока не считается готовым; неподдерживаемые passes не отбрасываются.
+  [Проверены пять входов](tool-animated-texture-preview-boundary-2026-09-10.md):
+  найденный однопроходный material принадлежит ParticleSystem, остальные
+  нуждаются в реальных нескольких passes. Незавершённый patch сохранён
+  отдельно и убран из рабочего кода. Нужен подтверждённый multipass backend;
+  его blend/depth/default границы исследуются точечно.
+- Публикация Viewer остановлена автоматической проверкой дважды. Владелец
+  `AnDi-SD` и admin/push права подтверждены read-only GitHub API; origin публичный.
+  Проверка требует отдельного согласия на 47 commits до `00407c3` в
+  `AnDi-SD/SmoViewer:master`. Такой запрос отправлен пользователю; ответа пока
+  нет, другие способы публикации не применялись. Локальные commits сохранены.
 
 Время остановки ещё не наступило; цикл продолжается.

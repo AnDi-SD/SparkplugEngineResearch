@@ -4,7 +4,9 @@
 Text metadata, WinxHairPatcher, уменьшение памяти ResourceGraph, общий
 TextureTool header и исправление временных файлов SanToVmd. Цикл до 07:30 МСК продолжается;
 [его журнал](tools-core-cycle-2026-09-10-0730.md) фиксирует следующие результаты.
-Source/material metadata и подключение material clock пока остаются в работе.
+Texture source metadata и подключение material clock пока остаются в работе.
+Material reader TextureTool теперь использует общий snapshot, включая field8
+и constructor defaults; [70+14 адресных checks](tool-texture-material-inspection-2026-09-10.md).
 Первый узкий renderer-срез не подтверждён: выбранный BloomX требует нескольких
 passes, а однопроходный Darcy материал принадлежит ParticleSystem.
 
@@ -17,7 +19,7 @@ passes, а однопроходный Darcy материал принадлеж�
 | Exporter | Поза и parents из actual Node; общая geometry, Model variants и placements в GLB/FBX/OBJ; общий SAN | Полная проекция material passes/layers в целевые форматы ещё не закрыта. Ограничения общего graph loader распространяются на экспорт; новый полный acceptance Exporter в этом цикле не заявлен. |
 | Importer | Actual Model/Material selection; перенос ID по подтверждённому reader trace; общие mesh/texture writers, Material scalar/LTS, Renderable sort/priority, Skin palette с настоящими Node owners; Static matrix writer | FAT/envelope writer остаётся приостановленным предложением. Multipass donor отклоняется как `MATERIAL_IMPORT_SHAPE`; неизвестный DX power мешает полному Material writer. Legacy/orphan/repeated LTS и неоднозначные scalar/palette assignments требуют отдельного определения операции. |
 | LVLcreator | Workspace сохраняет actual support slots; общие scene/mesh/collision/pose операции, reference trace и Static matrix authoring; worker передаёт общий каталог один раз | Собственная сборка контейнера ещё не перенесена. Команды отклоняют повторные slots как `REPEATED_RENDERABLE_AUTHORING`; нужна адресация конкретного слота. Пользовательские отсрочки inverse-world и lossless-форм перечислены ниже. |
-| TextureTool | Общие texture sections, codecs, writers и header reader; новый срез: 19 header checks и 71 проверка двух SMO, три PNG до/после идентичны | Source/material metadata остаётся активным переносом, включая legacy field8. Покрытие PS2 и старых source форм не объявлено завершённым. Source-less/cached TextureData требует адресного решения. Отдельный полный acceptance TextureTool текущим циклом не подтверждён. |
+| TextureTool | Общие texture sections, codecs, writers, header reader и material snapshot; legacy/current/default material states проверены, stale reference диагностируется; три PNG до/после идентичны | Source metadata остаётся активным переносом. Покрытие PS2 и старых source форм не объявлено завершённым. Source-less/cached TextureData требует адресного решения. Отдельный полный acceptance TextureTool текущим циклом не подтверждён. |
 | SanToVmd | Общие SMO/SAN graph и native pose sampler; VMD/PMD conversion остаётся кодом целевого формата. Исправлена коллизия временных файлов, два новых и 18 существующих converter tests прошли | Ограничения входного ResourceGraph сохраняются; полный сценарий конверсии заново в текущем цикле не проверялся. |
 | WinxHairPatcher | Операция сигнатурной EXE patch проверена по прежнему original evidence; коллизия backup-имён исправлена, 38 assertions и build прошли | Для проверенной файловой операции нового блокера не найдено. Визуальная проверка всех игровых комбинаций остаётся прежней границей. Patch bytes и файловый IO являются собственной операцией инструмента, а не копией игровой симуляции. |
 
