@@ -4,6 +4,7 @@
 // Z:\Sparkplug\Code\Sparkplug\spMaterialSerializer.cpp
 
 #include "spSerializer.h"
+#include "Analysis/PC/spReferenceInspection.h"
 
 #include <cstdint>
 #include <vector>
@@ -99,8 +100,7 @@ namespace sparkplug::reconstruction
             spStream& source,std::uint32_t byteCount,spBaseObject& object,std::string* error) const override;
         struct ColorPayloadForAnalysis
         { std::uint32_t ambient=0,diffuse=0,specular=0,emissive=0;float power=0; };
-        struct InspectedReferenceForAnalysis
-        { std::uint32_t offset=0,size=0,id=0,inlineSize=0; };
+        using InspectedReferenceForAnalysis=evidence::pc::serialization::InspectedReference;
         struct InspectedLayerForAnalysis
         {
             std::int32_t textureStatesField=-1;

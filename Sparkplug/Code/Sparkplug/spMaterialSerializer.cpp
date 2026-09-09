@@ -178,15 +178,9 @@ namespace sparkplug::reconstruction
                 spBaseObject* resolved=nullptr;bool nonnull=false;InspectedReferenceForAnalysis inspected{};
                 if(observation)
                 {
-                    spSerializer::ReferencePrefixForAnalysis prefix;
-                    if(!spSerializer::ReadReferencePrefixForAnalysis(source,source,prefix,error,header->payloadSize))
-                        return cursor.Fail("Cannot inspect material reference prefix");
-                    const auto prefixBytes=prefix.id?8u:4u;
-                    if(header->payloadSize<prefixBytes||prefix.inlineSize!=header->payloadSize-prefixBytes||prefix.inlineSize>0x7fffffffu
-                        ||!source.Seek(spStream::SeekSource::essCurrent,static_cast<std::int32_t>(prefix.inlineSize)))
-                        return cursor.Fail("Invalid bounded material reference extent");
-                    inspected={header->dataStreamPosition,header->payloadSize,prefix.id,prefix.inlineSize};
-                    nonnull=prefix.id!=0;
+                    if(!evidence::pc::serialization::InspectReference(source,header->payloadSize,true,inspected,error))
+                        return cursor.Fail("Cannot inspect bounded material reference");
+                    nonnull=inspected.id!=0;
                 }
                 else
                 {

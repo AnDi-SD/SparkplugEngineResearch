@@ -53,3 +53,15 @@ C# grammar/state/color/UV parser заменён общим `spMaterialSerializer
 UV-zero поведение; сняты лишние C# ограничения на порядок и флаги.
 Ограничение старого C# DTO одним стандартным слоем на проход явно отделено
 от возможностей общего ядра. Досье: `docs/research/tool-material-reader-shared-core-2026-09-09.md`.
+
+### Блок3: Model/Skin reader
+
+Оба C# decoder используют общие Renderable→Model→Skin readers. Удалены
+самостоятельный разбор секций, UInt32, palette/matrices и проверки affine/inverse;
+ID инспектируются без выдуманных Node. Общий помощник reference inspection
+используется также материалами. Original11/source/ABI совпали,4 host guards,
+SkinSerialization119/MaterialSerialization554/FullLoader213 прошли. Material9
+captures повторно использованы без новых оригинальных запусков. Выборка5 SMO
+и Viewer/Importer/LVLcreator CoreTests builds прошли. Старый DTO требует bound
+MeshData; это явно отделено от permissive missing-mesh native reader.
+Досье: `docs/research/tool-model-skin-reader-shared-core-2026-09-09.md`.

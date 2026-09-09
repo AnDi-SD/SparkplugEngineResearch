@@ -49,12 +49,19 @@ namespace sparkplug::reconstruction
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,const spBaseObject&,std::string*) const override;
         bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        struct InspectionForAnalysis
+        {
+            spRenderableSerializer::InspectionForAnalysis renderable;
+            std::uint32_t fieldMask=0;
+            std::optional<evidence::pc::serialization::InspectedReference> mesh;
+        };
+        bool InspectPayloadForAnalysis(spStream&,std::uint32_t,spModel&,InspectionForAnalysis&,std::string*) const;
 
         [[nodiscard]] KnownWritePlan BuildKnownWritePlanForAnalysis(
             const spModel& model) const;
     protected:
         bool ReadModelFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
-            std::uint32_t,spModel&,bool requireEnd,std::string*) const;
+            std::uint32_t,spModel&,bool requireEnd,std::string*,InspectionForAnalysis* = nullptr) const;
         bool IndexModelFieldsForAnalysis(spSerializerManager&,spModel&) const;
         bool WriteModelFieldsForAnalysis(spSerializerManager*,spStream&,const spModel&,std::string*) const;
     };

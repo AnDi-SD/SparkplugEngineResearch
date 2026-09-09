@@ -114,6 +114,20 @@ SPV_API void* spv_material_read(const std::uint8_t*,std::uint32_t) noexcept;
 SPV_API void spv_material_destroy(void*) noexcept;
 SPV_API int spv_material_info(void*,SpvMaterialInfo*) noexcept;
 SPV_API int spv_material_layers(void*,SpvMaterialLayer*,std::uint32_t) noexcept;
+struct SpvModelInfo {
+    std::uint32_t alpha,priority,projection,weights,renderableMask,modelMask,skinMask,bones;
+    SpvMaterialReference material,fog,mesh;
+};
+struct SpvSkinBone {
+    SpvMaterialReference reference;
+    std::uint32_t id,inlineSize;
+    float inverseBind[16];
+};
+// kind0 Model, kind1 Skin: original section readers with unresolved reference metadata.
+SPV_API void* spv_model_read(const std::uint8_t*,std::uint32_t,std::uint32_t kind) noexcept;
+SPV_API void spv_model_destroy(void*) noexcept;
+SPV_API int spv_model_info(void*,SpvModelInfo*) noexcept;
+SPV_API int spv_model_bones(void*,SpvSkinBone*,std::uint32_t) noexcept;
 // Original field1/2 assignments with fresh constructor defaults; no reference
 // resolution, affine validation or relation between matrices is implied.
 SPV_API int spv_static_matrices(const std::uint8_t*,std::uint32_t,

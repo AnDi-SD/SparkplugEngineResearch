@@ -29,3 +29,11 @@ MaterialSerialization554/Controller393/Color225/FullLoader213 прошли;
 CoreTests без предупреждений/ошибок. Проверка текущего DTO одним слоем на проход
 остаётся явным host-пределом, native поддерживает8×8. Следующая задача Model/Skin.
 Досье: `docs/research/tool-material-reader-shared-core-2026-09-09.md`.
+
+Блок3: Model и Skin C# readers заменены общими исходными секциями; metadata
+палитра не создаёт substitute Node. Original11/source writer/ABI cases совпали,
+включая alpha256→true, repeat/clear palette и raw NaN/Inf matrix bits.4 guards;
+C++ Skin119/Material554/FullLoader213. Старые Material9 original captures
+повторно использованы для проверки нового общего reference helper без повторной
+эмуляции.5 SMO:37101/36326/9330/3005/1577 assertions;3 consumer builds чистые.
+Досье: `docs/research/tool-model-skin-reader-shared-core-2026-09-09.md`.

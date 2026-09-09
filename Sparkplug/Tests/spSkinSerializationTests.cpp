@@ -50,6 +50,18 @@ namespace
             bones<<"[7,\""<<Hex(Bits(binding.GetBoneForAnalysis()->GetWorldPositionForAnalysis()))<<"\"]";
         }
         bones<<']';std::string output="null";
+        spSkin inspected;spSkinSerializer::InspectionForAnalysis observation;spMemoryStream inspection;Open(inspection,payload);
+        const bool inspectedResult=serializer.InspectPayloadForAnalysis(inspection,static_cast<std::uint32_t>(payload.size()),inspected,observation,&error);
+        Check(inspectedResult==result,"Skin inspection matches original shared reader status");
+        Check(inspected.GetBoneCountForAnalysis()==0,"inspection never attaches substitute Node palette");
+        if(result)
+        {
+            Check(observation.bones.size()==skin.GetBoneCountForAnalysis(),"inspected palette count matches loaded palette");
+            Check((observation.fieldMask?observation.weights:inspected.GetWeightCountForAnalysis())==skin.GetWeightCountForAnalysis(),"inspected weight count uses original default or last field");
+            Bytes observedMatrices;for(const auto& bone:observation.bones)
+            {Check(bone.reference.id==7,"canonical inspected bone ID");const auto bits=Bits(bone.inverseBind);observedMatrices.insert(observedMatrices.end(),bits.begin(),bits.end());}
+            Check(observedMatrices==matrices,"inspected matrices retain all original bits including nonaffine/NaN/signed zero");
+        }
         if(result)
         {
             fat->ClearResourceEntriesForAnalysis();manager.SetDispatchContextForAnalysis(2,2);
@@ -61,6 +73,21 @@ namespace
         }
         std::ostringstream row;row<<"[\""<<mode<<"\",\""<<Hex(payload)<<"\","<<result<<','<<position<<','
             <<skin.GetWeightCountForAnalysis()<<','<<skin.GetBoneCountForAnalysis()<<",\""<<Hex(matrices)<<"\","<<bones.str()<<','<<output<<']';return row.str();
+    }
+    std::string Model(const Bytes& payload)
+    {
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        spModel model;spModelSerializer serializer;spMemoryStream input;Open(input,payload);std::string error;
+        if(!serializer.ReadPayloadForAnalysis(context,input,static_cast<std::uint32_t>(payload.size()),model,&error))throw std::runtime_error(error);
+        spModel partial;spModelSerializer::InspectionForAnalysis observation;Open(input,payload);
+        if(!serializer.InspectPayloadForAnalysis(input,static_cast<std::uint32_t>(payload.size()),partial,observation,&error))throw std::runtime_error(error);
+        Check(model.IsAlphaSortEnabledForAnalysis()==partial.IsAlphaSortEnabledForAnalysis()
+            &&model.GetPriorityForAnalysis()==partial.GetPriorityForAnalysis()
+            &&model.GetProjectionGroupForAnalysis()==partial.GetProjectionGroupForAnalysis(),"Model inspector shares scalar assignments and defaults");
+        spMemoryStream output;Open(output);
+        if(!serializer.WritePayloadForAnalysis(output,model,&error))throw std::runtime_error(error);
+        std::ostringstream row;row<<'['<<model.IsAlphaSortEnabledForAnalysis()<<','<<model.GetPriorityForAnalysis()<<','
+            <<model.GetProjectionGroupForAnalysis()<<",\""<<Hex(Data(output))<<"\"]";return row.str();
     }
     void Guards()
     {
@@ -97,6 +124,7 @@ namespace
         spSkin skin;spSkinSerializer serializer;spMemoryStream stream;Open(stream);std::string error;
         Check(serializer.WritePayloadForAnalysis(stream,skin,&error),"empty palette requires no graph manager");
         Check(Hex(Data(stream))=="6201000000630000000000e1040000000300000000e008000000040000000000000000","original full empty Skin wire capture");
+        for(const auto* text:{"0000","63070000000000","62020000006309000000620000000000610500000000"})(void)Model(Unhex(text));
     }
     std::string Clone(const std::string& mode)
     {
@@ -154,6 +182,8 @@ int main(int argc,char** argv)
         if(argc==3&&std::string(argv[1])=="--capture")
         {std::string directory,payload;std::cin>>directory>>payload;std::cout<<Capture(argv[2],Unhex(directory),Unhex(payload))<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--clone"){std::cout<<Clone(argv[2])<<'\n';return 0;}
+        if(argc==2&&std::string(argv[1])=="--model")
+        {std::string payload;std::cin>>payload;std::cout<<Model(Unhex(payload))<<'\n';return 0;}
         Guards();for(const auto* mode:{"empty","one","mapped","repeat","direct-repeat","child","copy-populated","raw-bits"})(void)Clone(mode);
         std::cout<<"PASS "<<checks<<'/'<<checks<<": Skin envelope guards, native wire and clone ownership\n";return 0;
     }

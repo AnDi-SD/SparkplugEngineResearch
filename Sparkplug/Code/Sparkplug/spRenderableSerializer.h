@@ -4,9 +4,11 @@
 // survive in both executables, but no original source path was recovered.
 
 #include "spSerializer.h"
+#include "Analysis/PC/spReferenceInspection.h"
 
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 namespace sparkplug::reconstruction
 {
@@ -43,13 +45,19 @@ namespace sparkplug::reconstruction
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,const spBaseObject&,std::string*) const override;
         bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        // Partial scalar state and unresolved metadata, never a loaded graph.
+        struct InspectionForAnalysis
+        {
+            std::uint32_t fieldMask=0;
+            std::optional<evidence::pc::serialization::InspectedReference> material,fog;
+        };
 
         // Native writer omits null relationships but always emits the two
         // alpha-sort scalars, including their constructor-default values.
         [[nodiscard]] std::vector<Field> BuildKnownWritePlanForAnalysis(
             const spRenderable& renderable) const;
     protected:
-        bool ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spRenderable&,bool,std::string*) const;
+        bool ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,spRenderable&,bool,std::string*,InspectionForAnalysis* = nullptr) const;
         bool WriteRenderableFieldsForAnalysis(spSerializerManager*,spStream&,const spRenderable&,std::string*) const;
         bool IndexRenderableFieldsForAnalysis(spSerializerManager&,spRenderable&) const;
     };

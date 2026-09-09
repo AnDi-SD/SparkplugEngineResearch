@@ -2,6 +2,8 @@
 
 #include "spNode.h"
 #include "spSkin.h"
+#include "spSerializerManager.h"
+#include "spResourceManager.h"
 #include "Analysis/PC/spSectionCursor.h"
 
 #include <memory>
@@ -78,8 +80,23 @@ namespace sparkplug::reconstruction
     {
         if(error)error->clear();auto* skin=dynamic_cast<spSkin*>(&object);
         if(!skin){context.failed=true;if(error)*error="Skin reader requires Skin target";return false;}
+        return ReadSectionsForAnalysis(context,stream,size,*skin,error,nullptr);
+    }
+
+    bool spSkinSerializer::InspectPayloadForAnalysis(spStream& stream,std::uint32_t size,
+        spSkin& partial,InspectionForAnalysis& observation,std::string* error) const
+    {
+        if(error)error->clear();observation={};
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        return ReadSectionsForAnalysis(context,stream,size,partial,error,&observation);
+    }
+
+    bool spSkinSerializer::ReadSectionsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spSkin& object,std::string* error,InspectionForAnalysis* observation) const
+    {
+        auto* skin=&object;
         std::uint32_t start=0,position=0;
-        if(!stream.GetCurrentPosition(start)||!ReadModelFieldsForAnalysis(context,stream,size,*skin,false,error)
+        if(!stream.GetCurrentPosition(start)||!ReadModelFieldsForAnalysis(context,stream,size,*skin,false,error,observation?&observation->model:nullptr)
             ||!stream.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing Skin section";return false;}
         evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),true,error);
@@ -96,24 +113,42 @@ namespace sparkplug::reconstruction
             // than native491170's unchecked count arithmetic.
             if(count>(header->payloadSize-8)/68)return cursor.Fail("Skin bones exceed field extent");
             const auto end=header->dataStreamPosition+header->payloadSize;
-            std::vector<spSkin::BoneBinding> bindings;bindings.reserve(count);
+            std::vector<spSkin::BoneBinding> bindings;std::vector<InspectedBoneForAnalysis> inspected;
+            if(observation)inspected.reserve(count);else bindings.reserve(count);
             for(std::uint32_t i=0;i<count;++i)
             {
-                auto* raw=ReadSequenceReferenceForAnalysis(context,BoneRelationshipClassID,stream,end,error);
-                if(context.failed)return false;
+                spBaseObject* raw=nullptr;evidence::pc::serialization::InspectedReference reference;
+                if(observation)
+                {
+                    if(!stream.GetCurrentPosition(position)||position>end||
+                        !evidence::pc::serialization::InspectReference(stream,end-position,false,reference,error))
+                        return cursor.Fail("Cannot inspect Skin bone reference");
+                }
+                else
+                {
+                    raw=ReadSequenceReferenceForAnalysis(context,BoneRelationshipClassID,stream,end,error);
+                    if(context.failed)return false;
+                }
                 spSkin::Matrix4 matrix{};
                 if(!stream.GetCurrentPosition(position)||position>end||end-position<sizeof(matrix)
                     ||!stream.ReadData(matrix.data(),sizeof(matrix)))
                     return cursor.Fail("Invalid Skin inverse-bind matrix");
                 // Original consumes the matrix before rejecting a null bone.
                 // Its borrowed pointer is kept alive by explicit host ownership.
+                if(observation)
+                {
+                    if(!reference.id)return cursor.Fail("Skin bone is null");
+                    inspected.push_back({reference,matrix});continue;
+                }
                 auto bone=std::dynamic_pointer_cast<spNode>(context.ShareObjectForAnalysis(raw));
                 if(!bone)return cursor.Fail("Skin bone is null, wrong type or lacks an explicit owner");
                 bindings.push_back(spSkin::BoneBinding::BorrowedForAnalysis(bone,matrix));
             }
             // Original replaces both arrays without freeing old ones. The
             // portable container deliberately releases replaced storage.
-            if(!skin->SetPaletteForAnalysis(weights,std::move(bindings)))return cursor.Fail("Invalid Skin palette");
+            if(observation)
+            {observation->weights=weights;observation->bones=std::move(inspected);observation->fieldMask=1;}
+            else if(!skin->SetPaletteForAnalysis(weights,std::move(bindings)))return cursor.Fail("Invalid Skin palette");
         }
         return false;
     }

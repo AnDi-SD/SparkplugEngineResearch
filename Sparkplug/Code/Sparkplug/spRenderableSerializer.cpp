@@ -59,7 +59,7 @@ namespace sparkplug::reconstruction
     }
 
     bool spRenderableSerializer::ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
-        spStream& stream,std::uint32_t size,spRenderable& object,bool exact,std::string* error) const
+        spStream& stream,std::uint32_t size,spRenderable& object,bool exact,std::string* error,InspectionForAnalysis* observation) const
     {
         evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error);
         while(const auto* header=cursor.Next())
@@ -67,6 +67,14 @@ namespace sparkplug::reconstruction
             if(header->IsTerminator())return true;
             if(header->fieldID<2)
             {
+                if(observation)
+                {
+                    evidence::pc::serialization::InspectedReference reference;
+                    if(!evidence::pc::serialization::InspectReference(stream,header->payloadSize,true,reference,error))
+                        return cursor.Fail("Cannot inspect Renderable relationship");
+                    (header->fieldID==0?observation->material:observation->fog)=reference;
+                    observation->fieldMask|=1u<<header->fieldID;continue;
+                }
                 const auto expected=header->fieldID==0?spMaterial::ClassID:spFog::ClassID;
                 auto* raw=ReadFieldReferenceForAnalysis(context,expected,stream,*header,error);
                 if(context.failed)return false;
@@ -78,6 +86,7 @@ namespace sparkplug::reconstruction
             {
                 std::uint32_t value=0;if(!cursor.Read(value))return cursor.Fail("Invalid Renderable UInt32 scalar");
                 if(header->fieldID==2)object.SetAlphaSortEnabledForAnalysis(value!=0);else object.SetPriorityForAnalysis(value);
+                if(observation)observation->fieldMask|=1u<<header->fieldID;
             }
             else if(!cursor.Skip())return cursor.Fail("Cannot skip Renderable field");
         }

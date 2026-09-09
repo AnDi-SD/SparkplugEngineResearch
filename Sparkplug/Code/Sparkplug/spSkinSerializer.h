@@ -5,6 +5,7 @@
 // The header path and ForAnalysis names are reconstruction choices.
 
 #include "spModelSerializer.h"
+#include "spSkin.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -67,12 +68,28 @@ namespace sparkplug::reconstruction
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
             const spBaseObject&,std::string*) const override;
         bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        struct InspectedBoneForAnalysis
+        {
+            evidence::pc::serialization::InspectedReference reference;
+            spSkin::Matrix4 inverseBind{};
+        };
+        struct InspectionForAnalysis
+        {
+            spModelSerializer::InspectionForAnalysis model;
+            std::uint32_t fieldMask=0,weights=0;
+            std::vector<InspectedBoneForAnalysis> bones;
+        };
+        // Unresolved bone IDs/matrices remain metadata. No substitute Node
+        // palette is attached to the explicitly partial Skin object.
+        bool InspectPayloadForAnalysis(spStream&,std::uint32_t,spSkin&,InspectionForAnalysis&,std::string*) const;
 
         [[nodiscard]] KnownWritePlan BuildKnownWritePlanForAnalysis(
             const spSkin& skin) const;
         [[nodiscard]] static bool IsKnownReadFieldForAnalysis(
             std::uint32_t fieldID) noexcept;
     private:
+        bool ReadSectionsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,std::uint32_t,
+            spSkin&,std::string*,InspectionForAnalysis*) const;
         bool WriteSectionsForAnalysis(spSerializerManager*,spStream&,const spSkin&,std::string*) const;
     };
 }

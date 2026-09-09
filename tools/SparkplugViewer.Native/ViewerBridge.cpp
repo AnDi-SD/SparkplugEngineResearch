@@ -14,6 +14,7 @@
 #include "Code/Sparkplug/spMaterialTexture.h"
 #include "Code/SparkplugDX/spDXMaterial.h"
 #include "Code/Sparkplug/spSkin.h"
+#include "Code/Sparkplug/spSkinSerializer.h"
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
@@ -44,6 +45,9 @@ using Cache = spTransformTrackEval::KeyCacheForAnalysis;
 std::mutex gate; // reconstructed RTTI/singletons are not a concurrent host API
 thread_local char lastError[2048]{};
 void require(bool value, const char* message) { if(!value) throw std::runtime_error(message); }
+SpvMaterialReference referenceForView(const std::optional<sparkplug::evidence::pc::serialization::InspectedReference>& value) {
+    return value?SpvMaterialReference{value->offset,value->size}:SpvMaterialReference{};
+}
 template<class F> int guarded(F action) noexcept {
     try { std::lock_guard<std::mutex> lock(gate); lastError[0]=0; action(); return 1; }
     catch(const std::exception& error) { std::snprintf(lastError,sizeof(lastError),"%s",error.what()); }
@@ -181,16 +185,13 @@ struct MaterialView {
         BorrowedInput input(bytes,size);spDXMaterial material;
         spMaterialSerializer::InspectionForAnalysis observed;std::string error;
         if(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,size,material,observed,&error))throw std::runtime_error(error);
-        const auto reference=[](const std::optional<spMaterialSerializer::InspectedReferenceForAnalysis>& value) {
-            return value?SpvMaterialReference{value->offset,value->size}:SpvMaterialReference{};
-        };
         const auto& states=material.GetRenderStatesForAnalysis();std::copy(states.begin(),states.end(),info.states);
         info.vertexAlpha=material.GetVertexAlphaByteForAnalysis();
         if(observed.color) {
             const auto& c=*observed.color;info.hasColor=1;
             info.colors[0]=c.ambient;info.colors[1]=c.diffuse;info.colors[2]=c.specular;info.colors[3]=c.emissive;info.power=c.power;
         }
-        info.colorController=reference(observed.colorController);
+        info.colorController=referenceForView(observed.colorController);
         info.passes=static_cast<std::uint32_t>(material.GetPassCountForAnalysis());
         for(std::uint32_t i=0;i<info.passes;++i) {
             const auto* pass=dynamic_cast<const spMaterialPassLayer*>(material.GetPassForAnalysis(i));
@@ -207,7 +208,7 @@ struct MaterialView {
                 const auto at=observed.layers.find(holder);
                 if(at!=observed.layers.end()) {
                     const auto& fields=at->second;result.statesField=fields.textureStatesField;result.hasUV=fields.hasUVField;
-                    result.texture=reference(fields.references[0]);result.animation=reference(fields.references[1]);result.uvController=reference(fields.references[2]);
+                    result.texture=referenceForView(fields.references[0]);result.animation=referenceForView(fields.references[1]);result.uvController=referenceForView(fields.references[2]);
                 }
                 layers.push_back(result);
             }
@@ -216,6 +217,35 @@ struct MaterialView {
     }
 };
 static_assert(sizeof(SpvMaterialReference)==8&&sizeof(SpvMaterialInfo)==88&&sizeof(SpvMaterialLayer)==124);
+struct ModelView {
+    SpvModelInfo info{};
+    std::vector<SpvSkinBone> bones;
+    ModelView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
+        require(bytes&&size&&size<=16u*1024u*1024u&&kind<=1,"Invalid bounded Model/Skin field stream");
+        BorrowedInput input(bytes,size);std::string error;
+        std::unique_ptr<spModel> partial;spModelSerializer::InspectionForAnalysis observed;
+        if(kind==0) {
+            partial=std::make_unique<spModel>();
+            if(!spModelSerializer{}.InspectPayloadForAnalysis(input,size,*partial,observed,&error))throw std::runtime_error(error);
+        } else {
+            auto skin=std::make_unique<spSkin>();spSkinSerializer::InspectionForAnalysis result;
+            if(!spSkinSerializer{}.InspectPayloadForAnalysis(input,size,*skin,result,&error))throw std::runtime_error(error);
+            info.skinMask=result.fieldMask;info.weights=result.fieldMask?result.weights:skin->GetWeightCountForAnalysis();
+            bones.reserve(result.bones.size());
+            for(const auto& binding:result.bones) {
+                SpvSkinBone bone{};bone.reference={binding.reference.offset,binding.reference.size};
+                bone.id=binding.reference.id;bone.inlineSize=binding.reference.inlineSize;
+                std::copy(binding.inverseBind.begin(),binding.inverseBind.end(),bone.inverseBind);bones.push_back(bone);
+            }
+            observed=std::move(result.model);partial=std::move(skin);
+        }
+        info.alpha=partial->IsAlphaSortEnabledForAnalysis();info.priority=partial->GetPriorityForAnalysis();
+        info.projection=partial->GetProjectionGroupForAnalysis();info.bones=static_cast<std::uint32_t>(bones.size());
+        info.renderableMask=observed.renderable.fieldMask;info.modelMask=observed.fieldMask;
+        info.material=referenceForView(observed.renderable.material);info.fog=referenceForView(observed.renderable.fog);info.mesh=referenceForView(observed.mesh);
+    }
+};
+static_assert(sizeof(SpvModelInfo)==56&&sizeof(SpvSkinBone)==80);
 static_assert(sizeof(SpvTextureSectionInfo)==32&&sizeof(SpvTextureMip)==28);
 struct SerializedBytes {
     std::vector<std::uint8_t> bytes;
@@ -596,6 +626,19 @@ SPV_API int spv_material_info(void* handle,SpvMaterialInfo* output) noexcept {
 SPV_API int spv_material_layers(void* handle,SpvMaterialLayer* output,std::uint32_t count) noexcept {
     return guarded([&]{require(handle,"Invalid material view");const auto& layers=static_cast<MaterialView*>(handle)->layers;
         require(count==layers.size()&&(!count||output),"Material layer output size mismatch");std::copy(layers.begin(),layers.end(),output);});
+}
+SPV_API void* spv_model_read(const std::uint8_t* bytes,std::uint32_t count,std::uint32_t kind) noexcept {
+    std::unique_ptr<ModelView> result;
+    if(!guarded([&]{result=std::make_unique<ModelView>(bytes,count,kind);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_model_destroy(void* handle) noexcept {(void)guarded([&]{delete static_cast<ModelView*>(handle);});}
+SPV_API int spv_model_info(void* handle,SpvModelInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Invalid Model/Skin view");*output=static_cast<ModelView*>(handle)->info;});
+}
+SPV_API int spv_model_bones(void* handle,SpvSkinBone* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Invalid Model/Skin view");const auto& bones=static_cast<ModelView*>(handle)->bones;
+        require(count==bones.size()&&(!count||output),"Skin bone output size mismatch");if(count)std::copy(bones.begin(),bones.end(),output);});
 }
 SPV_API int spv_static_matrices(const std::uint8_t* bytes,std::uint32_t count,
     const SpvNodeField* fields,std::uint32_t fieldCount,SpvStaticMatrices* output) noexcept {

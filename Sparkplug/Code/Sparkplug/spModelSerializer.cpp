@@ -3,6 +3,8 @@
 #include "Analysis/PC/spSectionCursor.h"
 
 #include "spModel.h"
+#include "spSerializerManager.h"
+#include "spResourceManager.h"
 
 #include <memory>
 #include <utility>
@@ -74,11 +76,11 @@ namespace sparkplug::reconstruction
     }
 
     bool spModelSerializer::ReadModelFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
-        spStream& stream,std::uint32_t size,spModel& object,bool requireEnd,std::string* error) const
+        spStream& stream,std::uint32_t size,spModel& object,bool requireEnd,std::string* error,InspectionForAnalysis* observation) const
     {
         auto* model=&object;
         std::uint32_t start=0,position=0;
-        if(!stream.GetCurrentPosition(start)||!ReadRenderableFieldsForAnalysis(context,stream,size,*model,false,error)
+        if(!stream.GetCurrentPosition(start)||!ReadRenderableFieldsForAnalysis(context,stream,size,*model,false,error,observation?&observation->renderable:nullptr)
             ||!stream.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing Model section";return false;}
         evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),requireEnd,error);
@@ -87,6 +89,14 @@ namespace sparkplug::reconstruction
             if(header->IsTerminator()){model->InvalidateRuntimeModeForAnalysis();return true;}
             if(header->fieldID==0)
             {
+                if(observation)
+                {
+                    evidence::pc::serialization::InspectedReference reference;
+                    if(!evidence::pc::serialization::InspectReference(stream,header->payloadSize,true,reference,error))
+                        return cursor.Fail("Cannot inspect Model mesh reference");
+                    if(!reference.id)return cursor.Fail("Model mesh is null");
+                    observation->mesh=reference;observation->fieldMask|=1;continue;
+                }
                 auto* raw=ReadFieldReferenceForAnalysis(context,spMesh::ClassID,stream,*header,error);
                 if(context.failed)return false;
                 auto mesh=std::dynamic_pointer_cast<spMesh>(context.ShareObjectForAnalysis(raw));
@@ -99,10 +109,21 @@ namespace sparkplug::reconstruction
                 // Native493973 does not test Read result; host validates it.
                 if(!cursor.Read(value))return cursor.Fail("Invalid Model projection-group UInt32");
                 model->SetProjectionGroupForAnalysis(value);
+                if(observation)observation->fieldMask|=2;
             }
             else if(!cursor.Skip())return cursor.Fail("Cannot skip Model field");
         }
         return false;
+    }
+
+    bool spModelSerializer::InspectPayloadForAnalysis(spStream& stream,std::uint32_t size,
+        spModel& partial,InspectionForAnalysis& observation,std::string* error) const
+    {
+        if(error)error->clear();observation={};
+        if(!partial.IsExactly(spModel::ClassID)||GetTargetClassIDForAnalysis()!=spModel::ClassID)
+        {if(error)*error="Derived Model inspection requires its own section adapter";return false;}
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        return ReadModelFieldsForAnalysis(context,stream,size,partial,true,error,&observation);
     }
 
     bool spModelSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager& manager,spBaseObject& object) const
