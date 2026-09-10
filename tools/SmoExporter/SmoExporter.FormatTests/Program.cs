@@ -5,6 +5,8 @@ using SmoExporter.Core;
 using SmoViewer.Core;
 
 int checks = 0;
+if (args is ["--glb-skin-weights", string weightSmo, string weightOutput])
+    return GlbSkinWeightRegression.Run(weightSmo, weightOutput);
 if (args is ["--export-selection", string selectionSmo, string selectionSkin, string selectionOutput])
     return ExportSelectionRegression.Run(selectionSmo, selectionSkin, selectionOutput);
 if (args is ["--export-occurrences", string occurrenceSmo, string occurrenceOutput])

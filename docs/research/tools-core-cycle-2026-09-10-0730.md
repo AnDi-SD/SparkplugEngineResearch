@@ -146,7 +146,37 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     [Manifest](../../research/tools-core-texture-presence-2026-09-10.json)
     сохраняет hashes кода, baseline и результатов. Новая сборка чистая.
 
+## Следующие проверенные блоки
+
+14. [Общий GPU skinning/picking](tool-gpu-skinning-shared-picking-2026-09-10.md):
+    production shader исправлен по original Fixed.rfx; удалены две C# CPU-копии.
+    Viewer и LVLcreator используют позиции того же shader. GPU11 arithmetic,
+    27 readback/occurrence и14 provider checks прошли. Viewer7 clips/43 poses:
+    419 независимых mesh/time comparisons, max0,000554 в прежнем допуске.
+    Конечный GUI capture4,48с/264,4МиБ; сборки Viewer/LVL чистые. Потеря
+    occurrence в renderer key найдена review и исправлена до checkpoint.
+    Viewer checkpoint: `3d90470`.
+15. GLB перестал молча нормализовать существенно non-unit веса под видом
+    игровой логики. Три ранних refusal сохраняют destination; всего10 checks.
+    Три поддерживаемых GLB побайтно равны прежним. Конверсия non-unit
+    деформации в GLB отдельно не подтверждена и не выдумывается.
+16. [Renderer fallback PC/PS2](tool-renderer-fallback-material-boundary-2026-09-10.md):
+    PC protected producer не извлечён, старый capped constructor не повторялся.
+    PS2 static chain подтвердил1pass/2StdLayers и второе raw state1=0;
+    сохранены15anchors/11ranges, исправлены ошибочные color offsets в досье.
+    PC готовность от PS2 результата не повышается; production defaults не менялись.
+
 ## Новые границы и исправления
+
+- Первый GPU negative test завис из-за непойманного exception нового harness;
+  остановлен только собственный процесс. Top-level catch исправлен, повтор
+  завершился ожидаемым exit1. Первичная сборка также выявила недостающий
+  `System.IO` using; исправлено, обе конечные сборки чистые.
+- Для GUI numeric comparison по ошибке использован исторический input до
+  исправления PC quaternion rounding8сентября. Архив позволил установить
+  известный случай без повторного original probe. На уже сохранённом original
+  PRS input все проверки прошли. Failed capture оставлен, допуски неизменны;
+  манифест уточнён правилом выбора актуального evidence input.
 
 - Font baseline отсутствует до reader assignment: nullable, не выдуманный ноль.
 - Text metadata inspector готов; full runtime Text остаётся незавершённым.

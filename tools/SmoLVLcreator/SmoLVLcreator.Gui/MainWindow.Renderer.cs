@@ -59,6 +59,12 @@ public partial class MainWindow
     private double _viewportDpiX = 1;
     private double _viewportDpiY = 1;
     private SmoScenePickIndex? _scenePickIndex;
+    private SmoSceneMesh[] _scenePickMeshes = [];
+    private readonly Dictionary<(SmoRenderObjectKey Key, int MeshObjectIndex), Vector3[]?>
+        _scenePickingPositions = new();
+    private readonly List<string> _scenePickingReadbackIssues = [];
+    private bool _scenePickingNeedsGpuRefresh;
+    private string? _scenePickingDiagnosticText;
     private bool _gpuRendererAvailable;
     private string? _gpuViewportFailureReason;
     private Point3D _sceneCenter;
@@ -264,6 +270,7 @@ public partial class MainWindow
                 _sceneGridSpan,
                 _sceneDiagonal,
                 renderOverlay);
+            RefreshScenePickingFromGpu();
             _viewportDpiX = dpi.DpiScaleX;
             _viewportDpiY = dpi.DpiScaleY;
             if (TryGetGizmoPivot(out Point3D gizmoPivot))
@@ -324,6 +331,8 @@ public partial class MainWindow
     private void DisableGpuViewport(string reason)
     {
         _gpuRendererAvailable = false;
+        ClearScenePickingPositions();
+        UpdateScenePickIndex(_scenePickMeshes);
         _gpuViewportFailureReason = reason;
         if (GpuViewport is not null)
             GpuViewport.Visibility = Visibility.Collapsed;
@@ -347,6 +356,9 @@ public partial class MainWindow
         _activeCollisionEntityIndex = null;
         _collisionRegionByInfo.Clear();
         _scenePickIndex = null;
+        _scenePickMeshes = [];
+        ClearScenePickingPositions();
+        ReportScenePickingIssues();
         _cameraOrbitingFocus = false;
         _cameraFocusKey = null;
         _cameraMovementKeys.Clear();
@@ -365,6 +377,7 @@ public partial class MainWindow
         bool preserveCamera = preserveEditorSelection &&
             _renderPreparedScene is not null;
         _gpuRenderer.Clear();
+        ClearScenePickingPositions();
         _highlightedRenderKeys.Clear();
         if (!preserveEditorSelection)
         {
@@ -375,7 +388,7 @@ public partial class MainWindow
             _collisionRegionByInfo.Clear();
         }
         _renderPreparedScene = scene;
-        _scenePickIndex = new SmoScenePickIndex(scene.Meshes);
+        UpdateScenePickIndex(scene.Meshes);
 
         int index = 0;
         foreach (SmoSceneMesh mesh in scene.Meshes)
@@ -466,8 +479,7 @@ public partial class MainWindow
                 new SmoRenderObjectKey(0, placement.Key),
                 placement.First().WorldTransform);
         }
-        _scenePickIndex = new SmoScenePickIndex(
-            effectiveMeshes.Where(IsSceneMeshVisible));
+        UpdateScenePickIndex(effectiveMeshes.Where(IsSceneMeshVisible));
         UpdateDocumentCaption();
         if (!_document.HasActiveTransformSession)
             RefreshCatalogResourceEdits();
@@ -499,10 +511,12 @@ public partial class MainWindow
         if (_document is null || _workspace is null)
         {
             _scenePickIndex = null;
+            _scenePickMeshes = [];
+            ClearScenePickingPositions();
             return;
         }
         SmoPreparedScene scene = _renderPreparedScene ?? _workspace.PreparedScene;
-        _scenePickIndex = new SmoScenePickIndex(scene.Meshes
+        UpdateScenePickIndex(scene.Meshes
             .Where(IsSceneMeshVisible)
             .Select(mesh =>
             {
@@ -515,6 +529,93 @@ public partial class MainWindow
                     ? mesh with { WorldTransform = placement!.WorldTransform }
                     : ApplyPendingPlacementTransform(mesh);
             }));
+    }
+
+    private void ClearScenePickingPositions()
+    {
+        _scenePickingPositions.Clear();
+        _scenePickingReadbackIssues.Clear();
+        _scenePickingNeedsGpuRefresh = false;
+    }
+
+    private static (SmoRenderObjectKey Key, int MeshObjectIndex) ScenePickingKey(SmoSceneMesh mesh) =>
+        (new SmoRenderObjectKey(0, mesh.SceneObjectIndex), mesh.Mesh.ObjectIndex);
+
+    private Vector3[]? CachedScenePickingPositions(SmoSceneMesh mesh) =>
+        _scenePickingPositions.TryGetValue(ScenePickingKey(mesh), out Vector3[]? positions)
+            ? positions
+            : null;
+
+    private void UpdateScenePickIndex(IEnumerable<SmoSceneMesh> meshes)
+    {
+        _scenePickMeshes = meshes.ToArray();
+        _scenePickIndex = new SmoScenePickIndex(_scenePickMeshes, CachedScenePickingPositions);
+        _scenePickingNeedsGpuRefresh = _scenePickMeshes.Any(mesh =>
+            mesh.Mesh.HasSkinningData && !_scenePickingPositions.ContainsKey(ScenePickingKey(mesh)));
+        ReportScenePickingIssues();
+    }
+
+    private void RefreshScenePickingFromGpu()
+    {
+        if (!_scenePickingNeedsGpuRefresh)
+            return;
+        _scenePickingNeedsGpuRefresh = false;
+        // This host supplies initial palettes at Add and does not animate them.
+        // Local captures survive world/visibility edits, but every Clear/Load
+        // invalidates them. Any future palette setter must invalidate them too.
+        foreach (SmoSceneMesh mesh in _scenePickMeshes.Where(mesh => mesh.Mesh.HasSkinningData))
+        {
+            var key = ScenePickingKey(mesh);
+            if (_scenePickingPositions.ContainsKey(key))
+                continue;
+            try
+            {
+                _scenePickingPositions.Add(key,
+                    _gpuRenderer.ReadPositionsForPicking(key.Key, key.MeshObjectIndex));
+            }
+            catch (Exception exception)
+            {
+                // Remember a failed attempt for this scene too; do not repeat
+                // expensive or ambiguous captures each frame or gizmo update.
+                _scenePickingPositions.Add(key, null);
+                _scenePickingReadbackIssues.Add(
+                    $"GPU picking object [{mesh.SceneObjectIndex}], mesh [{mesh.Mesh.ObjectIndex}]: {exception.Message}");
+            }
+        }
+        _scenePickIndex = new SmoScenePickIndex(_scenePickMeshes, CachedScenePickingPositions);
+        ReportScenePickingIssues();
+    }
+
+    private void ReportScenePickingIssues()
+    {
+        if (_scenePickIndex is not { Issues.Count: > 0 } index)
+        {
+            if (_scenePickingDiagnosticText is not null &&
+                DiagnosticsText.Text == _scenePickingDiagnosticText)
+            {
+                DiagnosticsText.Text = "Позиции для выбора под курсором готовы.";
+                DiagnosticsText.Foreground = HealthyBrush;
+            }
+            if (StatusText.Text is
+                "Скелетный picking ожидает GPU readback · выбор через каталог доступен" or
+                "Скелетный picking недоступен · выбор через каталог доступен")
+            {
+                StatusText.Text = "Позиции для выбора под курсором готовы";
+            }
+            _scenePickingDiagnosticText = null;
+            return;
+        }
+        // Synchronous click/drop operations use the last completed scene
+        // snapshot. Until its first Render, missing captures stay explicit.
+        _scenePickingDiagnosticText = string.Join("\n", index.Issues.Concat(_scenePickingReadbackIssues)) +
+            "\nСкелетные поверхности исключены из выбора и размещения под курсором; " +
+            "выбор через каталог остаётся доступен.";
+        DiagnosticsText.Text = _scenePickingDiagnosticText;
+        DiagnosticsText.Foreground = NoticeBrush;
+        StatusText.Text = _gpuRendererAvailable && _scenePickingNeedsGpuRefresh
+            ? "Скелетный picking ожидает GPU readback · выбор через каталог доступен"
+            : "Скелетный picking недоступен · выбор через каталог доступен";
+        _viewportActionStatusUntilUtc = DateTime.UtcNow.AddSeconds(3);
     }
 
     private bool IsSceneMeshVisible(SmoSceneMesh mesh)
@@ -1744,6 +1845,7 @@ public partial class MainWindow
 
     private Vector3 ResolveDropPosition(Point viewportPoint)
     {
+        ReportScenePickingIssues();
         SmoPickRay ray = SmoViewportMath.CreateSmoPickRay(
             _sceneCamera,
             viewportPoint.X,
@@ -1800,6 +1902,7 @@ public partial class MainWindow
             return;
         }
 
+        ReportScenePickingIssues();
         SmoPickRay ray = SmoViewportMath.CreateSmoPickRay(
             _sceneCamera,
             viewportPoint.X,
@@ -1826,7 +1929,9 @@ public partial class MainWindow
         {
             if (!toggle)
                 ClearViewportSelection();
-            StatusText.Text = "Под курсором нет объекта";
+            StatusText.Text = _scenePickIndex.Issues.Count == 0
+                ? "Под курсором нет объекта"
+                : "Поддержанный объект не найден · скелетный picking недоступен";
             return;
         }
 

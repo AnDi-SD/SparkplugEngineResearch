@@ -38,10 +38,30 @@ Factory выделяет ровно `0xD0`, вызывает общий `spMater
 | `+0xB0` | emissive RGBA |
 | `+0xC0` | specular power |
 
-Четыре цвета factory получает из двух глобальных packed black/white значений:
-diffuse/specular — white, ambient/emissive — black. `+0xC0` factory явно не
-записывает. Поэтому нулевой `specularPower` переносимой реализации — безопасная
-host-side инициализация, а не заявление о доказанном native default.
+Уточнение 10 сентября 2026: прежнее утверждение «diffuse/specular — white,
+ambient/emissive — black» не соответствует raw offset/source stores оригинала.
+Producer `001F2A90`, вызванный common renderer constructor, имеет те же `0x52C`
+байт, что RTTI factory `001F2FC0` (SHA256
+`0AFBF63539F80A9CC7F4A1D2763D2E6243FDAB88CD4E7CD9AEA3BD0B3D7D56C0`).
+Он преобразует packed bytes текущих globals в RGBA float через деление на255:
+
+| Raw offsets | Источник | Значение при подтверждённых initializer seeds |
+|---|---|---|
+| `+0x80`, `+0xA0` | `00476CB0` | `(0,0,0,1)` |
+| `+0x90`, `+0xB0` | `00476CB8` | `(1,1,1,1)` |
+
+Anchors первого producer: `001F2B30..001F2C14` пишет `+A0..AC`,
+`001F2C60..001F2D44` — `+B0..BC`, `001F2D90..001F2E74` — `+90..9C`,
+`001F2EC0..001F2FA8` — `+80..8C`. Initializer `0047F2D8` записывает
+`FF000000` в `00476CB0`, `0047F2E8` — `FFFFFFFF` в `00476CB8`.
+Это статическое доказательство sources/offsets, без PS2 guest execution и без
+утверждения, что globals не менялись позже. Имена accessors и production
+реализация этим уточнением не меняются; PC defaults отсюда не выводятся.
+См. [renderer fallback boundary](tool-renderer-fallback-material-boundary-2026-09-10.md).
+
+`+0xC0` factory явно не записывает. Поэтому нулевой `specularPower` переносимой
+реализации — безопасная host-side инициализация, а не заявление о доказанном
+native default.
 
 ## Copy, clone и update
 

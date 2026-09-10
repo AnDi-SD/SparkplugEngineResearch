@@ -12,6 +12,15 @@ Material reader TextureTool теперь использует общий snapsho
 Первый узкий renderer-срез не подтверждён: выбранный BloomX требует нескольких
 passes, а однопроходный Darcy материал принадлежит ParticleSystem.
 
+[GPU skinning и picking](tool-gpu-skinning-shared-picking-2026-09-10.md)
+исправлены по original Fixed.rfx: удалены две CPU-копии деформации; Viewer и
+LVLcreator читают позиции общего shader. Viewer сохраняет occurrence identity;
+27 GPU checks и43 позы/419 независимых сравнений прошли. GLB теперь явно
+отказывает для неподтверждённой конверсии существенно non-unit весов,
+сохраняя поддерживаемые файлы побайтно. Это не закрывает multipass/material
+output; [PC fallback producer](tool-renderer-fallback-material-boundary-2026-09-10.md)
+ещё не установлен, отдельный PS2 producer не подставляется вместо него.
+
 Таблица описывает операции ядер семи приложений. Общие native bridges не
 считаются отдельными приложениями; готовность UI и выпуск учитываются отдельно.
 

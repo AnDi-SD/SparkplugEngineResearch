@@ -698,12 +698,16 @@ public static class GlbExporter
                     $"Mesh {mesh.ObjectIndex} ({mesh.Name}) has no usable skin weights " +
                     $"at vertex {vertex}.");
             }
-            // Match the game's skinning path: normalize materially non-unit
-            // sums, while preserving already-normalized source weights exactly.
+            // Fixed.rfx uses the authored weighted xyz sum without division.
+            // This exporter supports near-unit sums; changing a materially
+            // different sum would silently change the original deformation.
             if (MathF.Abs(totalWeight - 1f) > 0.0001f)
             {
-                for (int index = 0; index < mappedCount; index++)
-                    mappedWeights[index] /= totalWeight;
+                throw new InvalidDataException(
+                    $"GLB_SKIN_WEIGHT_SUM: Mesh {mesh.ObjectIndex} ({mesh.Name}) has " +
+                    $"skin weight sum {totalWeight:R} at vertex {vertex}. " +
+                    "Exporting this sum would require a verified conversion; " +
+                    "the game's shader does not normalize it.");
             }
             joints[vertex] = new Vector4(
                 mappedSlots[0], mappedSlots[1], mappedSlots[2], mappedSlots[3]);
