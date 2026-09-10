@@ -1,0 +1,99 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-collectible-proximity-2026-09-10T21:09:13Z",
+  "createdUtc": "2026-09-10T21:09:13Z",
+  "notes": "Two +5 Gem updates.45 inputs/102 successful executions. Real PC virtual10+geometry integration. PS2 independent components,not full accumulation/caller. No standalone registered helper class or C++.",
+  "assessments": [
+    {
+      "className": "wxCollectibleGem",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. 24 full PC gem calls and21 full node helper calls;strict abs(dy)<150 flatten and inclusive squared radius.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-collectible-proximity-2026-09-11.md",
+          "sourceSha256": "BDAB82DC9521E3BCE9E0267277423E67518D12AB1E8A030ACE11361A6580052C",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "20->25: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. 24 full PC gem calls and21 full node helper calls;strict abs(dy)<150 flatten and inclusive squared radius."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/collectible-proximity-contracts-2026-09-11.json",
+          "sourceSha256": "D6D867386766A1E1A3C4D16257FEB353996B670574CFCF9DB0FD86E97C1F6FD3",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "20->25: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. 24 full PC gem calls and21 full node helper calls;strict abs(dy)<150 flatten and inclusive squared radius."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/collectible-proximity/pilot-run1.json",
+          "sourceSha256": "258B116CA8FF8203DE56203E163395271BA990C0F8EE3E228699E9B26EFB0C0F",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "20->25: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. 24 full PC gem calls and21 full node helper calls;strict abs(dy)<150 flatten and inclusive squared radius."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/collectible-proximity/batch-run1.json",
+          "sourceSha256": "460D2D1BFC338B9D2CFCCF072A4618F8B2F4CC1B1771012DF592E22C9E187C51",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "20->25: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. 24 full PC gem calls and21 full node helper calls;strict abs(dy)<150 flatten and inclusive squared radius."
+        }
+      ],
+      "unknowns": [
+        "Normal pickup/award events,scene/cache construction,ownership and lifecycle remain open.",
+        "PS2 full virtual10/caller,accumulator and complete distance result are not executed.",
+        "Exceptional floating point and intended reachability of diagnostic force/radius inputs not qualified."
+      ]
+    },
+    {
+      "className": "wxCollectibleGem",
+      "platformKey": "ps2",
+      "coverageScore": 20,
+      "lowerBound": 10,
+      "upperBound": 35,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. PS2 own gates/helper prefixes and independent final comparison;real fabs/vector;declared post-v10 flags and comparison square,no accumulator or full caller.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-collectible-proximity-2026-09-11.md",
+          "sourceSha256": "BDAB82DC9521E3BCE9E0267277423E67518D12AB1E8A030ACE11361A6580052C",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "15->20: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. PS2 own gates/helper prefixes and independent final comparison;real fabs/vector;declared post-v10 flags and comparison square,no accumulator or full caller."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/collectible-proximity-contracts-2026-09-11.json",
+          "sourceSha256": "D6D867386766A1E1A3C4D16257FEB353996B670574CFCF9DB0FD86E97C1F6FD3",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "15->20: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. PS2 own gates/helper prefixes and independent final comparison;real fabs/vector;declared post-v10 flags and comparison square,no accumulator or full caller."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/collectible-proximity/pilot-run1.json",
+          "sourceSha256": "258B116CA8FF8203DE56203E163395271BA990C0F8EE3E228699E9B26EFB0C0F",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "15->20: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. PS2 own gates/helper prefixes and independent final comparison;real fabs/vector;declared post-v10 flags and comparison square,no accumulator or full caller."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/collectible-proximity/batch-run1.json",
+          "sourceSha256": "460D2D1BFC338B9D2CFCCF072A4618F8B2F4CC1B1771012DF592E22C9E187C51",
+          "locator": "wxCollectibleGem v11 and original geometry helper/component boundaries",
+          "observation": "15->20: Gem v11 early-disable,actual inherited flags contract,override/fallback1A and height-qualified radius comparison. PS2 own gates/helper prefixes and independent final comparison;real fabs/vector;declared post-v10 flags and comparison square,no accumulator or full caller."
+        }
+      ],
+      "unknowns": [
+        "Normal pickup/award events,scene/cache construction,ownership and lifecycle remain open.",
+        "PS2 full virtual10/caller,accumulator and complete distance result are not executed.",
+        "Exceptional floating point and intended reachability of diagnostic force/radius inputs not qualified."
+      ]
+    }
+  ]
+}
