@@ -1,0 +1,767 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-entity-aggregate-copy-2026-09-10T20:47:52Z",
+  "createdUtc": "2026-09-10T20:47:52Z",
+  "notes": "18 updates but15 score increases:PC9 andPS2six +5. Three aligned PS2 library boundaries retain15.69 passed first-try cases,no C++,no full classes.",
+  "assessments": [
+    {
+      "className": "wxBreakableBarrel",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxBreakableBarrel",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBreakableBarrel original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableBarrel Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxBreakableVase",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxBreakableVase",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBreakableVase original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBreakableVase Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxBush",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxBush Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBush Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBush Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBush Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxBush Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxBush",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxBush Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBush Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBush Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBush Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxBush original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxBush Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxCutscene",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxCutscene",
+      "platformKey": "ps2",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->15: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxCutscene original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxCutscene Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxHudMeters",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxHudMeters",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxHudMeters original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxHudMeters Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxTargetRegion",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxTargetRegion",
+      "platformKey": "ps2",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->15: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxTargetRegion original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxTargetRegion Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxMovingPlatform",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxMovingPlatform",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxMovingPlatform original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxMovingPlatform Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxPendulum",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxPendulum",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxPendulum original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->20: wxPendulum Copy original string/vector/block arguments and whole source/destination guards. PS2 own component including actual scalar strcpy where used;explicit parent1/0,without nested parent or restore."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxChallengeParams",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "20->25: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. Complete PC Copy on distinct modified inputs from two actual factories."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    },
+    {
+      "className": "wxChallengeParams",
+      "platformKey": "ps2",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->15: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-aggregate-copy-2026-09-11.md",
+          "sourceSha256": "C147BA4795D3034BB30F2265A70B17FCE22F293482153477624D76EA2A9A5F7A",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-aggregate-copy-contracts-2026-09-11.json",
+          "sourceSha256": "58C27F0E43D58EC1109D034555041100BAE1609AE8DAE4233ABE2ACFC4AEA2C9",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/pilot-run1.json",
+          "sourceSha256": "35F288BA1E2EBFA673C5C7D3BD010CEC756207E6F9E631D4DD593B492A49F9FC",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/entity-aggregate-copy/batch-run1.json",
+          "sourceSha256": "81B18E901294B26AE68779A18BAF6E14E893786B4626BC5CE9C5EF3085939F24",
+          "locator": "wxChallengeParams original aggregate Copy and explicit library/parent boundaries",
+          "observation": "15->15: wxChallengeParams Copy original string/vector/block arguments and whole source/destination guards. PS2 actual library entry args and false-parent no-effects;aligned MMI/LQ path unexecuted,zero additional score."
+        }
+      ],
+      "unknowns": [
+        "Normal gameplay,ownership,modified payload teardown and self-copy remain open.",
+        "PS2 parent/SQ/LQ and aligned MMI strcpy/memcpy are not executed.",
+        "String test extent does not independently prove declared array capacity or intended string meaning.",
+        "Exceptional floating-point inputs and PC DF=1 are not qualified."
+      ]
+    }
+  ]
+}
