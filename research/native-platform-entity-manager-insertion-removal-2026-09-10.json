@@ -1,0 +1,445 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-entity-manager-insertion-removal-2026-09-10T10:12:58Z",
+  "createdUtc": "2026-09-10T10:12:58Z",
+  "notes": "18 paired post-classifier insertion prefixes and13 complete original pointer-array removal helpers. Capacity/duplicates/full-array shifts proven separately per platform. No whole manager notification/list lifecycle,normal binding or PS2 hardware claim.",
+  "assessments": [
+    {
+      "className": "wxEntityManager",
+      "platformKey": "pc",
+      "coverageScore": 45,
+      "lowerBound": 35,
+      "upperBound": 60,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-manager-insertion-removal-2026-09-10.md",
+          "sourceSha256": "C54F8224EC1818AF017989E93646E93491D34B3B319D4158313E44393E704456",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/insertion-run1.json",
+          "sourceSha256": "D2C665DD62457B39B733BAA55A11BF3D749E2FE474FA46AF90F7635FE70F3F49",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/removal-helper-run1.json",
+          "sourceSha256": "99A500EC7466572E316097C51D3524A22520BA44A9F9280F9CDB25E0E2667DBF",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_entity_manager_insertion_prefixes-run1.py",
+          "sourceSha256": "CE762B739E54F55CA6846359F6BC9D19942E9387529017C4BADCCE18DD49201D",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_entity_manager_array_removal-run1.py",
+          "sourceSha256": "8D950797302464D11BA1552C1AB4D3C1F1DC7DAACCCC11F5C536B4324E70CF85",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/remove-caller-window/capture.json",
+          "sourceSha256": "185E84C059A53529CE73CB413EB746F2A838E65A3EA0DFEAD6203CFFD6CDC4C6",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-manager-tables-2026-09-10.md",
+          "sourceSha256": "C0648326B4652A15FFCB57770CB7C537FE0D3772F75FCFC053E69A3C65C2CE85",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/catalog-family.json",
+          "sourceSha256": "9851E3F18DA9517A65E5EB7BB93A86843140A18B015FBDE428B96E62754A06B2",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/pc-wxEntityManager-run1.json",
+          "sourceSha256": "E52714FFED8D7EA2B7ECB3246A02D5527E8ABC9D752F8408C6C1A5DB4E588394",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_pc_family_lifecycle-run1.py",
+          "sourceSha256": "AB2D92004EEAB2D7633357E733BB57981A3BB63C44C6DA9E4C18FA8CAAF5472A",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/tables-classifier-run1.json",
+          "sourceSha256": "96CE5B2B405E45BB512F2C6A8B6F0A04F8A3A31BFB17707BBD70EBE68FC1971F",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/tables-classifier-run2.json",
+          "sourceSha256": "0492D5111BA6378BF5FED9C1F320C1CD295C3C2D0409DBBBCE60F03F487372D0",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_wx_entity_manager_contracts-run1.py",
+          "sourceSha256": "0D5DD8B6AC6759642EA9CE30F4169F2AD33BB8D8944D865BB0E919621660C738",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_wx_entity_manager_contracts-run2.py",
+          "sourceSha256": "6C61C7008EBBF4F09EC172223A6A1BF5EBF8ADD3CDCBBF92B9DAABDA38730A32",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/initial-method-windows/capture.json",
+          "sourceSha256": "97D3E07E222F0AB5616A4BB8EA24CD3B70CF34E08901C2EDC0637D24601C91CD",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/earlier-method-windows/capture.json",
+          "sourceSha256": "5545E8AF4EC8B3718659BF2AAEE40B55F047870208F8366D437BAEDAABD9B377",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-run1.json",
+          "sourceSha256": "DA9D6FEBFBC01339AE0828C0A4751CA0B8392E8BA8BC15DE971F3C72CD679E50",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-identity-windows/capture.json",
+          "sourceSha256": "B04183BF13D13B97F7EE8C7C8D56EA257775CFE8DCB82041E984435D6D253D65",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-constructor-windows/capture.json",
+          "sourceSha256": "DD4D45CBECE0BFDABA4595B644EE4FEC4455ECC6E9256233AF04D2171913B40C",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "30->45:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,startup/binding/live scene,full registration diagnostic/callback/list work,full manager removal notification and mutable callbacks,complete PS2 constructor hardware/destructor paths remain open."
+      ]
+    },
+    {
+      "className": "wxEntityManager",
+      "platformKey": "ps2",
+      "coverageScore": 40,
+      "lowerBound": 30,
+      "upperBound": 55,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-manager-insertion-removal-2026-09-10.md",
+          "sourceSha256": "C54F8224EC1818AF017989E93646E93491D34B3B319D4158313E44393E704456",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/insertion-run1.json",
+          "sourceSha256": "D2C665DD62457B39B733BAA55A11BF3D749E2FE474FA46AF90F7635FE70F3F49",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/removal-helper-run1.json",
+          "sourceSha256": "99A500EC7466572E316097C51D3524A22520BA44A9F9280F9CDB25E0E2667DBF",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_entity_manager_insertion_prefixes-run1.py",
+          "sourceSha256": "CE762B739E54F55CA6846359F6BC9D19942E9387529017C4BADCCE18DD49201D",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_entity_manager_array_removal-run1.py",
+          "sourceSha256": "8D950797302464D11BA1552C1AB4D3C1F1DC7DAACCCC11F5C536B4324E70CF85",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/remove-caller-window/capture.json",
+          "sourceSha256": "185E84C059A53529CE73CB413EB746F2A838E65A3EA0DFEAD6203CFFD6CDC4C6",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-manager-tables-2026-09-10.md",
+          "sourceSha256": "C0648326B4652A15FFCB57770CB7C537FE0D3772F75FCFC053E69A3C65C2CE85",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/catalog-family.json",
+          "sourceSha256": "9851E3F18DA9517A65E5EB7BB93A86843140A18B015FBDE428B96E62754A06B2",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/pc-wxEntityManager-run1.json",
+          "sourceSha256": "E52714FFED8D7EA2B7ECB3246A02D5527E8ABC9D752F8408C6C1A5DB4E588394",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_pc_family_lifecycle-run1.py",
+          "sourceSha256": "AB2D92004EEAB2D7633357E733BB57981A3BB63C44C6DA9E4C18FA8CAAF5472A",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/tables-classifier-run1.json",
+          "sourceSha256": "96CE5B2B405E45BB512F2C6A8B6F0A04F8A3A31BFB17707BBD70EBE68FC1971F",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/tables-classifier-run2.json",
+          "sourceSha256": "0492D5111BA6378BF5FED9C1F320C1CD295C3C2D0409DBBBCE60F03F487372D0",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_wx_entity_manager_contracts-run1.py",
+          "sourceSha256": "0D5DD8B6AC6759642EA9CE30F4169F2AD33BB8D8944D865BB0E919621660C738",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/probe_wx_entity_manager_contracts-run2.py",
+          "sourceSha256": "6C61C7008EBBF4F09EC172223A6A1BF5EBF8ADD3CDCBBF92B9DAABDA38730A32",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/initial-method-windows/capture.json",
+          "sourceSha256": "97D3E07E222F0AB5616A4BB8EA24CD3B70CF34E08901C2EDC0637D24601C91CD",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-manager/earlier-method-windows/capture.json",
+          "sourceSha256": "5545E8AF4EC8B3718659BF2AAEE40B55F047870208F8366D437BAEDAABD9B377",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-identity-windows/capture.json",
+          "sourceSha256": "B04183BF13D13B97F7EE8C7C8D56EA257775CFE8DCB82041E984435D6D253D65",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-constructor-windows/capture.json",
+          "sourceSha256": "DD4D45CBECE0BFDABA4595B644EE4FEC4455ECC6E9256233AF04D2171913B40C",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-windows/capture.json",
+          "sourceSha256": "2DC8BC82EA8A686CD5DC076477E7FDAF1D5846FF7E1544CC116010ABE250A840",
+          "locator": "wxEntityManager original insertion/removal contracts",
+          "observation": "25->40:18 post-classifier insertion prefix cases:full-capacity duplicate scan,counters/new type slots,Hud/Button/MoveCtrl platform limits and optional MoveCtrl list.13 complete removal helper cases:shift through capacity,last slot zero,count--,advance index after removal;adjacent duplicates may remain. Whole-manager/array/count guards passed. Stop before real linked-list append or cleanup epilogue;no fabricated diagnostic or game return."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,startup/binding/live scene,full registration diagnostic/callback/list work,full manager removal notification and mutable callbacks,complete PS2 constructor hardware/destructor paths remain open."
+      ]
+    }
+  ]
+}
