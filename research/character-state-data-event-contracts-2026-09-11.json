@@ -1,0 +1,160 @@
+{
+  "kind": "original-character-state-data-event-contracts",
+  "schemaVersion": 1,
+  "classes": {
+    "wxBirdFlyingState": 15,
+    "wxBlastState": 12,
+    "wxDispelState": 12,
+    "wxFrogAttackState": 12,
+    "wxFrogHurtState": 12,
+    "wxGolemAttackState": 12,
+    "wxHurtState": 12,
+    "wxOpenSecretPassageState": 12,
+    "wxPhysicalAttackState": 12,
+    "wxShadowBeastHurtState": 12,
+    "wxSpiderAttackState": 12,
+    "wxTry2HoistState": 12,
+    "wxWayToGoState": 12,
+    "wxFrogJumpingState": 12,
+    "wxMinotaurStunnedState": 12,
+    "wxShadowBeastJumpingState": 12,
+    "wxGhoulJumpingState": 15,
+    "wxTrollMovingState": 15,
+    "wxYetiMovingState": 15
+  },
+  "successfulPlatformExecutions": 244,
+  "distinctPcEntries": 8,
+  "distinctPs2Entries": 19,
+  "completionCounts": {
+    "pcOriginalReturn": 122,
+    "ps2OriginalReturn": 38,
+    "ps2PostSqEventComponents": 84
+  },
+  "scope": "Original v12 control writes and v15 exact event strings;seven guarded borrowed inputs. PS2 original strcmp byte/64-bit paths under explicit alignment1/8;16-byte aligned MMI branch remains open.",
+  "sources": [
+    {
+      "path": "research/character-state-construction-contracts-2026-09-10.json",
+      "sha256": "55855461552EEE6805F8D01A45F50F36B6AA7169391DB86E502C81DF2EA02B3C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/event-literals/capture.json",
+      "sha256": "99024BD0A0CFE57F3DA1660F7AE7CD175A23217FA75955270D51FEFDC2801796"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-adjacent-0/capture.json",
+      "sha256": "CD1274DCCCF5A5459D711C8FCCF584BD494BAC0F05F84D8B30FE5EF5DF19DBB5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-adjacent-1/capture.json",
+      "sha256": "00739AF9606BFF8D53DEA2177F39F4CF9A1151B6D85F66D09950688CD415E10B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-v12/capture.json",
+      "sha256": "B619EC5FF3ECF50EB536D02DED35F89E1E9D90E83AA234B3DA174C78F2B2C81F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/ps2-adjacent/capture.json",
+      "sha256": "C8C9A26AEB274784293AAEF24F7CDFB75066E7DFF92F594146D65392E97DF28C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/ps2-event-dependencies/capture.json",
+      "sha256": "9BF396209B8192E84B1AE523BF1646AD3B0119AAF01D55D5CDBED13DB7278134"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/ps2-v12/capture.json",
+      "sha256": "16041B96AAAF7DAD0500B9A449F868CEC0ADD5BD30330C2E30E72D39EB10C83C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-selection-0.json",
+      "sha256": "BF2CB5DD75DA3AB7382EFFD3E4E53B63A6D3AF122726D250554282D1A77C003B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-selection-1.json",
+      "sha256": "116EA103DB31714172AC9B7BB7BCCA884D3313ADFD2CAD74DD5C4964F402AE14"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-selection-2.json",
+      "sha256": "5FF1D0DC345D820AAA807753BE9D21570A214EC7C7D9F64581D95CF217633AEB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-adjacent-leaf-selection.json",
+      "sha256": "7DB9AC2B59AF0F5806BA431221228E74FC8FF2085727CE385232EFCABAD97AF5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-leaf-selection.json",
+      "sha256": "EC418E1D8B9B0F2E00F4C8EC08DD2915EDC56351EF77075B7952C104457B60EE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pilot-selection.json",
+      "sha256": "E28C17E9B12B1634707651C05B921DE86EEAF5115BC1D894AB1F9B9AE2C60E54"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pilot-run1.json",
+      "sha256": "ABADE93FDE47C0B0A6959BFA08BD95FC0ED4E66DA8714AA264A753D6531381B7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+      "sha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+      "sha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-2-run1.json",
+      "sha256": "8C7FBBBC45949B7B162ECFA076427B3D9CC06B72B3CDD1F4E0FD3AF355C92E19"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/prepare-character-state-data-events.py",
+      "sha256": "0E9DDB242FDAF74353BE33F6ABDC326AEA223446DB8AB5A54FC4C8C852F7DF1D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/scout-character-state-adjacent.py",
+      "sha256": "645FACD9CD76CDA695A8ADAF1A34EECC39533DBABFA3D0A69A5C2A63AB7CB46D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/scout-character-state-data.py",
+      "sha256": "CCDD679E7C405A020E3F9C2AB4240238C41202EE49CE3EA7C20C233D3D40CCAE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/scout-character-state-event-literals.py",
+      "sha256": "52B99B4DDC607ED5AF3A94FB98F41857507C5E3B61BA281496272D8072A5BE57"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/scout-state-strcmp.py",
+      "sha256": "A828EAFFC56414B8782D34F5634DC04550295AE0D8C81C85C236FE8203799687"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/probe_character_state_data_events.py",
+      "sha256": "0764FF50FF0A8A383DC6A5794FEC5C6D111ABC848850E35F1D9686BD2DF7F52C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730"
+    }
+  ]
+}

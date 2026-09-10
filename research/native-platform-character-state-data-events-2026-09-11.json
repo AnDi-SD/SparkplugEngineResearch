@@ -1,0 +1,1461 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-character-state-data-events-2026-09-10T18:47:54Z",
+  "createdUtc": "2026-09-10T18:47:54Z",
+  "notes": "19 classes,+5 per platform for one new method. 244 successful executions. No factory repeats or MMI coverage claim.",
+  "assessments": [
+    {
+      "className": "wxBirdFlyingState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "20->25: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "20->25: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/pilot-run1.json",
+          "sourceSha256": "ABADE93FDE47C0B0A6959BFA08BD95FC0ED4E66DA8714AA264A753D6531381B7",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "20->25: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "20->25: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxBirdFlyingState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "15->20: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "15->20: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/pilot-run1.json",
+          "sourceSha256": "ABADE93FDE47C0B0A6959BFA08BD95FC0ED4E66DA8714AA264A753D6531381B7",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "15->20: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxBirdFlyingState v15 exact input and buffer checks",
+          "observation": "15->20: wxBirdFlyingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene.",
+        "Full event SQ/LQ prologue/epilogue and16-byte aligned strcmp MMI path remain unexecuted."
+      ]
+    },
+    {
+      "className": "wxBlastState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxBlastState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "25->30: wxBlastState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "25->30: wxBlastState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "25->30: wxBlastState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxBlastState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxBlastState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "20->25: wxBlastState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "20->25: wxBlastState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxBlastState v12 exact input and buffer checks",
+          "observation": "20->25: wxBlastState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxDispelState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxDispelState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "25->30: wxDispelState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "25->30: wxDispelState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "25->30: wxDispelState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxDispelState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxDispelState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "20->25: wxDispelState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "20->25: wxDispelState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxDispelState v12 exact input and buffer checks",
+          "observation": "20->25: wxDispelState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogHurtState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogHurtState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxGolemAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxGolemAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxGolemAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxGolemAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxHurtState",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: wxHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "30->35: wxHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "30->35: wxHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "30->35: wxHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxHurtState",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxOpenSecretPassageState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "25->30: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "25->30: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "25->30: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxOpenSecretPassageState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "20->25: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "20->25: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxOpenSecretPassageState v12 exact input and buffer checks",
+          "observation": "20->25: wxOpenSecretPassageState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxPhysicalAttackState",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "30->35: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "30->35: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "30->35: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxPhysicalAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxPhysicalAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxPhysicalAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxShadowBeastHurtState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxShadowBeastHurtState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxShadowBeastHurtState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastHurtState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "25->30: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxSpiderAttackState v12 exact input and buffer checks",
+          "observation": "20->25: wxSpiderAttackState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxTry2HoistState",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "30->35: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "30->35: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "30->35: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxTry2HoistState",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "25->30: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "25->30: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxTry2HoistState v12 exact input and buffer checks",
+          "observation": "25->30: wxTry2HoistState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxWayToGoState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "25->30: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "25->30: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "25->30: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxWayToGoState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "20->25: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "20->25: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxWayToGoState v12 exact input and buffer checks",
+          "observation": "20->25: wxWayToGoState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogJumpingState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxFrogJumpingState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxFrogJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxFrogJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxMinotaurStunnedState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "25->30: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "25->30: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "25->30: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxMinotaurStunnedState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "20->25: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "20->25: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxMinotaurStunnedState v12 exact input and buffer checks",
+          "observation": "20->25: wxMinotaurStunnedState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxShadowBeastJumpingState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "25->30: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxShadowBeastJumpingState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxShadowBeastJumpingState v12 exact input and buffer checks",
+          "observation": "20->25: wxShadowBeastJumpingState original v12,control write conditions and exact preserved bytes. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxGhoulJumpingState",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "30->35: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "30->35: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "30->35: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "30->35: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxGhoulJumpingState",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "25->30: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "25->30: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-0-run1.json",
+          "sourceSha256": "513CE28B30C1B19599DDEED5D804B4BB1B9300AB3B68D47FEE991C293D885F4E",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "25->30: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxGhoulJumpingState v15 exact input and buffer checks",
+          "observation": "25->30: wxGhoulJumpingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene.",
+        "Full event SQ/LQ prologue/epilogue and16-byte aligned strcmp MMI path remain unexecuted."
+      ]
+    },
+    {
+      "className": "wxTrollMovingState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxTrollMovingState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxTrollMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxTrollMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene.",
+        "Full event SQ/LQ prologue/epilogue and16-byte aligned strcmp MMI path remain unexecuted."
+      ]
+    },
+    {
+      "className": "wxYetiMovingState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-2-run1.json",
+          "sourceSha256": "8C7FBBBC45949B7B162ECFA076427B3D9CC06B72B3CDD1F4E0FD3AF355C92E19",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "25->30: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PC method returns."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene."
+      ]
+    },
+    {
+      "className": "wxYetiMovingState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-state-data-events-2026-09-11.md",
+          "sourceSha256": "92B21ABFEE581F50AE6766CCEA5CB94394FF89E0E567E2FF1EB8A61C7C043A0F",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-state-data-event-contracts-2026-09-11.json",
+          "sourceSha256": "22763AF783DA3AD78892354754C8D81C644E8D8B0D98EB6342798336B89D4DC9",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-1-run1.json",
+          "sourceSha256": "807ED7BD282B0424D0713E88E582A54263A963CE04C462DC8AA3FA344E8412A7",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-state-data/batch-2-run1.json",
+          "sourceSha256": "8C7FBBBC45949B7B162ECFA076427B3D9CC06B72B3CDD1F4E0FD3AF355C92E19",
+          "locator": "wxYetiMovingState v15 exact input and buffer checks",
+          "observation": "20->25: wxYetiMovingState original v15,case-sensitive event names and exact field writes with native string compare. Full PS2 scalar v12 or post-SQ event body;original strcmp byte/64-bit branches,MMI excluded."
+        }
+      ],
+      "unknowns": [
+        "Whole gameplay startup and other class methods remain open.",
+        "Borrowed record bindings are declared inputs,not a constructed character or active scene.",
+        "Full event SQ/LQ prologue/epilogue and16-byte aligned strcmp MMI path remain unexecuted."
+      ]
+    }
+  ]
+}
