@@ -62,6 +62,10 @@ skin evaluator удалён.24 адресные GPU проверки и Core pro
 - **Память:** [временная копия файла удалена](tool-resource-graph-memory-2026-09-10.md).
   На выбранном Alfea02 пик уменьшился на 16,33%; пределы 64 МиБ и числа
   объектов сохранены. Поддержка файлов свыше 64 МиБ этим не доказана.
+  [Запрос существующего индекса](tool-indexed-loader-boundaries-2026-09-10.md)
+  не выявил входа свыше 10,9 МБ; выбранный Domino04 загрузился с пиком
+  42,55 МиБ. Максимальный по object count race_02 требует OcclusionVolume,
+  увеличение лимитов этот отказ не исправит.
 - **Runtime:** полный Occlusion Init, защищённый PC MaterialColor constructor,
   looping particle initialization и повторная непустая NavigationGraph table
   остаются прежними ограничениями. Исследовать их только для нужной операции;

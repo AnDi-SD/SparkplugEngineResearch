@@ -1,0 +1,123 @@
+{
+  "kind": "tools-core-indexed-loader-boundaries",
+  "date": "2026-09-10",
+  "status": "selected-Domino04-pass-race02-Occlusion-refusal",
+  "selection": {
+    "database": "local-data/results/smo-corpus-v3-20260828-post-header.sqlite",
+    "source": "readonly saved files metadata; order by byte_size/object_count desc limit 5; no asset rescan",
+    "max_smo_bytes": 10894825,
+    "max_file_object_count": 7513
+  },
+  "runs": [
+    {
+      "case": "bytes",
+      "source": "local-data\\pc-pristine\\Media\\Levels\\Domino\\Domino04.smo",
+      "source_bytes": 10894825,
+      "source_sha256": "e178ee415d0cdd6c75f1029663e8d5b0c21ec19384a8ef2571cc2062edc0d975",
+      "indexed_object_count": 3693,
+      "native_dll_sha256": "2378e4190de4edaf59a21c3c79512f9fc0057fa5d324de907b9d46f8b9587a97",
+      "script_sha256": "2bcbc2d24689a463935fd4a97b0715e5c4e4cca859f3984d7f1b9d9dee3c9a15",
+      "workers": 1,
+      "child_seconds": 30,
+      "limits_unchanged": {
+        "input_bytes": 67108864,
+        "created_objects": 8192
+      },
+      "before_input": {
+        "working_set_bytes": 18075648,
+        "peak_working_set_bytes": 18243584,
+        "pagefile_bytes": 9875456,
+        "peak_pagefile_bytes": 9875456
+      },
+      "load_seconds": 0.07330859999638051,
+      "after_load": {
+        "working_set_bytes": 44621824,
+        "peak_working_set_bytes": 44621824,
+        "pagefile_bytes": 35897344,
+        "peak_pagefile_bytes": 35897344
+      },
+      "snapshot": {
+        "objects": 3693,
+        "nodes": 614,
+        "root": 1
+      },
+      "status": "loaded",
+      "after_destroy": {
+        "working_set_bytes": 30023680,
+        "peak_working_set_bytes": 44630016,
+        "pagefile_bytes": 21213184,
+        "peak_pagefile_bytes": 35897344
+      },
+      "scope": "Selected whole graph only; no renderer, authoring, or all-corpus acceptance."
+    },
+    {
+      "case": "objects",
+      "source": "local-data\\pc-pristine\\Media\\Levels\\Challenges\\race_02.smo",
+      "source_bytes": 3329842,
+      "source_sha256": "ad39c13b896718755cc98445d943fa191640636f940930086cb802629e268436",
+      "indexed_object_count": 7513,
+      "native_dll_sha256": "2378e4190de4edaf59a21c3c79512f9fc0057fa5d324de907b9d46f8b9587a97",
+      "script_sha256": "2bcbc2d24689a463935fd4a97b0715e5c4e4cca859f3984d7f1b9d9dee3c9a15",
+      "workers": 1,
+      "child_seconds": 30,
+      "limits_unchanged": {
+        "input_bytes": 67108864,
+        "created_objects": 8192
+      },
+      "before_input": {
+        "working_set_bytes": 18341888,
+        "peak_working_set_bytes": 18341888,
+        "pagefile_bytes": 9916416,
+        "peak_pagefile_bytes": 9916416
+      },
+      "load_seconds": 0.0006794000073568895,
+      "after_load": {
+        "working_set_bytes": 22044672,
+        "peak_working_set_bytes": 22044672,
+        "pagefile_bytes": 13254656,
+        "peak_pagefile_bytes": 13275136
+      },
+      "status": "bounded-refusal",
+      "error": "FAT class has no registered runtime type: 1137853488 (object ID 8)",
+      "after_destroy": {
+        "working_set_bytes": 22044672,
+        "peak_working_set_bytes": 22044672,
+        "pagefile_bytes": 13254656,
+        "peak_pagefile_bytes": 13275136
+      },
+      "scope": "Selected whole graph only; no renderer, authoring, or all-corpus acceptance."
+    }
+  ],
+  "fingerprints": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/graph-memory/inspect_index_extremes.py",
+      "bytes": 2902,
+      "sha256": "2bcbc2d24689a463935fd4a97b0715e5c4e4cca859f3984d7f1b9d9dee3c9a15"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/graph-memory/measure_graph.py",
+      "bytes": 5554,
+      "sha256": "ae2664ec778b7e45a1bf8f9ebca9fd5116df51eebb7b9353dba5f2a82dd23075"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/graph-memory/index-extreme-objects.json",
+      "bytes": 1334,
+      "sha256": "4e7832b4df1b4f9a7d8eb1900fce8f4a1ed321c0196bea68b53e9b1542f74064"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/graph-memory/index-extreme-bytes.json",
+      "bytes": 1316,
+      "sha256": "ef4ee223ad03e09711698073308cbc23f61fee0824679637cfc9c1a01a2f4d78"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "bytes": 9395,
+      "sha256": "a61bd8946b9d575419a23180dae9d7bafc24f6f2f15169c03dbe4fce7df9ba69"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1152000,
+      "sha256": "2378e4190de4edaf59a21c3c79512f9fc0057fa5d324de907b9d46f8b9587a97"
+    }
+  ]
+}

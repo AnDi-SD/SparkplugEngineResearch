@@ -194,6 +194,21 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     build failures из-за transitive restore и usinglinkedfixture исправлены.
     Viewer test checkpoint: `3706899`.
 
+20. Importer: удалён неиспользуемый `SmoMeshReplacer.Replace` и два его
+    write-helper (131 строка старого отдельного packed-vertex writer).
+    Tracked поиск root и обоих submodules не нашёл вызывающего кода или
+    документированного API-контракта. Действующие `GetBoneSlots`/`FindAncestor`
+    сохранены без изменений; Importer.Gui build прошёл без warnings/errors.
+    Новые тесты для удаления мёртвого пути не добавлялись. По ошибке выбрана
+    Debug-конфигурация вместо уже собранной Release: лишняя native сборка
+    заняла 3:14,50. Следующие managed-only проверки используют существующий
+    Release bridge и `SkipSparkplugNativeBuild=true` при неизменном native коде.
+21. [Индексные границы loader](tool-indexed-loader-boundaries-2026-09-10.md):
+    максимальный по размеру Domino04 загрузился целиком (3693 ресурса,
+    0,0733 с / 42,55 МиБ); максимальный по object count race_02 остановился
+    на незавершённом OcclusionVolume. Лимиты не повышались: новая работа
+    нужна в классе, а не в размере буферов. Это два выбранных input, не corpus acceptance.
+
 ## Новые границы и исправления
 
 - Первый GPU negative test завис из-за непойманного exception нового harness;
