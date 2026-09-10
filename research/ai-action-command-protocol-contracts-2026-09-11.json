@@ -1,0 +1,133 @@
+{
+  "kind": "original-ai-action-command-and-dispatch-contracts",
+  "schemaVersion": 1,
+  "classes": [
+    "wxAttackAIAction",
+    "wxBacoAttackAIAction",
+    "wxDarcyAttackAIAction",
+    "wxDroidAttackAIAction",
+    "wxDroidWanderAIAction",
+    "wxFlyingWanderAIAction",
+    "wxFrogAttackAIAction",
+    "wxHurtAIAction",
+    "wxIceGargoyleAttackAIAction",
+    "wxIceGargoyleClawAIAction",
+    "wxIceGargoyleSleepingAIAction",
+    "wxIceGargoyleWithdrawlAIAction",
+    "wxIceWormAttackAIAction",
+    "wxKnutAttackAIAction",
+    "wxMinotaurAttackAIAction",
+    "wxMinotaurDefendAIAction",
+    "wxMosquitoAttackAIAction",
+    "wxShadowBeastAttackAIAction",
+    "wxSpiderAttackAIAction",
+    "wxTrollAttackAIAction",
+    "wxTrollBeforeFightAIAction"
+  ],
+  "uniqueSuccessfulPlatformCases": 124,
+  "attempts": 128,
+  "initialHarnessExpectationFailures": 4,
+  "scope": "Separate PC/PS2 native command/input methods and state-body dispatch boundaries;no full active gameplay claim.",
+  "sources": [
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/selection.json",
+      "sha256": "D6BE7EE78FB17A80F407AD005B30CA0464A3173627229BAE1461C92475B05370"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/dispatch-tables/capture.json",
+      "sha256": "387AF24E74B2F2EA52BE319C13D65A21CA6E10AF8659988FF2880011FF2B6078"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/helper-scout/capture.json",
+      "sha256": "CB6BCBBB2B3C2F389A37E9D5E953416EA9C509D4CCF00DEF66FA18FDDDB2B5FB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-1/capture.json",
+      "sha256": "087571CC3A58BBCDB19124F68F19D4FAA234688A5701773151912241ED7E0D25"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-2/capture.json",
+      "sha256": "067ACEA5246F6BFDDAD5571734CB35C5381B7F5A34C3D78969FB43138A942E60"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-3/capture.json",
+      "sha256": "DA7AE8D85040FCAA0267D1CF1A625D94A829959D1CF90BD68C8C68607249D582"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/command-batch-run1.json",
+      "sha256": "9BD30A1CE5FA07BFA4EC45A916CE10839B5D8F31F5A0B4AC62B81AB49DB57AEE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/command-pilot-run1.json",
+      "sha256": "F0781CA7F19F64FEC21A9BCDD5F89818AD93095DA5AF81E55CE1A52F021EF353"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/state-dispatch-run1.json",
+      "sha256": "5A2CBF0A5FC9F4E369974C4D97D4F3A7A38C7E5240E790246E5F93EED7D890EC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/state-dispatch-run2.json",
+      "sha256": "0BBE50E3C1F11CE3D183DE8FEAC8B8066D5DE3A91DA26ED784C140E04C755F41"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/check-troll-jump-table.py",
+      "sha256": "D841761AD02261F6084A9AD6D9D969954F1C565C18E477F1763E729AB65BF570"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/probe-state-dispatch-run1.py",
+      "sha256": "DD88F62FE37654C8DD0B275A1B44BAD4CF625FA222E57AF50E4ECFEAD0B90083"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-action-dispatch.py",
+      "sha256": "DC762D0404E1D23D3E157C343B75144542B1C75165960ACBD1CD766ECB69FC41"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-action-helpers.py",
+      "sha256": "004449EF4FF4327606DE08DE386BC82EF6BB8EC8B97F34A1C159E7735AD92D33"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/scout-ai-action-methods.py",
+      "sha256": "36E55EECF3A8295B29D47DCC3B28378DC83529DB59E9E9AAAFAAB24D478C43EF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/probe_ai_action_command_protocol.py",
+      "sha256": "F4E518BB25C700DE5A2F4FE28D2274686FEA15F87972B2FF4142F59608F78E94"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/probe_ai_action_state_dispatch.py",
+      "sha256": "281F0D1393276D193A942007EF15551B3AAB3C46E680FCBCB70E02F6EDD93B92"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-methods/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730"
+    }
+  ]
+}
