@@ -17,9 +17,9 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     execution_limits(lifecycle_profile)
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
-    if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node'):raise ValueError('Explicit reviewed borrowed context required')
+    if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
     if crt not in ('none','bounded-strings'):raise ValueError('Explicit CRT fixture required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
@@ -75,6 +75,14 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
             scope='Original Node factory and previously verified spEntity419D00 assignment. Each clone gets its own binding after clone returns;no entity+24 binding assertion.'))
         save()
     try:
+        if context=='animation-manager':
+            if family!='projectile':raise ValueError('Actor dependency reviewed for projectile family')
+            manager=call('animation-manager-factory',0x454640)
+            assert f.allocations[manager]==0x2c and p.uint(manager)==0x6e6e30 and p.uint(0x75f880)==manager
+            assert p.uint(manager+0x24)==p.uint(manager+0x28)==0
+            report['declaredContext']=dict(kind=context,originalManager=manager,globalAddress='0075F880',
+                scope='Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.')
+            save()
         if context.startswith('empty-scene'):
             # Actual Node factory/search, with literal external core/scene
             # pointers. No scene initialize, game startup or fake Find result.
@@ -99,6 +107,10 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
         bind_node('clone',clone)
         for label,a in [('delete-clone',clone),('delete-original',obj)]:
             call(label,p.uint(p.uint(a)),a,(1,));assert a in f.freed
+        if context=='animation-manager':
+            assert p.uint(manager+0x24)==p.uint(manager+0x28)==0,'Projectile-owned Actors must unregister before manager deletion'
+            call('delete-animation-manager',p.uint(p.uint(manager)),manager,(1,));assert manager in f.freed and p.uint(0x75f880)==0
+            report['declaredContext']['emptyRegistryAndManagerDeletionVerified']=True
         if context.startswith('empty-scene'):
             call('delete-borrowed-root',p.uint(p.uint(root)),root,(1,));assert root in f.freed
         if context=='empty-scene-profile':

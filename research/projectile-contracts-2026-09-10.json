@@ -1,0 +1,1934 @@
+{
+  "kind": "paired-projectile-and-manager-contracts",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "6745B46D8AD643CDFA4FE32A62EFDB4811091C5048CE55B4C5E581512DDD75A5",
+  "classes": [
+    {
+      "className": "wxFetidBreathProjectile",
+      "classHash": 254291799,
+      "base": "wxProjectile",
+      "pcFactory": 4200768,
+      "ps2Factory": 4157088,
+      "pcRecord": 7662024,
+      "ps2Record": 5003184,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxFetidBreathProjectile-run1.json",
+          "sha256": "2FB27CDA0F7E09D795D95A61BE4A414F097F35597792CC62A8FB3B5E34E4EE03"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 272,
+        "vtable": "006F6B68",
+        "vtableFileOffset": 3103592,
+        "vtableBytes": "20015000007a5b00b0874000f0015000700050005083400070834000c0f24f00c00650004004500030025000",
+        "slots": [
+          "00500120",
+          "005B7A00",
+          "004087B0",
+          "005001F0",
+          "00500070",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "005006C0",
+          "00500440",
+          "00500230"
+        ],
+        "constructedBytes": "686b6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00cccccc0000000000000000000000000000000000000000000000000000000000000000",
+        "cloneBytes": "686b6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00cccccc0000000000000000000000000000000000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 272,
+        "constructor": "002F7930",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B270",
+        "vtableBytes": "0000000000000000c0782f00b0782f00e06d3f00b0722f0010983f00100010005000100080492c0010732f00806e2f00606d2f00",
+        "vtableFileOffset": 3781360,
+        "slots": [
+          "002F78C0",
+          "002F78B0",
+          "003F6DE0",
+          "002F72B0",
+          "003F9810",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002F7310",
+          "002F6E80",
+          "002F6D60"
+        ],
+        "getter": "003F9810",
+        "getterBytes": "4c00023c0800e003b0574224",
+        "getterFileOffset": 3119248,
+        "registration": "004C57B0"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxGolemLitProjectile",
+      "classHash": 1506480271,
+      "base": "wxProjectile",
+      "pcFactory": 4201152,
+      "ps2Factory": 4156064,
+      "pcRecord": 7662408,
+      "ps2Record": 5003568,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxGolemLitProjectile-run1.json",
+          "sha256": "40927D5DFB2F2D15E6207C411AA369CDA7AF2D16F9A1E99A9AE8506AC3741395"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 268,
+        "vtable": "006F6CB8",
+        "vtableFileOffset": 3103928,
+        "vtableBytes": "30245000007a5b00f0884000c0235000b02250005083400070834000c0f24f00702850007026500000245000",
+        "slots": [
+          "00502430",
+          "005B7A00",
+          "004088F0",
+          "005023C0",
+          "005022B0",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00502870",
+          "00502670",
+          "00502400"
+        ],
+        "constructedBytes": "b86c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000000000cccccccccccccccccccccccc0000cccc",
+        "cloneBytes": "b86c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000000000cccccccccccccccccccccccc0000cccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 268,
+        "constructor": "002FBF80",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B170",
+        "vtableBytes": "0000000000000000e0be2f00d0be2f00e0693f00a0b92f00d0973f00100010005000100080492c0040bd2f0000b62f00a0b52f00",
+        "vtableFileOffset": 3781104,
+        "slots": [
+          "002FBEE0",
+          "002FBED0",
+          "003F69E0",
+          "002FB9A0",
+          "003F97D0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002FBD40",
+          "002FB600",
+          "002FB5A0"
+        ],
+        "getter": "003F97D0",
+        "getterBytes": "4c00023c0800e00330594224",
+        "getterFileOffset": 3119184,
+        "registration": "004C5930"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxGolemShockwaveProjectile",
+      "classHash": 859967219,
+      "base": "wxProjectile",
+      "pcFactory": 4201248,
+      "ps2Factory": 4155808,
+      "pcRecord": 7662504,
+      "ps2Record": 5003664,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxGolemShockwaveProjectile-run1.json",
+          "sha256": "88323D53549D1E17B984B4FB3D973E6C9BCA6F7FEA9C388EF128F9E2F59E6E7D"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 328,
+        "vtable": "006F6D0C",
+        "vtableFileOffset": 3104012,
+        "vtableBytes": "d02c5000e02e500040894000602b5000402950005083400070834000c0f24f00202b5000a02b5000602c5000",
+        "slots": [
+          "00502CD0",
+          "00502EE0",
+          "00408940",
+          "00502B60",
+          "00502940",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00502B20",
+          "00502BA0",
+          "00502C60"
+        ],
+        "constructedBytes": "0c6d6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000cccccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000cccc",
+        "cloneBytes": "0c6d6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000cccccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000cccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 328,
+        "constructor": "002FD1C0",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B130",
+        "vtableBytes": "0000000000000000f0d02f0030cf2f00e0683f00f0cc2f00c0973f00100010005000100080492c0050cd2f00e0cb2f0080cb2f00",
+        "vtableFileOffset": 3781040,
+        "slots": [
+          "002FD0F0",
+          "002FCF30",
+          "003F68E0",
+          "002FCCF0",
+          "003F97C0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002FCD50",
+          "002FCBE0",
+          "002FCB80"
+        ],
+        "getter": "003F97C0",
+        "getterBytes": "4c00023c0800e00390594224",
+        "getterFileOffset": 3119168,
+        "registration": "004C5990"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxPiercingWindProjectile",
+      "classHash": 726080665,
+      "base": "wxProjectile",
+      "pcFactory": 4201344,
+      "ps2Factory": 4155552,
+      "pcRecord": 7662600,
+      "ps2Record": 5003760,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxPiercingWindProjectile-run1.json",
+          "sha256": "B387802B803B749A45DE090D253DA619833AC2BFD14AF2968C21BD4B233C44BB"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 476,
+        "vtable": "006F6DB4",
+        "vtableFileOffset": 3104180,
+        "vtableBytes": "903d5000a02f50009089400080305000003650005083400070834000c0f24f00f03a5000c030500080335000",
+        "slots": [
+          "00503D90",
+          "00502FA0",
+          "00408990",
+          "00503080",
+          "00503600",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00503AF0",
+          "005030C0",
+          "00503380"
+        ],
+        "constructedBytes": "b46d6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000000000000000000000000000000000cccccccccccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "cloneBytes": "b46d6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000000000000000000000000000000000cccccccccccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 476,
+        "constructor": "002E1EB0",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B0F0",
+        "vtableBytes": "0000000000000000b01c2e00301c2e00e0673f0050162e00b0973f00100010005000100080492c00b0162e00d0122e00700c2e00",
+        "vtableFileOffset": 3780976,
+        "slots": [
+          "002E1CB0",
+          "002E1C30",
+          "003F67E0",
+          "002E1650",
+          "003F97B0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002E16B0",
+          "002E12D0",
+          "002E0C70"
+        ],
+        "getter": "003F97B0",
+        "getterBytes": "4c00023c0800e003f0594224",
+        "getterFileOffset": 3119152,
+        "registration": "004C59F0"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxProjectile",
+      "classHash": 449789040,
+      "base": "wxEntity",
+      "pcFactory": 4200672,
+      "ps2Factory": 4157344,
+      "pcRecord": 7661928,
+      "ps2Record": 5003088,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 10.0
+        },
+        {
+          "platform": "ps2",
+          "score": 15.0
+        }
+      ],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxProjectile-run2.json",
+          "sha256": "3A746BDADA97A75436B4BD9102E4467C55BED7339876D9F73E8B05F06442EAA4"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 236,
+        "vtable": "006F6B04",
+        "vtableFileOffset": 3103492,
+        "vtableBytes": "80fe4f00a0fe4f006087400010fc4f00a0f04f005083400070834000c0f24f0040ff4f0000f84f0090ee4f00",
+        "slots": [
+          "004FFE80",
+          "004FFEA0",
+          "00408760",
+          "004FFC10",
+          "004FF0A0",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "004FFF40",
+          "004FF800",
+          "004FEE90"
+        ],
+        "constructedBytes": "046b6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc",
+        "cloneBytes": "046b6f00000000000000cccc000000000000000000000000cccccccc000000007002003100000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 236,
+        "constructor": "002C5030",
+        "firstConstructorCall": "00102BF0",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B2B0",
+        "vtableBytes": "0000000000000000604d2c00904b2c00e06e3f0050342c0020983f00100010005000100080492c0010482c00e0372c00e0362c00",
+        "vtableFileOffset": 3781424,
+        "slots": [
+          "002C4D60",
+          "002C4B90",
+          "003F6EE0",
+          "002C3450",
+          "003F9820",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002C4810",
+          "002C37E0",
+          "002C36E0"
+        ],
+        "getter": "003F9820",
+        "getterBytes": "4c00023c0800e00350574224",
+        "getterFileOffset": 3119264,
+        "registration": "004C5750"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxStarsProjectile",
+      "classHash": 143406041,
+      "base": "wxProjectile",
+      "pcFactory": 4201440,
+      "ps2Factory": 4155296,
+      "pcRecord": 7662696,
+      "ps2Record": 5003856,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxStarsProjectile-run1.json",
+          "sha256": "759E7CA65C040AFF65759D1ADC0A6EC86C370C805D54B343E396C235D67E27A3"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 552,
+        "vtable": "006F6E1C",
+        "vtableFileOffset": 3104284,
+        "vtableBytes": "90485000b03d5000e0894000503e5000b04050005083400070834000c0f24f00e04450000046500070485000",
+        "slots": [
+          "00504890",
+          "00503DB0",
+          "004089E0",
+          "00503E50",
+          "005040B0",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "005044E0",
+          "00504600",
+          "00504870"
+        ],
+        "constructedBytes": "1c6e6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000000000000000000000000000000000cccccc0000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc00cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc00000000000000000000000000000000",
+        "cloneBytes": "1c6e6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc03000000000000000000000000000000000000000000000000cccccc0000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc00cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc000000000000000000cccccc00000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 552,
+        "constructor": "002E2DC0",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B0B0",
+        "vtableBytes": "0000000000000000902b2e00302a2e00e0663f00f0242e00a0973f00100010005000100080492c0050252e0040212e00701f2e00",
+        "vtableFileOffset": 3780912,
+        "slots": [
+          "002E2B90",
+          "002E2A30",
+          "003F66E0",
+          "002E24F0",
+          "003F97A0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002E2550",
+          "002E2140",
+          "002E1F70"
+        ],
+        "getter": "003F97A0",
+        "getterBytes": "4c00023c0800e003505a4224",
+        "getterFileOffset": 3119136,
+        "registration": "004C5A50"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxStingerProjectile",
+      "classHash": 543835554,
+      "base": "wxProjectile",
+      "pcFactory": 4201056,
+      "ps2Factory": 4156320,
+      "pcRecord": 7662312,
+      "ps2Record": 5003472,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxStingerProjectile-run1.json",
+          "sha256": "39609C75ED04FF00C36D9829EBABD697878FFAF149A1F15A903D723DE13490D0"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 248,
+        "vtable": "006F6C7C",
+        "vtableFileOffset": 3103868,
+        "vtableBytes": "f0215000007a5b00a0884000301f5000501b50005083400070834000c0f24f0010225000f01f5000d01a5000",
+        "slots": [
+          "005021F0",
+          "005B7A00",
+          "004088A0",
+          "00501F30",
+          "00501B50",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00502210",
+          "00501FF0",
+          "00501AD0"
+        ],
+        "constructedBytes": "7c6c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc000000000000000000000000",
+        "cloneBytes": "7c6c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 248,
+        "constructor": "002F6D10",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B1B0",
+        "vtableBytes": "0000000000000000006c2f00f06b2f00e06a3f00b0642f00e0973f00100010005000100080492c00c0682f0000612f0090602f00",
+        "vtableFileOffset": 3781168,
+        "slots": [
+          "002F6C00",
+          "002F6BF0",
+          "003F6AE0",
+          "002F64B0",
+          "003F97E0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002F68C0",
+          "002F6100",
+          "002F6090"
+        ],
+        "getter": "003F97E0",
+        "getterBytes": "4c00023c0800e003d0584224",
+        "getterFileOffset": 3119200,
+        "registration": "004C58D0"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxStompProjectile",
+      "classHash": 1573470626,
+      "base": "wxProjectile",
+      "pcFactory": 4200864,
+      "ps2Factory": 4156832,
+      "pcRecord": 7662120,
+      "ps2Record": 5003280,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxStompProjectile-run1.json",
+          "sha256": "4BE01A4079AB9BAC3EC6E6ABFEB2B60F19D1EBAE85076160C187AD5469D9E1F4"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 340,
+        "vtable": "006F6BCC",
+        "vtableFileOffset": 3103692,
+        "vtableBytes": "a00a5000c00a500000884000e00a5000300950005083400070834000c0f24f00e00f5000400c5000100f5000",
+        "slots": [
+          "00500AA0",
+          "00500AC0",
+          "00408800",
+          "00500AE0",
+          "00500930",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00500FE0",
+          "00500C40",
+          "00500F10"
+        ],
+        "constructedBytes": "cc6b6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000cccccc000000000000000000000000000000000000000000cccccc",
+        "cloneBytes": "cc6b6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000cccccc000000000000000000000000000000000000000000cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 340,
+        "constructor": "002F83E0",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B230",
+        "vtableBytes": "000000000000000040832f0000832f00e06c3f0000802f0000983f00100010005000100080492c0060802f00007b2f00a0792f00",
+        "vtableFileOffset": 3781296,
+        "slots": [
+          "002F8340",
+          "002F8300",
+          "003F6CE0",
+          "002F8000",
+          "003F9800",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002F8060",
+          "002F7B00",
+          "002F79A0"
+        ],
+        "getter": "003F9800",
+        "getterBytes": "4c00023c0800e00310584224",
+        "getterFileOffset": 3119232,
+        "registration": "004C5810"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxTidalFlame",
+      "classHash": 1590000577,
+      "base": "wxProjectile",
+      "pcFactory": 4201536,
+      "ps2Factory": 4155040,
+      "pcRecord": 7662792,
+      "ps2Record": 5003952,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxTidalFlame-run1.json",
+          "sha256": "C11FDAA405EFA82BF20E8C225E5299D9641639234F69005CACD0262714BDEE4C"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 424,
+        "vtable": "006F6EC0",
+        "vtableFileOffset": 3104448,
+        "vtableBytes": "e0575000b0485000308a4000e04a5000804d50005083400070834000c0f24f0020525000f0545000e0565000",
+        "slots": [
+          "005057E0",
+          "005048B0",
+          "00408A30",
+          "00504AE0",
+          "00504D80",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00505220",
+          "005054F0",
+          "005056E0"
+        ],
+        "constructedBytes": "c06e6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000000000000000",
+        "cloneBytes": "c06e6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc030000000000000000000000000000000000000000cccccc00000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 424,
+        "constructor": "002E43A0",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B070",
+        "vtableBytes": "000000000000000050412e00403e2e00e0653f0050352e0090973f00100010005000100080492c00b0352e0030322e00b02e2e00",
+        "vtableFileOffset": 3780848,
+        "slots": [
+          "002E4150",
+          "002E3E40",
+          "003F65E0",
+          "002E3550",
+          "003F9790",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002E35B0",
+          "002E3230",
+          "002E2EB0"
+        ],
+        "getter": "003F9790",
+        "getterBytes": "4c00023c0800e003b05a4224",
+        "getterFileOffset": 3119120,
+        "registration": "004C5AB0"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxWebSpitProjectile",
+      "classHash": 1558601407,
+      "base": "wxProjectile",
+      "pcFactory": 4200960,
+      "ps2Factory": 4156576,
+      "pcRecord": 7662216,
+      "ps2Record": 5003376,
+      "priorAssessments": [],
+      "family": "projectile",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/pc-wxWebSpitProjectile-run1.json",
+          "sha256": "52FCFAB5554BECCE6FCC7F490CB6BF33D0B684157372A8ABAFC278F3FF2351DC"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 256,
+        "vtable": "006F6C28",
+        "vtableFileOffset": 3103784,
+        "vtableBytes": "10195000007a5b005088400040165000601150005083400070834000c0f24f003019500010175000d0105000",
+        "slots": [
+          "00501910",
+          "005B7A00",
+          "00408850",
+          "00501640",
+          "00501160",
+          "00408350",
+          "00408370",
+          "004FF2C0",
+          "00501930",
+          "00501710",
+          "005010D0"
+        ],
+        "constructedBytes": "286c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00cccccc00000000000000000000000000000000",
+        "cloneBytes": "286c6f00000000000000cccc000000000000000000000000cccccccc000000000000000000000000000000000000000000cccccc000000000000803f00000000cccccccccccccccccccccccc000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccccc00cccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075c4cccccccccccccccccccccccc00cccccc00cccccc00000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "declaredContext": {
+          "kind": "animation-manager",
+          "originalManager": 822083616,
+          "globalAddress": "0075F880",
+          "scope": "Original spAnimationManager factory454640,known controller registration dependency. No borrowed success callback or full engine startup.",
+          "emptyRegistryAndManagerDeletionVerified": true
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 256,
+        "constructor": "002F3B70",
+        "firstConstructorCall": "002C5030",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+          "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+        },
+        "vtable": "0049B1F0",
+        "vtableBytes": "0000000000000000603a2f00503a2f00e06b3f00502f2f00f0973f00100010005000100080492c0090362f00a02b2f00302b2f00",
+        "vtableFileOffset": 3781232,
+        "slots": [
+          "002F3A60",
+          "002F3A50",
+          "003F6BE0",
+          "002F2F50",
+          "003F97F0",
+          "00100010",
+          "00100050",
+          "002C4980",
+          "002F3690",
+          "002F2BA0",
+          "002F2B30"
+        ],
+        "getter": "003F97F0",
+        "getterBytes": "4c00023c0800e00370584224",
+        "getterFileOffset": 3119216,
+        "registration": "004C5870"
+      },
+      "interfaceScope": "First11 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxBacoProjectileManager",
+      "classHash": 1871863223,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202688,
+      "ps2Factory": 4151968,
+      "pcRecord": 7663944,
+      "ps2Record": 5005104,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxBacoProjectileManager-run1.json",
+          "sha256": "CFFB7AE07994E347C9BDFB6D2EF4C77C9003694BCA344F060BFD0B5B921717BE"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 484,
+        "vtable": "006F7D00",
+        "vtableFileOffset": 3108096,
+        "vtableBytes": "60fb500070b15000f08d4000b0f6500030f750005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0000fc500050654d0080fb500080f65000",
+        "slots": [
+          "0050FB60",
+          "0050B170",
+          "00408DF0",
+          "0050F6B0",
+          "0050F730",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050FC00",
+          "004D6550",
+          "0050FB80",
+          "0050F680"
+        ],
+        "constructedBytes": "007d6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000",
+        "cloneBytes": "007d6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc90620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "002FEB50",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049ACA0",
+        "vtableBytes": "000000000000000020ea2f00c0e92f00e0593f0080e32f00d0963f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280020e52f00b03b2300f0e82f0090e82f00",
+        "vtableFileOffset": 3779872,
+        "slots": [
+          "002FEA20",
+          "002FE9C0",
+          "003F59E0",
+          "002FE380",
+          "003F96D0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002FE520",
+          "00233BB0",
+          "002FE8F0",
+          "002FE890"
+        ],
+        "getter": "003F96D0",
+        "getterBytes": "4c00023c0800e003305f4224",
+        "getterFileOffset": 3118928,
+        "registration": "004C5F30"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxBloomProjectileManager",
+      "classHash": 1427117511,
+      "base": "wxProjectileManager",
+      "pcFactory": 4201824,
+      "ps2Factory": 4154272,
+      "pcRecord": 7663080,
+      "ps2Record": 5004240,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxBloomProjectileManager-run1.json",
+          "sha256": "19DBE386DF4BB45DC640DB9AAEC93889A61D5A53DF1D33ECD7D60BE4874E8CD1"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 1036,
+        "vtable": "006F73D8",
+        "vtableFileOffset": 3105752,
+        "vtableBytes": "80a55000c0935000208b4000c06c5000c09250005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0010a2500050654d00e096500030a15000",
+        "slots": [
+          "0050A580",
+          "005093C0",
+          "00408B20",
+          "00506CC0",
+          "005092C0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050A210",
+          "004D6550",
+          "005096E0",
+          "0050A130"
+        ],
+        "constructedBytes": "d8736f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc70040031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01000000010000000100000001000000020000000300000002000000050000000a0000000f0000000000000001000000020000000300000004000000050000000600000000000000cccccccc00000000000061449a99993e00cccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccc00000000000000000000000000cccccc00000000000000000000000000cccccc00000000000000000000000000000000000000000100000000cccccc0000000000004843000096430000c8430000000002000000020000000300000005000000070000000800000001cccccc000000000000000000000000000000000000000000000000000000000000000014000000",
+        "cloneBytes": "d8736f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccd0660031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01000000010000000100000001000000020000000300000002000000050000000a0000000f0000000000000001000000020000000300000004000000050000000600000000000000cccccccc00000000000061449a99993e00cccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccc00000000000000000000000000cccccc00000000000000000000000000cccccc00000000000000000000000000000000000000000100000000cccccc0000000000004843000096430000c8430000000002000000020000000300000005000000070000000800000001cccccc000000000000000000000000000000000000000000000000000000000000000014000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 1056,
+        "constructor": "002DB360",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AF80",
+        "vtableBytes": "000000000000000040b22d0070a52d00e0623f0000722d0060973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800e0872d00b03b230070982d0040972d00",
+        "vtableFileOffset": 3780608,
+        "slots": [
+          "002DB240",
+          "002DA570",
+          "003F62E0",
+          "002D7200",
+          "003F9760",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002D87E0",
+          "00233BB0",
+          "002D9870",
+          "002D9740"
+        ],
+        "getter": "003F9760",
+        "getterBytes": "4c00023c0800e003d05b4224",
+        "getterFileOffset": 3119072,
+        "registration": "004C5BD0"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxGenericProjectileManager",
+      "classHash": 875705575,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202208,
+      "ps2Factory": 4153248,
+      "pcRecord": 7663464,
+      "ps2Record": 5004624,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxGenericProjectileManager-run1.json",
+          "sha256": "320D9FB483B71BD2DB4D1488B45437F61B04E00A3475412B00F15FF9641682B9"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 536,
+        "vtable": "006F78B8",
+        "vtableFileOffset": 3107000,
+        "vtableBytes": "b0c4500070b15000608c400090c3500000bf50005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d00b0c6500050654d00d0c45000d0f25000",
+        "slots": [
+          "0050C4B0",
+          "0050B170",
+          "00408C60",
+          "0050C390",
+          "0050BF00",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050C6B0",
+          "004D6550",
+          "0050C4D0",
+          "0050F2D0"
+        ],
+        "constructedBytes": "b8786f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc000000000000000000000000000000000000000000cccccc0000000002000000c0600031e060003100610031000096440000803f0100000000cccccc00000000cccccccc00cccccc",
+        "cloneBytes": "b8786f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc40630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc000000000000000000000000000000000000000000cccccc0000000002000000b0630031d0630031f0630031000096440000803f0100000000cccccc00000000cccccccc00cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 560,
+        "constructor": "002BA080",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AE40",
+        "vtableBytes": "0000000000000000209f2b00c09e2b00e05e3f00908b2b0020973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800d08c2b00b03b2300309e2b00b0922b00",
+        "vtableFileOffset": 3780288,
+        "slots": [
+          "002B9F20",
+          "002B9EC0",
+          "003F5EE0",
+          "002B8B90",
+          "003F9720",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002B8CD0",
+          "00233BB0",
+          "002B9E30",
+          "002B92B0"
+        ],
+        "getter": "003F9720",
+        "getterBytes": "4c00023c0800e003505d4224",
+        "getterFileOffset": 3119008,
+        "registration": "004C5D50"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxGolemProjectileManager",
+      "classHash": 401156981,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202400,
+      "ps2Factory": 4152736,
+      "pcRecord": 7663656,
+      "ps2Record": 5004816,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxGolemProjectileManager-run1.json",
+          "sha256": "92E925EA17FA1321C600869EC03115710F84E8AFB89001ABBD271BF4A4B34FD0"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 540,
+        "vtable": "006F7B20",
+        "vtableFileOffset": 3107616,
+        "vtableBytes": "f0e2500070b15000008d400050dc500090dd50005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0050e4500050654d0010e3500090de5000",
+        "slots": [
+          "0050E2F0",
+          "0050B170",
+          "00408D00",
+          "0050DC50",
+          "0050DD90",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050E450",
+          "004D6550",
+          "0050E310",
+          "0050DE90"
+        ],
+        "constructedBytes": "207b6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccc00cccccc00000000",
+        "cloneBytes": "207b6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccf0620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000cccccccc00cccccc00000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 560,
+        "constructor": "002FC9C0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AD90",
+        "vtableBytes": "000000000000000040c82f00e0c72f00e05c3f0030c02f0000973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800f0c02f00b03b230080c62f00e0c52f00",
+        "vtableFileOffset": 3780112,
+        "slots": [
+          "002FC840",
+          "002FC7E0",
+          "003F5CE0",
+          "002FC030",
+          "003F9700",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002FC0F0",
+          "00233BB0",
+          "002FC680",
+          "002FC5E0"
+        ],
+        "getter": "003F9700",
+        "getterBytes": "4c00023c0800e003105e4224",
+        "getterFileOffset": 3118976,
+        "registration": "004C5E10"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxGoopMonsterProjectileManager",
+      "classHash": 1920353698,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202496,
+      "ps2Factory": 4152480,
+      "pcRecord": 7663752,
+      "ps2Record": 5004912,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxGoopMonsterProjectileManager-run1.json",
+          "sha256": "7DE00FFC47851B1649DD24F9DFEDD1A7E5D20A72B67391F3EBB623C5D5E991C9"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 648,
+        "vtable": "006F7BD0",
+        "vtableFileOffset": 3107792,
+        "vtableBytes": "c0ef5000f0e95000508d4000e0e4500000e850005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0090f1500050654d00e0ef500060ea5000",
+        "slots": [
+          "0050EFC0",
+          "0050E9F0",
+          "00408D50",
+          "0050E4E0",
+          "0050E800",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050F190",
+          "004D6550",
+          "0050EFE0",
+          "0050EA60"
+        ],
+        "constructedBytes": "d07b6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccf0020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccc0000000000000000",
+        "cloneBytes": "d07b6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccd0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccc0000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 672,
+        "constructor": "00303D20",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AD40",
+        "vtableBytes": "0000000000000000203b3000603a3000e05b3f00a02f3000f0963f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280050323000b03b230070383000a0373000",
+        "vtableFileOffset": 3780032,
+        "slots": [
+          "00303B20",
+          "00303A60",
+          "003F5BE0",
+          "00302FA0",
+          "003F96F0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "00303250",
+          "00233BB0",
+          "00303870",
+          "003037A0"
+        ],
+        "getter": "003F96F0",
+        "getterBytes": "4c00023c0800e003705e4224",
+        "getterFileOffset": 3118960,
+        "registration": "004C5E70"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxIceGargoyleProjectileManager",
+      "classHash": 769616387,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202016,
+      "ps2Factory": 4153760,
+      "pcRecord": 7663272,
+      "ps2Record": 5004432,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxIceGargoyleProjectileManager-run1.json",
+          "sha256": "4BF8429B76FD00FF4DCDF24FD126CC85F3372ACCFDAACB52DB0ED38C2F04F57F"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 500,
+        "vtable": "006F77A8",
+        "vtableFileOffset": 3106728,
+        "vtableBytes": "50b1500070b15000c08b400090b15000b0b050005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0070b4500050654d0010b4500020fd5000",
+        "slots": [
+          "0050B150",
+          "0050B170",
+          "00408BC0",
+          "0050B190",
+          "0050B0B0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050B470",
+          "004D6550",
+          "0050B410",
+          "0050FD20"
+        ],
+        "constructedBytes": "a8776f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc60020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc00000000000000000000000000007a4400008040000000000000000000cccccc00000000",
+        "cloneBytes": "a8776f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccb0620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc00000000000000000000000000007a4400008040000000000000000000cccccc00000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 528,
+        "constructor": "002EF5F0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AEE0",
+        "vtableBytes": "000000000000000030f52e00d0f42e00e0603f0010f02e0040973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800a0f02e00b03b230000f32e0080f22e00",
+        "vtableFileOffset": 3780448,
+        "slots": [
+          "002EF530",
+          "002EF4D0",
+          "003F60E0",
+          "002EF010",
+          "003F9740",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002EF0A0",
+          "00233BB0",
+          "002EF300",
+          "002EF280"
+        ],
+        "getter": "003F9740",
+        "getterBytes": "4c00023c0800e003905c4224",
+        "getterFileOffset": 3119040,
+        "registration": "004C5C90"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxKnutProjectileManager",
+      "classHash": 1868902635,
+      "base": "wxProjectileManager",
+      "pcFactory": 4201920,
+      "ps2Factory": 4154016,
+      "pcRecord": 7663176,
+      "ps2Record": 5004336,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxKnutProjectileManager-run1.json",
+          "sha256": "1ED552A41A6BCA746BBCAE3044FDF874683FA4209282A0B9BCF59878983CED4B"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 516,
+        "vtable": "006F7720",
+        "vtableFileOffset": 3106592,
+        "vtableBytes": "d0aa500060c75000708b400020aa500020a750005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0050ac500000af5000f0aa5000f0a75000",
+        "slots": [
+          "0050AAD0",
+          "0050C760",
+          "00408B70",
+          "0050AA20",
+          "0050A720",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050AC50",
+          "0050AF00",
+          "0050AAF0",
+          "0050A7F0"
+        ],
+        "constructedBytes": "20776f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc70020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000fa440000803f000000000000000000cccccc000000000000000000000000",
+        "cloneBytes": "20776f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccd0620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000fa440000803f000000000000000000cccccc000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 544,
+        "constructor": "002E99C0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AF30",
+        "vtableBytes": "0000000000000000a0982e0030982e00e0613f00a08b2e0050973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800e08e2e00908c2e00b0962e0010962e00",
+        "vtableFileOffset": 3780528,
+        "slots": [
+          "002E98A0",
+          "002E9830",
+          "003F61E0",
+          "002E8BA0",
+          "003F9750",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002E8EE0",
+          "002E8C90",
+          "002E96B0",
+          "002E9610"
+        ],
+        "getter": "003F9750",
+        "getterBytes": "4c00023c0800e003305c4224",
+        "getterFileOffset": 3119056,
+        "registration": "004C5C30"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxMosquitoProjectileManager",
+      "classHash": 2081314650,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202784,
+      "ps2Factory": 4151712,
+      "pcRecord": 7664040,
+      "ps2Record": 5005200,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxMosquitoProjectileManager-run1.json",
+          "sha256": "269BF5BC78B9167B7BBE970EE02E466BB2F0DAC51F38B5BA8D4E36F8340B3F73"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 496,
+        "vtable": "006F7D70",
+        "vtableFileOffset": 3108208,
+        "vtableBytes": "00fd500070b15000408e400020ff500060fc50005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d000000510050654d00a0ff500020fd5000",
+        "slots": [
+          "0050FD00",
+          "0050B170",
+          "00408E40",
+          "0050FF20",
+          "0050FC60",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "00510000",
+          "004D6550",
+          "0050FFA0",
+          "0050FD20"
+        ],
+        "constructedBytes": "707d6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000030000000080bb440000803f",
+        "cloneBytes": "707d6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc90620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000000000030000000080bb440000803f",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "002F5BE0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AC50",
+        "vtableBytes": "0000000000000000205b2f00c05a2f00e0583f00a0562f00c0963f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280040572f00b03b230060592f00e0582f00",
+        "vtableFileOffset": 3779792,
+        "slots": [
+          "002F5B20",
+          "002F5AC0",
+          "003F58E0",
+          "002F56A0",
+          "003F96C0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002F5740",
+          "00233BB0",
+          "002F5960",
+          "002F58E0"
+        ],
+        "getter": "003F96C0",
+        "getterBytes": "4c00023c0800e003905f4224",
+        "getterFileOffset": 3118912,
+        "registration": "004C5F90"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxProjectileManager",
+      "classHash": 2109094658,
+      "base": "wxEntity",
+      "pcFactory": 4201728,
+      "ps2Factory": 4154528,
+      "pcRecord": 7662984,
+      "ps2Record": 5004144,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 20.0
+        },
+        {
+          "platform": "ps2",
+          "score": 15.0
+        }
+      ],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/entity-direct/pc-wxProjectileManager-run2.json",
+          "sha256": "E9853FC0C97AF74CC188B1240858049ACB0EDBAC45CDA3E4F4438D73DB907B38"
+        },
+        "reused": true,
+        "status": "passed",
+        "allocationBytes": 464,
+        "vtable": "006F7008",
+        "vtableFileOffset": 3104776,
+        "vtableBytes": "00605000e0615000d08a4000105f5000e05d50005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d00007a5b0050654d00a05e5000a0685000",
+        "slots": [
+          "00506000",
+          "005061E0",
+          "00408AD0",
+          "00505F10",
+          "00505DE0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "005B7A00",
+          "004D6550",
+          "00505EA0",
+          "005068A0"
+        ],
+        "constructedBytes": "08706f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc",
+        "cloneBytes": "08706f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "002C6720",
+        "firstConstructorCall": "00286CA0",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AFD0",
+        "vtableBytes": "000000000000000010662c0090652c00e0633f0090622c0070973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280090762c00b03b2300f0642c0070632c00",
+        "vtableFileOffset": 3780688,
+        "slots": [
+          "002C6610",
+          "002C6590",
+          "003F63E0",
+          "002C6290",
+          "003F9770",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002C7690",
+          "00233BB0",
+          "002C64F0",
+          "002C6370"
+        ],
+        "getter": "003F9770",
+        "getterBytes": "4c00023c0800e003705b4224",
+        "getterFileOffset": 3119088,
+        "registration": "004C5B70"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxSpiderProjectileManager",
+      "classHash": 753411617,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202592,
+      "ps2Factory": 4152224,
+      "pcRecord": 7663848,
+      "ps2Record": 5005008,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxSpiderProjectileManager-run1.json",
+          "sha256": "ADAABA0B064E9A8FABEFD2AD4A0840FDAAE75989100AD18443EC31A6AF8049AC"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 500,
+        "vtable": "006F7C90",
+        "vtableFileOffset": 3107984,
+        "vtableBytes": "b0f2500070b15000a08d4000c0f4500010f250005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d00a0f5500050654d0040f55000d0f25000",
+        "slots": [
+          "0050F2B0",
+          "0050B170",
+          "00408DA0",
+          "0050F4C0",
+          "0050F210",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050F5A0",
+          "004D6550",
+          "0050F540",
+          "0050F2D0"
+        ],
+        "constructedBytes": "907c6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc60020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000030000000080bb440000803f",
+        "cloneBytes": "907c6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccb0620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccc00cccccc0000000000000000000000000000000000cccccc00000000030000000080bb440000803f",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 528,
+        "constructor": "002F2AC0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049ACF0",
+        "vtableBytes": "0000000000000000002a2f00a0292f00e05a3f0080252f00e0963f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280020262f00b03b230050282f00c0272f00",
+        "vtableFileOffset": 3779952,
+        "slots": [
+          "002F2A00",
+          "002F29A0",
+          "003F5AE0",
+          "002F2580",
+          "003F96E0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002F2620",
+          "00233BB0",
+          "002F2850",
+          "002F27C0"
+        ],
+        "getter": "003F96E0",
+        "getterBytes": "4c00023c0800e003d05e4224",
+        "getterFileOffset": 3118944,
+        "registration": "004C5ED0"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxTrollProjectileManager",
+      "classHash": 1136525379,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202304,
+      "ps2Factory": 4152992,
+      "pcRecord": 7663560,
+      "ps2Record": 5004720,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxTrollProjectileManager-run1.json",
+          "sha256": "EBAE912F6DA98D7958D3283CC0208B476DBD670432DA70DD9ACD275E00A47F99"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 636,
+        "vtable": "006F7A38",
+        "vtableFileOffset": 3107384,
+        "vtableBytes": "e0d9500060c75000b08c400090c75000b0c950005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d0070db500050654d0000da500060db5000",
+        "slots": [
+          "0050D9E0",
+          "0050C760",
+          "00408CB0",
+          "0050C790",
+          "0050C9B0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050DB70",
+          "004D6550",
+          "0050DA00",
+          "0050DB60"
+        ],
+        "constructedBytes": "387a6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccce0020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc000000000000000000000000000000000000000000cccccc000000000200000000000000",
+        "cloneBytes": "387a6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccb0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc000000000000000000000000000000000000000000cccccc000000000200000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 656,
+        "constructor": "002FAA90",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049ADF0",
+        "vtableBytes": "0000000000000000b0a82f0040a82f00e05d3f0060932f0010973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c280060982f00b03b230090a62f0060a62f00",
+        "vtableFileOffset": 3780208,
+        "slots": [
+          "002FA8B0",
+          "002FA840",
+          "003F5DE0",
+          "002F9360",
+          "003F9710",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002F9860",
+          "00233BB0",
+          "002FA690",
+          "002FA660"
+        ],
+        "getter": "003F9710",
+        "getterBytes": "4c00023c0800e003b05d4224",
+        "getterFileOffset": 3118992,
+        "registration": "004C5DB0"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    },
+    {
+      "className": "wxYetiProjectileManager",
+      "classHash": 382210695,
+      "base": "wxProjectileManager",
+      "pcFactory": 4202112,
+      "ps2Factory": 4153504,
+      "pcRecord": 7663368,
+      "ps2Record": 5004528,
+      "priorAssessments": [],
+      "family": "projectile-manager",
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/pc-wxYetiProjectileManager-run1.json",
+          "sha256": "326C3021C628604D8AA88EFFC78882E132E88D00E31ECA2A01906DFB7D846248"
+        },
+        "reused": false,
+        "status": "passed",
+        "allocationBytes": 492,
+        "vtable": "006F7828",
+        "vtableFileOffset": 3106856,
+        "vtableBytes": "c0b6500060c75000108c400070b6500070b550005083400070834000a0ea4800a0ea4800009d410030a94d00b07d5a0000914b0050a44d00b0ba500050654d0020ba5000e0b65000",
+        "slots": [
+          "0050B6C0",
+          "0050C760",
+          "00408C10",
+          "0050B670",
+          "0050B570",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "00419D00",
+          "004DA930",
+          "005A7DB0",
+          "004B9100",
+          "004DA450",
+          "0050BAB0",
+          "004D6550",
+          "0050BA20",
+          "0050B6E0"
+        ],
+        "constructedBytes": "28786f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc000000000000000000000000000000000000803f0100000000000000",
+        "cloneBytes": "28786f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc90620031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f00000000000000000000000000000000000000000000003fb80b0000190000000f00000005000000e7ffffffcdcc4c3e9a99993e0000003f9a99593f00004040000000400000803f0000803f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccccccccccccccccccc00cccccc000000000000000000000000000000000000803f0100000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 7,
+        "declaredContext": {
+          "kind": "none"
+        }
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "002F0DF0",
+        "firstConstructorCall": "002C6720",
+        "constructorWindowSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+          "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+        },
+        "vtable": "0049AE90",
+        "vtableBytes": "0000000000000000200d2f00b00c2f00e05f3f0040022f0030973f001000100050001000f0e11400e0e1140050e114006064280050642800608c2800005c2800c0022f0030082f00f00b2f00500b2f00",
+        "vtableFileOffset": 3780368,
+        "slots": [
+          "002F0D20",
+          "002F0CB0",
+          "003F5FE0",
+          "002F0240",
+          "003F9730",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "0014E150",
+          "00286460",
+          "00286450",
+          "00288C60",
+          "00285C00",
+          "002F02C0",
+          "002F0830",
+          "002F0BF0",
+          "002F0B50"
+        ],
+        "getter": "003F9730",
+        "getterBytes": "4c00023c0800e003f05c4224",
+        "getterFileOffset": 3119024,
+        "registration": "004C5CF0"
+      },
+      "interfaceScope": "First18 common family slots;derived additions not enumerated"
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/catalog-family.json",
+      "sha256": "1BD5E64FA78E545346EAB6E613CCDA888AF9A172BDA7450A3046182848C8C84E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-factories/capture.json",
+      "sha256": "0FFD035651625146CFF9C040B12904A26084895671FA56670ECBC004DD481DA0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructors/capture.json",
+      "sha256": "105284E05B943B5E92F492F3720039C552539F2A301C4273EA08E7879D336E5C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-constructor-map.json",
+      "sha256": "A76BF21CBC71EC5632D56538AE72E06063BA588C7FEA7DF854F9514D6AA2995F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/ps2-vtable-candidates.json",
+      "sha256": "9DB67405C19659DC0014174666EA27E89C42E0607737EED97996EB9704634277"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/catalog-family.json",
+      "sha256": "E29E2FA67CB9CA4AEF0DC0616A3B3B5F74EB6236B3029F1AD909714FC37BE6C0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-factories/capture.json",
+      "sha256": "B95FDB8129C566CF9B04ED15950E6101E16372C16A92081688AD5CA1EFDC12D6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructors/capture.json",
+      "sha256": "127D2325EADF1F159FAFA976B49AF334C25399FD8171A4A2640F405DCF273485"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-constructor-map.json",
+      "sha256": "FD2F2FFCC4B47F2C7E12F4222A59AE1BA96FB89BA6E19B57B23EB193AF348D09"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/ps2-vtable-candidates.json",
+      "sha256": "1FE4A2FE600F6932B6C6E2355B302C767633375D9A5F4A0DC88E463E0766EC31"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile-manager/common-run1.json",
+      "sha256": "F425FB737422BE6EF05280BFD768C0AA1A45A6762F94EB7E0F10F754ECC21BEB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projectile/copy-run2.json",
+      "sha256": "6D8D67A987CEC662C5942D7EC031D5BCE07CFBDFEAEA07288C1D714697C97423"
+    }
+  ],
+  "boundaries": "22 paired identities;21 new PC full class lifetimes,one manager base reused. PC original AnimationManager resolves Projectile Actor dependency. PS2 separate own-constructor identities and bounded active prefixes;no full PS2 lifecycle or trajectory/damage closure.",
+  "counts": {
+    "registeredRows": 22,
+    "pairedFactories": 22,
+    "pcFullLifetimes": 22,
+    "newPcFullLifetimes": 21,
+    "reusedPcFullLifetimes": 1,
+    "newPcReturnedClassOperations": 105,
+    "reusedPcReturnedClassOperations": 5,
+    "pairedManagerCases": 35,
+    "pairedProjectileCopyCases": 6,
+    "pcPopulatedActorCopyCases": 2
+  },
+  "limitations": [
+    "Projectile registered parent wxEntity but actual construction spBaseObject on both platforms was proved earlier;not a new discrepancy.",
+    "space-dependency-windows scout labels said Collision before RTTI review;the member is spActor and5A1600 configures its playback capacity,not a collision-space binding. Raw windows remain preserved;identities verified via vtables/getters.",
+    "New manager-base micro run repeated an already known protected cap;previous passed entity-direct run2 reused,without rerunning base.",
+    "Projectile copy-run1 range omitted final allocator JAL/delay words;run2 explicitly includes original2C367C/2C3680. No instructions or game results patched."
+  ]
+}
