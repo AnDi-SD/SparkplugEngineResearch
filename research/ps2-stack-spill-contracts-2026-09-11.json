@@ -1,0 +1,216 @@
+{
+  "kind": "original-ps2-stack-frames-and-trigger-hud",
+  "schemaVersion": 1,
+  "counts": {
+    "originalExecutions": 45,
+    "wholeReturns": 33,
+    "boundaries": 12,
+    "mainPcComparisons": 42,
+    "interpretedSq": 117,
+    "interpretedLq": 91,
+    "guardTestMethods": 31
+  },
+  "cpuDomain": "Opt-in explicit stack window and all32 upper64 GPR values;aligned SP-based SQ/LQ outside delay slots;full128bit transfers with hardwired zero;scalar upper-half-preserving allowlist;original bytes unchanged. Existing CPU limits remain. Not general EE/unaligned/MMI/SQRT emulation.",
+  "results": "42 original PS2 full-entry executions match archived PC byte effects via explicit ABI field map;30 returns and12 unknown virtual/message boundaries. Three additional initial nested leave probes return. No substitute game callback/return.",
+  "comparisons": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+      "sha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+      "caseIndex": 12
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+      "sha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+      "caseIndex": 57
+    }
+  ],
+  "limitations": [
+    "Borrowed HUD/profile/window/node records with empty widget list,not application startup.",
+    "Unknown cached-widget body,lookup and message receiver remain pre-instruction boundaries.",
+    "No new game/engine C++ or fully closed class;PC scores unchanged."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/probe_ps2_trigger_frames.py",
+      "sha256": "06ED330F824FA02655C7174ECB19A103935A7957E420502D2D52F42235C55695"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/test_ps2_integer_square_accumulator.py",
+      "sha256": "7A99967355E668A17A5BA5682205EA75D3D5309D95016CE26F9766EB18F4E9A0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/test_ps2_scalar_prefix.py",
+      "sha256": "EF4A7235C1A88FCB1CD0B691F928C8639D1B015910BF73D5614DFF3D1C3EDCF8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/test_ps2_sqrt_guard.py",
+      "sha256": "708C3DAC9EA44D06CFA5483D6E5CAA917D6D5BED41961AF901DB741D3E8C62B2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/test_ps2_stack_spills.py",
+      "sha256": "E647942B4A507CAA18280595E26FDAC46982CE43BE3F153697EB7ABF0686FAC9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/before-ps2_scalar_prefix.py",
+      "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/before-ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/guard-tests-run1.json",
+      "sha256": "2A351C1C9E086FC159F68456B9D6750C228BFF2F36099BA0609E6F91557DC1AA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/whole-trigger-cases.json",
+      "sha256": "E2470D2A5EC1F5B3C3F293FF8BB0BEDF4D089DF2BD1AA9A794ED3FDB53A5CFDC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/seal-ps2-stack-spills.py",
+      "sha256": "3FB243B9652D52AD72052EE2C8BC5C7EBC130F793283F6B107454B94A7579111"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/feasibility-run1.json",
+      "sha256": "188586CB66F2B481FAAD3656EC5D21DFB385F2A2B25E7C6A3D04392AB6E9467D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/whole-trigger-pilot-run1.json",
+      "sha256": "F64C9D0C864A608E1A240972F5C5324F83285E41FF653FD7C7999B6D9D2999E4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/whole-trigger-batch-run1.json",
+      "sha256": "E94BB0CFB2D7E7A451E9E60D39485862DB91575435C5190B463EB26B71D198B2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/methods/capture.json",
+      "sha256": "A4DA02DD8EB8410A2051BA03DAF91FC5EB747674973B038C87F840C29B540CD8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/window-state/capture.json",
+      "sha256": "FF54E4A8E9C9868BA203035DC68B39235159D200E1A8A35E43361859BA9E2620"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/hud-helpers/capture.json",
+      "sha256": "8D296E2C3649AAE9FE6593904E799F0E5553023A973FB2F8571F54168A61B66A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/identities/capture.json",
+      "sha256": "DB4BAA5E0C2AC703C2248FC2AE37B67845805ED00AD7509EC8B6B01B79BA5F6D"
+    },
+    {
+      "path": "research/trigger-entry-exit-contracts-2026-09-11.json",
+      "sha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+      "sha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+      "sha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/feasibility-run1.json",
+        "sha256": "188586CB66F2B481FAAD3656EC5D21DFB385F2A2B25E7C6A3D04392AB6E9467D"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/probe_ps2_stack_spills.py",
+        "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "stackExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_stack_spills.py",
+        "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/whole-trigger-pilot-run1.json",
+        "sha256": "F64C9D0C864A608E1A240972F5C5324F83285E41FF653FD7C7999B6D9D2999E4"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/probe_ps2_trigger_frames.py",
+        "sha256": "06ED330F824FA02655C7174ECB19A103935A7957E420502D2D52F42235C55695"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "stackExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_stack_spills.py",
+        "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/whole-trigger-batch-run1.json",
+        "sha256": "E94BB0CFB2D7E7A451E9E60D39485862DB91575435C5190B463EB26B71D198B2"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/probe_ps2_trigger_frames.py",
+        "sha256": "06ED330F824FA02655C7174ECB19A103935A7957E420502D2D52F42235C55695"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "stackExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_stack_spills.py",
+        "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/guard-tests-run1.json",
+        "sha256": "2A351C1C9E086FC159F68456B9D6750C228BFF2F36099BA0609E6F91557DC1AA"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "tests": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-stack-spills/source-snapshot/test_ps2_stack_spills.py",
+        "sha256": "E647942B4A507CAA18280595E26FDAC46982CE43BE3F153697EB7ABF0686FAC9"
+      }
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 """Bounded original PS2 scalar prefixes, explicitly excluding R5900 extras.
 
 This is a convenience wrapper around the existing MIPS64/R4000 experiment,
-not a PS2 CPU implementation. SQ/LQ, MMI, COP2 and system interrupts stop it.
+not a PS2 CPU implementation. SQ/LQ, MMI, COP2 and system interrupts stop it
+by default. Explicit stack_window/upper64 enable only aligned SP-based SQ/LQ
+outside delay slots, with recorded 128-bit state and a scalar ISA allowlist.
 SQRT.S is rejected:EE uses FT,while this generic MIPS CPU reads FS.
 The opt-in integer-movz profile uses5KC with an explicit integer allowlist;
 it does not enable generic MIPS64 instructions as an R5900 substitute.
@@ -28,7 +30,7 @@ def pristine():
 class Ps2ScalarPrefix:
     RETURN=0x20000000
 
-    def __init__(self,ranges,*,profile='r4000'):
+    def __init__(self,ranges,*,profile='r4000',stack_window=None,upper64=None):
         ranges=tuple(ranges)
         if not 0<len(ranges)<=64 or sum(n for a,n in ranges)>0x40000:raise ValueError('Explicit bounded code ranges required')
         self.u=unicorn.Uc(unicorn.UC_ARCH_MIPS,unicorn.UC_MODE_MIPS64|unicorn.UC_MODE_LITTLE_ENDIAN)
@@ -40,6 +42,14 @@ class Ps2ScalarPrefix:
             from ps2_integer_square_accumulator import IntegerSquareAccumulator
             self.accumulator_extension=IntegerSquareAccumulator()
         self.ranges=ranges;self.pages=set();self.executed=False;self.trace=[];self.stop=None
+        self.stack_extension=None
+        if stack_window is not None or upper64 is not None:
+            if stack_window is None or upper64 is None:raise ValueError('Stack window and explicit upper64 state must be supplied together')
+            from ps2_stack_spills import StackSpills
+            self.stack_extension=StackSpills(stack_window,upper64)
+            start,length=self.stack_extension.window
+            if any(start<a+n and a<start+length for a,n in ranges+((self.RETURN,4096),)):
+                raise ValueError('Stack window must not overlap original code or RETURN')
         raw,sections=pristine()
         for a,n in ranges:
             self.map(a,n);self.write(a,read_window('ps2',raw,a,n,sections)[0])
@@ -92,6 +102,12 @@ class Ps2ScalarPrefix:
                 self.stop=address;u.emu_stop();return
             if not any(a<=address and address+4<=a+n for a,n in self.ranges):raise RuntimeError(f'Outside declared original prefix {address:08X}')
             word=self.uint(address)
+            if self.stack_extension is not None:
+                plan=self.stack_extension.plan(self,address,word,stops)
+                if plan is not None:
+                    if len(self.trace)+1>count:raise RuntimeError('Logical instruction cap before interpreted stack operation')
+                    self.trace.extend(plan['addresses']);self.stack_extension.commit(self,plan);return
+                if len(self.trace)>=count:raise RuntimeError('Logical instruction cap in stack-spill profile')
             if self.accumulator_extension is not None:
                 plan=self.accumulator_extension.plan(self,address,word,stops)
                 if plan is not None:
@@ -103,6 +119,7 @@ class Ps2ScalarPrefix:
                 raise RuntimeError(f'Unreviewed R5900 SQRT.S operand/rounding semantics {address:08X};generic MIPS uses a different source register')
             if word>>26==0x11 and (word>>21)&31==16 and 0x18<=word&63<=0x1f:
                 raise RuntimeError(f'Unreviewed R5900 COP1 accumulator instruction {address:08X}')
+            if self.stack_extension is not None:self.stack_extension.guard_scalar(word,address)
             if self.profile=='integer-movz':
                 # SLL/NOP, JR/JALR, MOVZ, ADDU/DADDU; BEQ/BNE, ADDIU,
                 # ANDI, LW/LBU, SB/SW, LD/SD. No floating point, HI/LO,
@@ -122,4 +139,11 @@ class Ps2ScalarPrefix:
             result.update(instructionCountScope='Original instruction addresses;includes explicitly host-interpreted accumulator and B/slot pairs',
                 accumulatorInterpretation=self.accumulator_extension.events,
                 accumulatorScope='Only exact small-integer squares/nonnegative24-bit sums;not general EE FPU;FCR status read/write rejected;guest code unchanged')
+        if self.stack_extension is not None:
+            ext=self.stack_extension
+            result.update(stackWindow=[f'{v:08X}' for v in ext.window],
+                initialUpper64=[f'{v:016X}' for v in ext.initial_upper64],finalUpper64=[f'{v:016X}' for v in ext.upper64],
+                stackSpillInterpretation=ext.events,
+                instructionCountScope='Original instruction addresses,including all explicitly interpreted operations',
+                stackSpillScope='Aligned SP-based SQ/LQ within explicit mapped stack window;non-delay only;explicit upper64 GPR shadow;scalar ISA allowlist;not general EE CPU;guest code unchanged')
         return result
