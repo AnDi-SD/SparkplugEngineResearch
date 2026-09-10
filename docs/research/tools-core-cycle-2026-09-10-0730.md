@@ -260,6 +260,13 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     Реальный lightbeam_projectile.smo теперь загружается:11 объектов/6 nodes,
     Material5 действительно связан с controller6; old DLL отказывала.
 
+31. [MaterialColor в живом графе](tool-material-color-live-graph-2026-09-10.md):
+   существующий managed runtime проверен на lightbeam_projectile и Icy,
+   по 23 checks. Подтверждены clock consumption, frame cache, force и disposal
+   через настоящий загруженный controller. У lightbeam все function types 0:
+   изменение цвета или готовый renderer этим acceptance не заявлены.
+   Production код после factory не менялся; расширен прежний regression.
+
 ## Новые границы и исправления
 
 - Прямой повторный Occlusion Init вернулfalse и оставил старые topology entries;

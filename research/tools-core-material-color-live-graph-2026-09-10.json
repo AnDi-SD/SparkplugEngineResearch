@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-10",
+  "status": "passed",
+  "report": "docs/research/tool-material-color-live-graph-2026-09-10.md",
+  "baseline": {
+    "root": "817b353",
+    "viewer": "9da8313"
+  },
+  "productionChanges": false,
+  "validation": {
+    "command": "dotnet tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll --material-runtime <source> <output>",
+    "cases": [
+      {
+        "status": "passed",
+        "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Knut\\lightbeam_projectile.smo",
+        "source_sha256": "7BEA3AF6DC3643BBA1CED3E72B61743EB12F77EE9ACCDCC6C86D092707D53482",
+        "native_dll_sha256": "939B42687CE8806F910334D17B19AB3917769F08A867D040F6041B53A3456D97",
+        "checks": 23,
+        "materials": 1,
+        "controllers": 1,
+        "animated_layers": 0,
+        "uv_layers": 0,
+        "alias_layers": 0,
+        "uv_submissions": 0,
+        "changed_uv_layers": 0,
+        "color_evaluations": 1,
+        "color_events": [
+          {
+            "material": 4,
+            "controller": 6,
+            "frame": 5,
+            "force": false,
+            "evaluated": true,
+            "Accumulated": 0.125,
+            "Applied": 0.125,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                1,
+                0.49803925
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "material": 4,
+            "controller": 6,
+            "frame": 5,
+            "force": true,
+            "evaluated": true,
+            "Accumulated": 0.375,
+            "Applied": 0.375,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                1,
+                0.49803925
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ],
+        "animation_events": []
+      },
+      {
+        "status": "passed",
+        "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+        "source_sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+        "native_dll_sha256": "939B42687CE8806F910334D17B19AB3917769F08A867D040F6041B53A3456D97",
+        "checks": 23,
+        "materials": 3,
+        "controllers": 0,
+        "animated_layers": 0,
+        "uv_layers": 0,
+        "alias_layers": 0,
+        "uv_submissions": 0,
+        "changed_uv_layers": 0,
+        "color_evaluations": 0,
+        "color_events": [],
+        "animation_events": []
+      }
+    ],
+    "childTimeoutSeconds": 30,
+    "newOriginalGameExecution": false,
+    "visualAcceptance": false
+  },
+  "fingerprints": [
+    {
+      "path": "docs/research/tool-material-color-live-graph-2026-09-10.md",
+      "bytes": 4295,
+      "sha256": "ADBDC740DF7959243A067CA927916A951CA61A34142D2E657203C9C89361C5D7"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoMaterialRuntimeRegression.cs",
+      "bytes": 13544,
+      "sha256": "A042AF9286EA42BA09E20F12A9FBB07AABB0E5EB63A937FB9F4CA089150D662D"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.cs",
+      "bytes": 5077,
+      "sha256": "6CFC8FC29FEE704B9D2D04367305EB00B72E3127405850928BE282D70E06F943"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/color-runtime-managed-build.log",
+      "bytes": 196,
+      "sha256": "26117092D753A7321DE2EB51CDF963D4F678DC40B6160CE09030AF367F9C8DBD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/color-runtime-lightbeam/report.json",
+      "bytes": 1654,
+      "sha256": "F671FD3D21759769E49C5638EBC913296193B435D47C3C8DECEE7B1AEA4E5F52"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/color-runtime-icy/report.json",
+      "bytes": 572,
+      "sha256": "F425887CC37A3D246BDF1A330BEC94DBB5DDEAAEA912A198B13DEAECBB4B9498"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/color-runtime-lightbeam.log",
+      "bytes": 75,
+      "sha256": "943E1ECF61D3BC57E62C20983ACD0ADBBEF25EFB607A6638D8B1C2AF76E4CC98"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/color-runtime-icy.log",
+      "bytes": 75,
+      "sha256": "D177DFEB952A4CD90EB5D82965C4EEFC4B5871763AA357641A327B96E16CA976"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Characters/Knut/lightbeam_projectile.smo",
+      "bytes": 5584,
+      "sha256": "7BEA3AF6DC3643BBA1CED3E72B61743EB12F77EE9ACCDCC6C86D092707D53482"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Characters/Icy/Icy.smo",
+      "bytes": 509977,
+      "sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/shared-color-shape-SparkplugViewerNative.dll",
+      "bytes": 1159168,
+      "sha256": "939B42687CE8806F910334D17B19AB3917769F08A867D040F6041B53A3456D97"
+    }
+  ]
+}
