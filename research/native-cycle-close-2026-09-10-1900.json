@@ -53,7 +53,7 @@
     },
     {
       "path": "docs/research/native-cycle-summary-2026-09-10-1900.md",
-      "sha256": "DB18EB575B9BDB48FD3FD18BBB0F82886761BE0DAFD76E948E43400076052FEC"
+      "sha256": "948AADC4A5A5BF1E5063F17A3D189AAD9FE6F2C5CBEB9EA05925545C91751277"
     },
     {
       "path": "research/native-context-index-2026-09-10.json",
@@ -65,5 +65,6 @@
     "R5900 special instructions and exact PC/PS2 FPU behavior",
     "Cold additional EngineCore shutdown after Mirror at004C38E6"
   ],
-  "publication": "Local commits only;prior public Viewer payload rejected by automatic approval review,pending separate consent;not retried"
+  "publication": "Local commits only;prior public Viewer payload rejected by automatic approval review,pending separate consent;not retried",
+  "closureDelaySeconds": 28
 }
