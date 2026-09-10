@@ -1,0 +1,318 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-trigger-entry-exit-2026-09-10T23:11:19Z",
+  "createdUtc": "2026-09-10T23:11:19Z",
+  "notes": "Six +5 updates for entry/exit with real PC empty HUD-window dependency. PS2 independent components. Two pilot contexts requalified after V1 fix;no whole classes or C++.",
+  "assessments": [
+    {
+      "className": "wxGenericTrigger",
+      "platformKey": "pc",
+      "coverageScore": 60,
+      "lowerBound": 50,
+      "upperBound": 75,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "55->60: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class."
+      ]
+    },
+    {
+      "className": "wxGenericTrigger",
+      "platformKey": "ps2",
+      "coverageScore": 55,
+      "lowerBound": 45,
+      "upperBound": 70,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxGenericTrigger v21/v22 and HUD dependencies",
+          "observation": "50->55: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class.",
+        "PS2 SQ/LQ parent/HUD calls remain separate from declared suffixes."
+      ]
+    },
+    {
+      "className": "wxPivotingDoor",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 25,
+      "upperBound": 50,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class."
+      ]
+    },
+    {
+      "className": "wxPivotingDoor",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxPivotingDoor v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class.",
+        "PS2 SQ/LQ parent/HUD calls remain separate from declared suffixes."
+      ]
+    },
+    {
+      "className": "wxPushButton",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 25,
+      "upperBound": 50,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "30->35: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original PC return paths or explicit unknown widget/message boundaries;whole borrowed buffers verified."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class."
+      ]
+    },
+    {
+      "className": "wxPushButton",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-entry-exit-2026-09-11.md",
+          "sourceSha256": "21F8AE4ED4A2DD9DC68B8081AC7E813DA427DEF81B64989C70582922239C0FE8",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-entry-exit-contracts-2026-09-11.json",
+          "sourceSha256": "3137DEF0928E7189701418B000D62B1BE4F14CB097DCBA57FDFF30622F4E87DC",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-pilot-run1.json",
+          "sourceSha256": "E164A1F68D8EBD1E4FD1EC2B0407AE09121A43DB065E57ECD535849D91573699",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-repair-run1.json",
+          "sourceSha256": "223F6B39E362C552D3866358B76FFF701D154741456950D20C115BBD83512A70",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-entry-exit/entry-exit-batch-run1.json",
+          "sourceSha256": "29DA1E9E115E64B7B8AA04E3F0605D0EBAB04F1A08820344E94F77C9310FA9E9",
+          "locator": "wxPushButton v21/v22 and HUD dependencies",
+          "observation": "25->30: own trigger entry/exit,HUD request vs actual window display distinction,real empty-window state dependency and profile504 stores. Original post-SQ heads/tails and window-state components with explicit prologue V1=18;no joined parent/HUD success."
+        }
+      ],
+      "unknowns": [
+        "Real HUD startup/binding,cache-miss widget lookup,widget virtual operation,message receiver and nonempty window list remain open.",
+        "HUD dependent helper does not imply a separately reconstructed class.",
+        "PS2 SQ/LQ parent/HUD calls remain separate from declared suffixes."
+      ]
+    }
+  ]
+}
