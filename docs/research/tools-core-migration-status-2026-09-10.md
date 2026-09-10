@@ -21,7 +21,9 @@ LVLcreator читают позиции общего shader. Viewer сохран�
 output. [PC fallback producer](tool-pc-renderer-default-material-2026-09-10.md)
 теперь выполнен и перенесён в общий spRenderer: один pass, два StdLayers.
 RendererScene 574 и RendererSubmit 201 checks прошли; следующий остаток —
-renderer state inputs и использование в современном multipass backend.
+оставшиеся renderer inputs и использование в современном multipass backend.
+[Известный cache subset](tool-pc-renderer-submission-cache-init-2026-09-10.md)
+тоже перенесён; он намеренно не объявляется готовым контекстом отрисовки.
 [Предпросмотр подгонки Importer](tool-importer-fitting-gpu-2026-09-10.md)
 тоже использует общий GPU shader и native spSkin composition; отдельный CPU
 skin evaluator удалён.24 адресные GPU проверки и Core provider contract прошли.
@@ -86,10 +88,15 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
   Original Occlusion Init/reader одного объекта уже прошли;
   [geometry helper перенесён](tool-occlusion-geometry-helper-2026-09-10.md)
   в position-only UInt16 срезе и требует явный sort callback без default.
-  Остаются порядок равных ключей CRT, подключение полного Init/serializer и
+  Остаются [общая sort policy](tool-shared-sort-dependency-proposal-2026-09-10.md),
+  подключение полного Init/serializer и
   [отдельные lifetime/triangle границы](tool-occlusion-reinit-and-batch-2026-09-10.md).
   MaterialColor constructor больше не является blocker; clone/copy остаются
-  самостоятельными незавершёнными операциями. Исследовать остатки только для нужной операции;
+  самостоятельными незавершёнными операциями.
+  [Дублированный PRNG](tool-shared-function-particle-random-2026-09-10.md)
+  у FunctionEval и Particle теперь один, с общим оригинальным состоянием.
+  Это не заменяет ещё отсутствующий looping producer.
+  Исследовать остатки только для нужной операции;
   работа над material clock сама по себе эти контракты не закрывает.
 - **Отложено пользователем до LVLcreator:** cached 120/physical 84, редкие
   lossless headers и inverse-world при nonuniform parent. Эти решения не

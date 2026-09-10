@@ -1,0 +1,139 @@
+{
+  "kind": "native-pc-particle-loop-init-frontier",
+  "date": "2026-09-10",
+  "status": "stopped-fixture-reader-boundary",
+  "wholeFileAcceptance": false,
+  "producerPorted": false,
+  "actualFixture": {
+    "path": "local-data/pc-pristine/Media/Menus/bg_particles.smo",
+    "sha256": "8AED1BD2A6A308C5C8AE38EF7AEF5CB96190B4B691DAD181703025AB8D2892A4",
+    "bytes": 17048,
+    "objects": 6,
+    "sqliteFileId": 5447,
+    "particleId": 3,
+    "particleIndex": 2,
+    "particleOffset": 262,
+    "particleSize": 16784,
+    "ownSection": [
+      16907,
+      17046
+    ],
+    "platform": 1,
+    "loopFieldAbsent": true
+  },
+  "staticCfg": {
+    "producer": "0048C400",
+    "exclusiveEnd": "0048CD50",
+    "reachableInstructions": 580,
+    "indirectEdges": 0,
+    "directCalls": [
+      "004132B0",
+      "0041D2D0",
+      "00420350",
+      "00461D70",
+      "004620C0",
+      "0048C100",
+      "0048EAA0",
+      "0049E090",
+      "0049E380"
+    ],
+    "runtimeCoverageClaimed": false
+  },
+  "declaredInputs": {
+    "seed": 5489,
+    "textureProfile": "exact bg_particle 64x64 BGRA32",
+    "texturePixelBytes": 16384,
+    "texturePaddingBytes": 256,
+    "textureSurfaceCapacityBytes": 16640,
+    "textureLevels": 7,
+    "existingProfilesModified": false,
+    "texture64UploadProven": false,
+    "profileGuards": {
+      "command": "python research/probe_pc_particle_loop_init.py --profile-guards",
+      "status": "passed",
+      "assertions": 4
+    },
+    "executionProfile": "file",
+    "instructionsPerCall": 1000000,
+    "microsecondsPerCall": 8000000,
+    "childSeconds": 30,
+    "arenaBytes": 131072,
+    "nativeAllocationCapBytes": 32768,
+    "workers": 1
+  },
+  "runs": [
+    {
+      "name": "original-run1",
+      "recordedCommand": "python research/probe_pc_particle_loop_init.py",
+      "status": "stopped-no-producer-acceptance",
+      "report": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run1.json",
+      "exactScriptSnapshot": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run1-probe.py",
+      "seconds": 2.3612985000072513,
+      "lastCallInstructions": 141868,
+      "cursor": 400,
+      "ip": "004677AA",
+      "arenaUsedBytes": 70896,
+      "failureClassification": "Missing common-platform texture serializer registration; original caller dereferenced absent serializer",
+      "producerExecuted": false,
+      "teardownClaimed": false
+    },
+    {
+      "name": "original-run2",
+      "recordedCommand": "python research/probe_pc_particle_loop_init.py original-run2",
+      "status": "stopped-no-producer-acceptance",
+      "report": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run2.json",
+      "exactScriptSnapshot": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run2-probe.py",
+      "seconds": 2.467540600002394,
+      "lastCallInstructions": 171925,
+      "cursor": 16861,
+      "ip": "0048D1C0",
+      "arenaUsedBytes": 75664,
+      "failureClassification": "Read-only observer UcError on allocator-poison RenderNode after capturing early pool; not instruction/time limit",
+      "producerExecuted": false,
+      "teardownClaimed": false
+    }
+  ],
+  "earlyPoolCapture": {
+    "stage": "before-loop-init",
+    "run": "original-run2",
+    "active": 0,
+    "free": 100,
+    "regionTag": 0,
+    "renderNode": "CCCCCCCC",
+    "renderNodeMeaning": "untouched allocator poison, not a native default",
+    "nativeParticleOwnFieldsRead": false,
+    "producerRan": false,
+    "recordsAndLinksSavedBeforeTeardown": true
+  },
+  "sharedGraphBaseline": {
+    "label": "before",
+    "source": "local-data\\pc-pristine\\Media\\Menus\\bg_particles.smo",
+    "bytes": 17048,
+    "source_sha256": "8AED1BD2A6A308C5C8AE38EF7AEF5CB96190B4B691DAD181703025AB8D2892A4",
+    "native_dll": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tools-core-cycle-20260910-0730\\occlusion-optimizer\\shared-geometry-SparkplugViewerNative.dll",
+    "native_dll_sha256": "928F59FBB347075791B3385007897809A0B9FB6A3EF4E917C6E1DC32F22D8B93",
+    "script_sha256": "6648E302F787B89D4B80BC304E60B57E53E84665E8000F345D3271DE26E7D7E0",
+    "seconds": 0.009838600002694875,
+    "status": "refused",
+    "scope": "One whole shared graph; no original game process or renderer",
+    "error": "Invalid bounded derived section [inline ID 5, class 1060524470] [inline ID 4, class 2038118892] [inline ID 3, class 1526340175] [inline ID 2, class 1614161360]"
+  },
+  "boundary": "Original own Particle fields were not reached, and shared graph separately refuses Texture ID5. Their common cause is not proven; no pointer injection or loop-guard removal.",
+  "fingerprints": {
+    "research/probe_pc_particle_loop_init.py": "C3655FBA347E2F24CFC35CEF70CFCD8D9BEA8984A7922C438976383E32D02371",
+    "research/pc_instruction_emulator.py": "CB1EE85B282B284A0351892C643606370DCAC0CC58598213A22925165D8C929F",
+    "research/probe_pc_scene_file_profile.py": "B645F7C619713C7195E582EF2E547322317E45BE6752D762EDC9622A6ACC53CE",
+    "research/pc_particle_fixtures.py": "2EB8CC9C21B70D59747E976B1FCC17588FF35FFA5ECB844BB9EF40FD2B5A2B97",
+    "research/probe_pc_texture_missing_mips.py": "E30EAE8E029897EE438E99FB7C1C3CA89810EB7A6EA96BB65188B010A472C220",
+    "research/pc_compact_texture_device.py": "BC154EDA1BF4E745AC387F126462D6C7278548B157734A6CC62420E92ED47235",
+    "local-data/pc-pristine/WinxClub.exe": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "local-data/pc-pristine/Media/Menus/bg_particles.smo": "8AED1BD2A6A308C5C8AE38EF7AEF5CB96190B4B691DAD181703025AB8D2892A4",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/producer-cfg.txt": "7BC445BEC082B154FBCE6FB17D9BAC1E7FE53F030B942BCFBFE5BFF1B242AADE",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run1.json": "2DC55449E388F1298EADFE43099995BB7178910389F3DC4AB3BB7CAB73AB0FE1",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run1-probe.py": "22D353FF3F7B657989DDB5B6E349A8B6932AA3619587F1BD31BA538245D3F077",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run2.json": "B4061DDB057A11B766143A16C92C570833ECC23AE1625319F5D0E798AA6A9562",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/original-run2-probe.py": "C3655FBA347E2F24CFC35CEF70CFCD8D9BEA8984A7922C438976383E32D02371",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/native-graph-before.json": "31D69D9A046492A6A2179ED141C78C17F50DA0DFE2EB2E5ABB6DC9C3DE1835D3",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/check_native_graph.py": "6648E302F787B89D4B80BC304E60B57E53E84665E8000F345D3271DE26E7D7E0"
+  }
+}

@@ -25,6 +25,34 @@ namespace sparkplug::reconstruction
 
     spDXRenderer::~spDXRenderer() = default;
 
+    bool spDXRenderer::InitializePCSubmissionCachesForAnalysis(SubmissionStateForAnalysis& state,
+        RenderStateSubmitForAnalysis submit,void* context) noexcept
+    {
+        if(!submit)return false; // host guard; original requires a device
+        constexpr auto invalid=std::numeric_limits<std::uint32_t>::max();
+        InvalidateCacheWordsForAnalysis(state.raw.data(),state.raw.size());
+        for(auto& stage:state.textures.cache)
+        {
+            InvalidateCacheWordsForAnalysis(stage.raw.data(),stage.raw.size());
+            stage.coordinateIndex=stage.transformFlags=invalid;
+        }
+        // The first9 shared PC texture defaults equal constructor C29C[8][9].
+        const spMaterialTexture defaults;
+        for(auto& stage:state.textures.desired)
+            std::copy_n(defaults.GetTextureStatesForAnalysis().begin(),stage.size(),stage.begin());
+        state.frame=1;
+        state.textures.dirty.fill(0); // constructor C1B8; identities remain caller input
+        state.textures.palette=invalid;
+        InvalidateCacheWordsForAnalysis(state.deviceStates.data(),state.deviceStates.size());
+        constexpr std::array<std::array<std::uint32_t,2>,5> desired{{{143,1},{27,1},{15,1},{24,192},{25,7}}};
+        for(const auto& entry:desired)
+            (void)ApplyRenderStateCacheEntryForAnalysis(state.deviceStates[entry[0]],entry[0],entry[1],submit,context);
+        state.textures.boundTextures.fill(invalid); // native32-bit invalid identity token
+        state.lighting.diffuseSource=11;
+        state.lighting.ambientSource=10;
+        return true;
+    }
+
     bool spDXRenderer::ApplyFogForAnalysis(FogStateForAnalysis& state,const spFog* input,
         std::array<std::uint32_t,256>& cache,RenderStateSubmitForAnalysis submit,void* context) noexcept
     {

@@ -6,6 +6,7 @@
 #include "Code/SparkplugPC/spPCShaderManager.h"
 #include "Code/Sparkplug/spMaterialPassLayer.h"
 #include "Code/Sparkplug/spStdLayer.h"
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -49,6 +50,78 @@ namespace
         auto material=std::make_unique<spDXMaterial>();material->SetSpecularPowerForAnalysis(0);Check(material->SetRenderStateForAnalysis(8,2),"unlit input");
         for(unsigned i=0;i<count;++i){auto pass=std::make_shared<spMaterialPassLayer>();pass->SetFinalBlendOperationForAnalysis(i*3);for(unsigned j=0;j<layers;++j)Check(pass->SetLayerForAnalysis(j,std::make_unique<spStdLayer>()),"layer");Check(material->SetPassForAnalysis(i,pass),"pass");}
         return material;
+    }
+    void InitializeCaches()
+    {
+        // Captured fresh PC4C5AB0 ->4BCF20, renderer-state-init-fresh-run1.json.
+        // Unwritten game bytes are deliberately distinct host inputs, not zero defaults.
+        constexpr std::uint32_t seed=0xa5a5a5a5,invalid=0xffffffff;
+        Sink owner;auto material=Material(0,0);auto& state=owner.state;
+        state.geometry={&owner.declarations[1],owner.indices[1],owner.vertices[1]};
+        state.installedMaterial=material.get();state.raw.fill(seed);state.frame=91;
+        state.deviceStates.fill(seed);state.textures.palette=seed;
+        for(unsigned stage=0;stage<8;++stage)
+        {
+            state.textures.desired[stage].fill(seed);state.textures.cache[stage].raw.fill(seed);
+            state.textures.cache[stage].coordinateIndex=state.textures.cache[stage].transformFlags=seed;
+            state.textures.desiredTextures[stage]=0x10000+stage;
+            state.textures.boundTextures[stage]=0x20000+stage;state.textures.dirty[stage]=std::uint8_t(0x80+stage);
+            state.uv[stage].fill(float(stage)-42.5F);
+        }
+        state.lighting.diffuse={1.25F,2.25F,3.25F,4.25F};state.lighting.ambient={5.25F,6.25F,7.25F,8.25F};
+        state.lighting.specular={9.25F,10.25F,11.25F,12.25F};state.lighting.emissive={13.25F,14.25F,15.25F,16.25F};
+        state.lighting.specularPower=17.25F;state.lighting.packedColorC194=0x10203040;
+        state.lighting.globalBlackARGB=0x50607080;state.lighting.diffuseSource=seed;state.lighting.ambientSource=seed;
+        state.draw.vertex.top=2;state.draw.pixel.top=3;state.draw.boundVertex=0x30000;state.draw.boundPixel=0x40000;state.draw.pixelEnabled=true;
+        for(unsigned i=0;i<4;++i){state.draw.vertex.entries[i]={0x50000+i,0x60000+i};state.draw.pixel.entries[i]={0x70000+i,0x80000+i};}
+        state.draw.vertexConstants={{{1,2,3,4}},{{5,6,7,8}}};state.draw.pixelConstants={{{9,10,11,12}}};
+        const auto before=state;
+        const auto unknownUnchanged=[&]()
+        {
+            const auto& a=state.lighting;const auto& b=before.lighting;
+            if(state.geometry.declaration!=before.geometry.declaration||state.geometry.indices!=before.geometry.indices||state.geometry.vertices!=before.geometry.vertices
+                ||state.installedMaterial!=before.installedMaterial||state.textures.desiredTextures!=before.textures.desiredTextures||state.uv!=before.uv
+                ||a.diffuse!=b.diffuse||a.ambient!=b.ambient||a.specular!=b.specular||a.emissive!=b.emissive
+                ||Bits(a.specularPower)!=Bits(b.specularPower)||a.packedColorC194!=b.packedColorC194||a.globalBlackARGB!=b.globalBlackARGB)return false;
+            const auto& d=state.draw;const auto& old=before.draw;
+            if(d.vertex.top!=old.vertex.top||d.pixel.top!=old.pixel.top||d.boundVertex!=old.boundVertex||d.boundPixel!=old.boundPixel
+                ||d.pixelEnabled!=old.pixelEnabled||d.vertexConstants!=old.vertexConstants||d.pixelConstants!=old.pixelConstants)return false;
+            for(unsigned i=0;i<4;++i)if(d.vertex.entries[i].identity!=old.vertex.entries[i].identity||d.vertex.entries[i].deviceShader!=old.vertex.entries[i].deviceShader
+                ||d.pixel.entries[i].identity!=old.pixel.entries[i].identity||d.pixel.entries[i].deviceShader!=old.pixel.entries[i].deviceShader)return false;
+            return true;
+        };
+        Check(!R::InitializePCSubmissionCachesForAnalysis(state,nullptr,nullptr),"cache initialization refuses missing backend");
+        Check(unknownUnchanged()&&state.raw==before.raw&&state.deviceStates==before.deviceStates&&state.frame==before.frame
+            &&state.textures.desired==before.textures.desired&&state.textures.boundTextures==before.textures.boundTextures
+            &&state.textures.dirty==before.textures.dirty&&state.textures.palette==before.textures.palette
+            &&state.lighting.diffuseSource==seed&&state.lighting.ambientSource==seed,"missing backend does not mutate inputs");
+        for(unsigned stage=0;stage<8;++stage)Check(state.textures.cache[stage].raw==before.textures.cache[stage].raw
+            &&state.textures.cache[stage].coordinateIndex==seed&&state.textures.cache[stage].transformFlags==seed,"missing backend keeps stage caches");
+        struct Recorder final
+        {
+            R::SubmissionStateForAnalysis* state;std::vector<std::array<std::uint32_t,2>> calls;bool invalidBefore=true;
+            static std::int32_t Render(void* context,std::uint32_t index,std::uint32_t value) noexcept
+            {
+                auto& self=*static_cast<Recorder*>(context);self.invalidBefore&=self.state->deviceStates[index]==0xffffffff;
+                self.calls.push_back({index,value});return static_cast<std::int32_t>(0x80004005u);
+            }
+        } recorder{&state};
+        Check(R::InitializePCSubmissionCachesForAnalysis(state,Recorder::Render,&recorder),"original cache initialization completes despite external E_FAIL");
+        const std::vector<std::array<std::uint32_t,2>> expected{{143,1},{27,1},{15,1},{24,192},{25,7}};
+        Check(recorder.calls==expected&&recorder.invalidBefore,"exact original five ordered setters see invalid previous cache");
+        Check(unknownUnchanged(),"unknown and omitted submission inputs preserved semantically");
+        Check(state.frame==1&&state.lighting.diffuseSource==11&&state.lighting.ambientSource==10,"actual frame and source-cache writes");
+        Check(std::all_of(state.raw.begin(),state.raw.end(),[invalid](auto v){return v==invalid;}),"eleven represented engine cache words invalidated");
+        const std::array<std::uint32_t,9> desired{0,3,1,0,0,0xff000000,2,0,0};
+        for(unsigned stage=0;stage<8;++stage)
+        {
+            const auto& cache=state.textures.cache[stage];
+            Check(std::all_of(cache.raw.begin(),cache.raw.end(),[invalid](auto v){return v==invalid;})&&cache.coordinateIndex==invalid&&cache.transformFlags==invalid
+                &&state.textures.desired[stage]==desired&&state.textures.boundTextures[stage]==invalid&&state.textures.dirty[stage]==0,"actual per-stage constructor and invalidator subset");
+        }
+        Check(state.textures.palette==invalid,"actual invalid palette token");
+        auto expectedDevice=before.deviceStates;expectedDevice.fill(invalid);for(const auto& entry:expected)expectedDevice[entry[0]]=entry[1];
+        Check(state.deviceStates==expectedDevice,"E_FAIL still caches five desired values; all other device cache words remain invalid");
     }
     std::string Run(const std::string& mode)
     {
@@ -111,6 +184,7 @@ namespace
 int main(int argc,char** argv)
 {
     try{if(argc==3&&std::string(argv[1])=="--case"){std::cout<<Run(argv[2])<<'\n';return 0;}
+        InitializeCaches();
         for(const auto* mode:{"empty","one","two","failed","switch","mesh","weighted","weighted-two","weighted-failed","weighted-matrix","weighted-append","weighted-append-matrix","actual-default"})(void)Run(mode);
         std::cout<<"PASS "<<checks<<'/'<<checks<<": renderer full unlit submission\n";return 0;
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

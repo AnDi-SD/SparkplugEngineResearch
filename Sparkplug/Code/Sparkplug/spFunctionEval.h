@@ -2,8 +2,8 @@
 // Original RTTI identity; original header/API names remain unknown. PC scalar
 // semantics reconstructed from478680 and serializer47EE00/47F220, not PS2.
 #include "spEvaluator.h"
+#include "Analysis/PC/spParticleSampling.h"
 #include <cstdint>
-#include <random>
 namespace sparkplug::reconstruction
 {
     class spFunctionEval final : public spEvaluator
@@ -18,13 +18,10 @@ namespace sparkplug::reconstruction
             std::uint32_t functionType=0; // raw native IDs, NOT recovered enum names
         };
         // No native RTTI/class name is claimed for this analytical wrapper.
-        // Original global413270/4132B0 is the624-word MT19937 dependency.
-        struct RandomStateForAnalysis final
-        {
-            std::mt19937 engine{5489U};
-            void Seed(std::uint32_t value){engine.seed(value);}
-            [[nodiscard]] std::uint32_t Next(){return static_cast<std::uint32_t>(engine());}
-        };
+        // FunctionEval and Particle use the SAME original global413270/4132B0,
+        // state755658 and index73FE8C. Keep one algorithm and the existing
+        // SharedRandom singleton; explicit analytical states remain supported.
+        using RandomStateForAnalysis=evidence::pc::ParticleRandomForAnalysis;
         [[nodiscard]] static RandomStateForAnalysis& SharedRandomForAnalysis();
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;

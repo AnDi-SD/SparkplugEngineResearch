@@ -134,6 +134,8 @@ namespace sparkplug::reconstruction
 
     protected:
         explicit spRenderer(std::size_t textureStateCacheCount);
+        // Shared word loop of PC454940; storage belongs to the caller.
+        static void InvalidateCacheWordsForAnalysis(std::uint32_t*,std::size_t) noexcept;
 
     private:
         static spRenderer* instance_;

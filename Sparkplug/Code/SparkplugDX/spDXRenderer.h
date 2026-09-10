@@ -281,6 +281,18 @@ namespace sparkplug::reconstruction
             std::array<TextureMatrix4ForAnalysis,8> uv{};
             std::uint32_t frame=0;
         };
+        // PC-only known subset after fresh4C5AB0 then4BCF20. Cold original
+        // selector431760 rejected all768 IDs: invalid cache words are NOT
+        // device defaults. Five desired writes use the actual cached writer;
+        // HRESULT is ignored. NULL callback is a host refusal before mutation.
+        // This does NOT create a ready-to-draw context. Preserve unknown or
+        // deliberately omitted caller inputs (including native E47C identity):
+        // geometry, installed material, lighting payload/power/packed color/
+        // globalBlackARGB, desired texture identities, draw state
+        // and UV matrices. Their validity is the consumer's responsibility.
+        // Fog/light caches outside this DTO and live-device startup are omitted.
+        [[nodiscard]] static bool InitializePCSubmissionCachesForAnalysis(
+            SubmissionStateForAnalysis&,RenderStateSubmitForAnalysis,void*) noexcept;
         using DeviceGeometryBindForAnalysis=std::int32_t (*)(void*,unsigned kind,
             std::uintptr_t handle,std::uint32_t stride) noexcept; // 0 declaration,1 indices,2 stream0
         using DeviceMaterialForAnalysis=std::int32_t (*)(void*,const LightingStateForAnalysis&) noexcept;

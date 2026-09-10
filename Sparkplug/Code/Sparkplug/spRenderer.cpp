@@ -160,13 +160,14 @@ namespace sparkplug::reconstruction
 
     bool spRenderer::InvalidateStateCachesForAnalysis() noexcept
     {
-        constexpr auto InvalidState =
-            std::numeric_limits<std::uint32_t>::max();
-        std::fill(renderStateCache_.begin(), renderStateCache_.end(),
-            InvalidState);
-        std::fill(textureStateCache_.begin(), textureStateCache_.end(),
-            InvalidState);
+        InvalidateCacheWordsForAnalysis(renderStateCache_.data(),renderStateCache_.size());
+        InvalidateCacheWordsForAnalysis(textureStateCache_.data(),textureStateCache_.size());
         return true;
+    }
+
+    void spRenderer::InvalidateCacheWordsForAnalysis(std::uint32_t* words,const std::size_t count) noexcept
+    {
+        std::fill_n(words,count,std::numeric_limits<std::uint32_t>::max());
     }
 
     std::size_t spRenderer::GetRenderStateCacheCountForAnalysis()

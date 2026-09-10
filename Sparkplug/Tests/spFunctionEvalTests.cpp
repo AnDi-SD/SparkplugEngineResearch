@@ -1,5 +1,6 @@
 #include "Code/Sparkplug/spFunctionEval.h"
 #include "Code/Sparkplug/spFunctionEvalSerializer.h"
+#include "Code/Sparkplug/spParticleSystem.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/SparkBase/spMemoryStream.h"
@@ -69,6 +70,23 @@ namespace
     }
     void Guards()
     {
+        // Original seed5489 words, shared in call order between the two
+        // consumers of4132B0. No per-object reset or second process stream.
+        auto& shared=spFunctionEval::SharedRandomForAnalysis();const auto saved=shared;
+        shared.Seed(5489);
+        spFunctionEval randomEval;auto randomParameters=randomEval.GetStateForAnalysis();
+        randomParameters.functionType=6;randomEval.SetStateForAnalysis(randomParameters);
+        const auto scalar=[](std::uint32_t word){return float(double(word%10001u)*double(0.0002f)-1.0);};
+        float sampled=0;
+        Check(randomEval.EvaluateForAnalysis(0,sampled)&&sampled==scalar(3499211612u),"FunctionEval consumes first shared original MT word");
+        spParticleSystem particle;particle.Parameters().regionType=4;
+        particle.Parameters().region={0,0,0,0,1,0,1,1};
+        std::vector<spParticleSystem::Vector3> positions;
+        Check(particle.SampleEmissionRegionForAnalysis(shared,1,positions),"Particle accepts the same shared original MT state");
+        Check(positions.size()==1&&positions[0]==spParticleSystem::Vector3{float(double(581869302u)*0x1p-32),0,float(double(3890346734u)*0x1p-32)},"Particle consumes original MT words two and three after FunctionEval");
+        Check(randomEval.EvaluateForAnalysis(0,sampled)&&sampled==scalar(3586334585u),"FunctionEval continues after the Particle sampler");
+        Check(shared.index==4&&shared.Next()==545404204u,"One shared MT index advances across both consumers");
+        shared=saved;
         spFunctionEval evaluator;float value=9;
         Check(evaluator.EvaluateForAnalysis(std::numeric_limits<float>::quiet_NaN(),value)&&value==0,"native constant skips delta math");
         auto state=evaluator.GetStateForAnalysis();state.functionType=3;state.frequency=0;state.reciprocal=std::numeric_limits<float>::infinity();evaluator.SetStateForAnalysis(state);

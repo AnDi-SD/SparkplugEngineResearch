@@ -284,8 +284,33 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    одинаковых вершин отличается от stable fixture. Поэтому у общего caller
    обязательный sort callback без default; Init/tools ещё не подключены.
 
+34. [PC submission cache subset](tool-pc-renderer-submission-cache-init-2026-09-10.md)
+   подтверждён полным constructor → state initializer: 768 selector refusals,
+   затем пять ordered setters; E_FAIL не мешает обновлению cache. Общий метод
+   сохраняет неизвестные и намеренно исключённые caller inputs, а не создаёт
+   готовый render context. RendererSubmit теперь 227 checks; общий запуск
+   восьми suites прошёл за 19.29 с. Первые две test lambdas требовали explicit
+   capture для C++17; исправлены. Затем исправлены только labels evidence:
+   E47C — installed material identity, CA0C — palette; алгоритм не менялся.
+35. [Один PRNG для функций и частиц](tool-shared-function-particle-random-2026-09-10.md):
+   std::mt19937 wrapper заменён alias на уже восстановленный 624-word original
+   алгоритм. Сохраняется один SharedRandom singleton, без per-object reseed.
+   FunctionEval 290, ColorFunction 118, MaterialColor 235, UVFunction 386,
+   ParticleSerialization 46 и три связанных suites прошли. Пять новых assertions
+   проверяют перемежение двух потребителей по original words и общему индексу.
+
 ## Новые границы и исправления
 
+- [Общая сортировка](tool-shared-sort-dependency-proposal-2026-09-10.md) для
+  geometry и Alpha queue остаётся предложением. Оба original caller используют
+  один MSVCR71!qsort; найденная версия 7.10.7031.4 не доказывает исторический
+  runtime игры. Portable policy и подключение callbacks не реализованы.
+- [Particle loop frontier](native-pc-particle-loop-init-frontier-2026-09-10.md):
+  первые два original probes bg_particles.smo остановлены на host registration
+  и неопределённом reader/input boundary; producer PASS не заявлен. Независимый
+  native baseline тоже отказал раньше, на TextureData. Из индекса выбран PC2
+  bg.smo: один native run подтвердил first refusal непосредственно на Particle
+  Init. Новый пример не подменяет прежние failed captures.
 - Прямой повторный Occlusion Init вернулfalse и оставил старые topology entries;
   subsequent cleanup поймал повторный free. Отдельные fresh objects проходят.
   Для single-triangle fresh Init игра возвращаетtrue, но после reverse face
