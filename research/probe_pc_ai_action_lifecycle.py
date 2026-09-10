@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded original AIAction/CharacterState lifecycle, retaining each stage.
+"""Bounded original action/state/state-machine lifecycle, retaining each stage.
 
 One shared lifecycle runner; each family has its own cached identity catalog.
 Earlier AIAction captures retain their exact runner copies beside the evidence.
@@ -13,7 +13,7 @@ from probe_pc_task_timer import TimerFixture
 def guest(class_name,output,factory_profile='micro',context='none',family='ai-action'):
     execution_limits(factory_profile)
     if context not in ('none','empty-scene'):raise ValueError('Explicit none or empty-scene context required')
-    if family not in ('ai-action','character-state'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
@@ -27,7 +27,8 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     report['factoryProfile']=dict(name=factory_profile,limits=execution_limits(factory_profile),reason='Explicit fresh-guest escalation after recorded micro cap' if factory_profile!='micro' else 'Default bounded operation')
     def save():
         report.update(seconds=time.perf_counter()-started,arenaBytes=p.allocated,lastIp=f'{p.reg("EIP"):08X}',lastTail=[f'{a:08X}' for a in p.tail],
-            allocations=[dict(address=a,bytes=n,freed=a in f.freed) for a,n in f.allocations.items()],
+            allocations=[dict(address=a,bytes=n,freed=a in f.freed,firstWord=f'{p.uint(a):08X}') for a,n in f.allocations.items()],
+            lastTextAddressesByFirstVisit=[f'{a:08X}' for a in p.visits if 0x408000<=a<0x6d7000][-80:],
             lastInstructionCount=sum(p.visits.values()),lastHotAddresses=[dict(address=f'{a:08X}',visits=n) for a,n in p.visits.most_common(16)])
         output.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     def call(label,address,this=0,args=()):
