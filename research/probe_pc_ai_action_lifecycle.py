@@ -19,11 +19,15 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
     if crt not in ('none','bounded-strings'):raise ValueError('Explicit CRT fixture required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
     record=next(x for x in json.loads(source.read_text()) if x['className']==class_name)
+    # ProjectionFX's two-method primary interface precedes CrossPlatform+4.
+    # Its Clone returns that secondary BaseObject pointer, while factory and
+    # allocator use the complete object. Other reviewed families keep offset0.
+    object_interface_offset=4 if (family,class_name)==('projection-family','spPCProjectionFX') else 0
     output.parent.mkdir(parents=True,exist_ok=True);started=time.perf_counter()
     if tracer=='block':
         from pc_block_emulator import PcBlocks
@@ -43,6 +47,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     report['factoryProfile']=dict(name=factory_profile,limits=execution_limits(factory_profile),reason='Explicit fresh-guest escalation after recorded micro cap' if factory_profile!='micro' else 'Default bounded operation')
     report['lifecycleProfile']=dict(name=lifecycle_profile,limits=execution_limits(lifecycle_profile),reason='Explicit fresh-guest escalation after recorded lifecycle micro cap' if lifecycle_profile!='micro' else 'Default bounded operation')
     report['crtFixture']=crt
+    if object_interface_offset:report['objectInterfaceOffset']=object_interface_offset
     def save():
         report.update(seconds=time.perf_counter()-started,arenaBytes=p.allocated,lastIp=f'{p.reg("EIP"):08X}',lastTail=[f'{a:08X}' for a in p.tail],
             allocations=[dict(address=a,bytes=n,freed=a in f.freed,firstWord=f'{p.uint(a):08X}') for a,n in f.allocations.items()],
@@ -57,7 +62,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
         stage['blocks' if tracer=='block' else 'instructions']=sum(p.visits.values());report['stages'].append(stage)
         report.pop('pending');save();return value
     def snapshot(a):
-        n=f.allocations[a];assert n>=0x10;vt=p.uint(a)
+        n=f.allocations[a];assert n>=0x10;vt=p.uint(a+object_interface_offset)
         slot_count=17 if family=='ai-action' else 7
         return dict(address=a,allocationBytes=n,bytes=bytes(p.mu.mem_read(a,n)).hex(),vtable=f'{vt:08X}',slots=[f'{p.uint(vt+4*i):08X}' for i in range(slot_count)])
     bound_nodes=[]
@@ -101,12 +106,14 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
             save()
         obj=call('factory',record['pcFactory']);report['factoryReached']=True;report['initial']=snapshot(obj)
         report['factoryVisits']={f'{a:08X}':n for a,n in sorted(p.visits.items())};save()
-        assert call('rtti',p.uint(p.uint(obj)+0x10),obj)==record['pcRecord']
+        assert call('rtti',p.uint(p.uint(obj+object_interface_offset)+0x10),obj+object_interface_offset)==record['pcRecord']
         bind_node('original',obj)
-        clone=call('clone',p.uint(p.uint(obj)+8),obj);assert clone and clone!=obj;report['clone']=snapshot(clone);report['clonePairs']=f.clone_pairs;save()
+        clone_interface=call('clone',p.uint(p.uint(obj+object_interface_offset)+8),obj+object_interface_offset)
+        assert clone_interface;clone=clone_interface-object_interface_offset;assert clone!=obj and clone in f.allocations
+        report['clone']=snapshot(clone);report['clonePairs']=f.clone_pairs;save()
         bind_node('clone',clone)
         for label,a in [('delete-clone',clone),('delete-original',obj)]:
-            call(label,p.uint(p.uint(a)),a,(1,));assert a in f.freed
+            call(label,p.uint(p.uint(a+object_interface_offset)),a+object_interface_offset,(1,));assert a in f.freed
         if context=='animation-manager':
             assert p.uint(manager+0x24)==p.uint(manager+0x28)==0,'Projectile-owned Actors must unregister before manager deletion'
             call('delete-animation-manager',p.uint(p.uint(manager)),manager,(1,));assert manager in f.freed and p.uint(0x75f880)==0

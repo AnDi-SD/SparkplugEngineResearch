@@ -1,0 +1,559 @@
+{
+  "kind": "independent-projection-geometry-and-fx",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "F12EF9693EE4063E22A841993E82F51FC5A77A53414159ACC8959FC3D03F261C",
+  "classes": [
+    {
+      "className": "spBoxProjection",
+      "classHash": 851128150,
+      "base": "spProjection",
+      "pcFactory": 4301136,
+      "ps2Factory": 1265840,
+      "pcRecord": 7721736,
+      "ps2Record": 4882560,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "006DE7E8",
+        "objectVtableBytes": "70224300007a5b0010ab4100703c4200f01b43005083400070834000",
+        "objectVtableFileOffset": 3004392,
+        "objectSlots": [
+          "00432270",
+          "005B7A00",
+          "0041AB10",
+          "00423C70",
+          "00431BF0",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projection-family/pc-spBoxProjection-run1.json",
+          "sha256": "0856DA8F4D905350B5F6F870C221BB72B45B3BFFC0CA9C64E38468A3791A7A4E"
+        },
+        "allocationBytes": 184,
+        "constructedBytes": "e8e76d00000000000000cccc00000000000000000000000001cccccc000000000000000000000000000000ff0000000000000000cccccccc000000000000000000000000cccccccc0000000000000000000000000000cccc010000cc0000803f0000803f0000803f0000803f0200000000000000000000000000000000000000cccccccc00000000cccccccc200100310000000000000000010000000000000000000000000000000000803f0000803f0000803fcccccccc",
+        "cloneBytes": "e8e76d00000000000000cccc00000000000000000000000001cccccc000000000000000000000000000000ff0000000000000000cccccccc000000000000000000000000cccccccc0000000000000000000000000000cccc010000cc0000803f0000803f0000803f0000803f0200000000000000000000000000000000000000cccccccc00000000cccccccc700200310000000000000000010000000000000000000000000000000000803f0000803f0000803fcccccccc",
+        "remainingContextAllocations": [
+          {
+            "address": 822083808,
+            "bytes": 56,
+            "freed": false,
+            "firstWord": "006DC3B8"
+          }
+        ]
+      },
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "0048DAE0",
+        "objectVtableBytes": "000000000000000040e11b0010081000f04f130090961a00505b13001000100050001000",
+        "objectVtableFileOffset": 3726176,
+        "objectSlots": [
+          "001BE140",
+          "00100810",
+          "00134FF0",
+          "001A9690",
+          "00135B50",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "allocationBytes": 176
+      }
+    },
+    {
+      "className": "spPCProjectionFX",
+      "classHash": 4085128645,
+      "base": "spProjectionFX",
+      "pcFactory": 5001648,
+      "ps2Factory": null,
+      "pcRecord": 7752112,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 4,
+        "objectVtable": "006F2864",
+        "objectVtableBytes": "e04f4c00007a5b0020524c0020314100d04f4c005083400070834000",
+        "objectVtableFileOffset": 3086436,
+        "objectSlots": [
+          "004C4FE0",
+          "005B7A00",
+          "004C5220",
+          "00413120",
+          "004C4FD0",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "primaryVtable": "006F2880",
+        "primaryBytes": "f04f4c00d0584c00",
+        "primaryFileOffset": 3086464,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projection-family/pc-spPCProjectionFX-run2.json",
+          "sha256": "9320A88AE955CE53430B4D4A3DA0799C6C443DB3470062ADFDAA69242A541343"
+        },
+        "allocationBytes": 168,
+        "constructedBytes": "80286f0064286f00000000000000cccc00000000000000000000000000cccccc00000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "cloneBytes": "80286f0064286f00000000000000cccc00000000000000000000000000cccccc00000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "remainingContextAllocations": []
+      }
+    },
+    {
+      "className": "spPCProjectionManager",
+      "classHash": 3775754178,
+      "base": "spProjectionManager",
+      "pcFactory": 5004512,
+      "ps2Factory": null,
+      "pcRecord": 7752400,
+      "ps2Record": null,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 52.0
+        }
+      ],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "006F2A00",
+        "objectVtableBytes": "a05d4c00007a5b00505d4c0020314100c05c4c00508340007083400090a2450070de4c0060df4c00d0a34500b07d5a00b07d5a00a0de4c00a05c4c00b05c4c00",
+        "objectVtableFileOffset": 3086848,
+        "objectSlots": [
+          "004C5DA0",
+          "005B7A00",
+          "004C5D50",
+          "00413120",
+          "004C5CC0",
+          "00408350",
+          "00408370",
+          "0045A290",
+          "004CDE70",
+          "004CDF60",
+          "0045A3D0",
+          "005A7DB0",
+          "005A7DB0",
+          "004CDEA0",
+          "004C5CA0",
+          "004C5CB0"
+        ],
+        "tableScope": "First16 object-interface slots;FX primary render interface recorded separately",
+        "previousEvidence": "docs/research/native-pc-scene-special-managers.md"
+      }
+    },
+    {
+      "className": "spPS2ProjectionFX",
+      "classHash": 534647932,
+      "base": "spProjectionFX",
+      "pcFactory": null,
+      "ps2Factory": 2142672,
+      "pcRecord": null,
+      "ps2Record": 4949488,
+      "priorAssessments": [],
+      "ps2": {
+        "objectInterfaceOffset": 4,
+        "objectVtable": "00491D80",
+        "objectVtableBytes": "000000000000000040b720001008100050b72000c05d100060b720001000100050001000",
+        "objectVtableFileOffset": 3743232,
+        "objectSlots": [
+          "0020B740",
+          "00100810",
+          "0020B750",
+          "00105DC0",
+          "0020B760",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "primaryVtable": "00491D70",
+        "primaryBytes": "0000000000000000c0ad2000f0ac2000",
+        "primaryFileOffset": 3743216,
+        "allocationBytes": 80
+      }
+    },
+    {
+      "className": "spPS2ProjectionManager",
+      "classHash": 4280808762,
+      "base": "spProjectionManager",
+      "pcFactory": null,
+      "ps2Factory": 2148336,
+      "pcRecord": null,
+      "ps2Record": 4949616,
+      "priorAssessments": [],
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "00491DB0",
+        "objectVtableBytes": "000000000000000010c420001008100050c62000c05d100070b720001000100050001000e0eb1b0010eb1b0000c3200080c2200000c1200020bf200050bf200000d51a00e0e81b00",
+        "objectVtableFileOffset": 3743280,
+        "objectSlots": [
+          "0020C410",
+          "00100810",
+          "0020C650",
+          "00105DC0",
+          "0020B770",
+          "00100010",
+          "00100050",
+          "001BEBE0",
+          "001BEB10",
+          "0020C300",
+          "0020C280",
+          "0020C100",
+          "0020BF20",
+          "0020BF50",
+          "001AD500",
+          "001BE8E0"
+        ],
+        "tableScope": "First16 object-interface slots;FX primary render interface recorded separately",
+        "allocationBytes": 68
+      }
+    },
+    {
+      "className": "spProjection",
+      "classHash": 1555305565,
+      "base": "spRenderable",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7725296,
+      "ps2Record": 4899728,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "006DCA30",
+        "objectVtableBytes": "e0464200007a5b00f01b4a00703c4200204642005083400070834000",
+        "objectVtableFileOffset": 2996784,
+        "objectSlots": [
+          "004246E0",
+          "005B7A00",
+          "004A1BF0",
+          "00423C70",
+          "00424620",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately"
+      },
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "00490730",
+        "objectVtableBytes": "000000000000000050e41b001008100060e61b0090961a0000e21b001000100050001000",
+        "objectVtableFileOffset": 3737520,
+        "objectSlots": [
+          "001BE450",
+          "00100810",
+          "001BE660",
+          "001A9690",
+          "001BE200",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately"
+      }
+    },
+    {
+      "className": "spProjectionFX",
+      "classHash": 4048016110,
+      "base": "spCrossPlatform",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7754128,
+      "ps2Record": 4899824,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 4,
+        "objectVtable": "006F3388",
+        "objectVtableBytes": "f0d84c00007a5b00f01b4a0020314100e0d84c005083400070834000",
+        "objectVtableFileOffset": 3089288,
+        "objectSlots": [
+          "004CD8F0",
+          "005B7A00",
+          "004A1BF0",
+          "00413120",
+          "004CD8E0",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "primaryVtable": "006EFFE4",
+        "primaryBytes": "76db600076db6000",
+        "primaryFileOffset": 3076068
+      },
+      "ps2": {
+        "objectInterfaceOffset": 4,
+        "objectVtable": "004907A0",
+        "objectVtableBytes": "0000000000000000a0e81b0010081000b0e81b00c05d1000c0e81b001000100050001000",
+        "objectVtableFileOffset": 3737632,
+        "objectSlots": [
+          "001BE8A0",
+          "00100810",
+          "001BE8B0",
+          "00105DC0",
+          "001BE8C0",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "primaryVtable": "00490790",
+        "primaryBytes": "00000000000000000000000000000000",
+        "primaryFileOffset": 3737616
+      }
+    },
+    {
+      "className": "spProjectionManager",
+      "classHash": 614469850,
+      "base": "spCrossPlatform",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7754520,
+      "ps2Record": 4899920,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 48.0
+        }
+      ],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "006F34B0",
+        "objectVtableBytes": "10e04c00007a5b00f01b4a002031410050df4c00508340007083400090a2450070de4c0060df4c00d0a34500b07d5a00b07d5a00a0de4c00a05c4c00b05c4c00",
+        "objectVtableFileOffset": 3089584,
+        "objectSlots": [
+          "004CE010",
+          "005B7A00",
+          "004A1BF0",
+          "00413120",
+          "004CDF50",
+          "00408350",
+          "00408370",
+          "0045A290",
+          "004CDE70",
+          "004CDF60",
+          "0045A3D0",
+          "005A7DB0",
+          "005A7DB0",
+          "004CDEA0",
+          "004C5CA0",
+          "004C5CB0"
+        ],
+        "tableScope": "First16 object-interface slots;FX primary render interface recorded separately",
+        "previousEvidence": "docs/research/native-pc-scene-special-managers.md"
+      },
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "004907E0",
+        "objectVtableBytes": "0000000000000000f0eb1b0010081000f0ec1b00c05d1000d0e81b001000100050001000e0eb1b0010eb1b0030ea1b00f0e91b00e0e91b00d0e91b00f0e81b0000d51a00e0e81b00",
+        "objectVtableFileOffset": 3737696,
+        "objectSlots": [
+          "001BEBF0",
+          "00100810",
+          "001BECF0",
+          "00105DC0",
+          "001BE8D0",
+          "00100010",
+          "00100050",
+          "001BEBE0",
+          "001BEB10",
+          "001BEA30",
+          "001BE9F0",
+          "001BE9E0",
+          "001BE9D0",
+          "001BE8F0",
+          "001AD500",
+          "001BE8E0"
+        ],
+        "tableScope": "First16 object-interface slots;FX primary render interface recorded separately"
+      }
+    },
+    {
+      "className": "spPyramidProjection",
+      "classHash": 483030834,
+      "base": "spProjection",
+      "pcFactory": 4301232,
+      "ps2Factory": 1265584,
+      "pcRecord": 7721832,
+      "ps2Record": 4882656,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "006DE868",
+        "objectVtableBytes": "80374300007a5b0060ab4100703c4200e02f43005083400070834000",
+        "objectVtableFileOffset": 3004520,
+        "objectSlots": [
+          "00433780",
+          "005B7A00",
+          "0041AB60",
+          "00423C70",
+          "00432FE0",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/projection-family/pc-spPyramidProjection-run1.json",
+          "sha256": "9BBF901EECDE91BCA72DD2E6219F326D9C06343FB4181259A6FBC0C113554279"
+        },
+        "allocationBytes": 208,
+        "constructedBytes": "68e86d00000000000000cccc00000000000000000000000001cccccc000000000000000000000000000000ff0000000000000000cccccccc000000000000000000000000cccccccc0000000000000000000000000000cccc010000cc0000803f0000803f0000803f0000803f0200000000000000000000000000000000000000cccccccc00000000cccccccc3001003100000000000000000100000000cccccc0000000000000000000000000000803f0000803f0000803f00000000cccccccccccccccccccccccccccccccc01cccccc",
+        "cloneBytes": "68e86d00000000000000cccc00000000000000000000000001cccccc000000000000000000000000000000ff0000000000000000cccccccc000000000000000000000000cccccccc0000000000000000000000000000cccc010000cc0000803f0000803f0000803f0000803f0200000000000000000000000000000000000000cccccccc00000000cccccccc9002003100000000000000000100000000cccccc0000000000000000000000000000803f0000803f0000803f00000000cccccccccccccccccccccccccccccccc01cccccc",
+        "remainingContextAllocations": [
+          {
+            "address": 822083824,
+            "bytes": 56,
+            "freed": false,
+            "firstWord": "006DC3B8"
+          }
+        ]
+      },
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "0048DA70",
+        "objectVtableBytes": "0000000000000000e0041c0010081000f04e130090961a00405b13001000100050001000",
+        "objectVtableFileOffset": 3726064,
+        "objectSlots": [
+          "001C04E0",
+          "00100810",
+          "00134EF0",
+          "001A9690",
+          "00135B40",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately",
+        "allocationBytes": 200
+      }
+    },
+    {
+      "className": "spShadowProjection",
+      "classHash": 1963946969,
+      "base": "spPyramidProjection",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7760200,
+      "ps2Record": 4900144,
+      "priorAssessments": [],
+      "pc": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "007061E0",
+        "objectVtableBytes": "20435a00007a5b00f01b4a00703c4200e03d5a005083400070834000",
+        "objectVtableFileOffset": 3166688,
+        "objectSlots": [
+          "005A4320",
+          "005B7A00",
+          "004A1BF0",
+          "00423C70",
+          "005A3DE0",
+          "00408350",
+          "00408370"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately"
+      },
+      "ps2": {
+        "objectInterfaceOffset": 0,
+        "objectVtable": "00490830",
+        "objectVtableBytes": "0000000000000000e0221c0010081000a0241c0090961a00f0051c001000100050001000",
+        "objectVtableFileOffset": 3737776,
+        "objectSlots": [
+          "001C22E0",
+          "00100810",
+          "001C24A0",
+          "001A9690",
+          "001C05F0",
+          "00100010",
+          "00100050"
+        ],
+        "tableScope": "First7 object-interface slots;FX primary render interface recorded separately"
+      }
+    },
+    {
+      "className": "spTextureProjection",
+      "classHash": 1490698278,
+      "base": "spPyramidProjection",
+      "pcFactory": null,
+      "ps2Factory": 0,
+      "pcRecord": null,
+      "ps2Record": 4901264,
+      "priorAssessments": [],
+      "ps2": {
+        "status": "registered-metadata-only",
+        "factory": 0,
+        "noConstantGetterMatch": true
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/catalog-family.json",
+      "sha256": "E7DA2955D9903B807BD397275F4419272843C47931AD878B5A70247D9AF18DED"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/factories/capture.json",
+      "sha256": "58E75D5E38AE1313D51D6CA67E09076191338ADD8A97AC6190F17785902BD787"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/construction-windows/capture.json",
+      "sha256": "8C35A838A6C3D74F479B7F7E944A90F51E804715E12B56709FF6CCC45828451E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/interfaces/capture.json",
+      "sha256": "E9368BEACE48173C9EB0B68E3D6AAE10930511A79D444D0898CDE4E48D6C1F46"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/clone-offset/capture.json",
+      "sha256": "4BD1DA3C0F02FACA73ACD6CA686BC379813C5B58C403259C3B8CF2820487D1C3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/protocol-windows/capture.json",
+      "sha256": "F982339BB335BD9E5A0C9F61C05F6711E4B90CBEDCD0C40CBAD2314196297691"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/fx-init/capture.json",
+      "sha256": "82E584CED64B40A8E8A9560CBDEB3064C73C9F80FBE47927F220C950D8E0715D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/base-lifetimes/capture.json",
+      "sha256": "04BA9CA77AF948BAF1F765615ECD387A1F094662EED6ED7E8E55EE1404558082"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/shadow-construction/capture.json",
+      "sha256": "EA1DE7FDBEA9DC1EAAEE6CED7CDC9E2921B584FD6871B58783B9675249329B85"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/manager-leaves/capture.json",
+      "sha256": "5ECC698265E2A95F4A55B88CB6E9FFF7AD75BED1ECE0A4A352EF96078467F2DC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/getter-candidates-run1.json",
+      "sha256": "FC8CDEB968E23E07FE4F56E25E130DE5967885550EEB321F25733BC833AB4370"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/fx-contracts-run3.json",
+      "sha256": "BAF86AAB4F5E35D05A181BA5C82A32F1291291987A264A8FB26922EE3CB6E29F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-family/ps2-leaves-run1.json",
+      "sha256": "F876565D631C058AA312973706C2B2C435923D0C157DE5493116BD3E7ECE39FF"
+    }
+  ],
+  "scope": "11 names,8 PC/9 PS2. Two old PC manager assessments unchanged. Three new PC lifetimes;PS2 four factory identities,eight RTTI interfaces and metadata-only TextureProjection. No complete render/geometry/FPU pipeline claim.",
+  "counts": {
+    "classNames": 11,
+    "unchangedPcAssessments": 2,
+    "newPcLifetimes": 3,
+    "newPcClassOperations": 15,
+    "ps2FactoryIdentities": 4,
+    "ps2ObjectInterfaces": 8,
+    "ps2MetadataOnly": 1,
+    "pcOwnedFxCases": 2,
+    "ps2SetupCases": 4,
+    "pairedInitCases": 6,
+    "ps2LeafAndAdjustorCases": 22
+  },
+  "limitsAndCorrections": [
+    "PCFX run1 assumed BaseObject at+0 and tried a string as getter. Native PC/PS2 construction/tables prove BaseObject+4;run2 uses original secondary RTTI/Clone/destructor and passes. Clone returns secondary pointer,allocator tracks whole object.",
+    "FX contracts runs1/2 overclaimed that every allocation must be freed:actual FX and both Projections are freed,but the same56-byte6DC3B8 context allocation remains as in previous cold lifetimes. Run3 compares that declared boundary,without attributing global lifetime or claiming a leak.",
+    "The scout window labelled pc-Shadow-ctor-window starts at getter and contains destructor. Actual PC ctor5A3D10 separately captured,calls Pyramid432F30. PS2 own ctor1C23F0 calls1C0550;both Shadow Clone slots are null.",
+    "PS2 TextureProjection ID58DA4026 identifies the previously unexplained same PC scene-dispatch literal. PC has no such registered class;this does not introduce a PC RTTI factory or guessed table.",
+    "PC layer state writes2/2/B/A;PS2 writes2/2/3/80. Native platform fields/results recorded separately;no automatic GPU equivalence or FPU rounding claim."
+  ]
+}
