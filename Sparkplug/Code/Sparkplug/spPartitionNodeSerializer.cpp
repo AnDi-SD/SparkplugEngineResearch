@@ -1,4 +1,5 @@
 #include "spPartitionNodeSerializer.h"
+#include "spSerializerClone.h"
 #include "spPartitionNode.h"
 #include "Analysis/PC/spSpatialReadSupport.h"
 #include "spPartitionSystem.h"
@@ -18,10 +19,9 @@ namespace sparkplug::reconstruction
     }
     const spRTTIRecord& spPartitionNodeSerializer::StaticRTTI() noexcept{(void)Registered;return Record;}
     const spRTTIRecord& spPartitionNodeSerializer::vfunc_18() const noexcept{return Record;}
-    std::unique_ptr<spBaseObject> spPartitionNodeSerializer::vfunc_10(spCloneManager&) const
+    std::unique_ptr<spBaseObject> spPartitionNodeSerializer::vfunc_10(spCloneManager& manager) const
     {
-        // Serializer cloning is outside this read slice; no guessed clone body.
-        return nullptr;
+        return CloneConcreteSerializerForAnalysis(*this, Create(), manager);
     }
 
 bool spPartitionNodeSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,

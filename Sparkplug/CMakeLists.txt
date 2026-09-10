@@ -368,6 +368,7 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spResourceFATSerializer.h
     Code/Sparkplug/spSerializer.cpp
     Code/Sparkplug/spSerializer.h
+    Code/Sparkplug/spSerializerClone.h
     Code/Sparkplug/spSerializerManager.cpp
     Code/Sparkplug/spSerializerManager.h
     Code/Sparkplug/spSerializerHook.cpp

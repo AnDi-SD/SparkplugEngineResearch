@@ -1,4 +1,5 @@
 #include "spZonePortalSerializer.h"
+#include "spSerializerClone.h"
 #include "spZonePortal.h"
 #include "spZone.h"
 #include "Analysis/PC/spSpatialReadSupport.h"
@@ -13,10 +14,9 @@ namespace sparkplug::reconstruction
     }
     const spRTTIRecord& spZonePortalSerializer::StaticRTTI() noexcept{(void)Registered;return Record;}
     const spRTTIRecord& spZonePortalSerializer::vfunc_18() const noexcept{return Record;}
-    std::unique_ptr<spBaseObject> spZonePortalSerializer::vfunc_10(spCloneManager&) const
+    std::unique_ptr<spBaseObject> spZonePortalSerializer::vfunc_10(spCloneManager& manager) const
     {
-        // Serializer cloning is outside this read slice; no guessed clone body.
-        return nullptr;
+        return CloneConcreteSerializerForAnalysis(*this, Create(), manager);
     }
 
 bool spZonePortalSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,

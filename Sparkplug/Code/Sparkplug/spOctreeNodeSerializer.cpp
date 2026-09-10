@@ -1,4 +1,5 @@
 #include "spOctreeNodeSerializer.h"
+#include "spSerializerClone.h"
 #include "spOctreeNode.h"
 #include "Analysis/PC/spSpatialReadSupport.h"
 namespace sparkplug::reconstruction
@@ -13,7 +14,10 @@ namespace sparkplug::reconstruction
     }
     const spRTTIRecord& spOctreeNodeSerializer::StaticRTTI() noexcept{(void)Registered;return Record;}
     const spRTTIRecord& spOctreeNodeSerializer::vfunc_18() const noexcept{return Record;}
-    std::unique_ptr<spBaseObject> spOctreeNodeSerializer::vfunc_10(spCloneManager&) const{return nullptr;}
+    std::unique_ptr<spBaseObject> spOctreeNodeSerializer::vfunc_10(spCloneManager& manager) const
+    {
+        return CloneConcreteSerializerForAnalysis(*this, Create(), manager);
+    }
 
     bool spOctreeNodeSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const

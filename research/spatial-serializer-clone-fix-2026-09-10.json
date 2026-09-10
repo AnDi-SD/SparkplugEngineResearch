@@ -1,0 +1,83 @@
+{
+  "kind": "confirmed-spatial-serializer-clone-stub-correction",
+  "classes": [
+    "spBSPNodeSerializer",
+    "spOctreeNodeSerializer",
+    "spPartitionNodeSerializer",
+    "spPartitionRenderableSerializer",
+    "spPartitionSystemSerializer",
+    "spZoneSerializer",
+    "spZonePortalSerializer",
+    "spZonePortalNodeSerializer"
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spBSPNodeSerializer.cpp",
+      "sha256": "C060821D60C17903C1462C9E53674ED64B40281AFA15705CCC253A3178C381E3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spOctreeNodeSerializer.cpp",
+      "sha256": "A83424344062BCDACAE0C37E2191BF2E2A6B86172061A7B2920E3AD45815B2FC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spPartitionNodeSerializer.cpp",
+      "sha256": "C224369E3731EC2C4FB1E026961308FF502BED0E33EF127E97C7E784ECD722D3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spPartitionRenderableSerializer.cpp",
+      "sha256": "8C36A8C7CEB759217C4AEE2770F3FADE0FE93C23CED8E0A2815A3734821AE75E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spPartitionSystemSerializer.cpp",
+      "sha256": "BB560231D26993A996DFE23D009A54E2CEAB1B6F7CF00E1FC42A436C380BF6D9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spZoneSerializer.cpp",
+      "sha256": "733D729875CE9391F0E7500282F6FC5CF3138B00E02AB3EB890B20BA899F7D19"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spZonePortalSerializer.cpp",
+      "sha256": "F19EB240B5A5E1BC4EBE4815907ACA577E163E609872112C03019A0C14E2EBB0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spZonePortalNodeSerializer.cpp",
+      "sha256": "6A4F6C55071EF5BAE6882E05B64614A61DE987406D200169F536DB68B1357353"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spSerializerClone.h",
+      "sha256": "B5E97AA1D16CCB2EC64619E3939E635ECB1D0B5480259F8BB447549BB52780EB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/source-after/spSpatialSerializationTests.cpp",
+      "sha256": "BFF89748C91DCCA850837A7B34DFCE71CB6CB6C0A47F94E003A333823EEF8C05"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/clone-windows/capture.json",
+      "sha256": "D4710352B00D8B3253B14F45A49424FAE228CAEDE9F27ABDB555BE00567AF120"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/build-before.log",
+      "sha256": "242BE73C99810BBF75E8F542C1494112F3A8F87E48EA63D0A3F52CB02128A336"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/check-before.log",
+      "sha256": "0FB007C709621A997E7EB57BDF2B25244425C3B2ECA3067C347F06473D598EFE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/build-after.log",
+      "sha256": "E880FC7B6B87042E74EC99387AA99713C9BE72395753C8CB9810F336D2060CAE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/spatial-clone-fix/check-after.log",
+      "sha256": "5FCB270CCC18A1C27E08A95D138C5C02ECF3EEFF04A5848FD38EB2422DE05F8A"
+    }
+  ],
+  "pcLifetimesReusedFrom": "research/serializer-expansion-contracts-2026-09-10.json",
+  "validation": {
+    "before": "failed at first concrete nonnull Clone",
+    "after": "145/145",
+    "newCloneAssertions": 48,
+    "existingReaderOwnershipAssertions": 97
+  },
+  "additionalAssessmentCredit": 0
+}

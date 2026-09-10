@@ -199,6 +199,27 @@ namespace
             Check(rejected,"null/extent/slot/direct alias host guard rejects unsafe spatial input");
         }
     }
+    template<class T> void SerializerClone()
+    {
+        T source;
+        spCloneManager direct;
+        auto clone=source.vfunc_10(direct);
+        Check(clone!=nullptr,"native concrete spatial serializer Clone allocates");
+        Check(clone.get()!=&source&&clone->IsExactly(T::ClassID),"clone keeps concrete serializer identity");
+        Check(direct.FindClone(source)==clone.get(),"clone registers source and destination");
+        spCloneManager root;
+        auto owned=root.Clone(source);
+        Check(owned&&owned.get()!=clone.get()&&owned->IsExactly(T::ClassID),"root clone creates another independent serializer");
+        Check(root.FindClone(source)==nullptr,"root clone transaction clears temporary mapping");
+        Check(!source.spSerializer::vfunc_10(root),"base serializer Clone remains null");
+    }
+    void SerializerClones()
+    {
+        SerializerClone<spPartitionNodeSerializer>();SerializerClone<spBSPNodeSerializer>();
+        SerializerClone<spOctreeNodeSerializer>();SerializerClone<spPartitionSystemSerializer>();
+        SerializerClone<spZoneSerializer>();SerializerClone<spZonePortalSerializer>();
+        SerializerClone<spZonePortalNodeSerializer>();SerializerClone<spPartitionRenderableSerializer>();
+    }
 }
 int main(int argc,char** argv)
 {
@@ -206,7 +227,7 @@ int main(int argc,char** argv)
     {
         if(argc==4&&std::string(argv[1])=="--capture")
         {std::cout<<Capture(argv[2],FromHex(argv[3]))<<'\n';return 0;}
-        Guards();std::cout<<"PASS "<<checks<<'/'<<checks<<": spatial shared readers and ownership guards\n";return 0;
+        Guards();SerializerClones();std::cout<<"PASS "<<checks<<'/'<<checks<<": spatial shared readers, serializer clones and ownership guards\n";return 0;
     }
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
