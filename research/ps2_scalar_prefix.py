@@ -2,6 +2,7 @@
 
 This is a convenience wrapper around the existing MIPS64/R4000 experiment,
 not a PS2 CPU implementation. SQ/LQ, MMI, COP2 and system interrupts stop it.
+SQRT.S is rejected:EE uses FT,while this generic MIPS CPU reads FS.
 The opt-in integer-movz profile uses5KC with an explicit integer allowlist;
 it does not enable generic MIPS64 instructions as an R5900 substitute.
 The opt-in integer-squares profile interprets three accumulator instructions
@@ -98,6 +99,8 @@ class Ps2ScalarPrefix:
                     self.trace.extend(plan['addresses']);self.accumulator_extension.commit(self,plan);return
                 if len(self.trace)>=count:raise RuntimeError('Logical instruction cap in integer-square profile')
             if word>>26 in (0x1e,0x1f,0x12,0x1c):raise RuntimeError(f'Excluded R5900 instruction {address:08X}')
+            if word>>26==0x11 and (word>>21)&31==16 and word&63==4:
+                raise RuntimeError(f'Unreviewed R5900 SQRT.S operand/rounding semantics {address:08X};generic MIPS uses a different source register')
             if word>>26==0x11 and (word>>21)&31==16 and 0x18<=word&63<=0x1f:
                 raise RuntimeError(f'Unreviewed R5900 COP1 accumulator instruction {address:08X}')
             if self.profile=='integer-movz':
