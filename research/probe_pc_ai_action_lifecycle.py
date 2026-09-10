@@ -17,7 +17,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     execution_limits(lifecycle_profile)
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
-    if context not in ('none','empty-scene'):raise ValueError('Explicit none or empty-scene context required')
+    if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node'):raise ValueError('Explicit reviewed borrowed context required')
     if crt not in ('none','bounded-strings'):raise ValueError('Explicit CRT fixture required')
     if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
@@ -60,8 +60,22 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
         n=f.allocations[a];assert n>=0x10;vt=p.uint(a)
         slot_count=17 if family=='ai-action' else 7
         return dict(address=a,allocationBytes=n,bytes=bytes(p.mu.mem_read(a,n)).hex(),vtable=f'{vt:08X}',slots=[f'{p.uint(vt+4*i):08X}' for i in range(slot_count)])
+    bound_nodes=[]
+    def bind_node(label,entity):
+        if context!='empty-scene-bound-node':return
+        if (family,class_name) not in (('generic-trigger','wxChestTrigger'),('entity-direct','wxBreakableBarrel'),('entity-direct','wxCharacterMoveCtrl')):
+            raise ValueError('Node binding reviewed only for these entity dependencies')
+        node=call(label+'-node-factory',0x421e20)
+        before=int.from_bytes(p.mu.mem_read(node+8,2),'little')
+        call(label+'-bind-node',0x419d00,entity,(node,))
+        after=int.from_bytes(p.mu.mem_read(node+8,2),'little')
+        assert p.uint(entity+0x18)==node and after==(before+1)&0xffff
+        bound_nodes.append(node)
+        report['declaredContext'].setdefault('nodeBindings',[]).append(dict(entity=entity,node=node,referenceBefore=before,referenceAfter=after,
+            scope='Original Node factory and previously verified spEntity419D00 assignment. Each clone gets its own binding after clone returns;no entity+24 binding assertion.'))
+        save()
     try:
-        if context=='empty-scene':
+        if context.startswith('empty-scene'):
             # Actual Node factory/search, with literal external core/scene
             # pointers. No scene initialize, game startup or fake Find result.
             call('matrix-static-initializer',0x6d38e0)
@@ -71,15 +85,29 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
             p.put_uint(engine+0x18,scene);p.put_uint(scene+0x14,root)
             report['declaredContext']=dict(kind=context,engineStorage=engine,sceneStorage=scene,originalRoot=root,
                 scope='Opaque borrowed engine+18->scene+14->actual unnamed empty Node; no original engine/scene factory or initialize claim')
+            if context=='empty-scene-profile':
+                if class_name!='wxStellaGlyph' or family!='generic-trigger':raise ValueError('Profile record reviewed only for StellaGlyph teardown')
+                profile=p.allocate(0x2cb8);profile_before=b'\x5a'*0x2cb8;p.mu.mem_write(profile,profile_before);p.put_uint(0x765ad4,profile)
+                report['declaredContext']['borrowedProfile']=dict(globalAddress='00765AD4',storage=profile,extentBytes=0x2cb8,
+                    scope='Literal existing profile record covering independently decoded PC/PS2 teardown byte2CB6. Not an original profile constructor or exact profile allocation size. Whole record guarded at completion.')
             save()
         obj=call('factory',record['pcFactory']);report['factoryReached']=True;report['initial']=snapshot(obj)
         report['factoryVisits']={f'{a:08X}':n for a,n in sorted(p.visits.items())};save()
         assert call('rtti',p.uint(p.uint(obj)+0x10),obj)==record['pcRecord']
+        bind_node('original',obj)
         clone=call('clone',p.uint(p.uint(obj)+8),obj);assert clone and clone!=obj;report['clone']=snapshot(clone);report['clonePairs']=f.clone_pairs;save()
+        bind_node('clone',clone)
         for label,a in [('delete-clone',clone),('delete-original',obj)]:
             call(label,p.uint(p.uint(a)),a,(1,));assert a in f.freed
-        if context=='empty-scene':
+        if context.startswith('empty-scene'):
             call('delete-borrowed-root',p.uint(p.uint(root)),root,(1,));assert root in f.freed
+        if context=='empty-scene-profile':
+            expected=bytearray(profile_before);expected[0x2cb6]=1
+            assert bytes(p.mu.mem_read(profile,len(expected)))==bytes(expected),'Borrowed profile record guard'
+            report['declaredContext']['borrowedProfile']['verifiedChangedOffsets']=[0x2cb6]
+        if bound_nodes:
+            report['declaredContext']['boundNodesReleased']=[a in f.freed for a in bound_nodes]
+            assert all(a in f.freed for a in bound_nodes),'Entity teardown must release both bound Nodes'
         report['remainingAllocations']=[a for a in f.allocations if a not in f.freed];report['status']='passed';save()
     except Exception as error:
         report.update(status='blocked',error=str(error),errorType=type(error).__name__);save()
