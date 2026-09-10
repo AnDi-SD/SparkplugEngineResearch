@@ -1,9 +1,14 @@
 #include "spRenderer.h"
 #include "spRenderNode.h"
 #include "spRenderable.h"
+#include "spMaterialPassLayer.h"
+#include "spMaterialTexture.h"
+#include "spStdLayer.h"
+#include "../SparkplugDX/spDXMaterial.h"
 
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 namespace sparkplug::reconstruction
 {
@@ -23,6 +28,21 @@ namespace sparkplug::reconstruction
     }
 
     spRenderer* spRenderer::instance_ = nullptr;
+
+    std::unique_ptr<spDXMaterial> spRenderer::CreatePCDefaultMaterialForAnalysis()
+    {
+        // Actual constructor after its natural protected preparation: create
+        // DXMaterial, append one pass, append two StdLayers. The sole changed
+        // leaf default is raw texture state1 of the second layer (13B8991).
+        auto material=std::make_unique<spDXMaterial>();
+        auto pass=std::make_shared<spMaterialPassLayer>();
+        if(!material->SetPassForAnalysis(material->GetPassCountForAnalysis(),pass)
+            ||!pass->SetLayerForAnalysis(pass->GetLayerCountForAnalysis(),std::make_unique<spStdLayer>()))return nullptr;
+        auto second=std::make_unique<spStdLayer>();
+        second->GetMaterialTextureForAnalysis()->SetTextureStateForAnalysis(1,0);
+        if(!pass->SetLayerForAnalysis(pass->GetLayerCountForAnalysis(),std::move(second)))return nullptr;
+        return material;
+    }
 
     bool spRenderer::EnqueueAlphaForAnalysis(AlphaQueueForAnalysis& state,
         spRenderable* object,spRenderNode* support,const AlphaCameraInputForAnalysis* camera,

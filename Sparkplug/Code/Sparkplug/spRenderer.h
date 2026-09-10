@@ -16,6 +16,7 @@ namespace sparkplug::reconstruction
     class spCamera;
     class spRenderNode;
     class spRenderable;
+    class spDXMaterial;
     // Analytical names for the platform-interface operations whose behavior
     // is now proven from their native callers and backend endpoints. These
     // are not claimed to be the original C++ method names.
@@ -61,6 +62,11 @@ namespace sparkplug::reconstruction
 
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
         [[nodiscard]] static spRenderer* GetInstance() noexcept;
+
+        // PC-only producer from the original common constructor13B890E..13B89B5.
+        // Returns the owned C9C0 material graph without constructing a renderer
+        // or device. Its specular power remains unknown until explicitly set.
+        [[nodiscard]] static std::unique_ptr<spDXMaterial> CreatePCDefaultMaterialForAnalysis();
 
         // PC and PS2 swap the first two render-target operations. The other
         // confirmed camera/frame operations retain their logical ordinals.

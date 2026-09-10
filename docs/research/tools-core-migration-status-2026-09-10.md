@@ -18,8 +18,10 @@ LVLcreator читают позиции общего shader. Viewer сохран�
 27 GPU checks и43 позы/419 независимых сравнений прошли. GLB теперь явно
 отказывает для неподтверждённой конверсии существенно non-unit весов,
 сохраняя поддерживаемые файлы побайтно. Это не закрывает multipass/material
-output; [PC fallback producer](tool-renderer-fallback-material-boundary-2026-09-10.md)
-ещё не установлен, отдельный PS2 producer не подставляется вместо него.
+output. [PC fallback producer](tool-pc-renderer-default-material-2026-09-10.md)
+теперь выполнен и перенесён в общий spRenderer: один pass, два StdLayers.
+RendererScene 574 и RendererSubmit 201 checks прошли; следующий остаток —
+renderer state inputs и использование в современном multipass backend.
 [Предпросмотр подгонки Importer](tool-importer-fitting-gpu-2026-09-10.md)
 тоже использует общий GPU shader и native spSkin composition; отдельный CPU
 skin evaluator удалён.24 адресные GPU проверки и Core provider contract прошли.
@@ -28,7 +30,10 @@ skin evaluator удалён.24 адресные GPU проверки и Core pro
 
 [MaterialColorController factory](tool-pc-material-color-factory-2026-09-10.md)
 теперь подтверждена PC и подключена к общему loader; реальный
-lightbeam_projectile.smo11objects загружается с binding Material5→controller6.
+lightbeam_projectile.smo с 11 objects загружается с binding Material5→controller6.
+[Живой managed runtime](tool-material-color-live-graph-2026-09-10.md) проверен
+на этом файле: clocks, frame cache, force и disposal; все пять function types 0,
+поэтому меняющийся цвет или готовый renderer этим не заявлены.
 Clone/copy этого контроллера не закрыты. [Occlusion producer/shape](tool-occlusion-shape-shared-core-2026-09-10.md)
 перенесены и проверены149 checks, но не заменяют ещё отсутствующий runtime Init.
 

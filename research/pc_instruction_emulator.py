@@ -39,7 +39,11 @@ def execution_limits(profile):
     if profile == 'micro': return INSTRUCTION_LIMIT, TIMEOUT_US
     if profile == 'file': return FILE_INSTRUCTION_LIMIT, FILE_TIMEOUT_US
     if profile == 'character': return 4_000_000, 16_000_000
-    raise ValueError('Explicit micro, file or character execution profile required')
+    # Research-only constructor slice: measured original byte-loop exit at
+    # 4,683,530 instructions. Explicitly authorized 10 September 2026; fresh
+    # guests only, unchanged external 30-second child and memory bounds.
+    if profile == 'protected-constructor': return 6_000_000, 24_000_000
+    raise ValueError('Explicit micro, file, character or protected-constructor execution profile required')
 
 
 def run_bounded(script: Path, arguments=()) -> int:

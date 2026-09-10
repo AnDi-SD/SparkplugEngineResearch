@@ -55,7 +55,11 @@ namespace
         const bool weighted=mode.rfind("weighted",0)==0;
         const bool matrixMode=mode.find("matrix")!=std::string::npos,produced=mode.find("append")!=std::string::npos;
         Sink sink;sink.fail=mode=="failed"||mode=="weighted-failed";spPCShaderManager manager;
-        auto fallback=Material(1,2),material=Material(mode=="empty"?0:mode=="two"||mode=="weighted-two"?2:1,1);
+        // Historical --case inputs retain their declared fallback for the
+        // existing native comparisons. This case uses the actual PC producer.
+        auto fallback=mode=="actual-default"?spRenderer::CreatePCDefaultMaterialForAnalysis():Material(1,2);
+        Check(fallback!=nullptr,"owned fallback material available");
+        auto material=Material(mode=="empty"?0:mode=="two"||mode=="weighted-two"?2:1,1);
         spDXShader::ConstantInputsForAnalysis constants;constants.material=material.get();constants.blendMatrices.resize(1);
         R::MatrixStateForAnalysis matrixState;
         if(weighted)
@@ -88,6 +92,13 @@ namespace
             const auto& indices=mode=="switch"&&iteration==3?noIndices:sink.indices[selected];
             sink.events.clear();const bool result=R::SubmitUnlitGeometryForAnalysis(sink.state,&sink.declarations[selected],indices,sink.vertices[selected],{},iteration<1?32:48,{iteration==3?1u:2u,11,13,17,19,weighted?0x803u:0x801u,0},*material,*fallback,manager,device,weighted?&constants:nullptr);
             Check(result,"whole unlit submit");if(iteration)out<<',';
+            if(mode=="actual-default")
+            {
+                const std::array<std::uint32_t,9> unused{0,0,1,0,0,0xFF000000,2,0,0};
+                Check(sink.state.textures.desired[1]==unused&&sink.state.textures.desired[7]==unused
+                    &&sink.state.textures.desired[0][1]==3,"actual second fallback layer supplies unused stages through whole submit");
+                Check(!fallback->HasInitializedSpecularPowerForAnalysis(),"whole submit does not invent unknown fallback power");
+            }
             out<<'['<<iteration<<','<<result<<','<<sink.State()<<',';Array(out,sink.state.raw);out<<','<<material->GetRenderStateForAnalysis(7)<<",[";
             for(unsigned i=0;i<sink.events.size();++i){if(i)out<<',';out<<sink.events[i];}out<<"]]";
         }
@@ -100,7 +111,7 @@ namespace
 int main(int argc,char** argv)
 {
     try{if(argc==3&&std::string(argv[1])=="--case"){std::cout<<Run(argv[2])<<'\n';return 0;}
-        for(const auto* mode:{"empty","one","two","failed","switch","mesh","weighted","weighted-two","weighted-failed","weighted-matrix","weighted-append","weighted-append-matrix"})(void)Run(mode);
+        for(const auto* mode:{"empty","one","two","failed","switch","mesh","weighted","weighted-two","weighted-failed","weighted-matrix","weighted-append","weighted-append-matrix","actual-default"})(void)Run(mode);
         std::cout<<"PASS "<<checks<<'/'<<checks<<": renderer full unlit submission\n";return 0;
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

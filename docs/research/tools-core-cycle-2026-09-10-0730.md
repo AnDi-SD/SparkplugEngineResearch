@@ -24,10 +24,10 @@ root3d483e0 / Viewer21b43a5. Все ядра пока не готовы.
 ## Текущий блок
 
 Font/Text metadata, Static matrix authoring и PC TextureData source перенесены
-в общий код; PS2 native metadata подключена отдельно. Сохранение текущего
-texture блока и следующая используемая операция ядра; material runtime
-ограничен пока неподтверждёнными renderer defaults. Непроверенные реализации
-не считаются результатом.
+в общий код; PS2 native metadata подключена отдельно. MaterialColor factory и
+PC default-material producer теперь подтверждены. Следующие используемые
+операции — необходимые renderer state inputs, geometry optimizer для Occlusion
+и looping ParticleSystem Init. Непроверенные реализации не считаются результатом.
 
 ## Сохранённые ограничения
 
@@ -266,6 +266,14 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    через настоящий загруженный controller. У lightbeam все function types 0:
    изменение цвета или готовый renderer этим acceptance не заявлены.
    Production код после factory не менялся; расширен прежний regression.
+
+32. [PC default-material producer](tool-pc-renderer-default-material-2026-09-10.md)
+   выполнен до возврата: 4,780,619 инструкций / 16.32 с, byte-loop exit точно
+   совпал с расчётом. Общий spRenderer создаёт настоящий граф из одного pass
+   и двух StdLayers, сохраняя неизвестный power. RendererScene 574,
+   RendererSubmit 201 и FullLoader 213 checks прошли; CTest 3/3, 4.19 с.
+   Новый shared Submit case использует эту фабрику. Device/startup, полный
+   multipass backend и original renderer teardown этим блоком не закрыты.
 
 ## Новые границы и исправления
 

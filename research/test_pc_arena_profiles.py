@@ -31,5 +31,10 @@ class ArenaProfiles(unittest.TestCase):
   self.assertEqual(execution_limits('file'),(1000000,8000000))
   self.assertEqual(execution_limits('character'),(4000000,16000000))
   with self.assertRaises(ValueError):execution_limits('unlimited')
+ def test_explicit_protected_constructor_profile(self):
+  self.assertEqual(execution_limits('protected-constructor'),(6000000,24000000))
+  self.assertEqual(execution_limits('micro'),(100000,2000000))
+  self.assertEqual(execution_limits('file'),(1000000,8000000))
+  self.assertEqual(execution_limits('character'),(4000000,16000000))
 
 if __name__=='__main__':unittest.main()
