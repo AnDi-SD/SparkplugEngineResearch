@@ -1,0 +1,186 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ps2-integer-square-2026-09-10T21:38:58Z",
+  "createdUtc": "2026-09-10T21:38:58Z",
+  "notes": "Four PS2 +5 updates for joined original arithmetic paths through explicit restricted CPU interpretation. No PC score updates,no C++ classes,no standalone CPU/helper class score.",
+  "assessments": [
+    {
+      "className": "wxArrowTrap",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-integer-square-accumulator-2026-09-11.md",
+          "sourceSha256": "44454400EA28EB15F0FEADA6FAEDB203111953B3D4E2C6B80755D628F1EE35AA",
+          "locator": "wxArrowTrap arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-integer-square-contracts-2026-09-11.json",
+          "sourceSha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5",
+          "locator": "wxArrowTrap arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+          "sourceSha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91",
+          "locator": "wxArrowTrap arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+          "sourceSha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C",
+          "locator": "wxArrowTrap arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        }
+      ],
+      "unknowns": [
+        "General EE floating-point,exception/status and noninteger square inputs are not qualified.",
+        "Normal gameplay binding,lifecycle and other class methods remain open."
+      ]
+    },
+    {
+      "className": "wxMovingPlatform",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-integer-square-accumulator-2026-09-11.md",
+          "sourceSha256": "44454400EA28EB15F0FEADA6FAEDB203111953B3D4E2C6B80755D628F1EE35AA",
+          "locator": "wxMovingPlatform arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-integer-square-contracts-2026-09-11.json",
+          "sourceSha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5",
+          "locator": "wxMovingPlatform arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+          "sourceSha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91",
+          "locator": "wxMovingPlatform arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+          "sourceSha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C",
+          "locator": "wxMovingPlatform arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        }
+      ],
+      "unknowns": [
+        "General EE floating-point,exception/status and noninteger square inputs are not qualified.",
+        "Normal gameplay binding,lifecycle and other class methods remain open."
+      ]
+    },
+    {
+      "className": "wxPendulum",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-integer-square-accumulator-2026-09-11.md",
+          "sourceSha256": "44454400EA28EB15F0FEADA6FAEDB203111953B3D4E2C6B80755D628F1EE35AA",
+          "locator": "wxPendulum arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-integer-square-contracts-2026-09-11.json",
+          "sourceSha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5",
+          "locator": "wxPendulum arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+          "sourceSha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91",
+          "locator": "wxPendulum arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+          "sourceSha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C",
+          "locator": "wxPendulum arithmetic integration via explicit restricted CPU profile",
+          "observation": "25->30: Whole v11 distance method now returns with original subtraction,explicit exact integer-square accumulator interpretation and original threshold comparison/byte mutation. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        }
+      ],
+      "unknowns": [
+        "General EE floating-point,exception/status and noninteger square inputs are not qualified.",
+        "Normal gameplay binding,lifecycle and other class methods remain open."
+      ]
+    },
+    {
+      "className": "wxCollectibleGem",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Gem own post-v10 component now calls complete node helper including explicit exact integer-square accumulator interpretation;returns to original radius comparison. Virtual10/SQ/LQ remain excluded. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-integer-square-accumulator-2026-09-11.md",
+          "sourceSha256": "44454400EA28EB15F0FEADA6FAEDB203111953B3D4E2C6B80755D628F1EE35AA",
+          "locator": "wxCollectibleGem arithmetic integration via explicit restricted CPU profile",
+          "observation": "20->25: Gem own post-v10 component now calls complete node helper including explicit exact integer-square accumulator interpretation;returns to original radius comparison. Virtual10/SQ/LQ remain excluded. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-integer-square-contracts-2026-09-11.json",
+          "sourceSha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5",
+          "locator": "wxCollectibleGem arithmetic integration via explicit restricted CPU profile",
+          "observation": "20->25: Gem own post-v10 component now calls complete node helper including explicit exact integer-square accumulator interpretation;returns to original radius comparison. Virtual10/SQ/LQ remain excluded. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+          "sourceSha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91",
+          "locator": "wxCollectibleGem arithmetic integration via explicit restricted CPU profile",
+          "observation": "20->25: Gem own post-v10 component now calls complete node helper including explicit exact integer-square accumulator interpretation;returns to original radius comparison. Virtual10/SQ/LQ remain excluded. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+          "sourceSha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C",
+          "locator": "wxCollectibleGem arithmetic integration via explicit restricted CPU profile",
+          "observation": "20->25: Gem own post-v10 component now calls complete node helper including explicit exact integer-square accumulator interpretation;returns to original radius comparison. Virtual10/SQ/LQ remain excluded. Saved PC results/input hashes agree;original code bytes unchanged;not general EE FPU."
+        }
+      ],
+      "unknowns": [
+        "General EE floating-point,exception/status and noninteger square inputs are not qualified.",
+        "Normal gameplay binding,lifecycle and other class methods remain open.",
+        "Whole Gem virtual10/SQ/LQ caller is not executed;post-v10 flags are explicit input."
+      ]
+    }
+  ]
+}

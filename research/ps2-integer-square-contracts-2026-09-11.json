@@ -1,0 +1,304 @@
+{
+  "kind": "explicit-ps2-integer-square-profile-contracts",
+  "schemaVersion": 1,
+  "scope": "Host CPU interpretation,not reconstructed game code or general EE FPU. Original bytes retained;one fresh execution;finite exact square subset only.",
+  "domain": {
+    "integerOperands": [
+      -2048,
+      2048
+    ],
+    "sameSourceRegisters": true,
+    "positiveZeroOnly": true,
+    "maxNonnegativeSum": "00FFFFFF",
+    "requiresObservedMula": true,
+    "rejectFcrReadWrite": true
+  },
+  "operations": {
+    "1A": "MULA.S:ACC=FS*FS",
+    "1E": "MADDA.S:ACC=ACC+FS*FS",
+    "1C": "MADD.S:FD=ACC+FS*FS;ACC unchanged"
+  },
+  "delaySlot": "Only unconditional B plus accumulator slot interpreted before B;all validation before writes;two logical instructions;no self/slot/unknown target or inside-slot stop.",
+  "isaReferences": [
+    {
+      "title": "Sony EE Core User Manual,2002,sections8.4/8.7/8.8",
+      "url": "https://docs.alexrp.com/mips/ee.pdf"
+    },
+    {
+      "title": "PCSX2 FPU",
+      "url": "https://github.com/PCSX2/pcsx2/blob/master/pcsx2/FPU.cpp"
+    },
+    {
+      "title": "PCSX2 assembler encodings",
+      "url": "https://github.com/PCSX2/pcsx2/blob/master/pcsx2/DebugTools/MipsAssemblerTables.cpp"
+    }
+  ],
+  "validation": {
+    "integrationCases": 55,
+    "fullDistanceMethods": 22,
+    "fullNodeHelpers": 21,
+    "gemOwnComponents": 12,
+    "accumulatorInstructions": 165,
+    "interpretedBranches": 33,
+    "unitTests": 19,
+    "oldDelayBoundaryRejections": 3,
+    "correctedBoundaryPasses": 3,
+    "pcRunsRepeated": 0,
+    "guestGuardBytes": 32768,
+    "pilotSeconds": 0.12298880000162171,
+    "batchSeconds": 1.2508765000020503
+  },
+  "qualification": "No physical PS2 validation,general float/flags or whole Gem v10/SQ/LQ. First delay-slot hook spike helper failed;second branch-pair spike passed;neither counted as class progress.",
+  "sources": [
+    {
+      "path": "research/entity-runtime-predicate-contracts-2026-09-11.json",
+      "sha256": "2A5F2F41721E42B230A062CEA96F0A70D30ACE22DFC4491A350968608B3B521F"
+    },
+    {
+      "path": "research/collectible-proximity-contracts-2026-09-11.json",
+      "sha256": "D6D867386766A1E1A3C4D16257FEB353996B670574CFCF9DB0FD86E97C1F6FD3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/entity-runtime-methods/pilot-run1.json",
+      "sha256": "9232FA2EDA2C278B1426508E13A738CC9B9C9F85313C36EDB081BD7DDC9ECFC0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/collectible-proximity/pilot-run1.json",
+      "sha256": "258B116CA8FF8203DE56203E163395271BA990C0F8EE3E228699E9B26EFB0C0F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/entity-runtime-methods/batch-2-run1.json",
+      "sha256": "4CE76D013E3B103294B2D5F3A78CAA1436D6B5D04DF5562E224F50F090CB8270"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/collectible-proximity/batch-run1.json",
+      "sha256": "460D2D1BFC338B9D2CFCCF072A4618F8B2F4CC1B1771012DF592E22C9E187C51"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/probe_character_animation_selection.py",
+      "sha256": "F25E7FB58EDCB5328CC8AA9C64A81F8C32C5DDE645632BB63C5A8673739BDBF0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/probe_ps2_integer_square_integration.py",
+      "sha256": "ABD4520A67B0377B37348E989058BD26ACB22B6F201C38BE16500384CF66FE3A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/test_ps2_integer_square_accumulator.py",
+      "sha256": "7A99967355E668A17A5BA5682205EA75D3D5309D95016CE26F9766EB18F4E9A0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/test_ps2_scalar_prefix.py",
+      "sha256": "EF4A7235C1A88FCB1CD0B691F928C8639D1B015910BF73D5614DFF3D1C3EDCF8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/hook-run1.json",
+      "sha256": "1C00C07743C901140EACBB3745CC83114796A28896FCF6045DC61F1D13725D86"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/hook-run2.json",
+      "sha256": "7EC3C49886EFB220357FC28B4B5ED9DE25AA141438FD43CA73FE0477A8AA34AA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/probe-after-delay-branch-interception.py",
+      "sha256": "4D6EE2F93BCD7F9B9D7F97E5C631E8D1FC2147AAF60AB7AFCEE992C9A46DE74A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/probe-before-delay-branch-interception.py",
+      "sha256": "1941D53755FCC4ECF80DB2F9504DFA662E6F66D5F4BE5F81F6874E25B6605AB1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+      "sha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+      "sha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/integration-selection.json",
+      "sha256": "83BEDB57CDF7E75E5E90D01E65D5B0C6F7D83915CD83BF7D6AF9C32D5D315E32"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/unit-validation-run1.json",
+      "sha256": "7EB6EC468B98885E7118C22E5C6BC91C488B327F7E9A7CD2AA58BCAC9F1F717B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/delay-guard-regression-run1.json",
+      "sha256": "ED85AA85D07A30F3FF0EACF9B30FC2D73A2560D237D2E347E42BFDF7F0F1824A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/live-wrapper-reference-audit-run1.json",
+      "sha256": "4E0AC410EE0F0DF20D549952A5D726DCEFEECA6DA2DB456769BEB965CD2BDF27"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/ps2-scalar-prefix-before-integer-squares.py",
+      "sha256": "70FFB69495DFC7CB979D620B507890785A456B2AB5625CBA593A2405BADA5BAF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/prepare-integer-square-integration.py",
+      "sha256": "DED5210CC19389B87532EC2A54EA460DD28FDF63C968ABDE77DA4E903D8EFD12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/check-integer-square-delay-regression.py",
+      "sha256": "53EDAF26F0FCEB2E86AE86ECAE1D14C26C67C0C2F1268484E32DBA9EA980FC60"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/seal-ps2-integer-square.py",
+      "sha256": "C3B9161EFE3F9B86DA425622CA91B301B0722DEE33B1513E36B7304BD2E788B6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-selection/probe-delay-slot-stop-run1.py",
+      "sha256": "476AB0FD576E0077DB280818EE974E0F25942A5C5AEFC136A1CBF4DF2447003F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-selection/retry-selection.json",
+      "sha256": "63F5C40FFCB6C055EAE7675F492EFBA9A4F2B0EE66CFDE046722887EE6376530"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/pilot-run1.json",
+        "sha256": "13F9EFFA45F8F30EC231B7BF12E830A3741C54F1F6F09F36D3FD60A20859EF91"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/probe_ps2_integer_square_integration.py",
+        "sha256": "ABD4520A67B0377B37348E989058BD26ACB22B6F201C38BE16500384CF66FE3A"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/integration-selection.json",
+        "sha256": "83BEDB57CDF7E75E5E90D01E65D5B0C6F7D83915CD83BF7D6AF9C32D5D315E32"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "extension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/batch-run1.json",
+        "sha256": "B87524CC5046D557D74F68B4365C54A5E57AFFA2BCD429BD9CCD8A07AE7BA29C"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/probe_ps2_integer_square_integration.py",
+        "sha256": "ABD4520A67B0377B37348E989058BD26ACB22B6F201C38BE16500384CF66FE3A"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/integration-selection.json",
+        "sha256": "83BEDB57CDF7E75E5E90D01E65D5B0C6F7D83915CD83BF7D6AF9C32D5D315E32"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "extension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/hook-run1.json",
+        "sha256": "1C00C07743C901140EACBB3745CC83114796A28896FCF6045DC61F1D13725D86"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/probe-before-delay-branch-interception.py",
+        "sha256": "1941D53755FCC4ECF80DB2F9504DFA662E6F66D5F4BE5F81F6874E25B6605AB1"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/ps2-scalar-prefix-before-integer-squares.py",
+        "sha256": "70FFB69495DFC7CB979D620B507890785A456B2AB5625CBA593A2405BADA5BAF"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/hook-run2.json",
+        "sha256": "7EC3C49886EFB220357FC28B4B5ED9DE25AA141438FD43CA73FE0477A8AA34AA"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-accumulator-spike/probe-after-delay-branch-interception.py",
+        "sha256": "4D6EE2F93BCD7F9B9D7F97E5C631E8D1FC2147AAF60AB7AFCEE992C9A46DE74A"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/ps2-scalar-prefix-before-integer-squares.py",
+        "sha256": "70FFB69495DFC7CB979D620B507890785A456B2AB5625CBA593A2405BADA5BAF"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/unit-validation-run1.json",
+        "sha256": "7EB6EC468B98885E7118C22E5C6BC91C488B327F7E9A7CD2AA58BCAC9F1F717B"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "extension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      },
+      "newTests": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/test_ps2_integer_square_accumulator.py",
+        "sha256": "7A99967355E668A17A5BA5682205EA75D3D5309D95016CE26F9766EB18F4E9A0"
+      },
+      "oldTests": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/test_ps2_scalar_prefix.py",
+        "sha256": "EF4A7235C1A88FCB1CD0B691F928C8639D1B015910BF73D5614DFF3D1C3EDCF8"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/delay-guard-regression-run1.json",
+        "sha256": "ED85AA85D07A30F3FF0EACF9B30FC2D73A2560D237D2E347E42BFDF7F0F1824A"
+      },
+      "runner": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/check-integer-square-delay-regression.py",
+        "sha256": "53EDAF26F0FCEB2E86AE86ECAE1D14C26C67C0C2F1268484E32DBA9EA980FC60"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "unsafeProbe": {
+        "path": "local-data/results/native-cycle-20260911-0730/character-animation-selection/probe-delay-slot-stop-run1.py",
+        "sha256": "476AB0FD576E0077DB280818EE974E0F25942A5C5AEFC136A1CBF4DF2447003F"
+      },
+      "safeProbe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-integer-square-accumulator/source-snapshot/probe_character_animation_selection.py",
+        "sha256": "F25E7FB58EDCB5328CC8AA9C64A81F8C32C5DDE645632BB63C5A8673739BDBF0"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/character-animation-selection/retry-selection.json",
+        "sha256": "63F5C40FFCB6C055EAE7675F492EFBA9A4F2B0EE66CFDE046722887EE6376530"
+      }
+    }
+  ]
+}

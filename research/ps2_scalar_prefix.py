@@ -4,6 +4,9 @@ This is a convenience wrapper around the existing MIPS64/R4000 experiment,
 not a PS2 CPU implementation. SQ/LQ, MMI, COP2 and system interrupts stop it.
 The opt-in integer-movz profile uses5KC with an explicit integer allowlist;
 it does not enable generic MIPS64 instructions as an R5900 substitute.
+The opt-in integer-squares profile interprets three accumulator instructions
+only for exact bounded integer squares;it records every host-interpreted
+instruction,keeps original code bytes,and rejects FCR reads/writes.
 Each instance executes once; exact prefix entry/registers/stops are evidence.
 """
 import hashlib,struct,sys
@@ -28,9 +31,13 @@ class Ps2ScalarPrefix:
         ranges=tuple(ranges)
         if not 0<len(ranges)<=64 or sum(n for a,n in ranges)>0x40000:raise ValueError('Explicit bounded code ranges required')
         self.u=unicorn.Uc(unicorn.UC_ARCH_MIPS,unicorn.UC_MODE_MIPS64|unicorn.UC_MODE_LITTLE_ENDIAN)
-        if profile not in ('r4000','integer-movz'):raise ValueError('Reviewed scalar profile required')
+        if profile not in ('r4000','integer-movz','integer-squares'):raise ValueError('Reviewed scalar profile required')
         self.profile=profile
-        self.u.ctl_set_cpu_model(registers.UC_CPU_MIPS64_R4000 if profile=='r4000' else registers.UC_CPU_MIPS64_5KC)
+        self.u.ctl_set_cpu_model(registers.UC_CPU_MIPS64_5KC if profile=='integer-movz' else registers.UC_CPU_MIPS64_R4000)
+        self.accumulator_extension=None
+        if profile=='integer-squares':
+            from ps2_integer_square_accumulator import IntegerSquareAccumulator
+            self.accumulator_extension=IntegerSquareAccumulator()
         self.ranges=ranges;self.pages=set();self.executed=False;self.trace=[];self.stop=None
         raw,sections=pristine()
         for a,n in ranges:
@@ -84,6 +91,12 @@ class Ps2ScalarPrefix:
                 self.stop=address;u.emu_stop();return
             if not any(a<=address and address+4<=a+n for a,n in self.ranges):raise RuntimeError(f'Outside declared original prefix {address:08X}')
             word=self.uint(address)
+            if self.accumulator_extension is not None:
+                plan=self.accumulator_extension.plan(self,address,word,stops)
+                if plan is not None:
+                    if len(self.trace)+len(plan['addresses'])>count:raise RuntimeError('Logical instruction cap before interpreted accumulator operation')
+                    self.trace.extend(plan['addresses']);self.accumulator_extension.commit(self,plan);return
+                if len(self.trace)>=count:raise RuntimeError('Logical instruction cap in integer-square profile')
             if word>>26 in (0x1e,0x1f,0x12,0x1c):raise RuntimeError(f'Excluded R5900 instruction {address:08X}')
             if word>>26==0x11 and (word>>21)&31==16 and 0x18<=word&63<=0x1f:
                 raise RuntimeError(f'Unreviewed R5900 COP1 accumulator instruction {address:08X}')
@@ -100,5 +113,10 @@ class Ps2ScalarPrefix:
         self.u.hook_add(unicorn.UC_HOOK_INTR,interrupt)
         self.u.emu_start(entry,0x23000000,timeout=timeout_us,count=count)
         if self.stop is None:raise RuntimeError(f'Prefix instruction/time cap at {self.reg("PC"):08X}')
-        return dict(entry=f'{entry:08X}',stop=f'{self.stop:08X}',instructions=len(self.trace),profile=self.profile,
+        result=dict(entry=f'{entry:08X}',stop=f'{self.stop:08X}',instructions=len(self.trace),profile=self.profile,
             completion='original return' if self.stop==self.RETURN else 'declared original prefix boundary;guest discarded')
+        if self.accumulator_extension is not None:
+            result.update(instructionCountScope='Original instruction addresses;includes explicitly host-interpreted accumulator and B/slot pairs',
+                accumulatorInterpretation=self.accumulator_extension.events,
+                accumulatorScope='Only exact small-integer squares/nonnegative24-bit sums;not general EE FPU;FCR status read/write rejected;guest code unchanged')
+        return result
