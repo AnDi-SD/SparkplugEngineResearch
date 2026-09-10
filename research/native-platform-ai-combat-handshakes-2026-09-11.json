@@ -1,0 +1,1161 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ai-combat-handshakes-2026-09-10T17:50:41Z",
+  "createdUtc": "2026-09-10T17:50:41Z",
+  "notes": "Five working state paths of3 action classes;102 PC/PS2 handshake executions and8 actual warm RNG output checks. PC full v7 selected paths,PS2 post-SQ dispatcher/body to common completion. One first PS2 zero-input timer cap retained and targeted fresh retry passed. No full gameplay/RNG twist claim.",
+  "assessments": [
+    {
+      "className": "wxGolemAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "20->35: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    },
+    {
+      "className": "wxGolemAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxGolemAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "15->30: wxGolemAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->40: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxSpiderAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->35: wxSpiderAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate pc capture and limits",
+          "observation": "25->35: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified pc body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-combat-handshakes-2026-09-11.md",
+          "sourceSha256": "45CBADA8AC93839E2906E97B735F41B377D3EEAEC8F7A2F7713E0C4B0C4F05F4",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-combat-handshake-contracts-2026-09-11.json",
+          "sourceSha256": "FCDF2D56CCD74841C145843ECADF40D52CD7CF495D42484C2CFE35944D00AB2A",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-action-construction-contracts-2026-09-10.json",
+          "sourceSha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+          "sourceSha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+          "sourceSha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+          "sourceSha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+          "sourceSha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+          "sourceSha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+          "sourceSha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+          "sourceSha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+          "sourceSha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+          "sourceSha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+          "sourceSha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+          "sourceSha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+          "sourceSha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+          "sourceSha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+          "sourceSha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+          "sourceSha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+          "sourceSha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+          "sourceSha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+          "sourceSha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+          "sourceSha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730",
+          "locator": "wxShadowBeastAttackAIAction selected state inputs/results;separate ps2 capture and limits",
+          "observation": "20->30: wxShadowBeastAttackAIAction original selected combat state handshake,raw latch0/1/255,character-state completion,command preservation/clear and own state updates. Golem uint32 deadline wrap;Spider consumes RNG despite zero final deadline;actual warm RNG where called. Qualified ps2 body execution."
+        }
+      ],
+      "unknowns": [
+        "Other action states and complete normal character/scene initialization remain open.",
+        "Only RNG index0/zero-extended warm elements;seed/twist and arbitrary64-bit PS2 state are not established.",
+        "PS2 common completion boundary excludes SQ/LQ prologue/epilogue."
+      ]
+    }
+  ]
+}

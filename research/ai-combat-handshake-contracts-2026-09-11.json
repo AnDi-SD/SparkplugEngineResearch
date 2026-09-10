@@ -1,0 +1,149 @@
+{
+  "kind": "original-ai-combat-state-handshakes",
+  "schemaVersion": 1,
+  "classes": [
+    "wxGolemAttackAIAction",
+    "wxSpiderAttackAIAction",
+    "wxShadowBeastAttackAIAction"
+  ],
+  "successfulHandshakePlatformCases": 102,
+  "successfulWarmRngPlatformCases": 8,
+  "attempts": 111,
+  "initialPs2RngTimeouts": 1,
+  "runs": [
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+        "sha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8"
+      },
+      "exactSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+        "sha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30"
+      }
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+        "sha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA"
+      },
+      "exactSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+        "sha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1"
+      }
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+        "sha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087"
+      },
+      "exactSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+        "sha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C"
+      }
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+        "sha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8"
+      },
+      "exactSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+        "sha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/selection.json",
+      "sha256": "FDAAD78B9F296F000E7825C4FDAA9B5A1DE90FE440D0BB527ABB3B5AF3F5A4E1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handler-scout/capture.json",
+      "sha256": "25139B3266584E9BC7021224EECD54A47112716EC3E335743DA53B9740F81AF8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/paired-handshake-scout/capture.json",
+      "sha256": "E63409732DED97EB1C82CAC46492F18E741B555AC88803C930D4697F5DD60D5E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/reviewed-execution-ranges/capture.json",
+      "sha256": "E63CC214B42C3567C9FC85CE9627D533768F87510DCAE3EB685F178A1442BA30"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-and-shadow-scout/capture.json",
+      "sha256": "8093335D6BF8DCF4FF92E0B2B97A32E8BA7637A212BB07871F6427C7CB1C2053"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-batch-run1.json",
+      "sha256": "655F0418BC296178CAFEBC81E5D724789E9C70BEA6423E7EED11895B4C29EAE8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/handshake-pilot-run1.json",
+      "sha256": "C79E7BC4D34EA147E7DF1C321E922B88DE804D9C4A9BE8E0CBD18C4238AC2087"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-pilot-run1.json",
+      "sha256": "67A084C8A5626B7015B7A093CDDFA4FB93C5B5DD2FDA828DBB823D56D7C0B9B8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/rng-zero-retry-run2.json",
+      "sha256": "D46857B63BBA41BBF9B16505F75A7EFD6F46DD0C1F59C1DD68FB372942C123CA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/capture-combat-execution.py",
+      "sha256": "98A1D83BA5E45B98F7E306566C21A6AF1806E1BE920C8C37C1B0A52D27A98BE6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run1.py",
+      "sha256": "2001D74E660D0C8E7CE5578B9ACEB0A2FD22FCB353B6220AA7703F6A0C1FCC30"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/probe-combat-rng-run2.py",
+      "sha256": "7D41D35695B89BB805D03A1A78612C29750A5E2E5655E56A8B30F98F244BEDF1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-handshakes.py",
+      "sha256": "65743BEB8E383C42F88B6AB89EB051C4B67625D831F45E271F997943A0B55FC1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-combat-native-dependencies.py",
+      "sha256": "A244B07E1C255046525C8FA8141A4C06B7DFE27676BFF6C4FF26043FB3951DC3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/scout-rng-output.py",
+      "sha256": "BFB527510F11FD141CB334567ADBB7B2D87C0323F981DCADAAEBD6C21F59C2FB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/probe_ai_combat_handshakes.py",
+      "sha256": "214C715F14802B895B0AF5F668711E28037AB79280A16F9B79AD71EA3353549C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/combat-handshakes/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "B6BC369AE0F9A9666D6B1F710F77BDA80EC42D884B3A0B3586112E0F44B63730"
+    }
+  ]
+}
