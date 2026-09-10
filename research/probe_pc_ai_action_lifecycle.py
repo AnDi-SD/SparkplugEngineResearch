@@ -18,9 +18,9 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
-    if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync'):raise ValueError('Explicit CRT fixture required')
+    if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync','bounded-memory'):raise ValueError('Explicit CRT fixture required')
     if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family'):raise ValueError('Explicit reviewed family platform profile required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
@@ -38,6 +38,9 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if crt=='bounded-strings':
         from pc_crt_string_fixtures import install_crt_string
         install_crt_string(p)
+    elif crt=='bounded-memory':
+        from pc_crt_memory_fixtures import install_crt_memory
+        install_crt_memory(f)
     elif crt in ('bounded-char-traits','bounded-char-traits-sync'):
         from pc_stl_fixtures import install_char_traits
         install_char_traits(p)

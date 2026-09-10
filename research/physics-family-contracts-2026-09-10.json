@@ -1,0 +1,689 @@
+{
+  "kind": "native-physics-family-independent-platform-contracts",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "A55A04DF1ECB30FAC4E17FDF5D9C9481740D4421C5F2B3AA6C2CBC9819D1F7A5",
+  "classes": [
+    {
+      "className": "spBoundingVolume",
+      "classHash": 567047855,
+      "base": "spBaseObject",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7743968,
+      "ps2Record": 4879792,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006ECACC",
+        "vtableBytes": "101f4900007a5b00f01b4a0020314100a01e49005083400070834000",
+        "vtableFileOffset": 3062476,
+        "objectSlots": [
+          "00491F10",
+          "005B7A00",
+          "004A1BF0",
+          "00413120",
+          "00491EA0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      },
+      "ps2": {
+        "objectVtable": "0048D1C0",
+        "vtableBytes": "0000000000000000507e120010081000007f1200c05d1000407e12001000100050001000",
+        "vtableFileOffset": 3723840,
+        "objectSlots": [
+          "00127E50",
+          "00100810",
+          "00127F00",
+          "00105DC0",
+          "00127E40",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    },
+    {
+      "className": "spBoxBV",
+      "classHash": 2068580470,
+      "base": "spBoundingVolume",
+      "pcFactory": 4752144,
+      "ps2Factory": 1215488,
+      "pcRecord": 7739440,
+      "ps2Record": 4879888,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 45.0
+        },
+        {
+          "platform": "ps2",
+          "score": 25.0
+        }
+      ],
+      "pc": {
+        "objectVtable": "006EC308",
+        "vtableBytes": "707c4800007a5b007083480020314100e07a48005083400070834000",
+        "vtableFileOffset": 3060488,
+        "objectSlots": [
+          "00487C70",
+          "005B7A00",
+          "00488370",
+          "00413120",
+          "00487AE0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      },
+      "ps2": {
+        "objectVtable": "0048D1F0",
+        "vtableBytes": "00000000000000004088120010081000208a1200c05d1000107f12001000100050001000",
+        "vtableFileOffset": 3723888,
+        "objectSlots": [
+          "00128840",
+          "00100810",
+          "00128A20",
+          "00105DC0",
+          "00127F10",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    },
+    {
+      "className": "spCapsuleBV",
+      "classHash": 825207744,
+      "base": "spBoundingVolume",
+      "pcFactory": 4752592,
+      "ps2Factory": 1218816,
+      "pcRecord": 7739536,
+      "ps2Record": 4879984,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EC334",
+        "vtableBytes": "80854800007a5b003085480020314100608448005083400070834000",
+        "vtableFileOffset": 3060532,
+        "objectSlots": [
+          "00488580",
+          "005B7A00",
+          "00488530",
+          "00413120",
+          "00488460",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 120,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spCapsuleBV-run1.json",
+          "sha256": "7291D7653ECFA732CD04852002EDE5E4DF489B2027AF76A9BFFAE86FE702B520"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-initial.py",
+          "sha256": "44AEA65722A238C23CA9D89F1685545D67D8060A793C21484BC9240E886EED24"
+        },
+        "initialBytes": "34c36e00000000000000cccc000000000000000003000000000000000000000000000000000000000000803f0000803f0000803f0000000000000000000000000000803f0000000000000000000000000000803f00000000000000bf00000000000000000000003f00000000000000000000000000000000",
+        "remainingContextAllocations": []
+      },
+      "ps2": {
+        "objectVtable": "0048D220",
+        "vtableBytes": "00000000000000006097120010081000d0971200c05d1000308d12001000100050001000",
+        "vtableFileOffset": 3723936,
+        "objectSlots": [
+          "00129760",
+          "00100810",
+          "001297D0",
+          "00105DC0",
+          "00128D30",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 120
+      }
+    },
+    {
+      "className": "spCollisionManager",
+      "classHash": 171011790,
+      "base": "spBaseObject",
+      "pcFactory": 4550928,
+      "ps2Factory": 1208016,
+      "pcRecord": 7731992,
+      "ps2Record": 4879120,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006E6FE4",
+        "vtableBytes": "c0714500007a5b0070714500e0ec4000506d45005083400070834000",
+        "vtableFileOffset": 3039204,
+        "objectSlots": [
+          "004571C0",
+          "005B7A00",
+          "00457170",
+          "0040ECE0",
+          "00456D50",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 6032,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spCollisionManager-run1.json",
+          "sha256": "FEAB18DD48B5DED6EE745EF060F96C237891C787720330297052F4D5E099D03B"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-initial.py",
+          "sha256": "44AEA65722A238C23CA9D89F1685545D67D8060A793C21484BC9240E886EED24"
+        },
+        "initialBytes": "e46f6e00000000000000cccc00000000e06f6e00cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000cccccccc00000000000000000000000000000000",
+        "remainingContextAllocations": []
+      },
+      "ps2": {
+        "objectVtable": "0048D170",
+        "vtableBytes": "0000000000000000706c120010081000106e120020031000804c12001000100050001000",
+        "vtableFileOffset": 3723760,
+        "objectSlots": [
+          "00126C70",
+          "00100810",
+          "00126E10",
+          "00100320",
+          "00124C80",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 6032
+      }
+    },
+    {
+      "className": "spConstraint",
+      "classHash": 2261608320,
+      "base": "spBaseObject",
+      "pcFactory": 0,
+      "ps2Factory": null,
+      "pcRecord": 7739728,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EC380",
+        "vtableBytes": "30b54800007a5b00f01b4a00e0ec400050b348005083400070834000",
+        "vtableFileOffset": 3060608,
+        "objectSlots": [
+          "0048B530",
+          "005B7A00",
+          "004A1BF0",
+          "0040ECE0",
+          "0048B350",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    },
+    {
+      "className": "spConstraintSystem",
+      "classHash": 1081232390,
+      "base": "spBaseObject",
+      "pcFactory": 4756432,
+      "ps2Factory": null,
+      "pcRecord": 7739632,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006E7070",
+        "vtableBytes": "c08d4500007a5b0040944800e0ec4000b08d45005083400070834000",
+        "vtableFileOffset": 3039344,
+        "objectSlots": [
+          "00458DC0",
+          "005B7A00",
+          "00489440",
+          "0040ECE0",
+          "00458DB0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 16,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spConstraintSystem-run1.json",
+          "sha256": "08F495E1CD53036A444AAB96CBAF67A3377E8F36C06170BD7ACD02DFC0AEC2BA"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-initial.py",
+          "sha256": "44AEA65722A238C23CA9D89F1685545D67D8060A793C21484BC9240E886EED24"
+        },
+        "initialBytes": "70706e00000000000000cccc00000000",
+        "remainingContextAllocations": []
+      }
+    },
+    {
+      "className": "spContactConstraint",
+      "classHash": 70597587,
+      "base": "spConstraint",
+      "pcFactory": 4766960,
+      "ps2Factory": null,
+      "pcRecord": 7739824,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006E7090",
+        "vtableBytes": "c08e4500007a5b0060bd4800e0ec4000408f45005083400070834000",
+        "vtableFileOffset": 3039376,
+        "objectSlots": [
+          "00458EC0",
+          "005B7A00",
+          "0048BD60",
+          "0040ECE0",
+          "00458F40",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 228,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spContactConstraint-run2.json",
+          "sha256": "A78411EE6E093BD4E94AED6D72E68B5EEA01E4D68652BF6CF9E844FB9FF480C2"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-memory-run2.py",
+          "sha256": "4EB8D5259915526B735F429595AE864012D0F6F3FDDC799E340D6F7804D9D046"
+        },
+        "initialBytes": "90706e00000000000000cccc00000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "remainingContextAllocations": [
+          {
+            "address": 822083856,
+            "bytes": 132,
+            "freed": false,
+            "firstWord": "006E70BC"
+          },
+          {
+            "address": 822084256,
+            "bytes": 8,
+            "freed": false,
+            "firstWord": "31000020"
+          }
+        ]
+      }
+    },
+    {
+      "className": "spConvexBV",
+      "classHash": 466375458,
+      "base": "spBoundingVolume",
+      "pcFactory": 4708576,
+      "ps2Factory": 1220528,
+      "pcRecord": 7737880,
+      "ps2Record": 4880176,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EAC88",
+        "vtableBytes": "60da4700007a5b0050d9470020314100d0d847005083400070834000",
+        "vtableFileOffset": 3054728,
+        "objectSlots": [
+          "0047DA60",
+          "005B7A00",
+          "0047D950",
+          "00413120",
+          "0047D8D0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 48,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spConvexBV-run1.json",
+          "sha256": "BB2C7326F169611EAC598CF7797A8374C6CA650B4157D9A5E01F58C42DA41AC0"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-initial.py",
+          "sha256": "44AEA65722A238C23CA9D89F1685545D67D8060A793C21484BC9240E886EED24"
+        },
+        "initialBytes": "88ac6e00000000000000cccc000000000000000006000000000000000000000000000000000000000000000000000000",
+        "remainingContextAllocations": []
+      },
+      "ps2": {
+        "objectVtable": "0048D280",
+        "vtableBytes": "0000000000000000509e120010081000d09e1200c05d1000e09d12001000100050001000",
+        "vtableFileOffset": 3724032,
+        "objectSlots": [
+          "00129E50",
+          "00100810",
+          "00129ED0",
+          "00105DC0",
+          "00129DE0",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 48
+      }
+    },
+    {
+      "className": "spMeshBV",
+      "classHash": 1061502439,
+      "base": "spBoundingVolume",
+      "pcFactory": 4698096,
+      "ps2Factory": 1233440,
+      "pcRecord": 7736672,
+      "ps2Record": 4880272,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 60.0
+        },
+        {
+          "platform": "ps2",
+          "score": 25.0
+        }
+      ],
+      "pc": {
+        "objectVtable": "006EAAB0",
+        "vtableBytes": "a0b04700007a5b0050b0470020314100f0a047005083400070834000",
+        "vtableFileOffset": 3054256,
+        "objectSlots": [
+          "0047B0A0",
+          "005B7A00",
+          "0047B050",
+          "00413120",
+          "0047A0F0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      },
+      "ps2": {
+        "objectVtable": "0048D2B0",
+        "vtableBytes": "000000000000000080cf12001008100060d11200c05d100020a012001000100050001000",
+        "vtableFileOffset": 3724080,
+        "objectSlots": [
+          "0012CF80",
+          "00100810",
+          "0012D160",
+          "00105DC0",
+          "0012A020",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    },
+    {
+      "className": "spOBBBV",
+      "classHash": 1302349961,
+      "base": "spBoundingVolume",
+      "pcFactory": 4749760,
+      "ps2Factory": 1246544,
+      "pcRecord": 7739344,
+      "ps2Record": 4881312,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 45.0
+        },
+        {
+          "platform": "ps2",
+          "score": 25.0
+        }
+      ],
+      "pc": {
+        "objectVtable": "006EC2D8",
+        "vtableBytes": "904c4800007a5b00207a480020314100d04948005083400070834000",
+        "vtableFileOffset": 3060440,
+        "objectSlots": [
+          "00484C90",
+          "005B7A00",
+          "00487A20",
+          "00413120",
+          "004849D0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      },
+      "ps2": {
+        "objectVtable": "0048D2E0",
+        "vtableBytes": "0000000000000000c00213001008100090041300c05d1000c0d212001000100050001000",
+        "vtableFileOffset": 3724128,
+        "objectSlots": [
+          "001302C0",
+          "00100810",
+          "00130490",
+          "00105DC0",
+          "0012D2C0",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    },
+    {
+      "className": "spPhysicsManager",
+      "classHash": 1131151105,
+      "base": "spBaseObject",
+      "pcFactory": 4562688,
+      "ps2Factory": null,
+      "pcRecord": 7732184,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006E70BC",
+        "vtableBytes": "e09e4500007a5b00609f4500e0ec4000f09d45005083400070834000",
+        "vtableFileOffset": 3039420,
+        "objectSlots": [
+          "00459EE0",
+          "005B7A00",
+          "00459F60",
+          "0040ECE0",
+          "00459DF0",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 132,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spPhysicsManager-run1.json",
+          "sha256": "644B2095A98669775C067D7FF7109AC190FA7F38CC347B7BF931D9DCF1A37D3B"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-initial.py",
+          "sha256": "44AEA65722A238C23CA9D89F1685545D67D8060A793C21484BC9240E886EED24"
+        },
+        "initialBytes": "bc706e00000000000000cccc00000000b8706e000000000000000000000000000000cccc01000000cccccccc000000000000000000000000cccccccc000000000000000000000000cccccccc00000000000000000000000070706e00000000000000cccc0000000000000000000000000000c842000075c400000000cdcc4c3eacc52737",
+        "remainingContextAllocations": []
+      }
+    },
+    {
+      "className": "spRigidBody",
+      "classHash": 1991966329,
+      "base": "spBaseObject",
+      "pcFactory": 4831936,
+      "ps2Factory": null,
+      "pcRecord": 7744848,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006ED450",
+        "vtableBytes": "a0ba4900007a5b0020bb4900e0ec400080b849005083400070834000",
+        "vtableFileOffset": 3064912,
+        "objectSlots": [
+          "0049BAA0",
+          "005B7A00",
+          "0049BB20",
+          "0040ECE0",
+          "0049B880",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods",
+        "allocationBytes": 312,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/pc-spRigidBody-run2.json",
+          "sha256": "4FCE574CE25D37353763031C1322FFC3E7B8BFCA92EB9951AE027FCC5F94768A"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/physics-family/probe-pc-lifecycle-memory-run2.py",
+          "sha256": "4EB8D5259915526B735F429595AE864012D0F6F3FDDC799E340D6F7804D9D046"
+        },
+        "initialBytes": "50d46e00000000000000cccc0000000000000000cccccccccccccccccccccccccccccccccccccccc0000803f0000000000000000000000000000803f0000000000000000000000000000803f0000803f0000000000000000000000000000803f0000000000000000000000000000803f0000000001cccccc00000000cccccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000803f00000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000803f0000000000000000000000000000803f0000000000000000000000000000803f0000803f0000000000000000000000000000803f0000000000000000000000000000803f",
+        "remainingContextAllocations": [
+          {
+            "address": 822083936,
+            "bytes": 132,
+            "freed": false,
+            "firstWord": "006E70BC"
+          },
+          {
+            "address": 822084416,
+            "bytes": 8,
+            "freed": false,
+            "firstWord": "31000020"
+          }
+        ]
+      }
+    },
+    {
+      "className": "spSphereBV",
+      "classHash": 956909266,
+      "base": "spBoundingVolume",
+      "pcFactory": 4662352,
+      "ps2Factory": 1250112,
+      "pcRecord": 7735040,
+      "ps2Record": 4881408,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 45.0
+        },
+        {
+          "platform": "ps2",
+          "score": 25.0
+        }
+      ],
+      "pc": {
+        "objectVtable": "006E8F20",
+        "vtableBytes": "50224700007a5b00b024470020314100802047005083400070834000",
+        "vtableFileOffset": 3047200,
+        "objectSlots": [
+          "00472250",
+          "005B7A00",
+          "004724B0",
+          "00413120",
+          "00472080",
+          "00408350",
+          "00408370"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      },
+      "ps2": {
+        "objectVtable": "0048D310",
+        "vtableBytes": "0000000000000000101113001008100020121300c05d1000400913001000100050001000",
+        "vtableFileOffset": 3724176,
+        "objectSlots": [
+          "00131110",
+          "00100810",
+          "00131220",
+          "00105DC0",
+          "00130940",
+          "00100010",
+          "00100050"
+        ],
+        "scope": "First seven object slots;no adjacent unproved words attributed as virtual methods"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/catalog-family.json",
+      "sha256": "76DD4CFB49D877E92EC940180CA7266B8694A5968FB6E9FDFBDB9C38465B7157"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/factories/capture.json",
+      "sha256": "62BF2664E1347A3B03F54F215A182864663FEF9B4F99E0EEBEDB65AA5BFEF8EA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/getter-candidates-run1.json",
+      "sha256": "79476A88D2AA93A193C1B2C43CF4F0F4D4B23FBF06107D08A31473634FE0100C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/base-construction/capture.json",
+      "sha256": "BFD030CFA877A60FFBAC4FB92A03FFC689E95459063D9A77666789AF8C9AC46A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/state-protocol/capture.json",
+      "sha256": "8E3F4C097092A26DBCA4973FC0653567C0A53D7C69B70EAACFA0C77BDD6F3D60"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/ownership/capture.json",
+      "sha256": "6723E3B163338551FD1DF19E8EB5462B0E8F5D9EAA4941047CAC02EEF0C6EA01"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/physical-parents/capture.json",
+      "sha256": "37C1B2DFA4679F5CD52D28FC79E6B86241EA1CF774E8A16E0FD7FC7887EEC8BD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/contracts-run1.json",
+      "sha256": "1A3BDAA762FDFE31263A24385B1D841EEB1315E5132A040A06DFEEB218FCC2B5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/physics-family/contracts-run2.json",
+      "sha256": "D84402A4E1402BE949ABB4B8BF4A238806C3AC0521D15FBAF4A6EC74A1775347"
+    }
+  ],
+  "counts": {
+    "names": 13,
+    "pcClasses": 13,
+    "ps2Classes": 8,
+    "newPcLifetimes": 7,
+    "newPcClassOperations": 35,
+    "pcOwnershipCases": 3,
+    "pcGeometryCloneCases": 2,
+    "ps2GetterCases": 8,
+    "ps2NullCloneCases": 1,
+    "ps2ConstructorPrefixCases": 3,
+    "priorBvAssessmentsUnchanged": 8
+  },
+  "ps2BoundingPhysicalParent": {
+    "constructor": "00127EC0",
+    "parentConstructor": "00105F60",
+    "parent": "spNamedObject",
+    "parentVtable": "0048C690",
+    "vtableBytes": "0000000000000000e05e100010081000a05f1000c05d1000b05d10001000100050001000",
+    "vtableFileOffset": 3720976,
+    "getter": "00105DB0",
+    "getterBytes": "4a00023c0800e003c0024224",
+    "getterFileOffset": 24112,
+    "record": 4850368,
+    "catalog": {
+      "path": "local-data/results/native-cycle-20260910-1900/catalog/ps2-architecture.json",
+      "sha256": "9C7938780B7C2C30B5D948662FF5F2503A0B33AEFCC51E62214577D22C93C886"
+    },
+    "scope": "Registered parent remains spBaseObject;physical Named constructor is proved independently. PC physical Named path was already recorded in the older collision-core dossier."
+  },
+  "ownership": {
+    "managerBytes": 132,
+    "globalAddress": "0075DB80",
+    "bodyVectorBeginEndLimit": [
+      "2C",
+      "30",
+      "34"
+    ],
+    "constraintVectorBeginEndLimit": [
+      "3C",
+      "40",
+      "44"
+    ],
+    "observedByte21": "RigidBody construction writes1;unchanged by deletion. Semantic name not inferred.",
+    "scope": "Actual construction and deletion;stable order with middle/end removal;manager disposal frees buffers and clears global. Attached body/constraint graphs and solver remain open."
+  },
+  "limitsAndCorrections": [
+    "Contact/RigidBody initial delete reached genuine MSVCR71.memmove IAT6D9300. Existing shared bounded CRT memory fixture made fresh run2 pass;no engine algorithm replaced.",
+    "Initial combined prefix probe mapped GP inputs starting4A0000 and missed GP-496C=49F804. Run2 maps the declared6-page data range49F000..4A5000;all three ownership/two clone/twelve PS2 cases pass. Original failed report/source preserved.",
+    "The scout window called pc-constraint-constructor-entry at48B290 starts in preceding math code,not a proven constructor. It contributes no class method attribution. Other linear windows also contain adjacent/protected code;only exact entries,tables and guarded executions support claims.",
+    "Capsule/Convex PC populated geometry Clone retains own factory fields. PS2 common virtual Named copy and constructor defaults are independently established,but a complete populated PS2 Clone was not executed.",
+    "PC BoundingVolume previously researched physical Named/bounds behavior receives a first ledger row as reviewed-existing;this is not new discovery credit. Four other BV class scores on each platform remain unchanged."
+  ]
+}
