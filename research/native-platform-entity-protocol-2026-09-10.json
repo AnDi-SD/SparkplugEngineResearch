@@ -1,0 +1,849 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-entity-protocol-2026-09-10T09:46:15Z",
+  "createdUtc": "2026-09-10T09:46:15Z",
+  "notes": "Original entity ownership/flags/copy/handoff contracts;separate constructor chain and RTTI. Five PS2 distance comparison tails exclude accumulator math. Correct earlier handoff wording and PC manager table annotation without rewriting historical hashed dossiers.",
+  "assessments": [
+    {
+      "className": "spEntity",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 25,
+      "upperBound": 50,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/pc-spEntity-run1.json",
+          "sourceSha256": "FE6C370A93C04CDF36AEA070D7D55FC37458342E9016A4B21CE005F8640AA529",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/probe_pc_family_lifecycle-run1.py",
+          "sourceSha256": "6CED02429DA965264508399B9CC53843C32305BC3524C5FB09483DB68DF34045",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/reference-run1.json",
+          "sourceSha256": "13C19159749946E161FC8DE35E9EB4F1D62CFF99EEE22160B7BC013ABDA8E36E",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-run1.json",
+          "sourceSha256": "DA9D6FEBFBC01339AE0828C0A4751CA0B8392E8BA8BC15DE971F3C72CD679E50",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First35: original factory40-byte/RTTI/clone/two teardowns,10 reference-assignment cases with actual Node destructors,engine-list placement. Only+18 receiver field changes;uint16 counts,identity no-op,delete-before-new-retain."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "spEntity",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/factory-windows/capture.json",
+          "sourceSha256": "C6D0BAAF1EECECBD7683F816ADD333383D129ADC0D14DD4F36249DD762DBF58A",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/factory-extension-window/capture.json",
+          "sourceSha256": "F6BB83079B82A467E2CBDD2CB70E0E924D4F59F46EA4BB5BDE39F80E873C0896",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/getter-identity-window/capture.json",
+          "sourceSha256": "DD9FFF443D99894F71705028C5396E62F537F69089FF9FF3587F7A453EA48B98",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-core/factory-extension-label-correction.json",
+          "sourceSha256": "F1EDDB79DD23DB126862D58099289847554800A5938CC1F761AB78F34C3C5EBC",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/reference-run1.json",
+          "sourceSha256": "13C19159749946E161FC8DE35E9EB4F1D62CFF99EEE22160B7BC013ABDA8E36E",
+          "locator": "spEntity independent original entity protocol",
+          "observation": "First30: independent inline factory40-byte layout/identity,10 original setter prefixes;8 complete effects before restore,2 exact destructor entries. No substituted destructor return."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "wxEntity",
+      "platformKey": "pc",
+      "coverageScore": 40,
+      "lowerBound": 30,
+      "upperBound": 55,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/common-run1.json",
+          "sourceSha256": "8CD8A9F04826516C70375837AA6CDACA1B72011B09C016A5E690BD768FC04951",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-run1.json",
+          "sourceSha256": "DA9D6FEBFBC01339AE0828C0A4751CA0B8392E8BA8BC15DE971F3C72CD679E50",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-direct-family-2026-09-10.md",
+          "sourceSha256": "2B62BB8E0710178A82ED305D9AB8307568A85ABB98DDEFBF1BBED3074F2F2F41",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/entity-direct-construction-contracts-2026-09-10.json",
+          "sourceSha256": "C55104A1ED46C03FC73B23581AD3F8BCE32B8D827A9F379E2D92575D5A8D2CD3",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/pc-wxEntity-run1.json",
+          "sourceSha256": "517DDC335D97EDE8F985B9F258020AD3A44A05E9DB5CCD9CA2A7FAC9C9C29594",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/probe_pc_family_lifecycle-run1.py",
+          "sourceSha256": "8AD52D088108338B75109D7FE0DAAAD7737A0EA62F27C3D5A5DF9B134D214110",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/source-library-snapshot/pc_block_emulator.py",
+          "sourceSha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/source-library-snapshot/pc_instruction_emulator.py",
+          "sourceSha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/source-library-snapshot/probe_pc_task_timer.py",
+          "sourceSha256": "5C25282D4A764C6F8401E0A48907455CB20DA3E0CA9ECDA5290F89548D5E75CA",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/source-library-snapshot/probe_pc_animation_lifecycle.py",
+          "sourceSha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "20->40: modified-source own copy copies bytes28/38/39 and word3C only;cached predicates short-circuit,flagsFFFFFF00|2|8|10,sentinel skips distance;finite distance thresholds and PC-only quiet-NaN result.24 cases across PC operations;original manager handoff verified."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "wxEntity",
+      "platformKey": "ps2",
+      "coverageScore": 35,
+      "lowerBound": 25,
+      "upperBound": 50,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/common-run1.json",
+          "sourceSha256": "8CD8A9F04826516C70375837AA6CDACA1B72011B09C016A5E690BD768FC04951",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/flags-copy-windows/capture.json",
+          "sourceSha256": "13AB5C24A1A3C282AB33CB51DA9956D2EC4A5D5DCB088C01BE9A45D5D71DA163",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-direct-family-2026-09-10.md",
+          "sourceSha256": "2B62BB8E0710178A82ED305D9AB8307568A85ABB98DDEFBF1BBED3074F2F2F41",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/entity-direct-construction-contracts-2026-09-10.json",
+          "sourceSha256": "C55104A1ED46C03FC73B23581AD3F8BCE32B8D827A9F379E2D92575D5A8D2CD3",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/ps2-factories/capture.json",
+          "sourceSha256": "F9D42DFB13B9497ED593EE85FCE423F12A10A72B0F59A163EEB282D5B091FADF",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/ps2-constructors/capture.json",
+          "sourceSha256": "3B6EAB40B5E274001EB62A2C115E7D3FBCADF5ECF6D0EF33068544A5C8FE9CF1",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/ps2-constructor-map.json",
+          "sourceSha256": "4D331880AB20382FE98F630A9798166C0F1B2DD98B2F0261049514AF654416FA",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-direct/ps2-vtable-candidates.json",
+          "sourceSha256": "6DE162ADDE4F0DFACAD7E691B429BA64B628A902B3B3CC40782783FC4B69CB93",
+          "locator": "wxEntity independent original entity protocol",
+          "observation": "15->35: own copy prefix and cached flags/timer predicates match PC in18 cases. Five independent finite comparison tails only;R5900 COP1 accumulation NOT executed. Separate original engine-remove/game-add constructor path."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "spEntityManager",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 60,
+      "upperBound": 85,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-run1.json",
+          "sourceSha256": "DA9D6FEBFBC01339AE0828C0A4751CA0B8392E8BA8BC15DE971F3C72CD679E50",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-sp-entity-manager.md",
+          "sourceSha256": "9FF232F8B88808295DC8286BC66045D2C0B99A12B331D45CF7136B0A2F42299B",
+          "locator": "spEntityManager independent original entity protocol",
+          "observation": "65->70: actual original nested factory requests32 bytes and stores vtable6DC460,correcting old neighboring table label6DC458. Observe real engine add/remove and list contents around both spEntity and wxEntity factory/teardown;no full live mutation closure."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "wxEntityManager",
+      "platformKey": "pc",
+      "coverageScore": 15,
+      "lowerBound": 5,
+      "upperBound": 30,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-run1.json",
+          "sourceSha256": "DA9D6FEBFBC01339AE0828C0A4751CA0B8392E8BA8BC15DE971F3C72CD679E50",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-identity-windows/capture.json",
+          "sourceSha256": "B04183BF13D13B97F7EE8C7C8D56EA257775CFE8DCB82041E984435D6D253D65",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-constructor-windows/capture.json",
+          "sourceSha256": "DD4D45CBECE0BFDABA4595B644EE4FEC4455ECC6E9256233AF04D2171913B40C",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: actual nested original factory24056-byte/vtable70069C/getter574610/registration754608. Original append game-list entry574890,actual pointer list after factory and empty after entity teardown. Own clone/full lifetime and processing/binding not closed."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    },
+    {
+      "className": "wxEntityManager",
+      "platformKey": "ps2",
+      "coverageScore": 15,
+      "lowerBound": 5,
+      "upperBound": 30,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-entity-reference-flags-2026-09-10.md",
+          "sourceSha256": "E3869E0FFC924BAAE3BED5C326CD2FFD3CE629859DD9CDB6203247207A72C194",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/base-method-windows/capture.json",
+          "sourceSha256": "52FB68D4F046CF9DF184DF7DFEA8FC06E44D4E98A08526F9CA0A9D879E5210E0",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/handoff-identity-windows/capture.json",
+          "sourceSha256": "F236EB5EA49376FD31AEB1B0C9B9E826B5B074C74AE885540484855FC4D64C24",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_reference_assignment.py",
+          "sourceSha256": "00D8DA37F7B6B84EA0E0FEC296EAAD1BF7BE1988FE5BC553C1537EF4AD5A8BEA",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_wx_entity_common_methods.py",
+          "sourceSha256": "CBC6F6322D7D3C3976A464172E2A5D414EDB7BDD94B0993E857F586F828A330B",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/probe_entity_manager_handoff.py",
+          "sourceSha256": "8A44EA98878838F5934A2DD0BF1D51F1AF06A8563CE8FB62675A2FE900ACBF7E",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/ps2_scalar_prefix.py",
+          "sourceSha256": "06B2B49962D4B338B2CC4C6FED6079BAC774C1F6881FB385F3ED76B3603552FE",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/source-snapshot/test_ps2_scalar_prefix.py",
+          "sourceSha256": "88AE03B7F27BEDBF2C15C85233E504AE66A0D5DC1A043CFA21F3AB0327E58A52",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/prefix-wrapper-verification.json",
+          "sourceSha256": "0FF1608A351B1841FA47C4EAA2BB9ED12C838B5611D05564DB54D77FE15208F9",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-predicate-windows/capture.json",
+          "sourceSha256": "11C709E966E0C8762B2B6B71E1F56B183E53BD544AB11A7E75E775D224C215C6",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-identity-windows/capture.json",
+          "sourceSha256": "B04183BF13D13B97F7EE8C7C8D56EA257775CFE8DCB82041E984435D6D253D65",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/game-manager-constructor-windows/capture.json",
+          "sourceSha256": "DD4D45CBECE0BFDABA4595B644EE4FEC4455ECC6E9256233AF04D2171913B40C",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/entity-protocol/manager-handoff-windows/capture.json",
+          "sourceSha256": "2DC8BC82EA8A686CD5DC076477E7FDAF1D5846FF7E1544CC116010ABE250A840",
+          "locator": "wxEntityManager independent original entity protocol",
+          "observation": "First15: independent factory3E7C60 requests15948 bytes;ctor2897A0/table495AC0/getter3F88A0/record4CB3F0 and game-list append289600 reviewed statically. PC layout and array capacities not projected onto PS2."
+        }
+      ],
+      "unknowns": [
+        "Normal entity+24 producer,binding and full scene manager processing,cached-list construction,derived copy/lifetimes and full PS2 accumulator behavior remain open. Literal prefix preparation does not establish game startup or all runtime paths."
+      ]
+    }
+  ]
+}
