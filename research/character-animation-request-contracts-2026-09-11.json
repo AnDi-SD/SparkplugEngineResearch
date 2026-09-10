@@ -1,0 +1,732 @@
+{
+  "kind": "original-character-state-animation-request-contracts",
+  "schemaVersion": 1,
+  "classes": [
+    {
+      "className": "wxActionState",
+      "pcEntry": "00518F90",
+      "ps2Entry": "002C6B50",
+      "ps2Start": "002C6B74",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T3": 0,
+        "V1": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2911060,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 2911068,
+          "bytes": "00590200",
+          "text": "sll $t3, $v0, 4"
+        },
+        {
+          "va": 2911076,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 2911084,
+          "bytes": "1f000330",
+          "text": "andi $v1, $zero, 0x1f"
+        }
+      ],
+      "pcMask": 4027056015,
+      "pcBits": 0,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F8D30",
+      "ps2Vtable": "0049A080"
+    },
+    {
+      "className": "wxDateIdleState",
+      "pcEntry": "005240C0",
+      "ps2Entry": "00310BD0",
+      "ps2Start": "00310BF4",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T3": 0,
+        "T1": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3214292,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        },
+        {
+          "va": 3214300,
+          "bytes": "c0590200",
+          "text": "sll $t3, $v0, 7"
+        },
+        {
+          "va": 3214308,
+          "bytes": "0f000230",
+          "text": "andi $v0, $zero, 0xf"
+        },
+        {
+          "va": 3214316,
+          "bytes": "c04b0200",
+          "text": "sll $t1, $v0, 0xf"
+        }
+      ],
+      "pcMask": 4286578777,
+      "pcBits": 89,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006FA148",
+      "ps2Vtable": "00498FA0"
+    },
+    {
+      "className": "wxDateTalkingState",
+      "pcEntry": "005242A0",
+      "ps2Entry": "003110A0",
+      "ps2Start": "003110C4",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T5": 0,
+        "T1": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3215524,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3215532,
+          "bytes": "00690200",
+          "text": "sll $t5, $v0, 4"
+        },
+        {
+          "va": 3215540,
+          "bytes": "0f000230",
+          "text": "andi $v0, $zero, 0xf"
+        },
+        {
+          "va": 3215548,
+          "bytes": "c04b0200",
+          "text": "sll $t1, $v0, 0xf"
+        }
+      ],
+      "pcMask": 4286582281,
+      "pcBits": 3593,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006FA1D8",
+      "ps2Vtable": "00498F00"
+    },
+    {
+      "className": "wxDroidInactiveState",
+      "pcEntry": "00523E50",
+      "ps2Entry": "00312760",
+      "ps2Start": "00312784",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T5": 0,
+        "T3": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3221348,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3221356,
+          "bytes": "00690200",
+          "text": "sll $t5, $v0, 4"
+        },
+        {
+          "va": 3221364,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        },
+        {
+          "va": 3221372,
+          "bytes": "c0590200",
+          "text": "sll $t3, $v0, 7"
+        }
+      ],
+      "pcMask": 4027023363,
+      "pcBits": 3,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006FA0B0",
+      "ps2Vtable": "00499040"
+    },
+    {
+      "className": "wxFlyingState",
+      "pcEntry": "00518520",
+      "ps2Entry": "002CCAE0",
+      "ps2Start": "002CCB04",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T2": 18446744073709551600,
+        "T3": 1,
+        "T0": 18446744073709551519
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2935524,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 2935532,
+          "bytes": "f0ff0a24",
+          "text": "addiu $t2, $zero, -0x10"
+        },
+        {
+          "va": 2935540,
+          "bytes": "01000b64",
+          "text": "daddiu $t3, $zero, 1"
+        },
+        {
+          "va": 2935548,
+          "bytes": "9fff0824",
+          "text": "addiu $t0, $zero, -0x61"
+        }
+      ],
+      "pcMask": 4027056113,
+      "pcBits": 1,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F8B40",
+      "ps2Vtable": "0049A210"
+    },
+    {
+      "className": "wxIceWormAttackState",
+      "pcEntry": "005195A0",
+      "ps2Entry": "002EC5F0",
+      "ps2Start": "002EC614",
+      "ps2InitialConstants": {
+        "V0": 18446744073709027328,
+        "V1": 0,
+        "A2": 18446744073709060095,
+        "A3": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3065332,
+          "bytes": "f8ff023c",
+          "text": "lui $v0, 0xfff8"
+        },
+        {
+          "va": 3065340,
+          "bytes": "0f000330",
+          "text": "andi $v1, $zero, 0xf"
+        },
+        {
+          "va": 3065348,
+          "bytes": "ff7f4634",
+          "text": "ori $a2, $v0, 0x7fff"
+        },
+        {
+          "va": 3065356,
+          "bytes": "c03b0300",
+          "text": "sll $a3, $v1, 0xf"
+        }
+      ],
+      "pcMask": 4288184287,
+      "pcBits": 80,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F8E10",
+      "ps2Vtable": "00499F90"
+    },
+    {
+      "className": "wxLadderSlideState",
+      "pcEntry": "00516540",
+      "ps2Entry": "002CEEC0",
+      "ps2Start": "002CEEE4",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "A3": 0,
+        "T5": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2944708,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        },
+        {
+          "va": 2944716,
+          "bytes": "c0390200",
+          "text": "sll $a3, $v0, 7"
+        },
+        {
+          "va": 2944724,
+          "bytes": "0f000230",
+          "text": "andi $v0, $zero, 0xf"
+        },
+        {
+          "va": 2944732,
+          "bytes": "c06b0200",
+          "text": "sll $t5, $v0, 0xf"
+        }
+      ],
+      "pcMask": 4034920495,
+      "pcBits": 8388640,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F8658",
+      "ps2Vtable": "0049A580"
+    },
+    {
+      "className": "wxMikaelOpenGateState",
+      "pcEntry": "005A7EF0",
+      "ps2Entry": "003140A0",
+      "ps2Start": "003140C4",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "A2": 0,
+        "T5": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3227812,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3227820,
+          "bytes": "00310200",
+          "text": "sll $a2, $v0, 4"
+        },
+        {
+          "va": 3227828,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        },
+        {
+          "va": 3227836,
+          "bytes": "c0690200",
+          "text": "sll $t5, $v0, 7"
+        }
+      ],
+      "pcMask": 4043309056,
+      "pcBits": 16777216,
+      "pcBytes": 68,
+      "ps2Bytes": 68,
+      "pcVtable": "00706AE8",
+      "ps2Vtable": "004938E0"
+    },
+    {
+      "className": "wxMikaelWaitingState",
+      "pcEntry": "005A82A0",
+      "ps2Entry": "00314920",
+      "ps2Start": "00314944",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "A2": 0,
+        "T5": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3229988,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3229996,
+          "bytes": "00310200",
+          "text": "sll $a2, $v0, 4"
+        },
+        {
+          "va": 3230004,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        },
+        {
+          "va": 3230012,
+          "bytes": "c0690200",
+          "text": "sll $t5, $v0, 7"
+        }
+      ],
+      "pcMask": 4034920448,
+      "pcBits": 8388608,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "00706BA8",
+      "ps2Vtable": "00493930"
+    },
+    {
+      "className": "wxMissileState",
+      "pcEntry": "005189A0",
+      "ps2Entry": "002CF810",
+      "ps2Start": "002CF834",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "A3": 0,
+        "V1": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2947092,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 2947100,
+          "bytes": "40390200",
+          "text": "sll $a3, $v0, 5"
+        },
+        {
+          "va": 2947108,
+          "bytes": "1f000230",
+          "text": "andi $v0, $zero, 0x1f"
+        },
+        {
+          "va": 2947116,
+          "bytes": "c0190200",
+          "text": "sll $v1, $v0, 7"
+        }
+      ],
+      "pcMask": 4028628977,
+      "pcBits": 1,
+      "pcBytes": 64,
+      "ps2Bytes": 64,
+      "pcVtable": "006F8BE0",
+      "ps2Vtable": "0049A170"
+    },
+    {
+      "className": "wxOpenGateState",
+      "pcEntry": "005A7800",
+      "ps2Entry": "002D03C0",
+      "ps2Start": "002D03E4",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T3": 0,
+        "V1": 18446744073709551600
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2950084,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 2950092,
+          "bytes": "00590200",
+          "text": "sll $t3, $v0, 4"
+        },
+        {
+          "va": 2950100,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 2950108,
+          "bytes": "f0ff0324",
+          "text": "addiu $v1, $zero, -0x10"
+        }
+      ],
+      "pcMask": 4287072896,
+      "pcBits": 2688,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "007069D0",
+      "ps2Vtable": "00493650"
+    },
+    {
+      "className": "wxReadingState",
+      "pcEntry": "0051AA80",
+      "ps2Entry": "002D2A30",
+      "ps2Start": "002D2A54",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T5": 0,
+        "T3": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 2959924,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 2959932,
+          "bytes": "00690200",
+          "text": "sll $t5, $v0, 4"
+        },
+        {
+          "va": 2959940,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 2959948,
+          "bytes": "c0580200",
+          "text": "sll $t3, $v0, 3"
+        }
+      ],
+      "pcMask": 4027025664,
+      "pcBits": 2304,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F92A0",
+      "ps2Vtable": "00499BD0"
+    },
+    {
+      "className": "wxShadowBeastDefenseState",
+      "pcEntry": "005234A0",
+      "ps2Entry": "0030F8D0",
+      "ps2Start": "0030F8F4",
+      "ps2InitialConstants": {
+        "V1": 18446744073709027328,
+        "A3": 0,
+        "V0": 0,
+        "T7": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3209428,
+          "bytes": "f8ff033c",
+          "text": "lui $v1, 0xfff8"
+        },
+        {
+          "va": 3209436,
+          "bytes": "0f000730",
+          "text": "andi $a3, $zero, 0xf"
+        },
+        {
+          "va": 3209444,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3209452,
+          "bytes": "00790200",
+          "text": "sll $t7, $v0, 4"
+        }
+      ],
+      "pcMask": 4026532224,
+      "pcBits": 384,
+      "pcBytes": 68,
+      "ps2Bytes": 68,
+      "pcVtable": "006F9EF8",
+      "ps2Vtable": "00499220"
+    },
+    {
+      "className": "wxTrixAttackState",
+      "pcEntry": "00520330",
+      "ps2Entry": "00313050",
+      "ps2Start": "00313074",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T3": 0,
+        "V1": 18446744073709551600
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3223636,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3223644,
+          "bytes": "00590200",
+          "text": "sll $t3, $v0, 4"
+        },
+        {
+          "va": 3223652,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 3223660,
+          "bytes": "f0ff0324",
+          "text": "addiu $v1, $zero, -0x10"
+        }
+      ],
+      "pcMask": 4027056001,
+      "pcBits": 1,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F96F8",
+      "ps2Vtable": "004998B0"
+    },
+    {
+      "className": "wxWandringNPCWaitState",
+      "pcEntry": "005A8430",
+      "ps2Entry": "00318420",
+      "ps2Start": "00318444",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "A2": 0,
+        "T7": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3245092,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3245100,
+          "bytes": "00310200",
+          "text": "sll $a2, $v0, 4"
+        },
+        {
+          "va": 3245108,
+          "bytes": "0f000f30",
+          "text": "andi $t7, $zero, 0xf"
+        },
+        {
+          "va": 3245116,
+          "bytes": "ff000230",
+          "text": "andi $v0, $zero, 0xff"
+        }
+      ],
+      "pcMask": 4026531840,
+      "pcBits": 0,
+      "pcBytes": 68,
+      "ps2Bytes": 68,
+      "pcVtable": "00706C08",
+      "ps2Vtable": "004939F0"
+    },
+    {
+      "className": "wxYetiAttackState",
+      "pcEntry": "00519FB0",
+      "ps2Entry": "002EFAE0",
+      "ps2Start": "002EFB04",
+      "ps2InitialConstants": {
+        "V0": 0,
+        "T1": 0,
+        "A3": 0
+      },
+      "ps2ConstantProof": [
+        {
+          "va": 3078884,
+          "bytes": "07000230",
+          "text": "andi $v0, $zero, 7"
+        },
+        {
+          "va": 3078892,
+          "bytes": "00490200",
+          "text": "sll $t1, $v0, 4"
+        },
+        {
+          "va": 3078900,
+          "bytes": "03000230",
+          "text": "andi $v0, $zero, 3"
+        },
+        {
+          "va": 3078908,
+          "bytes": "40390200",
+          "text": "sll $a3, $v0, 5"
+        }
+      ],
+      "pcMask": 4028628879,
+      "pcBits": 0,
+      "pcBytes": 60,
+      "ps2Bytes": 60,
+      "pcVtable": "006F9040",
+      "ps2Vtable": "00499D60"
+    }
+  ],
+  "successfulPlatformExecutions": 198,
+  "pcSameCompleteCalls": 66,
+  "pcChangedPlaybackBoundaries": 66,
+  "ps2LookupBoundaries": 66,
+  "scope": "Fixed packed-key masks with real PC indexed lookup over borrowed search fields;full unchanged-animation calls or real playback boundary. PS2 post-SQ to actual lookup entry,with independently derived prologue constants. No changed nonzero playback or full PS2 nested transaction credit.",
+  "sources": [
+    {
+      "path": "research/character-state-construction-contracts-2026-09-10.json",
+      "sha256": "55855461552EEE6805F8D01A45F50F36B6AA7169391DB86E502C81DF2EA02B3C"
+    },
+    {
+      "path": "research/character-animation-selection-contracts-2026-09-11.json",
+      "sha256": "8802E53D51ED258609D054856E77A1CDAA1D5606AA01E790D281863A047B0DC2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-state-data/pc-v12/capture.json",
+      "sha256": "B619EC5FF3ECF50EB536D02DED35F89E1E9D90E83AA234B3DA174C78F2B2C81F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/selection.json",
+      "sha256": "A35E9F82EC864C7BEC3E76EBA477AE7473525809785FA481CC48CE85F560473B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/ps2-windows/capture.json",
+      "sha256": "D18D36CED8A5AC5A50ABE49F10F091FE2F7912E4AB507F4B097A7CA632357A1D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-selection-0.json",
+      "sha256": "0360E910BE77942C41E61326060492D7B7B72C39ED50E26CF86208148099E9C1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-selection-1.json",
+      "sha256": "065E866C58005489EBA96F1478AEBCE14613357420DCE44BF341E20AE0055D3E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/fixed-mask-selection.json",
+      "sha256": "FAFE5FB0C893F3DC33DAA24BE621B844D8841EB40BDBF39941F414F6E169F967"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/pilot-selection.json",
+      "sha256": "B868E6B7484C74DEF3F81BCEDFBCF05A432374CAC91DCC781C35FC736622461B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/pilot-run1.json",
+      "sha256": "CD2CD18C0A6C92658108FF98C209A6443E20A4A83BAAC3AA4A2A38951CB46CF7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+      "sha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+      "sha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/prepare-animation-request-cases.py",
+      "sha256": "61EAD48A22D9D56576CA11C6643F1076CC389A258CFA48AF8B3C1C84E3D518C5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/prepare-animation-request-contexts.py",
+      "sha256": "072F1E7FAC1C29C2A4EBCDB90B06FDC17EA26EAF2C2C664583F0FADBA47FE424"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/scout-character-animation-requests.py",
+      "sha256": "32CEF7E8503B740916501A6A148CD5F97A496DC1D54B0F407E627FC3F01BF6E3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/probe_character_animation_requests.py",
+      "sha256": "EBBBC57C70E870057B9B23077F85CD6D14156D89E6A64D1E0D5F5B9403257E73"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/character-animation-requests/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "70FFB69495DFC7CB979D620B507890785A456B2AB5625CBA593A2405BADA5BAF"
+    }
+  ]
+}

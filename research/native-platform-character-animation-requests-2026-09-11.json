@@ -1,0 +1,1246 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-character-animation-requests-2026-09-10T19:23:10Z",
+  "createdUtc": "2026-09-10T19:23:10Z",
+  "notes": "16 new v12 class qualifications,+5 independently PC/PS2.198 passed executions. New mask contracts,real PC lookup and playback arguments;existing dependency credit not repeated.",
+  "assessments": [
+    {
+      "className": "wxActionState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/pilot-run1.json",
+          "sourceSha256": "CD2CD18C0A6C92658108FF98C209A6443E20A4A83BAAC3AA4A2A38951CB46CF7",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxActionState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/pilot-run1.json",
+          "sourceSha256": "CD2CD18C0A6C92658108FF98C209A6443E20A4A83BAAC3AA4A2A38951CB46CF7",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxActionState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxActionState v12 packed output=(input&F007FF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDateIdleState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDateIdleState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDateIdleState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateIdleState v12 packed output=(input&FF800059)|00000059,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDateTalkingState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDateTalkingState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDateTalkingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDateTalkingState v12 packed output=(input&FF800E09)|00000E09,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDroidInactiveState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxDroidInactiveState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxDroidInactiveState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxDroidInactiveState v12 packed output=(input&F0078003)|00000003,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxFlyingState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxFlyingState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxFlyingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxFlyingState v12 packed output=(input&F007FFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxIceWormAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxIceWormAttackState v12 packed output=(input&FF987FDF)|00000050,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxLadderSlideState",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "30->35: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "30->35: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "30->35: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxLadderSlideState",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxLadderSlideState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxLadderSlideState v12 packed output=(input&F080002F)|00800020,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMikaelOpenGateState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMikaelOpenGateState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxMikaelOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelOpenGateState v12 packed output=(input&F1000000)|01000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMikaelWaitingState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-0-run1.json",
+          "sourceSha256": "4E2CE4412CEFE6AE16AF9C04A00B9B671AFB0658E9505A0EC33FE165B86363DE",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMikaelWaitingState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxMikaelWaitingState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxMikaelWaitingState v12 packed output=(input&F0800000)|00800000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMissileState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxMissileState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxMissileState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxMissileState v12 packed output=(input&F01FFFF1)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxOpenGateState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxOpenGateState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxOpenGateState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxOpenGateState v12 packed output=(input&FF878A80)|00000A80,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxReadingState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxReadingState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxReadingState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxReadingState v12 packed output=(input&F0078900)|00000900,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxShadowBeastDefenseState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxShadowBeastDefenseState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxShadowBeastDefenseState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxShadowBeastDefenseState v12 packed output=(input&F0000180)|00000180,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxTrixAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxTrixAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxTrixAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxTrixAttackState v12 packed output=(input&F007FF81)|00000001,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxWandringNPCWaitState",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxWandringNPCWaitState",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxWandringNPCWaitState v12 mask,arguments and whole borrowed storage",
+          "observation": "15->20: wxWandringNPCWaitState v12 packed output=(input&F0000000)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxYetiAttackState",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "25->30: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Real PC lookup,complete current-match path and original playback-entry arguments on zero-current change."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    },
+    {
+      "className": "wxYetiAttackState",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-requests-2026-09-11.md",
+          "sourceSha256": "4C521713C3B30A9AE71E890C953D7000B924DC20B547484F137B1F7B49A61587",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-request-contracts-2026-09-11.json",
+          "sourceSha256": "8866C8DD0E7AF05E8F72C3EE97752989D333CB99BD902B2FCF7B0DAD7DDD4CA6",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-requests/batch-1-run1.json",
+          "sourceSha256": "DEBF1AA7AD2B581D44A07C29F4D365FB6727EFC28EEAEC090A5C19CCE0AB590B",
+          "locator": "wxYetiAttackState v12 mask,arguments and whole borrowed storage",
+          "observation": "20->25: wxYetiAttackState v12 packed output=(input&F01FFF8F)|00000000,original indexed animation request. Original PS2 packed-field writes and selector-entry args from post-SQ with audited constant bindings;not complete playback."
+        }
+      ],
+      "unknowns": [
+        "Nonzero old animation to different animation and live playback remain open.",
+        "Borrowed lookup structure does not establish normal loading or complete owned-container invariants.",
+        "PS2 stops at real selector entry;full nested lookup/playback and SQ/LQ transaction remain open."
+      ]
+    }
+  ]
+}
