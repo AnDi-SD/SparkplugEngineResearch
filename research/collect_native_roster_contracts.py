@@ -51,7 +51,7 @@ def main():
                 else:
                     table=d.get('tableCandidate',{}).get('address');d['partialObjectAllocations']=[x for x in r['allocations'] if x['firstWord']==table]
                 if r['status']=='passed':assert len(class_ops)==5;d['remainingContextAllocations']=[v for v in r['allocations'] if not v['freed']]
-                else:d.update(blockedStage=r['pending'],lastIp=r['lastIp'],error=r['error'])
+                else:d.update(blockedStage=r.get('pending'),lastIp=r['lastIp'],error=r['error'])
         report['classes'].append(item)
     report['counts']=dict(classNames=len(report['classes']),pcRegistered=sum('pc' in r for r in report['classes']),ps2Registered=sum('ps2' in r for r in report['classes']),pcFactoryAttempts=len(latest),pcFullLifetimes=sum(r['status']=='passed' for _,r in latest.values()),pcBlocked=sum(r['status']!='passed' for _,r in latest.values()),pcClassOperations=operations,ps2FactoryTableMatches=sum(r['status']=='literal-constructor-table-match' for r in constructors.values()),ps2ExecutedGetters=ps2_getters)
     out.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8');print(json.dumps(report['counts']))

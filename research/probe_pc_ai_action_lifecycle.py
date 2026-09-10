@@ -20,7 +20,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
     if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync','bounded-memory','bounded-vsprintf'):raise ValueError('Explicit CRT fixture required')
     if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family' and not (platform_profile=='network-clock' and (family,class_name)==('engine-core-remainder','spCinematicManager'))):raise ValueError('Explicit reviewed family platform profile required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family','game-remainder','engine-core-remainder'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family','game-remainder','engine-core-remainder','engine-platform-remainder'):raise ValueError('Explicit reviewed family required')
     arena_bytes=int(arena_kib)*1024
     if arena_bytes not in (0x10000,0x20000,0x40000):raise ValueError('Explicit bounded arena required')
     if arena_bytes!=0x10000 and (family,class_name)!=('game-remainder','wxAlphaManager'):raise ValueError('Larger arena reviewed only after measured AlphaManager exhaustion')
@@ -31,7 +31,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     # These verified platform primary interfaces precede CrossPlatform+4.
     # Their Clone returns that secondary BaseObject pointer, while factory and
     # allocator use the complete object. Other reviewed families keep offset0.
-    object_interface_offset=4 if (family,class_name) in (('projection-family','spPCProjectionFX'),('network-family','spDXNetwork')) else 0
+    object_interface_offset=4 if (family,class_name) in (('projection-family','spPCProjectionFX'),('network-family','spDXNetwork'),('engine-platform-remainder','spDXBallisticPFX'),('engine-platform-remainder','spPCThread'),('engine-platform-remainder','spPCVideoStream')) else 0
     output.parent.mkdir(parents=True,exist_ok=True);started=time.perf_counter()
     with patch.object(TimerFixture,'guest_arena_size',arena_bytes,create=True):
         if tracer=='block':
