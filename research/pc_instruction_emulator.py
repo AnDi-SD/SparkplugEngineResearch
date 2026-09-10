@@ -32,6 +32,16 @@ TIMEOUT_US = 2_000_000
 PROCESS_TIMEOUT = 30
 FILE_INSTRUCTION_LIMIT = 1_000_000
 FILE_TIMEOUT_US = 8_000_000
+DENIED_MNEMONICS = frozenset({
+    'invalid','syscall','sysenter','int','int1','int3','in','out',
+    'insb','insw','insd','outsb','outsw','outsd','hlt','cli','sti',
+})
+
+
+def denied_instruction(mnemonic):
+    # Capstone includes REP/REPNE/LOCK prefixes in mnemonic text. They must
+    # not make a denied I/O instruction pass the same guest-only guard.
+    return mnemonic.split()[-1] in DENIED_MNEMONICS
 
 
 def execution_limits(profile):
@@ -43,7 +53,11 @@ def execution_limits(profile):
     # 4,683,530 instructions. Explicitly authorized 10 September 2026; fresh
     # guests only, unchanged external 30-second child and memory bounds.
     if profile == 'protected-constructor': return 6_000_000, 24_000_000
-    raise ValueError('Explicit micro, file, character or protected-constructor execution profile required')
+    # Block tracing matched complete guest states at 1M/6M and two other
+    # original cases; measured 10.64x faster at6M. Fresh original constructor
+    # exploration may spend the saved time, with the SAME24s/30s wall caps.
+    if profile == 'protected-block': return 60_000_000, 24_000_000
+    raise ValueError('Explicit micro, file, character, protected-constructor or protected-block execution profile required')
 
 
 def run_bounded(script: Path, arguments=()) -> int:
@@ -110,7 +124,7 @@ class PcInstructions:
         self.tail = collections.deque(maxlen=12)
         self.seams = {}  # address -> explicit fixture callback, no default API shim
         self.visits = collections.Counter()
-        self.mu.hook_add(unicorn.UC_HOOK_CODE, self._code)
+        self.instruction_hook = self.mu.hook_add(unicorn.UC_HOOK_CODE, self._code)
         self.mu.hook_add(unicorn.UC_HOOK_MEM_INVALID, self._invalid)
         self.mu.hook_add(unicorn.UC_HOOK_INTR, self._interrupt)
         self.reset_arena()
@@ -196,10 +210,7 @@ class PcInstructions:
         if not BASE <= address < BASE+self.size:
             self._stop('external execution denied')
             return
-        if self._mnemonic(mu, address, length) in {
-            'invalid','syscall','sysenter','int','int1','int3','in','out',
-            'insb','insw','insd','outsb','outsw','outsd','hlt','cli','sti',
-        }:
+        if denied_instruction(self._mnemonic(mu, address, length)):
             self._stop('OS/privileged instruction denied')
 
     def _invalid(self, mu, access, address, size, value, _):
@@ -265,6 +276,8 @@ class PcInstructions:
 
     def run(self, entry: int, this: int = 0, args=(), *, stop_at: int | None = None,
             callee_pop: bool = True):
+        if self.execution_profile=='protected-block' and getattr(self,'visit_unit',None)!='basic-block-entry':
+            raise ValueError('protected-block execution profile requires the validated block tracer')
         instruction_limit, timeout_us = execution_limits(self.execution_profile)
         self.last_execution_limits = {'profile': self.execution_profile,
                                       'instructionLimit': instruction_limit, 'timeoutUs': timeout_us}
