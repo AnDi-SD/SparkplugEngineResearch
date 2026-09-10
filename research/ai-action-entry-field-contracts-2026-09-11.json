@@ -1,0 +1,132 @@
+{
+  "kind": "original-ai-action-entry-field-contracts",
+  "schemaVersion": 1,
+  "classes": [
+    "wxDarcyAttackAIAction",
+    "wxGhoulScriptAIAction",
+    "wxHelpAIAction",
+    "wxIcyAttackAIAction",
+    "wxStormyAttackAIAction",
+    "wxWanderAIAction",
+    "wxWinxFlyAIAction"
+  ],
+  "executionCounts": {
+    "pc": {
+      "cases": 32,
+      "fullReturns": 32,
+      "additionalRegistryComponents": 0
+    },
+    "ps2": {
+      "cases": 32,
+      "fullReturns": 14,
+      "additionalRegistryComponents": 18
+    }
+  },
+  "inputCases": 64,
+  "guestExecutions": 82,
+  "scope": "PC full v10 and real cached/empty Registry. PS2 Help/GhoulScript/Wander complete;four shared-target actions own suffix with V0 recorded by separate fresh registry component. This is not nested SQ/LQ execution. WinxFly PS2 command-clear prefix not executed.",
+  "addresses": {
+    "registrySelector": [
+      "004E21D0",
+      "00369B60"
+    ],
+    "registryGlobal": [
+      "00765AD8",
+      "0049FD88"
+    ],
+    "registryCachedField": [
+      "28",
+      "24"
+    ]
+  },
+  "sources": [
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "research/game-remainder-contracts-2026-09-10.json",
+      "sha256": "B393EB13B669BB9FBCD5CF9909D5CE8FF15E66E0B509ACE5CC5A73CF9F961009"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/entry-dependencies/capture.json",
+      "sha256": "CC696B6DCADC90940E37976F80F5AE15659EED187EBEC4625E2830C8AE30D704"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/methods-0/capture.json",
+      "sha256": "EAF59F64475B91ED5D106FC94B4F56F270E39342281E42C9FC750F5E8887F35F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/methods-1/capture.json",
+      "sha256": "860C7C25F02C3F463AA6A04F119EA69C0FD63FEC86C82D0446BD752B510801ED"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/target-index/capture.json",
+      "sha256": "8E0D3B555A4F70D220CFDDD6E20FD079EF69A6EE69789FA548AF322EFA41F531"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/target-selector/capture.json",
+      "sha256": "A8961D1D7AD3C9B9284881D4F234B8CB6C4C9DBFBC0A044819086ACFB1745F7F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/batch-selection.json",
+      "sha256": "304900393D996221FD6823074D242E64E04549E26EA5FBC267ED7EC703D13F97"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/pilot-selection.json",
+      "sha256": "848733D01EF06236D31F2964BFDAB387F2AD53BEC893A8D69D46DCFD6A7F7E2B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/pilot-run1.json",
+      "sha256": "CAE5CA4BDC5D15602B4C1EE9F2FCDB77654FB7002B724C37F1789693C1057D5B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/batch-run1.json",
+      "sha256": "4684A8E4F186DF6C039A0535CB630FEA963BB1915310238D100A3E11C6092E0D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/prepare-ai-entry-field-cases.py",
+      "sha256": "8C54C224E9DFF9A80A1F06BB956E90BDD4D45843ABD8632A54AE50002B464532"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/scout-ai-action-entry-exit.py",
+      "sha256": "E0C093447C77B6A450311A520509D5624C81F73CD9F44C111D36B60CB169A773"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/probe_ai_action_entry_fields.py",
+      "sha256": "61248B99CF9DFB3E6916681CD2354B465A32339F1175C4C07D4B140F47045162"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "70FFB69495DFC7CB979D620B507890785A456B2AB5625CBA593A2405BADA5BAF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-action-entry-exit/entry-summary.json",
+      "sha256": "9B74184F094A0A7D706AC5ADE288F6BFDD0BE158AD6CABA158652CFADC9E5E4F"
+    }
+  ]
+}
