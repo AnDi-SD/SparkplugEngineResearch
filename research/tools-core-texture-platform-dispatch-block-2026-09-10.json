@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "kind": "tools-core-texture-platform-dispatch-block",
+  "date": "2026-09-10",
+  "status": "checked-host-dispatch-legacy-whole-graph-still-bounded",
+  "scope": {
+    "productionLayer": "host registration only",
+    "reconstructedReaderChanged": false,
+    "wholeGameAcceptanceProved": false,
+    "gpuExecuted": false,
+    "originalGuestRuns": 1,
+    "capsRaised": false,
+    "sourceNoneEmptyOriginalFixtureFound": false
+  },
+  "hostDispatch": {
+    "file": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+    "wireClassId": "78EA082B",
+    "operationMask": 1,
+    "before": [
+      {
+        "class": "spDXTextureDataSerializer",
+        "platformMask": 255
+      }
+    ],
+    "after": [
+      {
+        "class": "spDXTextureDataSerializer",
+        "platformMask": 6
+      },
+      {
+        "class": "spTextureDataSerializer",
+        "platformMask": 1
+      }
+    ],
+    "originalEvidence": "docs/research/native-pc-texture-runtime-mips.md",
+    "constructorCompatibility": "Both existing readers use header factory42DD10 -> runtime DXTexture4AB520",
+    "guardsUnchanged": [
+      "bounded source/derived extents",
+      "initialized pixels/mips required",
+      "exact inline extent",
+      "actual runtime class"
+    ]
+  },
+  "pc": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "existingStaticAnchors": [
+      {
+        "start": "0042F180",
+        "endExclusive": "0042F345",
+        "purpose": "base reader through success return",
+        "sha256": "B4A5C73FCF165C86D2D423D77F2AAD19EECA8599A05269AA7F04625733379AD6"
+      },
+      {
+        "start": "0042EA50",
+        "endExclusive": "0042ECD0",
+        "purpose": "source wrapper dispatch and success return",
+        "sha256": "C5211389B872EDEED2C5A3BB01BDC25385D0A24008DF4D10266DA418AB4BE691"
+      },
+      {
+        "start": "00422260",
+        "endExclusive": "004223F3",
+        "purpose": "FFPS validator",
+        "sha256": "622313B82A77754A55F09B029364FF83B563053A94C346B84285E76CEE80DCA6"
+      },
+      {
+        "start": "00422C0E",
+        "endExclusive": "00422C25",
+        "purpose": "generic loader platform and operation assignment",
+        "sha256": "DEA91C5056741F2CDA6F47E0F8E3470B6919CF5202CF8F84E34AED2C9921EFF6"
+      },
+      {
+        "start": "0042DD10",
+        "endExclusive": "0042DD6B",
+        "purpose": "primary header factory",
+        "sha256": "38E952C91E91C7F8A679394F89DC8F19C7847744356B2A58C17E1EA231CCAB63"
+      },
+      {
+        "start": "006D1940",
+        "endExclusive": "006D1966",
+        "purpose": "mask1/load registration",
+        "sha256": "96C3A10CA069A0CE976CB1D8DEC92EE6E2E55A2AF43B03614875DD63F0B4FCF6"
+      }
+    ],
+    "executedCallerAnchors": [
+      {
+        "address": "004678B0",
+        "physicalCursor": 1231,
+        "publishedObject": 0
+      },
+      {
+        "address": "00467670",
+        "physicalCursor": 1235,
+        "publishedObject": 0
+      },
+      {
+        "address": "0042DD10",
+        "physicalCursor": 1239,
+        "publishedObject": 0
+      },
+      {
+        "address": "004AB520",
+        "physicalCursor": 1247,
+        "publishedObject": 0
+      },
+      {
+        "address": "0042F180",
+        "physicalCursor": 1247,
+        "publishedObject": 822140496
+      },
+      {
+        "address": "0042EA50",
+        "physicalCursor": 1247,
+        "publishedObject": 822140496
+      }
+    ]
+  },
+  "originalCaller": {
+    "report": "local-data/results/tools-core-cycle-20260910-0730/texture-source-caller/blooming-flower/report.json",
+    "status": "captured-original-caller-success-with-uninitialized-texture",
+    "source": "local-data/pc-pristine/Media/SFX/blooming_flower.smo",
+    "sourceBytes": 110101,
+    "sourceSha256": "28FF90A536E40FBC84FBD8BF06150A3118D25B1CB7B4AAFB9641D8AFDF19C9A1",
+    "directoryRow": [
+      167,
+      193
+    ],
+    "referenceOffset": 1231,
+    "objectRange": [
+      1239,
+      17668
+    ],
+    "payloadRange": [
+      1247,
+      17668
+    ],
+    "payloadSha256": "9C83865E6A3DC5FD3AE943BE798ECF2E773FE664459ABA94A7B1A85ABEF74763",
+    "logicalOrigin": 999,
+    "sourceForm": "bare fields6/0; no wrapper; 64x64 BGRA16384 bytes",
+    "hostInputs": [
+      "single unchanged original FAT row prefixed by host count1",
+      "existing empty manager/FAT and explicit valid RTTI tree, not CRT startup",
+      "existing byte-backed bounded file stream and name-storage/diagnostic/CRT seams",
+      "existing renderer.C9E8 device storage and AddRef/Release sink only; no renderer ctor"
+    ],
+    "selectedSerializerVtable": "006DDD90",
+    "payloadReturn": {
+      "address": "004677C0",
+      "al": 1,
+      "physicalCursor": 17700,
+      "publishedObject": 822140496
+    },
+    "caller": {
+      "resultPointer": 822140496,
+      "physicalCursor": 17700,
+      "logicalCursor": 16701,
+      "instructions": 25983,
+      "publishedObject": 822140496,
+      "sourceBoundaryOverrunBytes": 32
+    },
+    "texture": {
+      "vtable": "006EF6E8",
+      "initializedByte24": 0,
+      "rawWords": {
+        "18": "CCCCCCCC",
+        "1C": "CCCCCC00",
+        "20": "00000000",
+        "24": "CCCCCC00",
+        "28": "CCCCCCCC",
+        "2C": "CCCCCCCC",
+        "30": "CCCC0000",
+        "34": "00000000",
+        "38": "3100CA50",
+        "3C": "00000000",
+        "40": "00000000",
+        "44": "CCCCCCCC",
+        "48": "00000000"
+      },
+      "allocatorPoison": "CCCCCCCC means untouched fixture allocation, not a game default"
+    },
+    "errors": [],
+    "cleanup": {
+      "allocations": 15,
+      "freed": 15,
+      "deviceReferences": 1,
+      "deviceEvents": [
+        "AddRef",
+        "Release"
+      ]
+    },
+    "caps": {
+      "profile": "micro",
+      "instructionsPerCall": 100000,
+      "secondsPerCall": 2,
+      "childSeconds": 30,
+      "workers": 1,
+      "arenaBytes": 131072
+    },
+    "arenaUsedBytes": 57104,
+    "elapsedSeconds": 2.0816094999900088,
+    "processWorkingSetPeakMeasured": false,
+    "parentBytesConsumed": [
+      {
+        "range": [
+          17668,
+          17690
+        ],
+        "field": 2,
+        "payloadBytes": 20
+      },
+      {
+        "range": [
+          17690,
+          17699
+        ],
+        "field": 6,
+        "payloadBytes": 4
+      },
+      {
+        "range": [
+          17699,
+          17700
+        ],
+        "terminator": true
+      }
+    ],
+    "dependencyFingerprints": {
+      "local-data/pc-pristine/Media/SFX/blooming_flower.smo": "28FF90A536E40FBC84FBD8BF06150A3118D25B1CB7B4AAFB9641D8AFDF19C9A1",
+      "local-data/pc-pristine/WinxClub.exe": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+      "local-data/results/tools-core-cycle-20260910-0730/texture-source-caller/blooming-flower/probe.py": "D15628E0FF837ADE6291BA8A0E00769D162F5EFE283B45E9149B8C65EF3D86D5",
+      "research/inspect_pc_san_keys.py": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19",
+      "research/inspect_serializer_manager.py": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+      "research/pc_declaration_fixture.py": "D52429DFEDE05ED5348EE1803D8C3DE962DD51FEF18220314A9A29EB4BCA17CD",
+      "research/pc_instruction_emulator.py": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029",
+      "research/pc_loader_fixtures.py": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06",
+      "research/pc_particle_fixtures.py": "2EB8CC9C21B70D59747E976B1FCC17588FF35FFA5ECB844BB9EF40FD2B5A2B97",
+      "research/pc_serializer_fixtures.py": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D",
+      "research/pc_stl_fixtures.py": "B9F9339542C48DAFB7669EB24BB5FD5D887A2A4323776A612F410A27E5AC6AF4",
+      "research/pc_texture_fixtures.py": "83ECA73C44973009850B7BAD2C5B27F3BF99E258BCABEC3DFAB59ACDDACF877A",
+      "research/pc_texture_mip_fixtures.py": "5821AC09D5C2B1F92BD48691488C0FC432E8CC2A6A8219809839A7F3710EB956",
+      "research/probe_pc_animation_keys.py": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43",
+      "research/probe_pc_animation_lifecycle.py": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04",
+      "research/probe_pc_dx_buffers.py": "DE0E43655B38B0A799E5BCD0AFFE8D498154DA2574C4314FA32375155DEEC793",
+      "research/probe_pc_dx_mesh_payload.py": "4FBAA0DD76671A975B8E9F4F5CA46076EDFFF14D33F387D97E76AC04ED3891FF",
+      "research/probe_pc_san_reader.py": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C",
+      "research/probe_pc_scene_file_profile.py": "B645F7C619713C7195E582EF2E547322317E45BE6752D762EDC9622A6ACC53CE",
+      "research/probe_pc_texture_missing_mips.py": "E30EAE8E029897EE438E99FB7C1C3CA89810EB7A6EA96BB65188B010A472C220"
+    }
+  },
+  "validation": {
+    "native": {
+      "status": "passed",
+      "suites": [
+        "ViewerFullLoaderChecks",
+        "ViewerTextureSerializationChecks"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "seconds": 2.01,
+      "log": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/native-checks.log"
+    },
+    "managed": {
+      "status": "passed",
+      "mode": "--texture-platform-dispatch BLOOMING_FLOWER OUTPUT [BEFORE_DLL]",
+      "cases": [
+        "common SourceNone+cross",
+        "common unknown field6=2+cross (old/new discriminator)",
+        "PC2 SourceNone+native",
+        "original blooming_flower bounded refusal"
+      ],
+      "run1": {
+        "status": "failed-test-fixture-hash-typo-after-three-synthetic-cases",
+        "reportWritten": false,
+        "log": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run1.log",
+        "correction": "Root removed one surplus a from the hardcoded hash; original bytes unchanged"
+      },
+      "newManagedPassClaimed": true,
+      "checks": 27,
+      "positiveSyntheticWholeGraphs": 3,
+      "realNegativeWholeGraphs": 1,
+      "report": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2/report.json",
+      "run2Log": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2.log",
+      "run2BuildLog": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-build-2.log",
+      "run2BuildWarnings": 0,
+      "run2BuildErrors": 0,
+      "elapsedMeasuredByHarness": false,
+      "workingSetPeakMeasuredByHarness": false,
+      "results": {
+        "status": "passed",
+        "checks": 27,
+        "synthetic": [
+          {
+            "Name": "common-source-none-cross",
+            "platform": 1,
+            "input_sha256": "e889f20723503ff64cdf1ce5ed08de566463d173286bfefeb23121f2c052638c",
+            "coverage": 1,
+            "SceneIssue": null,
+            "current": {
+              "Success": true,
+              "Error": null,
+              "Objects": 1,
+              "Nodes": 0,
+              "RootId": 1,
+              "Width": 2,
+              "Height": 2,
+              "SurfaceFormat": 3,
+              "Mips": 2,
+              "PixelSha256": "60095e8c93bdb6d7cd09508d4410ce5b24f669de72bbd064f26bd67152fd5be1"
+            },
+            "before": {
+              "Success": true,
+              "Error": null,
+              "Objects": 1,
+              "Nodes": 0,
+              "RootId": 1,
+              "Width": 2,
+              "Height": 2,
+              "SurfaceFormat": 3,
+              "Mips": 2,
+              "PixelSha256": "60095e8c93bdb6d7cd09508d4410ce5b24f669de72bbd064f26bd67152fd5be1"
+            }
+          },
+          {
+            "Name": "common-unknown-field6-cross",
+            "platform": 1,
+            "input_sha256": "9ff4ff94d6873fb8d735ddc515289e90a103bba87af079a2d49be52b44e42a60",
+            "coverage": 1,
+            "SceneIssue": null,
+            "current": {
+              "Success": true,
+              "Error": null,
+              "Objects": 1,
+              "Nodes": 0,
+              "RootId": 1,
+              "Width": 2,
+              "Height": 2,
+              "SurfaceFormat": 3,
+              "Mips": 2,
+              "PixelSha256": "60095e8c93bdb6d7cd09508d4410ce5b24f669de72bbd064f26bd67152fd5be1"
+            },
+            "before": {
+              "Success": false,
+              "Error": "No restored native DX mip payload",
+              "Objects": 0,
+              "Nodes": 0,
+              "RootId": 0,
+              "Width": 0,
+              "Height": 0,
+              "SurfaceFormat": 0,
+              "Mips": 0,
+              "PixelSha256": null
+            }
+          },
+          {
+            "Name": "pc-source-none-native",
+            "platform": 2,
+            "input_sha256": "68d4ef9d38e7922d40df1a119fa4bfa8d2e9b05271b370f6a001476642332813",
+            "coverage": 1,
+            "SceneIssue": null,
+            "current": {
+              "Success": true,
+              "Error": null,
+              "Objects": 1,
+              "Nodes": 0,
+              "RootId": 1,
+              "Width": 2,
+              "Height": 2,
+              "SurfaceFormat": 3,
+              "Mips": 2,
+              "PixelSha256": "60095e8c93bdb6d7cd09508d4410ce5b24f669de72bbd064f26bd67152fd5be1"
+            },
+            "before": {
+              "Success": true,
+              "Error": null,
+              "Objects": 1,
+              "Nodes": 0,
+              "RootId": 1,
+              "Width": 2,
+              "Height": 2,
+              "SurfaceFormat": 3,
+              "Mips": 2,
+              "PixelSha256": "60095e8c93bdb6d7cd09508d4410ce5b24f669de72bbd064f26bd67152fd5be1"
+            }
+          }
+        ],
+        "real": {
+          "file": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\SFX\\blooming_flower.smo",
+          "source_sha256": "28ff90a536e40fbc84fbd8bf06150a3118d25b1cb7b4aafb9641d8afdf19c9a1",
+          "LoadIssue": "SPARKPLUG_RESOURCE_GRAPH: Invalid bounded derived section [inline ID 6, class 1060524470] [inline ID 5, class 2038118892] [inline ID 4, class 1526340175] [inline ID 3, class 1614161360] [inline ID 2, class 1767640933]",
+          "current": {
+            "Success": false,
+            "Error": "Invalid bounded derived section [inline ID 6, class 1060524470] [inline ID 5, class 2038118892] [inline ID 4, class 1526340175] [inline ID 3, class 1614161360] [inline ID 2, class 1767640933]",
+            "Objects": 0,
+            "Nodes": 0,
+            "RootId": 0,
+            "Width": 0,
+            "Height": 0,
+            "SurfaceFormat": 0,
+            "Mips": 0,
+            "PixelSha256": null
+          },
+          "before": {
+            "Success": false,
+            "Error": "Invalid bounded derived section [inline ID 6, class 1060524470] [inline ID 5, class 2038118892] [inline ID 4, class 1526340175] [inline ID 3, class 1614161360] [inline ID 2, class 1767640933]",
+            "Objects": 0,
+            "Nodes": 0,
+            "RootId": 0,
+            "Width": 0,
+            "Height": 0,
+            "SurfaceFormat": 0,
+            "Mips": 0,
+            "PixelSha256": null
+          }
+        },
+        "native_sha256": "2378e4190de4edaf59a21c3c79512f9fc0057fa5d324de907b9d46f8b9587a97",
+        "before_native_sha256": "119428039547a0a9af83a3d4bccd5507253a0db4eb8a47d41317e9c913d9d133",
+        "core_assembly_sha256": "36012371eb01e671b5c3933433aaec6665ca8240764126282332d2d3be91b152",
+        "test_assembly_sha256": "d3efb8d1a2bd2708bd7aaa9055ec22d2740877ecaa5a474b35a30dbd578a4899",
+        "scope": "Whole ResourceGraph dispatch and actual runtime pixels: common1/DX6; one real barelegacy negative. No original whole-game acceptance claim."
+      }
+    }
+  },
+  "boundaries": [
+    "Original caller AL1 and pointer do not prove whole scene/game acceptance",
+    "Initialized byte24 remains0; no42E100/upload was executed",
+    "Cursor17700 exceeds texture inline end17668 by32bytes",
+    "No original explicit SourceNone field2 plus empty local-section fixture established",
+    "Alfea01cached1848 is independently known nonempty and was not reprobed",
+    "No invented optional wrapper, Init, pixel copy or external resolver",
+    "No original material-parent reader42F670 run"
+  ],
+  "nextTarget": "Existing original42F670 post-reference loop when the texture caller has already consumed the rest of material[1122,17700); inspect caller before any new guest.",
+  "fingerprints": [
+    {
+      "path": "Sparkplug/Analysis/PC/spSectionCursor.h",
+      "bytes": 2973,
+      "sha256": "F17800D0B7D509EACC46137EBFBA0FBD5508DBB3AF118E2E1B0FAAF926B5B292"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.cpp",
+      "bytes": 20975,
+      "sha256": "93D7FDEA25BDCE73E8056C27A4CDE66CA3DB20B0E8BCAC0E5EECB7C47439BB7F"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "bytes": 27027,
+      "sha256": "161FD739E3E5AD7DF7B8D3AAFC1C0BFFB0B423ED4DAA2CA39DFAE115F9595461"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextureDataSerializer.cpp",
+      "bytes": 21724,
+      "sha256": "DC9C73AAC98810BFBF61CB846D918435E2067446666561E3E73CB479B0BFCC42"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1152000,
+      "sha256": "2378E4190DE4EDAF59A21C3C79512F9FC0057FA5D324DE907B9D46F8B9587A97"
+    },
+    {
+      "path": "docs/research/native-pc-read-reference.md",
+      "bytes": 8832,
+      "sha256": "E4BBA1A66E16AA8F191B3AACCE682B6D06E3CA7A8BED12F0D6E7F94E30854B9E"
+    },
+    {
+      "path": "docs/research/native-pc-texture-runtime-mips.md",
+      "bytes": 8696,
+      "sha256": "24B3994656AE11914C8F4A6E7F0B7691528C3B3C34D931B8A1725E1F1F58E9A2"
+    },
+    {
+      "path": "docs/research/tool-legacy-texture-source-boundary-2026-09-10.md",
+      "bytes": 7427,
+      "sha256": "C0801A21EA573BA0E02D66CB1518D3E2ABD8A514A726670974B0E045C06558F2"
+    },
+    {
+      "path": "docs/research/tool-texture-platform-dispatch-2026-09-10.md",
+      "bytes": 7696,
+      "sha256": "7C86924B704C48BAB8316ABF76878D0522FA3DC36CA843CF489B4AD3F7F704C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/SparkplugViewerNative.before.dll",
+      "bytes": 1151488,
+      "sha256": "119428039547A0A9AF83A3D4BCCD5507253A0DB4EB8A47D41317E9C913D9D133"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-build-2.log",
+      "bytes": 196,
+      "sha256": "8084255A0F7DBBE939023300BA2B8B3457714FE926FFD85FE5E4DC211C3AB06C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-build.log",
+      "bytes": 196,
+      "sha256": "08D2193B280303B284C2062795D90DB40DE6F6C42A4E8B1F746068F7CFFC7ADB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run1.log",
+      "bytes": 2484,
+      "sha256": "73683B118B711371F52F823CC667D475F12690349AD078CD3025E078D908E5DA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2.log",
+      "bytes": 210,
+      "sha256": "D6E49326A7BA6D803F8A6277BBD2BA321B8E066299ADF9EA0276BF96EF28D998"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2/common-source-none-cross.smo",
+      "bytes": 103,
+      "sha256": "E889F20723503FF64CDF1CE5ED08DE566463D173286BFEFEB23121F2C052638C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2/common-unknown-field6-cross.smo",
+      "bytes": 108,
+      "sha256": "9FF4FF94D6873FB8D735DDC515289E90A103BBA87AF079A2D49BE52B44E42A60"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2/pc-source-none-native.smo",
+      "bytes": 116,
+      "sha256": "68D4EF9D38E7922D40DF1A119FA4BFA8D2E9B05271B370F6A001476642332813"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/managed-run2/report.json",
+      "bytes": 4519,
+      "sha256": "B8FA212931C1F183F20B15227A8B6A16BC2FBCA81E2D57C7037F2F4C3231BAA8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-platform-dispatch/native-checks.log",
+      "bytes": 1408,
+      "sha256": "A4F9225BBBC977623CB88954F46914F9B01FD183B5A8E5712EE5F1A21B84FFD7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-source-caller/blooming-flower/notes.md",
+      "bytes": 4489,
+      "sha256": "9B42E374F759C69DA6AFB07A1FA3034A5D9BD879CF164ACEF7094E3714BA3868"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-source-caller/blooming-flower/probe.py",
+      "bytes": 8977,
+      "sha256": "D15628E0FF837ADE6291BA8A0E00769D162F5EFE283B45E9149B8C65EF3D86D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/texture-source-caller/blooming-flower/report.json",
+      "bytes": 10754,
+      "sha256": "036C330B990DB637AE3F8E68112B0445C12C008A8EA3E47AA7900D07F566CFB6"
+    },
+    {
+      "path": "research/probe_pc_texture_registry.py",
+      "bytes": 2094,
+      "sha256": "239B4D553497AC9AE35B8BD0F6FD91919F2B31B87D0E13C00091FDB85FBE1B02"
+    },
+    {
+      "path": "research/tools-core-legacy-texture-boundary-2026-09-10.json",
+      "bytes": 6372,
+      "sha256": "CA15BBACC4FB52C1C1B72801F54E64F5D75CD0777871B0B64FEB74EC56985D61"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "bytes": 385011,
+      "sha256": "FAB8294C970803440ECF7F8CD990135252587505912D00935A3DF904E43F238C"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoTextureSourceRegression.cs",
+      "bytes": 33314,
+      "sha256": "A7B9EC2FC1BECBB5485FA6B727E4AC00520E5BB2ECB145A40926F0DFE403017A"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll",
+      "bytes": 689664,
+      "sha256": "36012371EB01E671B5C3933433AAEC6665CA8240764126282332D2D3BE91B152"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll",
+      "bytes": 536064,
+      "sha256": "D3EFB8D1A2BD2708BD7AAA9055EC22D2740877ECAA5A474B35A30DBD578A4899"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "bytes": 9395,
+      "sha256": "A61BD8946B9D575419A23180DAE9D7BAFC24F6F2F15169C03DBE4FCE7DF9BA69"
+    }
+  ]
+}

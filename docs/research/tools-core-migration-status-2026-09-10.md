@@ -20,6 +20,11 @@ LVLcreator читают позиции общего shader. Viewer сохран�
 сохраняя поддерживаемые файлы побайтно. Это не закрывает multipass/material
 output; [PC fallback producer](tool-renderer-fallback-material-boundary-2026-09-10.md)
 ещё не установлен, отдельный PS2 producer не подставляется вместо него.
+[Предпросмотр подгонки Importer](tool-importer-fitting-gpu-2026-09-10.md)
+тоже использует общий GPU shader и native spSkin composition; отдельный CPU
+skin evaluator удалён.24 адресные GPU проверки и Core provider contract прошли.
+Неподтверждённая конверсия non-unit весов теперь явно отклоняется также
+в [FBX](tool-fbx-skin-weight-boundary-2026-09-10.md); обычный output сохранён.
 
 Таблица описывает операции ядер семи приложений. Общие native bridges не
 считаются отдельными приложениями; готовность UI и выпуск учитываются отдельно.
@@ -30,7 +35,7 @@ output; [PC fallback producer](tool-renderer-fallback-material-boundary-2026-09-
 | Exporter | Поза и parents из actual Node; общая geometry, Model variants и placements в GLB/FBX/OBJ; общий SAN | Полная проекция material passes/layers в целевые форматы ещё не закрыта. Ограничения общего graph loader распространяются на экспорт; новый полный acceptance Exporter в этом цикле не заявлен. |
 | Importer | Actual Model/Material selection; перенос ID по подтверждённому reader trace; общие mesh/texture writers, Material scalar/LTS, Renderable sort/priority, Skin palette с настоящими Node owners; Static matrix writer | FAT/envelope writer остаётся приостановленным предложением. Multipass donor отклоняется как `MATERIAL_IMPORT_SHAPE`; неизвестный DX power мешает полному Material writer. Legacy/orphan/repeated LTS и неоднозначные scalar/palette assignments требуют отдельного определения операции. |
 | LVLcreator | Workspace сохраняет actual support slots; общие scene/mesh/collision/pose операции, reference trace и Static matrix authoring; worker передаёт общий каталог один раз | Собственная сборка контейнера ещё не перенесена. Команды отклоняют повторные slots как `REPEATED_RENDERABLE_AUTHORING`; нужна адресация конкретного слота. Пользовательские отсрочки inverse-world и lossless-форм перечислены ниже. |
-| TextureTool | Общие texture sections, codecs, writers, header reader и material snapshot; PC preview использует actual source selection. Проверены три PNG и шесть вариантов замены на одном Bloom_body; stale material reference диагностируется | FAT/envelope остаётся отдельным writer. Legacy-common/PS2 source оболочки и полный PS2 runtime не завершены. Пустой source-less/cached TextureData требует адресного решения. Выбранные acceptance не являются проверкой всего корпуса. |
+| TextureTool | Общие texture sections, codecs, writers, header reader и material snapshot; PC preview использует actual source selection. Проверены три PNG и шесть вариантов замены на одном Bloom_body; stale material reference диагностируется | FAT/envelope остаётся отдельным writer. Legacy-common/PS2 source оболочки и полный PS2 runtime не завершены. Реальный barelegacy TextureData с pixels без source-wrapper ещё не поддерживается whole graph. Выбранные acceptance не являются проверкой всего корпуса. |
 | SanToVmd | Общие SMO/SAN graph и native pose sampler; VMD/PMD conversion остаётся кодом целевого формата. Исправлена коллизия временных файлов, два новых и 18 существующих converter tests прошли. Один полный Icy/xiid acceptance: независимый reader подтвердил 51 кадр и 2601 ключ, включая позы | Ограничения входного ResourceGraph сохраняются; один acceptance не является полной проверкой корпуса или визуальным воспроизведением в MMD. |
 | WinxHairPatcher | Операция сигнатурной EXE patch проверена по прежнему original evidence; коллизия backup-имён исправлена, 38 assertions и build прошли | Для проверенной файловой операции нового блокера не найдено. Визуальная проверка всех игровых комбинаций остаётся прежней границей. Patch bytes и файловый IO являются собственной операцией инструмента, а не копией игровой симуляции. |
 
@@ -43,8 +48,13 @@ output; [PC fallback producer](tool-renderer-fallback-material-boundary-2026-09-
 - **Платформа импорта текстур:** создание PC TextureData в legacy-common/PS2
   контейнере теперь явно отклоняется до записи. [Обычный PC путь проверен](tool-importer-texture-destination-2026-09-10.md);
   преобразование контейнера в другую платформу остаётся отдельным предложением.
-- **Входной graph:** действительно пустой source-less TextureData остаётся
-  границей. Cached1848 `marble` в Alfea01 содержит полноценные pixels и
+- **Входной graph:** прежняя формулировка о доказанном пустом source-less
+  TextureData была неточной. У проверенного `blooming_flower` pixels есть,
+  отсутствует source-wrapper; original caller возвращает неинициализированный
+  объект и читает32 байта родительской секции. [Platform dispatch исправлен](tool-texture-platform-dispatch-2026-09-10.md),
+  но whole-file принятие original игрой не установлено и guards сохранены.
+  Реальный fixture SourceNone с действительно пустой local section не найден.
+  Cached1848 `marble` в Alfea01 содержит полноценные pixels и
   совпадает с ранее прочитанным695; независимый source inspector это подтвердил.
   [Остаток1848 относится к authoring coverage](tool-reference-inspector-cached-texture-2026-09-10.md),
   а не к отсутствующему pixel reader. Reader trace не объявляет skipped payload

@@ -1,12 +1,13 @@
 using System.Numerics;
 using SmoExporter.Core;
+using SmoViewer.Sparkplug;
 
 namespace SmoImporter.Core;
 
 /// <summary>
 /// Read-only result of posing the target SMO for the fitting preview. The scene
 /// retains the target graph, palettes and bind data; only copies of skinned
-/// vertex positions and normals may differ from the supplied target scene.
+/// vertex positions differ. Normals are empty: this is a positions-only preview.
 /// </summary>
 public sealed record TargetRigFittingPreviewResult(
     SmoExportScene Scene,
@@ -15,26 +16,29 @@ public sealed record TargetRigFittingPreviewResult(
     bool IsIdentityPose);
 
 /// <summary>
-/// Produces a transient, external-space view of the original target model in a
-/// <see cref="TargetRigFittingPoseSnapshot"/>. It does not mutate an SMO
-/// document, the supplied export scene, the target hierarchy, or inverse-bind
-/// matrices.
+/// Stable original mesh and read-only authored fitting palette for a positions
+/// provider. Preparing this request does not evaluate vertex deformation.
 /// </summary>
+public sealed record TargetRigFittingPreviewRequest(
+    SmoExportMesh Mesh,
+    IReadOnlyList<Matrix4x4> PaletteTransforms);
+
+/// <summary>Builds an owned positions-only snapshot without changing target or bind data.</summary>
 public static class TargetRigFittingPreviewBuilder
 {
-    private const float WeightEpsilon = 0.000001f;
-    private const float JointIndexTolerance = 0.0001f;
     private const float MatrixTolerance = 0.0001f;
 
     /// <summary>
-    /// Applies ordinary linear-blend skinning in the importer's external,
-    /// row-vector space. For palette joint j the vertex transform is
-    /// <c>inverseBind[j] * fittingWorld[j]</c>.
+    /// Prepares authored fitting palettes in external row-vector space and
+    /// delegates every skinned mesh, including identity poses, to the rendering
+    /// backend. The provider receives original weights unchanged.
     /// </summary>
     public static TargetRigFittingPreviewResult Build(
         SmoExportScene targetScene,
-        TargetRigFittingPoseSnapshot fittingPose)
+        TargetRigFittingPoseSnapshot fittingPose,
+        Func<TargetRigFittingPreviewRequest, Vector3[]> readPositions)
     {
+        ArgumentNullException.ThrowIfNull(readPositions);
         ArgumentNullException.ThrowIfNull(targetScene);
         ArgumentNullException.ThrowIfNull(fittingPose);
 
@@ -95,17 +99,17 @@ public static class TargetRigFittingPreviewBuilder
             }
 
             ValidateMeshSkinArrays(mesh);
-            // Identity must reproduce the source scene bit-for-bit. Palette and
-            // weight validation still runs, but no floating-point skinning does.
-            if (fittingPose.IsIdentityPose)
+            Vector3[] positions = readPositions(new TargetRigFittingPreviewRequest(
+                mesh, Array.AsReadOnly(paletteTransforms))) ?? throw new InvalidDataException(
+                    "The target preview backend returned no positions.");
+            if (positions.Length != mesh.Positions.Length || positions.Any(value => !IsFinite(value)))
+                throw new InvalidDataException(
+                    "The target preview backend must return all finite positions for the selected mesh.");
+            previewMeshes[meshIndex] = mesh with
             {
-                ValidateMeshInfluences(mesh, paletteTransforms.Length);
-                previewMeshes[meshIndex] = CloneGeometry(mesh);
-            }
-            else
-            {
-                previewMeshes[meshIndex] = PoseMesh(mesh, paletteTransforms);
-            }
+                Positions = positions.ToArray(),
+                Normals = []
+            };
             skinnedMeshCount++;
             skinnedVertexCount = checked(skinnedVertexCount + mesh.Positions.Length);
         }
@@ -168,8 +172,8 @@ public static class TargetRigFittingPreviewBuilder
                     $"[{paletteIndex}] does not match fitting joint '{rigJoint.Name}'.");
             }
 
-            Matrix4x4 transform = inverseBind *
-                fittingPose.WorldMatrices[rigJointIndex];
+            Matrix4x4 transform = SparkplugSkin.ComposeMatrix(
+                inverseBind, fittingPose.WorldMatrices[rigJointIndex]);
             if (!IsFinite(transform))
             {
                 throw new InvalidDataException(
@@ -196,197 +200,11 @@ public static class TargetRigFittingPreviewBuilder
         }
     }
 
-    private static SmoExportMesh PoseMesh(
-        SmoExportMesh mesh,
-        IReadOnlyList<Matrix4x4> paletteTransforms)
-    {
-        var positions = new Vector3[mesh.Positions.Length];
-        Vector3[] normals = mesh.Normals.Length == mesh.Positions.Length
-            ? new Vector3[mesh.Normals.Length]
-            : [];
-        Span<float> weights = stackalloc float[4];
-        Span<float> jointValues = stackalloc float[4];
-        Span<int> joints = stackalloc int[4];
-
-        for (int vertex = 0; vertex < mesh.Positions.Length; vertex++)
-        {
-            Vector4 sourceWeights = mesh.BlendWeights[vertex];
-            Vector4 sourceJoints = mesh.JointIndices[vertex];
-            weights[0] = sourceWeights.X;
-            weights[1] = sourceWeights.Y;
-            weights[2] = sourceWeights.Z;
-            weights[3] = sourceWeights.W;
-            jointValues[0] = sourceJoints.X;
-            jointValues[1] = sourceJoints.Y;
-            jointValues[2] = sourceJoints.Z;
-            jointValues[3] = sourceJoints.W;
-
-            joints.Clear();
-            float totalWeight = 0;
-            for (int influence = 0; influence < 4; influence++)
-            {
-                float weight = weights[influence];
-                if (!float.IsFinite(weight) || weight < 0)
-                {
-                    throw new InvalidDataException(
-                        $"Target mesh [{mesh.ObjectIndex}] '{mesh.Name}' vertex " +
-                        $"{vertex} has an invalid skin weight.");
-                }
-                if (weight <= WeightEpsilon)
-                    continue;
-
-                float jointValue = jointValues[influence];
-                if (!float.IsFinite(jointValue) || jointValue < 0 ||
-                    jointValue > int.MaxValue)
-                {
-                    throw InvalidJoint(mesh, vertex, jointValue);
-                }
-                int joint = checked((int)MathF.Round(jointValue));
-                if (joint < 0 ||
-                    joint >= paletteTransforms.Count ||
-                    MathF.Abs(jointValue - joint) > JointIndexTolerance)
-                {
-                    throw InvalidJoint(mesh, vertex, jointValue);
-                }
-                joints[influence] = joint;
-                totalWeight += weight;
-            }
-            if (!float.IsFinite(totalWeight) || totalWeight <= WeightEpsilon)
-            {
-                throw new InvalidDataException(
-                    $"Target mesh [{mesh.ObjectIndex}] '{mesh.Name}' vertex " +
-                    $"{vertex} has no usable skin influence.");
-            }
-
-            Matrix4x4 blended = default;
-            for (int influence = 0; influence < 4; influence++)
-            {
-                if (weights[influence] <= WeightEpsilon)
-                    continue;
-                AddWeighted(
-                    ref blended,
-                    paletteTransforms[joints[influence]],
-                    weights[influence] / totalWeight);
-            }
-            Vector3 posedPosition = Vector3.Transform(mesh.Positions[vertex], blended);
-            if (!IsFinite(posedPosition))
-            {
-                throw new InvalidDataException(
-                    $"Target fitting preview produced a non-finite position for mesh " +
-                    $"[{mesh.ObjectIndex}] '{mesh.Name}' vertex {vertex}.");
-            }
-            positions[vertex] = posedPosition;
-
-            if (normals.Length != 0)
-            {
-                if (!Matrix4x4.Invert(blended, out Matrix4x4 inverseBlend) ||
-                    !IsFinite(inverseBlend))
-                {
-                    throw new InvalidDataException(
-                        $"Target fitting normal transform is singular for mesh " +
-                        $"[{mesh.ObjectIndex}] '{mesh.Name}' vertex {vertex}.");
-                }
-                Vector3 posedNormal = Vector3.TransformNormal(
-                    mesh.Normals[vertex], Matrix4x4.Transpose(inverseBlend));
-                if (!IsFinite(posedNormal) ||
-                    posedNormal.LengthSquared() <= WeightEpsilon)
-                {
-                    throw new InvalidDataException(
-                        $"Target fitting preview produced an invalid normal for mesh " +
-                        $"[{mesh.ObjectIndex}] '{mesh.Name}' vertex {vertex}.");
-                }
-                normals[vertex] = Vector3.Normalize(posedNormal);
-            }
-        }
-
-        return mesh with
-        {
-            Positions = positions,
-            Normals = normals
-        };
-    }
-
-    private static void ValidateMeshInfluences(
-        SmoExportMesh mesh,
-        int paletteSize)
-    {
-        for (int vertex = 0; vertex < mesh.Positions.Length; vertex++)
-        {
-            Vector4 weights = mesh.BlendWeights[vertex];
-            Vector4 joints = mesh.JointIndices[vertex];
-            float[] weightValues = [weights.X, weights.Y, weights.Z, weights.W];
-            float[] jointValues = [joints.X, joints.Y, joints.Z, joints.W];
-            float totalWeight = 0;
-            for (int influence = 0; influence < 4; influence++)
-            {
-                float weight = weightValues[influence];
-                if (!float.IsFinite(weight) || weight < 0)
-                {
-                    throw new InvalidDataException(
-                        $"Target mesh [{mesh.ObjectIndex}] '{mesh.Name}' vertex " +
-                        $"{vertex} has an invalid skin weight.");
-                }
-                if (weight <= WeightEpsilon)
-                    continue;
-                float jointValue = jointValues[influence];
-                if (!float.IsFinite(jointValue) || jointValue < 0 ||
-                    jointValue > int.MaxValue)
-                {
-                    throw InvalidJoint(mesh, vertex, jointValue);
-                }
-                int joint = checked((int)MathF.Round(jointValue));
-                if (joint < 0 || joint >= paletteSize ||
-                    MathF.Abs(jointValue - joint) > JointIndexTolerance)
-                {
-                    throw InvalidJoint(mesh, vertex, jointValue);
-                }
-                totalWeight += weight;
-            }
-            if (!float.IsFinite(totalWeight) || totalWeight <= WeightEpsilon)
-            {
-                throw new InvalidDataException(
-                    $"Target mesh [{mesh.ObjectIndex}] '{mesh.Name}' vertex " +
-                    $"{vertex} has no usable skin influence.");
-            }
-        }
-    }
-
-    private static InvalidDataException InvalidJoint(
-        SmoExportMesh mesh,
-        int vertex,
-        float jointValue) =>
-        new(
-            $"Target mesh [{mesh.ObjectIndex}] '{mesh.Name}' vertex " +
-            $"{vertex} references invalid palette joint {jointValue:G9}.");
-
     private static SmoExportMesh CloneGeometry(SmoExportMesh mesh) => mesh with
     {
         Positions = mesh.Positions.ToArray(),
-        Normals = mesh.Normals.ToArray()
+        Normals = []
     };
-
-    private static void AddWeighted(
-        ref Matrix4x4 target,
-        Matrix4x4 value,
-        float weight)
-    {
-        target.M11 += value.M11 * weight;
-        target.M12 += value.M12 * weight;
-        target.M13 += value.M13 * weight;
-        target.M14 += value.M14 * weight;
-        target.M21 += value.M21 * weight;
-        target.M22 += value.M22 * weight;
-        target.M23 += value.M23 * weight;
-        target.M24 += value.M24 * weight;
-        target.M31 += value.M31 * weight;
-        target.M32 += value.M32 * weight;
-        target.M33 += value.M33 * weight;
-        target.M34 += value.M34 * weight;
-        target.M41 += value.M41 * weight;
-        target.M42 += value.M42 * weight;
-        target.M43 += value.M43 * weight;
-        target.M44 += value.M44 * weight;
-    }
 
     private static bool IsFinite(Vector3 value) =>
         float.IsFinite(value.X) && float.IsFinite(value.Y) &&

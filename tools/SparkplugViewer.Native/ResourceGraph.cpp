@@ -25,6 +25,7 @@
 #include "Code/Sparkplug/spMaterialData.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
 #include "Code/Sparkplug/spTextureData.h"
+#include "Code/Sparkplug/spTextureDataSerializer.h"
 #include "Code/Sparkplug/spDXTextureDataSerializer.h"
 #include "Code/Sparkplug/spLightData.h"
 #include "Code/Sparkplug/spLightDataSerializer.h"
@@ -72,9 +73,9 @@
 namespace spvhost {
 using namespace sparkplug::reconstruction;
 namespace {
-template<class T,class S> void Register(spSerializerManager& manager) {
+template<class T,class S> void Register(spSerializerManager& manager,std::uint32_t platformMask=255) {
     (void)T::StaticRTTI(); // keep the actual target's TU in the static-library link
-    if(!manager.RegisterForAnalysis(T::ClassID,std::make_shared<S>(),255,1))
+    if(!manager.RegisterForAnalysis(T::ClassID,std::make_shared<S>(),platformMask,1))
         throw std::runtime_error("Cannot register reconstructed resource reader");
 }
 }
@@ -101,7 +102,10 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     Register<spSkin,spSkinSerializer>(manager);
     Register<spMeshData,spDXMeshDataSerializer>(manager);
     Register<spMaterialData,spMaterialDataSerializer>(manager);
-    Register<spTextureData,spDXTextureDataSerializer>(manager);
+    // Actual PC startup6D1880/6D1940 registers the same TextureData wire ID
+    // for DX mask6 and common mask1 (CP15). Both readers create DXTexture.
+    Register<spTextureData,spDXTextureDataSerializer>(manager,6);
+    Register<spTextureData,spTextureDataSerializer>(manager,spSerializerManager::PlatformCommon);
     Register<spLightData,spLightDataSerializer>(manager);
     Register<spFog,spFogSerializer>(manager);
     Register<spFont,spFontSerializer>(manager);

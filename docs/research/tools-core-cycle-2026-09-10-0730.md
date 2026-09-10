@@ -175,6 +175,25 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     Сборке FBX потребовался разрешённый запуск вне sandbox: MSBuild FileTracker
     получал E_ACCESSDENIED. Первый log и успешный повтор сохранены.
 
+18. [TextureData platform dispatch](tool-texture-platform-dispatch-2026-09-10.md):
+    host registry исправлен с DX255 на original DX6/common1.27 managed checks,
+    три wholegraph positives и old/new discriminator прошли; Native FullLoader
+    иTextureSerialization PASS2,01с. Один original caller probe blooming_flower:
+    AL1, объект безInit,32байта чтения родителя,15/15allocations освобождены.
+    Это не поддержка legacy whole graph. Старое утверждение о реальном пустом
+    TextureData исправлено: pixelsесть, отсутствует source-wrapper; SourceNone
+    с действительно пустой секцией пока представлен только synthetic boundary.
+    В новом тесте исправлена опечатка hash literal; первый отказ сохранён,
+    game reader под тест не менялся.
+19. [Importer fitting preview](tool-importer-fitting-gpu-2026-09-10.md): удалён
+    третий C# skin evaluator, теперь общий production shader и native spSkin
+    palette composition.24 GPU checks PASS;12meshes/3729vertices Icy,
+    identity/translation/local rotation, rawweight boundaries иcontext lifetime.
+    Три позы используют1context/1upload. Весьrun3,40с/179,9МиБ. Portable
+    provider/ownership проверки прошли, Core/GUI сборки чистые. Начальные
+    build failures из-за transitive restore и usinglinkedfixture исправлены.
+    Viewer test checkpoint: `3706899`.
+
 ## Новые границы и исправления
 
 - Первый GPU negative test завис из-за непойманного exception нового harness;
@@ -200,7 +219,7 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
 - Три новых texture test ожидания исправлены по существующим контрактам:
   cap одной секции, допустимый нулевой header02 и normalization1→2.
   Production readers не подгонялись под тесты. Новый PC source observer
-  не закрывает пустой cached TextureData; combined TextureData Corpus profile
+  не закрывает barelegacy source-wrapper boundary; combined TextureData Corpus profile
   остановлен девятым guard до записи БД.
 - Попытка подключить animated textures к одному renderer pass выявила
   несовпадение выбранного примера: actual BloomX Material89 имеет три passes.

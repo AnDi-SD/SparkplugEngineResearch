@@ -27,6 +27,7 @@ namespace SmoImporter.Gui;
 
 public partial class MainWindow : Window
 {
+    private TargetRigFittingGpuPreview? _targetFittingGpuPreview;
     private const double OrbitSensitivity = 0.008;
     private const double DragZoomSensitivity = 0.012;
     private const double MinimumCameraDistance = 0.01;
@@ -1390,6 +1391,7 @@ public partial class MainWindow : Window
             SmoExportScene sourceScene = SmoSceneBuilder.Build(document);
             _sourcePath = sourcePath;
             _document = document;
+            _targetFittingGpuPreview?.Clear();
             _sourceScene = sourceScene;
             _plan = null;
             ResetRigFittingState();
@@ -7573,6 +7575,8 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
+        _targetFittingGpuPreview?.Dispose();
+        _targetFittingGpuPreview = null;
         SessionLog.Info(
             "WINDOW",
             $"Window closed; forceProcessExit={_forceProcessExitOnClosed}.");
@@ -7728,6 +7732,7 @@ public partial class MainWindow : Window
             return;
         SessionLog.Info("RESET", "Full UI/model state reset requested.");
 
+        _targetFittingGpuPreview?.Clear();
         _sourcePath = null; _document = null; _sourceScene = null;
         _lastSavedOutputPath = null;
         _lastSavedSourcePath = null;
@@ -8120,9 +8125,10 @@ public partial class MainWindow : Window
                 TargetRigFittingPoseSnapshot targetPreviewPose =
                     CaptureDisplayedRigFittingPose(
                         localRotationsOnly: UsesGeneratedWeightsPortingMode);
-                sourcePreviewScene = TargetRigFittingPreviewBuilder.Build(
-                    sourcePreviewScene,
-                    targetPreviewPose).Scene;
+                _targetFittingGpuPreview ??= new TargetRigFittingGpuPreview();
+                sourcePreviewScene = _targetFittingGpuPreview.Build(
+                    _document ?? throw new InvalidOperationException("The target SMO document is unavailable."),
+                    sourcePreviewScene, targetPreviewPose).Scene;
             }
             catch (Exception exception) when (exception is InvalidDataException or
                                               InvalidOperationException or
