@@ -1,0 +1,207 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-character-animation-events-2026-09-10T20:01:30Z",
+  "createdUtc": "2026-09-10T20:01:30Z",
+  "notes": "Four assessment updates;112 passed cases after3 targeted retries,115 attempts retained. Exact probe source versions bound. No repeated credit for BaseObject forwarding or Bird callback and no new C++.",
+  "assessments": [
+    {
+      "className": "wxAnimationController",
+      "platformKey": "pc",
+      "coverageScore": 45,
+      "lowerBound": 35,
+      "upperBound": 60,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-events-2026-09-11.md",
+          "sourceSha256": "9C09F66CF0458DFB52B040F7195D9C2FF1AC4523CC0458E67BD10FEB6765E439",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-event-contracts-2026-09-11.json",
+          "sourceSha256": "C686D9E8404EC462861163A59DD33628DEF6CB967D4B5B6CDF484BE002C9188D",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/pilot-run1.json",
+          "sourceSha256": "296BC4DF6C6231D7662A75DDAFE841EFCCD2223D05C37CC018244EBF2E28D4CF",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/pilot-retry-run2.json",
+          "sourceSha256": "5369B47B2843DD80EED36642466ECD1FFB11824BE9EC3E9BE07ED52E1AB56D69",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/batch-0-run1.json",
+          "sourceSha256": "DBD9A3144669EA8B415EDD35B4223D1CA469C838834463068B2B3D63E82C23F3",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/retry-bird-run2.json",
+          "sourceSha256": "16945462B0F3551F37A4EDDA5EF4836C042D003902A4A6F1FE82CE79CA82FEAC",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "35->45: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. Complete PC base/Bird/no-audio paths and real audio boundary."
+        }
+      ],
+      "unknowns": [
+        "Full runtime init/owned containers and callback mutation/reentry remain open.",
+        "PS2 full SQ/LQ nested transaction is not qualified.",
+        "Audio lookup,variant selection,loading/playback and device delivery are outside this checkpoint.",
+        "Diagnostic duplicate,zero-handle and negative game-state inputs do not establish normal-game reachability."
+      ]
+    },
+    {
+      "className": "wxAnimationController",
+      "platformKey": "ps2",
+      "coverageScore": 40,
+      "lowerBound": 30,
+      "upperBound": 55,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "30->40: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. PS2 post-SQ routes with actual base state leaf or real Bird/audio/forward boundary.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-events-2026-09-11.md",
+          "sourceSha256": "9C09F66CF0458DFB52B040F7195D9C2FF1AC4523CC0458E67BD10FEB6765E439",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "30->40: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. PS2 post-SQ routes with actual base state leaf or real Bird/audio/forward boundary."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-event-contracts-2026-09-11.json",
+          "sourceSha256": "C686D9E8404EC462861163A59DD33628DEF6CB967D4B5B6CDF484BE002C9188D",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "30->40: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. PS2 post-SQ routes with actual base state leaf or real Bird/audio/forward boundary."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/pilot-run1.json",
+          "sourceSha256": "296BC4DF6C6231D7662A75DDAFE841EFCCD2223D05C37CC018244EBF2E28D4CF",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "30->40: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. PS2 post-SQ routes with actual base state leaf or real Bird/audio/forward boundary."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/batch-0-run1.json",
+          "sourceSha256": "DBD9A3144669EA8B415EDD35B4223D1CA469C838834463068B2B3D63E82C23F3",
+          "locator": "wxAnimationController event routing,gates and exact borrowed storage",
+          "observation": "30->40: Original event3/9 old-first decrement and separate completion marks;event3 forwards actual message. Tag11 calls current CharacterState then wxAudioEmitter with move byte or0. PS2 post-SQ routes with actual base state leaf or real Bird/audio/forward boundary."
+        }
+      ],
+      "unknowns": [
+        "Full runtime init/owned containers and callback mutation/reentry remain open.",
+        "PS2 full SQ/LQ nested transaction is not qualified.",
+        "Audio lookup,variant selection,loading/playback and device delivery are outside this checkpoint.",
+        "Diagnostic duplicate,zero-handle and negative game-state inputs do not establish normal-game reachability."
+      ]
+    },
+    {
+      "className": "wxAudioEmitter",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PC rejected paths fully return,allowed stop at582690.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-character-animation-events-2026-09-11.md",
+          "sourceSha256": "9C09F66CF0458DFB52B040F7195D9C2FF1AC4523CC0458E67BD10FEB6765E439",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "20->25: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PC rejected paths fully return,allowed stop at582690."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/character-animation-event-contracts-2026-09-11.json",
+          "sourceSha256": "C686D9E8404EC462861163A59DD33628DEF6CB967D4B5B6CDF484BE002C9188D",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "20->25: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PC rejected paths fully return,allowed stop at582690."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/pilot-run1.json",
+          "sourceSha256": "296BC4DF6C6231D7662A75DDAFE841EFCCD2223D05C37CC018244EBF2E28D4CF",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "20->25: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PC rejected paths fully return,allowed stop at582690."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/batch-1-run1.json",
+          "sourceSha256": "A80BCA2E684466509BDEA9D2A4ED218FE9C35E5504046CBBC3E9B587BCD2FB63",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "20->25: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PC rejected paths fully return,allowed stop at582690."
+        }
+      ],
+      "unknowns": [
+        "Full runtime init/owned containers and callback mutation/reentry remain open.",
+        "PS2 full SQ/LQ nested transaction is not qualified.",
+        "Audio lookup,variant selection,loading/playback and device delivery are outside this checkpoint.",
+        "Diagnostic duplicate,zero-handle and negative game-state inputs do not establish normal-game reachability."
+      ]
+    },
+    {
+      "className": "wxAudioEmitter",
+      "platformKey": "ps2",
+      "coverageScore": 20,
+      "lowerBound": 10,
+      "upperBound": 35,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PS2 post-SQ rejected epilogue or actual3CB8E0 lookup entry;full audio transaction open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-character-animation-events-2026-09-11.md",
+          "sourceSha256": "9C09F66CF0458DFB52B040F7195D9C2FF1AC4523CC0458E67BD10FEB6765E439",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "15->20: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PS2 post-SQ rejected epilogue or actual3CB8E0 lookup entry;full audio transaction open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/character-animation-event-contracts-2026-09-11.json",
+          "sourceSha256": "C686D9E8404EC462861163A59DD33628DEF6CB967D4B5B6CDF484BE002C9188D",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "15->20: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PS2 post-SQ rejected epilogue or actual3CB8E0 lookup entry;full audio transaction open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/pilot-run1.json",
+          "sourceSha256": "296BC4DF6C6231D7662A75DDAFE841EFCCD2223D05C37CC018244EBF2E28D4CF",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "15->20: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PS2 post-SQ rejected epilogue or actual3CB8E0 lookup entry;full audio transaction open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/character-animation-events/batch-1-run1.json",
+          "sourceSha256": "A80BCA2E684466509BDEA9D2A4ED218FE9C35E5504046CBBC3E9B587BCD2FB63",
+          "locator": "wxAudioEmitter event routing,gates and exact borrowed storage",
+          "observation": "15->20: Original signed game1B0 gate <=37,41..49,70;constructs tag-name/variant/1000000 lookup key at audio128/134. PS2 post-SQ rejected epilogue or actual3CB8E0 lookup entry;full audio transaction open."
+        }
+      ],
+      "unknowns": [
+        "Full runtime init/owned containers and callback mutation/reentry remain open.",
+        "PS2 full SQ/LQ nested transaction is not qualified.",
+        "Audio lookup,variant selection,loading/playback and device delivery are outside this checkpoint.",
+        "Diagnostic duplicate,zero-handle and negative game-state inputs do not establish normal-game reachability."
+      ]
+    }
+  ]
+}
