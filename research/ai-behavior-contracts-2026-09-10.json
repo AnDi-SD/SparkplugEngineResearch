@@ -1,0 +1,4001 @@
+{
+  "kind": "paired-ai-behavior-construction-and-base-contracts",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "83784A21D753E7EA2B799B0A0F83447F2C541ECF477ADB04001C7AE618E24F6A",
+  "classes": [
+    {
+      "className": "wxBacoAIBehavior",
+      "classHash": 300840714,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222368,
+      "ps2Factory": 4099440,
+      "pcRecord": 7683912,
+      "ps2Record": 5025072,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxBacoAIBehavior-run1.json",
+          "sha256": "147121029967DE1A5E11AB0667948126F7395B3A483C8EE2235CCDC93EAB314F"
+        },
+        "status": "passed",
+        "allocationBytes": 456,
+        "vtable": "006FFB60",
+        "vtableFileOffset": 3140448,
+        "vtableBytes": "006d56007072560000ce4000f06b5600306b56005083400070834000",
+        "slots": [
+          "00566D00",
+          "00567270",
+          "0040CE00",
+          "00566BF0",
+          "00566B30",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "60fb6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00cccccc000000000101ccccf4010000dc0500000000cccc",
+        "cloneBytes": "60fb6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00cccccc000000000101ccccf4010000dc0500000000cccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "00228E30",
+        "constructorBody": [
+          {
+            "va": 2264624,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2264628,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2264632,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2264636,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2264640,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2264644,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2264648,
+            "bytes": "01000524",
+            "text": "addiu $a1, $zero, 1"
+          },
+          {
+            "va": 2264652,
+            "bytes": "c0614224",
+            "text": "addiu $v0, $v0, 0x61c0"
+          },
+          {
+            "va": 2264656,
+            "bytes": "f4010424",
+            "text": "addiu $a0, $zero, 0x1f4"
+          },
+          {
+            "va": 2264660,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2264664,
+            "bytes": "dc050324",
+            "text": "addiu $v1, $zero, 0x5dc"
+          },
+          {
+            "va": 2264668,
+            "bytes": "c80105a2",
+            "text": "sb $a1, 0x1c8($s0)"
+          },
+          {
+            "va": 2264672,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2264676,
+            "bytes": "c90105a2",
+            "text": "sb $a1, 0x1c9($s0)"
+          },
+          {
+            "va": 2264680,
+            "bytes": "cc0104ae",
+            "text": "sw $a0, 0x1cc($s0)"
+          },
+          {
+            "va": 2264684,
+            "bytes": "d00103ae",
+            "text": "sw $v1, 0x1d0($s0)"
+          },
+          {
+            "va": 2264688,
+            "bytes": "d40100a2",
+            "text": "sb $zero, 0x1d4($s0)"
+          },
+          {
+            "va": 2264692,
+            "bytes": "d50100a2",
+            "text": "sb $zero, 0x1d5($s0)"
+          },
+          {
+            "va": 2264696,
+            "bytes": "5d0105a2",
+            "text": "sb $a1, 0x15d($s0)"
+          },
+          {
+            "va": 2264700,
+            "bytes": "c00100a2",
+            "text": "sb $zero, 0x1c0($s0)"
+          },
+          {
+            "va": 2264704,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2264708,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2264712,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2264716,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2264720,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "004961C0",
+        "vtableBytes": "0000000000000000408d220070782200b08c3e00c07c2200c0893f001000100050001000",
+        "vtableFileOffset": 3760704,
+        "slots": [
+          "00228D40",
+          "00227870",
+          "003E8CB0",
+          "00227CC0",
+          "003F89C0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F89C0",
+        "getterBytes": "4d00023c0800e00330ad4224",
+        "getterFileOffset": 3115584,
+        "registration": "004CAD30"
+      }
+    },
+    {
+      "className": "wxBaseAIBehavior",
+      "classHash": 1165178097,
+      "base": "wxEntity",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7682760,
+      "ps2Record": 5023920,
+      "priorAssessments": [],
+      "registeredFactory": "zero on each platform;not a C++ abstractness proof"
+    },
+    {
+      "className": "wxDroidAIBehavior",
+      "classHash": 2125341362,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222944,
+      "ps2Factory": 4097904,
+      "pcRecord": 7684488,
+      "ps2Record": 5025648,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxDroidAIBehavior-run1.json",
+          "sha256": "82E5E876CAFE6E4EF10D135A956B422CE0A034192E52199950BF477787E83EC4"
+        },
+        "status": "passed",
+        "allocationBytes": 432,
+        "vtable": "006FFFB0",
+        "vtableFileOffset": 3141552,
+        "vtableBytes": "80a2560060a05600e0cf400020a05600309f56005083400070834000",
+        "slots": [
+          "0056A280",
+          "0056A060",
+          "0040CFE0",
+          "0056A020",
+          "00569F30",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "b0ff6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc10020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc50600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "cloneBytes": "b0ff6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccca0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 448,
+        "constructor": "0022D700",
+        "constructorBody": [
+          {
+            "va": 2283264,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2283268,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2283272,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2283276,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2283280,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2283284,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2283288,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2283292,
+            "bytes": "105f6324",
+            "text": "addiu $v1, $v1, 0x5f10"
+          },
+          {
+            "va": 2283296,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2283300,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2283304,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2283308,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2283312,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495F10",
+        "vtableBytes": "000000000000000040d6220050d22200b0863e0040d3220060893f001000100050001000",
+        "vtableFileOffset": 3760016,
+        "slots": [
+          "0022D640",
+          "0022D250",
+          "003E86B0",
+          "0022D340",
+          "003F8960",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8960",
+        "getterBytes": "4d00023c0800e00370af4224",
+        "getterFileOffset": 3115488,
+        "registration": "004CAF70"
+      }
+    },
+    {
+      "className": "wxFishAIBehavior",
+      "classHash": 310919164,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222752,
+      "ps2Factory": 4098416,
+      "pcRecord": 7684296,
+      "ps2Record": 5025456,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxFishAIBehavior-run1.json",
+          "sha256": "C0A5564D9F5FFF6ECE84F006B30643BA868E13A314445F18042EEE9AA169CE75"
+        },
+        "status": "passed",
+        "allocationBytes": 432,
+        "vtable": "006FFE58",
+        "vtableFileOffset": 3141208,
+        "vtableBytes": "809156003091560040cf4000f0905600709056005083400070834000",
+        "slots": [
+          "00569180",
+          "00569130",
+          "0040CF40",
+          "005690F0",
+          "00569070",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "58fe6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc10020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc50600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "cloneBytes": "58fe6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccca0630031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 448,
+        "constructor": "0022DBD0",
+        "constructorBody": [
+          {
+            "va": 2284496,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2284500,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2284504,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2284508,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2284512,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2284516,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2284520,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2284524,
+            "bytes": "00606324",
+            "text": "addiu $v1, $v1, 0x6000"
+          },
+          {
+            "va": 2284528,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2284532,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2284536,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2284540,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2284544,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2284548,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496000",
+        "vtableBytes": "000000000000000030db220000d92200b0883e00a0d9220080893f001000100050001000",
+        "vtableFileOffset": 3760256,
+        "slots": [
+          "0022DB30",
+          "0022D900",
+          "003E88B0",
+          "0022D9A0",
+          "003F8980",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8980",
+        "getterBytes": "4d00023c0800e003b0ae4224",
+        "getterFileOffset": 3115520,
+        "registration": "004CAEB0"
+      }
+    },
+    {
+      "className": "wxFrogAIBehavior",
+      "classHash": 507208783,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221984,
+      "ps2Factory": 4100464,
+      "pcRecord": 7683528,
+      "ps2Record": 5024688,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxFrogAIBehavior-run1.json",
+          "sha256": "54C4FD3CD05B2B3410598A310EE9A3A6FC1F7861AB2AE5B961E078545A89D5DD"
+        },
+        "status": "passed",
+        "allocationBytes": 432,
+        "vtable": "006FF8C0",
+        "vtableFileOffset": 3139776,
+        "vtableBytes": "f04d5600604d5600c0cc4000204d5600804c56005083400070834000",
+        "slots": [
+          "00564DF0",
+          "00564D60",
+          "0040CCC0",
+          "00564D20",
+          "00564C80",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "c0f86f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc10020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc50600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "cloneBytes": "c0f86f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccca0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 448,
+        "constructor": "0022E1D0",
+        "constructorBody": [
+          {
+            "va": 2286032,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2286036,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2286040,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2286044,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2286048,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2286052,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2286056,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2286060,
+            "bytes": "b0634224",
+            "text": "addiu $v0, $v0, 0x63b0"
+          },
+          {
+            "va": 2286064,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2286068,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2286072,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2286076,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2286080,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2286084,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2286088,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "004963B0",
+        "vtableBytes": "000000000000000010e12200e0dd2200b0903e0050de2200008a3f001000100050001000",
+        "vtableFileOffset": 3761200,
+        "slots": [
+          "0022E110",
+          "0022DDE0",
+          "003E90B0",
+          "0022DE50",
+          "003F8A00",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A00",
+        "getterBytes": "4d00023c0800e003b0ab4224",
+        "getterFileOffset": 3115648,
+        "registration": "004CABB0"
+      }
+    },
+    {
+      "className": "wxGhoulieAIBehavior",
+      "classHash": 1270491347,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221312,
+      "ps2Factory": 4102256,
+      "pcRecord": 7682856,
+      "ps2Record": 5024016,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxGhoulieAIBehavior-run1.json",
+          "sha256": "22C797B7ED8120211D00553D38353161625F1486626B35714EFFBE91D1EDA640"
+        },
+        "status": "passed",
+        "allocationBytes": 492,
+        "vtable": "006FF338",
+        "vtableFileOffset": 3138360,
+        "vtableBytes": "70125600604d560090ca4000d0165600001156005083400070834000",
+        "slots": [
+          "00561270",
+          "00564D60",
+          "0040CA90",
+          "005616D0",
+          "00561100",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "38f36f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc90600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00000000dc050000b80b0000dc050000b80b00000000ccccfc2f7000000000000000cccc000000000000000000000000000000003333333f00cccccc",
+        "cloneBytes": "38f36f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc00640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc20640031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00000000dc050000b80b0000dc050000b80b00000000ccccfc2f7000000000000000cccc000000000000000000000000000000003333333f00cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "0022FDB0",
+        "constructorBody": [
+          {
+            "va": 2293168,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2293172,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2293176,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2293180,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2293184,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2293188,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2293192,
+            "bytes": "dc050324",
+            "text": "addiu $v1, $zero, 0x5dc"
+          },
+          {
+            "va": 2293196,
+            "bytes": "00674224",
+            "text": "addiu $v0, $v0, 0x6700"
+          },
+          {
+            "va": 2293200,
+            "bytes": "d8010426",
+            "text": "addiu $a0, $s0, 0x1d8"
+          },
+          {
+            "va": 2293204,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2293208,
+            "bytes": "c00100ae",
+            "text": "sw $zero, 0x1c0($s0)"
+          },
+          {
+            "va": 2293212,
+            "bytes": "b80b0224",
+            "text": "addiu $v0, $zero, 0xbb8"
+          },
+          {
+            "va": 2293216,
+            "bytes": "c40103ae",
+            "text": "sw $v1, 0x1c4($s0)"
+          },
+          {
+            "va": 2293220,
+            "bytes": "c80102ae",
+            "text": "sw $v0, 0x1c8($s0)"
+          },
+          {
+            "va": 2293224,
+            "bytes": "cc0103ae",
+            "text": "sw $v1, 0x1cc($s0)"
+          },
+          {
+            "va": 2293228,
+            "bytes": "d00102ae",
+            "text": "sw $v0, 0x1d0($s0)"
+          },
+          {
+            "va": 2293232,
+            "bytes": "d40100a2",
+            "text": "sb $zero, 0x1d4($s0)"
+          },
+          {
+            "va": 2293236,
+            "bytes": "04940a0c",
+            "text": "jal 0x2a5010"
+          },
+          {
+            "va": 2293240,
+            "bytes": "d50100a2",
+            "text": "sb $zero, 0x1d5($s0)"
+          },
+          {
+            "va": 2293244,
+            "bytes": "333f023c",
+            "text": "lui $v0, 0x3f33"
+          },
+          {
+            "va": 2293248,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2293252,
+            "bytes": "33334434",
+            "text": "ori $a0, $v0, 0x3333"
+          },
+          {
+            "va": 2293256,
+            "bytes": "f40104ae",
+            "text": "sw $a0, 0x1f4($s0)"
+          },
+          {
+            "va": 2293260,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2293264,
+            "bytes": "f80100a2",
+            "text": "sb $zero, 0x1f8($s0)"
+          },
+          {
+            "va": 2293268,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2293272,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2293276,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2293280,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2293284,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496700",
+        "vtableBytes": "0000000000000000e0fc220000e52200b0973e0070e52200708a3f001000100050001000",
+        "vtableFileOffset": 3762048,
+        "slots": [
+          "0022FCE0",
+          "0022E500",
+          "003E97B0",
+          "0022E570",
+          "003F8A70",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A70",
+        "getterBytes": "4d00023c0800e00310a94224",
+        "getterFileOffset": 3115760,
+        "registration": "004CA910"
+      }
+    },
+    {
+      "className": "wxGlyphDroidAIBehavior",
+      "classHash": 2142118562,
+      "base": "wxDroidAIBehavior",
+      "pcFactory": 4223040,
+      "ps2Factory": 4097648,
+      "pcRecord": 7684584,
+      "ps2Record": 5025744,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxGlyphDroidAIBehavior-run1.json",
+          "sha256": "E09F1AB606039AF32C871090E09BE8F77E8C09D6F87099ED3C841FDE34B9FE47"
+        },
+        "status": "passed",
+        "allocationBytes": 432,
+        "vtable": "00700020",
+        "vtableFileOffset": 3141664,
+        "vtableBytes": "a0a2560040a2560030d0400020a05600c0a156005083400070834000",
+        "slots": [
+          "0056A2A0",
+          "0056A240",
+          "0040D030",
+          "0056A020",
+          "0056A1C0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "20007000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc10020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc50600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "cloneBytes": "20007000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc80630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccca0630031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 448,
+        "constructor": "0022D060",
+        "constructorBody": [
+          {
+            "va": 2281568,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2281572,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2281576,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2281580,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2281584,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2281588,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2281592,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2281596,
+            "bytes": "905e6324",
+            "text": "addiu $v1, $v1, 0x5e90"
+          },
+          {
+            "va": 2281600,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2281604,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2281608,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2281612,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2281616,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2281620,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495E90",
+        "vtableBytes": "000000000000000060cf220010cc2200b0853e0040d3220050893f001000100050001000",
+        "vtableFileOffset": 3759888,
+        "slots": [
+          "0022CF60",
+          "0022CC10",
+          "003E85B0",
+          "0022D340",
+          "003F8950",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8950",
+        "getterBytes": "4d00023c0800e003d0af4224",
+        "getterFileOffset": 3115472,
+        "registration": "004CAFD0"
+      }
+    },
+    {
+      "className": "wxGolemAIBehavior",
+      "classHash": 1667585576,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222272,
+      "ps2Factory": 4099696,
+      "pcRecord": 7683816,
+      "ps2Record": 5024976,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxGolemAIBehavior-run1.json",
+          "sha256": "1B8FCE9B6927C58B92A7F1E5093E4F7B68AA8B66B1AA1F79DB95B0207F143A87"
+        },
+        "status": "passed",
+        "allocationBytes": 484,
+        "vtable": "006FFA90",
+        "vtableFileOffset": 3140240,
+        "vtableBytes": "60665600505e5600b0cd4000f05d5600806056005083400070834000",
+        "slots": [
+          "00566660",
+          "00565E50",
+          "0040CDB0",
+          "00565DF0",
+          "00566080",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "90fa6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc90600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0000000000000000cccccccc0000000000000000000000000000000000000000000000009a99193fb80b000000cccccc00000000",
+        "cloneBytes": "90fa6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc00640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc20640031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0000000000000000cccccccc0000000000000000000000000000000000000000000000009a99193fb80b000000cccccc00000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "00231530",
+        "constructorBody": [
+          {
+            "va": 2299184,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2299188,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2299192,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2299196,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2299200,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2299204,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2299208,
+            "bytes": "c0010426",
+            "text": "addiu $a0, $s0, 0x1c0"
+          },
+          {
+            "va": 2299212,
+            "bytes": "40624224",
+            "text": "addiu $v0, $v0, 0x6240"
+          },
+          {
+            "va": 2299216,
+            "bytes": "2d280000",
+            "text": "move $a1, $zero"
+          },
+          {
+            "va": 2299220,
+            "bytes": "e46e040c",
+            "text": "jal 0x11bb90"
+          },
+          {
+            "va": 2299224,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2299228,
+            "bytes": "c4010426",
+            "text": "addiu $a0, $s0, 0x1c4"
+          },
+          {
+            "va": 2299232,
+            "bytes": "e46e040c",
+            "text": "jal 0x11bb90"
+          },
+          {
+            "va": 2299236,
+            "bytes": "2d280000",
+            "text": "move $a1, $zero"
+          },
+          {
+            "va": 2299240,
+            "bytes": "4700023c",
+            "text": "lui $v0, 0x47"
+          },
+          {
+            "va": 2299244,
+            "bytes": "4700073c",
+            "text": "lui $a3, 0x47"
+          },
+          {
+            "va": 2299248,
+            "bytes": "506f40c4",
+            "text": "lwc1 $f0, 0x6f50($v0)"
+          },
+          {
+            "va": 2299252,
+            "bytes": "4700063c",
+            "text": "lui $a2, 0x47"
+          },
+          {
+            "va": 2299256,
+            "bytes": "4700053c",
+            "text": "lui $a1, 0x47"
+          },
+          {
+            "va": 2299260,
+            "bytes": "4700043c",
+            "text": "lui $a0, 0x47"
+          },
+          {
+            "va": 2299264,
+            "bytes": "4700033c",
+            "text": "lui $v1, 0x47"
+          },
+          {
+            "va": 2299268,
+            "bytes": "b80b0824",
+            "text": "addiu $t0, $zero, 0xbb8"
+          },
+          {
+            "va": 2299272,
+            "bytes": "cc0100e6",
+            "text": "swc1 $f0, 0x1cc($s0)"
+          },
+          {
+            "va": 2299276,
+            "bytes": "193f023c",
+            "text": "lui $v0, 0x3f19"
+          },
+          {
+            "va": 2299280,
+            "bytes": "546fe0c4",
+            "text": "lwc1 $f0, 0x6f54($a3)"
+          },
+          {
+            "va": 2299284,
+            "bytes": "9a994934",
+            "text": "ori $t1, $v0, 0x999a"
+          },
+          {
+            "va": 2299288,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2299292,
+            "bytes": "d00100e6",
+            "text": "swc1 $f0, 0x1d0($s0)"
+          },
+          {
+            "va": 2299296,
+            "bytes": "586fc0c4",
+            "text": "lwc1 $f0, 0x6f58($a2)"
+          },
+          {
+            "va": 2299300,
+            "bytes": "d40100e6",
+            "text": "swc1 $f0, 0x1d4($s0)"
+          },
+          {
+            "va": 2299304,
+            "bytes": "506fa0c4",
+            "text": "lwc1 $f0, 0x6f50($a1)"
+          },
+          {
+            "va": 2299308,
+            "bytes": "d80100e6",
+            "text": "swc1 $f0, 0x1d8($s0)"
+          },
+          {
+            "va": 2299312,
+            "bytes": "546f80c4",
+            "text": "lwc1 $f0, 0x6f54($a0)"
+          },
+          {
+            "va": 2299316,
+            "bytes": "dc0100e6",
+            "text": "swc1 $f0, 0x1dc($s0)"
+          },
+          {
+            "va": 2299320,
+            "bytes": "586f60c4",
+            "text": "lwc1 $f0, 0x6f58($v1)"
+          },
+          {
+            "va": 2299324,
+            "bytes": "e00100e6",
+            "text": "swc1 $f0, 0x1e0($s0)"
+          },
+          {
+            "va": 2299328,
+            "bytes": "e40109ae",
+            "text": "sw $t1, 0x1e4($s0)"
+          },
+          {
+            "va": 2299332,
+            "bytes": "e80108ae",
+            "text": "sw $t0, 0x1e8($s0)"
+          },
+          {
+            "va": 2299336,
+            "bytes": "ec0100a2",
+            "text": "sb $zero, 0x1ec($s0)"
+          },
+          {
+            "va": 2299340,
+            "bytes": "f00100ae",
+            "text": "sw $zero, 0x1f0($s0)"
+          },
+          {
+            "va": 2299344,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2299348,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2299352,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2299356,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2299360,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496240",
+        "vtableBytes": "00000000000000004013230040062300b08d3e00e0072300d0893f001000100050001000",
+        "vtableFileOffset": 3760832,
+        "slots": [
+          "00231340",
+          "00230640",
+          "003E8DB0",
+          "002307E0",
+          "003F89D0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F89D0",
+        "getterBytes": "4d00023c0800e003d0ac4224",
+        "getterFileOffset": 3115600,
+        "registration": "004CACD0"
+      }
+    },
+    {
+      "className": "wxIceGargoyleAIBehavior",
+      "classHash": 887912347,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221696,
+      "ps2Factory": 4101232,
+      "pcRecord": 7683240,
+      "ps2Record": 5024400,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxIceGargoyleAIBehavior-run1.json",
+          "sha256": "591EDE4BE7B3FCA9B96C89D685D906245E2B7E7F5A1C84470B2555B7944544EF"
+        },
+        "status": "blocked",
+        "allocationBytes": 484,
+        "vtable": "006FF6E0",
+        "vtableFileOffset": 3139296,
+        "vtableBytes": "803b5600c03a5600d0cb4000803a5600a03956005083400070834000",
+        "slots": [
+          "00563B80",
+          "00563AC0",
+          "0040CBD0",
+          "00563A80",
+          "005639A0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "e0f66f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc50020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc90600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc00cccccccccccccc01cccccccccccccc",
+        "cloneBytes": "e0f66f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc00640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc20640031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc00cccccccccccccc01cccccccccccccc",
+        "returnedClassOperations": 3,
+        "remainingTrackedAllocations": null,
+        "pending": {
+          "label": "delete-clone",
+          "address": "00563B80",
+          "this": 822108672,
+          "args": [
+            1
+          ]
+        },
+        "error": "invalid memory 19 at 0xcccccccc, size 4: Invalid memory read (UC_ERR_READ_UNMAPPED); tail=['0x88bff3', '0x42ae96', '0x4e26e6', '0x4e27a9', '0x563a1b', '0x563a2e', '0x4e26e0', '0x42ae96', '0x4e26e6', '0x4e27a9', '0x563a3e', '0x563a48']",
+        "lastIp": "00563A48"
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 512,
+        "constructor": "00232220",
+        "constructorBody": [
+          {
+            "va": 2302496,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2302500,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2302504,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2302508,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2302512,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2302516,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2302520,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2302524,
+            "bytes": "20654224",
+            "text": "addiu $v0, $v0, 0x6520"
+          },
+          {
+            "va": 2302528,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2302532,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2302536,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2302540,
+            "bytes": "ec0103a2",
+            "text": "sb $v1, 0x1ec($s0)"
+          },
+          {
+            "va": 2302544,
+            "bytes": "e40100a2",
+            "text": "sb $zero, 0x1e4($s0)"
+          },
+          {
+            "va": 2302548,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2302552,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2302556,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2302560,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496520",
+        "vtableBytes": "000000000000000000212300e0182300b0933e00c0192300308a3f001000100050001000",
+        "vtableFileOffset": 3761568,
+        "slots": [
+          "00232100",
+          "002318E0",
+          "003E93B0",
+          "002319C0",
+          "003F8A30",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A30",
+        "getterBytes": "4d00023c0800e00390aa4224",
+        "getterFileOffset": 3115696,
+        "registration": "004CAA90"
+      }
+    },
+    {
+      "className": "wxIceWormAIBehavior",
+      "classHash": 379264416,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221600,
+      "ps2Factory": 4101488,
+      "pcRecord": 7683144,
+      "ps2Record": 5024304,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxIceWormAIBehavior-run1.json",
+          "sha256": "E743572B17DD116D31F724C5D29753767671415FB7A2B8B31F61B4C2EEFB53F2"
+        },
+        "status": "passed",
+        "allocationBytes": 456,
+        "vtable": "006FF630",
+        "vtableFileOffset": 3139120,
+        "vtableBytes": "b0335600d033560080cb400060335600a03256005083400070834000",
+        "slots": [
+          "005633B0",
+          "005633D0",
+          "0040CB80",
+          "00563360",
+          "005632A0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "30f66f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc000000000000000000000000000000000000000001cccccc",
+        "cloneBytes": "30f66f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc000000000000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "00233160",
+        "constructorBody": [
+          {
+            "va": 2306400,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2306404,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2306408,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2306412,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2306416,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2306420,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2306424,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2306428,
+            "bytes": "a0654224",
+            "text": "addiu $v0, $v0, 0x65a0"
+          },
+          {
+            "va": 2306432,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2306436,
+            "bytes": "c00100ae",
+            "text": "sw $zero, 0x1c0($s0)"
+          },
+          {
+            "va": 2306440,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2306444,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2306448,
+            "bytes": "c80100ae",
+            "text": "sw $zero, 0x1c8($s0)"
+          },
+          {
+            "va": 2306452,
+            "bytes": "cc0100ae",
+            "text": "sw $zero, 0x1cc($s0)"
+          },
+          {
+            "va": 2306456,
+            "bytes": "d00100ae",
+            "text": "sw $zero, 0x1d0($s0)"
+          },
+          {
+            "va": 2306460,
+            "bytes": "d40103a2",
+            "text": "sb $v1, 0x1d4($s0)"
+          },
+          {
+            "va": 2306464,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2306468,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2306472,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2306476,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2306480,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "004965A0",
+        "vtableBytes": "0000000000000000a030230030242300b0943e0090252300408a3f001000100050001000",
+        "vtableFileOffset": 3761696,
+        "slots": [
+          "002330A0",
+          "00232430",
+          "003E94B0",
+          "00232590",
+          "003F8A40",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A40",
+        "getterBytes": "4d00023c0800e00330aa4224",
+        "getterFileOffset": 3115712,
+        "registration": "004CAA30"
+      }
+    },
+    {
+      "className": "wxKikoAIBehavior",
+      "classHash": 75239324,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221504,
+      "ps2Factory": 4101744,
+      "pcRecord": 7683048,
+      "ps2Record": 5024208,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxKikoAIBehavior-run1.json",
+          "sha256": "AC7FD9E84BAFB7553DFEE87CA775E6938FA6BA4C32EEACE54090D97DB3D4CF08"
+        },
+        "status": "passed",
+        "allocationBytes": 436,
+        "vtable": "006FF598",
+        "vtableFileOffset": 3138968,
+        "vtableBytes": "802f5600502f560030cb4000102f5600902e56005083400070834000",
+        "slots": [
+          "00562F80",
+          "00562F50",
+          "0040CB30",
+          "00562F10",
+          "00562E90",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "98f56f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc20020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc60600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00000000",
+        "cloneBytes": "98f56f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0630031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc00000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 464,
+        "constructor": "00233950",
+        "constructorBody": [
+          {
+            "va": 2308432,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2308436,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2308440,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2308444,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2308448,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2308452,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2308456,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2308460,
+            "bytes": "20666324",
+            "text": "addiu $v1, $v1, 0x6620"
+          },
+          {
+            "va": 2308464,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2308468,
+            "bytes": "c00100ae",
+            "text": "sw $zero, 0x1c0($s0)"
+          },
+          {
+            "va": 2308472,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2308476,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2308480,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2308484,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2308488,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496620",
+        "vtableBytes": "0000000000000000b038230070332300b0953e00e0332300508a3f001000100050001000",
+        "vtableFileOffset": 3761824,
+        "slots": [
+          "002338B0",
+          "00233370",
+          "003E95B0",
+          "002333E0",
+          "003F8A50",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A50",
+        "getterBytes": "4d00023c0800e003d0a94224",
+        "getterFileOffset": 3115728,
+        "registration": "004CA9D0"
+      }
+    },
+    {
+      "className": "wxKnutBossAIBehavior",
+      "classHash": 221674723,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221408,
+      "ps2Factory": 4102000,
+      "pcRecord": 7682952,
+      "ps2Record": 5024112,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxKnutBossAIBehavior-run1.json",
+          "sha256": "6D89D23087EB1614908FF43AAE4F4555F3E0ABC58FFF2F2F10429AF60A5BD688"
+        },
+        "status": "passed",
+        "allocationBytes": 564,
+        "vtable": "006FF490",
+        "vtableFileOffset": 3138704,
+        "vtableBytes": "202a560000285600e0ca4000b0235600d02556005083400070834000",
+        "slots": [
+          "00562A20",
+          "00562800",
+          "0040CAE0",
+          "005623B0",
+          "005625D0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "90f46f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0a00000003000000db0f493f20bcbe4c0000003f6666e63ec8000000e8030000d0070000881300000000000000000000000000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc0300000000000000",
+        "cloneBytes": "90f46f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0640031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0a00000003000000db0f493f20bcbe4c0000003f6666e63ec8000000e8030000d0070000881300000000000000000000000000000000000000000000000000000000000000cccccc00000000000000000000003f000000000000003f000000000000000000000000000000000000803f00000000cccccccc01cccccc0300000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 592,
+        "constructor": "00234AD0",
+        "constructorBody": [
+          {
+            "va": 2312912,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2312916,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2312920,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2312924,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2312928,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2312932,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2312936,
+            "bytes": "0a000224",
+            "text": "addiu $v0, $zero, 0xa"
+          },
+          {
+            "va": 2312940,
+            "bytes": "90666324",
+            "text": "addiu $v1, $v1, 0x6690"
+          },
+          {
+            "va": 2312944,
+            "bytes": "e8010426",
+            "text": "addiu $a0, $s0, 0x1e8"
+          },
+          {
+            "va": 2312948,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2312952,
+            "bytes": "2d280000",
+            "text": "move $a1, $zero"
+          },
+          {
+            "va": 2312956,
+            "bytes": "c00102ae",
+            "text": "sw $v0, 0x1c0($s0)"
+          },
+          {
+            "va": 2312960,
+            "bytes": "03000324",
+            "text": "addiu $v1, $zero, 3"
+          },
+          {
+            "va": 2312964,
+            "bytes": "493f023c",
+            "text": "lui $v0, 0x3f49"
+          },
+          {
+            "va": 2312968,
+            "bytes": "c40103ae",
+            "text": "sw $v1, 0x1c4($s0)"
+          },
+          {
+            "va": 2312972,
+            "bytes": "db0f4234",
+            "text": "ori $v0, $v0, 0xfdb"
+          },
+          {
+            "va": 2312976,
+            "bytes": "003f033c",
+            "text": "lui $v1, 0x3f00"
+          },
+          {
+            "va": 2312980,
+            "bytes": "c80102ae",
+            "text": "sw $v0, 0x1c8($s0)"
+          },
+          {
+            "va": 2312984,
+            "bytes": "be4c023c",
+            "text": "lui $v0, 0x4cbe"
+          },
+          {
+            "va": 2312988,
+            "bytes": "20bc4234",
+            "text": "ori $v0, $v0, 0xbc20"
+          },
+          {
+            "va": 2312992,
+            "bytes": "cc0102ae",
+            "text": "sw $v0, 0x1cc($s0)"
+          },
+          {
+            "va": 2312996,
+            "bytes": "e63e023c",
+            "text": "lui $v0, 0x3ee6"
+          },
+          {
+            "va": 2313000,
+            "bytes": "d00103ae",
+            "text": "sw $v1, 0x1d0($s0)"
+          },
+          {
+            "va": 2313004,
+            "bytes": "66664234",
+            "text": "ori $v0, $v0, 0x6666"
+          },
+          {
+            "va": 2313008,
+            "bytes": "d40102ae",
+            "text": "sw $v0, 0x1d4($s0)"
+          },
+          {
+            "va": 2313012,
+            "bytes": "c8000224",
+            "text": "addiu $v0, $zero, 0xc8"
+          },
+          {
+            "va": 2313016,
+            "bytes": "d80102ae",
+            "text": "sw $v0, 0x1d8($s0)"
+          },
+          {
+            "va": 2313020,
+            "bytes": "e8030224",
+            "text": "addiu $v0, $zero, 0x3e8"
+          },
+          {
+            "va": 2313024,
+            "bytes": "dc0102ae",
+            "text": "sw $v0, 0x1dc($s0)"
+          },
+          {
+            "va": 2313028,
+            "bytes": "d0070224",
+            "text": "addiu $v0, $zero, 0x7d0"
+          },
+          {
+            "va": 2313032,
+            "bytes": "e00102ae",
+            "text": "sw $v0, 0x1e0($s0)"
+          },
+          {
+            "va": 2313036,
+            "bytes": "88130224",
+            "text": "addiu $v0, $zero, 0x1388"
+          },
+          {
+            "va": 2313040,
+            "bytes": "e46e040c",
+            "text": "jal 0x11bb90"
+          },
+          {
+            "va": 2313044,
+            "bytes": "e40102ae",
+            "text": "sw $v0, 0x1e4($s0)"
+          },
+          {
+            "va": 2313048,
+            "bytes": "ec0100ae",
+            "text": "sw $zero, 0x1ec($s0)"
+          },
+          {
+            "va": 2313052,
+            "bytes": "fc010426",
+            "text": "addiu $a0, $s0, 0x1fc"
+          },
+          {
+            "va": 2313056,
+            "bytes": "f00100ae",
+            "text": "sw $zero, 0x1f0($s0)"
+          },
+          {
+            "va": 2313060,
+            "bytes": "f40100ae",
+            "text": "sw $zero, 0x1f4($s0)"
+          },
+          {
+            "va": 2313064,
+            "bytes": "9c61040c",
+            "text": "jal 0x118670"
+          },
+          {
+            "va": 2313068,
+            "bytes": "f80100ae",
+            "text": "sw $zero, 0x1f8($s0)"
+          },
+          {
+            "va": 2313072,
+            "bytes": "400200ae",
+            "text": "sw $zero, 0x240($s0)"
+          },
+          {
+            "va": 2313076,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2313080,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2313084,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2313088,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2313092,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2313096,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496690",
+        "vtableBytes": "000000000000000070492300103c2300b0963e00f03d2300608a3f001000100050001000",
+        "vtableFileOffset": 3761936,
+        "slots": [
+          "00234970",
+          "00233C10",
+          "003E96B0",
+          "00233DF0",
+          "003F8A60",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A60",
+        "getterBytes": "4d00023c0800e00370a94224",
+        "getterFileOffset": 3115744,
+        "registration": "004CA970"
+      }
+    },
+    {
+      "className": "wxMikaelAIBehavior",
+      "classHash": 1528523973,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4223616,
+      "ps2Factory": 4096112,
+      "pcRecord": 7685160,
+      "ps2Record": 5026320,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxMikaelAIBehavior-run1.json",
+          "sha256": "5B6E4C1C5BDB1142E3DE3CF796FE29FF3A63994368E098CBABA59C763F5BA27F"
+        },
+        "status": "passed",
+        "allocationBytes": 452,
+        "vtable": "00700470",
+        "vtableFileOffset": 3142768,
+        "vtableBytes": "e0095700b009570010d2400070095700900857005083400070834000",
+        "slots": [
+          "005709E0",
+          "005709B0",
+          "0040D210",
+          "00570970",
+          "00570890",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "70047000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccc00000000cccccccc0000000000000000",
+        "cloneBytes": "70047000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc60640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc80640031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccc00000000cccccccc0000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "002352F0",
+        "constructorBody": [
+          {
+            "va": 2314992,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2314996,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2315000,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2315004,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2315008,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2315012,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2315016,
+            "bytes": "705c4224",
+            "text": "addiu $v0, $v0, 0x5c70"
+          },
+          {
+            "va": 2315020,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2315024,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2315028,
+            "bytes": "cc0100ae",
+            "text": "sw $zero, 0x1cc($s0)"
+          },
+          {
+            "va": 2315032,
+            "bytes": "d00100ae",
+            "text": "sw $zero, 0x1d0($s0)"
+          },
+          {
+            "va": 2315036,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2315040,
+            "bytes": "98b6828f",
+            "text": "lw $v0, -0x4968($gp)"
+          },
+          {
+            "va": 2315044,
+            "bytes": "07004010",
+            "text": "beqz $v0, 0x235344"
+          },
+          {
+            "va": 2315048,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2315052,
+            "bytes": "98b6848f",
+            "text": "lw $a0, -0x4968($gp)"
+          },
+          {
+            "va": 2315056,
+            "bytes": "0e000524",
+            "text": "addiu $a1, $zero, 0xe"
+          },
+          {
+            "va": 2315060,
+            "bytes": "ec38040c",
+            "text": "jal 0x10e3b0"
+          },
+          {
+            "va": 2315064,
+            "bytes": "2d300002",
+            "text": "move $a2, $s0"
+          },
+          {
+            "va": 2315068,
+            "bytes": "05000010",
+            "text": "b 0x235354"
+          },
+          {
+            "va": 2315072,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2315076,
+            "bytes": "d439040c",
+            "text": "jal 0x10e750"
+          },
+          {
+            "va": 2315080,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2315084,
+            "bytes": "f7ff0010",
+            "text": "b 0x23532c"
+          },
+          {
+            "va": 2315088,
+            "bytes": "98b682af",
+            "text": "sw $v0, -0x4968($gp)"
+          },
+          {
+            "va": 2315092,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2315096,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2315100,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2315104,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495C70",
+        "vtableBytes": "0000000000000000d0512300304d2300b07f3e00a04d2300f0883f001000100050001000",
+        "vtableFileOffset": 3759344,
+        "slots": [
+          "002351D0",
+          "00234D30",
+          "003E7FB0",
+          "00234DA0",
+          "003F88F0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F88F0",
+        "getterBytes": "4d00023c0800e00310b24224",
+        "getterFileOffset": 3115376,
+        "registration": "004CB210"
+      }
+    },
+    {
+      "className": "wxMinotaurAIBehavior",
+      "classHash": 1313634736,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222464,
+      "ps2Factory": 4099184,
+      "pcRecord": 7684008,
+      "ps2Record": 5025168,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxMinotaurAIBehavior-run1.json",
+          "sha256": "930828229FF65ECFE7FC4FF749B706075A96A0F7275FBD13F7F6F73607C0B185"
+        },
+        "status": "passed",
+        "allocationBytes": 444,
+        "vtable": "006FFC48",
+        "vtableFileOffset": 3140680,
+        "vtableBytes": "d07a5600407d560050ce4000c0785600607756005083400070834000",
+        "slots": [
+          "00567AD0",
+          "00567D40",
+          "0040CE50",
+          "005678C0",
+          "00567760",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "48fc6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc20020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc60600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc010000009a99993e0000cccc",
+        "cloneBytes": "48fc6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc010000009a99993e0000cccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 464,
+        "constructor": "002363F0",
+        "constructorBody": [
+          {
+            "va": 2319344,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2319348,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2319352,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2319356,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2319360,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2319364,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2319368,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2319372,
+            "bytes": "40614224",
+            "text": "addiu $v0, $v0, 0x6140"
+          },
+          {
+            "va": 2319376,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2319380,
+            "bytes": "993e023c",
+            "text": "lui $v0, 0x3e99"
+          },
+          {
+            "va": 2319384,
+            "bytes": "c00103ae",
+            "text": "sw $v1, 0x1c0($s0)"
+          },
+          {
+            "va": 2319388,
+            "bytes": "9a994234",
+            "text": "ori $v0, $v0, 0x999a"
+          },
+          {
+            "va": 2319392,
+            "bytes": "c40102ae",
+            "text": "sw $v0, 0x1c4($s0)"
+          },
+          {
+            "va": 2319396,
+            "bytes": "c80100a2",
+            "text": "sb $zero, 0x1c8($s0)"
+          },
+          {
+            "va": 2319400,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2319404,
+            "bytes": "c90100a2",
+            "text": "sb $zero, 0x1c9($s0)"
+          },
+          {
+            "va": 2319408,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2319412,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2319416,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2319420,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2319424,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496140",
+        "vtableBytes": "00000000000000000063230000582300b08b3e00005a2300b0893f001000100050001000",
+        "vtableFileOffset": 3760576,
+        "slots": [
+          "00236300",
+          "00235800",
+          "003E8BB0",
+          "00235A00",
+          "003F89B0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F89B0",
+        "getterBytes": "4d00023c0800e00390ad4224",
+        "getterFileOffset": 3115568,
+        "registration": "004CAD90"
+      }
+    },
+    {
+      "className": "wxMosquitoAIBehavior",
+      "classHash": 1223976491,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222080,
+      "ps2Factory": 4100208,
+      "pcRecord": 7683624,
+      "ps2Record": 5024784,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxMosquitoAIBehavior-run1.json",
+          "sha256": "F6D8159C727C994F9AEDD203F007232BFC0094921FBC86C41CC94E6B570A13BF"
+        },
+        "status": "passed",
+        "allocationBytes": 452,
+        "vtable": "006FF940",
+        "vtableFileOffset": 3139904,
+        "vtableBytes": "70515600604d560010cd4000b0505600105056005083400070834000",
+        "slots": [
+          "00565170",
+          "00564D60",
+          "0040CD10",
+          "005650B0",
+          "00565010",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "40f96f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0000a04000000000000000000000000000000000",
+        "cloneBytes": "40f96f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0000a04000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "00236BE0",
+        "constructorBody": [
+          {
+            "va": 2321376,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2321380,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2321384,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2321388,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2321392,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2321396,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2321400,
+            "bytes": "a040033c",
+            "text": "lui $v1, 0x40a0"
+          },
+          {
+            "va": 2321404,
+            "bytes": "30634224",
+            "text": "addiu $v0, $v0, 0x6330"
+          },
+          {
+            "va": 2321408,
+            "bytes": "4700043c",
+            "text": "lui $a0, 0x47"
+          },
+          {
+            "va": 2321412,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2321416,
+            "bytes": "01000524",
+            "text": "addiu $a1, $zero, 1"
+          },
+          {
+            "va": 2321420,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2321424,
+            "bytes": "4700023c",
+            "text": "lui $v0, 0x47"
+          },
+          {
+            "va": 2321428,
+            "bytes": "c00103ae",
+            "text": "sw $v1, 0x1c0($s0)"
+          },
+          {
+            "va": 2321432,
+            "bytes": "506f40c4",
+            "text": "lwc1 $f0, 0x6f50($v0)"
+          },
+          {
+            "va": 2321436,
+            "bytes": "4700033c",
+            "text": "lui $v1, 0x47"
+          },
+          {
+            "va": 2321440,
+            "bytes": "c80100e6",
+            "text": "swc1 $f0, 0x1c8($s0)"
+          },
+          {
+            "va": 2321444,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2321448,
+            "bytes": "546f80c4",
+            "text": "lwc1 $f0, 0x6f54($a0)"
+          },
+          {
+            "va": 2321452,
+            "bytes": "cc0100e6",
+            "text": "swc1 $f0, 0x1cc($s0)"
+          },
+          {
+            "va": 2321456,
+            "bytes": "586f60c4",
+            "text": "lwc1 $f0, 0x6f58($v1)"
+          },
+          {
+            "va": 2321460,
+            "bytes": "d00100e6",
+            "text": "swc1 $f0, 0x1d0($s0)"
+          },
+          {
+            "va": 2321464,
+            "bytes": "5d0105a2",
+            "text": "sb $a1, 0x15d($s0)"
+          },
+          {
+            "va": 2321468,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2321472,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2321476,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2321480,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496330",
+        "vtableBytes": "0000000000000000206b230090662300b08f3e0000672300f0893f001000100050001000",
+        "vtableFileOffset": 3761072,
+        "slots": [
+          "00236B20",
+          "00236690",
+          "003E8FB0",
+          "00236700",
+          "003F89F0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F89F0",
+        "getterBytes": "4d00023c0800e00310ac4224",
+        "getterFileOffset": 3115632,
+        "registration": "004CAC10"
+      }
+    },
+    {
+      "className": "wxShadowBeastAIBehavior",
+      "classHash": 1138895433,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222656,
+      "ps2Factory": 4098672,
+      "pcRecord": 7684200,
+      "ps2Record": 5025360,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxShadowBeastAIBehavior-run1.json",
+          "sha256": "3F1111F1542220EFF4730CD851723CF3DDE990B9AD145409BC765DD78F7C5C8F"
+        },
+        "status": "passed",
+        "allocationBytes": 436,
+        "vtable": "006FFDE0",
+        "vtableFileOffset": 3141088,
+        "vtableBytes": "908e5600208d5600f0ce4000d08c5600308c56005083400070834000",
+        "slots": [
+          "00568E90",
+          "00568D20",
+          "0040CEF0",
+          "00568CD0",
+          "00568C30",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "e0fd6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc20020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc60600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc01cccccc",
+        "cloneBytes": "e0fd6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc01cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 464,
+        "constructor": "00238A40",
+        "constructorBody": [
+          {
+            "va": 2329152,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2329156,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2329160,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2329164,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2329168,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2329172,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2329176,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2329180,
+            "bytes": "70604224",
+            "text": "addiu $v0, $v0, 0x6070"
+          },
+          {
+            "va": 2329184,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2329188,
+            "bytes": "c00103a2",
+            "text": "sb $v1, 0x1c0($s0)"
+          },
+          {
+            "va": 2329192,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2329196,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2329200,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2329204,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2329208,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2329212,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496070",
+        "vtableBytes": "00000000000000008089230030852300b0893e009086230090893f001000100050001000",
+        "vtableFileOffset": 3760368,
+        "slots": [
+          "00238980",
+          "00238530",
+          "003E89B0",
+          "00238690",
+          "003F8990",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8990",
+        "getterBytes": "4d00023c0800e00350ae4224",
+        "getterFileOffset": 3115536,
+        "registration": "004CAE50"
+      }
+    },
+    {
+      "className": "wxSpiderAIBehavior",
+      "classHash": 1688950928,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221888,
+      "ps2Factory": 4100720,
+      "pcRecord": 7683432,
+      "ps2Record": 5024592,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxSpiderAIBehavior-run1.json",
+          "sha256": "1C72774B2D7E76794EC52B88F5291BBFE738909C4F6565EFC0EC1E01698CE579"
+        },
+        "status": "passed",
+        "allocationBytes": 444,
+        "vtable": "006FF840",
+        "vtableFileOffset": 3139648,
+        "vtableBytes": "00485600604d560070cc4000b0475600f04656005083400070834000",
+        "slots": [
+          "00564800",
+          "00564D60",
+          "0040CC70",
+          "005647B0",
+          "005646F0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "40f86f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc20020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc60600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc01cccccc0000000000cccccc",
+        "cloneBytes": "40f86f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc01cccccc0000000000cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 464,
+        "constructor": "002395B0",
+        "constructorBody": [
+          {
+            "va": 2332080,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2332084,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2332088,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2332092,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2332096,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2332100,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2332104,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2332108,
+            "bytes": "30644224",
+            "text": "addiu $v0, $v0, 0x6430"
+          },
+          {
+            "va": 2332112,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2332116,
+            "bytes": "c00103a2",
+            "text": "sb $v1, 0x1c0($s0)"
+          },
+          {
+            "va": 2332120,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2332124,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2332128,
+            "bytes": "c80100a2",
+            "text": "sb $zero, 0x1c8($s0)"
+          },
+          {
+            "va": 2332132,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2332136,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2332140,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2332144,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2332148,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00496430",
+        "vtableBytes": "0000000000000000c0942300408c2300b0913e00b08c2300108a3f001000100050001000",
+        "vtableFileOffset": 3761328,
+        "slots": [
+          "002394C0",
+          "00238C40",
+          "003E91B0",
+          "00238CB0",
+          "003F8A10",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A10",
+        "getterBytes": "4d00023c0800e00350ab4224",
+        "getterFileOffset": 3115664,
+        "registration": "004CAB50"
+      }
+    },
+    {
+      "className": "wxTrixAIBehavior",
+      "classHash": 1114449548,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4223520,
+      "ps2Factory": 4096368,
+      "pcRecord": 7685064,
+      "ps2Record": 5026224,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxTrixAIBehavior-run1.json",
+          "sha256": "F2618944499E646A96DDE73BB0A8D0B451F0D9D6DD4C5F653BE6A5235CD434FD"
+        },
+        "status": "passed",
+        "allocationBytes": 456,
+        "vtable": "007003D0",
+        "vtableFileOffset": 3142608,
+        "vtableBytes": "d001570060035700c0d1400000015700c0ff56005083400070834000",
+        "slots": [
+          "005701D0",
+          "00570360",
+          "0040D1C0",
+          "00570100",
+          "0056FFC0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "d0037000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0100cccc00000000c8000000e80300001027000008000000",
+        "cloneBytes": "d0037000000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc0100cccc00000000c8000000e80300001027000008000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "0023BEB0",
+        "constructorBody": [
+          {
+            "va": 2342576,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2342580,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2342584,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2342588,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2342592,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2342596,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2342600,
+            "bytes": "01000624",
+            "text": "addiu $a2, $zero, 1"
+          },
+          {
+            "va": 2342604,
+            "bytes": "e05c4224",
+            "text": "addiu $v0, $v0, 0x5ce0"
+          },
+          {
+            "va": 2342608,
+            "bytes": "e8030524",
+            "text": "addiu $a1, $zero, 0x3e8"
+          },
+          {
+            "va": 2342612,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2342616,
+            "bytes": "10270424",
+            "text": "addiu $a0, $zero, 0x2710"
+          },
+          {
+            "va": 2342620,
+            "bytes": "c00106a2",
+            "text": "sb $a2, 0x1c0($s0)"
+          },
+          {
+            "va": 2342624,
+            "bytes": "c8000224",
+            "text": "addiu $v0, $zero, 0xc8"
+          },
+          {
+            "va": 2342628,
+            "bytes": "c10100a2",
+            "text": "sb $zero, 0x1c1($s0)"
+          },
+          {
+            "va": 2342632,
+            "bytes": "08000324",
+            "text": "addiu $v1, $zero, 8"
+          },
+          {
+            "va": 2342636,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2342640,
+            "bytes": "c80102ae",
+            "text": "sw $v0, 0x1c8($s0)"
+          },
+          {
+            "va": 2342644,
+            "bytes": "cc0105ae",
+            "text": "sw $a1, 0x1cc($s0)"
+          },
+          {
+            "va": 2342648,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2342652,
+            "bytes": "d00104ae",
+            "text": "sw $a0, 0x1d0($s0)"
+          },
+          {
+            "va": 2342656,
+            "bytes": "d40103ae",
+            "text": "sw $v1, 0x1d4($s0)"
+          },
+          {
+            "va": 2342660,
+            "bytes": "5d0106a2",
+            "text": "sb $a2, 0x15d($s0)"
+          },
+          {
+            "va": 2342664,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2342668,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2342672,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2342676,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495CE0",
+        "vtableBytes": "0000000000000000a0bd2300f0ad2300b0803e0040b1230000893f001000100050001000",
+        "vtableFileOffset": 3759456,
+        "slots": [
+          "0023BDA0",
+          "0023ADF0",
+          "003E80B0",
+          "0023B140",
+          "003F8900",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8900",
+        "getterBytes": "4d00023c0800e003b0b14224",
+        "getterFileOffset": 3115392,
+        "registration": "004CB1B0"
+      }
+    },
+    {
+      "className": "wxTrollAIBehavior",
+      "classHash": 290089355,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222176,
+      "ps2Factory": 4099952,
+      "pcRecord": 7683720,
+      "ps2Record": 5024880,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxTrollAIBehavior-run1.json",
+          "sha256": "26B903172680FD571AF98C913396C41DE19A6B39D2D2674A7C42B03CAA3E5FAC"
+        },
+        "status": "passed",
+        "allocationBytes": 452,
+        "vtable": "006FF9C0",
+        "vtableFileOffset": 3140032,
+        "vtableBytes": "d0555600f055560060cd400050555600905456005083400070834000",
+        "slots": [
+          "005655D0",
+          "005655F0",
+          "0040CD60",
+          "00565550",
+          "00565490",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "c0f96f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001ccccccfac8e53e20bcbe4cc8000000e803000005000000",
+        "cloneBytes": "c0f96f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001ccccccfac8e53e20bcbe4cc8000000e803000005000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "0023CE10",
+        "constructorBody": [
+          {
+            "va": 2346512,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2346516,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2346520,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2346524,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2346528,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2346532,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2346536,
+            "bytes": "e53e023c",
+            "text": "lui $v0, 0x3ee5"
+          },
+          {
+            "va": 2346540,
+            "bytes": "c0626324",
+            "text": "addiu $v1, $v1, 0x62c0"
+          },
+          {
+            "va": 2346544,
+            "bytes": "fac84234",
+            "text": "ori $v0, $v0, 0xc8fa"
+          },
+          {
+            "va": 2346548,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2346552,
+            "bytes": "c00102ae",
+            "text": "sw $v0, 0x1c0($s0)"
+          },
+          {
+            "va": 2346556,
+            "bytes": "be4c023c",
+            "text": "lui $v0, 0x4cbe"
+          },
+          {
+            "va": 2346560,
+            "bytes": "20bc4334",
+            "text": "ori $v1, $v0, 0xbc20"
+          },
+          {
+            "va": 2346564,
+            "bytes": "c40103ae",
+            "text": "sw $v1, 0x1c4($s0)"
+          },
+          {
+            "va": 2346568,
+            "bytes": "c8000224",
+            "text": "addiu $v0, $zero, 0xc8"
+          },
+          {
+            "va": 2346572,
+            "bytes": "c80102ae",
+            "text": "sw $v0, 0x1c8($s0)"
+          },
+          {
+            "va": 2346576,
+            "bytes": "e8030324",
+            "text": "addiu $v1, $zero, 0x3e8"
+          },
+          {
+            "va": 2346580,
+            "bytes": "cc0103ae",
+            "text": "sw $v1, 0x1cc($s0)"
+          },
+          {
+            "va": 2346584,
+            "bytes": "05000224",
+            "text": "addiu $v0, $zero, 5"
+          },
+          {
+            "va": 2346588,
+            "bytes": "d00102ae",
+            "text": "sw $v0, 0x1d0($s0)"
+          },
+          {
+            "va": 2346592,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2346596,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2346600,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2346604,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2346608,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2346612,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2346616,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "004962C0",
+        "vtableBytes": "000000000000000050cd2300b0c32300b08e3e00a0c42300e0893f001000100050001000",
+        "vtableFileOffset": 3760960,
+        "slots": [
+          "0023CD50",
+          "0023C3B0",
+          "003E8EB0",
+          "0023C4A0",
+          "003F89E0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F89E0",
+        "getterBytes": "4d00023c0800e00370ac4224",
+        "getterFileOffset": 3115616,
+        "registration": "004CAC70"
+      }
+    },
+    {
+      "className": "wxWandringNPCAIBehavior",
+      "classHash": 1606640594,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4223712,
+      "ps2Factory": 4095856,
+      "pcRecord": 7685256,
+      "ps2Record": 5026416,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxWandringNPCAIBehavior-run1.json",
+          "sha256": "772CD93DDF054204214967CDCF2053B654BA1FC920F991B7A7F9112C350E09A7"
+        },
+        "status": "passed",
+        "allocationBytes": 576,
+        "vtable": "00700528",
+        "vtableFileOffset": 3142952,
+        "vtableBytes": "60275700200e570060d24000e00d5700a02657005083400070834000",
+        "slots": [
+          "00572760",
+          "00570E20",
+          "0040D260",
+          "00570DE0",
+          "005726A0",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "28057000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc000000000000000000000000010000000000000000000000000000000000803f00000000cccccccc0000000000000000000000000000000000000000ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdb0fc940cccccccccccccccccccccccc",
+        "cloneBytes": "28057000000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccca0640031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000ccccccccc0640031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccc000000000000000000000000010000000000000000000000000000000000803f00000000cccccccc0000000000000000000000000000000000000000ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdb0fc940cccccccccccccccccccccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 592,
+        "constructor": "00318110",
+        "constructorBody": [
+          {
+            "va": 3244304,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 3244308,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 3244312,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 3244316,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 3244320,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 3244324,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 3244328,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 3244332,
+            "bytes": "005c4224",
+            "text": "addiu $v0, $v0, 0x5c00"
+          },
+          {
+            "va": 3244336,
+            "bytes": "e4010426",
+            "text": "addiu $a0, $s0, 0x1e4"
+          },
+          {
+            "va": 3244340,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 3244344,
+            "bytes": "c00100ae",
+            "text": "sw $zero, 0x1c0($s0)"
+          },
+          {
+            "va": 3244348,
+            "bytes": "803f023c",
+            "text": "lui $v0, 0x3f80"
+          },
+          {
+            "va": 3244352,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 3244356,
+            "bytes": "c80100ae",
+            "text": "sw $zero, 0x1c8($s0)"
+          },
+          {
+            "va": 3244360,
+            "bytes": "cc0103ae",
+            "text": "sw $v1, 0x1cc($s0)"
+          },
+          {
+            "va": 3244364,
+            "bytes": "d00100ae",
+            "text": "sw $zero, 0x1d0($s0)"
+          },
+          {
+            "va": 3244368,
+            "bytes": "d40100ae",
+            "text": "sw $zero, 0x1d4($s0)"
+          },
+          {
+            "va": 3244372,
+            "bytes": "d80100ae",
+            "text": "sw $zero, 0x1d8($s0)"
+          },
+          {
+            "va": 3244376,
+            "bytes": "dc0102ae",
+            "text": "sw $v0, 0x1dc($s0)"
+          },
+          {
+            "va": 3244380,
+            "bytes": "b404040c",
+            "text": "jal 0x1012d0"
+          },
+          {
+            "va": 3244384,
+            "bytes": "e00100ae",
+            "text": "sw $zero, 0x1e0($s0)"
+          },
+          {
+            "va": 3244388,
+            "bytes": "f00100ae",
+            "text": "sw $zero, 0x1f0($s0)"
+          },
+          {
+            "va": 3244392,
+            "bytes": "c940023c",
+            "text": "lui $v0, 0x40c9"
+          },
+          {
+            "va": 3244396,
+            "bytes": "db0f4234",
+            "text": "ori $v0, $v0, 0xfdb"
+          },
+          {
+            "va": 3244400,
+            "bytes": "f40100ae",
+            "text": "sw $zero, 0x1f4($s0)"
+          },
+          {
+            "va": 3244404,
+            "bytes": "3c0202ae",
+            "text": "sw $v0, 0x23c($s0)"
+          },
+          {
+            "va": 3244408,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 3244412,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 3244416,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 3244420,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 3244424,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 3244428,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495C00",
+        "vtableBytes": "0000000000000000807f3100206f3100b07e3e0050703100e0883f001000100050001000",
+        "vtableFileOffset": 3759232,
+        "slots": [
+          "00317F80",
+          "00316F20",
+          "003E7EB0",
+          "00317050",
+          "003F88E0",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F88E0",
+        "getterBytes": "4d00023c0800e00370b24224",
+        "getterFileOffset": 3115360,
+        "registration": "004CB270"
+      }
+    },
+    {
+      "className": "wxWinxHelpAIBehavior",
+      "classHash": 1110984113,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4222848,
+      "ps2Factory": 4098160,
+      "pcRecord": 7684392,
+      "ps2Record": 5025552,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxWinxHelpAIBehavior-run1.json",
+          "sha256": "4639EC73448B59E9A7D810B6514227A0E41C7B1CA06691B4F830DD0FA3E00837"
+        },
+        "status": "passed",
+        "allocationBytes": 464,
+        "vtable": "006FFEE0",
+        "vtableFileOffset": 3141344,
+        "vtableBytes": "f09b56003094560090cf4000b0935600309556005083400070834000",
+        "slots": [
+          "00569BF0",
+          "00569430",
+          "0040CF90",
+          "005693B0",
+          "00569530",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "e0fe6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccc00000000000000000000000000000000983a00000f0000000f000000",
+        "cloneBytes": "e0fe6f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0000cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001cccccccccccccc00000000000000000000000000000000983a00000f0000000f000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "00241CF0",
+        "constructorBody": [
+          {
+            "va": 2366704,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2366708,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2366712,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2366716,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2366720,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2366724,
+            "bytes": "4900023c",
+            "text": "lui $v0, 0x49"
+          },
+          {
+            "va": 2366728,
+            "bytes": "c4010426",
+            "text": "addiu $a0, $s0, 0x1c4"
+          },
+          {
+            "va": 2366732,
+            "bytes": "905f4224",
+            "text": "addiu $v0, $v0, 0x5f90"
+          },
+          {
+            "va": 2366736,
+            "bytes": "e446050c",
+            "text": "jal 0x151b90"
+          },
+          {
+            "va": 2366740,
+            "bytes": "000002ae",
+            "text": "sw $v0, ($s0)"
+          },
+          {
+            "va": 2366744,
+            "bytes": "5d0100a2",
+            "text": "sb $zero, 0x15d($s0)"
+          },
+          {
+            "va": 2366748,
+            "bytes": "c401048e",
+            "text": "lw $a0, 0x1c4($s0)"
+          },
+          {
+            "va": 2366752,
+            "bytes": "10008010",
+            "text": "beqz $a0, 0x241d64"
+          },
+          {
+            "va": 2366756,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2366760,
+            "bytes": "0d008010",
+            "text": "beqz $a0, 0x241d60"
+          },
+          {
+            "va": 2366764,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2366768,
+            "bytes": "08008294",
+            "text": "lhu $v0, 8($a0)"
+          },
+          {
+            "va": 2366772,
+            "bytes": "ffff4224",
+            "text": "addiu $v0, $v0, -1"
+          },
+          {
+            "va": 2366776,
+            "bytes": "080082a4",
+            "text": "sh $v0, 8($a0)"
+          },
+          {
+            "va": 2366780,
+            "bytes": "08008294",
+            "text": "lhu $v0, 8($a0)"
+          },
+          {
+            "va": 2366784,
+            "bytes": "07004014",
+            "text": "bnez $v0, 0x241d60"
+          },
+          {
+            "va": 2366788,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2366792,
+            "bytes": "05008010",
+            "text": "beqz $a0, 0x241d60"
+          },
+          {
+            "va": 2366796,
+            "bytes": "00000000",
+            "text": "nop"
+          },
+          {
+            "va": 2366800,
+            "bytes": "0000998c",
+            "text": "lw $t9, ($a0)"
+          },
+          {
+            "va": 2366804,
+            "bytes": "0800398f",
+            "text": "lw $t9, 8($t9)"
+          },
+          {
+            "va": 2366808,
+            "bytes": "09f82003",
+            "text": "jalr $t9"
+          },
+          {
+            "va": 2366812,
+            "bytes": "01000524",
+            "text": "addiu $a1, $zero, 1"
+          },
+          {
+            "va": 2366816,
+            "bytes": "c40100ae",
+            "text": "sw $zero, 0x1c4($s0)"
+          },
+          {
+            "va": 2366820,
+            "bytes": "c80100ae",
+            "text": "sw $zero, 0x1c8($s0)"
+          },
+          {
+            "va": 2366824,
+            "bytes": "983a0424",
+            "text": "addiu $a0, $zero, 0x3a98"
+          },
+          {
+            "va": 2366828,
+            "bytes": "cc0100ae",
+            "text": "sw $zero, 0x1cc($s0)"
+          },
+          {
+            "va": 2366832,
+            "bytes": "0f000324",
+            "text": "addiu $v1, $zero, 0xf"
+          },
+          {
+            "va": 2366836,
+            "bytes": "d00100ae",
+            "text": "sw $zero, 0x1d0($s0)"
+          },
+          {
+            "va": 2366840,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2366844,
+            "bytes": "d40104ae",
+            "text": "sw $a0, 0x1d4($s0)"
+          },
+          {
+            "va": 2366848,
+            "bytes": "d80103ae",
+            "text": "sw $v1, 0x1d8($s0)"
+          },
+          {
+            "va": 2366852,
+            "bytes": "dc0103ae",
+            "text": "sw $v1, 0x1dc($s0)"
+          },
+          {
+            "va": 2366856,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2366860,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2366864,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2366868,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "00495F90",
+        "vtableBytes": "0000000000000000c01b2400800f2400b0873e003010240070893f001000100050001000",
+        "vtableFileOffset": 3760144,
+        "slots": [
+          "00241BC0",
+          "00240F80",
+          "003E87B0",
+          "00241030",
+          "003F8970",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8970",
+        "getterBytes": "4d00023c0800e00310af4224",
+        "getterFileOffset": 3115504,
+        "registration": "004CAF10"
+      }
+    },
+    {
+      "className": "wxYetiAIBehavior",
+      "classHash": 640122209,
+      "base": "wxBaseAIBehavior",
+      "pcFactory": 4221792,
+      "ps2Factory": 4100976,
+      "pcRecord": 7683336,
+      "ps2Record": 5024496,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-wxYetiAIBehavior-run1.json",
+          "sha256": "D1BC5750CFB1BD95C98F12D942725096E8186A3E00C1B965D7DA417D565986D2"
+        },
+        "status": "passed",
+        "allocationBytes": 460,
+        "vtable": "006FF790",
+        "vtableFileOffset": 3139472,
+        "vtableBytes": "f04256001043560020cc400000425600104156005083400070834000",
+        "slots": [
+          "005642F0",
+          "00564310",
+          "0040CC20",
+          "00564200",
+          "00564110",
+          "00408350",
+          "00408370"
+        ],
+        "constructedBytes": "90f76f00000000000000cccc0000000000000000000000000000000000000000010000000000000000cccccccccccccc30020031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccc70600031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001ccccccfac8e53e20bcbe4cc8000000e8030000020000000a00000005000000",
+        "cloneBytes": "90f76f00000000000000cccc0000000000000000000000000000000000000000010000000000000000ccccccccccccccc0630031000000000101cccc4054094bf40100000000164300cccccc000000000000000000000000fc2f7000000000000000cccc00000000000000000000000000000000000000000000000000000000000000000000000001ccccccffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7fffff7f7f0000000000000000cccccccce0630031000000000000cccc0000000000cccccc00000000cccccccc0001cccc0000000000cccccc0000000000000000cccccccccccccccccccccccccccccccc0000000000cccccc00000000000000000000000000000000000000000000fa420000c84300002f4400cccccc0000000000000000000000000000000001ccccccfac8e53e20bcbe4cc8000000e8030000020000000a00000005000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 13
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 480,
+        "constructor": "00242BD0",
+        "constructorBody": [
+          {
+            "va": 2370512,
+            "bytes": "e0ffbd27",
+            "text": "addiu $sp, $sp, -0x20"
+          },
+          {
+            "va": 2370516,
+            "bytes": "1000bfff",
+            "text": "sd $ra, 0x10($sp)"
+          },
+          {
+            "va": 2370520,
+            "bytes": "0000b07f",
+            "text": "sq r16,0(r29)"
+          },
+          {
+            "va": 2370524,
+            "bytes": "a89c080c",
+            "text": "jal 0x2272a0"
+          },
+          {
+            "va": 2370528,
+            "bytes": "2d808000",
+            "text": "move $s0, $a0"
+          },
+          {
+            "va": 2370532,
+            "bytes": "4900033c",
+            "text": "lui $v1, 0x49"
+          },
+          {
+            "va": 2370536,
+            "bytes": "e53e023c",
+            "text": "lui $v0, 0x3ee5"
+          },
+          {
+            "va": 2370540,
+            "bytes": "b0646324",
+            "text": "addiu $v1, $v1, 0x64b0"
+          },
+          {
+            "va": 2370544,
+            "bytes": "fac84234",
+            "text": "ori $v0, $v0, 0xc8fa"
+          },
+          {
+            "va": 2370548,
+            "bytes": "000003ae",
+            "text": "sw $v1, ($s0)"
+          },
+          {
+            "va": 2370552,
+            "bytes": "c00102ae",
+            "text": "sw $v0, 0x1c0($s0)"
+          },
+          {
+            "va": 2370556,
+            "bytes": "be4c023c",
+            "text": "lui $v0, 0x4cbe"
+          },
+          {
+            "va": 2370560,
+            "bytes": "20bc4334",
+            "text": "ori $v1, $v0, 0xbc20"
+          },
+          {
+            "va": 2370564,
+            "bytes": "c40103ae",
+            "text": "sw $v1, 0x1c4($s0)"
+          },
+          {
+            "va": 2370568,
+            "bytes": "c8000224",
+            "text": "addiu $v0, $zero, 0xc8"
+          },
+          {
+            "va": 2370572,
+            "bytes": "c80102ae",
+            "text": "sw $v0, 0x1c8($s0)"
+          },
+          {
+            "va": 2370576,
+            "bytes": "e8030324",
+            "text": "addiu $v1, $zero, 0x3e8"
+          },
+          {
+            "va": 2370580,
+            "bytes": "cc0103ae",
+            "text": "sw $v1, 0x1cc($s0)"
+          },
+          {
+            "va": 2370584,
+            "bytes": "02000224",
+            "text": "addiu $v0, $zero, 2"
+          },
+          {
+            "va": 2370588,
+            "bytes": "d00102ae",
+            "text": "sw $v0, 0x1d0($s0)"
+          },
+          {
+            "va": 2370592,
+            "bytes": "0a000324",
+            "text": "addiu $v1, $zero, 0xa"
+          },
+          {
+            "va": 2370596,
+            "bytes": "d40103ae",
+            "text": "sw $v1, 0x1d4($s0)"
+          },
+          {
+            "va": 2370600,
+            "bytes": "05000224",
+            "text": "addiu $v0, $zero, 5"
+          },
+          {
+            "va": 2370604,
+            "bytes": "d80102ae",
+            "text": "sw $v0, 0x1d8($s0)"
+          },
+          {
+            "va": 2370608,
+            "bytes": "01000324",
+            "text": "addiu $v1, $zero, 1"
+          },
+          {
+            "va": 2370612,
+            "bytes": "5d0103a2",
+            "text": "sb $v1, 0x15d($s0)"
+          },
+          {
+            "va": 2370616,
+            "bytes": "2d100002",
+            "text": "move $v0, $s0"
+          },
+          {
+            "va": 2370620,
+            "bytes": "1000bfdf",
+            "text": "ld $ra, 0x10($sp)"
+          },
+          {
+            "va": 2370624,
+            "bytes": "0000b07b",
+            "text": "lq r16,0(r29)"
+          },
+          {
+            "va": 2370628,
+            "bytes": "0800e003",
+            "text": "jr $ra"
+          },
+          {
+            "va": 2370632,
+            "bytes": "2000bd27",
+            "text": "addiu $sp, $sp, 0x20"
+          }
+        ],
+        "vtable": "004964B0",
+        "vtableBytes": "0000000000000000e02a2400f01e2400b0923e0020202400208a3f001000100050001000",
+        "vtableFileOffset": 3761456,
+        "slots": [
+          "00242AE0",
+          "00241EF0",
+          "003E92B0",
+          "00242020",
+          "003F8A20",
+          "00100010",
+          "00100050"
+        ],
+        "getter": "003F8A20",
+        "getterBytes": "4d00023c0800e003f0aa4224",
+        "getterFileOffset": 3115680,
+        "registration": "004CAAF0"
+      }
+    }
+  ],
+  "boundaries": "Registered family has22 rows and21 paired factories. PC factory/default clone/teardown execution;PS2 own constructor/getter/vtable independently decoded. No complete derived active behavior or normal binding claim.",
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/catalog-family.json",
+      "sha256": "A27787281C5931565E9D39684DCD6C388B486A5357CBF70FC8C4907A9DEEDEED"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/ps2-constructor-map.json",
+      "sha256": "A5A1A102BB3D2595E7919A9DEC4B0B52307EC18C0369F807DD7D1AC69D5D6635"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/ps2-vtable-candidates.json",
+      "sha256": "2E62E803B8414EBBD6483BB299562CBC426A2A313783185294CBE59ADD2EBE8E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/ps2-factories/capture.json",
+      "sha256": "D576515C672F91A03D91D25137D2A8C2BE0FFF85F0D23F490DD156B3D1588D29"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/ps2-constructors/capture.json",
+      "sha256": "CB2165970520DEAF3980F22A4DC0D3869871FBFCC8AD3A1870C1F6D109F4CB28"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/pc-construction-tables-run1.json",
+      "sha256": "EDF93A2BD22F9D6D8359784A6F90B1EF82A4F03553BAF6BAC18EF80BC40E4D0B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/base-scout-windows/capture.json",
+      "sha256": "9B95F2C64AAEAD89104C7C18922EFCF104044BE55A62781F63CC7CBA8F61A400"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/corrected-base-method-windows/capture.json",
+      "sha256": "7D87E58468A7575637C6C614DFAE30E8367234249A2532F0DB04E49DAEF985B5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/base-active-windows/capture.json",
+      "sha256": "718C380309113BD168A022070E4C81A07E09EFA141548FB441B7A1CEEFAFD0A6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/base-map-windows/capture.json",
+      "sha256": "493E96744ED045C90A9AB1FA2750ED1F9F00E74389334627C938697E2EE8DB64"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/map-helper-windows/capture.json",
+      "sha256": "2FAED97B28894AF4214B4B817DF888EA31C3D6B5BACD5EEAF8CD4F6831E7C8DD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/action-selection-run1.json",
+      "sha256": "C9BF13AE8ACD791D2830724B2955465FB62064EEC84067419B663DB97EFFB2AC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ai-behavior/action-gate-run1.json",
+      "sha256": "424AC304BE96C152C91254EACAD95A8C69E157D323BF7C43FE991F3D853ACE47"
+    }
+  ],
+  "base": {
+    "pc": {
+      "vtable": "00702708",
+      "vtableBytes": "502b590060245900f01b4a0000285900f02959005083400070834000a0ea4800a0ea4800009d410030a94d0000504f0000914b0050a44d0050255900d01a590020155900007a5b00d015590020165900801c5900d01e590080165900c019590030185900",
+      "vtableFileOffset": 3151624,
+      "slots": [
+        "00592B50",
+        "00592460",
+        "004A1BF0",
+        "00592800",
+        "005929F0",
+        "00408350",
+        "00408370",
+        "0048EAA0",
+        "0048EAA0",
+        "00419D00",
+        "004DA930",
+        "004F5000",
+        "004B9100",
+        "004DA450",
+        "00592550",
+        "00591AD0",
+        "00591520",
+        "005B7A00",
+        "005915D0",
+        "00591620",
+        "00591C80",
+        "00591ED0",
+        "00591680",
+        "005919C0",
+        "00591830"
+      ],
+      "constructor": "00592A00",
+      "scope": "Intermediate original constructor and25 slot interface;no standalone factory/allocation size claim"
+    },
+    "ps2": {
+      "vtable": "00496780",
+      "vtableBytes": "0000000000000000f071220030602200b0983e0000622200808a3f001000100050001000f0e11400e0e1140050e114006064280000562200608c2800005c2800106f2200606d2200606c220020602200e05f220020562200f05d2200605a220020582200c04e2200b0562200",
+      "vtableFileOffset": 3762176,
+      "slots": [
+        "002271F0",
+        "00226030",
+        "003E98B0",
+        "00226200",
+        "003F8A80",
+        "00100010",
+        "00100050",
+        "0014E1F0",
+        "0014E1E0",
+        "0014E150",
+        "00286460",
+        "00225600",
+        "00288C60",
+        "00285C00",
+        "00226F10",
+        "00226D60",
+        "00226C60",
+        "00226020",
+        "00225FE0",
+        "00225620",
+        "00225DF0",
+        "00225A60",
+        "00225820",
+        "00224EC0",
+        "002256B0"
+      ],
+      "constructor": "002272A0",
+      "scope": "Intermediate original constructor and25 slot interface;no standalone factory/allocation size claim"
+    }
+  },
+  "counts": {
+    "registeredRows": 22,
+    "pairedFactories": 21,
+    "pcFullLifetimes": 20,
+    "pcReturnedClassOperations": 103,
+    "pairedLookupSelectionCases": 24,
+    "pairedGateCases": 13
+  },
+  "scoutLabelCorrections": [
+    {
+      "path": "base-scout-windows/capture.json",
+      "range": "IceGargoyle-dtor",
+      "platform": "ps2",
+      "correction": "231780 was a scouting guess,not the destructor. Actual original-vtable target232100 is captured in corrected-base-method-windows."
+    },
+    {
+      "path": "corrected-base-method-windows/capture.json",
+      "range": "BaseAIBehavior-copy",
+      "platform": "ps2",
+      "correction": "227140 scout is not the copy entry. Actual vtable slot3 points226200;captured in base-active-windows,with copy tail in base-map-windows."
+    }
+  ]
+}
