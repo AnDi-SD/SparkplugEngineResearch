@@ -1,0 +1,176 @@
+{
+  "kind": "original-trigger-interaction-gates",
+  "schemaVersion": 1,
+  "classes": [
+    "wxPivotingDoor",
+    "wxPushButton",
+    "wxSnowPile"
+  ],
+  "methods": {
+    "wxPivotingDoor": {
+      "pc": "00539C60",
+      "ps2": "003B3CD0"
+    },
+    "wxPushButton": {
+      "pc": "0053B250",
+      "ps2": "003B5AB0"
+    },
+    "wxSnowPile": {
+      "pc": "0054B740",
+      "ps2": "003C0F80"
+    }
+  },
+  "counts": {
+    "primaryExecutions": 108,
+    "pcWhole": 54,
+    "ps2Components": 54,
+    "ps2AccumulatorInstructions": 42,
+    "ps2OrientationBoundaries": 11
+  },
+  "pivot": {
+    "behavior": "Reject own byte169/181;use cached position190/194/198 or1A8/1AC/1B0,player Node;PC excludeY iff abs(float dy)<200;return square<=uint32threshold128/134.",
+    "ps2Scope": "2 own false exits and18 coordinate prefixes before3B3D20 conversion. Full PS2 result unexecuted.",
+    "open": "Original PS2 converts dy before abs via MOVZ and has conditional-delay MADD. Rounding/MOVZ/conditional-delay support not qualified;no general cross-platform equality."
+  },
+  "push": {
+    "behavior": "Reject byte149/161;actual distance helper(player,own,force1,tolerance0),strict square<uint32threshold;then orientation(own,player,threshold3F333333,ignoreY1,negate0).",
+    "ps2Scope": "5 own false exits,11 actual full distance-to-orientation argument boundaries;no SQRT/dot result."
+  },
+  "snow": {
+    "behavior": "profile6F8==10 returnsfalse;otherwise inherited GenericTrigger v19.",
+    "ps2Scope": "3 own false exits,15 original inherited entry boundaries;parent SQ not executed."
+  },
+  "scope": "Borrowed whole32KiB records unchanged. Original class vtables with direct method calls and separately captured own slot19 identity. PC whole methods;PS2 components only. No C++ reconstruction.",
+  "sources": [
+    {
+      "path": "research/generic-trigger-contracts-2026-09-10.json",
+      "sha256": "4AFA11163B59880698136F4318638FC0BEA8389F9465706E49EA4EFAF99232F6"
+    },
+    {
+      "path": "research/trigger-distance-contracts-2026-09-11.json",
+      "sha256": "B7CCBE71AABC315014B42040C718BEAAED83A8D970E2D759B77FB7F4B774ABE6"
+    },
+    {
+      "path": "research/trigger-orientation-contracts-2026-09-11.json",
+      "sha256": "7DD784DB3F94A173D7458BFE1CACB20B7DA9D4D0DFD4641323E7CCBB96A7BF3D"
+    },
+    {
+      "path": "research/ps2-integer-square-contracts-2026-09-11.json",
+      "sha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/probe_trigger_interaction_gates.py",
+      "sha256": "D68A9CD67C0BF0BAF65825996876B74010FE9AED33F6630484EEABD6B45C9AB9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/prepare-trigger-interaction-gates.py",
+      "sha256": "B9708D052D443CBDFF15309C3D57061D75922A6D98C7E5BC0DAF140E49BA3E85"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/select-trigger-interaction-gates.py",
+      "sha256": "467BE5B6FB30CD48E06AED5F1A31F49B0DDF0C6EDF2FEA2AE4AA2EDEF07B71D8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/seal-trigger-interaction-gates.py",
+      "sha256": "6ECAF7D0E006DB4474B29EE24D3212E67B2964C8B518FFB1EBE0658456C1B410"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-cases.json",
+      "sha256": "D98E88F1DD894912BB0F6547C4697C01E50C40FF5F6C3BFCCF48A228647560E6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/method-selection.json",
+      "sha256": "1FCF8250253B7A1604C95E9D86CED9F9F1226DD6BB733AD618E09898DB8E8232"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/methods/capture.json",
+      "sha256": "51E4D32D12C444372762165C7AA2B26AEA7E1E3F736DDCFCE8126D5049B868D1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/vtables/capture.json",
+      "sha256": "743D3C3DE09C6D7B7C110D22B596D4934CD69BD963381E6A854B84207059CF0A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-pilot-run1.json",
+      "sha256": "F42F90CA7C2D7BF7EFABE9C855858BE10E5A9C5A6A33CF693C97B77B55EE535C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-batch-run1.json",
+      "sha256": "EBD8166ADD76667A2E6E6F423C3FFEAB2F8CC107808B846B2292EB45BD673754"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-pilot-run1.json",
+        "sha256": "F42F90CA7C2D7BF7EFABE9C855858BE10E5A9C5A6A33CF693C97B77B55EE535C"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/probe_trigger_interaction_gates.py",
+        "sha256": "D68A9CD67C0BF0BAF65825996876B74010FE9AED33F6630484EEABD6B45C9AB9"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-cases.json",
+        "sha256": "D98E88F1DD894912BB0F6547C4697C01E50C40FF5F6C3BFCCF48A228647560E6"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+      },
+      "accumulatorExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-batch-run1.json",
+        "sha256": "EBD8166ADD76667A2E6E6F423C3FFEAB2F8CC107808B846B2292EB45BD673754"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/probe_trigger_interaction_gates.py",
+        "sha256": "D68A9CD67C0BF0BAF65825996876B74010FE9AED33F6630484EEABD6B45C9AB9"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/interaction-cases.json",
+        "sha256": "D98E88F1DD894912BB0F6547C4697C01E50C40FF5F6C3BFCCF48A228647560E6"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+      },
+      "accumulatorExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-interaction-gates/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    }
+  ]
+}
