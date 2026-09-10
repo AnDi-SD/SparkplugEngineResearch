@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-10",
+  "status": "captured-directed-original-init-return",
+  "scope": "Original 48D1C0/48C400 directed fixture capacities 127/128/129; no production changes",
+  "wholeFileAcceptance": false,
+  "teardownClaimed": false,
+  "sourceEqualityClaimed": false,
+  "syntheticParameterInput": true,
+  "syntheticSeed": false,
+  "syntheticReferences": false,
+  "limits": {
+    "profile": "character",
+    "instructions": 4000000,
+    "microseconds": 16000000,
+    "arenaBytes": 262144,
+    "allocationCapBytes": 32768,
+    "childSeconds": 30,
+    "workers": 1
+  },
+  "cursor": 17198,
+  "stopAddress": "004B980D",
+  "originalReturnAddress": "0048D206",
+  "runs": [
+    {
+      "count": 127,
+      "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py 127",
+      "exitCode": 0,
+      "status": "captured-loop-init-return",
+      "samplerCounts": [
+        127
+      ],
+      "active": 127,
+      "free": 0,
+      "producerReturn": 127,
+      "randomDraws": 635,
+      "recordsUnchanged": false,
+      "randomUnchanged": false,
+      "instructions": 1747417,
+      "seconds": 7.031905299998471,
+      "arenaBytes": 140448,
+      "overrides": [
+        {
+          "offset": 17136,
+          "field": "lifetime",
+          "originalHex": "6666e63f",
+          "fixtureHex": "0000803f"
+        },
+        {
+          "offset": 17141,
+          "field": "rate",
+          "originalHex": "00009643",
+          "fixtureHex": "0000fe42"
+        }
+      ]
+    },
+    {
+      "count": 128,
+      "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py 128",
+      "exitCode": 0,
+      "status": "captured-loop-init-return",
+      "samplerCounts": [
+        0
+      ],
+      "active": 0,
+      "free": 128,
+      "producerReturn": 128,
+      "randomDraws": 0,
+      "recordsUnchanged": true,
+      "randomUnchanged": true,
+      "instructions": 1660373,
+      "seconds": 5.062737399988691,
+      "arenaBytes": 140480,
+      "overrides": [
+        {
+          "offset": 17136,
+          "field": "lifetime",
+          "originalHex": "6666e63f",
+          "fixtureHex": "0000803f"
+        },
+        {
+          "offset": 17141,
+          "field": "rate",
+          "originalHex": "00009643",
+          "fixtureHex": "00000043"
+        }
+      ]
+    },
+    {
+      "count": 129,
+      "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py 129",
+      "exitCode": 0,
+      "status": "captured-loop-init-return",
+      "samplerCounts": [
+        128,
+        1
+      ],
+      "active": 129,
+      "free": 0,
+      "producerReturn": 129,
+      "randomDraws": 645,
+      "recordsUnchanged": false,
+      "randomUnchanged": false,
+      "instructions": 1749070,
+      "seconds": 5.379221099996357,
+      "arenaBytes": 140528,
+      "overrides": [
+        {
+          "offset": 17136,
+          "field": "lifetime",
+          "originalHex": "6666e63f",
+          "fixtureHex": "0000803f"
+        },
+        {
+          "offset": 17141,
+          "field": "rate",
+          "originalHex": "00009643",
+          "fixtureHex": "00000143"
+        }
+      ]
+    }
+  ],
+  "savedCaptureAudit": "PASS: exact two-field byte replacement, natural return, cursor, counts, record storage, complete reciprocal ring, sampler counts, RNG draws; unchanged records and full PRNG at 128",
+  "dependencies": "Each raw report also fingerprints original EXE and imported harness dependencies; primary real-file manifest retained unchanged",
+  "fingerprints": [
+    {
+      "path": "docs/research/native-pc-particle-loop-init-counts-2026-09-10.md",
+      "bytes": 3305,
+      "sha256": "3F2528B4FBB97463EB70162F72705C12AEE6EE6266216B58A1264033B491F366"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py",
+      "bytes": 7475,
+      "sha256": "358A5FCC82DDB3D17B3EEC428EBE792102F44E73D3DDE26A05E47834AB278C85"
+    },
+    {
+      "path": "research/native-pc-particle-loop-init-pc2-2026-09-10.json",
+      "bytes": 8695,
+      "sha256": "8F6BA53FE3EA554E34186BB5796DBC92731CB961D9CEF62115C20DB16304905E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-127.json",
+      "bytes": 61281,
+      "sha256": "863573CFC7CEFF3B8C761D8DC2BD6DC71E2A345DCA3F88B298CA6722A949E1C6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-127-probe.py",
+      "bytes": 7475,
+      "sha256": "358A5FCC82DDB3D17B3EEC428EBE792102F44E73D3DDE26A05E47834AB278C85"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-127-input.smo",
+      "bytes": 279915,
+      "sha256": "F6FD30F492A28EEAB577917866B075621C4CFD25CD41FF131492313D98DFCB41"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-128.json",
+      "bytes": 61555,
+      "sha256": "5FCF59B10D6F23D850F377CD493CAAC0B8EAB2FB981FAE2A66C732AE9C428365"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-128-probe.py",
+      "bytes": 7475,
+      "sha256": "358A5FCC82DDB3D17B3EEC428EBE792102F44E73D3DDE26A05E47834AB278C85"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-128-input.smo",
+      "bytes": 279915,
+      "sha256": "4D98ACEB7014CE988FC88799CFFF4ED2DCE613CACF36C61159E425B81FEDE71C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-129.json",
+      "bytes": 61954,
+      "sha256": "D5F93D5581E2700788FB3148DF17C38C36E75D0E64A3BA01BA4C57D2500B59C6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-129-probe.py",
+      "bytes": 7475,
+      "sha256": "358A5FCC82DDB3D17B3EEC428EBE792102F44E73D3DDE26A05E47834AB278C85"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-129-input.smo",
+      "bytes": 279915,
+      "sha256": "6180BFE6ADAEBD632F547013AC3B82D3DD2B5615EEE2A06C2A127D4CC238EB2E"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Menus/bg.smo",
+      "bytes": 279915,
+      "sha256": "5F0B9FFA6EFF16C278E4701EBE0A2518C7496189A036BFCB14519E2B5CD59BA5"
+    }
+  ]
+}

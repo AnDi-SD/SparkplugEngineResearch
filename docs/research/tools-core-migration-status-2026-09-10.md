@@ -3,7 +3,7 @@
 **Все ядра ещё не готовы.** Срез включает общий GPU skinning для трёх
 потребителей, texture/reference/buffer inspectors, MaterialColor factory,
 PC default material, подтверждённую часть renderer cache и geometry helper.
-Цикл до 07:30 МСК завершается; [его журнал](tools-core-cycle-2026-09-10-0730.md)
+Исследование остановлено в 07:28:59 МСК 10 сентября; [журнал цикла](tools-core-cycle-2026-09-10-0730.md)
 содержит результаты, проверки и незавершённые операции.
 PC TextureData теперь использует actual source reader; PS2 native metadata
 перенесена отдельно, без заявления готовности PS2 runtime. Legacy source
@@ -100,6 +100,10 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
   на PC2 bg.smo естественно вернулся: 539 active particles, 2695 random draws,
   сохранены records, rings, world transform и полное состояние PRNG.
   Это не заменяет ещё отсутствующий общий looping producer или whole-file acceptance.
+  [Directed 127/128/129](native-pc-particle-loop-init-counts-2026-09-10.md)
+  подтвердили необычную ветку: capacity 128 оставляет все частицы свободными,
+  sampler получает count 0; при 127/129 pool заполняется. Это поведение original
+  на явно объявленных fixture inputs нужно сохранить, а не исправлять по ожиданию.
   Исследовать остатки только для нужной операции;
   работа над material clock сама по себе эти контракты не закрывает.
 - **Освещение Viewer:** [источник cache установлен](tool-viewer-light-cache-boundary-2026-09-10.md):
