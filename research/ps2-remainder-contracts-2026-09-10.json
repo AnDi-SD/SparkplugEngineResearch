@@ -1,0 +1,2614 @@
+{
+  "kind": "native-roster-with-qualified-platform-evidence",
+  "family": "ps2-remainder",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "5A2ACD7F64A5BA13B25217ACA9F0B779F0ADA938DAB313978909792F24BA4C25",
+  "classes": [
+    {
+      "className": "spActor",
+      "classHash": 433485542,
+      "base": "spController",
+      "pcFactory": 5912096,
+      "ps2Factory": 1148928,
+      "pcRecord": 7758976,
+      "ps2Record": 4876720,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 85.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 5911520,
+            "fileOffset": 1714144,
+            "references": [
+              {
+                "address": 7356304,
+                "fileOffset": 3157904
+              }
+            ]
+          }
+        ],
+        "getter": "005A33E0",
+        "getterBytes": "b880647600c3",
+        "getterFileOffset": 1714144,
+        "tableCandidate": {
+          "address": "00703F80",
+          "bytes": "a0355a00007a5b0080365a0000314200e0335a005083400070834000",
+          "fileOffset": 3157888,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "005A35A0",
+            "005B7A00",
+            "005A3680",
+            "00423100",
+            "005A33E0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1138432,
+            "fileOffset": 89984,
+            "references": [
+              {
+                "address": 4770840,
+                "fileOffset": 3722392
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00115F00",
+        "getterBytes": "4a00023c0800e003b0694224",
+        "getterFileOffset": 89984,
+        "getterExecution": {
+          "entry": "00115F00",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CC00",
+          "bytes": "00000000000000002083110010081000d086110020a01100005f11001000100050001000",
+          "fileOffset": 3722368,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00118320",
+            "00100810",
+            "001186D0",
+            "0011A020",
+            "00115F00",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spAnimTrack",
+      "classHash": 867571817,
+      "base": "spTrack",
+      "pcFactory": 4690352,
+      "ps2Factory": 1182416,
+      "pcRecord": 7736472,
+      "ps2Record": 4878160,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 88.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4689440,
+            "fileOffset": 492064,
+            "references": [
+              {
+                "address": 7252532,
+                "fileOffset": 3054132
+              }
+            ]
+          }
+        ],
+        "getter": "00478E20",
+        "getterBytes": "b8980c7600c3",
+        "getterFileOffset": 492064,
+        "tableCandidate": {
+          "address": "006EAA24",
+          "bytes": "409a4700007a5b004092470020314100208e47005083400070834000",
+          "fileOffset": 3054116,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00479A40",
+            "005B7A00",
+            "00479240",
+            "00413120",
+            "00478E20",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1177968,
+            "fileOffset": 129520,
+            "references": [
+              {
+                "address": 4771624,
+                "fileOffset": 3723176
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011F970",
+        "getterBytes": "4a00023c0800e003506f4224",
+        "getterFileOffset": 129520,
+        "getterExecution": {
+          "entry": "0011F970",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CF10",
+          "bytes": "00000000000000001009120010081000e0091200c05d100070f911001000100050001000",
+          "fileOffset": 3723152,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00120910",
+            "00100810",
+            "001209E0",
+            "00105DC0",
+            "0011F970",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spAnimTrack",
+          "factory": 1182416,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 68,
+          "allocator": 1103952,
+          "constructor": 1182416,
+          "inline": true,
+          "firstCallAfterAllocation": 1183808,
+          "literalVtableWrites": [
+            {
+              "address": 1182488,
+              "table": 4771600,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771600,
+          "matchingWrites": [
+            {
+              "address": 1182488,
+              "table": 4771600,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spAnimation",
+      "classHash": 1458460218,
+      "base": "spController",
+      "pcFactory": 4300944,
+      "ps2Factory": 1266352,
+      "pcRecord": 7721544,
+      "ps2Record": 4882368,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 91.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4391552,
+            "fileOffset": 194176,
+            "references": [
+              {
+                "address": 7202524,
+                "fileOffset": 3004124
+              }
+            ]
+          }
+        ],
+        "getter": "00430280",
+        "getterBytes": "b848d27500c3",
+        "getterFileOffset": 194176,
+        "tableCandidate": {
+          "address": "006DE6CC",
+          "bytes": "80034300007a5b0070aa410020314100800243005083400070834000",
+          "fileOffset": 3004108,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00430380",
+            "005B7A00",
+            "0041AA70",
+            "00413120",
+            "00430280",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1268592,
+            "fileOffset": 220144,
+            "references": [
+              {
+                "address": 4774792,
+                "fileOffset": 3726344
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00135B70",
+        "getterBytes": "4a00023c0800e003c07f4224",
+        "getterFileOffset": 220144,
+        "getterExecution": {
+          "entry": "00135B70",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048DB70",
+          "bytes": "0000000000000000c0ee110010081000f0511300c05d1000705b13001000100050001000",
+          "fileOffset": 3726320,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011EEC0",
+            "00100810",
+            "001351F0",
+            "00105DC0",
+            "00135B70",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spAnimation",
+          "factory": 1266352,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 128,
+          "allocator": 1103952,
+          "constructor": 1175872,
+          "inline": false,
+          "firstCallAfterAllocation": 1175872,
+          "literalVtableWrites": [
+            {
+              "address": 1175904,
+              "table": 4774768,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4774768,
+          "matchingWrites": [
+            {
+              "address": 1175904,
+              "table": 4774768,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spAnimationManager",
+      "classHash": 1562463425,
+      "base": "spBaseObject",
+      "pcFactory": 4539968,
+      "ps2Factory": 1151792,
+      "pcRecord": 7731336,
+      "ps2Record": 4876816,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 81.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4539232,
+            "fileOffset": 341856,
+            "references": [
+              {
+                "address": 7237184,
+                "fileOffset": 3038784
+              }
+            ]
+          }
+        ],
+        "getter": "00454360",
+        "getterBytes": "b888f87500c3",
+        "getterFileOffset": 341856,
+        "tableCandidate": {
+          "address": "006E6E30",
+          "bytes": "d0454500007a5b00a0464500e0ec4000604345005083400070834000",
+          "fileOffset": 3038768,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004545D0",
+            "005B7A00",
+            "004546A0",
+            "0040ECE0",
+            "00454360",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1150208,
+            "fileOffset": 101760,
+            "references": [
+              {
+                "address": 4770888,
+                "fileOffset": 3722440
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00118D00",
+        "getterBytes": "4a00023c0800e003106a4224",
+        "getterFileOffset": 101760,
+        "getterExecution": {
+          "entry": "00118D00",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CC30",
+          "bytes": "000000000000000080911100100810003092110020031000008d11001000100050001000",
+          "fileOffset": 3722416,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00119180",
+            "00100810",
+            "00119230",
+            "00100320",
+            "00118D00",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spAnimationManager",
+          "factory": 1151792,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 48,
+          "allocator": 1103952,
+          "constructor": 1151792,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1151864,
+              "table": 4770864,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4770864,
+          "matchingWrites": [
+            {
+              "address": 1151864,
+              "table": 4770864,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spCollisionMesh",
+      "classHash": 910372095,
+      "base": "spBaseObject",
+      "pcFactory": 4708336,
+      "ps2Factory": 1219952,
+      "pcRecord": 7737784,
+      "ps2Record": 4880080,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 65.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4708080,
+            "fileOffset": 510704,
+            "references": [
+              {
+                "address": 7253096,
+                "fileOffset": 3054696
+              }
+            ]
+          }
+        ],
+        "getter": "0047D6F0",
+        "getterBytes": "b8b8117600c3",
+        "getterFileOffset": 510704,
+        "tableCandidate": {
+          "address": "006EAC58",
+          "bytes": "b0d84700007a5b0060d84700e0ec4000f0d647005083400070834000",
+          "fileOffset": 3054680,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0047D8B0",
+            "005B7A00",
+            "0047D860",
+            "0040ECE0",
+            "0047D6F0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1219008,
+            "fileOffset": 170560,
+            "references": [
+              {
+                "address": 4772456,
+                "fileOffset": 3724008
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001299C0",
+        "getterBytes": "4a00023c0800e003d0764224",
+        "getterFileOffset": 170560,
+        "getterExecution": {
+          "entry": "001299C0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048D250",
+          "bytes": "0000000000000000709a120010081000909c120020031000c09912001000100050001000",
+          "fileOffset": 3723984,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00129A70",
+            "00100810",
+            "00129C90",
+            "00100320",
+            "001299C0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spCollisionMesh",
+          "factory": 1219952,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 28,
+          "allocator": 1103952,
+          "constructor": 1219952,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1220016,
+              "table": 4772432,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4772432,
+          "matchingWrites": [
+            {
+              "address": 1220016,
+              "table": 4772432,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spColorFuncEval",
+      "classHash": 197595111,
+      "base": "spColorEval",
+      "pcFactory": 4688480,
+      "ps2Factory": 1165808,
+      "pcRecord": 7736280,
+      "ps2Record": 4877488,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 80.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4389568,
+            "fileOffset": 192192,
+            "references": [
+              {
+                "address": 7202452,
+                "fileOffset": 3004052
+              }
+            ]
+          }
+        ],
+        "getter": "0042FAC0",
+        "getterBytes": "b8d80b7600c3",
+        "getterFileOffset": 192192,
+        "tableCandidate": {
+          "address": "006DE684",
+          "bytes": "d0fa4200007a5b00c08a4700e0ec4000c0fa42005083400070834000",
+          "fileOffset": 3004036,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0042FAD0",
+            "005B7A00",
+            "00478AC0",
+            "0040ECE0",
+            "0042FAC0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1164384,
+            "fileOffset": 115936,
+            "references": [
+              {
+                "address": 4771240,
+                "fileOffset": 3722792
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011C460",
+        "getterBytes": "4a00023c0800e003b06c4224",
+        "getterFileOffset": 115936,
+        "getterExecution": {
+          "entry": "0011C460",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CD90",
+          "bytes": "000000000000000040a411001008100000c911002003100060c411001000100050001000",
+          "fileOffset": 3722768,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011A440",
+            "00100810",
+            "0011C900",
+            "00100320",
+            "0011C460",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spColorFuncEval",
+          "factory": 1165808,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 80,
+          "allocator": 1103952,
+          "constructor": 1165808,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1165880,
+              "table": 4771216,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771216,
+          "matchingWrites": [
+            {
+              "address": 1165880,
+              "table": 4771216,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spController",
+      "classHash": 1336747249,
+      "base": "spSubController",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7724624,
+      "ps2Record": 4876912,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 80.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4337776,
+            "fileOffset": 140400,
+            "references": [
+              {
+                "address": 7194748,
+                "fileOffset": 2996348
+              }
+            ]
+          }
+        ],
+        "getter": "00423070",
+        "getterBytes": "b850de7500c3",
+        "getterFileOffset": 140400,
+        "tableCandidate": {
+          "address": "006DC86C",
+          "bytes": "e0304200007a5b00f01b4a0000314200703042005083400070834000",
+          "fileOffset": 2996332,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004230E0",
+            "005B7A00",
+            "004A1BF0",
+            "00423100",
+            "00423070",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1155088,
+            "fileOffset": 106640,
+            "references": [
+              {
+                "address": 4770936,
+                "fileOffset": 3722488
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011A010",
+        "getterBytes": "4a00023c0800e003706a4224",
+        "getterFileOffset": 106640,
+        "getterExecution": {
+          "entry": "0011A010",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CC60",
+          "bytes": "0000000000000000a0a011001008100060a1110020a0110010a011001000100050001000",
+          "fileOffset": 3722464,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011A0A0",
+            "00100810",
+            "0011A160",
+            "0011A020",
+            "0011A010",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spFaceDataContainer",
+      "classHash": 1855277674,
+      "base": "spExtensionData",
+      "pcFactory": 4707216,
+      "ps2Factory": 1457984,
+      "pcRecord": 7737688,
+      "ps2Record": 4887216,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 70.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4424336,
+            "fileOffset": 226960,
+            "references": [
+              {
+                "address": 7204124,
+                "fileOffset": 3005724
+              }
+            ]
+          }
+        ],
+        "getter": "00438290",
+        "getterBytes": "b858117600c3",
+        "getterFileOffset": 226960,
+        "tableCandidate": {
+          "address": "006DED0C",
+          "bytes": "f0824300007a5b00e0d44700e0ec4000908243005083400070834000",
+          "fileOffset": 3005708,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004382F0",
+            "005B7A00",
+            "0047D4E0",
+            "0040ECE0",
+            "00438290",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1456432,
+            "fileOffset": 407984,
+            "references": [
+              {
+                "address": 4777224,
+                "fileOffset": 3728776
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00163930",
+        "getterBytes": "4b00023c0800e003b0924224",
+        "getterFileOffset": 407984,
+        "getterExecution": {
+          "entry": "00163930",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048E4F0",
+          "bytes": "0000000000000000309b120010081000503e160020031000303916001000100050001000",
+          "fileOffset": 3728752,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00129B30",
+            "00100810",
+            "00163E50",
+            "00100320",
+            "00163930",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spFaceDataContainer",
+          "factory": 1457984,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 32,
+          "allocator": 1103952,
+          "constructor": 1457984,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1458056,
+              "table": 4770768,
+              "receiver": 16
+            },
+            {
+              "address": 1458064,
+              "table": 4777200,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4777200,
+          "matchingWrites": [
+            {
+              "address": 1458064,
+              "table": 4777200,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spFunctionEval",
+      "classHash": 2488329616,
+      "base": "spEvaluator",
+      "pcFactory": 4687936,
+      "ps2Factory": 1167120,
+      "pcRecord": 7736184,
+      "ps2Record": 4877680,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 85.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4687376,
+            "fileOffset": 490000,
+            "references": [
+              {
+                "address": 7252412,
+                "fileOffset": 3054012
+              }
+            ]
+          }
+        ],
+        "getter": "00478610",
+        "getterBytes": "b8780b7600c3",
+        "getterFileOffset": 490000,
+        "tableCandidate": {
+          "address": "006EA9AC",
+          "bytes": "60864700007a5b00d0884700e0ec4000108647005083400070834000",
+          "fileOffset": 3053996,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00478660",
+            "005B7A00",
+            "004788D0",
+            "0040ECE0",
+            "00478610",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1165968,
+            "fileOffset": 117520,
+            "references": [
+              {
+                "address": 4771336,
+                "fileOffset": 3722888
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011CA90",
+        "getterBytes": "4a00023c0800e003706d4224",
+        "getterFileOffset": 117520,
+        "getterExecution": {
+          "entry": "0011CA90",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CDF0",
+          "bytes": "000000000000000080cd11001008100050ce11002003100090ca11001000100050001000",
+          "fileOffset": 3722864,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011CD80",
+            "00100810",
+            "0011CE50",
+            "00100320",
+            "0011CA90",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spFunctionEval",
+          "factory": 1167120,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 56,
+          "allocator": 1103952,
+          "constructor": 1167120,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1167188,
+              "table": 4771312,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771312,
+          "matchingWrites": [
+            {
+              "address": 1167188,
+              "table": 4771312,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spLensFlareManager",
+      "classHash": 2016312646,
+      "base": "spCrossPlatform",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7754616,
+      "ps2Record": 4896048,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 34.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 5038192,
+            "fileOffset": 840816,
+            "references": [
+              {
+                "address": 7288088,
+                "fileOffset": 3089688
+              }
+            ]
+          }
+        ],
+        "getter": "004CE070",
+        "getterBytes": "b878537600c3",
+        "getterFileOffset": 840816,
+        "tableCandidate": {
+          "address": "006F3508",
+          "bytes": "d0704d00007a5b00f01b4a002031410070e04c005083400070834000",
+          "fileOffset": 3089672,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004D70D0",
+            "005B7A00",
+            "004A1BF0",
+            "00413120",
+            "004CE070",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1787872,
+            "fileOffset": 739424,
+            "references": [
+              {
+                "address": 4785608,
+                "fileOffset": 3737160
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001B47E0",
+        "getterBytes": "4b00023c0800e00330b54224",
+        "getterFileOffset": 739424,
+        "getterExecution": {
+          "entry": "001B47E0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "004905B0",
+          "bytes": "000000000000000060d81a0010081000b0551b00c05d1000e0471b001000100050001000",
+          "fileOffset": 3737136,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001AD860",
+            "00100810",
+            "001B55B0",
+            "00105DC0",
+            "001B47E0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spLightManager",
+      "classHash": 1875715130,
+      "base": "spBaseObject",
+      "pcFactory": 4631424,
+      "ps2Factory": 1502144,
+      "pcRecord": 7734656,
+      "ps2Record": 4887984,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 76.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4630480,
+            "fileOffset": 433104,
+            "references": [
+              {
+                "address": 7244980,
+                "fileOffset": 3046580
+              }
+            ]
+          }
+        ],
+        "getter": "0046A7D0",
+        "getterBytes": "b880057600c3",
+        "getterFileOffset": 433104,
+        "tableCandidate": {
+          "address": "006E8CA4",
+          "bytes": "30a84600007a5b00f0ab4600e0ec4000d0a746005083400070834000",
+          "fileOffset": 3046564,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0046A830",
+            "005B7A00",
+            "0046ABF0",
+            "0040ECE0",
+            "0046A7D0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1499632,
+            "fileOffset": 451184,
+            "references": [
+              {
+                "address": 4778072,
+                "fileOffset": 3729624
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0016E1F0",
+        "getterBytes": "4b00023c0800e003b0954224",
+        "getterFileOffset": 451184,
+        "getterExecution": {
+          "entry": "0016E1F0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048E840",
+          "bytes": "000000000000000080ea160010081000e0ea160020031000f0e116001000100050001000",
+          "fileOffset": 3729600,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0016EA80",
+            "00100810",
+            "0016EAE0",
+            "00100320",
+            "0016E1F0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spLightManager",
+          "factory": 1502144,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 36,
+          "allocator": 1103952,
+          "constructor": 1502144,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1502216,
+              "table": 4778048,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4778048,
+          "matchingWrites": [
+            {
+              "address": 1502216,
+              "table": 4778048,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spNavigationSet",
+      "classHash": 1962475838,
+      "base": "spNode",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7723352,
+      "ps2Record": 4884096,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 55.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4718800,
+            "fileOffset": 521424,
+            "references": [
+              {
+                "address": 7256544,
+                "fileOffset": 3058144
+              }
+            ]
+          }
+        ],
+        "getter": "004800D0",
+        "getterBytes": "b858d97500c3",
+        "getterFileOffset": 521424,
+        "tableCandidate": {
+          "address": "006EB9D0",
+          "bytes": "60014800400b4200f01b4a00801f4200d00048005083400070834000",
+          "fileOffset": 3058128,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00480160",
+            "00420B40",
+            "004A1BF0",
+            "00421F80",
+            "004800D0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1268208,
+            "fileOffset": 219760,
+            "references": [
+              {
+                "address": 4773256,
+                "fileOffset": 3724808
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001359F0",
+        "getterBytes": "4b00023c0800e00380864224",
+        "getterFileOffset": 219760,
+        "getterExecution": {
+          "entry": "001359F0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048D570",
+          "bytes": "000000000000000050841d00c05a1a0090401300e05b1a00f05913001000100050001000",
+          "fileOffset": 3724784,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001D8450",
+            "001A5AC0",
+            "00134090",
+            "001A5BE0",
+            "001359F0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spNodeController",
+      "classHash": 346650702,
+      "base": "spSubController",
+      "pcFactory": 6288720,
+      "ps2Factory": 1162000,
+      "pcRecord": 7769840,
+      "ps2Record": 4877104,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 74.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 6288560,
+            "fileOffset": 2091184,
+            "references": [
+              {
+                "address": 7410772,
+                "fileOffset": 3212372
+              }
+            ]
+          }
+        ],
+        "getter": "005FF4B0",
+        "getterBytes": "b8f08e7600c3",
+        "getterFileOffset": 2091184,
+        "tableCandidate": {
+          "address": "00711444",
+          "bytes": "40f65f00007a5b00f0f55f00e0ec4000b0f45f005083400070834000",
+          "fileOffset": 3212356,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "005FF640",
+            "005B7A00",
+            "005FF5F0",
+            "0040ECE0",
+            "005FF4B0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1160304,
+            "fileOffset": 111856,
+            "references": [
+              {
+                "address": 4771032,
+                "fileOffset": 3722584
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011B470",
+        "getterBytes": "4a00023c0800e003306b4224",
+        "getterFileOffset": 111856,
+        "getterExecution": {
+          "entry": "0011B470",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CCC0",
+          "bytes": "000000000000000080b811001008100040ba11002003100070b411001000100050001000",
+          "fileOffset": 3722560,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011B880",
+            "00100810",
+            "0011BA40",
+            "00100320",
+            "0011B470",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spNodeController",
+          "factory": 1162000,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 24,
+          "allocator": 1103952,
+          "constructor": 1162000,
+          "inline": true,
+          "firstCallAfterAllocation": 1162784,
+          "literalVtableWrites": [
+            {
+              "address": 1162076,
+              "table": 4771008,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771008,
+          "matchingWrites": [
+            {
+              "address": 1162076,
+              "table": 4771008,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spRenderController",
+      "classHash": 340228807,
+      "base": "spController",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7724720,
+      "ps2Record": 4877200,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 85.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4338032,
+            "fileOffset": 140656,
+            "references": [
+              {
+                "address": 7194800,
+                "fileOffset": 2996400
+              }
+            ]
+          }
+        ],
+        "getter": "00423170",
+        "getterBytes": "b8b0de7500c3",
+        "getterFileOffset": 140656,
+        "tableCandidate": {
+          "address": "006DC8A0",
+          "bytes": "b0314200007a5b00f01b4a00d0314200703142005083400070834000",
+          "fileOffset": 2996384,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004231B0",
+            "005B7A00",
+            "004A1BF0",
+            "004231D0",
+            "00423170",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1162304,
+            "fileOffset": 113856,
+            "references": [
+              {
+                "address": 4771096,
+                "fileOffset": 3722648
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011BC40",
+        "getterBytes": "4a00023c0800e003906b4224",
+        "getterFileOffset": 113856,
+        "getterExecution": {
+          "entry": "0011BC40",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CD00",
+          "bytes": "000000000000000000bd110010081000a0bd110050bc110040bc11001000100050001000",
+          "fileOffset": 3722624,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011BD00",
+            "00100810",
+            "0011BDA0",
+            "0011BC50",
+            "0011BC40",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spScene",
+      "classHash": 1871870993,
+      "base": "spNamedObject",
+      "pcFactory": 4582336,
+      "ps2Factory": 1760160,
+      "pcRecord": 7732768,
+      "ps2Record": 4895472,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 70.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4581152,
+            "fileOffset": 383776,
+            "references": [
+              {
+                "address": 7238504,
+                "fileOffset": 3040104
+              }
+            ]
+          }
+        ],
+        "getter": "0045E720",
+        "getterBytes": "b820fe7500c3",
+        "getterFileOffset": 383776,
+        "tableCandidate": {
+          "address": "006E7358",
+          "bytes": "50eb4500007a5b0020ec45002031410020e745005083400070834000",
+          "fileOffset": 3040088,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0045EB50",
+            "005B7A00",
+            "0045EC20",
+            "00413120",
+            "0045E720",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1755200,
+            "fileOffset": 706752,
+            "references": [
+              {
+                "address": 4785192,
+                "fileOffset": 3736744
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001AC840",
+        "getterBytes": "4b00023c0800e003f0b24224",
+        "getterFileOffset": 706752,
+        "getterExecution": {
+          "entry": "001AC840",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "00490410",
+          "bytes": "000000000000000080d61a0010081000e0da1a00c05d100040c81a001000100050001000",
+          "fileOffset": 3736720,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001AD680",
+            "00100810",
+            "001ADAE0",
+            "00105DC0",
+            "001AC840",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spScene",
+          "factory": 1760160,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 80,
+          "allocator": 1103952,
+          "constructor": 1759424,
+          "inline": false,
+          "firstCallAfterAllocation": 1759424,
+          "literalVtableWrites": [
+            {
+              "address": 1759468,
+              "table": 4785168,
+              "receiver": 17
+            }
+          ],
+          "expectedTableCandidate": 4785168,
+          "matchingWrites": [
+            {
+              "address": 1759468,
+              "table": 4785168,
+              "receiver": 17
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spSceneGraphOptimizer",
+      "classHash": 1340488130,
+      "base": "spCrossPlatform",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7751048,
+      "ps2Record": 4889616,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 55.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4988096,
+            "fileOffset": 790720,
+            "references": [
+              {
+                "address": 7282892,
+                "fileOffset": 3084492
+              }
+            ]
+          }
+        ],
+        "getter": "004C1CC0",
+        "getterBytes": "b888457600c3",
+        "getterFileOffset": 790720,
+        "tableCandidate": {
+          "address": "006F20BC",
+          "bytes": "801d4c00007a5b00f01b4a0020314100c01c4c005083400070834000",
+          "fileOffset": 3084476,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "004C1D80",
+            "005B7A00",
+            "004A1BF0",
+            "00413120",
+            "004C1CC0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "registered-metadata-only",
+        "constantGetterCandidates": []
+      }
+    },
+    {
+      "className": "spSceneManager",
+      "classHash": 1732350856,
+      "base": "spBaseObject",
+      "pcFactory": 4566512,
+      "ps2Factory": 1770224,
+      "pcRecord": 7732384,
+      "ps2Record": 4895568,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 76.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4566208,
+            "fileOffset": 368832,
+            "references": [
+              {
+                "address": 7237988,
+                "fileOffset": 3039588
+              }
+            ]
+          }
+        ],
+        "getter": "0045ACC0",
+        "getterBytes": "b8a0fc7500c3",
+        "getterFileOffset": 368832,
+        "tableCandidate": {
+          "address": "006E7154",
+          "bytes": "d0ad4500007a5b0050ae4500e0ec4000c0ac45005083400070834000",
+          "fileOffset": 3039572,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0045ADD0",
+            "005B7A00",
+            "0045AE50",
+            "0040ECE0",
+            "0045ACC0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1767200,
+            "fileOffset": 718752,
+            "references": [
+              {
+                "address": 4785240,
+                "fileOffset": 3736792
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001AF720",
+        "getterBytes": "4b00023c0800e00350b34224",
+        "getterFileOffset": 718752,
+        "getterExecution": {
+          "entry": "001AF720",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "00490440",
+          "bytes": "0000000000000000b0001b0010081000f0011b002003100020f71a001000100050001000",
+          "fileOffset": 3736768,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001B00B0",
+            "00100810",
+            "001B01F0",
+            "00100320",
+            "001AF720",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spSceneManager",
+          "factory": 1770224,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 36,
+          "allocator": 1103952,
+          "constructor": 1770224,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1770320,
+              "table": 4785216,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4785216,
+          "matchingWrites": [
+            {
+              "address": 1770320,
+              "table": 4785216,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spSkyBoxManager",
+      "classHash": 1640117653,
+      "base": "spBaseObject",
+      "pcFactory": 4775040,
+      "ps2Factory": 1853952,
+      "pcRecord": 7743088,
+      "ps2Record": 4901744,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 70.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4774608,
+            "fileOffset": 577232,
+            "references": [
+              {
+                "address": 7259248,
+                "fileOffset": 3060848
+              }
+            ]
+          }
+        ],
+        "getter": "0048DAD0",
+        "getterBytes": "b870267600c3",
+        "getterFileOffset": 577232,
+        "tableCandidate": {
+          "address": "006EC460",
+          "bytes": "e0da4800007a5b00e0dc4800e0ec4000d0da48005083400070834000",
+          "fileOffset": 3060832,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0048DAE0",
+            "005B7A00",
+            "0048DCE0",
+            "0040ECE0",
+            "0048DAD0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1852544,
+            "fileOffset": 804096,
+            "references": [
+              {
+                "address": 4786792,
+                "fileOffset": 3738344
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001C4480",
+        "getterBytes": "4b00023c0800e00370cb4224",
+        "getterFileOffset": 804096,
+        "getterExecution": {
+          "entry": "001C4480",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "00490A50",
+          "bytes": "000000000000000060481c001008100020491c002003100080441c001000100050001000",
+          "fileOffset": 3738320,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001C4860",
+            "00100810",
+            "001C4920",
+            "00100320",
+            "001C4480",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spSkyBoxManager",
+          "factory": 1853952,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 36,
+          "allocator": 1103952,
+          "constructor": 1853952,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1854020,
+              "table": 4786768,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4786768,
+          "matchingWrites": [
+            {
+              "address": 1854020,
+              "table": 4786768,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spSubController",
+      "classHash": 103555821,
+      "base": "spBaseObject",
+      "pcFactory": 0,
+      "ps2Factory": 0,
+      "pcRecord": 7734080,
+      "ps2Record": 4877296,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 35.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4618576,
+            "fileOffset": 421200,
+            "references": [
+              {
+                "address": 7242740,
+                "fileOffset": 3044340
+              }
+            ]
+          }
+        ],
+        "getter": "00467950",
+        "getterBytes": "b840037600c3",
+        "getterFileOffset": 421200,
+        "tableCandidate": {
+          "address": "006E83E4",
+          "bytes": "70794600007a5b00f01b4a00e0ec4000507946005083400070834000",
+          "fileOffset": 3044324,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00467970",
+            "005B7A00",
+            "004A1BF0",
+            "0040ECE0",
+            "00467950",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1162672,
+            "fileOffset": 114224,
+            "references": [
+              {
+                "address": 4771144,
+                "fileOffset": 3722696
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011BDB0",
+        "getterBytes": "4a00023c0800e003f06b4224",
+        "getterFileOffset": 114224,
+        "getterExecution": {
+          "entry": "0011BDB0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CD30",
+          "bytes": "0000000000000000c0bd11001008100060be110020031000b0bd11001000100050001000",
+          "fileOffset": 3722672,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011BDC0",
+            "00100810",
+            "0011BE60",
+            "00100320",
+            "0011BDB0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spTextureTrack",
+      "classHash": 188488457,
+      "base": "spTrack",
+      "pcFactory": 4688736,
+      "ps2Factory": 1183472,
+      "pcRecord": 7736376,
+      "ps2Record": 4878256,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 70.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4688688,
+            "fileOffset": 491312,
+            "references": [
+              {
+                "address": 7252480,
+                "fileOffset": 3054080
+              }
+            ]
+          }
+        ],
+        "getter": "00478B30",
+        "getterBytes": "b8380c7600c3",
+        "getterFileOffset": 491312,
+        "tableCandidate": {
+          "address": "006EA9F0",
+          "bytes": "c08d4700007a5b00d08b470020314100308b47005083400070834000",
+          "fileOffset": 3054064,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00478DC0",
+            "005B7A00",
+            "00478BD0",
+            "00413120",
+            "00478B30",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1182544,
+            "fileOffset": 134096,
+            "references": [
+              {
+                "address": 4771672,
+                "fileOffset": 3723224
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00120B50",
+        "getterBytes": "4a00023c0800e003b06f4224",
+        "getterFileOffset": 134096,
+        "getterExecution": {
+          "entry": "00120B50",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CF40",
+          "bytes": "0000000000000000500d120010081000100e1200c05d1000500b12001000100050001000",
+          "fileOffset": 3723200,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00120D50",
+            "00100810",
+            "00120E10",
+            "00105DC0",
+            "00120B50",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spTextureTrack",
+          "factory": 1183472,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 32,
+          "allocator": 1103952,
+          "constructor": 1183472,
+          "inline": true,
+          "firstCallAfterAllocation": 1183808,
+          "literalVtableWrites": [
+            {
+              "address": 1183536,
+              "table": 4771648,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771648,
+          "matchingWrites": [
+            {
+              "address": 1183536,
+              "table": 4771648,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spTrack",
+      "classHash": 1623734725,
+      "base": "spNamedObject",
+      "pcFactory": 4796528,
+      "ps2Factory": 1184080,
+      "pcRecord": 7744360,
+      "ps2Record": 4878352,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 90.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4796496,
+            "fileOffset": 599120,
+            "references": [
+              {
+                "address": 7261108,
+                "fileOffset": 3062708
+              }
+            ]
+          }
+        ],
+        "getter": "00493050",
+        "getterBytes": "b8682b7600c3",
+        "getterFileOffset": 599120,
+        "tableCandidate": {
+          "address": "006ECBA4",
+          "bytes": "40314900007a5b00e030490020314100503049005083400070834000",
+          "fileOffset": 3062692,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00493140",
+            "005B7A00",
+            "004930E0",
+            "00413120",
+            "00493050",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1183632,
+            "fileOffset": 135184,
+            "references": [
+              {
+                "address": 4771720,
+                "fileOffset": 3723272
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "00120F90",
+        "getterBytes": "4a00023c0800e00310704224",
+        "getterFileOffset": 135184,
+        "getterExecution": {
+          "entry": "00120F90",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CF70",
+          "bytes": "0000000000000000c00f12001008100080101200c05d1000900f12001000100050001000",
+          "fileOffset": 3723248,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "00120FC0",
+            "00100810",
+            "00121080",
+            "00105DC0",
+            "00120F90",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spTrack",
+          "factory": 1184080,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 20,
+          "allocator": 1103952,
+          "constructor": 1184080,
+          "inline": true,
+          "firstCallAfterAllocation": 1072992,
+          "literalVtableWrites": [
+            {
+              "address": 1184148,
+              "table": 4771696,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771696,
+          "matchingWrites": [
+            {
+              "address": 1184148,
+              "table": 4771696,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spTransFunctionEval",
+      "classHash": 1226060528,
+      "base": "spTransformEval",
+      "pcFactory": 4707040,
+      "ps2Factory": 1174240,
+      "pcRecord": 7737496,
+      "ps2Record": 4878064,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 80.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4705536,
+            "fileOffset": 508160,
+            "references": [
+              {
+                "address": 7252732,
+                "fileOffset": 3054332
+              }
+            ]
+          }
+        ],
+        "getter": "0047CD00",
+        "getterBytes": "b898107600c3",
+        "getterFileOffset": 508160,
+        "tableCandidate": {
+          "address": "006EAAEC",
+          "bytes": "c0ce4700007a5b0040d34700e0ec400000cd47005083400070834000",
+          "fileOffset": 3054316,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0047CEC0",
+            "005B7A00",
+            "0047D340",
+            "0040ECE0",
+            "0047CD00",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1171424,
+            "fileOffset": 122976,
+            "references": [
+              {
+                "address": 4771528,
+                "fileOffset": 3723080
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011DFE0",
+        "getterBytes": "4a00023c0800e003f06e4224",
+        "getterFileOffset": 122976,
+        "getterExecution": {
+          "entry": "0011DFE0",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CEB0",
+          "bytes": "0000000000000000a0e811001008100020ea110020031000e0df11001000100050001000",
+          "fileOffset": 3723056,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011E8A0",
+            "00100810",
+            "0011EA20",
+            "00100320",
+            "0011DFE0",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spTransFunctionEval",
+          "factory": 1174240,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 432,
+          "allocator": 1103952,
+          "constructor": 1174240,
+          "inline": true,
+          "firstCallAfterAllocation": 1059824,
+          "literalVtableWrites": [
+            {
+              "address": 1174316,
+              "table": 4771504,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4771504,
+          "matchingWrites": [
+            {
+              "address": 1174316,
+              "table": 4771504,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "className": "spTransformTrackEval",
+      "classHash": 1571755309,
+      "base": "spTransformEval",
+      "pcFactory": 6287504,
+      "ps2Factory": 1171200,
+      "pcRecord": 7769744,
+      "ps2Record": 4877968,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 86.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 6286240,
+            "fileOffset": 2088864,
+            "references": [
+              {
+                "address": 7410708,
+                "fileOffset": 3212308
+              }
+            ]
+          }
+        ],
+        "getter": "005FEBA0",
+        "getterBytes": "b8908e7600c3",
+        "getterFileOffset": 2088864,
+        "tableCandidate": {
+          "address": "00711404",
+          "bytes": "70f05f00007a5b00f0f05f00e0ec4000a0eb5f005083400070834000",
+          "fileOffset": 3212292,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "005FF070",
+            "005B7A00",
+            "005FF0F0",
+            "0040ECE0",
+            "005FEBA0",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 1168432,
+            "fileOffset": 119984,
+            "references": [
+              {
+                "address": 4771480,
+                "fileOffset": 3723032
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "0011D430",
+        "getterBytes": "4a00023c0800e003906e4224",
+        "getterFileOffset": 119984,
+        "getterExecution": {
+          "entry": "0011D430",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "0048CE80",
+          "bytes": "000000000000000000dd11001008100040de11002003100030d411001000100050001000",
+          "fileOffset": 3723008,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0011DD00",
+            "00100810",
+            "0011DE40",
+            "00100320",
+            "0011D430",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": false
+        }
+      }
+    },
+    {
+      "className": "spVisibilityManager",
+      "classHash": 1031750535,
+      "base": "spBaseObject",
+      "pcFactory": 4641216,
+      "ps2Factory": 1868832,
+      "pcRecord": 7734752,
+      "ps2Record": 4902032,
+      "priorAssessments": [
+        {
+          "platform": "pc",
+          "score": 72.0
+        }
+      ],
+      "pc": {
+        "status": "original-getter-verified",
+        "constantGetterCandidates": [
+          {
+            "address": 4637488,
+            "fileOffset": 440112,
+            "references": [
+              {
+                "address": 7245036,
+                "fileOffset": 3046636
+              }
+            ]
+          }
+        ],
+        "getter": "0046C330",
+        "getterBytes": "b8e0057600c3",
+        "getterFileOffset": 440112,
+        "tableCandidate": {
+          "address": "006E8CDC",
+          "bytes": "b0c44600007a5b0020d24600e0ec400030c346005083400070834000",
+          "fileOffset": 3046620,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "0046C4B0",
+            "005B7A00",
+            "0046D220",
+            "0040ECE0",
+            "0046C330",
+            "00408350",
+            "00408370"
+          ],
+          "constructionProved": false
+        }
+      },
+      "ps2": {
+        "status": "independent-static-construction-and-getter",
+        "constantGetterCandidates": [
+          {
+            "address": 1861920,
+            "fileOffset": 813472,
+            "references": [
+              {
+                "address": 4787048,
+                "fileOffset": 3738600
+              }
+            ],
+            "adjustorAliases": []
+          }
+        ],
+        "getter": "001C6920",
+        "getterBytes": "4b00023c0800e00390cc4224",
+        "getterFileOffset": 813472,
+        "getterExecution": {
+          "entry": "001C6920",
+          "stop": "20000000",
+          "instructions": 3,
+          "profile": "r4000",
+          "completion": "original return"
+        },
+        "tableCandidate": {
+          "address": "00490B50",
+          "bytes": "000000000000000000811c001008100060831c002003100020691c001000100050001000",
+          "fileOffset": 3738576,
+          "hasExpectedAbiPrefix": true,
+          "slots": [
+            "001C8100",
+            "00100810",
+            "001C8360",
+            "00100320",
+            "001C6920",
+            "00100010",
+            "00100050"
+          ],
+          "constructionProved": true
+        },
+        "construction": {
+          "className": "spVisibilityManager",
+          "factory": 1868832,
+          "status": "literal-constructor-table-match",
+          "allocationBytes": 160,
+          "allocator": 1103952,
+          "constructor": 1868320,
+          "inline": false,
+          "firstCallAfterAllocation": 1868320,
+          "literalVtableWrites": [
+            {
+              "address": 1868380,
+              "table": 4787024,
+              "receiver": 16
+            }
+          ],
+          "expectedTableCandidate": 4787024,
+          "matchingWrites": [
+            {
+              "address": 1868380,
+              "table": 4787024,
+              "receiver": 16
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/catalog-family.json",
+      "sha256": "E0E0CC5DFD9FF8A24C9BBD6838723EB69DC8C831EF5082A7FF970D3707F6D5F7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/getter-candidates-run1.json",
+      "sha256": "E650B0F9C69D2ABAD89E34538F2596178AF12D667A038ADEC46A87D4886B11BD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/ps2-construction-review.json",
+      "sha256": "4DA0C46CB0C51795C20D237D67951F5144CDF50D47AAA150641D5426FFABE74B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/animation-list-scout/capture.json",
+      "sha256": "5D84D70BDDDE5D1CD5D57E310BAB88AA14A39BAD55D7D603B82B277DD1D976DC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/construction-followup/capture.json",
+      "sha256": "C275147872DD9BF25101A120F3C5B5B2B6DFA4F665096DE254BD156542985313"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/controller-scout/capture.json",
+      "sha256": "71D4D418FCF867FF33B7C77DBC1FFC99F4E5A11F195DA758F4B898F0BD573FC3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/factories/capture.json",
+      "sha256": "760E9CF66F036017891CC57305361866E17DCA33FACC09405DE92461A42C2A11"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/pc-counterpart-leaves/capture.json",
+      "sha256": "9A95CBDF6A75CDD74DE8C039BD9E59766419E40490A591FE801BD04AAA47A62C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/ps2-remainder/ps2-construction/capture.json",
+      "sha256": "6BC380EC1ACF82336E133D8E259EF955C8F85233A87495867A52652C0A7D61A7"
+    }
+  ],
+  "allLifecycleRuns": [],
+  "scope": "Original getters and independently matched constructor tables. A unique reference is only a candidate table unless construction proves it. Full PC lifetimes and blocked stages recorded separately. No corresponding platform is invented;missing constant getter pattern is not proof that a method does not exist.",
+  "counts": {
+    "classNames": 24,
+    "pcRegistered": 24,
+    "ps2Registered": 24,
+    "pcFactoryAttempts": 0,
+    "pcFullLifetimes": 0,
+    "pcBlocked": 0,
+    "pcClassOperations": 0,
+    "ps2FactoryTableMatches": 16,
+    "ps2ExecutedGetters": 23
+  }
+}
