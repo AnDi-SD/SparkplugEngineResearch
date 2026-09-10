@@ -19,7 +19,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node'):raise ValueError('Explicit reviewed borrowed context required')
     if crt not in ('none','bounded-strings'):raise ValueError('Explicit CRT fixture required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'

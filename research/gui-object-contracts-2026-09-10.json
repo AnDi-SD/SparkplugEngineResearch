@@ -1,0 +1,568 @@
+{
+  "kind": "paired-gui-object-construction-and-active-contracts",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "908DB75895A2AD75476219866C1B5198DF40DE7EAEC67DB6A355A263855B1A79",
+  "classes": [
+    {
+      "className": "spButton",
+      "classHash": 751988923,
+      "base": "spWidget",
+      "pcFactory": 4302000,
+      "ps2Factory": 1263536,
+      "pcRecord": 7722600,
+      "ps2Record": 4883424,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-spButton-run1.json",
+          "sha256": "A74B484F02E0BABB3BA116C36EF6D261269DF35483FD3062074E981EDDB64C4B"
+        },
+        "status": "passed",
+        "allocationBytes": 96,
+        "vtable": "006DEAC0",
+        "vtableFileOffset": 3005120,
+        "vtableBytes": "805d4300205f4300e0ad4100a05d4300005c43005083400070834000a0ea4800a0ea4800b0944200a0584300b05c4300",
+        "slots": [
+          "00435D80",
+          "00435F20",
+          "0041ADE0",
+          "00435DA0",
+          "00435C00",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004358A0",
+          "00435CB0"
+        ],
+        "constructedBytes": "c0ea6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc0000000000000000000000000000000000000000c000003100cccccc00000000",
+        "cloneBytes": "c0ea6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc00000000000000000000000000000000000000005001003100cccccc00000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 92,
+        "constructionEntry": "00169210",
+        "constructionKind": "separate-constructor",
+        "factoryCalls": [
+          {
+            "va": 1263552,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 1263568,
+            "bytes": "84a4050c",
+            "text": "jal 0x169210"
+          }
+        ],
+        "vtable": "0048D7D0",
+        "vtableBytes": "000000000000000090911600508e1600f0461300b0901600c05a13001000100050001000f0e11400e0e1140030531600c0bc1600408d1600",
+        "vtableFileOffset": 3725392,
+        "slots": [
+          "00169190",
+          "00168E50",
+          "001346F0",
+          "001690B0",
+          "00135AC0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "0016BCC0",
+          "00168D40"
+        ],
+        "getter": "00135AC0",
+        "getterBytes": "4b00023c0800e003e0834224",
+        "getterFileOffset": 219968,
+        "registration": "004A83E0"
+      },
+      "interfaceScope": "First12 GUI/Widget slots;wxButton has additional slots not enumerated here"
+    },
+    {
+      "className": "spEditBox",
+      "classHash": 624706349,
+      "base": "spWidget",
+      "pcFactory": 4302112,
+      "ps2Factory": 1262976,
+      "pcRecord": 7722792,
+      "ps2Record": 4883616,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-spEditBox-run1.json",
+          "sha256": "27903CCE0460E54C9ED496FF538385CD5386B190F60B367EB01696B046F8C14E"
+        },
+        "status": "passed",
+        "allocationBytes": 128,
+        "vtable": "006DEB14",
+        "vtableFileOffset": 3005204,
+        "vtableBytes": "c0674300b06d430020af4100206b4300d06643005083400070834000a0ea4800a0ea4800b0944200a0584300a0694300",
+        "slots": [
+          "004367C0",
+          "00436DB0",
+          "0041AF20",
+          "00436B20",
+          "004366D0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004358A0",
+          "004369A0"
+        ],
+        "constructedBytes": "14eb6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cc",
+        "cloneBytes": "14eb6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc000000000000000000000000000000000000000000000000000000000000000000000000000000007001003102000000000000000000000000000000000000cc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 124,
+        "constructionEntry": "0016ABF0",
+        "constructionKind": "separate-constructor",
+        "factoryCalls": [
+          {
+            "va": 1262992,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 1263008,
+            "bytes": "fcaa050c",
+            "text": "jal 0x16abf0"
+          }
+        ],
+        "vtable": "0048D750",
+        "vtableBytes": "000000000000000060ab1600809b1600c044130050aa1600405a13001000100050001000f0e11400e0e1140030531600c0bc160020981600",
+        "vtableFileOffset": 3725264,
+        "slots": [
+          "0016AB60",
+          "00169B80",
+          "001344C0",
+          "0016AA50",
+          "00135A40",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "0016BCC0",
+          "00169820"
+        ],
+        "getter": "00135A40",
+        "getterBytes": "4b00023c0800e003a0844224",
+        "getterFileOffset": 219840,
+        "registration": "004A84A0"
+      },
+      "interfaceScope": "First12 GUI/Widget slots;wxButton has additional slots not enumerated here"
+    },
+    {
+      "className": "spGUIObject",
+      "classHash": 1933137725,
+      "base": "spEntity",
+      "pcFactory": 4363952,
+      "ps2Factory": 1464816,
+      "pcRecord": 7725784,
+      "ps2Record": 4887408,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-spGUIObject-run1.json",
+          "sha256": "AEFB14E8F00F633BFB27C5E7B3CF18A40EDC3F7A4B32F0DD1A1BE068C2B312FB"
+        },
+        "status": "passed",
+        "allocationBytes": 60,
+        "vtable": "006DCC70",
+        "vtableFileOffset": 2997360,
+        "vtableBytes": "90964200b09342001097420030904200a09442005083400070834000a0ea4800a0ea4800b0944200b0904200",
+        "slots": [
+          "00429690",
+          "004293B0",
+          "00429710",
+          "00429030",
+          "004294A0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004290B0"
+        ],
+        "constructedBytes": "70cc6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc000000000000000000000000",
+        "cloneBytes": "70cc6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 56,
+        "constructionEntry": "001659F0",
+        "constructionKind": "inline-factory",
+        "factoryCalls": [
+          {
+            "va": 1464840,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 1464872,
+            "bytes": "e438050c",
+            "text": "jal 0x14e390"
+          },
+          {
+            "va": 1464904,
+            "bytes": "2c96050c",
+            "text": "jal 0x1658b0"
+          },
+          {
+            "va": 1464912,
+            "bytes": "181b040c",
+            "text": "jal 0x106c60"
+          }
+        ],
+        "vtable": "0048E560",
+        "vtableBytes": "0000000000000000a0561600d0551600e058160020561600305216001000100050001000f0e11400e0e114003053160040521600",
+        "vtableFileOffset": 3728864,
+        "slots": [
+          "001656A0",
+          "001655D0",
+          "001658E0",
+          "00165620",
+          "00165230",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "00165240"
+        ],
+        "getter": "00165230",
+        "getterBytes": "4b00023c0800e00370934224",
+        "getterFileOffset": 414384,
+        "registration": "004A9370"
+      },
+      "interfaceScope": "11 inherited GUI slots"
+    },
+    {
+      "className": "spTextWidget",
+      "classHash": 170939304,
+      "base": "spWidget",
+      "pcFactory": 4304432,
+      "ps2Factory": 1263248,
+      "pcRecord": 7722696,
+      "ps2Record": 4883520,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-spTextWidget-run1.json",
+          "sha256": "12E5591063C52A75ACEB8C1D2FD377D0DA6CDB37421B832B742449585BEA931F"
+        },
+        "status": "passed",
+        "allocationBytes": 84,
+        "vtable": "006DBD20",
+        "vtableFileOffset": 2993440,
+        "vtableBytes": "a0ae4100205a4300d0ae41007063430010a541005083400070834000a0ea4800a0ea4800b0944200a0584300c0584300",
+        "slots": [
+          "0041AEA0",
+          "00435A20",
+          "0041AED0",
+          "00436370",
+          "0041A510",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004358A0",
+          "004358C0"
+        ],
+        "constructedBytes": "20bd6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc0000000000000000000000000000000000000000",
+        "cloneBytes": "20bd6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc0000000000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 80,
+        "constructionEntry": "00134690",
+        "constructionKind": "inline-factory",
+        "factoryCalls": [
+          {
+            "va": 1263268,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 1263296,
+            "bytes": "7cb0050c",
+            "text": "jal 0x16c1f0"
+          }
+        ],
+        "vtable": "0048D790",
+        "vtableBytes": "0000000000000000505a130070be1600c0451300f0b51600b05a13001000100050001000f0e11400e0e1140030531600c0bc1600c0bb1600",
+        "vtableFileOffset": 3725328,
+        "slots": [
+          "00135A50",
+          "0016BE70",
+          "001345C0",
+          "0016B5F0",
+          "00135AB0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "0016BCC0",
+          "0016BBC0"
+        ],
+        "getter": "00135AB0",
+        "getterBytes": "4b00023c0800e00340844224",
+        "getterFileOffset": 219952,
+        "registration": "004A8440"
+      },
+      "interfaceScope": "First12 GUI/Widget slots;wxButton has additional slots not enumerated here"
+    },
+    {
+      "className": "spWidget",
+      "classHash": 2092247040,
+      "base": "spGUIObject",
+      "pcFactory": 4301904,
+      "ps2Factory": 1263792,
+      "pcRecord": 7722504,
+      "ps2Record": 4883328,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-spWidget-run1.json",
+          "sha256": "69151CA16B34EAF20DB4DEA877CC7D44E375F452AC583D058CB5A7FD56928237"
+        },
+        "status": "passed",
+        "allocationBytes": 84,
+        "vtable": "006DEA6C",
+        "vtableFileOffset": 3005036,
+        "vtableBytes": "30594300205a430090ad410050594300805843005083400070834000a0ea4800a0ea4800b0944200a0584300c0584300",
+        "slots": [
+          "00435930",
+          "00435A20",
+          "0041AD90",
+          "00435950",
+          "00435880",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004358A0",
+          "004358C0"
+        ],
+        "constructedBytes": "6cea6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc0000000000000000000000000000000000000000",
+        "cloneBytes": "6cea6d00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc0000000000000000000000000000000000000000",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 2,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 80,
+        "constructionEntry": "0016C1F0",
+        "constructionKind": "separate-constructor",
+        "factoryCalls": [
+          {
+            "va": 1263808,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 1263824,
+            "bytes": "7cb0050c",
+            "text": "jal 0x16c1f0"
+          }
+        ],
+        "vtable": "0048D810",
+        "vtableBytes": "000000000000000090c1160070be1600f0471300f0c01600d05a13001000100050001000f0e11400e0e1140030531600c0bc1600c0bb1600",
+        "vtableFileOffset": 3725456,
+        "slots": [
+          "0016C190",
+          "0016BE70",
+          "001347F0",
+          "0016C0F0",
+          "00135AD0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "0016BCC0",
+          "0016BBC0"
+        ],
+        "getter": "00135AD0",
+        "getterBytes": "4b00023c0800e00380834224",
+        "getterFileOffset": 219984,
+        "registration": "004A8380"
+      },
+      "interfaceScope": "First12 GUI/Widget slots;wxButton has additional slots not enumerated here"
+    },
+    {
+      "className": "wxButton",
+      "classHash": 1777891514,
+      "base": "spButton",
+      "pcFactory": 4220832,
+      "ps2Factory": 4103552,
+      "pcRecord": 7682280,
+      "ps2Record": 5023440,
+      "priorAssessments": [],
+      "pc": {
+        "source": {
+          "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-wxButton-run2.json",
+          "sha256": "182C0F6D3E24184CC5C3694B71EC325725CF1E7625860E85B37135A9A2C8C9DB"
+        },
+        "status": "passed",
+        "allocationBytes": 424,
+        "vtable": "006FE988",
+        "vtableFileOffset": 3135880,
+        "vtableBytes": "10cd550030cd550000c9400060cc5500a0cb55005083400070834000a0ea4800a0ea4800b0944200a058430030ce5500",
+        "slots": [
+          "0055CD10",
+          "0055CD30",
+          "0040C900",
+          "0055CC60",
+          "0055CBA0",
+          "00408350",
+          "00408370",
+          "0048EAA0",
+          "0048EAA0",
+          "004294B0",
+          "004358A0",
+          "0055CE30"
+        ],
+        "constructedBytes": "88e96f00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc00000000000000000000000000000000000000001002003100cccccc000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc656d70747900cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc656d70747900cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc656d70747900cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc656d70747900cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01cccccc",
+        "cloneBytes": "88e96f00000000000000cccc0000000000000000000000000000000000000000010000000000000001cccccccccccccc0000000000000000000000000100cccc00000000000000000000000000000000000000003062003100cccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000656d7074790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000656d7074790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000656d7074790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000656d707479000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cccccc",
+        "returnedClassOperations": 5,
+        "remainingTrackedAllocations": 5,
+        "crt": null
+      },
+      "ps2": {
+        "status": "static-construction-reviewed",
+        "allocationBytes": 420,
+        "constructionEntry": "003742E0",
+        "constructionKind": "separate-constructor",
+        "factoryCalls": [
+          {
+            "va": 4103568,
+            "bytes": "1436040c",
+            "text": "jal 0x10d850"
+          },
+          {
+            "va": 4103584,
+            "bytes": "b8d00d0c",
+            "text": "jal 0x3742e0"
+          }
+        ],
+        "vtable": "00496900",
+        "vtableBytes": "00000000000000005042370020383700c09c3e0080413700d08a3f001000100050001000f0e11400e0e1140030531600c0bc160090363700",
+        "vtableFileOffset": 3762560,
+        "slots": [
+          "00374250",
+          "00373820",
+          "003E9CC0",
+          "00374180",
+          "003F8AD0",
+          "00100010",
+          "00100050",
+          "0014E1F0",
+          "0014E1E0",
+          "00165330",
+          "0016BCC0",
+          "00373690"
+        ],
+        "getter": "003F8AD0",
+        "getterBytes": "4d00023c0800e003d0a64224",
+        "getterFileOffset": 3115856,
+        "registration": "004CA6D0"
+      },
+      "interfaceScope": "First12 GUI/Widget slots;wxButton has additional slots not enumerated here"
+    }
+  ],
+  "boundaries": "Six PC factory/default clone/RTTI/two teardowns;PS2 independent construction identity. Widget/Button selection and GUI notify/setter contracts. No rendered GUI,normal scene binding,text editing or full PS2 lifecycle claim.",
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/catalog-family.json",
+      "sha256": "AB94570B9DF5EF2414CC609C68826BA867D8ED5ACFB46DFDAD8E98FFA66EDCD2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-constructor-map.json",
+      "sha256": "09528A00BCDA6E6E1CE66565A3116CF99E7F572F5C7AA771BC449EC69152FE79"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-vtable-candidates.json",
+      "sha256": "0F8CEE512F89C99E3D25839797C2DA206B942C587C5F5AC0E834478736A146EE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-factories/capture.json",
+      "sha256": "E94407E708C1824C2F9BAD6357F37641445A14B504B03761B12D79DB8A551542"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-factories-extended/capture.json",
+      "sha256": "62623AB4F566DFB06D66C6B73E3544738DB534092A30C99921436D6512FAF254"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-constructors/capture.json",
+      "sha256": "48329DB9F610E45F7D5238A0012F92E068848CBAA908C11F21F629F3DE69A6FE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/base-constructor-windows/capture.json",
+      "sha256": "5D5883F59D96C95C01CFEFDDF982291964ECAC26A08D131596596A186876B6E6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/pc-base-method-windows/capture.json",
+      "sha256": "019C389F144EA058C7375DB7994F928DCDDE4B4C5373D5051186E07DCF164398"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/ps2-state-method-windows/capture.json",
+      "sha256": "519945123D972BD1F6A5F3D9545BDBB65FD45EF7817ED0D7425623C5ECB91081"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/notify-windows/capture.json",
+      "sha256": "2EB0304D1508F64B83314E3FACABDDB3846C46B518902C4AA777DC391DFD1323"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/state-selection-run1.json",
+      "sha256": "AD4682602D89DDC1000BE0828EE13DC30C8939DD96A5E968BC35CF553CD10AE3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/state-selection-run2.json",
+      "sha256": "3E1688F6A6EC1C360D5D72FE7CF759A531E3707F26E8D84B9B19DE3C4BD3025E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/gui-object/dispatch-run1.json",
+      "sha256": "54DD23C6E427F8D9E9D8B6E1D354862490F1BBEC7AA16651DC5FC896BC1C9C63"
+    }
+  ],
+  "counts": {
+    "registeredRows": 6,
+    "pairedFactories": 6,
+    "pcFullLifetimes": 6,
+    "pcReturnedClassOperations": 30,
+    "pairedStateSelectionCases": 18,
+    "pairedDispatchCases": 27
+  },
+  "boundariesAndFailures": [
+    "wxButton run1 clone stopped at unbound CRT strncpy;run2 uses existing bounded-strings fixture.",
+    "PS2 GUIObject and TextWidget factory inline their own vtable/defaults;first parent constructor call is not their entire construction. GUIObject separately has own constructor165860.",
+    "PS2 selection run1 stopped at original MOVZ16BC28 in default R4000;run2 uses opt-in5KC integer allowlist with9 targeted wrapper tests. Both runs and source versions preserved.",
+    "PS2 selection prefixes stop before original Node enable1A5B00 or SQ/LQ restoration;post-hide prefix declares previously verified original Node enable contract."
+  ]
+}
