@@ -57,6 +57,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spMeshBV.cpp
     Code/Sparkplug/spMeshBVSerializer.cpp
     Analysis/PC/spVertexBounds.h
+    Analysis/PC/GeometryHelper4604F0.h
+    Analysis/PC/GeometryHelper4604F0.cpp
     Code/Sparkplug/spBoundingVolume.cpp
     Code/Sparkplug/spBoundingVolume.h
     Code/Sparkplug/spOBBBV.cpp
@@ -678,6 +680,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugOcclusionTopologyTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugOcclusionTopologyTests COMMAND SparkplugOcclusionTopologyTests)
     set_tests_properties(SparkplugOcclusionTopologyTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugGeometryHelperTests Tests/spGeometryHelperTests.cpp)
+    target_link_libraries(SparkplugGeometryHelperTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugGeometryHelperTests COMMAND SparkplugGeometryHelperTests)
+    set_tests_properties(SparkplugGeometryHelperTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugLensFlareTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLensFlareTests COMMAND SparkplugLensFlareTests)
     set_tests_properties(SparkplugLensFlareTests PROPERTIES TIMEOUT 20)

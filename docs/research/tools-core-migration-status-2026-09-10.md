@@ -83,8 +83,11 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
   ограничением host inspection, а не доказанным Init игры.
 - **Runtime:** полный Occlusion Init, looping particle initialization и
   повторная непустая NavigationGraph table остаются ограничениями.
-  Original Occlusion Init/reader одного объекта уже прошли; переносу мешают
-  отсутствующий geometry optimizer и [отдельные lifetime/triangle границы](tool-occlusion-reinit-and-batch-2026-09-10.md).
+  Original Occlusion Init/reader одного объекта уже прошли;
+  [geometry helper перенесён](tool-occlusion-geometry-helper-2026-09-10.md)
+  в position-only UInt16 срезе и требует явный sort callback без default.
+  Остаются порядок равных ключей CRT, подключение полного Init/serializer и
+  [отдельные lifetime/triangle границы](tool-occlusion-reinit-and-batch-2026-09-10.md).
   MaterialColor constructor больше не является blocker; clone/copy остаются
   самостоятельными незавершёнными операциями. Исследовать остатки только для нужной операции;
   работа над material clock сама по себе эти контракты не закрывает.

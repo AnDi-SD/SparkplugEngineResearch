@@ -1,5 +1,11 @@
 # `spOcclusionVolume` (`0x43D24430`)
 
+Актуализация 10 сентября: [общий shape producer](tool-occlusion-shape-shared-core-2026-09-10.md)
+перенесён; [original Init/reader одного объекта](tool-occlusion-real-object-init-2026-09-10.md)
+выполнены. Полное подключение Init к loader ещё не закрыто; сохраняются
+[re-init и single-triangle границы](tool-occlusion-reinit-and-batch-2026-09-10.md)
+и открытая зависимость geometry optimizer от порядка сортировки.
+
 Полный структурный read-only разбор выполнен по всем экземплярам трёх корпусов
 с повторным чтением исходных PC SMO и PS2 PCK. Контракт независимо подтверждён
 serializer-кодом `WinxClub.exe` и `SLES_532.19`.

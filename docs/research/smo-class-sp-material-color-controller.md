@@ -1,5 +1,11 @@
 # `spMaterialColorController` (`0x4C633E85`)
 
+Актуализация 10 сентября: [original PC factory и deleting wrapper](tool-pc-material-color-factory-2026-09-10.md)
+теперь доказаны, общая factory подключена. Реальный lightbeam_projectile
+загружается; [живой runtime](tool-material-color-live-graph-2026-09-10.md)
+проверяет clocks/frame cache на его type0-параметрах. Clone/copy и полный
+renderer остаются отдельными операциями. Следующий абзац описывает прежний CP25.
+
 Обновление PC runtime: [CP25](native-pc-material-color.md) независимо проверяет
 привязку, тип0-gating, разделение diffuse RGB/alpha и copy без alpha на объявленном
 состоянии. Защищённый constructor не доказан; это не full native load/in-game test.

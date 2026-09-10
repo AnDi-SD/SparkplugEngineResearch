@@ -275,6 +275,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    Новый shared Submit case использует эту фабрику. Device/startup, полный
    multipass backend и original renderer teardown этим блоком не закрыты.
 
+33. [Original geometry helper](tool-occlusion-geometry-helper-2026-09-10.md)
+   перенесён частично: настоящий отдельный owner 4604F0/6E76FC, UInt16
+   position-only weld, byte comparator и compactor. Исходное имя неизвестно;
+   GeometryHelper4604F0 — явно аналитическое обозначение этого объекта.
+   230 helper checks, 149 topology и 213 loader checks прошли; CTest 3/3.
+   Четыре actual probes используют точную MSVCR71 7.10.7031.4: порядок
+   одинаковых вершин отличается от stable fixture. Поэтому у общего caller
+   обязательный sort callback без default; Init/tools ещё не подключены.
+
 ## Новые границы и исправления
 
 - Прямой повторный Occlusion Init вернулfalse и оставил старые topology entries;

@@ -1,0 +1,356 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-10",
+  "block": "original PC geometry helper with explicit sort dependency",
+  "status": "shared source frozen; central native checks PASS; full Init and tool hookup blocked on sort policy",
+  "owner": {
+    "analyticAlias": "GeometryHelper4604F0",
+    "originalName": null,
+    "constructor": "004604F0",
+    "destructor": "00460500",
+    "deletingDestructor": "00460AE0",
+    "vtable": "006E76FC",
+    "vtableSlots": 1,
+    "isSpVertexBuffer": false,
+    "caller": "00471120 constructor / 0047113F weld"
+  },
+  "original": {
+    "exeSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "dispatch": "00460D90",
+    "u16Caller": "00460C40",
+    "comparator": "004607F0 -> 013D1850",
+    "compactor": "004609A0 -> 00450F50",
+    "qsortImport": "006D9360 MSVCR71.dll!qsort",
+    "runtimeVersion": "7.10.7031.4",
+    "runtimeSha256": "DCA0E5FAF6C94B6ADFF4D90D40795D5A91BA3A3059EA408E992A0F039A494D46",
+    "runtimeProvenance": "Installed legacy MSVCR71; not proven to be the historical game-distribution DLL",
+    "gameDistributionDllFound": false,
+    "qsort": "7C382650",
+    "shortsort": "7C3825E0",
+    "defaultSorterInstalled": false,
+    "portableLegacySorterAdded": false,
+    "legacyDllShippedInApps": false
+  },
+  "originalProbe": {
+    "report": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/legacy-qsort-weld-run1.json",
+    "status": "completed",
+    "cases": [
+      {
+        "name": "unique4",
+        "instructions": 2903,
+        "sorted_ids": [
+          2,
+          1,
+          3,
+          0
+        ],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "vertex_count": 4,
+        "all_tracked_allocations_freed": true
+      },
+      {
+        "name": "duplicate5",
+        "instructions": 3519,
+        "sorted_ids": [
+          2,
+          1,
+          3,
+          4,
+          0
+        ],
+        "indices": [
+          3,
+          0,
+          1,
+          3,
+          1,
+          2
+        ],
+        "vertex_count": 4,
+        "all_tracked_allocations_freed": true
+      },
+      {
+        "name": "duplicate9",
+        "instructions": 5351,
+        "sorted_ids": [
+          2,
+          7,
+          1,
+          6,
+          3,
+          8,
+          5,
+          0,
+          4
+        ],
+        "indices": [
+          3,
+          0,
+          1,
+          3,
+          1,
+          2
+        ],
+        "vertex_count": 4,
+        "all_tracked_allocations_freed": true
+      },
+      {
+        "name": "all_equal12",
+        "instructions": 6900,
+        "sorted_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "indices": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "vertex_count": 1,
+        "all_tracked_allocations_freed": true
+      }
+    ],
+    "elapsedSeconds": 1.984034499997506,
+    "processPeakMeasured": false,
+    "arenaCapacityBytes": 65536,
+    "arenaBumpExtentBytes": 1920,
+    "instructionsPerCall": 100000,
+    "secondsPerCall": 2,
+    "childSeconds": 30,
+    "workers": 1,
+    "allTrackedAllocationsFreed": true,
+    "fullInitExecuted": false,
+    "gameRendererOrSceneCreated": false
+  },
+  "compactionAllocation": {
+    "case": "duplicate5",
+    "sourceVertexAllocationBytes": 60,
+    "retainedVertices": 4,
+    "strideBytes": 12,
+    "mapAllocationBytes": 20,
+    "replacementAllocationBytes": 192,
+    "logicalVertexBytes": 48,
+    "instructionAnchors": [
+      "00451040 WORD VB+10",
+      "00451044 multiply retained count",
+      "00451047 shl 2",
+      "00460105..00460115 logical size=stride*count"
+    ],
+    "proof": "actual allocation requests and output count plus original layout/allocator instructions",
+    "direct451040RegisterCapture": false,
+    "unusedHeapTailClaimedInitialized": false
+  },
+  "sharedScope": {
+    "positionOnly": true,
+    "uint16Only": true,
+    "maximumVertices": 65535,
+    "maximumIndices": 65535,
+    "zeroVerticesOrIndicesUnsupported": true,
+    "sortCallbackRequired": true,
+    "callbackPermutationsValidated": true,
+    "tieOrderPrescribed": false,
+    "inverseBeforeDuplicateFold": true,
+    "compactionInOriginalVertexOrder": true,
+    "partialIndexMutationsRetained": true,
+    "originalVoidVsHostBoolExplicit": true,
+    "toolsConsumerInstalled": false,
+    "occlusionInitImplemented": false,
+    "singleTriangleAndReinitGuardsChanged": false
+  },
+  "validation": {
+    "nativeBuildRunByAgent": false,
+    "nativeBuildRunByRoot": true,
+    "nativeTests": "PASS",
+    "suites": {
+      "GeometryHelper": 230,
+      "OcclusionTopology": 149,
+      "FullLoader": 213
+    },
+    "ctestPassed": 3,
+    "ctestTotal": 3,
+    "ctestElapsedSeconds": 7.28,
+    "nativeDllSha256": "928F59FBB347075791B3385007897809A0B9FB6A3EF4E917C6E1DC32F22D8B93",
+    "testSource": "Sparkplug/Tests/spGeometryHelperTests.cpp",
+    "actualSavedDependencyCases": 4,
+    "historicalExplicitStableFixtureCase": 1,
+    "fixtureContainsSorterImplementation": false
+  },
+  "nextTarget": "Explicit decision about versioned restored MSVCR71 dependency or approved common replacement; no default policy inferred",
+  "fingerprints": [
+    {
+      "path": "Sparkplug/Analysis/PC/GeometryHelper4604F0.h",
+      "bytes": 3033,
+      "sha256": "0B270F1B90A9924FEF23881A5DB073A3FBD99EBA24992B155036BE7708239BBB"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/GeometryHelper4604F0.cpp",
+      "bytes": 8607,
+      "sha256": "D74C3DA9BE8345CFF4BBB3F59293A85EA4877AB46FC425333CD03A10BDBD389A"
+    },
+    {
+      "path": "Sparkplug/Tests/spGeometryHelperTests.cpp",
+      "bytes": 8393,
+      "sha256": "8E26387A67B44A0C532646306EC95A572762ABA1B89C651A06B5AD87F82C1139"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "bytes": 40804,
+      "sha256": "9016925FC8C9F7AFABDF40EFE0E047FA74BE1A124E3BBD119052013D9BB58800"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "bytes": 2827,
+      "sha256": "141D557D0811378C5A11FB5F5A9C023618AE7CF1F872FE8D60F9C7B664AE124D"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "bytes": 5045,
+      "sha256": "FD0E1BBE80B2BB563DF516AEAA5679222BC5B9CE3B797E136C0741E24DD92365"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spIndexBuffer.h",
+      "bytes": 3522,
+      "sha256": "9AF850C1874E321AF8241C8432CB79DE63D0F88AA34A757223F2C7C2A4DFE4A6"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spIndexBuffer.cpp",
+      "bytes": 8032,
+      "sha256": "901AFDCBE92794B64DBFCFBE688FC81551173159A93E5A80B4A48CF045D91D63"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVertexBuffer.h",
+      "bytes": 4448,
+      "sha256": "3492880DF25EBC4DC74E68290F4242C71B31024718879264916B4EC7C850DEB5"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spVertexBuffer.cpp",
+      "bytes": 8410,
+      "sha256": "260BAF8E099160DD30055572C77B3729C436B7F616C38633BD23E83D24D8C5EF"
+    },
+    {
+      "path": "docs/research/tool-occlusion-geometry-helper-2026-09-10.md",
+      "bytes": 9898,
+      "sha256": "CD02ABA1B999F9DFAD3037F40B3172AF066AADEB91302F513E8669132344A730"
+    },
+    {
+      "path": "local-data/pc-pristine/WinxClub.exe",
+      "bytes": 22065152,
+      "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/probe_legacy_qsort_weld_run1.py",
+      "bytes": 8694,
+      "sha256": "AD171A6E7498E403070337311F4BCBB33306D3A769E5BA7A9EFFE0722E55A119"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/legacy-qsort-weld-run1.json",
+      "bytes": 11302,
+      "sha256": "088DCAB9B1FEF6BF7DB6B1830C22DA4980F0385DAEB47B61C72A4AAE0E240661"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/legacy-qsort-weld-run1.started.json",
+      "bytes": 381,
+      "sha256": "CFC51E1FF0626C3CE05351ABAF94DD7C670B82DD73D84F060771008E25EAF9D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/msvcr71-7.10.7031.4.dll",
+      "bytes": 344064,
+      "sha256": "DCA0E5FAF6C94B6ADFF4D90D40795D5A91BA3A3059EA408E992A0F039A494D46"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/msvcr71-qsort-static.json",
+      "bytes": 543,
+      "sha256": "3ACD6E1353306790C8D1A27B7B8702789E415F559CDB30118A71EA87D3F3568F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/msvcr71-qsort-cfg.txt",
+      "bytes": 11194,
+      "sha256": "FF50FF147758459C14F0582F1A28AFCA3865B6DA0D3553EA8720F8C09F209B94"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/msvcr71-shortsort-static.txt",
+      "bytes": 2347,
+      "sha256": "0451BDCC0C24CFC6065C7BE1B037701DAD2DCF870426B23644E4E7BAC016F41B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/comparator-resolved-prefix.bin",
+      "bytes": 544,
+      "sha256": "0D4E19A5F652C46B51B962D1F1B76C4F4670F00DF9747E1DCBB636CBE8843C2D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/compactor-resolved-prefix.bin",
+      "bytes": 1536,
+      "sha256": "2D1561E3935A723BA575A5B24D9DBB0C725ACF55E3026247A56CD11EFB39E095"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/comparator-cfg.txt",
+      "bytes": 4916,
+      "sha256": "9C06FF53EB4F5206DCC4DD0F2A1C03817FE7DD43518578432F7914E90FAC2E51"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/compactor-cfg.txt",
+      "bytes": 3963,
+      "sha256": "C3A70B0DFBC02F0AD8DF0AFA2867F3DCB99E0FD85AED54FF0EA27EF5BEC64922"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/capture_owner_static.py",
+      "bytes": 3253,
+      "sha256": "A2488E8CA0BC934F1DEE7EC2E01EA8B51C31CB4343C3F3B858A7370F589F157C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/owner-caller-static.json",
+      "bytes": 2090,
+      "sha256": "D49D34DB9F2028DF57D230D6F72E0620C2E07F2CE3641B52F2D4FF8989C74BB5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/owner-caller-static.txt",
+      "bytes": 5593,
+      "sha256": "065ED774827F857E999B35BFAC6789B9DB9956CB98517A2B342E144972DD8BF6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/u16-caller-and-dispatch.bin",
+      "bytes": 360,
+      "sha256": "B6BADAA1370A8DBC66E8D2EB7ABFD7F787D07E49B3FF1312042F9B68A551D85F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/external-vb-initializer.bin",
+      "bytes": 80,
+      "sha256": "EE13ACBA56FBED4989B4EBC61D36020D0F5706B17BEF2BD60C570D70B9A206D1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/shared-geometry-native-build.log",
+      "bytes": 2660,
+      "sha256": "B4968628A5D7536A0D6685744A5EFE8569F6C667F61E58537D91BA48116AB111"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/shared-geometry-ctest.log",
+      "bytes": 2469,
+      "sha256": "98D0092ABD9299236174C5662D65A8DF6057E80906872542244EFA1C1E134FBC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-optimizer/shared-geometry-SparkplugViewerNative.dll",
+      "bytes": 1159168,
+      "sha256": "928F59FBB347075791B3385007897809A0B9FB6A3EF4E917C6E1DC32F22D8B93"
+    }
+  ]
+}

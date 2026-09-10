@@ -1,5 +1,10 @@
 # Семейство `spRenderer`
 
+Актуализация 10 сентября: [PC protected constructor/default material](tool-pc-renderer-default-material-2026-09-10.md)
+выполнен до возврата. Producer перенесён в `spRenderer` и проверен в общем
+Submit; это закрывает происхождение C9C0, но не весь device startup, renderer
+teardown или современный multipass backend. Ниже — прежний срез 5 сентября.
+
 Дата проверки: 5 сентября 2026 года. Статус: identity, наследование, точные
 границы объектов, lifecycle кэшей и платформенный интерфейс подтверждены для
 PC/PS2; model-to-mesh submission доказан, имена и сигнатуры остальных
