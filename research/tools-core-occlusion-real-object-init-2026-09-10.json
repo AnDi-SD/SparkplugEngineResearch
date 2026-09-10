@@ -1,0 +1,166 @@
+{
+  "kind": "tools-core-occlusion-real-object-init",
+  "date": "2026-09-10",
+  "status": "original-single-object-reader-and-init-verified",
+  "original_object": {
+    "resource_id": 8,
+    "physical_index": 7,
+    "object_offset": 189978,
+    "object_bytes": 138,
+    "section_bytes": 130
+  },
+  "limits": {
+    "profile": "character",
+    "instructions_per_call": 4000000,
+    "microseconds_per_call": 16000000,
+    "process_seconds": 30,
+    "workers": 1,
+    "arena_bytes": 65536
+  },
+  "cases": [
+    {
+      "operation": "shape",
+      "report": "local-data\\results\\tools-core-cycle-20260910-0730\\occlusion-init-next\\race02-shape-character-run1.json",
+      "instructions": 3958778,
+      "seconds": 9.883078900005785,
+      "al": 1,
+      "cursor": null,
+      "input_bytes": null,
+      "faces": 2,
+      "edges": 8,
+      "initialized": 0,
+      "arena_used": 53888,
+      "all_tracked_allocations_freed": true
+    },
+    {
+      "operation": "init",
+      "report": "local-data\\results\\tools-core-cycle-20260910-0730\\occlusion-init-next\\race02-init-character-run1.json",
+      "instructions": 3971161,
+      "seconds": 10.098744299990358,
+      "al": 1,
+      "cursor": null,
+      "input_bytes": null,
+      "faces": 2,
+      "edges": 8,
+      "initialized": 1,
+      "arena_used": 54160,
+      "all_tracked_allocations_freed": true
+    },
+    {
+      "operation": "reader",
+      "report": "local-data\\results\\tools-core-cycle-20260910-0730\\occlusion-init-next\\race02-reader-character-run1.json",
+      "instructions": 3985573,
+      "seconds": 10.765329600006226,
+      "al": 1,
+      "cursor": 130,
+      "input_bytes": 130,
+      "faces": 2,
+      "edges": 8,
+      "initialized": 1,
+      "arena_used": 54256,
+      "all_tracked_allocations_freed": true
+    }
+  ],
+  "scope": {
+    "original_instructions": true,
+    "fresh_guests": 3,
+    "engine_function_replacement": false,
+    "crt_sort_fixture": "Existing bounded insertion-sort with original comparator; no equal vertex records on this sample",
+    "whole_file_loaded": false,
+    "full_runtime_port_completed": false,
+    "reinit_verified": false,
+    "gpu": false
+  },
+  "fingerprints": [
+    {
+      "path": "docs/research/tool-occlusion-real-object-init-2026-09-10.md",
+      "bytes": 4653,
+      "sha256": "E628FEF043475688C94D535127A585065F40DDAF9D480C87BD8BE8D16F07E298"
+    },
+    {
+      "path": "local-data/pc-pristine/WinxClub.exe",
+      "bytes": 22065152,
+      "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Levels/Challenges/race_02.smo",
+      "bytes": 3329842,
+      "sha256": "AD39C13B896718755CC98445D943FA191640636F940930086CB802629E268436"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-shape-character-run1.json",
+      "bytes": 84475,
+      "sha256": "5C905A0E1ABF1F96C0CA0E2D116072259CFD8E2851CCC91D66A888B714D82961"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_shape_character_run1.py",
+      "bytes": 17578,
+      "sha256": "A47A475CD5235B3A1ECD60012176D664131C00B559E58F1E979E45A285F73215"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-shape-character-run1-decoded-producer.bin",
+      "bytes": 1123,
+      "sha256": "E2B9EE0751BD98FA4E63720B471AD9598860D171DAB896B3B0262CB1B56E73B7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-init-character-run1.json",
+      "bytes": 101604,
+      "sha256": "0AAF6FBDA1AAE088812E1F5F9E29B5416939A566040CC6145E45A20A478BB672"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_init_character_run1.py",
+      "bytes": 18805,
+      "sha256": "34146EB7854ACA860382D5E65286C93EE6B1D99EE4A9112A4C70B65B5A7B4D60"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-init-character-run1-decoded-producer.bin",
+      "bytes": 1123,
+      "sha256": "E2B9EE0751BD98FA4E63720B471AD9598860D171DAB896B3B0262CB1B56E73B7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-reader-character-run1.json",
+      "bytes": 103023,
+      "sha256": "7C9BDE0026F1316F571B5D5FC58AC8B84ED1658962C69556DA44962E15729667"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_reader_character_run1.py",
+      "bytes": 19643,
+      "sha256": "F6401DC04DBADCCAF9165CBE82872A1C33D1B1BF8A7A983D92B1810F676341A2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-reader-character-run1-decoded-producer.bin",
+      "bytes": 1123,
+      "sha256": "E2B9EE0751BD98FA4E63720B471AD9598860D171DAB896B3B0262CB1B56E73B7"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 14033,
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029"
+    },
+    {
+      "path": "research/pc_serializer_fixtures.py",
+      "bytes": 1373,
+      "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+    },
+    {
+      "path": "research/pc_loader_fixtures.py",
+      "bytes": 3945,
+      "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+    },
+    {
+      "path": "research/probe_pc_san_reader.py",
+      "bytes": 8643,
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+    },
+    {
+      "path": "research/probe_pc_navigation_readers.py",
+      "bytes": 6247,
+      "sha256": "11ADFCA427448B4EE095BA568534F27A41C5F91DB11D48BEF6C775BCD139779C"
+    },
+    {
+      "path": "research/pc_qsort_u16_fixture.py",
+      "bytes": 2714,
+      "sha256": "4D313D7A5EA9C879CDCE621D1A96AD27568E616EF5230312E0DA8A681049F8F7"
+    }
+  ]
+}

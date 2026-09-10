@@ -1,4 +1,5 @@
 #include "Code/Sparkplug/spMaterialColorController.h"
+#include "Code/Sparkplug/spAnimationManager.h"
 #include "Code/Sparkplug/spMatColorControllerSerializer.h"
 #include "Code/Sparkplug/spMaterialData.h"
 #include "Code/Sparkplug/spMaterialDataSerializer.h"
@@ -139,9 +140,41 @@ namespace
         states<<']';spMemoryStream destination;Open(destination);Check(codec.WritePayloadForAnalysis(destination,controller,&error),error.c_str());std::uint32_t size=0;Check(destination.GetSize(&size),"corpus write size");const auto* p=static_cast<const std::uint8_t*>(destination.GetBuffer());Bytes output(p,p+size);Check(output==input,"exact real payload roundtrip");
         return "[\"corpus\",\""+Hex(input)+"\","+states.str()+",\""+Hex(output)+"\"]";
     }
+    void FactoryDefaults()
+    {
+        // Actual 41A580 -> 437550, run2: 480B, four embedded ColorFunc and five
+        // FunctionEval objects. 437610(flag1) destroys/unlinks and frees once.
+        spAnimationManager animations;
+        (void)spMaterialColorController::StaticRTTI();
+        auto owner=spRTTIManager::Instance().Create(spMaterialColorController::ClassID);
+        auto* controller=dynamic_cast<spMaterialColorController*>(owner.get());
+        Check(controller&&controller->vfunc_18().classID==spMaterialColorController::ClassID,"actual PC material color factory creates the registered class");
+        Check(animations.GetControllerCountForAnalysis()==1,"factory registers one controller; embedded leaves do not register");
+        Check(controller->IsEnabledForAnalysis()&&controller->GetAccumulatedTimeForAnalysis()==0&&controller->GetAppliedTimeForAnalysis()==0,"actual base enabled and render clocks default");
+        const spMaterial::ColorRGBA black{0,0,0,1};
+        Check(!controller->GetMaterialForAnalysis()&&controller->GetSavedColorsForAnalysis()==spMaterialColorController::Colors{black,black,black,black},"actual null material and four saved opaque black colors");
+        const auto functionDefaults=[](const spFunctionEval& value)
+        {
+            const auto& s=value.GetStateForAnalysis();
+            return s.time==0&&s.frequency==1&&s.reciprocal==1&&s.amplitude==1&&s.xOffset==0&&s.yOffset==0
+                &&s.pitch==0&&s.clampLimit==0&&!s.clampEnabled&&s.functionType==0;
+        };
+        bool colorsMatch=true;
+        for(const auto& color:controller->GetColorsForAnalysis())
+            colorsMatch=colorsMatch&&color.GetColor1ForAnalysis()==0xFF000000&&color.GetColor2ForAnalysis()==0xFF000000&&functionDefaults(color.GetFunctionForAnalysis());
+        Check(colorsMatch&&functionDefaults(controller->GetAlphaForAnalysis()),"actual embedded PC endpoints and all five evaluator defaults");
+        // Original absence of field0 leaves the actual constructor defaults;
+        // the shared codec must now accept an object made by the RTTI factory.
+        spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        spMemoryStream stream;Open(stream,Bytes{0});spMatColorControllerSerializer codec;std::string error;
+        Check(codec.ReadPayloadForAnalysis(context,stream,1,*controller,&error),error.c_str());
+        Check(controller->GetSavedColorsForAnalysis()==spMaterialColorController::Colors{black,black,black,black}
+            &&functionDefaults(controller->GetAlphaForAnalysis()),"empty original section preserves constructor state");
+        Check(!controller->Clone(),"factory support does not invent the separate clone operation");
+        owner.reset();Check(animations.GetControllerCountForAnalysis()==0,"factory owner destruction unregisters exactly its controller");
+    }
     void Guards()
     {
-        (void)spMaterialColorController::StaticRTTI();Check(!spRTTIManager::Instance().Create(spMaterialColorController::ClassID),"unproven controller factory not replaced with host default construction");
         spMaterialColorController controller;Check(!controller.UpdateForRenderForAnalysis(),"unbound update rejected without dereference");
         spMaterialData material;controller.BindMaterialForAnalysis(&material);controller.ApplyForAnalysis(std::numeric_limits<float>::infinity());Check(!controller.UpdateForRenderForAnalysis(),"nonfinite render clock rejected");
         for(const Bytes bytes:{Bytes{0xa0,1,0,0},Bytes{0xa0,5,0,0,0,0,0,0,0},Bytes{0xa0,5,0,0,0,0},Bytes{0xa0,6,0,0,0,0,0,0,0}})
@@ -164,7 +197,7 @@ int main(int argc,char** argv)
         for(const auto* mode:{"none","constant","linear","random","shared"})(void)Frame(mode);
         for(const auto* mode:{"prebound","repeat","null-after","shared"})(void)Links(mode);
         (void)Corpus("e02800000063cdcccc3d0063cdcccc3d0063cdcccc3d0063cdcccc3d0061cdcccc3d6200000000640000803f0000");
-        Guards();std::cout<<"PASS "<<checks<<'/'<<checks<<": declared PC material color consumers/common codec\n";return 0;
+        FactoryDefaults();Guards();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC material color factory/consumers/common codec\n";return 0;
     }
     catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}
 }

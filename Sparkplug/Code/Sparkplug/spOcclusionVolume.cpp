@@ -1,4 +1,5 @@
 #include "spOcclusionVolume.h"
+#include "spZonePortal.h"
 #include "../../Analysis/PC/spNodeTransformMath.h"
 #include <cmath>
 
@@ -35,6 +36,7 @@ bool spOcclusionVolume::SetPreparedTopologyForAnalysis(std::vector<Vector3> poin
     for(const auto& edge:edges)if(edge.start>=points.size()||edge.end>=points.size()||
         edge.own>=planes.size()||(edge.opposite&&*edge.opposite>=planes.size()))return false;
     edges_.clear();points_=std::move(points);faces_.clear();faces_.reserve(planes.size());
+    triangleIndices_.clear();borderPoints_.clear();shapeBuffersPrepared_=false;walkStamp_=0;
     for(const auto& plane:planes){FaceForAnalysis face;face.plane=plane;faces_.push_back(face);}
     for(const auto& input:edges)
     {
@@ -44,6 +46,95 @@ bool spOcclusionVolume::SetPreparedTopologyForAnalysis(std::vector<Vector3> poin
         edges_.push_back(std::move(edge));
     }
     borderCount_=borderCount;planar_=priorPlanar;return true;
+}
+bool spOcclusionVolume::SetShapeBuffersForAnalysis(std::vector<Vector3> points,
+    std::vector<std::uint16_t> triangleIndices,std::uint32_t walkStamp)
+{
+    if(points.size()>4096||triangleIndices.size()>3072||triangleIndices.size()%3)return false;
+    for(const auto& point:points)for(float value:point)if(!std::isfinite(value))return false;
+    for(auto index:triangleIndices)if(index>=points.size())return false;
+    // PC13D0486 reserves triangleCount faces. fresh-init-batch-run1 exposes
+    // stale original face pointers when a single triangle grows its reverse
+    // side; the driver guard below excludes that case instead of repairing it.
+    std::vector<FaceForAnalysis> faces;faces.reserve(triangleIndices.size()/3);
+    edges_.clear();faces_=std::move(faces);points_=std::move(points);
+    triangleIndices_=std::move(triangleIndices);borderPoints_.clear();
+    borderCount_=0;planar_=0;walkStamp_=walkStamp;shapeBuffersPrepared_=true;return true;
+}
+spOcclusionVolume::FaceForAnalysis* spOcclusionVolume::FindOrCreateFaceForAnalysis(
+    const Vector3* first,const Vector3* second,const Vector3* third)
+{
+    // PC4708F1 invokes471420; use its existing shared finite-input slice.
+    const auto plane=spZonePortal::PlaneFromFirstThreeForAnalysis(*first,*second,*third);
+    for(auto& face:faces_)if(EqualComponents<4>(face.plane.data(),plane.data()))return &face;
+    // PC47099D..470A30: append plane and the original three pointers. A match
+    // retains the first face's pointers. No camera-side initialization occurs.
+    FaceForAnalysis face;face.plane=plane;face.positions={first,second,third};
+    faces_.push_back(face);return &faces_.back();
+}
+bool spOcclusionVolume::BuildFacesAndEdgesForAnalysis()
+{
+    if(!shapeBuffersPrepared_||edges_.size()>MaxShapeEdgesForAnalysis-triangleIndices_.size())return false;
+    // PC13B4FA8..500B walks UInt16 triples in wire order, using world-VB
+    // position offset/stride. Prepared points are those actual XYZ records.
+    // Protected856CF0 jointly changes EAX and a stack pointer; the observed
+    // resulting cursor is IBdata+4, then +6 per triangle (13B5345).
+    for(std::size_t i=0;i<triangleIndices_.size();i+=3)
+    {
+        const Vector3* vertices[3]={&points_[triangleIndices_[i]],
+            &points_[triangleIndices_[i+1]],&points_[triangleIndices_[i+2]]};
+        auto* face=FindOrCreateFaceForAnalysis(vertices[0],vertices[1],vertices[2]);
+        // PC13B501C..512C allocates all three edges, then appends them in
+        // order. Unwritten edge+10/padding are not exposed as initialized data.
+        std::array<std::unique_ptr<EdgeForAnalysis>,3> triangle;
+        for(std::size_t k=0;k<3;++k)
+        {
+            triangle[k]=std::make_unique<EdgeForAnalysis>();auto& edge=*triangle[k];
+            edge.start=vertices[k];edge.end=vertices[(k+1)%3];edge.own=face;
+            edge.walkStamp=walkStamp_;edge.border=1;
+        }
+        for(auto& edge:triangle)edges_.push_back(std::move(edge));
+    }
+    borderCount_=static_cast<std::uint32_t>(edges_.size()); //13B5394
+    return true; //13B539E; no geometric rejection inside this producer
+}
+bool spOcclusionVolume::BuildShapeForAnalysis()
+{
+    // Host unsupported boundary: fresh-init-batch-run1 positive-u32 returned
+    // AL1, but its first three edge.own pointers no longer belonged to the
+    // current face vector after reverse-side growth. Do not silently fix the
+    // original by reserving extra faces. Zero triangles also has an unchecked
+    // first-edge access. These refusals are not original game return values.
+    if(!shapeBuffersPrepared_||triangleIndices_.size()<6||
+        edges_.size()+triangleIndices_.size()>MaxShapeEdgesForAnalysis/2)return false;
+    // PC13D047C..04C7 reserves faces/edges; face storage was reserved before
+    // binding host pointers. Reserve does not clear logical topology.
+    edges_.reserve(edges_.size()+triangleIndices_.size());
+    if(!BuildFacesAndEdgesForAnalysis()||!MergeCollinearEdgesForAnalysis()||
+        !LinkOppositeEdgesForAnalysis()||!RemoveCoplanarEdgesForAnalysis()||
+        !CheckPlanarityForAnalysis())return false;
+    if(edges_.empty())return false; // host guard for original13D0573 dereference
+    if(!ConnectOutgoingEdgesForAnalysis(*edges_.front()))return false;
+    borderPoints_.reserve(edges_.size()); //13D05A5..05DA,46ECE0; remains empty
+    if(planar_)
+    {
+        const auto count=edges_.size();edges_.reserve(count*2);
+        // PC13D062C..06DC iterates the original range backwards. Use the own
+        // face's retained three pointers in reverse order, not current endpoints
+        // and not a negated cached plane (the roundings can differ).
+        for(std::size_t i=count;i>0;--i)
+        {
+            const auto& source=*edges_[i-1];auto edge=std::make_unique<EdgeForAnalysis>();
+            edge->start=source.end;edge->end=source.start;
+            const auto positions=source.own->positions;
+            edge->own=FindOrCreateFaceForAnalysis(positions[2],positions[1],positions[0]);
+            edge->walkStamp=walkStamp_;edge->border=1;edges_.push_back(std::move(edge));
+        }
+        // PC13D06E3..070D deliberately ignores the second call's AL. Existing
+        // outgoing lists are retained; borderCount is not doubled afterwards.
+        (void)ConnectOutgoingEdgesForAnalysis(*edges_[count]);
+    }
+    return true;
 }
 bool spOcclusionVolume::IsEdgeConvexForAnalysis(const EdgeForAnalysis& edge) const noexcept
 {

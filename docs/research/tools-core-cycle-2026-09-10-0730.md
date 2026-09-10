@@ -231,7 +231,48 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     Actual CPU readers приняли24/60 bytes; shape дошёл до face producer
     470B20→13B4F40→A0D3E0, затем cap до первой face. Full Init не реализован.
 
+25. [Диагностическая ссылка Importer](tool-placement-diagnostic-reference-2026-09-10.md)
+    тоже использует общий prefix reader; удалены два ручных UInt32 reads.
+    Это только сообщение об ошибке clone verification. Release Core build
+    прошёл за18,57с,0 warnings/errors; новый whole-clone acceptance не заявлен.
+26. [Защищённая подготовка PC](tool-pc-protected-preparation-2026-09-10.md)
+    оказалась конечной: установлены lookup record и стоимость byte-decryption.
+    Более короткий Occlusion producer уложился в существующие4M/16s, без
+    повышения стандартных лимитов и подмены original instructions.
+27. [Original Occlusion одного реального объекта](tool-occlusion-real-object-init-2026-09-10.md):
+    shape, полный Init и serializer прошли отдельными fresh probes за9,88–10,77с.
+    Reader обработал130/130 байт, сам вызвал Init и удалил временные buffers;
+    все tracked allocations трёх проб освобождены. Это не whole-file loading.
+28. [Общий face producer и shape driver](tool-occlusion-shape-shared-core-2026-09-10.md)
+    перенесены в spOcclusionVolume с существующим общим plane helper.
+    Exact plane bits, порядок и связи совпали;149 адресных checks прошли.
+    Runtime Init/serializer ещё не перенесены: отсутствует geometry optimizer,
+    single-triangle full shape и re-init имеют отдельные ограничения.
+29. [Пакет fresh objects](tool-occlusion-reinit-and-batch-2026-09-10.md) подтвердил
+    экономию повторной подготовки: одинаковый Init10,0346→0,0490с,
+    известный результат одинаковый. Правило bounded cold/warm comparison
+    и сохранения capture до teardown добавлено в манифест.
+    Original UInt32→UInt16 low16 и zero-origin bounds подтверждены отдельно.
+30. [MaterialColorController](tool-pc-material-color-factory-2026-09-10.md):
+    original factory/deleting wrapper подтверждены; включена общая resource
+    factory, исправлены четыре saved-alpha0→1 по actual PC writes.
+    Native235 checks, MaterialSerialization653 и FullLoader213 прошли.
+    Реальный lightbeam_projectile.smo теперь загружается:11 объектов/6 nodes,
+    Material5 действительно связан с controller6; old DLL отказывала.
+
 ## Новые границы и исправления
+
+- Прямой повторный Occlusion Init вернулfalse и оставил старые topology entries;
+  subsequent cleanup поймал повторный free. Отдельные fresh objects проходят.
+  Для single-triangle fresh Init игра возвращаетtrue, но после reverse face
+  старые edge.own выходят за текущий faces vector. Эти пути не выдаются за
+  поддержанный общий runtime; безопасная подмена allocator capacity не добавлена.
+- Новый Occlusion test сначала использовал C++20 bit_cast в C++17 project;
+  исправлен на memcpy. Четыре финальных native suites прошли за5,37с.
+- Первый MaterialColor destructor probe передал flags аргумент non-deleting
+  body4372E0. Это ошибка ABI стенда; свежая проба actual deleting wrapper437610
+  прошла, объект освобождён один раз. Два внешних prerequisite allocations
+  не выдаются за освобождённые самим контроллером.
 
 - Первый GPU negative test завис из-за непойманного exception нового harness;
   остановлен только собственный процесс. Top-level catch исправлен, повтор

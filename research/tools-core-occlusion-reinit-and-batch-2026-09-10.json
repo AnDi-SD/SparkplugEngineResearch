@@ -1,0 +1,93 @@
+{
+  "kind": "tools-core-occlusion-reinit-and-batch",
+  "date": "2026-09-10",
+  "status": "fresh-object-batch-verified-reinit-and-single-triangle-runtime-open",
+  "comparison": {
+    "same_input_index_wire": true,
+    "same_known_output": true,
+    "excluded": [
+      "allocation addresses",
+      "unwritten camera_side_raw"
+    ],
+    "cold_seconds": 10.034563699999126,
+    "warm_seconds": 0.04902580000634771,
+    "observed_ratio": 204.6792443713286,
+    "all_three_init_returned_one": true,
+    "all_tracked_allocations_freed": true,
+    "final_arena_used": 57808,
+    "scope_note": "Original capture scope describes first case only; warm_cases contains the additional two fresh objects. The same guest is reused only after normal returns; no object is reinitialized."
+  },
+  "boundaries": {
+    "direct_reinit": "AL0, stale logical topology; strict fixture catches repeated free on teardown",
+    "reinit_original_game_caller_preconditions": "unresolved",
+    "single_triangle_fresh": "AL1, old edges own pointer not in current faces vector after reverse-face append",
+    "shared_full_init_implemented": false
+  },
+  "fingerprints": [
+    {
+      "path": "docs/research/tool-occlusion-reinit-and-batch-2026-09-10.md",
+      "bytes": 6104,
+      "sha256": "2405FEC6AD11CE6439C9DBF68D1722B89579908B980A3B987721053956EA6075"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "bytes": 32476,
+      "sha256": "2CD0A85E478EDECFC0E556BE0860A40C30C2852870AA4FEE977AAD91A514C988"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/fresh-init-batch-comparison.json",
+      "bytes": 589,
+      "sha256": "2CEBF31AABBFAFD908E1A66B0B3A673DA90C4A7123520AD4E88F26EE52722148"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_reinit_character_run1.py",
+      "bytes": 21329,
+      "sha256": "6CD28AE9CE16EFE22CD8F231DA4913ECFBC1843B52741FDBC69625804EC87458"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_reinit_character_run2.py",
+      "bytes": 22739,
+      "sha256": "2B9B267AC7B5460038CA1095D5E8D7930AA043F4FA836241AB62A6360F9B828E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-reinit-character-run1.log",
+      "bytes": 6188,
+      "sha256": "019FA1D9A159E01B8234AD7327F6AC4DC51C45609CD22CAAA94EB8FBA0732D85"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-reinit-character-run2.json",
+      "bytes": 111596,
+      "sha256": "7D7A248B148176E5A4EC127764AB5B9FFD819BC69B64604CE534F31CE7CD5638"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-reinit-character-run2.before-cleanup.json",
+      "bytes": 108690,
+      "sha256": "7644FDF046EB84BE8BD540CDBD773CA6270334A671145BBA4CF5EB39BD265846"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_fresh_init_batch_run1.py",
+      "bytes": 21520,
+      "sha256": "75998A5FD10024132D3144F1B8B125F880FA71AD384A8280A409CCD48EC9DD9D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/fresh-init-batch-run1.json",
+      "bytes": 127367,
+      "sha256": "8A897A9A16E5CDBEFEE89A871D2AC60750C5DDA65B97C462BF3105BBDCB1EA00"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/fresh-init-batch-run1.before-cleanup.json",
+      "bytes": 111826,
+      "sha256": "9D5B5323BAFC30D39F8EC41F3A76D7497AD5391EB5C52CD3BE3D977D5976EE04"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 14033,
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029"
+    },
+    {
+      "path": "research/pc_qsort_u16_fixture.py",
+      "bytes": 2714,
+      "sha256": "4D313D7A5EA9C879CDCE621D1A96AD27568E616EF5230312E0DA8A681049F8F7"
+    }
+  ]
+}

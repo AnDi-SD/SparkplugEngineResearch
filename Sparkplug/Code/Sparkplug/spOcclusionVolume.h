@@ -1,7 +1,7 @@
 #pragma once
 
 // Original TU is proven by PC 006E8D14. This is the shared, partial class:
-// readable geometry methods, not the still unresolved full Init/reader.
+// geometry producer/driver and leaves, not the full runtime Init/reader.
 #include "spNode.h"
 #include <optional>
 
@@ -16,7 +16,10 @@ public:
     {
         PlaneForAnalysis plane{};
         std::array<const Vector3*,3> positions{};
+        // PC4708C0 copies an unwritten stack word at face+1C. Zero is host
+        // storage only until an actual camera classification supplies a value.
         std::uint32_t cameraSide=0;
+        bool cameraSideKnown=false;
     };
     struct EdgeForAnalysis
     {
@@ -43,6 +46,18 @@ public:
         const std::vector<PlaneForAnalysis>& planes,
         const std::vector<PreparedEdgeForAnalysis>& edges,
         std::uint32_t borderCount,std::uint8_t priorPlanar);
+    // Host preparation: finite world-VB positions and UInt16 triangle indices,
+    // at most4096 points/1024 triangles. Valid input replaces analysis state;
+    // invalid input preserves it. No buffer reading, welding or game Init.
+    bool SetShapeBuffersForAnalysis(std::vector<Vector3> points,
+        std::vector<std::uint16_t> triangleIndices,std::uint32_t walkStamp=0);
+    // PC470B20/13B4F40 and470E30/13D0460, respectively. Require the explicit
+    // preparation above. Mutations before a game failure remain observable.
+    // Full shape requires >=2 triangles: the host excludes the original
+    // single-triangle reverse-side stale-pointer case (fresh-init-batch-run1).
+    // The standalone triangle producer remains available for one triangle.
+    bool BuildFacesAndEdgesForAnalysis();
+    bool BuildShapeForAnalysis();
     [[nodiscard]] bool IsEdgeConvexForAnalysis(const EdgeForAnalysis&) const noexcept;
     bool MergeCollinearEdgesForAnalysis();
     bool LinkOppositeEdgesForAnalysis();
@@ -55,9 +70,15 @@ public:
     [[nodiscard]] auto GetBorderCountForAnalysis() const noexcept{return borderCount_;}
     [[nodiscard]] auto GetPlanarByteForAnalysis() const noexcept{return planar_;}
 private:
+    FaceForAnalysis* FindOrCreateFaceForAnalysis(const Vector3*,const Vector3*,const Vector3*);
+    static constexpr std::size_t MaxShapeEdgesForAnalysis=6144;
     std::vector<Vector3> points_;
+    std::vector<std::uint16_t> triangleIndices_;
     std::vector<FaceForAnalysis> faces_;
     std::vector<std::unique_ptr<EdgeForAnalysis>> edges_;
+    std::vector<Vector3> borderPoints_; // PC+E8: driver reserves; no points added here
+    std::uint32_t walkStamp_=0;
+    bool shapeBuffersPrepared_=false;
     // Actual PC factory initializes D4/160/164 to0, preserving only padding.
     std::uint32_t borderCount_=0;
     std::uint8_t planar_=0;

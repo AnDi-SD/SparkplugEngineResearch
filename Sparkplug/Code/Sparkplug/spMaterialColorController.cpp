@@ -6,9 +6,11 @@ namespace sparkplug::reconstruction
 {
     const spRTTIRecord& spMaterialColorController::StaticRTTI() noexcept
     {
-        // No host resource factory until original factory/defaults are proven.
-        // Explicit declared objects can be passed to the shared payload codec.
-        static const spRTTIRecord record{ClassID,spRenderController::ClassID,"spMaterialColorController",&spRenderController::StaticRTTI(),nullptr,nullptr};
+        // Original 41A580 creates 480B; four ColorFunc and five FunctionEval
+        // subobjects reuse their confirmed constructors. See the PC factory
+        // and deleting-wrapper evidence from 10 September 2026.
+        static const spRTTIRecord record{ClassID,spRenderController::ClassID,"spMaterialColorController",&spRenderController::StaticRTTI(),
+            +[]()->std::unique_ptr<spBaseObject>{return std::make_unique<spMaterialColorController>();},nullptr};
         static const bool registered=spRTTIManager::Instance().RegisterDeferredForAnalysis(record);(void)registered;return record;
     }
     const spRTTIRecord& spMaterialColorController::vfunc_18() const noexcept{return StaticRTTI();}

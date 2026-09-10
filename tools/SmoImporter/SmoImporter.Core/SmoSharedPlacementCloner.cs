@@ -502,9 +502,10 @@ public static class SmoSharedPlacementCloner
                 ReadOnlySpan<byte> payload = serialized.Slice(
                     field.PayloadOffset,
                     checked((int)field.PayloadSize));
-                uint id = BinaryPrimitives.ReadUInt32LittleEndian(payload);
-                uint trailing = BinaryPrimitives.ReadUInt32LittleEndian(payload[4..]);
-                if (id != 0 && trailing == 0)
+                if (SmoNodeDecoder.TryDecodeRelationship(payload, out uint id,
+                        out uint inlineSize, out var encoding) &&
+                    encoding == SmoNodeRelationshipEncoding.SizedReference &&
+                    id != 0 && inlineSize == 0)
                     result.Add(id);
             }
             offset = checked((int)field.PayloadEnd);

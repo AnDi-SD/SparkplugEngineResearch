@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-10",
+  "status": "build-verified-adapter-only",
+  "report": "docs/research/tool-placement-diagnostic-reference-2026-09-10.md",
+  "baseline": {
+    "rootCommit": "294a57b4efbabbd72b55f6d81949842e89235c37",
+    "viewerCommit": "9da8313e2fee15dbcd2588b58bc0995d82432a0b"
+  },
+  "consumer": "SmoSharedPlacementCloner.ResolveReferenceIds: field0 diagnostic after failed CloneNodeModelPlacement verification",
+  "change": "Replace manual ID/size decode with existing SmoNodeDecoder.TryDecodeRelationship; no new helper",
+  "preserved": [
+    "field type selection",
+    "payload exactly 8 bytes",
+    "SizedReference encoding, nonzero ID, inline size 0",
+    "list order and duplicates",
+    "three physical inline ID byte guards",
+    "numeric ID writes",
+    "all authoring selection and physical byte boundaries"
+  ],
+  "sharedGameOrApiChanges": false,
+  "validation": {
+    "kind": "build-only",
+    "executor": "root",
+    "command": "dotnet build tools/SmoImporter/SmoImporter.Core/SmoImporter.Core.csproj -c Release --no-restore -p:SkipSparkplugNativeBuild=true -m:1 --nologo -v:q",
+    "status": "passed",
+    "seconds": 18.57,
+    "warnings": 0,
+    "errors": 0,
+    "log": "local-data/results/tools-core-cycle-20260910-0730/bone-slot-owner/placement-diagnostic-build.log",
+    "nativeRebuilt": false,
+    "nativeDllSha256": "F422A92E84008E837D402B6EB6B621B743D4E2F49BD0CC7E543B0EDAE2F95028",
+    "newRuntimeFiveCaseRun": false,
+    "text70ChecksRepeated": false,
+    "wholeCloneRun": false,
+    "diffCheck": "passed"
+  },
+  "existingContractEvidence": "docs/research/tool-reference-prefix-shared-core-2026-09-09.md",
+  "staticComparison": {
+    "execution": false,
+    "cases": [
+      {
+        "input": "[7,0]",
+        "ids": [
+          7
+        ]
+      },
+      {
+        "input": "[7,0] repeated",
+        "ids": [
+          7,
+          7
+        ]
+      },
+      {
+        "input": "[0,0]",
+        "ids": []
+      },
+      {
+        "input": "[7,1]",
+        "ids": []
+      },
+      {
+        "input": "[uint.MaxValue,0]",
+        "ids": [
+          4294967295
+        ]
+      }
+    ]
+  },
+  "fingerprintScope": "Seven selected direct source/API/log fingerprints; not an exhaustive build dependency key",
+  "fingerprints": [
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoSharedPlacementCloner.cs",
+      "sha256": "6A202D1B4918727112F17C7B62DBB2163A06A646BCB0F526FD949D2DE20A3CDB"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoNodeDecoder.cs",
+      "sha256": "3DE4423608A13A4012627399308CBA862FF1F4C51F3BEAF9A918801FC2A13137"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "sha256": "EE61860F164A998A6BF1E58311CB8634EDABAFB9B0F86B0EB59D0A3CEB39FDAD"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "72885A39214ED0014C7725D114BBB36C61BA3B3E8206BD24A5C37DAABEDE8388"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.h",
+      "sha256": "1144196354CBEAC20B41362FA90A2EC537A2EC89B7093B0899D049114D5E5E78"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSerializer.cpp",
+      "sha256": "161FD739E3E5AD7DF7B8D3AAFC1C0BFFB0B423ED4DAA2CA39DFAE115F9595461"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/bone-slot-owner/placement-diagnostic-build.log",
+      "sha256": "126CEC3CDEAEF82BD729F8B9DADD29D33A38AB461F3E22F6CAF5FD07870DE3FF"
+    }
+  ]
+}

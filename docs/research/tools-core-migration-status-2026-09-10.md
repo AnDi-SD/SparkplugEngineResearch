@@ -26,6 +26,12 @@ skin evaluator удалён.24 адресные GPU проверки и Core pro
 Неподтверждённая конверсия non-unit весов теперь явно отклоняется также
 в [FBX](tool-fbx-skin-weight-boundary-2026-09-10.md); обычный output сохранён.
 
+[MaterialColorController factory](tool-pc-material-color-factory-2026-09-10.md)
+теперь подтверждена PC и подключена к общему loader; реальный
+lightbeam_projectile.smo11objects загружается с binding Material5→controller6.
+Clone/copy этого контроллера не закрыты. [Occlusion producer/shape](tool-occlusion-shape-shared-core-2026-09-10.md)
+перенесены и проверены149 checks, но не заменяют ещё отсутствующий runtime Init.
+
 Таблица описывает операции ядер семи приложений. Общие native bridges не
 считаются отдельными приложениями; готовность UI и выпуск учитываются отдельно.
 
@@ -70,9 +76,12 @@ skin evaluator удалён.24 адресные GPU проверки и Core pro
   теперь читают общие `spIndexBuffer`/`spVertexBuffer`; ручные C# leaf readers
   удалены.68 адресных checks прошли. Прежний strict geometry profile является
   ограничением host inspection, а не доказанным Init игры.
-- **Runtime:** полный Occlusion Init, защищённый PC MaterialColor constructor,
-  looping particle initialization и повторная непустая NavigationGraph table
-  остаются прежними ограничениями. Исследовать их только для нужной операции;
+- **Runtime:** полный Occlusion Init, looping particle initialization и
+  повторная непустая NavigationGraph table остаются ограничениями.
+  Original Occlusion Init/reader одного объекта уже прошли; переносу мешают
+  отсутствующий geometry optimizer и [отдельные lifetime/triangle границы](tool-occlusion-reinit-and-batch-2026-09-10.md).
+  MaterialColor constructor больше не является blocker; clone/copy остаются
+  самостоятельными незавершёнными операциями. Исследовать остатки только для нужной операции;
   работа над material clock сама по себе эти контракты не закрывает.
 - **Отложено пользователем до LVLcreator:** cached 120/physical 84, редкие
   lossless headers и inverse-world при nonuniform parent. Эти решения не

@@ -1,0 +1,206 @@
+{
+  "kind": "tools-core-pc-protected-preparation",
+  "schema_version": 1,
+  "date": "2026-09-10",
+  "status": "selected-VM-preparation-proven; actual-Occlusion-shape-return; renderer-constructor-incomplete",
+  "pc_sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+  "bounded_profiles": [
+    {
+      "name": "micro",
+      "instructions": 100000,
+      "timeout_us": 2000000
+    },
+    {
+      "name": "file",
+      "instructions": 1000000,
+      "timeout_us": 8000000
+    },
+    {
+      "name": "character",
+      "instructions": 4000000,
+      "timeout_us": 16000000
+    }
+  ],
+  "process_timeout_seconds": 30,
+  "workers": 1,
+  "global_profiles_changed": false,
+  "resumed_guest": false,
+  "private_6M_profile_created": false,
+  "substituted_game_or_protection_function": false,
+  "loops": {
+    "dispatch_table": {
+      "pointer": "01790EE6",
+      "first_zero_word_index": 255,
+      "actual_exit_instruction": 350648
+    },
+    "record_lookup": {
+      "count_bound": 1774,
+      "maximum_records": 1775,
+      "stride": 52,
+      "comparison_offset": 48,
+      "xor_key": "D8396168",
+      "native_instructions_nonmatch": 1873,
+      "actual_constructor_match_index": 611,
+      "actual_constructor_match_instruction": 1504804
+    },
+    "byte_decryption": {
+      "operation": "in-place XOR byte decryption; not CRC",
+      "VM_start": "00B20019",
+      "VM_branch": "00B20069",
+      "nonfinal_native_instructions": 2668,
+      "final_native_instructions": 2676,
+      "constructor_length": 1190,
+      "constructor_predicted_exit_instruction": 4683530,
+      "observer": {
+        "native_address": "0088A34B",
+        "cursor": "00B20073",
+        "state": 223,
+        "source_slot": 22,
+        "completed_count_slot": 23,
+        "length_slot": 24
+      },
+      "length_encoding": [
+        "B1FFD1/state72/889B46: record pointer21 +=8.",
+        "B1FFD9/state247/88DD17: slot24=dword[slot21].",
+        "B1FFDD/state8/88A7E3: slot24^=slot26."
+      ]
+    }
+  },
+  "constructor_boundary": {
+    "entry": "004C5AB0",
+    "last_actual_instruction_limit": 4000000,
+    "last_ip": "0088D6D9",
+    "last_VM_cursor": "00B20059",
+    "last_byte_index": 933,
+    "fallback_word": "CCCCCCCC",
+    "renderer_writes": 0,
+    "material_constructor_004A9460_visits": 0,
+    "constructor_return_observed": false
+  },
+  "occlusion": {
+    "entry": "00470E30",
+    "source": "local-data/pc-pristine/Media/Levels/Challenges/race_02.smo",
+    "resource_id": 8,
+    "physical_object_index": 7,
+    "name": "oclusion_wall02",
+    "record_index": 304,
+    "protected_return": "013B4F45",
+    "decoded_source": "013B4F48",
+    "decoded_bytes": 1123,
+    "instruction_boundary_note": "Decoded range starts after unchanged FS-prefix64 at13B4F47; it is not a standalone complete instruction body. Include that separate prefix for CFG; captured BIN is unchanged.",
+    "decoded_sha256": "E2B9EE0751BD98FA4E63720B471AD9598860D171DAB896B3B0262CB1B56E73B7",
+    "predicted_byte_exit_instruction": 3929763,
+    "actual_byte_exit_instruction": 3932573,
+    "actual_additional_preparation_instructions": 2810,
+    "return_result": 1,
+    "return_instruction_count": 3958778,
+    "driver_seconds": 9.883078900005785,
+    "face_count": 2,
+    "edge_count": 8,
+    "initialized": 0,
+    "full_Init_executed": false
+  },
+  "limitations": [
+    "One selected Occlusion shape; no whole-file/corpus or full Init claim.",
+    "Renderer constructor and default material/pass/layer initialization remain unproven.",
+    "The full VM is outside this selected service-preparation scope.",
+    "Decoded body was captured after original execution; no decoded-body substitution is claimed."
+  ],
+  "fingerprints": [
+    {
+      "path": "docs/research/tool-pc-protected-preparation-2026-09-10.md",
+      "sha256": "705792B756267072C208ADF49F3364B15F44A37A475432714D3401ED8955D373",
+      "bytes": 6603
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029",
+      "bytes": 14033
+    },
+    {
+      "path": "local-data/pc-pristine/WinxClub.exe",
+      "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+      "bytes": 22065152
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Levels/Challenges/race_02.smo",
+      "sha256": "AD39C13B896718755CC98445D943FA191640636F940930086CB802629E268436",
+      "bytes": 3329842
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-stop-diagnostic.json",
+      "sha256": "8E8FF1749DE07E6264C0D01044562787C42BBAF1CD0DF24B1F765AC58A126AD4",
+      "bytes": 3278
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-progress.json",
+      "sha256": "36967C178F75FEC626D2EE5B4AF906AB5B2D1C19FF6D36BDAD52349429E61E75",
+      "bytes": 10683
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-sentinel.json",
+      "sha256": "C207AD760CD86A370134BCAAD0BFC9205D57B55CB58510DFF525E5F527AB6D10",
+      "bytes": 2266
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-comparisons.json",
+      "sha256": "33D9E84501BA77CB8C3E0CED69D4DF503DC58D18AF5614CD5393984166CD69C2",
+      "bytes": 58970
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-lookup-exit.json",
+      "sha256": "CE6C0B380A3FF858A56D0AC55B7493E069109AE249E9777B445E784157963BC0",
+      "bytes": 8427
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/constructor-byte-loop-static.json",
+      "sha256": "8FF4709EA630EB2007E0036E6BCC6B9BDB521C1092F70A753981639DAA37DE4F",
+      "bytes": 6362
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/diagnose_constructor_stop.py",
+      "sha256": "F3A6376E0D5610269BC0DB13EB5E60EB73D5F32A01D5825AD4E696A94BFF5922",
+      "bytes": 3787
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/observe_constructor_progress.py",
+      "sha256": "D85819F7F90B1A11086B0BC9233086473C84E4A991350E299CFA4B8268E5257C",
+      "bytes": 3876
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/snapshot_constructor_sentinel.py",
+      "sha256": "3BD7EFF36EF54C052B3FEDD13A0371A9C8D02C18F4B8243B16A32F4CD3DA6927",
+      "bytes": 6202
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/snapshot_constructor_comparisons.py",
+      "sha256": "112B3AA6D1F1D46B6071D7D684C97DF0F5FC6D5918A6EAC52D77B368F6ECFC46",
+      "bytes": 7742
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/observe_constructor_lookup_exit.py",
+      "sha256": "64B35409CF3038A993877ACF2B6936DCC66C1B9F6072EC0AFBF422DAFE11DF06",
+      "bytes": 8425
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/material-preview/fallback-material/inspect_constructor_byte_loop.py",
+      "sha256": "42B6457DA160962C2559F05B3E92CD2BA6E71D926496109851D9BE4919F89ABE",
+      "bytes": 7810
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_shape_character_run1.py",
+      "sha256": "A47A475CD5235B3A1ECD60012176D664131C00B559E58F1E979E45A285F73215",
+      "bytes": 17578
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-shape-character-run1.json",
+      "sha256": "5C905A0E1ABF1F96C0CA0E2D116072259CFD8E2851CCC91D66A888B714D82961",
+      "bytes": 84475
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-shape-character-run1-decoded-producer.bin",
+      "sha256": "E2B9EE0751BD98FA4E63720B471AD9598860D171DAB896B3B0262CB1B56E73B7",
+      "bytes": 1123
+    }
+  ]
+}
