@@ -1,0 +1,95 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-game-flow-state-2026-09-10T05:50:07Z",
+  "createdUtc": "2026-09-10T05:50:07Z",
+  "notes": "First paired GameFlowState behavioral block. New research, independent PC/PS2 evidence, no whole class/source/runtime closure. No tools edits.",
+  "assessments": [
+    {
+      "className": "wxGameFlowState",
+      "platformKey": "pc",
+      "coverageScore": 35,
+      "lowerBound": 20,
+      "upperBound": 50,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PC assessment: actual 3C construction, timer lifetime, conditional three-field setter,56-name global reset and fresh clone. Nine returned operations,4/4 owners freed. Full external input startup failed; successful object probe declares borrowed external storage and clock/clone-map seams.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-class-wx-game-flow-state-2026-09-10.md",
+          "sourceSha256": "AFB5D69706B7D5D9629B7372E8B6323C575D15847539C456FE1CB70F7B11C436",
+          "locator": "PC5D6DC0/5D6B20/5D67F0/5D6BC0/5D6850/5D6880/5D6E20",
+          "observation": "First PC assessment: actual 3C construction, timer lifetime, conditional three-field setter,56-name global reset and fresh clone. Nine returned operations,4/4 owners freed. Full external input startup failed; successful object probe declares borrowed external storage and clock/clone-map seams."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/game-flow-state-data-2026-09-10.json",
+          "sourceSha256": "A922627246970CB88F745586BF891C03809BA2551FD698E3D552CDED7EF171A5",
+          "locator": "PC5D6DC0/5D6B20/5D67F0/5D6BC0/5D6850/5D6880/5D6E20",
+          "observation": "First PC assessment: actual 3C construction, timer lifetime, conditional three-field setter,56-name global reset and fresh clone. Nine returned operations,4/4 owners freed. Full external input startup failed; successful object probe declares borrowed external storage and clock/clone-map seams."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow/original-run1.json",
+          "sourceSha256": "669386DEA166E3337B17522B00C7545BDF361E3E0D86BF19AB82821B7ACA96B3",
+          "locator": "PC5D6DC0/5D6B20/5D67F0/5D6BC0/5D6850/5D6880/5D6E20",
+          "observation": "First PC assessment: actual 3C construction, timer lifetime, conditional three-field setter,56-name global reset and fresh clone. Nine returned operations,4/4 owners freed. Full external input startup failed; successful object probe declares borrowed external storage and clock/clone-map seams."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow/original-run2.json",
+          "sourceSha256": "0C71BA22550FB66DB643B223AAF44AC21D6FE0FF8AF83C951805BD773BB430BA",
+          "locator": "PC5D6DC0/5D6B20/5D67F0/5D6BC0/5D6850/5D6880/5D6E20",
+          "observation": "First PC assessment: actual 3C construction, timer lifetime, conditional three-field setter,56-name global reset and fresh clone. Nine returned operations,4/4 owners freed. Full external input startup failed; successful object probe declares borrowed external storage and clock/clone-map seams."
+        }
+      ],
+      "unknowns": [
+        "Large active method PC5D6E70/PS233B910, helper/transitions, all code/flag consumers, STX resource loading and ownership, complete external input/global initialization and exceptional variants remain open. PS2 constructor/clone/timer/reset were not executed. Portable class runtime is not yet added."
+      ]
+    },
+    {
+      "className": "wxGameFlowState",
+      "platformKey": "ps2",
+      "coverageScore": 30,
+      "lowerBound": 15,
+      "upperBound": 45,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "First PS2 assessment: independent static 3C lifecycle, borrowed input/owned timer and positive signed16 deleting condition. Eleven original setter/getter/base-hook leaves pass. Static56-store provenance and all56 image STX names match PC; PS2 initial code globals differ.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-class-wx-game-flow-state-2026-09-10.md",
+          "sourceSha256": "AFB5D69706B7D5D9629B7372E8B6323C575D15847539C456FE1CB70F7B11C436",
+          "locator": "PS233C370/33C4B0/33C2E0/33C230/33C260/33C280..33C2D0/33B590",
+          "observation": "First PS2 assessment: independent static 3C lifecycle, borrowed input/owned timer and positive signed16 deleting condition. Eleven original setter/getter/base-hook leaves pass. Static56-store provenance and all56 image STX names match PC; PS2 initial code globals differ."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/game-flow-state-data-2026-09-10.json",
+          "sourceSha256": "A922627246970CB88F745586BF891C03809BA2551FD698E3D552CDED7EF171A5",
+          "locator": "PS233C370/33C4B0/33C2E0/33C230/33C260/33C280..33C2D0/33B590",
+          "observation": "First PS2 assessment: independent static 3C lifecycle, borrowed input/owned timer and positive signed16 deleting condition. Eleven original setter/getter/base-hook leaves pass. Static56-store provenance and all56 image STX names match PC; PS2 initial code globals differ."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow/ps2-leaves-run1.json",
+          "sourceSha256": "1D71A0C1EDD9EC293B41F994749D53D73334931B5F3200C58F550CCB0EC8D061",
+          "locator": "PS233C370/33C4B0/33C2E0/33C230/33C260/33C280..33C2D0/33B590",
+          "observation": "First PS2 assessment: independent static 3C lifecycle, borrowed input/owned timer and positive signed16 deleting condition. Eleven original setter/getter/base-hook leaves pass. Static56-store provenance and all56 image STX names match PC; PS2 initial code globals differ."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow/ps2-reset-provenance.json",
+          "sourceSha256": "B018192073F2A7D1AC2E500B7633DD4944D411E8BC46E9F2DCD4670D6C8B1D73",
+          "locator": "PS233C370/33C4B0/33C2E0/33C230/33C260/33C280..33C2D0/33B590",
+          "observation": "First PS2 assessment: independent static 3C lifecycle, borrowed input/owned timer and positive signed16 deleting condition. Eleven original setter/getter/base-hook leaves pass. Static56-store provenance and all56 image STX names match PC; PS2 initial code globals differ."
+        }
+      ],
+      "unknowns": [
+        "Large active method PC5D6E70/PS233B910, helper/transitions, all code/flag consumers, STX resource loading and ownership, complete external input/global initialization and exceptional variants remain open. PS2 constructor/clone/timer/reset were not executed. Portable class runtime is not yet added."
+      ]
+    }
+  ]
+}

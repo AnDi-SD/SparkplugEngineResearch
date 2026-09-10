@@ -1,0 +1,482 @@
+{
+  "kind": "paired-game-flow-reset-data",
+  "className": "wxGameFlowState",
+  "classHash": 290593530,
+  "scope": "Original PC executed source permutation and PS2 static provenance; strings read independently from both pristine images. Resource loading/use is not inferred.",
+  "inputSha256": {
+    "executableSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "ps2ExecutableSha256": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE",
+  "pcSourceBase": "00742DE4",
+  "pcDestinationBase": "00768110",
+  "ps2GlobalPointer": "004A4170",
+  "ps2DestinationBase": "004C40F0",
+  "fieldCodes": {
+    "pcConstructor": [
+      4294967295,
+      4294967295,
+      4294967295
+    ],
+    "ps2ImageWords": [
+      81920,
+      6400,
+      16384
+    ],
+    "ps2GlobalAddresses": [
+      "0049C64C",
+      "0049C650",
+      "0049C648"
+    ],
+    "note": "PS2 constructor reads current globals, not immutable hard-coded defaults"
+  },
+  "rows": [
+    {
+      "index": 0,
+      "name": "default.stx",
+      "pcSourceIndex": 0,
+      "pcPointer": "0070F17C",
+      "ps2Source": "0049D710",
+      "ps2Pointer": "00465FC8"
+    },
+    {
+      "index": 1,
+      "name": "alberto.stx",
+      "pcSourceIndex": 1,
+      "pcPointer": "0070F170",
+      "ps2Source": "0049D714",
+      "ps2Pointer": "00465FD8"
+    },
+    {
+      "index": 2,
+      "name": "group.stx",
+      "pcSourceIndex": 2,
+      "pcPointer": "0070F164",
+      "ps2Source": "0049D718",
+      "ps2Pointer": "00465FE8"
+    },
+    {
+      "index": 3,
+      "name": "amaryl.stx",
+      "pcSourceIndex": 3,
+      "pcPointer": "0070F158",
+      "ps2Source": "0049D71C",
+      "ps2Pointer": "00465FF8"
+    },
+    {
+      "index": 4,
+      "name": "bloom.stx",
+      "pcSourceIndex": 4,
+      "pcPointer": "0070F14C",
+      "ps2Source": "0049D720",
+      "ps2Pointer": "00466008"
+    },
+    {
+      "index": 5,
+      "name": "brandon.stx",
+      "pcSourceIndex": 5,
+      "pcPointer": "0070F140",
+      "ps2Source": "0049D724",
+      "ps2Pointer": "00466018"
+    },
+    {
+      "index": 6,
+      "name": "cecere.stx",
+      "pcSourceIndex": 6,
+      "pcPointer": "0070F134",
+      "ps2Source": "0049D728",
+      "ps2Pointer": "00466028"
+    },
+    {
+      "index": 7,
+      "name": "celise.stx",
+      "pcSourceIndex": 7,
+      "pcPointer": "0070F128",
+      "ps2Source": "0049D72C",
+      "ps2Pointer": "00466038"
+    },
+    {
+      "index": 8,
+      "name": "cersei.stx",
+      "pcSourceIndex": 8,
+      "pcPointer": "0070F11C",
+      "ps2Source": "0049D730",
+      "ps2Pointer": "00466048"
+    },
+    {
+      "index": 9,
+      "name": "clessia.stx",
+      "pcSourceIndex": 9,
+      "pcPointer": "0070F110",
+      "ps2Source": "0049D734",
+      "ps2Pointer": "00466058"
+    },
+    {
+      "index": 10,
+      "name": "daphne.stx",
+      "pcSourceIndex": 10,
+      "pcPointer": "0070F104",
+      "ps2Source": "0049D738",
+      "ps2Pointer": "00466068"
+    },
+    {
+      "index": 11,
+      "name": "darcy.stx",
+      "pcSourceIndex": 11,
+      "pcPointer": "0070F0F8",
+      "ps2Source": "0049D73C",
+      "ps2Pointer": "00466078"
+    },
+    {
+      "index": 12,
+      "name": "davos.stx",
+      "pcSourceIndex": 12,
+      "pcPointer": "0070F0EC",
+      "ps2Source": "0049D740",
+      "ps2Pointer": "00466088"
+    },
+    {
+      "index": 13,
+      "name": "diaspro.stx",
+      "pcSourceIndex": 13,
+      "pcPointer": "0070F0E0",
+      "ps2Source": "0049D744",
+      "ps2Pointer": "00466098"
+    },
+    {
+      "index": 14,
+      "name": "faragonda.stx",
+      "pcSourceIndex": 14,
+      "pcPointer": "0070F0D0",
+      "ps2Source": "0049D748",
+      "ps2Pointer": "004660A8"
+    },
+    {
+      "index": 15,
+      "name": "flora.stx",
+      "pcSourceIndex": 15,
+      "pcPointer": "0070F0C4",
+      "ps2Source": "0049D74C",
+      "ps2Pointer": "004660B8"
+    },
+    {
+      "index": 16,
+      "name": "default.stx",
+      "pcSourceIndex": 16,
+      "pcPointer": "0070F17C",
+      "ps2Source": "0049D750",
+      "ps2Pointer": "00465FC8"
+    },
+    {
+      "index": 17,
+      "name": "griselda.stx",
+      "pcSourceIndex": 17,
+      "pcPointer": "0070F0B4",
+      "ps2Source": "0049D754",
+      "ps2Pointer": "004660C8"
+    },
+    {
+      "index": 18,
+      "name": "guard.stx",
+      "pcSourceIndex": 18,
+      "pcPointer": "0070F0A8",
+      "ps2Source": "0049D758",
+      "ps2Pointer": "004660D8"
+    },
+    {
+      "index": 19,
+      "name": "guard.stx",
+      "pcSourceIndex": 19,
+      "pcPointer": "0070F0A8",
+      "ps2Source": "0049D75C",
+      "ps2Pointer": "004660D8"
+    },
+    {
+      "index": 20,
+      "name": "wizard.stx",
+      "pcSourceIndex": 20,
+      "pcPointer": "0070F09C",
+      "ps2Source": "0049D760",
+      "ps2Pointer": "004660E8"
+    },
+    {
+      "index": 21,
+      "name": "icy.stx",
+      "pcSourceIndex": 21,
+      "pcPointer": "0070F094",
+      "ps2Source": "0049D770",
+      "ps2Pointer": "0049D768"
+    },
+    {
+      "index": 22,
+      "name": "default.stx",
+      "pcSourceIndex": 22,
+      "pcPointer": "0070F17C",
+      "ps2Source": "0049D774",
+      "ps2Pointer": "00465FC8"
+    },
+    {
+      "index": 23,
+      "name": "kiloru.stx",
+      "pcSourceIndex": 23,
+      "pcPointer": "0070F088",
+      "ps2Source": "0049D778",
+      "ps2Pointer": "004660F8"
+    },
+    {
+      "index": 24,
+      "name": "knut.stx",
+      "pcSourceIndex": 24,
+      "pcPointer": "0070F07C",
+      "ps2Source": "0049D77C",
+      "ps2Pointer": "00466108"
+    },
+    {
+      "index": 25,
+      "name": "looma.stx",
+      "pcSourceIndex": 25,
+      "pcPointer": "0070F070",
+      "ps2Source": "0049D780",
+      "ps2Pointer": "00466118"
+    },
+    {
+      "index": 26,
+      "name": "lucy.stx",
+      "pcSourceIndex": 39,
+      "pcPointer": "0070EFCC",
+      "ps2Source": "0049D7CC",
+      "ps2Pointer": "004661D8"
+    },
+    {
+      "index": 27,
+      "name": "griff.stx",
+      "pcSourceIndex": 26,
+      "pcPointer": "0070F064",
+      "ps2Source": "0049D784",
+      "ps2Pointer": "00466128"
+    },
+    {
+      "index": 28,
+      "name": "markus.stx",
+      "pcSourceIndex": 27,
+      "pcPointer": "0070F058",
+      "ps2Source": "0049D788",
+      "ps2Pointer": "00466138"
+    },
+    {
+      "index": 29,
+      "name": "marissa.stx",
+      "pcSourceIndex": 28,
+      "pcPointer": "0070F04C",
+      "ps2Source": "0049D78C",
+      "ps2Pointer": "00466148"
+    },
+    {
+      "index": 30,
+      "name": "mia.stx",
+      "pcSourceIndex": 29,
+      "pcPointer": "0070F044",
+      "ps2Source": "0049D798",
+      "ps2Pointer": "0049D790"
+    },
+    {
+      "index": 31,
+      "name": "mikael.stx",
+      "pcSourceIndex": 30,
+      "pcPointer": "0070F038",
+      "ps2Source": "0049D79C",
+      "ps2Pointer": "00466158"
+    },
+    {
+      "index": 32,
+      "name": "mileya.stx",
+      "pcSourceIndex": 31,
+      "pcPointer": "0070F02C",
+      "ps2Source": "0049D7A0",
+      "ps2Pointer": "00466168"
+    },
+    {
+      "index": 33,
+      "name": "mirtha.stx",
+      "pcSourceIndex": 32,
+      "pcPointer": "0070F020",
+      "ps2Source": "0049D7A4",
+      "ps2Pointer": "00466178"
+    },
+    {
+      "index": 34,
+      "name": "musa.stx",
+      "pcSourceIndex": 33,
+      "pcPointer": "0070F014",
+      "ps2Source": "0049D7A8",
+      "ps2Pointer": "00466188"
+    },
+    {
+      "index": 35,
+      "name": "nessa.stx",
+      "pcSourceIndex": 34,
+      "pcPointer": "0070F008",
+      "ps2Source": "0049D7AC",
+      "ps2Pointer": "00466198"
+    },
+    {
+      "index": 36,
+      "name": "paladium.stx",
+      "pcSourceIndex": 35,
+      "pcPointer": "0070EFF8",
+      "ps2Source": "0049D7B0",
+      "ps2Pointer": "004661A8"
+    },
+    {
+      "index": 37,
+      "name": "pia.stx",
+      "pcSourceIndex": 36,
+      "pcPointer": "0070EFF0",
+      "ps2Source": "0049D7C0",
+      "ps2Pointer": "0049D7B8"
+    },
+    {
+      "index": 38,
+      "name": "ralan.stx",
+      "pcSourceIndex": 37,
+      "pcPointer": "0070EFE4",
+      "ps2Source": "0049D7C4",
+      "ps2Pointer": "004661B8"
+    },
+    {
+      "index": 39,
+      "name": "riven.stx",
+      "pcSourceIndex": 38,
+      "pcPointer": "0070EFD8",
+      "ps2Source": "0049D7C8",
+      "ps2Pointer": "004661C8"
+    },
+    {
+      "index": 40,
+      "name": "saladin.stx",
+      "pcSourceIndex": 40,
+      "pcPointer": "0070EFC0",
+      "ps2Source": "0049D7D0",
+      "ps2Pointer": "004661E8"
+    },
+    {
+      "index": 41,
+      "name": "seresa.stx",
+      "pcSourceIndex": 41,
+      "pcPointer": "0070EFB4",
+      "ps2Source": "0049D7D4",
+      "ps2Pointer": "004661F8"
+    },
+    {
+      "index": 42,
+      "name": "sirusa.stx",
+      "pcSourceIndex": 42,
+      "pcPointer": "0070EFA8",
+      "ps2Source": "0049D7D8",
+      "ps2Pointer": "00466208"
+    },
+    {
+      "index": 43,
+      "name": "sky.stx",
+      "pcSourceIndex": 43,
+      "pcPointer": "0070EFA0",
+      "ps2Source": "0049D7E8",
+      "ps2Pointer": "0049D7E0"
+    },
+    {
+      "index": 44,
+      "name": "stella.stx",
+      "pcSourceIndex": 44,
+      "pcPointer": "0070EF94",
+      "ps2Source": "0049D7EC",
+      "ps2Pointer": "00466218"
+    },
+    {
+      "index": 45,
+      "name": "stormy.stx",
+      "pcSourceIndex": 45,
+      "pcPointer": "0070EF88",
+      "ps2Source": "0049D7F0",
+      "ps2Pointer": "00466228"
+    },
+    {
+      "index": 46,
+      "name": "tecna.stx",
+      "pcSourceIndex": 46,
+      "pcPointer": "0070EF7C",
+      "ps2Source": "0049D7F4",
+      "ps2Pointer": "00466238"
+    },
+    {
+      "index": 47,
+      "name": "timmy.stx",
+      "pcSourceIndex": 47,
+      "pcPointer": "0070EF70",
+      "ps2Source": "0049D7F8",
+      "ps2Pointer": "00466248"
+    },
+    {
+      "index": 48,
+      "name": "default.stx",
+      "pcSourceIndex": 48,
+      "pcPointer": "0070F17C",
+      "ps2Source": "0049D7FC",
+      "ps2Pointer": "00465FC8"
+    },
+    {
+      "index": 49,
+      "name": "speaker.stx",
+      "pcSourceIndex": 49,
+      "pcPointer": "0070EF64",
+      "ps2Source": "0049D800",
+      "ps2Pointer": "00466258"
+    },
+    {
+      "index": 50,
+      "name": "wirena.stx",
+      "pcSourceIndex": 50,
+      "pcPointer": "0070EF58",
+      "ps2Source": "0049D804",
+      "ps2Pointer": "00466268"
+    },
+    {
+      "index": 51,
+      "name": "wizgiz.stx",
+      "pcSourceIndex": 51,
+      "pcPointer": "0070EF4C",
+      "ps2Source": "0049D808",
+      "ps2Pointer": "00466278"
+    },
+    {
+      "index": 52,
+      "name": "stellax.stx",
+      "pcSourceIndex": 52,
+      "pcPointer": "0070EF40",
+      "ps2Source": "0049D80C",
+      "ps2Pointer": "00466288"
+    },
+    {
+      "index": 53,
+      "name": "knut_bad.stx",
+      "pcSourceIndex": 53,
+      "pcPointer": "0070EF30",
+      "ps2Source": "0049D810",
+      "ps2Pointer": "00466298"
+    },
+    {
+      "index": 54,
+      "name": "sky_street.stx",
+      "pcSourceIndex": 54,
+      "pcPointer": "0070EF20",
+      "ps2Source": "0049D814",
+      "ps2Pointer": "004662A8"
+    },
+    {
+      "index": 55,
+      "name": "group.stx",
+      "pcSourceIndex": 55,
+      "pcPointer": "0070F164",
+      "ps2Source": "0049D818",
+      "ps2Pointer": "00465FE8"
+    }
+  ]
+}
