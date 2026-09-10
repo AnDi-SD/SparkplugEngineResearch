@@ -1,0 +1,187 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-trigger-action-gates-2026-09-10T22:29:11Z",
+  "createdUtc": "2026-09-10T22:29:11Z",
+  "notes": "Four assessment updates:Dispel+10 each for four runtime methods with full PC empty-subscription integration;Chest+5 each for own predicate. PS2 SQ components remain separated. No new C++ or fully closed classes.",
+  "assessments": [
+    {
+      "className": "wxDispelTrigger",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->30: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 44 whole Tick/action calls with17 real empty-subscription dispatches,6 whole byte-control calls.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-action-gates-2026-09-11.md",
+          "sourceSha256": "EC3CCA570CAE10F3B27A3F6AA105CE0818C36648771407B12BBA195B70B1BA6A",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "20->30: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 44 whole Tick/action calls with17 real empty-subscription dispatches,6 whole byte-control calls."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-action-gate-contracts-2026-09-11.json",
+          "sourceSha256": "A831FB0251F4707664C1ECC8BD0F99C8295EA46D39808F1F6B0A4B64C74C98F8",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "20->30: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 44 whole Tick/action calls with17 real empty-subscription dispatches,6 whole byte-control calls."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+          "sourceSha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "20->30: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 44 whole Tick/action calls with17 real empty-subscription dispatches,6 whole byte-control calls."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+          "sourceSha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "20->30: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 44 whole Tick/action calls with17 real empty-subscription dispatches,6 whole byte-control calls."
+        }
+      ],
+      "unknowns": [
+        "Normal binding/startup/cache misses,nonempty gameplay subscriptions and complete active lifecycle remain open.",
+        "Original semantic names of own fields are not established."
+      ]
+    },
+    {
+      "className": "wxDispelTrigger",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->25: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 6 whole byte-control calls;42 independent SQ-excluded Tick/action/counter components;8 real message argument boundaries;no whole-message/parent assertion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-action-gates-2026-09-11.md",
+          "sourceSha256": "EC3CCA570CAE10F3B27A3F6AA105CE0818C36648771407B12BBA195B70B1BA6A",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "15->25: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 6 whole byte-control calls;42 independent SQ-excluded Tick/action/counter components;8 real message argument boundaries;no whole-message/parent assertion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-action-gate-contracts-2026-09-11.json",
+          "sourceSha256": "A831FB0251F4707664C1ECC8BD0F99C8295EA46D39808F1F6B0A4B64C74C98F8",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "15->25: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 6 whole byte-control calls;42 independent SQ-excluded Tick/action/counter components;8 real message argument boundaries;no whole-message/parent assertion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+          "sourceSha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "15->25: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 6 whole byte-control calls;42 independent SQ-excluded Tick/action/counter components;8 real message argument boundaries;no whole-message/parent assertion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+          "sourceSha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2",
+          "locator": "wxDispelTrigger runtime gate components",
+          "observation": "15->25: Dispel v16/v20/v21/v22:byte enable/complete gates,command and profile,state0,queue key70/first-word gate,signed game-state<37,message2807/key22 with old counter,postdispatch increment. 6 whole byte-control calls;42 independent SQ-excluded Tick/action/counter components;8 real message argument boundaries;no whole-message/parent assertion."
+        }
+      ],
+      "unknowns": [
+        "Normal binding/startup/cache misses,nonempty gameplay subscriptions and complete active lifecycle remain open.",
+        "Original semantic names of own fields are not established.",
+        "PS2 full SQ/LQ calls,message dispatch and parent Tick are not executed by this package."
+      ]
+    },
+    {
+      "className": "wxChestTrigger",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-action-gates-2026-09-11.md",
+          "sourceSha256": "EC3CCA570CAE10F3B27A3F6AA105CE0818C36648771407B12BBA195B70B1BA6A",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "20->25: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-action-gate-contracts-2026-09-11.json",
+          "sourceSha256": "A831FB0251F4707664C1ECC8BD0F99C8295EA46D39808F1F6B0A4B64C74C98F8",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "20->25: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+          "sourceSha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "20->25: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+          "sourceSha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "20->25: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        }
+      ],
+      "unknowns": [
+        "Normal binding/startup/cache misses,nonempty gameplay subscriptions and complete active lifecycle remain open.",
+        "Original semantic names of own fields are not established."
+      ]
+    },
+    {
+      "className": "wxChestTrigger",
+      "platformKey": "ps2",
+      "coverageScore": 20,
+      "lowerBound": 10,
+      "upperBound": 35,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-action-gates-2026-09-11.md",
+          "sourceSha256": "EC3CCA570CAE10F3B27A3F6AA105CE0818C36648771407B12BBA195B70B1BA6A",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "15->20: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-action-gate-contracts-2026-09-11.json",
+          "sourceSha256": "A831FB0251F4707664C1ECC8BD0F99C8295EA46D39808F1F6B0A4B64C74C98F8",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "15->20: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+          "sourceSha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "15->20: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+          "sourceSha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2",
+          "locator": "wxChestTrigger runtime gate components",
+          "observation": "15->20: Chest v18 direct whole original predicate word398/3B0==0;5 inputs including high-bit/nonzero-low-byte cases;slot identity separately pinned;borrowed unused vtable decoy not virtual invocation."
+        }
+      ],
+      "unknowns": [
+        "Normal binding/startup/cache misses,nonempty gameplay subscriptions and complete active lifecycle remain open.",
+        "Original semantic names of own fields are not established.",
+        "PS2 full SQ/LQ calls,message dispatch and parent Tick are not executed by this package."
+      ]
+    }
+  ]
+}

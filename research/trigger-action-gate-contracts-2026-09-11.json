@@ -1,0 +1,257 @@
+{
+  "kind": "original-trigger-action-gates",
+  "schemaVersion": 1,
+  "classes": [
+    "wxDispelTrigger",
+    "wxChestTrigger"
+  ],
+  "executionCounts": {
+    "pcWhole": 55,
+    "ps2WholeLeaves": 11,
+    "ps2IndependentComponents": 42,
+    "additionalPcProtectedGetter": 4
+  },
+  "methods": {
+    "wxDispelTrigger": {
+      "16": {
+        "pc": "00549CE0",
+        "ps2": "003A81C0"
+      },
+      "20": {
+        "pc": "00549D50",
+        "ps2": "003A8030"
+      },
+      "21": {
+        "pc": "00549AF0",
+        "ps2": "003A8290"
+      },
+      "22": {
+        "pc": "00549B00",
+        "ps2": "003A8280"
+      }
+    },
+    "wxChestTrigger": {
+      "18": {
+        "pc": "00537B80",
+        "ps2": "0039D540"
+      }
+    }
+  },
+  "dispelFields": {
+    "active": {
+      "pc": "1B0",
+      "ps2": "1C8"
+    },
+    "counter": {
+      "pc": "1B4",
+      "ps2": "1CC"
+    },
+    "completed": {
+      "pc": "1B8",
+      "ps2": "1D0"
+    },
+    "selector": {
+      "pc": "1BC",
+      "ps2": "1D4"
+    }
+  },
+  "tick": "Completed byte nonzero returns1. Otherwise active AND command1E AND profile2CB6 calls actual v20;then original GenericTrigger parent Tick. PC parent uses declared single125/fired127=1 and original v17;other parent branches not qualified here.",
+  "action": "Command1E nonzero;CharacterStateMachine state130/13C zero;profile2CB4 nonzero OR own selector6;no key70 in10 GameFlow records at1B8 strideC;first record first word zero;signed GameFlow1B0<37. Dispatch code2807,key22,payloadA=this,payloadB=old counter,then increment current counter modulo2^32.",
+  "gameFlow": {
+    "find": {
+      "pc": "00595050",
+      "ps2": "00339260"
+    },
+    "firstRecordGate": {
+      "pc": "004F4870 -> protected00402CE1 tail compares full word",
+      "ps2": "003392B0 returnsflow+1B8;caller reads first word"
+    },
+    "distinction": "PC getter returns bool;PS2 getter returns pointer. Equivalent caller condition is first full word !=0,not raw byte or count."
+  },
+  "chest": "v18 returns word398/3B0==0;semantic field name not established. Direct method input retains unused Dispel vtable as an explicit decoy;method association comes from pristine Chest slot18 capture,not a virtual call on that borrowed record.",
+  "pcMessage": {
+    "observedDispatches": 17,
+    "envelope": [
+      "2807",
+      0,
+      0,
+      "22",
+      "this",
+      0,
+      "this",
+      "oldCounter"
+    ],
+    "manager": "Original factory4165B0,original415A20 with empty real subscription map,original destructor;temporary allocations freed and retained map unchanged;no callback substitute"
+  },
+  "ps2Boundaries": {
+    "tickHead": "3A81CC ->369B60/3AC9D0/3A826C",
+    "tickAfterLookup": "3A81F8 ->3A8030/3AC9D0",
+    "actionHead": "3A803C ->369B60",
+    "actionAfterFirstLookup": "3A8050 ->369B60/3A81A4",
+    "actionAfterSecondLookup": "3A8074 ->1007A0/3A81A4;real339260/3392B0 execute",
+    "counterAfterMessage": "3A8130 ->3A813C;independent declared component,not resumed message guest"
+  },
+  "scope": "Borrowed cached manager/character/command/state-machine/profile/GameFlow inputs with whole36KiB guards. Full PC methods in this explicit context;PS2 components are never joined by fake returns. No C++ reconstruction or whole normal scene/action claim.",
+  "sources": [
+    {
+      "path": "research/generic-trigger-contracts-2026-09-10.json",
+      "sha256": "4AFA11163B59880698136F4318638FC0BEA8389F9465706E49EA4EFAF99232F6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_trigger_action_gates.py",
+      "sha256": "ECE4D2109AF75827B5FEA0734E964C866E6EE3768E400ED56796B2B9D05DC219"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/prepare-trigger-action-gates.py",
+      "sha256": "586990E3C7B4872897323BCA9DCD6AA6FFB1908C0FDD43022B8DDAF0EDFE3D8F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/capture-trigger-action-support.py",
+      "sha256": "DB4AB2A90D7EAC2AF048DBEDEF9A3B3EDD23584C5B8010AEECB751799E52B239"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/probe-dispel-protected-flow-gate.py",
+      "sha256": "2BB11A56E760BB1DE4356C86DA62392A2A916E289E0E20231DDCCA0B4607D6F6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/select-trigger-action-gates.py",
+      "sha256": "A627B8A254EB98A02F2029698C4B75E179F76DBBA4834FB51CB039615940D7A9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/seal-trigger-action-gates.py",
+      "sha256": "64FFC7BE9F1483C8DF71F6348A4AC541322BF3D63EE1966F017A3477C469CFE1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gate-cases.json",
+      "sha256": "A5DBF3BACF5EF0E8BA4324E17211357719EF5E03D8B10E34EA36BC72CCCEADB1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/protected-flow-gate-run1.json",
+      "sha256": "0890103915D1D07229E1C2F42C8130C7FFDFD17E9D6E2D79C264A938FEB99FE1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/method-selection.json",
+      "sha256": "836FC5FFD6EEDFBEAA4313E25021A6A1E8F5D8847372D6961D1B4898B9A9A60F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/support-selection.json",
+      "sha256": "AE1E015859235320F8AE1ED1736B7A4D83EA1208308BDBEC3EF1BCA497FCA0A8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/method-capture/capture.json",
+      "sha256": "8C06CD71CFE971B95C7CA572A32975698CB523B1CBED1FDE922BBB115755ABC8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/support-capture/capture.json",
+      "sha256": "2F99383BB83B1E6D35552E7133A8BB8694C0C0D69B60A4CF19097A386F83DFCF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/protected-tail-capture/capture.json",
+      "sha256": "8EA6ADB7F7FEEBF1AE381A01AB001DC812CC4D6E1D4DABB26C8B3A156DB7A799"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/vtable-capture/capture.json",
+      "sha256": "50B73E6E46569B800ECF438290C78C7BF65BC544E897EFE4FB2A05DF9708C501"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-controls/dispel-helpers/capture.json",
+      "sha256": "818750558D3789568CCD8B38FB6532D86A3411CE8EA73CE8AEC4386CD3E4DFAB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+      "sha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+      "sha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-pilot-run1.json",
+        "sha256": "62E2CFB506E4A5E734A46DD7F08BE6125316D202E3FD8E7B8E84C2AFD2ECAFF7"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_trigger_action_gates.py",
+        "sha256": "ECE4D2109AF75827B5FEA0734E964C866E6EE3768E400ED56796B2B9D05DC219"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gate-cases.json",
+        "sha256": "A5DBF3BACF5EF0E8BA4324E17211357719EF5E03D8B10E34EA36BC72CCCEADB1"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+      },
+      "pcAllocator": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gates-batch-run1.json",
+        "sha256": "3006FD0891FA78F138E65E927747A3ABE8AA5A024974C2F44EC3E87E6FE447B2"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_trigger_action_gates.py",
+        "sha256": "ECE4D2109AF75827B5FEA0734E964C866E6EE3768E400ED56796B2B9D05DC219"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/action-gate-cases.json",
+        "sha256": "A5DBF3BACF5EF0E8BA4324E17211357719EF5E03D8B10E34EA36BC72CCCEADB1"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "27187FA26131109085010417C5A03FD8AD47A1300C8E4A1271CEEA387899A75E"
+      },
+      "pcAllocator": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/protected-flow-gate-run1.json",
+        "sha256": "0890103915D1D07229E1C2F42C8130C7FFDFD17E9D6E2D79C264A938FEB99FE1"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/probe-dispel-protected-flow-gate.py",
+        "sha256": "2BB11A56E760BB1DE4356C86DA62392A2A916E289E0E20231DDCCA0B4607D6F6"
+      },
+      "pcWrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-action-gates/source-snapshot/pc_block_emulator.py",
+        "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+      }
+    }
+  ]
+}
