@@ -1,0 +1,365 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-trigger-tick-gates-2026-09-10T22:55:07Z",
+  "createdUtc": "2026-09-10T22:55:07Z",
+  "notes": "Eight +5 updates for own v16 Tick. Real PC geometry/cooldown and actual callback stops;PS2 initial components. No C++ or fully closed classes.",
+  "assessments": [
+    {
+      "className": "wxChangeCharacterPlacement",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified."
+      ]
+    },
+    {
+      "className": "wxChangeCharacterPlacement",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxChangeCharacterPlacement v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified.",
+        "PS2 full SQ/LQ Tick and nested cooldown/geometry not executed."
+      ]
+    },
+    {
+      "className": "wxOpeningGate",
+      "platformKey": "pc",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified."
+      ]
+    },
+    {
+      "className": "wxOpeningGate",
+      "platformKey": "ps2",
+      "coverageScore": 20,
+      "lowerBound": 10,
+      "upperBound": 35,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "15->20: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "15->20: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "15->20: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxOpeningGate v16 Tick",
+          "observation": "15->20: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified.",
+        "PS2 full SQ/LQ Tick and nested cooldown/geometry not executed."
+      ]
+    },
+    {
+      "className": "wxPivotingDoor",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified."
+      ]
+    },
+    {
+      "className": "wxPivotingDoor",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxPivotingDoor v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified.",
+        "PS2 full SQ/LQ Tick and nested cooldown/geometry not executed."
+      ]
+    },
+    {
+      "className": "wxPushButton",
+      "platformKey": "pc",
+      "coverageScore": 30,
+      "lowerBound": 20,
+      "upperBound": 45,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "25->30: own v16 Tick pause/active/enable gates and real next consumers. Original cooldown/predicates execute to Tick return or actual v20/v21/v22 boundary;timestamp and active changes guarded."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified."
+      ]
+    },
+    {
+      "className": "wxPushButton",
+      "platformKey": "ps2",
+      "coverageScore": 25,
+      "lowerBound": 15,
+      "upperBound": 40,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-trigger-tick-gates-2026-09-11.md",
+          "sourceSha256": "59402D29640E1E558286164CD213ADEBF731B7082214F3E98584758B2A85B00D",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/trigger-tick-gate-contracts-2026-09-11.json",
+          "sourceSha256": "AC2667B03F686B6525547C266EC76F54CC1B6B247B149E2935F842F03FB80BF0",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-pilot-run1.json",
+          "sourceSha256": "FD1A671F3ED7C0403D2957546042CDF9E8D2B2470F94AE6017B48277B9318EA0",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/trigger-tick-gates/tick-batch-run1.json",
+          "sourceSha256": "05238BFDE14AC1FAB88D2632C7CE10D6FD7ABF4BABF6A8F256476AAB7863AC72",
+          "locator": "wxPushButton v16 Tick",
+          "observation": "20->25: own v16 Tick pause/active/enable gates and real next consumers. Original post-SQ prefix includes actual timer byte getter;return-register restore or actual cooldown/v19/v20 entry only,not full Tick."
+        }
+      ],
+      "unknowns": [
+        "Normal timer/profile/Node construction,cache misses and callback bodies remain open.",
+        "Stopped callback results and subsequent effects are not qualified.",
+        "PS2 full SQ/LQ Tick and nested cooldown/geometry not executed."
+      ]
+    }
+  ]
+}
