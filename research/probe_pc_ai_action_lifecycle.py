@@ -18,9 +18,9 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
-    if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync','bounded-memory'):raise ValueError('Explicit CRT fixture required')
-    if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family'):raise ValueError('Explicit reviewed family platform profile required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family','game-remainder'):raise ValueError('Explicit reviewed family required')
+    if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync','bounded-memory','bounded-vsprintf'):raise ValueError('Explicit CRT fixture required')
+    if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family' and not (platform_profile=='network-clock' and (family,class_name)==('engine-core-remainder','spCinematicManager'))):raise ValueError('Explicit reviewed family platform profile required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family','game-remainder','engine-core-remainder'):raise ValueError('Explicit reviewed family required')
     arena_bytes=int(arena_kib)*1024
     if arena_bytes not in (0x10000,0x20000,0x40000):raise ValueError('Explicit bounded arena required')
     if arena_bytes!=0x10000 and (family,class_name)!=('game-remainder','wxAlphaManager'):raise ValueError('Larger arena reviewed only after measured AlphaManager exhaustion')
@@ -45,6 +45,9 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     elif crt=='bounded-memory':
         from pc_crt_memory_fixtures import install_crt_memory
         install_crt_memory(f)
+    elif crt=='bounded-vsprintf':
+        from pc_crt_format_fixtures import install_sprintf
+        install_sprintf(p,variadic_pointer=True)
     elif crt in ('bounded-char-traits','bounded-char-traits-sync'):
         from pc_stl_fixtures import install_char_traits
         install_char_traits(p)
@@ -102,7 +105,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
         save()
     try:
         if context=='animation-manager':
-            if family!='projectile':raise ValueError('Actor dependency reviewed for projectile family')
+            if family!='projectile' and (family!='engine-core-remainder' or class_name not in ('spLightController','spMovieLayer','spMovieTextureController')):raise ValueError('Explicitly reviewed AnimationManager registration dependency required')
             manager=call('animation-manager-factory',0x454640)
             assert f.allocations[manager]==0x2c and p.uint(manager)==0x6e6e30 and p.uint(0x75f880)==manager
             assert p.uint(manager+0x24)==p.uint(manager+0x28)==0
