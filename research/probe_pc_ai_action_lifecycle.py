@@ -12,22 +12,23 @@ from probe_pc_task_timer import TimerFixture
 import probe_pc_animation_lifecycle as lifetime
 
 
-def guest(class_name,output,factory_profile='micro',context='none',family='ai-action',tracer='instruction',lifecycle_profile='micro',crt='none'):
+def guest(class_name,output,factory_profile='micro',context='none',family='ai-action',tracer='instruction',lifecycle_profile='micro',crt='none',platform_profile='none'):
     execution_limits(factory_profile)
     execution_limits(lifecycle_profile)
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
     if 'protected-block' in (factory_profile,lifecycle_profile) and tracer!='block':raise ValueError('protected-block requires block tracer')
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
-    if crt not in ('none','bounded-strings'):raise ValueError('Explicit CRT fixture required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family'):raise ValueError('Explicit reviewed family required')
+    if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync'):raise ValueError('Explicit CRT fixture required')
+    if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family'):raise ValueError('Explicit reviewed family platform profile required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
     record=next(x for x in json.loads(source.read_text()) if x['className']==class_name)
-    # ProjectionFX's two-method primary interface precedes CrossPlatform+4.
-    # Its Clone returns that secondary BaseObject pointer, while factory and
+    # These verified platform primary interfaces precede CrossPlatform+4.
+    # Their Clone returns that secondary BaseObject pointer, while factory and
     # allocator use the complete object. Other reviewed families keep offset0.
-    object_interface_offset=4 if (family,class_name)==('projection-family','spPCProjectionFX') else 0
+    object_interface_offset=4 if (family,class_name) in (('projection-family','spPCProjectionFX'),('network-family','spDXNetwork')) else 0
     output.parent.mkdir(parents=True,exist_ok=True);started=time.perf_counter()
     if tracer=='block':
         from pc_block_emulator import PcBlocks
@@ -37,6 +38,17 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if crt=='bounded-strings':
         from pc_crt_string_fixtures import install_crt_string
         install_crt_string(p)
+    elif crt in ('bounded-char-traits','bounded-char-traits-sync'):
+        from pc_stl_fixtures import install_char_traits
+        install_char_traits(p)
+    locks=lock_calls=None
+    if crt=='bounded-char-traits-sync':
+        from pc_locale_input_fixtures import install_locale_inputs
+        locks,lock_calls=install_locale_inputs(p,critical_only=True)
+    platform_events=[]
+    if platform_profile!='none':
+        from pc_network_platform_inputs import install_network_platform_inputs
+        platform_events=install_network_platform_inputs(p,platform_profile)
     report=dict(kind=f'original-pc-{family}-lifecycle',className=class_name,status='running',record=record,stages=[],
         sourceSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest().upper(),catalogSha256=hashlib.sha256(source.read_bytes()).hexdigest().upper(),
         executableSha256=hashlib.sha256((ROOT/'local-data/pc-pristine/WinxClub.exe').read_bytes()).hexdigest().upper(),
@@ -49,6 +61,8 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     report['crtFixture']=crt
     if object_interface_offset:report['objectInterfaceOffset']=object_interface_offset
     def save():
+        if platform_profile!='none':report['platformInput']=dict(profile=platform_profile,events=list(platform_events),scope='Declared literal platform responses;no host clock/network calls and no successful socket startup claim')
+        if locks is not None:report['criticalSectionInput']=dict(scope='Existing single-thread recursive lock bookkeeping;no contention or host OS forwarding;only four synchronization imports installed',calls=list(lock_calls),remaining=dict(locks))
         report.update(seconds=time.perf_counter()-started,arenaBytes=p.allocated,lastIp=f'{p.reg("EIP"):08X}',lastTail=[f'{a:08X}' for a in p.tail],
             allocations=[dict(address=a,bytes=n,freed=a in f.freed,firstWord=f'{p.uint(a):08X}') for a,n in f.allocations.items()],
             lastTextAddressesByFirstVisit=[f'{a:08X}' for a in p.visits if 0x408000<=a<0x6d7000][-80:],

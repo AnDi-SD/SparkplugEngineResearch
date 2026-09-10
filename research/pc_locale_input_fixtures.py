@@ -8,7 +8,7 @@ remain ASCII. OSVERSIONINFOA is a declared NT5.1 response, not host discovery.
 import struct
 from pc_stl_fixtures import read_cstring
 
-def install_locale_inputs(p):
+def install_locale_inputs(p,*,critical_only=False):
     base=0x34150000;p.mu.mem_map(base,4096,p.uc.UC_PROT_READ|p.uc.UC_PROT_EXEC)
     locks={};calls=[]
     def args(m,n):return [m.uint(m.reg('ESP')+4+4*i) for i in range(n)]
@@ -80,6 +80,9 @@ def install_locale_inputs(p):
         c,=args(m,1);m.fixture_return(eax=int(c in (9,10,11,12,13,32)))
     entries=[(0x6d9140,version),(0x6d9100,locale),(0x6d90fc,ctype),(0x6d9104,mapstring),
              (0x6d9120,multibyte),(0x6d9108,wide),(0x6d92f8,space)]
+    # Reuse the same reviewed single-thread lock bookkeeping independently;
+    # do not install locale/version/string responses for unrelated probes.
+    if critical_only:entries=[]
     entries += [(iat,lambda m,o=op:critical(m,o)) for iat,op in ((0x6d911c,'init'),(0x6d910c,'enter'),(0x6d9110,'leave'),(0x6d9118,'delete'))]
     for i,(iat,fn) in enumerate(entries,1):
         target=base+16*i;p.put_uint(iat,target);p.seams[target]=fn

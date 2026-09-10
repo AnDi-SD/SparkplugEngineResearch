@@ -1,0 +1,64 @@
+{
+  "kind": "projection-context-type-identification-followup",
+  "priorDossier": "docs/research/native-projection-family-2026-09-10.md",
+  "catalogRecord": {
+    "class_name": "spDebugManager",
+    "class_hash": 923093824,
+    "base_class_hash": 1095979681,
+    "base_class_name": "spBaseObject",
+    "boundary": "engine",
+    "registration_rva": 2959168,
+    "registration_object_va": 7724040,
+    "base_registration_va": 7688976,
+    "constructor_arg5_va": 4318080,
+    "constructor_arg6_va": 0
+  },
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/catalog/pc-architecture.json",
+      "sha256": "03E5FB2F3D7EFFB1E7786C1BA6F183399F01F9E301D0BE20CFD86E84B5D41F84"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-context-followup/identity/capture.json",
+      "sha256": "A3972E16579A8071C26707F1D1441A93E3D674869FBE8D3BF80FEF79AAC28D18"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/projection-context-followup/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    }
+  ],
+  "runs": [
+    {
+      "className": "spBoxProjection",
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/projection-family/pc-spBoxProjection-run1.json",
+        "sha256": "0856DA8F4D905350B5F6F870C221BB72B45B3BFFC0CA9C64E38468A3791A7A4E"
+      },
+      "remaining": [
+        {
+          "address": 822083808,
+          "bytes": 56,
+          "freed": false,
+          "firstWord": "006DC3B8"
+        }
+      ]
+    },
+    {
+      "className": "spPyramidProjection",
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/projection-family/pc-spPyramidProjection-run1.json",
+        "sha256": "9BBF901EECDE91BCA72DD2E6219F326D9C06343FB4181259A6FBC0C113554279"
+      },
+      "remaining": [
+        {
+          "address": 822083824,
+          "bytes": 56,
+          "freed": false,
+          "firstWord": "006DC3B8"
+        }
+      ]
+    }
+  ],
+  "conclusion": "The retained56-byte object vtable6DC3B8 identifies spDebugManager through getter41D400/record75DC08. Its original factory41E380 was visited in both Projection lifetimes. Existing animation probe independently establishes lazy debug global75526C and56-byte allocation. Projection shutdown/global disposal has not been executed.",
+  "additionalCoverageCredit": 0
+}

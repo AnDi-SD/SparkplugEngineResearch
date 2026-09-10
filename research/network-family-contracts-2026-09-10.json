@@ -1,0 +1,876 @@
+{
+  "kind": "pc-network-family-native-contracts",
+  "schemaVersion": 1,
+  "inputs": {
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "ps2": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+  },
+  "collectorSha256": "16AD29545F45950B06B25E30E38F4CFC8DD736E4A5E81D4F2B77B048431276CA",
+  "classes": [
+    {
+      "className": "spDXNetwork",
+      "classHash": 1106996339,
+      "base": "spNetwork",
+      "pcFactory": 4903008,
+      "ps2Factory": null,
+      "pcRecord": 7747840,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EF90C",
+        "objectVtableBytes": "50d04a00007a5b00c0d04a002031410050c94a005083400070834000",
+        "objectVtableFileOffset": 3074316,
+        "objectSlots": [
+          "004AD050",
+          "005B7A00",
+          "004AD0C0",
+          "00413120",
+          "004AC950",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b800397600c3",
+        "getterFileOffset": 703824,
+        "objectInterfaceOffset": 4,
+        "primaryVtable": "006EF928",
+        "primaryBytes": "60c94a00b0c94a0030ca4a00e0ca4a0080d14a0000cb4a0020cb4a00",
+        "primaryFileOffset": 3074344,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spDXNetwork-run4.json",
+          "sha256": "1678F64C60BC74261B4240DC826813FC3BB6A000BC9A98F4DD99EBFA410C7A65"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+          "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+        },
+        "allocationBytes": 64,
+        "initialBytes": "28f96e000cf96e00000000000000cccc000000000000000000cccccc01000000ffffffffffffccccffffffffcccccccccccccccccccccccccccccccc00000000",
+        "cloneBytes": "28f96e000cf96e00000000000000cccc000000000000000000cccccc01000000ffffffffffffccccffffffffcccccccccccccccccccccccccccccccc00000000",
+        "platformInput": {
+          "profile": "network-startup-failure",
+          "events": [
+            {
+              "importName": "WS2_32.WSAStartup",
+              "requestedVersion": 514,
+              "out": 805363288,
+              "result": 10091,
+              "outputWritten": false
+            },
+            {
+              "importName": "WS2_32.WSACleanup",
+              "result": 4294967295,
+              "scope": "chosen failure after failed startup;no host cleanup"
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetwork",
+      "classHash": 414472042,
+      "base": "spCrossPlatform",
+      "pcFactory": 0,
+      "ps2Factory": null,
+      "pcRecord": 7745328,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EEE30",
+        "objectVtableBytes": "301c4a00007a5b00f01b4a0020314100201c4a005083400070834000",
+        "objectVtableFileOffset": 3071536,
+        "objectSlots": [
+          "004A1C30",
+          "005B7A00",
+          "004A1BF0",
+          "00413120",
+          "004A1C20",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8302f7600c3",
+        "getterFileOffset": 659488,
+        "objectInterfaceOffset": 4,
+        "primaryVtable": "006EEE50",
+        "primaryBytes": "76db600076db600076db600076db600076db600076db600076db6000",
+        "primaryFileOffset": 3071568,
+        "scope": "Metadata, getter, null Clone and secondary destructor+4; no fabricated base factory"
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkDebug",
+      "classHash": 394967734,
+      "base": "spBaseObject",
+      "pcFactory": 4726256,
+      "ps2Factory": null,
+      "pcRecord": 7738840,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EBBB8",
+        "objectVtableBytes": "a01e4800d01d4800501e4800e0ec4000201d48005083400070834000",
+        "objectVtableFileOffset": 3058616,
+        "objectSlots": [
+          "00481EA0",
+          "00481DD0",
+          "00481E50",
+          "0040ECE0",
+          "00481D20",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8d8157600c3",
+        "getterFileOffset": 528672,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkDebug-run4.json",
+          "sha256": "1EBB40FD69B0C6E04FCAB0DA68265DF9CB8E962C844AB5284333D0F2C036956B"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-clock-run4.py",
+          "sha256": "E90A8D1ED150A5AF9F98FE6274420EE4C0A7437BFE4948E4638E9B0F4CC9D41C"
+        },
+        "allocationBytes": 100,
+        "initialBytes": "b8bb6e00000000000000cccc00000000000000000000000090000031cccccccc00cccccccccccccccccccccccccccccc000000000f000000b8917200000000000000cccc0000000001cccccc00000000b004000000cccccc000000000000000001000000",
+        "cloneBytes": "b8bb6e00000000000000cccc00000000000000000000000020010031cccccccc00cccccccccccccccccccccccccccccc000000000f000000b8917200000000000000cccc0000000001cccccc00000000b004000000cccccc000000000000000001000000",
+        "platformInput": {
+          "profile": "network-clock",
+          "events": [
+            {
+              "importName": "WINMM.timeGetTime",
+              "result": 1200
+            },
+            {
+              "importName": "WINMM.timeGetTime",
+              "result": 1200
+            },
+            {
+              "importName": "WINMM.timeGetTime",
+              "result": 1200
+            },
+            {
+              "importName": "WINMM.timeGetTime",
+              "result": 1200
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkManager",
+      "classHash": 88530625,
+      "base": "spBaseObject",
+      "pcFactory": 4526800,
+      "ps2Factory": null,
+      "pcRecord": 7730936,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006E6B3C",
+        "objectVtableBytes": "80134500400b450030134500e0ec4000c01145005083400070834000",
+        "objectVtableFileOffset": 3038012,
+        "objectSlots": [
+          "00451380",
+          "00450B40",
+          "00451330",
+          "0040ECE0",
+          "004511C0",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8f8f67500c3",
+        "getterFileOffset": 329152,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkManager-run2.json",
+          "sha256": "9C36A88B16E0BA1DD82692F16AFF04323A13B9F5B5479322C5146123E1C6ABC5"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-sync-run3.py",
+          "sha256": "BEFCDADB10B445FBD9DB94C5C25FA70F2880CA7E0E7756F5741C3CE942D30A5D"
+        },
+        "allocationBytes": 460,
+        "initialBytes": "3c6b6e00000000000000cccc00000000386b6e00000000cc286b6e0000000000000000000000000000020031ccccccccf00100310000000000cccccc00000000000000000000000000000000000000000000000000cccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccc4e6f206572726f7200cccccccccccccc080000000f000000cccccccc20020031cccccccccccccccccccccccc200000002f000000cccccccc50020031cccccccccccccccccccccccc1d0000001f000000cccccccc70020031cccccccccccccccccccccccc210000002f000000cccccccca0020031cccccccccccccccccccccccc200000002f000000ccccccccd0020031cccccccccccccccccccccccc270000002f000000cccccccc00030031cccccccccccccccccccccccc140000001f000000cccccccc20030031cccccccccccccccccccccccc2b0000002f000000cccccccc50030031cccccccccccccccccccccccc210000002f000000cccccccc80030031cccccccccccccccccccccccc280000002f000000000000000000000000000000000000000000cccccccccccc00cccccccccccccccccccccccccccccc000000000f000000",
+        "cloneBytes": "3c6b6e00000000000000cccc00000000386b6e00000000cc286b6e0000000000000000000000000090050031cccccccc800500310000000000cccccc00000000000000000000000000000000000000000000000000cccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000cccccccc4e6f206572726f7200cccccccccccccc080000000f000000ccccccccb0050031cccccccccccccccccccccccc200000002f000000cccccccce0050031cccccccccccccccccccccccc1d0000001f000000cccccccc00060031cccccccccccccccccccccccc210000002f000000cccccccc30060031cccccccccccccccccccccccc200000002f000000cccccccc60060031cccccccccccccccccccccccc270000002f000000cccccccc90060031cccccccccccccccccccccccc140000001f000000ccccccccb0060031cccccccccccccccccccccccc2b0000002f000000cccccccce0060031cccccccccccccccccccccccc210000002f000000cccccccc10070031cccccccccccccccccccccccc280000002f000000000000000000000000000000000000000000cccccccccccc00cccccccccccccccccccccccccccccc000000000f000000",
+        "platformInput": null,
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkMatchmaking",
+      "classHash": 414737580,
+      "base": "spBaseObject",
+      "pcFactory": 4728624,
+      "ps2Factory": null,
+      "pcRecord": 7738936,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EBCD0",
+        "objectVtableBytes": "50244800007a5b0090274800e0ec4000402448005083400070834000",
+        "objectVtableFileOffset": 3058896,
+        "objectSlots": [
+          "00482450",
+          "005B7A00",
+          "00482790",
+          "0040ECE0",
+          "00482440",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b838167600c3",
+        "getterFileOffset": 530496,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkMatchmaking-run3.json",
+          "sha256": "7CB592ABCC6907A3A19FDD1E9392135405E5F18B81191B8EC5B07FD25C9714A5"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+          "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+        },
+        "allocationBytes": 52,
+        "initialBytes": "d0bc6e00000000000000cccc00000000a000003160000031cccccccc00cccccccccccccccccccccccccccccc000000000f000000",
+        "cloneBytes": "d0bc6e00000000000000cccc000000009001003150010031cccccccc00cccccccccccccccccccccccccccccc000000000f000000",
+        "platformInput": {
+          "profile": "network-startup-failure",
+          "events": [
+            {
+              "importName": "WS2_32.WSAStartup",
+              "requestedVersion": 514,
+              "out": 805363192,
+              "result": 10091,
+              "outputWritten": false
+            },
+            {
+              "importName": "WS2_32.WSACleanup",
+              "result": 4294967295,
+              "scope": "chosen failure after failed startup;no host cleanup"
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkPacket",
+      "classHash": 88530484,
+      "base": "spBaseObject",
+      "pcFactory": 4823392,
+      "ps2Factory": null,
+      "pcRecord": 7744744,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006ED154",
+        "objectVtableBytes": "109a4900007a5b00c0994900e0ec4000209649005083400070834000",
+        "objectVtableFileOffset": 3064148,
+        "objectSlots": [
+          "00499A10",
+          "005B7A00",
+          "004999C0",
+          "0040ECE0",
+          "00499620",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8e82c7600c3",
+        "getterFileOffset": 625184,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkPacket-run1.json",
+          "sha256": "350EE1F6BD3B42610A901FEE2792C0E341BB701C1E092FF2BE7DF5F0265DF743"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+          "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+        },
+        "allocationBytes": 40,
+        "initialBytes": "54d16e00000000000000cccc00000000d0bad0bacccccccc00000000000000000000cccc50000031",
+        "cloneBytes": "54d16e00000000000000cccc00000000d0bad0bacccccccc00000000000000000000cccc80010031",
+        "platformInput": null,
+        "crtFixture": "none",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkPeer",
+      "classHash": 414472043,
+      "base": "spBaseObject",
+      "pcFactory": 4730544,
+      "ps2Factory": null,
+      "pcRecord": 7739128,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EBD7C",
+        "objectVtableBytes": "602f4800007a5b00102f4800e0ec4000a02d48005083400070834000",
+        "objectVtableFileOffset": 3059068,
+        "objectSlots": [
+          "00482F60",
+          "005B7A00",
+          "00482F10",
+          "0040ECE0",
+          "00482DA0",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8f8167600c3",
+        "getterFileOffset": 532896,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkPeer-run2.json",
+          "sha256": "32BC57D18102854423D7CBB31EC2965461C36C19D4BF89F7E436B5EBED75BD19"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+          "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+        },
+        "allocationBytes": 36,
+        "initialBytes": "7cbd6e00000000000000cccc00000000d0ba000050000031c00000310000000030010031",
+        "cloneBytes": "7cbd6e00000000000000cccc00000000d0ba000040150031b01500310000000020160031",
+        "platformInput": {
+          "profile": "network-startup-failure",
+          "events": [
+            {
+              "importName": "WS2_32.WSAStartup",
+              "requestedVersion": 514,
+              "out": 805363196,
+              "result": 10091,
+              "outputWritten": false
+            },
+            {
+              "importName": "WS2_32.WSACleanup",
+              "result": 4294967295,
+              "scope": "chosen failure after failed startup;no host cleanup"
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkServer",
+      "classHash": 1918452798,
+      "base": "spBaseObject",
+      "pcFactory": 4735632,
+      "ps2Factory": null,
+      "pcRecord": 7739224,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EC04C",
+        "objectVtableBytes": "a0474800007a5b00f0424800e0ec4000d03d48005083400070834000",
+        "objectVtableFileOffset": 3059788,
+        "objectSlots": [
+          "004847A0",
+          "005B7A00",
+          "004842F0",
+          "0040ECE0",
+          "00483DD0",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b858177600c3",
+        "getterFileOffset": 537040,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkServer-run2.json",
+          "sha256": "58773F3EC24C4B9C6A6D7E2C3C34C26BE16CB160110D9BB26E8A479EA141B1C9"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+          "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+        },
+        "allocationBytes": 68,
+        "initialBytes": "4cc06e00000000000000cccc000000003cc06e00d0bacccccccccccc7000003100000000c0000031f00000316001003180000031a000003100000000d001003100000000",
+        "cloneBytes": "4cc06e00000000000000cccc000000003cc06e00d0bacccccccccccc00160031000000005016003180160031f01600311016003130160031000000006017003100000000",
+        "platformInput": {
+          "profile": "network-startup-failure",
+          "events": [
+            {
+              "importName": "WS2_32.WSAStartup",
+              "requestedVersion": 514,
+              "out": 805363184,
+              "result": 10091,
+              "outputWritten": false
+            },
+            {
+              "importName": "WS2_32.WSACleanup",
+              "result": 4294967295,
+              "scope": "chosen failure after failed startup;no host cleanup"
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spNetworkStateCtrl",
+      "classHash": 1215706283,
+      "base": "spBaseObject",
+      "pcFactory": 4729968,
+      "ps2Factory": null,
+      "pcRecord": 7739032,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006EBD3C",
+        "objectVtableBytes": "502c4800007a5b00d02c4800e0ec4000802a48005083400070834000",
+        "objectVtableFileOffset": 3059004,
+        "objectSlots": [
+          "00482C50",
+          "005B7A00",
+          "00482CD0",
+          "0040ECE0",
+          "00482A80",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b898167600c3",
+        "getterFileOffset": 532096,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkStateCtrl-run2.json",
+          "sha256": "E74A334AD427866C89086B2B4C964E8D211BBB7AB71B1BAE4312E67FB23E8827"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-sync-run3.py",
+          "sha256": "BEFCDADB10B445FBD9DB94C5C25FA70F2880CA7E0E7756F5741C3CE942D30A5D"
+        },
+        "allocationBytes": 52,
+        "initialBytes": "3cbd6e00000000000000cccc000000007000003100ccccccffffffffffffffff00000000cccccccc600000310000000000000000",
+        "cloneBytes": "3cbd6e00000000000000cccc00000000e000003100ccccccffffffffffffffff00000000ccccccccd00000310000000000000000",
+        "platformInput": null,
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    },
+    {
+      "className": "spSocketStream",
+      "classHash": 517498749,
+      "base": "spStream",
+      "pcFactory": 4822032,
+      "ps2Factory": null,
+      "pcRecord": 7744648,
+      "ps2Record": null,
+      "priorAssessments": [],
+      "pc": {
+        "objectVtable": "006ED0A8",
+        "objectVtableBytes": "c0944900007a5b007094490020314100409249005083400070834000",
+        "objectVtableFileOffset": 3063976,
+        "objectSlots": [
+          "004994C0",
+          "005B7A00",
+          "00499470",
+          "00413120",
+          "00499240",
+          "00408350",
+          "00408370"
+        ],
+        "getterBytes": "b8882c7600c3",
+        "getterFileOffset": 624192,
+        "objectInterfaceOffset": 0,
+        "lifetimeSource": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spSocketStream-run2.json",
+          "sha256": "5F5A18486B4EF8D0FA6A6CD062E8AF5E76CB1C38C0F054CAD264F81E48A7108F"
+        },
+        "exactRunner": {
+          "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+          "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+        },
+        "allocationBytes": 48,
+        "initialBytes": "a8d06e00000000000000cccc000000000000000000000000000000005000003101000000ffffffffffff000000cccccc",
+        "cloneBytes": "a8d06e00000000000000cccc00000000000000000000000000000000c000003101000000ffffffffffff000000cccccc",
+        "platformInput": {
+          "profile": "network-startup-failure",
+          "events": [
+            {
+              "importName": "WS2_32.WSAStartup",
+              "requestedVersion": 514,
+              "out": 805363244,
+              "result": 10091,
+              "outputWritten": false
+            },
+            {
+              "importName": "WS2_32.WSACleanup",
+              "result": 4294967295,
+              "scope": "chosen failure after failed startup;no host cleanup"
+            }
+          ],
+          "scope": "Declared literal platform responses;no host clock/network calls and no successful socket startup claim"
+        },
+        "crtFixture": "bounded-char-traits-sync",
+        "remainingAllocations": []
+      },
+      "ps2": {
+        "status": "not-in-registered-class-catalog",
+        "scope": "No PS2 counterpart or implementation inferred"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/catalog-family.json",
+      "sha256": "26F0C53C6D7B5FE191D66FD644934837D72EBFBDF541647A6CD14346C0193DB2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/factories/capture.json",
+      "sha256": "3C95D9149C6943EE3F2F12FCE25C7D47CDC88F3167A193B29A0765E018D0A375"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/getter-candidates-run1.json",
+      "sha256": "5CD7D560865470183C55E95A4AD5700BD5A1ED0FC643B853C9C8974E00BD3D69"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/initial-protocol/capture.json",
+      "sha256": "2E81C08A2533B2476C00132A1A132BD8938D9E09B44A970465E8143C69CD811E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/interface-offset/capture.json",
+      "sha256": "7A19F511556A8106B4E72B980EFEF589423A39BA857E7B5298B41C38D57BAEC5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/base-interface-proof/capture.json",
+      "sha256": "468945AEEE0904F702A884904B92FC89FBD6CD8488C9F39E5C42B0807F73C506"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260910-1900/network-family/packet-io-run1.json",
+      "sha256": "1DDC4FCF2E3C3A28C81DFA7B975EAD625531A40956D06D25FF8772F247DA268B"
+    }
+  ],
+  "allLifecycleRuns": [
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spDXNetwork-run1.json",
+        "sha256": "CE80CABF056673DD3120B564BD856A805D0FB52406E542446F9A69F3FCF753A5"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spDXNetwork-run2.json",
+        "sha256": "72C1F43FDF901E8F7F1D7263C02213396542F5D52C3E9515509E35893C7BCD4E"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-clock-run4.py",
+        "sha256": "E90A8D1ED150A5AF9F98FE6274420EE4C0A7437BFE4948E4638E9B0F4CC9D41C"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spDXNetwork-run3.json",
+        "sha256": "D259FF8113C2763266580C817573AA141CBA8F7AC0D690074DC82122C228B17D"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spDXNetwork-run4.json",
+        "sha256": "1678F64C60BC74261B4240DC826813FC3BB6A000BC9A98F4DD99EBFA410C7A65"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkDebug-run1.json",
+        "sha256": "97C3246E3E390E8AA093A9AF84E7C51AF4673FE8182478628593505289E60386"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkDebug-run2.json",
+        "sha256": "D91FDFF4C3E86251B1D778BBE4A2B791079D2ABEF341A1EEA48E5E4BC417EB34"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-char-traits-run2.py",
+        "sha256": "0C029E9E0014908E145A8602715EBBD4E51A45E62675DA066EAA1E4761B8EC3D"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkDebug-run3.json",
+        "sha256": "52F7AD585E002612EB1828D3A053BABDACC3620A77E9FD35D1D34AD0696FFB3C"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-sync-run3.py",
+        "sha256": "BEFCDADB10B445FBD9DB94C5C25FA70F2880CA7E0E7756F5741C3CE942D30A5D"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkDebug-run4.json",
+        "sha256": "1EBB40FD69B0C6E04FCAB0DA68265DF9CB8E962C844AB5284333D0F2C036956B"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-clock-run4.py",
+        "sha256": "E90A8D1ED150A5AF9F98FE6274420EE4C0A7437BFE4948E4638E9B0F4CC9D41C"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkManager-run1.json",
+        "sha256": "16FEE5D16EF2E331C2DF20EC5154AB01FC8D17C51E24A4909092A7B716F4BF25"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkManager-run2.json",
+        "sha256": "9C36A88B16E0BA1DD82692F16AFF04323A13B9F5B5479322C5146123E1C6ABC5"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-sync-run3.py",
+        "sha256": "BEFCDADB10B445FBD9DB94C5C25FA70F2880CA7E0E7756F5741C3CE942D30A5D"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkMatchmaking-run1.json",
+        "sha256": "E4BB01E1C5088A2CD481F9941EA30ECDD3B4B057F96307AC42CFE64069EA33F1"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkMatchmaking-run2.json",
+        "sha256": "8D0EFB5EA134D73041A7377BFED0A14905CC740E8DA9CBDD83F27D92DEB244B7"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-char-traits-run2.py",
+        "sha256": "0C029E9E0014908E145A8602715EBBD4E51A45E62675DA066EAA1E4761B8EC3D"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkMatchmaking-run3.json",
+        "sha256": "7CB592ABCC6907A3A19FDD1E9392135405E5F18B81191B8EC5B07FD25C9714A5"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkPacket-run1.json",
+        "sha256": "350EE1F6BD3B42610A901FEE2792C0E341BB701C1E092FF2BE7DF5F0265DF743"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkPeer-run1.json",
+        "sha256": "F8DF8D76DFB1116F2E238FA80B615A3D046334DCEEDCDEAEF0A293DE7C2B16B2"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkPeer-run2.json",
+        "sha256": "32BC57D18102854423D7CBB31EC2965461C36C19D4BF89F7E436B5EBED75BD19"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkServer-run1.json",
+        "sha256": "3690D9752EBC4D88C06E6B6801BCA12B80095754145E238D11386299B4AF2840"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkServer-run2.json",
+        "sha256": "58773F3EC24C4B9C6A6D7E2C3C34C26BE16CB160110D9BB26E8A479EA141B1C9"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkStateCtrl-run1.json",
+        "sha256": "452C80E04996B63EB763719E521724B47DE8AC1D04CD0C44E01DF78BC74F8B9D"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spNetworkStateCtrl-run2.json",
+        "sha256": "E74A334AD427866C89086B2B4C964E8D211BBB7AB71B1BAE4312E67FB23E8827"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-sync-run3.py",
+        "sha256": "BEFCDADB10B445FBD9DB94C5C25FA70F2880CA7E0E7756F5741C3CE942D30A5D"
+      },
+      "status": "passed"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spSocketStream-run1.json",
+        "sha256": "6DCFCCB672093CC5F01040BC0B37DB06475F8DBEF12CD2CA9A0DE722264A8F6C"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/source-snapshot/probe_pc_ai_action_lifecycle.py",
+        "sha256": "2BA0BDA903F73CD5DBB349E9EC84197C73E251098837DFB1BC88DC4E17E3CC5A"
+      },
+      "status": "blocked"
+    },
+    {
+      "report": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/pc-spSocketStream-run2.json",
+        "sha256": "5F5A18486B4EF8D0FA6A6CD062E8AF5E76CB1C38C0F054CAD264F81E48A7108F"
+      },
+      "exactRunner": {
+        "path": "local-data/results/native-cycle-20260910-1900/network-family/probe-pc-lifecycle-network-offset-run5.py",
+        "sha256": "E9B52C2F3B6B21909E2AAB690476452B7DCD4DFFE6F6F1DF75C7033E34F0F09C"
+      },
+      "status": "passed"
+    }
+  ],
+  "counts": {
+    "pcClasses": 10,
+    "ps2RegisteredCounterparts": 0,
+    "pcLifetimes": 9,
+    "pcClassOperations": 45,
+    "startupFailureLifetimes": 5,
+    "packetCases": 15
+  },
+  "packet": {
+    "objectBytes": 40,
+    "payloadAllocationBytes": 256,
+    "wireHeaderBytes": 17,
+    "wireFormat": "<HHHBIIH",
+    "reader": "004996D0",
+    "writer": "00499850",
+    "fields": [
+      "Source:uint16@10",
+      "Destination:uint16@12",
+      "PacketType:uint16@14",
+      "UseTcp:uint8@16",
+      "PacketDataField1:uint32@18",
+      "PacketDataField2:uint32@1C",
+      "Size:uint16@20"
+    ],
+    "factory": "00499960",
+    "clone": "004999C0",
+    "payloadPointerOffset": "24",
+    "memoryStreamFactory": "00465560",
+    "memoryStreamBytes": 56,
+    "cloneBehavior": "Fresh packet header and separate256-byte payload; contents not copied",
+    "defaults": "Source/Destination BAD0,data1/data2/size zero;type/TCP retain allocation poison",
+    "scope": "Actual NetworkPacket and MemoryStream factories/resize/read/write/teardown.17-byte packed header. Truncated inputs stop at the next actual field-read call site,oversize stops before payload read/write;no out-of-bounds transfer or substituted logger. Complete read failure only for empty stream. Network operation/caller size policy not claimed."
+  },
+  "limitsAndCorrections": [
+    "Five lifetimes use literal WSAStartup10091 without WSADATA writes and WSACleanupFFFFFFFF. Actual socket startup/connect/send/receive were not supplied or exercised.",
+    "CRT char_traits reuses the existing bounded fixture. Only four existing single-thread critical-section inputs are selected; this does not prove concurrency.",
+    "NetworkDebug executes its own embedded spTimer against literal timeGetTime1200. Old global-only TimerFixture refresh seams were removed for this explicit profile.",
+    "DXNetwork run2 failed at RTTI by reading its primary network interface as BaseObject. Native secondary table+4 and Clone return+4 are used from run3. Run3 then exposed WSACleanup, supplied explicitly in run4. No game callback was forced successful.",
+    "Window named pc-network-base-construction at465CE0 is the protected DX constructor path calling base4A1C40. Base secondary+4 independently follows from actual4A1C00 destructor and4A1C30 adjustor; no linear protected-junk disassembly is accepted as executed code.",
+    "Packet truncated-header cases except empty stop before the next missing scalar read. Size257 cases stop before raw payload transfer; caller-side size policy and complete logged failure paths remain open.",
+    "No corresponding PS2 registered classes found in the cached complete catalog. This does not prove there is no unregistered networking code."
+  ]
+}
