@@ -1,0 +1,290 @@
+{
+  "kind": "original-trigger-distance-predicate-contracts",
+  "schemaVersion": 1,
+  "classes": {
+    "wxCT02OpenDoor": {
+      "pc": 5532976,
+      "ps2": 3815776,
+      "end": 3815852,
+      "full": true,
+      "kind": "door",
+      "tolerance": 100,
+      "threshold": 20000
+    },
+    "wxGiantBoulderTrigger": {
+      "pc": 5529168,
+      "ps2": 3856752,
+      "end": 3856824,
+      "full": true,
+      "kind": "boulder",
+      "tolerance": 0,
+      "threshold": 160000
+    },
+    "wxCTCombinationLock": {
+      "pc": 5540992,
+      "ps2": 3819696,
+      "end": 3819840,
+      "kind": "variable",
+      "tolerance": 500
+    },
+    "wxPhoneTrigger": {
+      "pc": 5540992,
+      "ps2": 3880368,
+      "end": 3880512,
+      "kind": "variable",
+      "tolerance": 500
+    },
+    "wxChangeCharacterPlacement": {
+      "pc": 5509184,
+      "ps2": 3783936,
+      "end": 3784080,
+      "kind": "variable",
+      "tolerance": 300
+    },
+    "wxGenericSideQuest": {
+      "pc": 5837072,
+      "ps2": 4021744,
+      "end": 4021892,
+      "kind": "sidequest",
+      "tolerance": 100
+    },
+    "wxDragonFlowerTrigger": {
+      "pc": 5488416,
+      "ps2": 3843264,
+      "end": 3843404,
+      "kind": "dragon",
+      "tolerance": 100
+    },
+    "wxGenericTrigger": {
+      "pc": 5834304,
+      "ps2": 3852432,
+      "end": 3852592,
+      "kind": "generic",
+      "tolerance": 100
+    }
+  },
+  "scope": "Cached profile/borrowed records. PC whole methods. PS2 two full methods and post-SQ own components with full original geometry helper through explicit restricted CPU interpretation. No game callbacks or helper outcomes replaced.",
+  "validation": {
+    "totalDistinctExecutions": 171,
+    "pcWhole": 79,
+    "ps2Whole": 12,
+    "ps2OwnComponents": 80,
+    "additionalProtectedGateObservations": 2,
+    "pcPhoneAliasReruns": 0,
+    "guardedBytes": 36864
+  },
+  "rules": {
+    "defaultHelperForce": 0,
+    "height": "Ignore Y iff force nonzero or abs(dy)<tolerance;exact integer-square inputs qualified.",
+    "comparison": "strict less;CT02 constant20000;GiantBoulder constant160000;others unsigned word128PC/134PS2;Dragon converts threshold to float instead of square to integer.",
+    "profileGlobal": {
+      "pc": "00765AD4",
+      "ps2": "0049FC7C"
+    },
+    "playerNode": "profile2B4->record24",
+    "otherNode": "this18 except GenericSideQuest:this24->record24",
+    "doorNodes": {
+      "pc": [
+        "148",
+        "14C"
+      ],
+      "ps2": [
+        "160",
+        "164"
+      ]
+    },
+    "genericGate": {
+      "pc": "124",
+      "ps2": "130",
+      "observedPcInstruction": "0040744C",
+      "bytes": "8a8624010000"
+    }
+  },
+  "unknowns": [
+    "General fractional/special floating-point conversion and square>=2^31 path not qualified.",
+    "PS2 SQ/LQ frames and cache-miss singleton acquisition excluded except whole two leaf callers.",
+    "Actions,normal scene binding,lifecycle and other runtime methods open."
+  ],
+  "sources": [
+    {
+      "path": "research/generic-trigger-contracts-2026-09-10.json",
+      "sha256": "4AFA11163B59880698136F4318638FC0BEA8389F9465706E49EA4EFAF99232F6"
+    },
+    {
+      "path": "research/collectible-proximity-contracts-2026-09-11.json",
+      "sha256": "D6D867386766A1E1A3C4D16257FEB353996B670574CFCF9DB0FD86E97C1F6FD3"
+    },
+    {
+      "path": "research/ps2-integer-square-contracts-2026-09-11.json",
+      "sha256": "11440B71E6ABAD353303EE68E31DDEC74A4A54E13005A3675C0B93424D9686A5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/probe_trigger_distance_predicates.py",
+      "sha256": "ABE944FBDDC84F9BC2A633F4B03C6A0C17C1056B41958D0B77EE94DE214CAB42"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/scout-trigger-runtime-methods.py",
+      "sha256": "A164EBC2C27B2E387915EED096A2A228ED7356B3199EBE0EA9BA10A25C436891"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/prepare-trigger-distance-cases.py",
+      "sha256": "F45EC55F5FFF38912940030CFED186F4E43D5AAC97EF0BDDAB65A169A51893EF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/observe-trigger-protected-gate.py",
+      "sha256": "4E77D8ED8C956087909951EDE72BD625FBE6160E40501742F4B3944874EDAA85"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/seal-trigger-distance.py",
+      "sha256": "3047E653BE62A5CE2BEA96C22733E35E832FD3EEEADDF35E8AA9C50F45CA53B3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-cases.json",
+      "sha256": "AB7EF9BAD73F7C2B21680AF5BDC93BB66F4CAE65C6F274651AE5277366C8DD3F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/method-selection.json",
+      "sha256": "9E30BCFAEAE1BD44AD706501AA0B596877033C6A27763CC32F38D10C984C1B9E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/first-return-summary.json",
+      "sha256": "2D094B2E8D27FF0386FCFA2791D3A843C1AC1DAF5596E39B88DDC44B5B5A2F60"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/protected-gate-run1.json",
+      "sha256": "5BBAEFFCE01A093A9D00674D166FB9773341B26B656BC525312622136AD19DBD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/methods-0/capture.json",
+      "sha256": "F8BE5D13D49DEF58FBA2A310CB7EE5AABE645845BCD1F94DA8F7AC4630F49D9D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/methods-1/capture.json",
+      "sha256": "92D501F2D0ABA3B7F82BF826E3C1265C20E9BC0E4CC6EB0DC026FB242466375C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/methods-2/capture.json",
+      "sha256": "1C09F27AC2DD8039ECDB32808C96DE7C033C9C54A458D97B6276DE5742C38C2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/methods-3/capture.json",
+      "sha256": "B1924E46A2954DB80C717DBA32FA9AFE49D38DD7DA014E5CDD46C1715FF51E6A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/protected-gate-original/capture.json",
+      "sha256": "9A99C51BE0D568299A8369FBF4135C3049DBE667319A4D2188313A34D6D9BA84"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/support/capture.json",
+      "sha256": "225D30291F777B9BE0806F9B61B30A2303CF6DCC9202119439777AEA2758CA2F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/vtables/capture.json",
+      "sha256": "EA2710DBDBEEE3D019A7EB1F183093AA8EEC4FE707D60CE260223922BF70C114"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-pilot-run1.json",
+      "sha256": "584A9AD6837EFC98A9593E6187A6ED734F50EA7DA138662086FC407798B01EA6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-batch-run1.json",
+      "sha256": "750FD176A34AF3E93A187688FE133B33D99A20B335011FFF449ED6AB684B2E79"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-pilot-run1.json",
+        "sha256": "584A9AD6837EFC98A9593E6187A6ED734F50EA7DA138662086FC407798B01EA6"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/probe_trigger_distance_predicates.py",
+        "sha256": "ABE944FBDDC84F9BC2A633F4B03C6A0C17C1056B41958D0B77EE94DE214CAB42"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-cases.json",
+        "sha256": "AB7EF9BAD73F7C2B21680AF5BDC93BB66F4CAE65C6F274651AE5277366C8DD3F"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "ps2Extension": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-batch-run1.json",
+        "sha256": "750FD176A34AF3E93A187688FE133B33D99A20B335011FFF449ED6AB684B2E79"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/probe_trigger_distance_predicates.py",
+        "sha256": "ABE944FBDDC84F9BC2A633F4B03C6A0C17C1056B41958D0B77EE94DE214CAB42"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-cases.json",
+        "sha256": "AB7EF9BAD73F7C2B21680AF5BDC93BB66F4CAE65C6F274651AE5277366C8DD3F"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "35A61620237DAF313D0800C0BB41FEC5CF736E4E81CD3CB4AE284E794CBB970E"
+      },
+      "ps2Extension": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/protected-gate-run1.json",
+        "sha256": "5BBAEFFCE01A093A9D00674D166FB9773341B26B656BC525312622136AD19DBD"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/observe-trigger-protected-gate.py",
+        "sha256": "4E77D8ED8C956087909951EDE72BD625FBE6160E40501742F4B3944874EDAA85"
+      },
+      "underlyingProbe": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/probe_trigger_distance_predicates.py",
+        "sha256": "ABE944FBDDC84F9BC2A633F4B03C6A0C17C1056B41958D0B77EE94DE214CAB42"
+      },
+      "pcWrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/source-snapshot/pc_block_emulator.py",
+        "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/trigger-runtime-methods/distance-cases.json",
+        "sha256": "AB7EF9BAD73F7C2B21680AF5BDC93BB66F4CAE65C6F274651AE5277366C8DD3F"
+      }
+    }
+  ]
+}
