@@ -1,0 +1,351 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-game-flow-small-2026-09-10T07:05:02Z",
+  "createdUtc": "2026-09-10T07:05:02Z",
+  "notes": "Paired short active hooks and actual platform differences. Ten paired original cases; consumer boundaries explicit, no replacement game callee and no full-class closure.",
+  "assessments": [
+    {
+      "className": "wxDebugMenuGameFlowState",
+      "platformKey": "pc",
+      "coverageScore": 60,
+      "lowerBound": 45,
+      "upperBound": 75,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    },
+    {
+      "className": "wxDebugMenuGameFlowState",
+      "platformKey": "ps2",
+      "coverageScore": 55,
+      "lowerBound": 40,
+      "upperBound": 70,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxDebugMenuGameFlowState own active hooks",
+          "observation": "Ordered borrowed input calls; PC additionally calls DebugManager consumers, absent from corresponding PS2 hooks. PC prefixes to both consumers, PS2 v8 prefix and v9 complete return; empty/true slots statically identified."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    },
+    {
+      "className": "wxDialogWindowGameFlowState",
+      "platformKey": "pc",
+      "coverageScore": 65,
+      "lowerBound": 50,
+      "upperBound": 80,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    },
+    {
+      "className": "wxDialogWindowGameFlowState",
+      "platformKey": "ps2",
+      "coverageScore": 60,
+      "lowerBound": 45,
+      "upperBound": 75,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxDialogWindowGameFlowState own active hooks",
+          "observation": "PC original clears exactly600 bytes at window+14 with unchanged guards; independent PS2 prefix proves memset arguments. Paired v12 consumer entry/receiver; true return after consumer is static, not executed through unknown consumer."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    },
+    {
+      "className": "wxLoadSaveGameFlowState",
+      "platformKey": "pc",
+      "coverageScore": 70,
+      "lowerBound": 55,
+      "upperBound": 85,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    },
+    {
+      "className": "wxLoadSaveGameFlowState",
+      "platformKey": "ps2",
+      "coverageScore": 60,
+      "lowerBound": 45,
+      "upperBound": 75,
+      "researchStatus": "partial",
+      "assessmentOrigin": "new_research",
+      "summary": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-game-flow-small-hooks-2026-09-10.md",
+          "sourceSha256": "DB1BACC0FBE12C4E78D03D802650FEA73D06D20132E80DE131719424CDC8C94B",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/native-platform-game-flow-family-2026-09-10.json",
+          "sourceSha256": "C828487CA87533F59DE47B09FDB1BF02FAAAC50EC6A507E8FA055FE01948227B",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/paired-run1.json",
+          "sourceSha256": "730FA06D21167923CF9F94B3865317D530E562F136A4FB432C3A3C26B1DD14A6",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/probe_game_flow_small_hooks.py",
+          "sourceSha256": "2198B84D5E77864BC62A516A997F9B18682D4941988C2742DD438728C41572A0",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows/capture.json",
+          "sourceSha256": "E2CE0032CCC67455559F89DFFB11191F8E4FCE986EE55BE915F15672D3579FC5",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260910-1900/game-flow-small/windows2/capture.json",
+          "sourceSha256": "B5CC4DA4EFB307EDE4365A71D482893B448DFA97D0D2DF939D785F5C33ED7F6E",
+          "locator": "wxLoadSaveGameFlowState own active hooks",
+          "observation": "PC original input-only v9/v12 returns; PS2 v12 additionally calls LoadSavePS2Manager. PS2 v9 state+6A4==4 requests controller(54,1); four other values return normally. Full storage/controller consumer effects excluded."
+        }
+      ],
+      "unknowns": [
+        "Inherited base/resource behavior, original method/input slot names, lazy singleton startup and full effects of delegated game consumers remain open. Prefix is not whole function return; PS2 constructor/lifecycle not executed."
+      ]
+    }
+  ]
+}
