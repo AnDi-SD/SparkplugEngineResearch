@@ -1,0 +1,113 @@
+{
+  "scope": "FBX target-format weight validation in existing native SDK host. No SMO reader/game algorithm changes. Shared GLB/FBX fixture.",
+  "fbx_checks": 19,
+  "fbx_seconds": 3.0749749,
+  "refusals_preserve_destination": 7,
+  "supported_fbx_sdk_payloads_byte_equal": 3,
+  "each_sdk_payload_bytes": 363616,
+  "glb_checks": 10,
+  "supported_glb_byte_equal": 3,
+  "before": "Expected failure: old bridge accepted half-sum and overwrote destination",
+  "limits": [
+    "No verified nonunit conversion; remains explicit refusal",
+    "SDK readback equality covers geometry/skeleton/weights; no animation/pixel assertion"
+  ],
+  "artifacts": [
+    {
+      "path": "tools/FbxBridge.Native/src/export.cpp",
+      "sha256": "f4b2ebc48ea320ee80c61eb815eb6a754952259958ac04b3178ef6808ee66c15",
+      "bytes": 46274
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/FbxExporter.cs",
+      "sha256": "f17125259300779da36d0dfeb2a63aacd9c2590e293a8dd6ecba50c734c99a33",
+      "bytes": 4680
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/SkinWeightExportRegression.cs",
+      "sha256": "0aff98631f12d95a7bc52332c3d77279269955c21b8792dab7f7bfac55a1922d",
+      "bytes": 7290
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.FormatTests/Program.cs",
+      "sha256": "afdda9b1575850f6729e5d596a3f95ec91c50a564cb97ff2741f6492d04a649a",
+      "bytes": 34592
+    },
+    {
+      "path": "C:/Program Files/Autodesk/FBX/FBX SDK/2020.3.10/include/fbxsdk/scene/geometry/fbxcluster.h",
+      "sha256": "90ce6f4d5e1630084c9b56d2c5026e0ddb063c20b5886a0af787a0d62d3e99df",
+      "bytes": 13758
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/before-native/SmoFbxBridge.exe",
+      "sha256": "960d89173de044495b8854074fbb37aad3e2237985b0e632ca6cfea815b898f3",
+      "bytes": 1213952
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/before-native/libfbxsdk.dll",
+      "sha256": "3869e66e3648956844950fb001c968e7fd922e7835f2f9a0257627b3588be732",
+      "bytes": 7887192
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/before/report.json",
+      "sha256": "9707abc6916ff606c572ed2051779b8907aff8a6c8a0ea48d60a8e87799aaffd",
+      "bytes": 2074
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/after/report.json",
+      "sha256": "70a2ad6b21ec1315c5c357cf3d8ee997fd30f101f15cf71676385fb7424064ac",
+      "bytes": 4555
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/sdk-comparison.json",
+      "sha256": "0b0fef919c19e202e6ccf06e3429502f0ea20ed4e75f6d43e82cf95f1b0f231c",
+      "bytes": 1261
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/glb-shared-fixture/report.json",
+      "sha256": "e1e4c08b714ba8aa90acca235b75960b9082635ba17f394ce2e79d02cf7ff4ee",
+      "bytes": 2231
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/glb-comparison.json",
+      "sha256": "d91eaacef12d488e03809e0791883cbb110f94dfdfd4494abaf9e74e2973fe69",
+      "bytes": 483
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/managed-build.log",
+      "sha256": "7448cabb8b2a10c94fbf0253bbd76bf420be1a8949de6af724c6c2425d6cd758",
+      "bytes": 196
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/native-build.log",
+      "sha256": "35ebe8b11565e7318b04d7d13a4b3f634521441bdb242bba1075b3e8fb355d1a",
+      "bytes": 10128
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/fbx-skin-weights/native-build-unrestricted.log",
+      "sha256": "be1a5135e183f10673f175bb9430f05886613dd9e5bd355d53786bc6a8fa526a",
+      "bytes": 492
+    },
+    {
+      "path": "tools/FbxBridge.Native/build/bin/Release/SmoFbxBridge.exe",
+      "sha256": "b767f46386d73f0fc14282fd1ad19cfd37c9d911a934c64f1ed5a40b22cea9cb",
+      "bytes": 1218560
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "sha256": "2378e4190de4edaf59a21c3c79512f9fc0057fa5d324de907b9d46f8b9587a97",
+      "bytes": 1152000
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "a61bd8946b9d575419a23180dae9d7bafc24f6f2f15169c03dbe4fce7df9ba69",
+      "bytes": 9395
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Characters/Bloom/Bloom_body.smo",
+      "sha256": "3316bce73a9f4098a4bc813e1231a81c4beec46fab9c5bc34e6e9b5d1817e8f2",
+      "bytes": 380828
+    }
+  ],
+  "source_scene_boundary": "The same common graph/scene library prepared both old-bridge and new-bridge fixtures; the concurrent host registry change is fingerprinted separately and does not change the native FBX difference under test."
+}

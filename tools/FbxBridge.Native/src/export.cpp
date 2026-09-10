@@ -719,6 +719,32 @@ void BindSkin(
         source.joints.size() != source.positions.size())
         throw std::runtime_error("FBX skinned mesh attribute counts differ.");
 
+    // Fixed.rfx uses the authored weighted xyz sum without division, whereas
+    // the SDK's eNormalize clusters normalize each control point's weights.
+    // Preserve the supported near-unit contract; do not silently change a
+    // different original deformation or discard an unusable influence.
+    auto component = [](const Vec4& value, int index)
+    {
+        return index == 0 ? value.x : index == 1 ? value.y : index == 2 ? value.z : value.w;
+    };
+    for (std::size_t vertex = 0; vertex < source.positions.size(); ++vertex)
+    {
+        float totalWeight = 0;
+        for (int influence = 0; influence < 4; ++influence)
+        {
+            float weight = component(source.weights[vertex], influence);
+            if (!std::isfinite(weight) || weight < 0 ||
+                (weight > 0 && JointSlot(component(source.joints[vertex], influence), skinData.joints.size()) < 0))
+                throw std::runtime_error("FBX_SKIN_INFLUENCE: Mesh " + std::to_string(source.objectIndex) +
+                    " has an unsupported weight or joint at vertex " + std::to_string(vertex) + ".");
+            totalWeight += weight;
+        }
+        if (!std::isfinite(totalWeight) || std::abs(totalWeight - 1.f) > 0.0001f)
+            throw std::runtime_error("FBX_SKIN_WEIGHT_SUM: Mesh " + std::to_string(source.objectIndex) +
+                " has skin weight sum " + std::to_string(totalWeight) + " at vertex " +
+                std::to_string(vertex) + ". Export requires a verified conversion; the game's shader does not normalize it.");
+    }
+
     std::vector<FbxNode*> links(skinData.joints.size());
     std::unordered_map<std::int32_t, int> occurrence;
     for (std::size_t slot = 0; slot < skinData.joints.size(); ++slot)
@@ -754,10 +780,6 @@ void BindSkin(
     FbxSkin* skin = FbxSkin::Create(
         state.scene, SafeName(skinData.name, "skin_" + std::to_string(meshNumber)).c_str());
     FbxAMatrix meshBind = FromRowMatrix(bindWorld);
-    auto component = [](const Vec4& value, int index)
-    {
-        return index == 0 ? value.x : index == 1 ? value.y : index == 2 ? value.z : value.w;
-    };
     std::vector<FbxAMatrix> linkBinds(links.size());
     for (std::size_t slot = 0; slot < links.size(); ++slot)
     {

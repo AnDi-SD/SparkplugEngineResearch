@@ -166,6 +166,15 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     сохранены15anchors/11ranges, исправлены ошибочные color offsets в досье.
     PC готовность от PS2 результата не повышается; production defaults не менялись.
 
+17. [FBX weights](tool-fbx-skin-weight-boundary-2026-09-10.md): найден аналогичный
+    non-unit дефект в SDK eNormalize. Native host теперь явно отказывает,
+    сохраняя destination;19 checks прошли за3,075с. Старый bridge воспроизвёл
+    ошибку, а для3supported inputs неизменённый SDK importer прочитал
+    побайтно одинаковые363616B geometry/skeleton/weights. Общий fixture
+    повторно прошёл10GLB checks; normal export не изменён.
+    Сборке FBX потребовался разрешённый запуск вне sandbox: MSBuild FileTracker
+    получал E_ACCESSDENIED. Первый log и успешный повтор сохранены.
+
 ## Новые границы и исправления
 
 - Первый GPU negative test завис из-за непойманного exception нового harness;
