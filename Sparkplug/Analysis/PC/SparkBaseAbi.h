@@ -409,6 +409,7 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spSubscriptionManagerFactory = 0x004165B0;
     inline constexpr Address32 spSubscriptionManagerClone = 0x00416610;
     inline constexpr Address32 spSubscriptionManagerDispatch = 0x00415A20;
+    inline constexpr Address32 spSubscriptionManagerSubscribe = 0x00416150;
     inline constexpr Address32 spSubscriptionManagerUnsubscribe = 0x004163A0;
     inline constexpr Address32 spSubscriptionManagerGlobal = 0x0075537C;
     inline constexpr Address32 spStreamConstructorReadableTail = 0x0040502B;

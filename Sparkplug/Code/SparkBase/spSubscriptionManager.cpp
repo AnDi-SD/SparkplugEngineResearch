@@ -1,7 +1,5 @@
 #include "spSubscriptionManager.h"
 
-#include <algorithm>
-
 namespace sparkplug::reconstruction
 {
     namespace
@@ -67,12 +65,7 @@ namespace sparkplug::reconstruction
         spBaseObject& subscriber)
     {
         auto& group = subscriptions_[key];
-        if (std::find(group.begin(), group.end(), &subscriber) != group.end())
-        {
-            return false;
-        }
-        group.push_back(&subscriber);
-        return true;
+        return group.insert(&subscriber).second;
     }
 
     bool spSubscriptionManager::UnsubscribeForAnalysis(
@@ -86,8 +79,7 @@ namespace sparkplug::reconstruction
         }
 
         auto& group = groupIterator->second;
-        const auto subscriberIterator =
-            std::find(group.begin(), group.end(), &subscriber);
+        const auto subscriberIterator = group.find(&subscriber);
         if (subscriberIterator == group.end())
         {
             return false;
@@ -111,12 +103,13 @@ namespace sparkplug::reconstruction
         }
 
         std::size_t delivered = 0;
-        // std::list retains native iterator stability if a callback removes a
-        // different subscriber; advance before invoking the virtual target.
+        // PC 0x00415AB6 / PS2 0x0010DF74 invoke the callback before advancing
+        // the ordered pointer-tree iterator. Verified with nonmutating callbacks;
+        // no safe removal of the current subscriber/group is established.
         auto& group = groupIterator->second;
-        for (auto iterator = group.begin(); iterator != group.end();)
+        for (auto iterator = group.begin(); iterator != group.end(); ++iterator)
         {
-            auto* const subscriber = *iterator++;
+            auto* const subscriber = *iterator;
             if (subscriber != nullptr)
             {
                 subscriber->vfunc_0C(notification);

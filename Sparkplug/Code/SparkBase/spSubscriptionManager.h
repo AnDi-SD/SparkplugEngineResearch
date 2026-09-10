@@ -7,9 +7,9 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <list>
 #include <map>
 #include <memory>
+#include <set>
 
 namespace sparkplug::reconstruction
 {
@@ -31,8 +31,8 @@ namespace sparkplug::reconstruction
             spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
-        // Analytical names for PS2 0x0010E210, 0x0010E3B0 and 0x0010DE90
-        // (PC dispatch is 0x00415A20).  Native callers pass an integer key and
+        // Analytical names for PS2 0x0010E3B0, 0x0010E210 and 0x0010DE90
+        // (PC 0x00416150, 0x004163A0 and 0x00415A20). Native callers pass an integer key and
         // an spBaseObject whose notification virtual is invoked on dispatch.
         [[nodiscard]] bool SubscribeForAnalysis(
             std::uint32_t key,
@@ -50,6 +50,6 @@ namespace sparkplug::reconstruction
 
     private:
         static spSubscriptionManager* instance_;
-        std::map<std::uint32_t, std::list<spBaseObject*>> subscriptions_;
+        std::map<std::uint32_t, std::set<spBaseObject*>> subscriptions_;
     };
 }

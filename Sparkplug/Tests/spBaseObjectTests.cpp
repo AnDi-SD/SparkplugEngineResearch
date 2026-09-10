@@ -23,6 +23,7 @@
 #include "Analysis/PS2/spPS2AsyncFileStreamManagerState.h"
 
 #include <algorithm>
+#include <functional>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -346,10 +347,15 @@ namespace
         {
             ++calls;
             lastNotification = notification;
+            if (order != nullptr)
+            {
+                order->push_back(this);
+            }
         }
 
         std::size_t calls = 0;
         const void* lastNotification = nullptr;
+        std::vector<sparkplug::reconstruction::spBaseObject*>* order = nullptr;
     };
 }
 
@@ -744,6 +750,28 @@ int main()
     }
     Require(spSubscriptionManager::GetInstance() == nullptr,
         "subscription-manager destruction clears its singleton");
+
+    {
+        // Original PC416150/415A20 dispatches in unsigned address order,
+        // independently of arrival order (native capture 2026-09-10).
+        spSubscriptionManager manager;
+        SubscriptionProbe probes[3];
+        std::vector<spBaseObject*> expected{&probes[0], &probes[1], &probes[2]};
+        std::sort(expected.begin(), expected.end(), std::less<spBaseObject*>{});
+        std::vector<spBaseObject*> observed;
+        observed.reserve(3);
+        for (auto& probe : probes) probe.order = &observed;
+        for (auto i = expected.rbegin(); i != expected.rend(); ++i)
+            Require(manager.SubscribeForAnalysis(42, **i), "reverse subscription accepted");
+        Require(manager.DispatchForAnalysis(42, nullptr) == 3 && observed == expected,
+            "original subscription dispatch follows pointer order, not insertion order");
+        Require(manager.UnsubscribeForAnalysis(42, *expected[1])
+                && manager.SubscribeForAnalysis(42, *expected[1]),
+            "native middle subscriber can be removed and reinserted");
+        observed.clear();
+        Require(manager.DispatchForAnalysis(42, nullptr) == 3 && observed == expected,
+            "reinsertion preserves original pointer ordering");
+    }
 
 #if defined(_WIN32)
     {

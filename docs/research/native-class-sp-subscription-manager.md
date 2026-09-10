@@ -29,43 +29,56 @@ PC factory и PS2 factory независимо выделяют `0x20`. Общи
 sizeof                                0x20
 ```
 
-PC constructor/destructor bodies `0x00416500/0x00416450` закрыты `.rld`
-trampolines, но allocation, field accesses, vtables и PS2 direct construction
-независимо подтверждают layout. Clone создаёт пустой manager и вызывает
+PC constructor/destructor entries `0x00416500/0x00416450` проходят через `.rld`
+trampolines. 10 сентября полный original factory/lifetime успешно выполнен
+в bounded PC guest; защищённый вход сам по себе больше не является блокером.
+Allocation, field accesses, vtables и PS2 direct construction независимо
+подтверждают layout. Clone создаёт пустой manager и вызывает
 inherited empty copy, то есть runtime subscriptions не копируются.
 
 ## Три операции
 
 PS2 даёт прямые тела:
 
-- subscribe `0x0010E210` принимает manager, integer key и `spBaseObject*`;
-- unsubscribe `0x0010E3B0` принимает ту же пару key/object;
+- subscribe `0x0010E3B0` принимает manager, integer key и `spBaseObject*`;
+- unsubscribe `0x0010E210` принимает ту же пару key/object;
 - dispatch `0x0010DE90` читает key из notification `+0x0C`, находит группу и
   вызывает notification virtual каждого объекта.
 
 PC dispatch `0x00415A20` делает тот же поиск и вызывает target по vtable
 `+0x04`; это тот же source-level slot, что PS2 target по `+0x0C` после двух
-ABI words. PC unsubscribe `0x004163A0` подтверждён 150 destructor callers.
+ABI words. PC subscribe — `0x00416150`, unsubscribe — `0x004163A0`.
+Оба original entry проверены исполнением 10 сентября; PS2-подписи двух
+операций в прежней редакции этого документа были переставлены местами.
 
-Контейнер имеет два уровня: ordered key map и группа object pointers. Subscribe
+Контейнер имеет два уровня: ordered key map и ordered set object pointers. Subscribe
 сначала ищет уже существующий object и не добавляет duplicate; unsubscribe
 удаляет пустую группу. Hundreds of constructor/destructor callers используют
 эту пару симметрично (например key `5` у одного из PC game objects).
+
+Для стабильной группы callback идёт по возрастанию адресов подписчиков,
+независимо от порядка добавления и повторного включения. PC original probe
+проверяет reverse insertion/reinsertion; PS2 helper `0x0010EC00` независимо
+показывает unsigned pointer comparison. Итератор продвигается после callback.
 
 ## Реконструкция и проверка
 
 Добавлены `Sparkplug/Code/SparkBase/spSubscriptionManager.h/.cpp`, exact PC/PS2
 ABI layouts/anchors и registration. Portable seam сохраняет integer grouping,
 duplicate suppression, cleanup пустой группы и вызов `spBaseObject::vfunc_0C`.
-Тест проверяет две группы, два подписчика, неизвестный key, duplicate,
-unsubscribe и empty clone. Изолированная Windows x64 сборка проходит 2/2.
+Тест проверяет две группы, неизвестный key, duplicate, unsubscribe, empty clone,
+а также три подписчика, добавленных в обратном порядке, и reinsertion.
+10 сентября старая list-реализация провалила новую проверку порядка; общая
+реализация исправлена на ordered set. Подробности и границы проверки:
+[исправление реконструкции 10 сентября](native-subscription-order-correction-2026-09-10.md).
 
 ## Явно открыто
 
 - original TU/header, method names и container typedef;
 - точный source type ключа и notification base class;
 - полная byte-layout notification variants (известный `+0x0C` — лишь key);
-- порядок callbacks при одинаковом key и mutation semantics внутри callback;
-- точный адрес PC subscribe body за защищёнными helper paths;
+- mutation/reentry semantics внутри callback; порядок подтверждён только
+  при неизменяемой во время рассылки группе, безопасное удаление текущего
+  элемента или всей группы не заявляется;
 - owner lifetime: manager хранит сырые object pointers, но механизм
   обязательной destructor-unsubscribe ещё не выражен типом.

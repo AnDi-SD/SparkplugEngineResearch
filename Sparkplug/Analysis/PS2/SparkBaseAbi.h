@@ -671,8 +671,8 @@ namespace sparkplug::evidence::ps2
     inline constexpr Address32 spSubscriptionManagerRegistrationInitializer = 0x0047F730;
     inline constexpr Address32 spSubscriptionManagerRegistrationGetter = 0x0010DE80;
     inline constexpr Address32 spSubscriptionManagerDispatch = 0x0010DE90;
-    inline constexpr Address32 spSubscriptionManagerSubscribe = 0x0010E210;
-    inline constexpr Address32 spSubscriptionManagerUnsubscribe = 0x0010E3B0;
+    inline constexpr Address32 spSubscriptionManagerSubscribe = 0x0010E3B0;
+    inline constexpr Address32 spSubscriptionManagerUnsubscribe = 0x0010E210;
     inline constexpr Address32 spSubscriptionManagerDestructor = 0x0010E4C0;
     inline constexpr Address32 spSubscriptionManagerClone = 0x0010E630;
     inline constexpr Address32 spSubscriptionManagerFactory = 0x0010E750;
