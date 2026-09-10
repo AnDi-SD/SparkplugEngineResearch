@@ -1,0 +1,328 @@
+{
+  "kind": "original-gui-controller-enable-and-node-binding",
+  "schemaVersion": 1,
+  "className": "spGUIObject",
+  "counts": {
+    "mainExecutions": 57,
+    "mainWholeReturns": 52,
+    "mainBoundaries": 5,
+    "additionalPcBindingCalls": 3,
+    "failedSetupRuns": 3,
+    "failedOraclePreparationRuns": 1
+  },
+  "enable": "Store lowbyte28,actual Node substring search GUICollision with args1/1;both enable and disable branches set found controller word18=4. PC14 returns;PS213 returns plus one pre-MOVZ strstr boundary.",
+  "binding": "Unsubscribe old node/children;restore min(controllerCount,savedCount) from saved-vector prefix. Change16-bit refcounts only if pointer changes. Subscribe new node/children;append controller words without clearing saved vector,then set4. PC full sequences;PS2 whole detach or real subscribe/destructor boundary.",
+  "historyObservation": "PC bind A[1,2,3] -> B[16,32] -> null leaves B[1,2] because saved vector remains[1,2,3,16,32]. Original behavior preserved;not a source fix.",
+  "exclusions": [
+    "Actual name setter startup remains stopped at external fopen after verified diagnostic imports. Main enable uses explicit borrowed name-pool state.",
+    "PS2 complete subscription/append sequence not executed;conditional delay SQ165AB4 outside current CPU domain.",
+    "Binding initial capture label Widget_notify is exploratory only;class slot9 is Node binding.",
+    "Nonempty child trees,rendering,heap subscription contents and general startup remain open."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/pc_crt_format_fixtures.py",
+      "sha256": "F2A9CEFB350A803723714E96FFF8A16641F066DD1E7FB9B46E97E991CCE4CB47"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/pc_stl_fixtures.py",
+      "sha256": "B9F9339542C48DAFB7669EB24BB5FD5D887A2A4323776A612F410A27E5AC6AF4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_enable_controllers.py",
+      "sha256": "0DD6105C244D813821DBA372D28B8CEF8358B0886F216E8C0DA131EE3839A06D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_node_binding.py",
+      "sha256": "7983E6B19639A16E2ED8F3E6F1E9FD45894DD132E45E40B6E3D8F10E49B5BD5C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_pc_task_timer.py",
+      "sha256": "5C25282D4A764C6F8401E0A48907455CB20DA3E0CA9ECDA5290F89548D5E75CA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-binding.py",
+      "sha256": "03B029127BDD9106AAC7EC5B0815E19BC7384BC2760E2083D864112A336A1100"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable-before-crt.py",
+      "sha256": "DEC6DC06C66FF97C727A5E5D2C1325EBB4B2C45F8DCB78481B7F5EFC7CDEA268"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable-before-debug-output.py",
+      "sha256": "2BEBA4CD8AC29833A21CCF7875C8C1C378A1BB83C6F2CA9DE252D0B0CB7BED06"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable.py",
+      "sha256": "1AF84647336E46BEBD3FB6838325ACC864B12FE5959A5449E1221BC2A0158473"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/probe-gui-binding-before-relative-offset.py",
+      "sha256": "E2864E68B3767CD2E6A1095DDADC5B7445BC0B2A1B6B3BE289C1EDCA7E66C466"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/seal-gui-controller-binding.py",
+      "sha256": "6515CF2F2814F048EF5E087FF1A596E41BF55461F3913ADA62665E87CFCF2E94"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-cases.json",
+      "sha256": "C453EEA5282000699C2654D13FACF24D9C7C214235559DD2F4868C85DE6DB400"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-batch-run1.json",
+      "sha256": "A3989CCBB0A89B78776169CE19A201A19ACBD188CCFF99D599790BA6361219D3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run1.json",
+      "sha256": "280E6FECFCFAA6868F7F2F4AA5A59CD85E95910133A5A503A6D448F691DF607F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run2.json",
+      "sha256": "D5BD26FC7A5A02D6A453CE3F5F3F0110AF5594C6520AF4D2939F95A6EBED785B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-pilot-run1.json",
+      "sha256": "D7DE40BFF664EDD09DA43FD08F692BEC694CA07E1BD88BD823F476A308CF9298"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-selection.json",
+      "sha256": "201725C0F19B2FDEDB5DEF1047E4348CB7F3CAD7F4644257532118AD5BBE2954"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/edit-selection.json",
+      "sha256": "1292F3028794F2E6F03E0167D844751F0681523531DBFBE3072F72C97B8F2A28"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-cases.json",
+      "sha256": "383A2B71BDA54670B8EC8112C01C5BBF74F6EBEA94F5854715D67B3438ACCEBC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-batch-run1.json",
+      "sha256": "DA015F861B882196CB6C6D0B7F8EF25DEE479FCE178EA6F457FDBEC220EFD2F6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-pilot-run1.json",
+      "sha256": "C616F4E303301EFE9F92840D92D3BC9DFDCA7FF308820DFF764DA0685CD4DB08"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run1.json",
+      "sha256": "ED858860B5C8D1BF033BAA27A58BCB2B78030DD1D34E75778E3589AB82E811C4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run2.json",
+      "sha256": "80BBE9ED033575B45F1346131B4421D4F78B0AC1D86780340227295ABA2FA67D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run3.json",
+      "sha256": "3FEAFC6CC65CAB8C8D04A462B2F4DF086C60D0F377412E03E5FA6C3BC0E5EB04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/import-identities.json",
+      "sha256": "B50033ECC9D76CBF3C76A68A8CCAD4D1E08CF746B8ADBA8ECFEB7053E67F59F5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/selection.json",
+      "sha256": "06BC31A2FDA346C34189FCC3A53B9E1EEEC821976F9F354565877B1D37DF144E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-helpers/capture.json",
+      "sha256": "42E17A6031BB2B18131285894C21B282B9A7E01E4EE015C4F762DD7007716A6E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/edit-methods/capture.json",
+      "sha256": "393F42D40E4BFC74F03E3225880FDF6203AA2F34FD9C567B6643C754C305F4C6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/identities/capture.json",
+      "sha256": "4D30111BD69F5669A41B5B364341C8BB972B207CF8972627E4A2F1B9D5D4EA23"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/lookup-ps2/capture.json",
+      "sha256": "D7E3B85EF605419A263FF08B700C4C7B3E0886EA030936564D9EC2DB2069F0B9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/lookup-scout/capture.json",
+      "sha256": "4F21614F8C760FFD5B489E8C3308FC082416FBDC9437960BA38C7D66B36204D9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/methods/capture.json",
+      "sha256": "1A0E383C50AB2F2D25277CB661B2878CDF66C05D6090F84C50BA1895EE41321E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/search-helper/capture.json",
+      "sha256": "74D447659611D4D8D9B118D9A9FAA8274466DF99950B8FDAC5D183F1FB773037"
+    },
+    {
+      "path": "research/gui-object-contracts-2026-09-10.json",
+      "sha256": "C5B2A93293480F161214DEFEF246DCE6EEA8EF4CF2EE8ABFC799D5E1623F9394"
+    },
+    {
+      "path": "docs/research/native-class-sp-node.md",
+      "sha256": "1C81A6080812CE11B4C8DD77871C425060288E2660D8F66DC8D86F999CA264DD"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-pilot-run1.json",
+        "sha256": "C616F4E303301EFE9F92840D92D3BC9DFDCA7FF308820DFF764DA0685CD4DB08"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_enable_controllers.py",
+        "sha256": "0DD6105C244D813821DBA372D28B8CEF8358B0886F216E8C0DA131EE3839A06D"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-cases.json",
+        "sha256": "383A2B71BDA54670B8EC8112C01C5BBF74F6EBEA94F5854715D67B3438ACCEBC"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-batch-run1.json",
+        "sha256": "DA015F861B882196CB6C6D0B7F8EF25DEE479FCE178EA6F457FDBEC220EFD2F6"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_enable_controllers.py",
+        "sha256": "0DD6105C244D813821DBA372D28B8CEF8358B0886F216E8C0DA131EE3839A06D"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-cases.json",
+        "sha256": "383A2B71BDA54670B8EC8112C01C5BBF74F6EBEA94F5854715D67B3438ACCEBC"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run2.json",
+        "sha256": "D5BD26FC7A5A02D6A453CE3F5F3F0110AF5594C6520AF4D2939F95A6EBED785B"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_node_binding.py",
+        "sha256": "7983E6B19639A16E2ED8F3E6F1E9FD45894DD132E45E40B6E3D8F10E49B5BD5C"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-cases.json",
+        "sha256": "C453EEA5282000699C2654D13FACF24D9C7C214235559DD2F4868C85DE6DB400"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-batch-run1.json",
+        "sha256": "A3989CCBB0A89B78776169CE19A201A19ACBD188CCFF99D599790BA6361219D3"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/probe_gui_node_binding.py",
+        "sha256": "7983E6B19639A16E2ED8F3E6F1E9FD45894DD132E45E40B6E3D8F10E49B5BD5C"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-cases.json",
+        "sha256": "C453EEA5282000699C2654D13FACF24D9C7C214235559DD2F4868C85DE6DB400"
+      },
+      "ps2Wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run1.json",
+        "sha256": "ED858860B5C8D1BF033BAA27A58BCB2B78030DD1D34E75778E3589AB82E811C4"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable-before-crt.py",
+        "sha256": "DEC6DC06C66FF97C727A5E5D2C1325EBB4B2C45F8DCB78481B7F5EFC7CDEA268"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run2.json",
+        "sha256": "80BBE9ED033575B45F1346131B4421D4F78B0AC1D86780340227295ABA2FA67D"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable-before-debug-output.py",
+        "sha256": "2BEBA4CD8AC29833A21CCF7875C8C1C378A1BB83C6F2CA9DE252D0B0CB7BED06"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-pilot-run3.json",
+        "sha256": "3FEAFC6CC65CAB8C8D04A462B2F4DF086C60D0F377412E03E5FA6C3BC0E5EB04"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-enable.py",
+        "sha256": "1AF84647336E46BEBD3FB6838325ACC864B12FE5959A5449E1221BC2A0158473"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run1.json",
+        "sha256": "280E6FECFCFAA6868F7F2F4AA5A59CD85E95910133A5A503A6D448F691DF607F"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/probe-gui-binding-before-relative-offset.py",
+        "sha256": "E2864E68B3767CD2E6A1095DDADC5B7445BC0B2A1B6B3BE289C1EDCA7E66C466"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-pilot-run1.json",
+        "sha256": "D7DE40BFF664EDD09DA43FD08F692BEC694CA07E1BD88BD823F476A308CF9298"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-runtime/pilot-gui-binding.py",
+        "sha256": "03B029127BDD9106AAC7EC5B0815E19BC7384BC2760E2083D864112A336A1100"
+      }
+    }
+  ]
+}

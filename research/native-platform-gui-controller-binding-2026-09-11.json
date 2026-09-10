@@ -1,0 +1,126 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-gui-controller-binding-2026-09-10T23:51:27Z",
+  "createdUtc": "2026-09-10T23:51:27Z",
+  "notes": "Two independent GUIObject contracts,each +5 per platform. Preserves original accumulated saved-vector behavior. PC complete binding;PS2 detach/boundaries. No new C++.",
+  "assessments": [
+    {
+      "className": "spGUIObject",
+      "platformKey": "pc",
+      "coverageScore": 40,
+      "lowerBound": 30,
+      "upperBound": 55,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-gui-controller-binding-2026-09-11.md",
+          "sourceSha256": "23049E10BA9039531F1768AE01A9017E4ADC6B78BCDC04F7CCD7233476656AE2",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/gui-controller-binding-contracts-2026-09-11.json",
+          "sourceSha256": "32162CE2E5FBBBD370A2B2977DCD90AB4DB8715E12C463F87880E45A0698E376",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-pilot-run1.json",
+          "sourceSha256": "C616F4E303301EFE9F92840D92D3BC9DFDCA7FF308820DFF764DA0685CD4DB08",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-batch-run1.json",
+          "sourceSha256": "DA015F861B882196CB6C6D0B7F8EF25DEE479FCE178EA6F457FDBEC220EFD2F6",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run2.json",
+          "sourceSha256": "D5BD26FC7A5A02D6A453CE3F5F3F0110AF5594C6520AF4D2939F95A6EBED785B",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-batch-run1.json",
+          "sourceSha256": "A3989CCBB0A89B78776169CE19A201A19ACBD188CCFF99D599790BA6361219D3",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "30->40: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full actual PC binding/subscription sequences with original Nodes."
+        }
+      ],
+      "unknowns": [
+        "Actual StringManager config/startup and nonempty child trees remain open.",
+        "Unknown rendering/controller methods and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "spGUIObject",
+      "platformKey": "ps2",
+      "coverageScore": 35,
+      "lowerBound": 25,
+      "upperBound": 50,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-gui-controller-binding-2026-09-11.md",
+          "sourceSha256": "23049E10BA9039531F1768AE01A9017E4ADC6B78BCDC04F7CCD7233476656AE2",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/gui-controller-binding-contracts-2026-09-11.json",
+          "sourceSha256": "32162CE2E5FBBBD370A2B2977DCD90AB4DB8715E12C463F87880E45A0698E376",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-pilot-run1.json",
+          "sourceSha256": "C616F4E303301EFE9F92840D92D3BC9DFDCA7FF308820DFF764DA0685CD4DB08",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/enable-main-batch-run1.json",
+          "sourceSha256": "DA015F861B882196CB6C6D0B7F8EF25DEE479FCE178EA6F457FDBEC220EFD2F6",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-pilot-run2.json",
+          "sourceSha256": "D5BD26FC7A5A02D6A453CE3F5F3F0110AF5594C6520AF4D2939F95A6EBED785B",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/gui-runtime/binding-main-batch-run1.json",
+          "sourceSha256": "A3989CCBB0A89B78776169CE19A201A19ACBD188CCFF99D599790BA6361219D3",
+          "locator": "spGUIObject slots9/10 and original Node dependencies",
+          "observation": "25->35: two +5 contracts,GUICollision substring Enable controller word4 on both branches,and Node binding/restoration with noncleared saved-vector history. Full PS2 Enable except explicit empty-string MOVZ boundary;whole detach and actual subscribe/destructor boundaries,not a complete binding sequence."
+        }
+      ],
+      "unknowns": [
+        "Actual StringManager config/startup and nonempty child trees remain open.",
+        "Unknown rendering/controller methods and full lifecycle remain open.",
+        "PS2 subscription/heap,vector-append conditional SQ delay and empty-string MOVZ path remain outside executed domain."
+      ]
+    }
+  ]
+}
