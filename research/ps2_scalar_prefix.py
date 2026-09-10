@@ -68,7 +68,20 @@ class Ps2ScalarPrefix:
                 self.map(a,4);self.write(a,read_window('ps2',raw,a,4,sections)[0])
         self.executed=True
         def observe(u,address,size,user):
-            if address in stops:self.stop=address;u.emu_stop();return
+            if address in stops:
+                if self.trace and address==self.trace[-1]+4:
+                    previous=self.uint(self.trace[-1]);op=previous>>26
+                    # Unicorn may finish a MIPS branch delay-slot operation
+                    # despite emu_stop from its code hook. Do not certify a
+                    # pre-instruction boundary there. Callers can stop at the
+                    # preceding branch instead. Direct entry to the same word
+                    # from another address is not a delay-slot execution.
+                    transfer=(op in (2,3,4,5,6,7,0x14,0x15,0x16,0x17)
+                        or op==1 and (previous>>16)&31 in (0,1,2,3,0x10,0x11,0x12,0x13)
+                        or op==0 and previous&63 in (8,9)
+                        or op in (0x10,0x11,0x12) and (previous>>21)&31==8)
+                    if transfer:raise RuntimeError(f'Unqualified stop in branch delay slot {address:08X};stop before branch {self.trace[-1]:08X}')
+                self.stop=address;u.emu_stop();return
             if not any(a<=address and address+4<=a+n for a,n in self.ranges):raise RuntimeError(f'Outside declared original prefix {address:08X}')
             word=self.uint(address)
             if word>>26 in (0x1e,0x1f,0x12,0x1c):raise RuntimeError(f'Excluded R5900 instruction {address:08X}')
