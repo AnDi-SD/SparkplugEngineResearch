@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
-"""Bounded original AIAction lifecycle, retaining each completed stage."""
+"""Bounded original AIAction/CharacterState lifecycle, retaining each stage.
+
+One shared lifecycle runner; each family has its own cached identity catalog.
+Earlier AIAction captures retain their exact runner copies beside the evidence.
+"""
 from pathlib import Path
 import hashlib,json,sys,time
 from pc_instruction_emulator import ROOT,run_bounded,execution_limits
 from probe_pc_task_timer import TimerFixture
 
 
-def guest(class_name,output,factory_profile='micro',context='none'):
+def guest(class_name,output,factory_profile='micro',context='none',family='ai-action'):
     execution_limits(factory_profile)
     if context not in ('none','empty-scene'):raise ValueError('Explicit none or empty-scene context required')
+    if family not in ('ai-action','character-state'):raise ValueError('Explicit reviewed family required')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
-    source=ROOT/'local-data/results/native-cycle-20260910-1900/ai-action/catalog-family.json'
+    source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
     record=next(x for x in json.loads(source.read_text()) if x['className']==class_name)
     output.parent.mkdir(parents=True,exist_ok=True);started=time.perf_counter();f=TimerFixture();p=f.p;f.time(1200)
-    report=dict(kind='original-pc-ai-action-lifecycle',className=class_name,status='running',record=record,stages=[],
+    report=dict(kind=f'original-pc-{family}-lifecycle',className=class_name,status='running',record=record,stages=[],
         sourceSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest().upper(),catalogSha256=hashlib.sha256(source.read_bytes()).hexdigest().upper(),
         executableSha256=hashlib.sha256((ROOT/'local-data/pc-pristine/WinxClub.exe').read_bytes()).hexdigest().upper(),
         limits='micro100000 instructions/2s per original operation;30s child;64KiB heap/32KiB allocation;fresh guest per class',
@@ -32,7 +37,8 @@ def guest(class_name,output,factory_profile='micro',context='none'):
         report.pop('pending');save();return value
     def snapshot(a):
         n=f.allocations[a];assert n>=0x10;vt=p.uint(a)
-        return dict(address=a,allocationBytes=n,bytes=bytes(p.mu.mem_read(a,n)).hex(),vtable=f'{vt:08X}',slots=[f'{p.uint(vt+4*i):08X}' for i in range(17)])
+        slot_count=17 if family=='ai-action' else 7
+        return dict(address=a,allocationBytes=n,bytes=bytes(p.mu.mem_read(a,n)).hex(),vtable=f'{vt:08X}',slots=[f'{p.uint(vt+4*i):08X}' for i in range(slot_count)])
     try:
         if context=='empty-scene':
             # Actual Node factory/search, with literal external core/scene
