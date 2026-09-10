@@ -115,10 +115,45 @@ internal static class ModelGraphLinkRegression
         catch (InvalidOperationException error) when (error.Message.Contains("not the active mesh", StringComparison.Ordinal))
         { rejected = true; }
         Check(rejected, "An inactive physical Mesh carrier is not silently treated as the Model's active mesh.");
+        var boneSlotCases = new List<object>();
+        foreach (bool redirected in new[] { false, true })
+        {
+            string name = redirected ? "superseded-skin-mesh" : "stored-skin-mesh";
+            byte[] bytes = CreateFixture(mesh, true, redirectPrimaryMesh: redirected, primarySkin: true);
+            byte[] snapshot = bytes.ToArray();
+            var document = SmoDocument.ParseOwned(bytes, name);
+            SmoObjectEntry Entry(uint id) => document.Objects.Single(value => value.Id == id);
+            Check(!document.HasErrors, name + ": directed fixture has a complete catalog.");
+            Check(SmoSkinDecoder.TryDecode(document, Entry(3), out var skin, out _),
+                name + ": actual Skin metadata accepts the directed fixture.");
+            Check(skin!.BaseMesh.ObjectId == (redirected ? 11u : 10u) && skin.Bones.Count == 2,
+                name + ": final BaseMesh assignment and both palette entries are observed.");
+            Check(Entry(10).ParentIndex == Entry(3).Index,
+                name + ": the earlier Mesh remains physically inside Skin.");
+            IReadOnlyList<SmoBoneSlot> slots = SmoMeshReplacer.GetBoneSlots(document, Entry(10));
+            Check(redirected ? slots.Count == 0 : slots.SequenceEqual(new SmoBoneSlot[]
+                    { new(0, 30, "link-30"), new(1, 31, "link-31") }),
+                name + ": only the active stored mesh receives the unchanged palette order, IDs and names.");
+            if (redirected)
+                Check(SmoMeshReplacer.GetBoneSlots(document, Entry(11)).Count == 0,
+                    "A reference-only Skin consumer does not replace the other mesh's physical Model owner.");
+            else
+            {
+                var foreign = SmoDocument.ParseOwned(snapshot.ToArray(), name + "-foreign");
+                SmoObjectEntry foreignMesh = foreign.Objects.Single(value => value.Id == 10);
+                Check(foreignMesh.Index == Entry(10).Index && !ReferenceEquals(foreignMesh, Entry(10)) &&
+                    SmoMeshReplacer.GetBoneSlots(document, foreignMesh).Count == 0,
+                    "A foreign document entry cannot acquire the same-index Skin palette.");
+            }
+            Check(document.Data.Span.SequenceEqual(snapshot), name + ": bone-slot lookup preserves source bytes.");
+            File.WriteAllBytes(Path.Combine(output, name + ".smo"), bytes);
+            boneSlotCases.Add(new { name, input_sha256 = Convert.ToHexString(SHA256.HashData(bytes)),
+                slots, metadataOnly = true });
+        }
         Check(File.ReadAllBytes(templatePath).AsSpan().SequenceEqual(source), "Original template file is unchanged.");
         File.WriteAllText(Path.Combine(output, "report.json"), JsonSerializer.Serialize(new
         { status = "passed", checks, template = Path.GetFullPath(templatePath),
-            template_sha256 = Convert.ToHexString(SHA256.HashData(source)), cases },
+            template_sha256 = Convert.ToHexString(SHA256.HashData(source)), cases, boneSlotCases },
             new JsonSerializerOptions { WriteIndented = true }) + "\n");
         Console.WriteLine($"PASS Model authoring links: {cases.Count} complete replacements, {checks} checks");
         return 0;
@@ -130,7 +165,7 @@ internal static class ModelGraphLinkRegression
     // Directed test input only: these explicit wire relationships are the
     // independent expectation; production reads use actual Sparkplug objects.
     private static byte[] CreateFixture(byte[] meshBytes, bool referenced,
-        bool redirectPrimaryMesh = false, bool redirectPlacementMesh = false)
+        bool redirectPrimaryMesh = false, bool redirectPlacementMesh = false, bool primarySkin = false)
     {
         FixtureObject Material(uint id)
         {
@@ -153,7 +188,7 @@ internal static class ModelGraphLinkRegression
             carrier.End(); carrier.End();
             root.Reference(0, carrier, inline: true);
         }
-        var primary = new FixtureObject(3, SmoClassIds.Model);
+        var primary = new FixtureObject(3, primarySkin ? SmoClassIds.Skin : SmoClassIds.Model);
         if (referenced) primary.Reference(0, Material(99), inline: true);
         primary.Reference(0, firstMaterial, inline: !referenced);
         primary.End(); // Renderable section
@@ -161,6 +196,18 @@ internal static class ModelGraphLinkRegression
         primary.Reference(0, mesh, inline: true);
         if (redirectPrimaryMesh) primary.Reference(0, otherMesh, inline: false);
         primary.End();
+        if (primarySkin)
+        {
+            // Explicit test palette: two reference-only Nodes, identity inverse
+            // binds. The existing shared Skin reader is the production parser.
+            byte[] identity = new byte[64];
+            foreach (int component in new[] { 0, 5, 10, 15 })
+                BinaryPrimitives.WriteUInt32LittleEndian(identity.AsSpan(component * 4), 0x3f800000);
+            primary.Field(0, [..BitConverter.GetBytes(4u), ..BitConverter.GetBytes(2u),
+                ..BitConverter.GetBytes(30u), ..BitConverter.GetBytes(0u), ..identity,
+                ..BitConverter.GetBytes(31u), ..BitConverter.GetBytes(0u), ..identity]);
+            primary.End();
+        }
         root.Reference(0, primary, inline: true);
         var placement = new FixtureObject(4, SmoClassIds.Model);
         if (referenced) placement.Reference(0, Material(98), inline: true);
@@ -172,20 +219,30 @@ internal static class ModelGraphLinkRegression
         root.Reference(0, placement, inline: true);
         root.End();
 
-        if (redirectPrimaryMesh || redirectPlacementMesh)
+        if (redirectPrimaryMesh || redirectPlacementMesh || primarySkin)
         {
-            var otherModel = new FixtureObject(5, SmoClassIds.Model);
-            otherModel.End();
-            otherModel.Reference(0, otherMesh, inline: true);
-            otherModel.End();
-            var sibling = new FixtureObject(6, SmoClassIds.RenderNode);
-            sibling.End();
-            sibling.Reference(0, otherModel, inline: true);
-            sibling.End();
             var scene = new FixtureObject(100, SmoClassIds.Node);
+            if (primarySkin)
+                foreach (uint boneId in new uint[] { 30, 31 })
+                {
+                    var bone = new FixtureObject(boneId, SmoClassIds.Node);
+                    bone.End();
+                    scene.Reference(5, bone, inline: true);
+                }
             // Node field 5 is an actual child reference. Serialize the sibling
             // first so every later Mesh 11 reference follows its inline body.
-            scene.Reference(5, sibling, inline: true);
+            if (redirectPrimaryMesh || redirectPlacementMesh)
+            {
+                var otherModel = new FixtureObject(5, SmoClassIds.Model);
+                otherModel.End();
+                otherModel.Reference(0, otherMesh, inline: true);
+                otherModel.End();
+                var sibling = new FixtureObject(6, SmoClassIds.RenderNode);
+                sibling.End();
+                sibling.Reference(0, otherModel, inline: true);
+                sibling.End();
+                scene.Reference(5, sibling, inline: true);
+            }
             scene.Reference(5, root, inline: true);
             scene.End();
             root = scene;

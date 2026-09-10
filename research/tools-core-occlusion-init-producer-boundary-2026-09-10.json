@@ -1,0 +1,328 @@
+{
+  "kind": "tools-core-occlusion-init-producer-boundary",
+  "date": "2026-09-10",
+  "status": "bounded-original-producer-vm-gap-whole-loader-open",
+  "doc": "docs/research/tool-occlusion-init-producer-boundary-2026-09-10.md",
+  "operation": "whole resource graph load of indexed race_02.smo",
+  "original_input": {
+    "path": "local-data/pc-pristine/Media/Levels/Challenges/race_02.smo",
+    "bytes": 3329842,
+    "indexed_objects": 7513,
+    "database_file_id": 5308,
+    "physical_object_index": 7,
+    "resource_id": 8,
+    "name": "oclusion_wall02",
+    "class_id": "43D24430",
+    "object_bytes": 138,
+    "index_payload": {
+      "offset": 190026,
+      "bytes": 24,
+      "header": [
+        2,
+        2,
+        0
+      ],
+      "indices": [
+        2,
+        1,
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "vertex_payload": {
+      "offset": 190055,
+      "bytes": 60,
+      "header": [
+        0,
+        4,
+        0
+      ],
+      "byte_distinct_positions": 4
+    }
+  },
+  "observations": {
+    "dispatch_only": [
+      {
+        "entry": "00470E30",
+        "slot": "013B2B08",
+        "resolved": "013D0460",
+        "instructions": 1647
+      },
+      {
+        "entry": "004609A0",
+        "slot": "013B17FC",
+        "resolved": "00450F50",
+        "instructions": 1634
+      },
+      {
+        "entry": "00470B20",
+        "slot": "013B1BD0",
+        "resolved": "013B4F40",
+        "instructions": 1612
+      }
+    ],
+    "all_dispatch_only_body_instructions": 0,
+    "all_dispatch_only_seams": 0,
+    "actual_cpu_readers": [
+      {
+        "entry": "0045FB80",
+        "result": 1,
+        "cursor": 24
+      },
+      {
+        "entry": "00460300",
+        "result": 1,
+        "cursor": 60
+      }
+    ],
+    "shape_driver": {
+      "entry": "00470E30",
+      "status": "instruction-cap",
+      "instructions": 100000,
+      "seconds": 0.41660480000427924,
+      "ip": "0088C226",
+      "observed_calls": [
+        "0046F9A0",
+        "0046EC00",
+        "00470B20"
+      ],
+      "faces": 0,
+      "edges": 0,
+      "initialized": 0,
+      "guest_discarded": true,
+      "further_calls_after_cap": false
+    },
+    "producer_first_instruction": {
+      "address": "013B4F40",
+      "call": "00A0D3E0",
+      "kind": "VM-boundary"
+    },
+    "compaction": {
+      "entry": "004609A0",
+      "resolved": "00450F50",
+      "case_representatives": [
+        0,
+        4
+      ],
+      "instructions_per_case": [
+        2089,
+        2089
+      ],
+      "elapsed_seconds": 0.9297188999917125,
+      "all_tracked_allocations_freed": true,
+      "packed_buffers_equal": false,
+      "triangle_positions_equal": true,
+      "original_CRT_executed": false
+    },
+    "PS2_static_face_producer": "001CAD50..001CAF90; first matching four-scalar plane at epsilon0.001 is reused; otherwise append original plane and three position pointers"
+  },
+  "limits": {
+    "profile": "micro",
+    "instructions_per_call": 100000,
+    "microseconds_per_call": 2000000,
+    "seconds_per_child": 30,
+    "workers": 1,
+    "arena_bytes": 65536,
+    "host_peak_memory_bytes": null
+  },
+  "next_target": "PC470B20/13B4F40 first-face/three-edge output or readable semantic body; A0D3E0 VM dependency is separate bounded research",
+  "unchanged_boundaries": [
+    "No full470FE0 Init execution or successful original Occlusion asset load",
+    "No source/registry/bridge change in this study",
+    "Prepared owned buffer attachment is explicit host input, not Init",
+    "No repeated topology-leaf comparisons or CRT tie investigation for unique race_02 vertices",
+    "No decoded algorithm claim for VM bytes, protection-counter patch, or cap increase",
+    "PS2 source evidence is independent and does not establish PC runtime equivalence",
+    "Metadata buffer reader success does not establish full runtime Init",
+    "No build/GPU/release claim"
+  ],
+  "fingerprints": [
+    {
+      "path": "docs/research/tool-occlusion-init-producer-boundary-2026-09-10.md",
+      "bytes": 7824,
+      "sha256": "E9F196EE2B85451950BA8F1C08BCAA5B877E624412FEC0F21F32F65CD5B03C7D"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOcclusionVolume.h",
+      "bytes": 2642,
+      "sha256": "04AF498FB471A197E58F7D681876C689AD33EF59D26539B392DA0FE2DE11C762"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spOcclusionVolume.cpp",
+      "bytes": 7562,
+      "sha256": "50DDBC5ADAD43B5BD9ED4899B9EE07401FBDACB24C72499079A22D87CF3CD315"
+    },
+    {
+      "path": "docs/research/tool-occlusion-topology-shared-core-2026-09-09.md",
+      "bytes": 6921,
+      "sha256": "B56F597BF9C83C634ABC419E5F68E94A6559F9CBB948C1E04A084766E67DC38E"
+    },
+    {
+      "path": "docs/research/tool-occlusion-connectivity-shared-core-2026-09-09.md",
+      "bytes": 3561,
+      "sha256": "9E8835FD816863B9BB0B604B2092A07ACA8A90759979BA22479EA21502D18C5A"
+    },
+    {
+      "path": "docs/research/native-pc-occlusion-runtime.md",
+      "bytes": 11394,
+      "sha256": "13FE366EF6996805E2DCCBA347D384970D312BD84296C614A5137B0B8BCEB1D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/occlusion-init/pc-weld-1.txt",
+      "bytes": 11194,
+      "sha256": "CA85CF1475B5F9434B67720C41609EB4C1E827634CB8DD1D5737489A22817A6A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/occlusion-init/pc-init-shape-1.txt",
+      "bytes": 25708,
+      "sha256": "C1DA18E9E7F4372E31F75AAB1E86E0B2198A5C50655BE21696D0BB5F4E34D4A0"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260909-1900/occlusion-init/ps2-topology-leaves-1.txt",
+      "bytes": 42038,
+      "sha256": "D2A26951CF431836A2BAC599CB66019AABC3992FC91F9C17CDED76EE9A288AD3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/graph-memory/index-extreme-objects.json",
+      "bytes": 1334,
+      "sha256": "4E7832B4DF1B4F9A7D8EB1900FCE8F4A1ED321C0196BEA68B53E9B1542F74064"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 14033,
+      "sha256": "8EDCB309D08C217D2631A3944FC36940CC11F2E1D649091126BBEC78C62CD029"
+    },
+    {
+      "path": "research/pc_serializer_fixtures.py",
+      "bytes": 1373,
+      "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+    },
+    {
+      "path": "research/probe_pc_navigation_readers.py",
+      "bytes": 6247,
+      "sha256": "11ADFCA427448B4EE095BA568534F27A41C5F91DB11D48BEF6C775BCD139779C"
+    },
+    {
+      "path": "research/inspect_serializer_manager.py",
+      "bytes": 20585,
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/pc-pristine/WinxClub.exe",
+      "bytes": 22065152,
+      "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+    },
+    {
+      "path": "local-data/Winx Club the game PS2/SLES_532.19",
+      "bytes": 3799600,
+      "sha256": "198313352DBF4FA26FF8C5D509F6783FC32F9B504A627E416323C5FFBBFFE8FE"
+    },
+    {
+      "path": "local-data/pc-pristine/Media/Levels/Challenges/race_02.smo",
+      "bytes": 3329842,
+      "sha256": "AD39C13B896718755CC98445D943FA191640636F940930086CB802629E268436"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/compact-entry-block.txt",
+      "bytes": 306,
+      "sha256": "D754774696D06D8521D76F679BF8D6223ABF70CDC6A529F1620D65E00A5B2C61"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/compact-resolution.json",
+      "bytes": 1901,
+      "sha256": "3ED8F0F4302FB6CE9DD0E45E805DA684535F2875FE6AE8FD16D82C8F26BC12F8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/compact-resolved-prefix.bin",
+      "bytes": 2048,
+      "sha256": "86F2E6F1E69341B08CAD3E9CD9B5FF5A13592A9CD86C75B2C2B26D366E8F6691"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/compaction-representatives.json",
+      "bytes": 3058,
+      "sha256": "551D0556CCEE9C1AE46E8E51B116F292C486C7257CE23F7DF4A62119CDDC74F2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/notes.md",
+      "bytes": 4355,
+      "sha256": "805BE9774B2B9E2E3B8BAF4233ADB369AEB17DF49C6C786233F78E1C3246FDA8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/pc-resolved-static.txt",
+      "bytes": 5220,
+      "sha256": "2FFFB5D9C8DA78D356AB8F2B0ED79A637CD25D96CC1D67C382FE760AB493F9B1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/pc-weld-compaction-driver-static.txt",
+      "bytes": 11929,
+      "sha256": "85689EC3931CEA66102D24C1F28931F0C1F9D84EA22E0C9AE042E244D8F8B83B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_compaction_representatives.py",
+      "bytes": 3603,
+      "sha256": "AB06354E9367A9C84591972DE211E7CA20A70601284F436A47E3B1FE912DEB44"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/probe_race02_shape.py",
+      "bytes": 7113,
+      "sha256": "CE99DB78CD735FC6231F480C30C344A6386D3EED043B1AE7281AD87529881F82"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/producer-entry-block.txt",
+      "bytes": 35,
+      "sha256": "8B8D76D260DB2858D50BB90238898E393FEF9AD1DC1B2BD3D2804876910C7C4E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/producer-resolution.json",
+      "bytes": 1567,
+      "sha256": "E98F4F618D5F859EFAFF08756DCBB02511EF587B2B43AD04FA1DC46FB4380897"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/producer-resolved-prefix.bin",
+      "bytes": 2048,
+      "sha256": "F6CE61B2CED2A7C4EA3083C3B4FB8763A1E8F744A3C835EF35257E61814E7B93"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/ps2-face-weld-static.txt",
+      "bytes": 5109,
+      "sha256": "F7C35E9B3C2FD34099338B0A2FC57387AD59821E0348B1FDAA0459807B7FB286"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-first-object.json",
+      "bytes": 1897,
+      "sha256": "48BB5EC3B1F1FACCEB1D2093C087715DED3BB6AC455E27B37AAF1115888D1BDB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/race02-shape-run1.json",
+      "bytes": 4507,
+      "sha256": "275B43B55876FBDD1A45A1921246AD26B0AA5B42737736B5AF9F2BF65FFBBF6D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/resolve_occlusion_dispatch.py",
+      "bytes": 3732,
+      "sha256": "B9555799814FC3F8BC127B577CDE36A0FB5342FF7F61A4AE8D09D61B408888A2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/resolve_shape_producer.py",
+      "bytes": 3758,
+      "sha256": "9685A59EF62133AFCF8C7F78E064E5F36AC94D276122A2ED2902CDAFA15760D8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/shape-entry-block.txt",
+      "bytes": 542,
+      "sha256": "9486B059DE856B88A4B8870972BC43ECB0C96C708FDCEE7B6B470B685C744DF4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/shape-resolution.json",
+      "bytes": 2177,
+      "sha256": "473F5272270C15220BE3A23DAE646B5AF5D2017D458100250263AA3707218FF3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/occlusion-init-next/shape-resolved-prefix.bin",
+      "bytes": 2048,
+      "sha256": "C4E5589196DE1FE6FB8234FE40E0CE37E4DF1BA642673353579711D78B321009"
+    }
+  ]
+}

@@ -209,6 +209,28 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
     на незавершённом OcclusionVolume. Лимиты не повышались: новая работа
     нужна в классе, а не в размере буферов. Это два выбранных input, не corpus acceptance.
 
+22. [Occlusion buffer inspection](tool-occlusion-buffer-inspection-2026-09-10.md):
+    два ручных C# buffer readers заменены вызовами общих `spIndexBuffer` и
+    `spVertexBuffer`. Native owning views прошли26 checks, P/Invoke/SafeHandle16,
+    прежний strict inspection profile16 и реальный race_02 metadata10.
+    Release-сборки чистые; native game readers не менялись. Это готовая
+    операция инспектора, не full Occlusion Init или загрузка уровня.
+23. Importer bone-slot lookup использует общий `SmoRenderableCatalog` вместо
+    собственного поиска физического Skin-предка. Поздняя смена BaseMesh больше
+    не приписывает старому inline mesh чужую палитру; foreign entry отклоняется.
+    Три прежние полные замены и14 новых адресных checks прошли: всего64.
+    Все три output SMO побайтно равны сохранённым результатам предыдущего
+    цикла; SHA проверены по actual files с обеих сторон.
+    Release build9,58с, без warnings/errors. Выбор палитры у нескольких
+    потребителей и default0 в `ResolveBoneSlot` этим блоком не переопределены.
+24. [Original Occlusion producer](tool-occlusion-init-producer-boundary-2026-09-10.md):
+    раскрыты обычные PC shape driver13D0460 и compactor450F50. Два вызова
+    compactor прошли по2089 instructions; выбор duplicate representative
+    меняет raw IB/VB, хотя позиции треугольников равны. Для выбранного
+    race_02 четыре позиции различны, эта CRT-зависимость не требуется.
+    Actual CPU readers приняли24/60 bytes; shape дошёл до face producer
+    470B20→13B4F40→A0D3E0, затем cap до первой face. Full Init не реализован.
+
 ## Новые границы и исправления
 
 - Первый GPU negative test завис из-за непойманного exception нового harness;

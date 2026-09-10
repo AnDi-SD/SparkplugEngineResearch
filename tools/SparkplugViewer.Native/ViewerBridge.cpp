@@ -714,6 +714,38 @@ SPV_API int spv_vertex_layout(std::uint32_t flags,SpvVertexLayout* output) noexc
     return guarded([&]{require(output,"Missing vertex layout output");spVertexBuffer vb;
         require(vb.InitializeForAnalysis(flags,0),"Cannot initialize original vertex layout");*output=spvhost::RenderMeshView::Layout(vb);});
 }
+SPV_API void* spv_index_buffer_read(const std::uint8_t* bytes,std::uint32_t size) noexcept {
+    std::unique_ptr<spvhost::IndexBufferInspection> result;
+    if(!guarded([&]{result=std::make_unique<spvhost::IndexBufferInspection>(bytes,size);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_index_buffer_destroy(void* handle) noexcept {
+    guarded([&]{delete static_cast<spvhost::IndexBufferInspection*>(handle);});
+}
+SPV_API int spv_index_buffer_info(void* handle,spvhost::IndexBufferInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing IndexBuffer info input/output");
+        *output=static_cast<spvhost::IndexBufferInspection*>(handle)->Info();});
+}
+SPV_API int spv_index_buffer_indices(void* handle,std::uint32_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing IndexBuffer handle");
+        static_cast<spvhost::IndexBufferInspection*>(handle)->CopyIndices(output,count);});
+}
+SPV_API void* spv_vertex_buffer_read(const std::uint8_t* bytes,std::uint32_t size) noexcept {
+    std::unique_ptr<spvhost::VertexBufferInspection> result;
+    if(!guarded([&]{result=std::make_unique<spvhost::VertexBufferInspection>(bytes,size);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_vertex_buffer_destroy(void* handle) noexcept {
+    guarded([&]{delete static_cast<spvhost::VertexBufferInspection*>(handle);});
+}
+SPV_API int spv_vertex_buffer_info(void* handle,spvhost::VertexBufferInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing VertexBuffer info input/output");
+        *output=static_cast<spvhost::VertexBufferInspection*>(handle)->Info();});
+}
+SPV_API int spv_vertex_buffer_positions(void* handle,float* output,std::uint32_t floats) noexcept {
+    return guarded([&]{require(handle,"Missing VertexBuffer handle");
+        static_cast<spvhost::VertexBufferInspection*>(handle)->CopyPositions(output,floats);});
+}
 SPV_API void* spv_mesh_bv_read(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) noexcept {
     std::unique_ptr<MeshBVView> result;
     if(!guarded([&]{result=std::make_unique<MeshBVView>(bytes,size,kind);}))return nullptr;

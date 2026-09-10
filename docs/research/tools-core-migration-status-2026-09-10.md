@@ -66,6 +66,10 @@ skin evaluator удалён.24 адресные GPU проверки и Core pro
   не выявил входа свыше 10,9 МБ; выбранный Domino04 загрузился с пиком
   42,55 МиБ. Максимальный по object count race_02 требует OcclusionVolume,
   увеличение лимитов этот отказ не исправит.
+- **Occlusion metadata:** [буферы инспектора](tool-occlusion-buffer-inspection-2026-09-10.md)
+  теперь читают общие `spIndexBuffer`/`spVertexBuffer`; ручные C# leaf readers
+  удалены.68 адресных checks прошли. Прежний strict geometry profile является
+  ограничением host inspection, а не доказанным Init игры.
 - **Runtime:** полный Occlusion Init, защищённый PC MaterialColor constructor,
   looping particle initialization и повторная непустая NavigationGraph table
   остаются прежними ограничениями. Исследовать их только для нужной операции;

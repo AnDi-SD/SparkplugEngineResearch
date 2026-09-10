@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "LightInspection.h"
+#include "BufferInspection.h"
 #ifdef _WIN32
 #define SPV_API extern "C" __declspec(dllexport)
 #else
@@ -24,6 +25,17 @@ struct SpvGraphNode {std::uint32_t parentID,flags,children,collisions;float posi
 struct SpvContainerInfo {std::uint32_t signature,version,exportTag,fileSize,platformMask,dataOffset,dataSize,objectCount,headerStatus;};
 struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,classID,offset,size,signatureClassID,signatureFlags;};
 struct SpvMeshBVInfo {std::uint32_t primitiveType,vertices,indices,faces,hasFaces,fieldMask,vertexPayloadOffset,faceClassID;};
+// Standalone CPU buffer metadata. Input is immutable and borrowed for one
+// synchronous read; each handle owns its actual shared buffer until destroy.
+// These reads impose no occluder geometry policy or runtime initialization.
+SPV_API void* spv_index_buffer_read(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_index_buffer_destroy(void*) noexcept;
+SPV_API int spv_index_buffer_info(void*,spvhost::IndexBufferInfo*) noexcept;
+SPV_API int spv_index_buffer_indices(void*,std::uint32_t*,std::uint32_t count) noexcept;
+SPV_API void* spv_vertex_buffer_read(const std::uint8_t*,std::uint32_t) noexcept;
+SPV_API void spv_vertex_buffer_destroy(void*) noexcept;
+SPV_API int spv_vertex_buffer_info(void*,spvhost::VertexBufferInfo*) noexcept;
+SPV_API int spv_vertex_buffer_positions(void*,float*,std::uint32_t floats) noexcept;
 struct SpvFaceData {std::uint32_t surfaceType,flags,surfaceID,fieldMask;};
 struct SpvVertexLayout {std::uint32_t stride;std::int32_t normal,color,uv0,uv1,weights,bones;};
 struct SpvMeshInfo {
