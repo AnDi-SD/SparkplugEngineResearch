@@ -12,7 +12,7 @@ from probe_pc_task_timer import TimerFixture
 import probe_pc_animation_lifecycle as lifetime
 
 
-def guest(class_name,output,factory_profile='micro',context='none',family='ai-action',tracer='instruction',lifecycle_profile='micro',crt='none',platform_profile='none'):
+def guest(class_name,output,factory_profile='micro',context='none',family='ai-action',tracer='instruction',lifecycle_profile='micro',crt='none',platform_profile='none',arena_kib='64'):
     execution_limits(factory_profile)
     execution_limits(lifecycle_profile)
     if tracer not in ('instruction','block'):raise ValueError('Explicit instruction or block tracer required')
@@ -20,7 +20,10 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     if context not in ('none','empty-scene','empty-scene-profile','empty-scene-bound-node','animation-manager'):raise ValueError('Explicit reviewed context required')
     if crt not in ('none','bounded-strings','bounded-char-traits','bounded-char-traits-sync','bounded-memory'):raise ValueError('Explicit CRT fixture required')
     if platform_profile not in ('none','network-clock','network-startup-failure') or (platform_profile!='none' and family!='network-family'):raise ValueError('Explicit reviewed family platform profile required')
-    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family'):raise ValueError('Explicit reviewed family required')
+    if family not in ('ai-action','character-state','character-state-machine','entity-direct','entity-core','entity-manager','ai-behavior','generic-trigger','gui-object','projectile','projectile-manager','serializer-expansion','timer-family','projection-family','network-family','physics-family','game-remainder'):raise ValueError('Explicit reviewed family required')
+    arena_bytes=int(arena_kib)*1024
+    if arena_bytes not in (0x10000,0x20000,0x40000):raise ValueError('Explicit bounded arena required')
+    if arena_bytes!=0x10000 and (family,class_name)!=('game-remainder','wxAlphaManager'):raise ValueError('Larger arena reviewed only after measured AlphaManager exhaustion')
     output=Path(output).resolve()
     if not output.is_relative_to(ROOT/'local-data/results'):raise ValueError('Local output required')
     source=ROOT/f'local-data/results/native-cycle-20260910-1900/{family}/catalog-family.json'
@@ -30,10 +33,11 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     # allocator use the complete object. Other reviewed families keep offset0.
     object_interface_offset=4 if (family,class_name) in (('projection-family','spPCProjectionFX'),('network-family','spDXNetwork')) else 0
     output.parent.mkdir(parents=True,exist_ok=True);started=time.perf_counter()
-    if tracer=='block':
-        from pc_block_emulator import PcBlocks
-        with patch.object(lifetime,'PcInstructions',PcBlocks):f=TimerFixture()
-    else:f=TimerFixture()
+    with patch.object(TimerFixture,'guest_arena_size',arena_bytes,create=True):
+        if tracer=='block':
+            from pc_block_emulator import PcBlocks
+            with patch.object(lifetime,'PcInstructions',PcBlocks):f=TimerFixture()
+        else:f=TimerFixture()
     p=f.p;f.time(1200)
     if crt=='bounded-strings':
         from pc_crt_string_fixtures import install_crt_string
@@ -55,7 +59,7 @@ def guest(class_name,output,factory_profile='micro',context='none',family='ai-ac
     report=dict(kind=f'original-pc-{family}-lifecycle',className=class_name,status='running',record=record,stages=[],
         sourceSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest().upper(),catalogSha256=hashlib.sha256(source.read_bytes()).hexdigest().upper(),
         executableSha256=hashlib.sha256((ROOT/'local-data/pc-pristine/WinxClub.exe').read_bytes()).hexdigest().upper(),
-        limits='Explicit factoryProfile and lifecycleProfile;30s child;64KiB heap/32KiB allocation;fresh guest per class',
+        limits=f'Explicit factoryProfile and lifecycleProfile;30s child;{arena_bytes//1024}KiB heap/32KiB allocation;fresh guest per class',
         boundaries='Existing TimerFixture allocator/SEH,clock1200/divisor1/refreshfalse and clone-map observations. Optional borrowed context is declared separately; no OS or substituted game constructor/search.',factoryReached=False,wholeClassClosed=False)
     report['tracer']=dict(mode=tracer,visitUnit='basic-block-entry' if tracer=='block' else 'instruction-entry',
         scope='Block visits are not instruction coverage; invalid/privileged blocks stop before execution. Native instruction/time/heap/process bounds remain enforced.' if tracer=='block' else 'Per-instruction visits and guards')
