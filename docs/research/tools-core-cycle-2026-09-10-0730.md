@@ -23,11 +23,12 @@ root3d483e0 / Viewer21b43a5. Все ядра пока не готовы.
 
 ## Текущий блок
 
-Font/Text metadata, Static matrix authoring и PC TextureData source перенесены
-в общий код; PS2 native metadata подключена отдельно. MaterialColor factory и
-PC default-material producer теперь подтверждены. Следующие используемые
-операции — необходимые renderer state inputs, geometry optimizer для Occlusion
-и looping ParticleSystem Init. Непроверенные реализации не считаются результатом.
+Source checkpoint: root `7d063d0`, Viewer `b4f3dba`. Общие PRNG и известная часть
+renderer cache проверены вместе с шестью связанными suites: 8/8 PASS,
+2089 assertions, 19.29 с. Последний native DLL SHA256:
+`2B0B7D474DE0EFF16F160DCD59895A4C0ECED6B3169855F49DDA9D08761266EB`.
+Новый production код после этого checkpoint не добавляется; завершаются
+короткие original probes, документация и сохранение результатов.
 
 ## Сохранённые ограничения
 
@@ -299,6 +300,27 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
    ParticleSerialization 46 и три связанных suites прошли. Пять новых assertions
    проверяют перемежение двух потребителей по original words и общему индексу.
 
+36. [Проверка границы material power](tool-material-power-boundary-2026-09-10.md)
+   переиспользовала сохранённые captures: все 7 BloomX и 3 Icy selected materials
+   уже имеют initialized power; все используют lighting mode 4. Этот guard
+   не блокирует их просмотр. Для произвольного unlit пути guard сохранён:
+   automatic shader key всё равно читает power. Новый original run или source
+   change не потребовались; следующий нужный вход — actual selected lights.
+
+37. [Настоящий looping Particle Init](native-pc-particle-loop-init-pc2-2026-09-10.md)
+   выполнен на PC2 bg.smo до естественного возврата: 539 active / 0 free,
+   2695 random draws, 2,010,836 инструкций / 6.86 с. Сохранены все records,
+   links, world transform настоящего RenderNode и 624 слова PRNG.
+   Независимая проверка подтвердила согласованность capture. Это доказательство
+   Init, не whole-file загрузки или готового общего producer. Первый fresh run
+   остановлен лимитом ещё в texture mip filter; повтор использовал существующий
+   character profile, не продолжал остановленный guest.
+38. [Подключение света Viewer](tool-viewer-light-cache-boundary-2026-09-10.md)
+   локализовано по сохранённому Icy graph: RenderNode3/Skin4 и ambient Light119.
+   Не хватает Scene-owned LightManager links и явного activeHierarchy input;
+   алгоритмы selection уже общие. Описаны две тонкие операции подключения
+   с lifetime и occurrence identity. Source, новый guest и GPU backend не менялись.
+
 ## Новые границы и исправления
 
 - [Общая сортировка](tool-shared-sort-dependency-proposal-2026-09-10.md) для
@@ -311,6 +333,8 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   native baseline тоже отказал раньше, на TextureData. Из индекса выбран PC2
   bg.smo: один native run подтвердил first refusal непосредственно на Particle
   Init. Новый пример не подменяет прежние failed captures.
+  Последующий natural Init описан в блоке 37. Ещё не покрыты zero-direction,
+  worldSpace=false и особые axis-angle ветки; общий loop guard сохранён.
 - Прямой повторный Occlusion Init вернулfalse и оставил старые topology entries;
   subsequent cleanup поймал повторный free. Отдельные fresh objects проходят.
   Для single-triangle fresh Init игра возвращаетtrue, но после reverse face
@@ -364,12 +388,38 @@ Source-less/cached TextureData, large-file memory profile и прежние runt
   разрешённый helper вне неё прошёл. Холодный selector имеет конечный цикл
   более100k инструкций, а не доказанную недостающую среду. Сохранность новых
   states до настройки материала доказана отдельным callgraph audit для
-  fresh/default callbacks. Следующий blocker — actual default materialC9C0
-  и shader/light inputs. Multipass не подключён.
+  fresh/default callbacks. Поздние блоки 32 и 34 закрыли PC default material
+  и известную часть state-init; остались shader/light inputs и multipass backend.
 - Публикация Viewer остановлена автоматической проверкой дважды. Владелец
   `AnDi-SD` и admin/push права подтверждены read-only GitHub API; origin публичный.
   Проверка требует отдельного согласия на 47 commits до `00407c3` в
   `AnDi-SD/SmoViewer:master`. Такой запрос отправлен пользователю; ответа пока
   нет, другие способы публикации не применялись. Локальные commits сохранены.
 
-Время остановки ещё не наступило; цикл продолжается.
+## Сжатый итог перед остановкой
+
+Практический результат — общие readers/writers/inspectors вместо ряда ручных
+копий в приложениях; три потребителя используют общий GPU skinning; реальный
+MaterialColor graph теперь загружается. Default material, cache subset,
+geometry helper и общий PRNG подготовили следующие операции ядра. Это не
+готовность всех семи приложений и не выпуск Viewer.
+
+Проверки выполнялись по затронутым операциям. Последний общий native запуск:
+8/8 suites, 2089 assertions. Отдельно прошли реальные MaterialColor clocks,
+GPU poses/picking, Importer fitting, texture preview/replacement и VMD export;
+точные выборки и границы приведены в соответствующих блоках. Числа разных
+версий тестов не складываются в показатель покрытия всего корпуса.
+
+Из измеренных улучшений: пик ResourceGraph на Alfea02 уменьшился на 16,33%,
+одинаковая original Occlusion операция после подготовки fresh guest objects
+выполнялась 10,0346 → 0,0490 с. Последняя цифра относится только к этой паре,
+не ко всему циклу. Для выбора следующих файлов использован готовый индекс.
+
+Главные остатки: подключение света и multipass renderer, перенос Particle
+producer, полный Occlusion Init и общая запись контейнера. Sort policy и
+FAT/envelope replacement ожидают решения пользователя по правилу общей
+реализации. Original lifetime hazards, platform/source boundaries и остальные
+ограничения сохранены в [статусе семи ядер](tools-core-migration-status-2026-09-10.md).
+Нештатные случаи были; они не скрыты за общим PASS выбранных тестов.
+
+Время остановки ещё не наступило; завершаются directed probes и сохранение отчёта.

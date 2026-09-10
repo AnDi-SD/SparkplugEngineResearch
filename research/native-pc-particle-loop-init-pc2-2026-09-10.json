@@ -1,0 +1,194 @@
+{
+  "kind": "native-pc-particle-loop-init-pc2",
+  "date": "2026-09-10",
+  "status": "natural-loop-init-return-captured",
+  "scope": "Actual whole loader entry through natural48D1C0 return at4B980D; explicitly stopped outer loader, no whole file or teardown credit.",
+  "productionLoopPorted": false,
+  "wholeFileAcceptance": false,
+  "nativeTeardownProven": false,
+  "sourceEqualityProven": false,
+  "gameStartupStateProven": false,
+  "asset": {
+    "path": "local-data/pc-pristine/Media/Menus/bg.smo",
+    "sha256": "5F0B9FFA6EFF16C278E4701EBE0A2518C7496189A036BFCB14519E2B5CD59BA5",
+    "bytes": 279915,
+    "objects": 11,
+    "platform": 2,
+    "databaseFileId": 5444,
+    "particleIndex": 2,
+    "particleId": 3,
+    "offset": 381,
+    "size": 16817,
+    "ownSection": [
+      17054,
+      17198
+    ]
+  },
+  "sharedBaseline": {
+    "report": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/native-candidate-run1.json",
+    "firstRefusal": "Particle initialization requires finite non-looping parameters, one region and 1..1024 particles",
+    "dllSha256": "928F59FBB347075791B3385007897809A0B9FB6A3EF4E917C6E1DC32F22D8B93"
+  },
+  "runs": [
+    {
+      "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-probe.py",
+      "status": "instruction-cap-before-init",
+      "instructions": 1000000,
+      "seconds": 5.1785983000008855,
+      "ip": "0061C6A8",
+      "cursor": 16965,
+      "arenaUsedBytes": 123216,
+      "limits": {
+        "profile": "file",
+        "instructions": 1000000,
+        "microseconds": 8000000,
+        "arenaBytes": 131072,
+        "allocationCapBytes": 32768,
+        "childSeconds": 30,
+        "workers": 1
+      },
+      "continued": false
+    },
+    {
+      "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-character-probe.py",
+      "status": "captured-loop-init-return",
+      "instructions": 2010836,
+      "seconds": 6.85578309999255,
+      "ip": "004B980D",
+      "cursor": 17198,
+      "arenaUsedBytes": 158576,
+      "limits": {
+        "profile": "character",
+        "instructions": 4000000,
+        "microseconds": 16000000,
+        "arenaBytes": 262144,
+        "allocationCapBytes": 32768,
+        "childSeconds": 30,
+        "workers": 1
+      },
+      "freshChild": true,
+      "continuedStoppedFrame": false,
+      "limitSelection": "Root authorized existing character4M/16s,256KiB after exact1M cap and measured remaining arena insufficient for actual23.7KiB particle pool."
+    }
+  ],
+  "proof": {
+    "status": "saved-capture-consistency-passed",
+    "originalCaptureSha256": "E08607C847B388F58F1BC783E8500EDF8DD926485E6732469AAF9745A45EEF59",
+    "originalScriptSha256": "B55C5E6D33DE967FC5FFA4768A99876412FED5AE7BF771D044A9BF97C06D66E2",
+    "count": 539,
+    "activeBefore": 0,
+    "freeBefore": 539,
+    "activeAfter": 539,
+    "freeAfter": 0,
+    "recordBytes": 17248,
+    "recordsSha256": "0BA33E3ADA3C385D708641841FDA7865184FF0AAD763FE6FD1C5FE12492FF717",
+    "linkBytes": 6468,
+    "linksCoverAllSlots": true,
+    "oneReciprocalRing": true,
+    "allFinalRecordsFinite": true,
+    "birthTimeRange": [
+      -1.7999999523162842,
+      -0.00666661886498332
+    ],
+    "lifetime": 1.7999999523162842,
+    "batches": [
+      128,
+      128,
+      128,
+      128,
+      27
+    ],
+    "originalRandomDraws": 2695,
+    "randomIndices": [
+      625,
+      199
+    ],
+    "randomStateBeforeSha256": "89F71694141DEDFF4A8C78B5DB40BE02AC451AA869ECC708FF8313E5525DD433",
+    "randomStateAfterSha256": "A7949855B9A92D1164043A5C72D779E18EACD871C73962068057FBC0A69E9E0A",
+    "worldTransform": [
+      0.0,
+      0.0,
+      16.50927734375,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.0,
+      -0.0,
+      -0.0,
+      5.960464477539063e-08,
+      -0.9999999403953552,
+      0.0,
+      0.9999999403953552,
+      5.960464477539063e-08
+    ],
+    "serializerCursor": 17198,
+    "nativeStopAddress": "004B980D",
+    "naturalLoopInitReturn": true,
+    "wholeFileAcceptance": false,
+    "teardownClaimed": false,
+    "sourceEqualityClaimed": false,
+    "gameStartupStateClaimed": false
+  },
+  "nativeAllocations": {
+    "vertexObjectBytes": 92,
+    "vertexStorageBytes": 17248,
+    "linkBytes": 6468
+  },
+  "actualVisited": {
+    "0048D8D0": 1,
+    "0049BCE0": 1,
+    "0048C340": 1,
+    "004B97F0": 1,
+    "0048D1C0": 1,
+    "0048C400": 1,
+    "0048D206": 1,
+    "0048C100": 5,
+    "00413270": 1,
+    "004132B0": 2695,
+    "00420350": 1,
+    "004620C0": 539,
+    "00461D70": 5
+  },
+  "consistencyAudit": {
+    "command": "python local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/audit-pc2-bg-init-capture.py",
+    "status": "passed",
+    "independentReadOnlyReview": "text_fields confirmed reciprocal rings, finite final records, counters, frame boundary and exact script snapshot; no RNG reimplementation or new guest."
+  },
+  "remainingBranches": [
+    "zero-direction sphere velocity branch",
+    "worldSpace=false",
+    "near-parallel basis/special90-degree angle",
+    "exact128 batch multiples: static final count&127 must be tested, not fixed by expectation",
+    "directed full32-byte record/ring/PRNG differential comparison",
+    "source whole-loader acceptance and lifecycle after owning storage port"
+  ],
+  "sourcePlan": [
+    "spParticleSystem.h/.cpp owning records, indexed ring, pool reset, Init wrapper and full required producer branches",
+    "reuse shared singleton and existing samplers/node transform math",
+    "shared4620C0 axis-angle helper with actual spill/order evidence",
+    "spParticleSystemSerializer hookup only after directed proof",
+    "ParticleSerializationTests/capture and original comparer before loader guard change"
+  ],
+  "fingerprints": {
+    "research/probe_pc_particle_loop_init.py": "C3655FBA347E2F24CFC35CEF70CFCD8D9BEA8984A7922C438976383E32D02371",
+    "research/pc_instruction_emulator.py": "CB1EE85B282B284A0351892C643606370DCAC0CC58598213A22925165D8C929F",
+    "research/pc_particle_fixtures.py": "2EB8CC9C21B70D59747E976B1FCC17588FF35FFA5ECB844BB9EF40FD2B5A2B97",
+    "research/probe_pc_scene_file_profile.py": "B645F7C619713C7195E582EF2E547322317E45BE6752D762EDC9622A6ACC53CE",
+    "research/probe_pc_texture_missing_mips.py": "E30EAE8E029897EE438E99FB7C1C3CA89810EB7A6EA96BB65188B010A472C220",
+    "research/pc_compact_texture_device.py": "BC154EDA1BF4E745AC387F126462D6C7278548B157734A6CC62420E92ED47235",
+    "local-data/pc-pristine/WinxClub.exe": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "local-data/pc-pristine/Media/Menus/bg.smo": "5F0B9FFA6EFF16C278E4701EBE0A2518C7496189A036BFCB14519E2B5CD59BA5",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/native-candidate-run1.json": "4D52A68B32A58E5B930D9BE9F01ADEC9EA87C0BAB320F48E86900B1E6EBCAB6C",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-probe.py": "20B0D4EA64E1302B5EA1477683BDF3C64B7BA86FAF1FC8309BA4106C32FBEEFA",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run1.json": "DF4CB0E27A91EA85477726FBFFCEC7FE5162703FE759D1B5681626F5719A105C",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run1-probe.py": "20B0D4EA64E1302B5EA1477683BDF3C64B7BA86FAF1FC8309BA4106C32FBEEFA",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-character-probe.py": "B55C5E6D33DE967FC5FFA4768A99876412FED5AE7BF771D044A9BF97C06D66E2",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2.json": "E08607C847B388F58F1BC783E8500EDF8DD926485E6732469AAF9745A45EEF59",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2-probe.py": "B55C5E6D33DE967FC5FFA4768A99876412FED5AE7BF771D044A9BF97C06D66E2",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/audit-pc2-bg-init-capture.py": "A211441F505504E6A2CD51E68CC70E5ADD4DF1020A84413F1DC2C0A5BD38B96E",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-proof.json": "4B8B667E9B94CCEAB2EFA3F21E3604BD0BC8D8A6B456813A0C435FE46E0E5136",
+    "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/producer-cfg.txt": "7BC445BEC082B154FBCE6FB17D9BAC1E7FE53F030B942BCFBFE5BFF1B242AADE",
+    "docs/research/native-pc-particle-loop-init-pc2-2026-09-10.md": "06ADEF27D970FB45E4E767A42C2EEE56CF5F37DCD5ADA6915ED44494C86F7336"
+  }
+}

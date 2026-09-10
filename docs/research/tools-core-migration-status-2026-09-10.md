@@ -1,12 +1,13 @@
 # Текущий срез ядер tools — 10 сентября 2026
 
-**Все ядра ещё не готовы.** Ниже учтены Font, Static matrix authoring,
-Text metadata, WinxHairPatcher, уменьшение памяти ResourceGraph, общий
-TextureTool header и исправление временных файлов SanToVmd. Цикл до 07:30 МСК продолжается;
-[его журнал](tools-core-cycle-2026-09-10-0730.md) фиксирует следующие результаты.
+**Все ядра ещё не готовы.** Срез включает общий GPU skinning для трёх
+потребителей, texture/reference/buffer inspectors, MaterialColor factory,
+PC default material, подтверждённую часть renderer cache и geometry helper.
+Цикл до 07:30 МСК завершается; [его журнал](tools-core-cycle-2026-09-10-0730.md)
+содержит результаты, проверки и незавершённые операции.
 PC TextureData теперь использует actual source reader; PS2 native metadata
 перенесена отдельно, без заявления готовности PS2 runtime. Legacy source
-оболочки и подключение material clock остаются в работе.
+оболочки и использование material runtime в полном renderer остаются в работе.
 Material reader TextureTool теперь использует общий snapshot, включая field8
 и constructor defaults; [70+14 адресных checks](tool-texture-material-inspection-2026-09-10.md).
 Первый узкий renderer-срез не подтверждён: выбранный BloomX требует нескольких
@@ -44,7 +45,7 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
 
 | Приложение | Проверенные операции ядра | Конкретный остаток или граница проверки |
 | --- | --- | --- |
-| Viewer | Общий SMO graph и SAN; actual Node/Model/Skin/material/texture связи и render slots; spatial, Light, Sphere/Box/OBB; общие Font и Text/TextNode metadata inspectors; PC TextureData source dispatch с выбранным представлением и PS2 native metadata | Legacy-common/PS2 source оболочки и material clock ещё в работе; специальные render passes не завершены. Полные Text/TextNode runtime readers и layout не реализованы; metadata inspection их не заменяет. Сохраняются общие границы загрузки и runtime ниже. |
+| Viewer | Общий SMO graph и SAN; actual Node/Model/Skin/material/texture связи и render slots; spatial, Light, Sphere/Box/OBB; общие Font и Text/TextNode metadata inspectors; PC TextureData source dispatch с выбранным представлением и PS2 native metadata; общий GPU skinning/picking и проверенный MaterialColor clock | Legacy-common/PS2 source оболочки, подключение LightManager и полный multipass renderer не завершены. Полные Text/TextNode runtime readers и layout не реализованы; metadata inspection их не заменяет. Сохраняются общие границы загрузки и runtime ниже. |
 | Exporter | Поза и parents из actual Node; общая geometry, Model variants и placements в GLB/FBX/OBJ; общий SAN | Полная проекция material passes/layers в целевые форматы ещё не закрыта. Ограничения общего graph loader распространяются на экспорт; новый полный acceptance Exporter в этом цикле не заявлен. |
 | Importer | Actual Model/Material selection; перенос ID по подтверждённому reader trace; общие mesh/texture writers, Material scalar/LTS, Renderable sort/priority, Skin palette с настоящими Node owners; Static matrix writer | FAT/envelope writer остаётся приостановленным предложением. Multipass donor отклоняется как `MATERIAL_IMPORT_SHAPE`; неизвестный DX power мешает полному Material writer. Legacy/orphan/repeated LTS и неоднозначные scalar/palette assignments требуют отдельного определения операции. |
 | LVLcreator | Workspace сохраняет actual support slots; общие scene/mesh/collision/pose операции, reference trace и Static matrix authoring; worker передаёт общий каталог один раз | Собственная сборка контейнера ещё не перенесена. Команды отклоняют повторные slots как `REPEATED_RENDERABLE_AUTHORING`; нужна адресация конкретного слота. Пользовательские отсрочки inverse-world и lossless-форм перечислены ниже. |
@@ -95,9 +96,19 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
   самостоятельными незавершёнными операциями.
   [Дублированный PRNG](tool-shared-function-particle-random-2026-09-10.md)
   у FunctionEval и Particle теперь один, с общим оригинальным состоянием.
-  Это не заменяет ещё отсутствующий looping producer.
+  [Original looping Init](native-pc-particle-loop-init-pc2-2026-09-10.md)
+  на PC2 bg.smo естественно вернулся: 539 active particles, 2695 random draws,
+  сохранены records, rings, world transform и полное состояние PRNG.
+  Это не заменяет ещё отсутствующий общий looping producer или whole-file acceptance.
   Исследовать остатки только для нужной операции;
   работа над material clock сама по себе эти контракты не закрывает.
+- **Освещение Viewer:** [источник cache установлен](tool-viewer-light-cache-boundary-2026-09-10.md):
+  Icy RenderNode3/Skin4 и настоящий ambient Light119. В Scene adapter отсутствуют
+  LightManager links и явная активация hierarchy. Достаточно тонкого подключения
+  существующих общих методов; новый алгоритм выбора света не требуется.
+  [Material power](tool-material-power-boundary-2026-09-10.md) уже известен у всех
+  десяти проверенных selected materials BloomX/Icy и не блокирует этот путь.
+  Эти read-only результаты не означают готовый GPU lighting.
 - **Отложено пользователем до LVLcreator:** cached 120/physical 84, редкие
   lossless headers и inverse-world при nonuniform parent. Эти решения не
   отменены переносом отдельных writers.
@@ -117,6 +128,22 @@ Clone/copy этого контроллера не закрыты. [Occlusion pro
 Полный runtime Text остаётся отдельной незавершённой функцией.
 PC TextureData source и PS2 native-section inspection также не следует
 повторно считать отсутствующими; остающиеся source/runtime границы перечислены выше.
+
+## Следующие операции
+
+1. Подключить Scene-owned lighting context и чтение actual RenderNode cache
+   к уже загруженному графу Icy. Передавать light IDs и hierarchy activation
+   явно; использовать существующий LightManager. Проверить occurrence identity,
+   Sample/update и снятие borrowed links при уничтожении. Это необходимая
+   операция ядра; общий UI refactor и новый выбор света не нужны.
+2. Перенести Particle Init/producer с owning records/ring и общим PRNG,
+   переиспользовав существующие region samplers и расчёт capacity.
+   Сначала закрыть directed branch cases из PC2 evidence, затем сравнить
+   records/rings/PRNG с original и подключить serializer. Не начинать полный
+   simulation/draw до появления такого потребителя в инструментах.
+3. После решения о sort dependency подключить полный Occlusion Init/reader.
+   До решения не писать default sorter. Аналогично три FAT/envelope writers
+   объединять только в рамках согласованного предложения host encoder.
 
 Число **30 из 35** относится только к историческому reader-срезу предыдущего
 цикла. После новых блоков полный пересчёт этого набора здесь не выполнялся;
