@@ -10,8 +10,10 @@ from PIL import ImageGrab
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--pid", required=True, type=int)
-parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f8"])
+parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f1", "f8"])
 parser.add_argument("--hold", type=float, default=0.15)
+parser.add_argument("--settle", type=float, default=0,
+                    help="Allow up to 15 seconds for rendering/live config to settle before capture")
 parser.add_argument("--capture", type=Path)
 parser.add_argument("--capture-seconds", type=float, default=0,
                     help="Capture the selected game window twice per second for up to 45 seconds")
@@ -21,6 +23,8 @@ parser.add_argument("--close", action="store_true")
 args = parser.parse_args()
 if not 0.01 <= args.hold <= 3:
     parser.error("hold must be between 0.01 and 3 seconds")
+if not 0 <= args.settle <= 15:
+    parser.error("settle must be between 0 and 15 seconds")
 if not 0 <= args.capture_seconds <= 45 or (args.capture_seconds and not args.capture):
     parser.error("capture-seconds requires capture and must be between 0 and 45")
 if args.client_size and any(not 320 <= v <= 3840 for v in args.client_size):
@@ -39,8 +43,8 @@ try:
     path, size = c.create_unicode_buffer(32768), w.DWORD(32768)
     if not k.QueryFullProcessImageNameW(handle, 0, path, c.byref(size)):
         raise c.WinError(c.get_last_error())
-    expected = Path(__file__).resolve().parents[1] / "local-data/Winx Club/WinxClub.exe"
-    if Path(path.value).resolve() != expected:
+    game = Path(__file__).resolve().parents[1] / "local-data/Winx Club"
+    if Path(path.value).resolve() not in (game / "WinxClub.exe", game / "WinxClubDebug.exe"):
         raise RuntimeError(f"Refusing to control a different executable: {path.value}")
 finally:
     k.CloseHandle(handle)
@@ -96,7 +100,7 @@ else:
             raise c.WinError(c.get_last_error())
         time.sleep(0.8)
     if args.key:
-        vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f8":119}[args.key]
+        vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f1":112, "f8":119}[args.key]
         scan = u.MapVirtualKeyW(vk, 0)
         flags = 1 if args.key in ("up", "down", "left", "right") else 0
         u.keybd_event(vk, scan, flags, 0)
@@ -106,6 +110,7 @@ else:
             u.keybd_event(vk, scan, flags | 2, 0)
         time.sleep(0.8)
     if args.capture:
+        time.sleep(args.settle)
         args.capture.parent.mkdir(parents=True, exist_ok=True)
         started, index = time.monotonic(), 0
         while True:

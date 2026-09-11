@@ -11,6 +11,9 @@
 #include <mutex>
 #include <share.h>
 #include <string>
+#include <sstream>
+#define REMIX_ALLOW_X86
+#include <remix/remix_c.h>
 
 static HMODULE selfModule, backend;
 static FILE* logFile;
@@ -28,6 +31,8 @@ static std::set<IDirect3DBaseTexture9*> readTextures;
 static bool resubmitTextures;
 static std::set<IDirect3DBaseTexture9*> submittedTextures;
 static bool orthographicUi;
+static bool menuBackground;
+static bool skyLayers;
 static bool fitWindow;
 static bool viewportScale;
 struct Presentation { HWND window=nullptr; UINT width=0,height=0; BOOL windowed=FALSE; UINT initialWidth=0,initialHeight=0; };
@@ -39,6 +44,7 @@ struct BufferLock { void* data; UINT size; DWORD flags; };
 static std::map<void*, BufferLock> bufferLocks;
 using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
 static FvfFromDeclaration fvfFromDeclaration;
+static wchar_t liveConfigPath[MAX_PATH]{};
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -54,6 +60,7 @@ static void Initialize() {
     wcscat_s(path, L"d3d9.remix-original.dll");
   }
   backend = LoadLibraryW(path);
+  if(wcscmp(mode,L"system")!=0) GetEnvironmentVariableW(L"WINX_REMIX_LIVE_CONFIG",liveConfigPath,MAX_PATH);
   wchar_t mipOption[8]{};
   explicitMipLevels=GetEnvironmentVariableW(L"WINX_REMIX_EXPLICIT_MIPS",mipOption,8) && wcscmp(mipOption,L"1")==0;
   wchar_t readbackOption[8]{};
@@ -62,6 +69,10 @@ static void Initialize() {
   resubmitTextures=GetEnvironmentVariableW(L"WINX_REMIX_RESUBMIT_TEXTURES",resubmitOption,8) && wcscmp(resubmitOption,L"1")==0;
   wchar_t uiOption[8]{};
   orthographicUi=GetEnvironmentVariableW(L"WINX_REMIX_ORTHOGRAPHIC_UI",uiOption,8) && wcscmp(uiOption,L"1")==0;
+  wchar_t menuOption[8]{};
+  menuBackground=GetEnvironmentVariableW(L"WINX_REMIX_MENU_BACKGROUND",menuOption,8) && wcscmp(menuOption,L"1")==0;
+  wchar_t skyOption[8]{};
+  skyLayers=GetEnvironmentVariableW(L"WINX_REMIX_SKY_LAYERS",skyOption,8) && wcscmp(skyOption,L"1")==0;
   wchar_t windowOption[8]{};
   fitWindow=GetEnvironmentVariableW(L"WINX_REMIX_FIT_WINDOW",windowOption,8) && wcscmp(windowOption,L"1")==0;
   wchar_t scaleOption[8]{};
@@ -191,7 +202,7 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
   const D3DRENDERSTATETYPE states[]={D3DRS_LIGHTING,D3DRS_AMBIENT,D3DRS_FOGENABLE,D3DRS_FOGCOLOR,
     D3DRS_FOGTABLEMODE,D3DRS_FOGVERTEXMODE,D3DRS_FOGSTART,D3DRS_FOGEND,D3DRS_FOGDENSITY,D3DRS_RANGEFOGENABLE,
     D3DRS_ZFUNC,D3DRS_CULLMODE,D3DRS_COLORWRITEENABLE,D3DRS_SRCBLEND,D3DRS_DESTBLEND,D3DRS_BLENDOP,
-    D3DRS_ALPHAFUNC,D3DRS_ALPHAREF,D3DRS_CLIPPING,D3DRS_CLIPPLANEENABLE,D3DRS_DIFFUSEMATERIALSOURCE};
+    D3DRS_ALPHAFUNC,D3DRS_ALPHAREF,D3DRS_CLIPPING,D3DRS_CLIPPLANEENABLE,D3DRS_DIFFUSEMATERIALSOURCE,D3DRS_TEXTUREFACTOR};
   fputs(",\"states\":[",logFile);
   for(unsigned i=0;i<sizeof(states)/sizeof(states[0]);++i) {
     DWORD value=0; const HRESULT hr=device->GetRenderState(states[i],&value);
@@ -204,6 +215,12 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
     fprintf(logFile,"%s[%u,%lu,%ld]",i?",":"",textureStates[i],value,hr);
   }
   fputc(']',logFile);
+  D3DMATERIAL9 material{};
+  if(SUCCEEDED(device->GetMaterial(&material))) {
+    fprintf(logFile,",\"material\":[%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g]",
+      material.Diffuse.r,material.Diffuse.g,material.Diffuse.b,material.Ambient.r,material.Ambient.g,material.Ambient.b,
+      material.Emissive.r,material.Emissive.g,material.Emissive.b,material.Power);
+  }
   IDirect3DVertexBuffer9* stream=nullptr; UINT offset=0,stride=0;
   if(SUCCEEDED(device->GetStreamSource(0,&stream,&offset,&stride)) && stream) {
     D3DVERTEXBUFFER_DESC desc{}; stream->GetDesc(&desc);
@@ -306,13 +323,54 @@ struct ScopedViewport {
   ~ScopedViewport() {if(changed) device->SetViewport(&saved);}
 };
 
+// Winx sky layers are early fixed-function draws centered exactly on the camera
+// with depth test/write disabled. Tag their viewport depth for stock Remix sky
+// classification. Preserve the game's viewport and never alter its matrices.
+struct ScopedSky {
+  IDirect3DDevice9* device; D3DVIEWPORT9 saved{}; bool changed=false;
+  explicit ScopedSky(IDirect3DDevice9* d):device(d) {
+    if(!skyLayers || drawId>16 || uiStarted.count(d)) return;
+    DWORD z=1,zw=1; D3DMATRIX w{},v{},p{};
+    if(FAILED(d->GetRenderState(D3DRS_ZENABLE,&z)) || z ||
+       FAILED(d->GetRenderState(D3DRS_ZWRITEENABLE,&zw)) || zw ||
+       FAILED(d->GetTransform(D3DTS_PROJECTION,&p)) || p._34!=1.0f || p._44!=0.0f ||
+       FAILED(d->GetTransform(D3DTS_WORLD,&w)) || FAILED(d->GetTransform(D3DTS_VIEW,&v))) return;
+    IDirect3DVertexShader9* shader=nullptr; if(FAILED(d->GetVertexShader(&shader))) return;
+    if(shader) {shader->Release();return;}
+    const float* world=reinterpret_cast<const float*>(&w);const float* view=reinterpret_cast<const float*>(&v);
+    for(unsigned j=0;j<3;++j) {
+      double atCamera=view[12+j];
+      for(unsigned k=0;k<3;++k) atCamera+=double(world[12+k])*view[k*4+j];
+      if(!std::isfinite(atCamera) || std::fabs(atCamera)>0.05) return;
+    }
+    IDirect3DSurface9* target=nullptr; d->GetRenderTarget(0,&target);
+    const auto known=primaryTargets.find(d);
+    const bool primary=target && known!=primaryTargets.end() && target==known->second;
+    if(target) target->Release(); if(!primary || FAILED(d->GetViewport(&saved))) return;
+    auto sky=saved;sky.MinZ=sky.MaxZ=1.0f;
+    changed=SUCCEEDED(d->SetViewport(&sky));
+    if(logFile && (frameId<traceUntilFrame || frameId%300==0)) fprintf(logFile,"{\"event\":\"sky_layer\",\"frame\":%u,\"draw\":%u,\"tagged\":%s}\n",frameId,drawId,changed?"true":"false");
+  }
+  ~ScopedSky() {if(changed) device->SetViewport(&saved);}
+};
+
 // Trigger Remix's UI boundary with a zero-area primitive. Real UI draws retain
 // Z writes: Winx uses depth to layer loading images, backgrounds and diary pages.
 static void PrepareUi(IDirect3DDevice9* d) {
     if(!orthographicUi || uiStarted.count(d)) return;
     D3DMATRIX projection{};
-    if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._44!=1.0f ||
-       projection._14!=0.0f || projection._24!=0.0f || projection._34!=0.0f) return;
+    if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection))) return;
+    const bool orthographic=projection._44==1.0f && projection._14==0.0f && projection._24==0.0f && projection._34==0.0f;
+    // Observed Winx menu backdrop camera: unrotated, eye (0,0,-28.8675117),
+    // 60-degree horizontal perspective. Only recognize it at the frame start.
+    D3DMATRIX view{}; bool backdrop=false;
+    if(menuBackground && drawId<=3 && !orthographic && SUCCEEDED(d->GetTransform(D3DTS_VIEW,&view))) {
+      const float expected[16]={1,0,0,0,0,1,0,0,0,0,1,0,0,0,28.8675117f,1};
+      backdrop=true;
+      for(unsigned i=0;i<16;++i) if(std::fabs(reinterpret_cast<const float*>(&view)[i]-expected[i])>0.0001f) backdrop=false;
+      backdrop=backdrop && std::fabs(projection._11-1.7320509f)<0.0001f && projection._34==1.0f && projection._44==0.0f;
+    }
+    if(!orthographic && !backdrop) return;
     IDirect3DVertexShader9* vs=nullptr;
     if(FAILED(d->GetVertexShader(&vs))) return;
     if(vs) {vs->Release();return;}
@@ -329,16 +387,35 @@ static void PrepareUi(IDirect3DDevice9* d) {
     if(FAILED(d->GetStreamSource(0,&stream,&offset,&stride))) { declaration->Release(); return; }
     const float vertices[9]{};
     HRESULT hr=D3DERR_INVALIDCALL;
+    if(backdrop) { D3DMATRIX marker{};marker._11=marker._22=marker._33=marker._44=1.0f;d->SetTransform(D3DTS_PROJECTION,&marker); }
     if(SUCCEEDED(d->SetFVF(D3DFVF_XYZ)) && SUCCEEDED(d->SetRenderState(D3DRS_ZWRITEENABLE,FALSE))) {
       using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
       hr=Original<F>(d,83)(d,D3DPT_TRIANGLELIST,1,vertices,3*sizeof(float));
       if(SUCCEEDED(hr)) uiStarted.insert(d);
     }
     d->SetRenderState(D3DRS_ZWRITEENABLE,saved);
+    if(backdrop) d->SetTransform(D3DTS_PROJECTION,&projection);
     d->SetVertexDeclaration(declaration);
     d->SetStreamSource(0,stream,offset,stride);
     if(stream) stream->Release(); declaration->Release();
-    if(logFile && frameId<traceUntilFrame) fprintf(logFile,"{\"event\":\"ui_boundary\",\"frame\":%u,\"draw\":%u,\"hr\":%ld}\n",frameId,drawId,hr);
+    if(logFile && (frameId<traceUntilFrame || frameId%300==0)) fprintf(logFile,"{\"event\":\"ui_boundary\",\"frame\":%u,\"draw\":%u,\"backdrop\":%s,\"hr\":%ld}\n",frameId,drawId,backdrop?"true":"false",hr);
+}
+
+static HRESULT STDMETHODCALLTYPE SetLight(IDirect3DDevice9* d,DWORD index,const D3DLIGHT9* light) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,DWORD,const D3DLIGHT9*);
+  const HRESULT hr=Original<F>(d,51)(d,index,light);
+  if(logFile && light) {
+    static std::map<DWORD,D3DLIGHT9> previous;
+    static unsigned lightRecords=0;
+    if(lightRecords<2048 && (!previous.count(index) || memcmp(&previous[index],light,sizeof(*light))!=0)) {
+      previous[index]=*light;++lightRecords;
+      fprintf(logFile,"{\"event\":\"light\",\"frame\":%u,\"index\":%lu,\"type\":%u,\"diffuse\":[%.9g,%.9g,%.9g],\"ambient\":[%.9g,%.9g,%.9g],\"position\":[%.9g,%.9g,%.9g],\"direction\":[%.9g,%.9g,%.9g],\"range\":%.9g,\"attenuation\":[%.9g,%.9g,%.9g],\"hr\":%ld}\n",
+        frameId,index,light->Type,light->Diffuse.r,light->Diffuse.g,light->Diffuse.b,light->Ambient.r,light->Ambient.g,light->Ambient.b,
+        light->Position.x,light->Position.y,light->Position.z,light->Direction.x,light->Direction.y,light->Direction.z,
+        light->Range,light->Attenuation0,light->Attenuation1,light->Attenuation2,hr);
+    }
+  }
+  return hr;
 }
 
 // Opt-in experiment: retransmit the existing CPU contents of managed textures
@@ -411,7 +488,51 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
   return hr;
 }
 
+// Optional diagnostic control through the stock public Remix API. The file is
+// read at most twice per second; removing a key does not reset its live value.
+// No executable commands, DLL loading, game memory access or source patching.
+static void ApplyLiveConfig() {
+  if(!liveConfigPath[0]) return;
+  static ULONGLONG nextCheck=0; const auto now=GetTickCount64();
+  if(now<nextCheck) return; nextCheck=now+500;
+  static remixapi_Interface api{}; static bool attempted=false;
+  if(!attempted) {
+    attempted=true;
+    auto init=reinterpret_cast<PFN_remixapi_InitializeLibrary>(GetProcAddress(backend,"remixapi_InitializeLibrary"));
+    remixapi_InitializeLibraryInfo info{};
+    info.sType=REMIXAPI_STRUCT_TYPE_INITIALIZE_LIBRARY_INFO;
+    info.version=REMIXAPI_VERSION_MAKE(REMIXAPI_VERSION_MAJOR,REMIXAPI_VERSION_MINOR,REMIXAPI_VERSION_PATCH);
+    const auto result=init?init(&info,&api):REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
+    if(logFile) fprintf(logFile,"{\"event\":\"live_config_init\",\"result\":%d}\n",result);
+    if(result!=REMIXAPI_ERROR_CODE_SUCCESS) api={};
+  }
+  if(!api.SetConfigVariable) return;
+  FILE* file=_wfsopen(liveConfigPath,L"rb",_SH_DENYNO); if(!file) return;
+  std::string content; char chunk[1024]; size_t count=0;
+  while((count=fread(chunk,1,sizeof(chunk),file))!=0 && content.size()<16384) content.append(chunk,count);
+  fclose(file); if(content.size()>=16384) return;
+  static std::string previous;
+  if(content==previous) return; previous=content;
+  std::istringstream input(content); std::string line;
+  static std::map<std::string,std::string> applied;
+  auto trim=[](std::string s) {
+    const auto first=s.find_first_not_of(" \t\r");
+    return first==std::string::npos?std::string():s.substr(first,s.find_last_not_of(" \t\r")-first+1);
+  };
+  while(std::getline(input,line)) {
+    const auto split=line.find('='); if(split==std::string::npos) continue;
+    const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key.rfind("rtx.",0)!=0 || key.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.")!=std::string::npos ||
+       value.empty() || value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_., +-()")!=std::string::npos) continue;
+    if(applied.count(key) && applied[key]==value) continue;
+    const auto result=api.SetConfigVariable(key.c_str(),value.c_str());
+    if(result==REMIXAPI_ERROR_CODE_SUCCESS) applied[key]=value;
+    if(logFile) fprintf(logFile,"{\"event\":\"live_config\",\"frame\":%u,\"key\":\"%s\",\"value\":\"%s\",\"result\":%d}\n",frameId,key.c_str(),value.c_str(),result);
+  }
+}
+
 static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e) {
+  ApplyLiveConfig();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
   const auto state=presentations.find(d);
@@ -483,6 +604,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
   ResubmitTextures(d);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
+  ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT);
   return Original<F>(d,81)(d,t,start,count);
@@ -492,6 +614,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   ResubmitTextures(d);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
+  ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
   return Original<F>(d,82)(d,t,base,min,num,start,count);
@@ -501,6 +624,7 @@ static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,U
   ResubmitTextures(d);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
+  ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
   return Original<F>(d,83)(d,t,count,data,stride);
@@ -510,6 +634,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVET
   ResubmitTextures(d);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
+  ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
   return Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride);
@@ -530,6 +655,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     Patch(*result,16,reinterpret_cast<void*>(Reset)); Patch(*result,17,reinterpret_cast<void*>(Present));
     Patch(*result,26,reinterpret_cast<void*>(CreateVB)); Patch(*result,27,reinterpret_cast<void*>(CreateIB));
     Patch(*result,23,reinterpret_cast<void*>(CreateTexture));
+    Patch(*result,51,reinterpret_cast<void*>(SetLight));
     Patch(*result,81,reinterpret_cast<void*>(Draw)); Patch(*result,82,reinterpret_cast<void*>(DrawIndexed));
     Patch(*result,83,reinterpret_cast<void*>(DrawUP)); Patch(*result,84,reinterpret_cast<void*>(DrawIndexedUP));
   }

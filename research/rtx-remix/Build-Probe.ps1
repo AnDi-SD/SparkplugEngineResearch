@@ -11,6 +11,8 @@ if (-not $installation) { throw 'MSVC x86 tools not found' }
 $environmentScript = Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
 New-Item -ItemType Directory -Path $build -Force | Out-Null
 $source = Join-Path $PSScriptRoot 'winx_d3d9_probe.cpp'
+$remixInclude = Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
+if (-not (Test-Path -LiteralPath (Join-Path $remixInclude 'remix/remix_c.h'))) { throw 'The read-only Remix reference headers are required' }
 $exports = Join-Path $PSScriptRoot 'winx_d3d9_probe.def'
 if ($Platform -eq 'x64') {
     # x64 uses undecorated C exports; Regex replacement must preserve function names.
@@ -22,7 +24,7 @@ $commands = @"
 @echo off
 call "$environmentScript" $Platform
 if errorlevel 1 exit /b %errorlevel%
-cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
+cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$remixInclude" /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
 exit /b %errorlevel%
 "@
 $commandFile = Join-Path $build 'build-probe.cmd'
