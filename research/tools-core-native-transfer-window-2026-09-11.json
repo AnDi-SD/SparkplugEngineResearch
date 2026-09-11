@@ -1,0 +1,239 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoModelReader.cs",
+      "bytes": 26075,
+      "sha256": "F9E47F356400F4E68B658092EE1FE2355ADB115808D80EDD4FD6BCF6FDD7720B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoImporter/SmoImporter.Core/SmoModelReader.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoNativeVisualGraphReplacer.cs",
+      "bytes": 63090,
+      "sha256": "818583D13FA5E699EC3EBDB0825ED8947A5BE89678EF0BB95C4BB48FE3F14905",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoImporter/SmoImporter.Core/SmoNativeVisualGraphReplacer.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Gui/MainWindow.xaml.cs",
+      "bytes": 492525,
+      "sha256": "C19F414DEB54F1CF1D1111DC87310ADE815179EA20EF1D553DA0E59DBA3E384B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoImporter/SmoImporter.Gui/MainWindow.xaml.cs"
+    },
+    {
+      "path": "tools/SmoExporter/SmoExporter.Core/SmoSceneBuilder.cs",
+      "bytes": 24097,
+      "sha256": "1FCBFCE0960B8A1F88335A0BD06699FBA94A93C4B2C70250B616FB602807513B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoExporter/SmoExporter.Core/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/NativeTransferWindowRegression.cs",
+      "bytes": 7171,
+      "sha256": "7B3EA3754F9E350766B6D145ED59060330A6A7B55FFCE38BE4CD7EDBCED4CBCE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/NativeTransferWindowRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 15781,
+      "sha256": "45E4F254F1245DF5C76E26F9AF094D24276EA0C42F80F3CA3CA5399C9C81A00E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "docs/research/tool-native-transfer-window-2026-09-11.md",
+      "bytes": 4469,
+      "sha256": "398FD840B29F4393CA19498DC283E41C772128098B9B45C422D668E637D0A447",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/docs/research/tool-native-transfer-window-2026-09-11.md"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/check-native-transfer-window.py",
+      "bytes": 1174,
+      "sha256": "027E0E7A1369A2C87E955FCC3E8E6BF3A036FF4BC0498B2F72D83C6D368083BB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/.codex-tmp/check-native-transfer-window.py"
+    },
+    {
+      "path": ".codex-tmp/seal-native-transfer-window.py",
+      "bytes": 2421,
+      "sha256": "E43CBF31A64C8B2958E858029641AACDCA7CAF5F0CBDF61120C6CB090813F0FE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/sources/.codex-tmp/seal-native-transfer-window.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward-log.txt",
+      "bytes": 50,
+      "sha256": "796E6A2C714590DFA75525E4BF3C761CD8A9F5115AFE17F56320AD25855AB5F2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse-log.txt",
+      "bytes": 50,
+      "sha256": "BD8CEF109645F22365F73937329F832C0D07928588677C140EB03178DEFE2796",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run1-log.txt",
+      "bytes": 645,
+      "sha256": "F3A9737616B67FF582EFE73DD7BE448A7CC61F4593F9BBC236FC9076D6C273F1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2-log.txt",
+      "bytes": 50,
+      "sha256": "E340252AFDA55956FAFDFB91D4892110865554822C95F9636E1401570A96F7D0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward/report.json",
+      "bytes": 1857,
+      "sha256": "D12CCEE9C4699851F6385408DDAEA4499600D6F470671261A743E4B9D40A959E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward/transferred.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-forward/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse/report.json",
+      "bytes": 1857,
+      "sha256": "75ADC2E4C050F77E3E7D28B1941DFFB9D33A2863738AAEC4E56DDB0063CDD272",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse/transferred.smo",
+      "bytes": 509597,
+      "sha256": "8CB9846A0549C40130073ABFEBD7CBB4A08CFA977EEDEC24E3B2E6F8B6512141",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/final-inverse/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run1/report.json",
+      "bytes": 1121,
+      "sha256": "C7062BCBD9A0444BE3573DDF6515951C110145159F35DD206C8B01835D6225BF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2/report.json",
+      "bytes": 1835,
+      "sha256": "7010BD042FFA9D1802F3274F6B3053D7C8ACB720FEBA99131547B00BF3522D2B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2/transferred.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/run2/transferred.smo"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 235520,
+      "sha256": "E6E64E566F886187015DF610D768F203EEA80471B3CB87FEB757B1B8E08A496D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoImporter.Core.dll",
+      "bytes": 1162240,
+      "sha256": "9AE43EF9CB3128295268E6E27F5363085E92BD6F97569ED7E55F53B924242E6E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoImporter.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoImporter.Gui.dll",
+      "bytes": 370688,
+      "sha256": "FE0CB5C5D9136276CFDFCA82E75B0EDCC13169CA3E95B6045614D98B8603950F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoImporter.Gui.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoExporter.Core.dll",
+      "bytes": 174592,
+      "sha256": "35CC6C0FCDE4418B9621B8537E57FB95775B93BE533C993D94EC1AD334B5D6B5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoExporter.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 766976,
+      "sha256": "19F5D3BF1CDFD8174A21A20704B495D545456B0EF92933DB6BDBB8CBAFA64E45",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Editing.dll",
+      "bytes": 102912,
+      "sha256": "CB52EC195848E8ACA0B2A08B6311B0AADD7138060B2EC2BA701A5548CDEC4CB5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Editing.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 43520,
+      "sha256": "CAAB971970082C269DA567DE7482986C0E667D326D666E9A0D4FCC04081A95D8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "bytes": 1295872,
+      "sha256": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/native-transfer-window/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll"
+    }
+  ],
+  "status": "verified-native-transfer-window-with-geometry-only-preview",
+  "block": 20,
+  "checks": 28,
+  "exeScoreDelta": 0,
+  "originalExecuted": false,
+  "workflows": [
+    {
+      "targetPath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "donorPath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Stella\\StellaX.smo",
+      "referencePath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tools-core-cycle-20260911-1900\\donor-transfer\\materials-stella-final\\transferred.smo",
+      "checks": 13,
+      "failure": null,
+      "detail": {
+        "targetHash": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+        "donorHash": "8DC895389412F770FC5B1C80ED619559F8576413394EA63C0CB51DE17BD03095",
+        "referenceHash": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+        "layered": true,
+        "previewMeshes": 8,
+        "previewVertices": 3189,
+        "MaterialCount": 5,
+        "MeshCount": 8,
+        "previewLabel": "\u041f\u043e\u043a\u0430\u0437\u0430\u043d\u0430 \u0433\u0435\u043e\u043c\u0435\u0442\u0440\u0438\u044f SMO-\u0434\u043e\u043d\u043e\u0440\u0430 \u0431\u0435\u0437 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432. \u041f\u0440\u0438 \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u0441\u0445\u043e\u0434\u043d\u0430\u044f render-\u0432\u0435\u0442\u0432\u044c \u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0438\u0442\u0441\u044f \u0446\u0435\u043b\u0438\u043a\u043e\u043c, \u0441\u043e \u0432\u0441\u0435\u043c\u0438 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u0430\u043c\u0438 \u0438 \u0442\u0435\u043a\u0441\u0442\u0443\u0440\u0430\u043c\u0438.",
+        "importerCore": "9AE43EF9CB3128295268E6E27F5363085E92BD6F97569ED7E55F53B924242E6E",
+        "importerGui": "FE0CB5C5D9136276CFDFCA82E75B0EDCC13169CA3E95B6045614D98B8603950F",
+        "native": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073"
+      },
+      "seconds": 1.5558302,
+      "peakBytes": 121450496
+    },
+    {
+      "targetPath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Stella\\StellaX.smo",
+      "donorPath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "referencePath": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\results\\tools-core-cycle-20260911-1900\\donor-transfer\\materials-icy-final\\transferred.smo",
+      "checks": 15,
+      "failure": null,
+      "detail": {
+        "targetHash": "8DC895389412F770FC5B1C80ED619559F8576413394EA63C0CB51DE17BD03095",
+        "donorHash": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+        "referenceHash": "8CB9846A0549C40130073ABFEBD7CBB4A08CFA977EEDEC24E3B2E6F8B6512141",
+        "layered": false,
+        "previewMeshes": 12,
+        "previewVertices": 3729,
+        "MaterialCount": 3,
+        "MeshCount": 12,
+        "previewLabel": "\u041f\u043e\u043a\u0430\u0437\u0430\u043d\u0430 \u0433\u0435\u043e\u043c\u0435\u0442\u0440\u0438\u044f SMO-\u0434\u043e\u043d\u043e\u0440\u0430 \u0431\u0435\u0437 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432. \u041f\u0440\u0438 \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u0441\u0445\u043e\u0434\u043d\u0430\u044f render-\u0432\u0435\u0442\u0432\u044c \u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0438\u0442\u0441\u044f \u0446\u0435\u043b\u0438\u043a\u043e\u043c, \u0441\u043e \u0432\u0441\u0435\u043c\u0438 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u0430\u043c\u0438 \u0438 \u0442\u0435\u043a\u0441\u0442\u0443\u0440\u0430\u043c\u0438.",
+        "importerCore": "9AE43EF9CB3128295268E6E27F5363085E92BD6F97569ED7E55F53B924242E6E",
+        "importerGui": "FE0CB5C5D9136276CFDFCA82E75B0EDCC13169CA3E95B6045614D98B8603950F",
+        "native": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073"
+      },
+      "seconds": 1.7059487,
+      "peakBytes": 122462208
+    }
+  ],
+  "boundaries": [
+    "Native donor preview remains geometry-only",
+    "Strict flat-material authoring reader remains unchanged",
+    "Rare imported skeleton name/palette projection limits remain",
+    "No file-picker or original game visual acceptance"
+  ]
+}

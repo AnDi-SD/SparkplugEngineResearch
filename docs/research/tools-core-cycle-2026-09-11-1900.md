@@ -226,3 +226,13 @@ captures/177 checks,152 ABI checks и83 GPU checks прошли; три смеж
 device parameters остаются явно описанными границами. First-run Unlit gate,
 JSON NaN report и sentinel expectation исправлены; game алгоритм не менялся.
 Подбор восьми active Fog файлов занял0,058 s через индексы БД.
+
+## Блок 20 — подключение multipass SMO к настоящему Importer
+
+[Geometry-only native preview](tool-native-transfer-window-2026-09-11.md)
+снял лишний flat-material gate с donor loader. Окно и раньше показывало только
+геометрию SMO, но требовало представить его материалы через ImportedMaterial.
+Теперь два настоящих window workflows дали28 checks, доступный Save и точное
+совпадение output с обоими qualified результатами блока18. Обычный full reader
+и его authoring guard сохранены. First-run Save assertion исправлена вызовом
+штатной кнопки планирования; GUI guard не менялся. Игровой код не изменён.

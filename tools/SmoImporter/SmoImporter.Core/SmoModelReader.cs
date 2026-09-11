@@ -16,6 +16,22 @@ public static class SmoModelReader
     public static ImportedScene Read(
         string path,
         CancellationToken cancellationToken = default)
+        => ReadCore(path, cancellationToken, includeMaterials: true);
+
+    /// <summary>
+    /// Geometry-only input for the native forest transfer window. Its writer
+    /// consumes the original SmoDocument; this preview does not flatten native
+    /// passes, layers or animated textures into ImportedMaterial.
+    /// </summary>
+    public static ImportedScene ReadNativeTransferGeometryPreview(
+        string path,
+        CancellationToken cancellationToken = default)
+        => ReadCore(path, cancellationToken, includeMaterials: false);
+
+    private static ImportedScene ReadCore(
+        string path,
+        CancellationToken cancellationToken,
+        bool includeMaterials)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         cancellationToken.ThrowIfCancellationRequested();
@@ -53,12 +69,12 @@ public static class SmoModelReader
                 AnimationPaths: null,
                 Resources: SmoExportResourceTypes.Meshes |
                            SmoExportResourceTypes.Skeleton |
-                           SmoExportResourceTypes.Materials |
-                           SmoExportResourceTypes.Textures,
+                           (includeMaterials ? SmoExportResourceTypes.Materials |
+                            SmoExportResourceTypes.Textures : default),
                 SceneMode: SmoExportSceneMode.SeparateMeshes,
                 SelectedMeshObjectIndices: activeMeshIndices));
         cancellationToken.ThrowIfCancellationRequested();
-        return Convert(source, cancellationToken);
+        return Convert(source, cancellationToken, includeMaterials);
     }
 
     public static ImportedScene ReadGeometryOnly(
@@ -76,12 +92,16 @@ public static class SmoModelReader
 
     internal static ImportedScene Convert(
         SmoExportScene source,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool includeMaterials = true)
     {
         ArgumentNullException.ThrowIfNull(source);
         cancellationToken.ThrowIfCancellationRequested();
 
         var warnings = new List<string>(source.Warnings);
+        if (!includeMaterials)
+            warnings.Add("NATIVE_GEOMETRY_PREVIEW: only geometry is projected for the transfer window; " +
+                "saving transfers the original SMO graph, including all material passes, layers and controllers.");
         // ImportedScene stores flattened occurrences. The shared source scene
         // keeps geometry variants separately from actual support reference slots.
         var variants = source.Meshes.ToDictionary(mesh => mesh.VariantKey);
@@ -118,7 +138,7 @@ public static class SmoModelReader
                 mesh.LoadedMaterial is { } material &&
                 (material.Passes.Count > 1 || material.Passes.Any(pass => pass.Layers.Count > 1)))
             .ToArray();
-        if (layered.Length > 0)
+        if (includeMaterials && layered.Length > 0)
         {
             throw new InvalidDataException(
                 "MATERIAL_IMPORT_SHAPE: the donor SMO contains multiple material passes or layers which cannot yet be " +
@@ -128,6 +148,7 @@ public static class SmoModelReader
         }
 
         SmoExportTexture[] sourceTextures = meshes
+            .Where(_ => includeMaterials)
             .Select(mesh => mesh.Texture)
             .OfType<SmoExportTexture>()
             .GroupBy(texture => texture.ObjectIndex)
@@ -153,15 +174,15 @@ public static class SmoModelReader
             .ToDictionary(node => node.ObjectIndex);
         var importedSkeletons = new Dictionary<int, ImportedSkinDefinition>();
         var importedMeshes = new ImportedMesh[meshes.Length];
-        var materials = new ImportedMaterial[meshes.Length];
+        var materials = new ImportedMaterial[includeMaterials ? meshes.Length : 0];
         for (int meshIndex = 0; meshIndex < meshes.Length; meshIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             SmoExportMesh sourceMesh = meshes[meshIndex];
-            int textureIndex = sourceMesh.Texture is null
+            int textureIndex = !includeMaterials || sourceMesh.Texture is null
                 ? -1
                 : textureIndexByObject[sourceMesh.Texture.ObjectIndex];
-            materials[meshIndex] = new ImportedMaterial(
+            if (includeMaterials) materials[meshIndex] = new ImportedMaterial(
                 $"{sourceMesh.Name}_material",
                 textureIndex >= 0 ? textures[textureIndex].Name : null,
                 textureIndex,
@@ -202,8 +223,8 @@ public static class SmoModelReader
                 normals,
                 sourceMesh.TextureCoordinates0.ToArray(),
                 sourceMesh.TriangleIndices.ToArray(),
-                BuildDiffuseColors(sourceMesh),
-                meshIndex,
+                includeMaterials ? BuildDiffuseColors(sourceMesh) : null,
+                includeMaterials ? meshIndex : -1,
                 skinning)
             {
                 SecondaryTextureCoordinates =

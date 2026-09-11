@@ -1635,8 +1635,9 @@ public partial class MainWindow : Window
         CancellationToken cancellationToken)
     {
         string fullPath = Path.GetFullPath(path);
-        ImportedScene sourceScene = ImportedModelReader.Read(
-            fullPath, _blenderPath, cancellationToken);
+        ImportedScene sourceScene = Path.GetExtension(fullPath).Equals(".smo", StringComparison.OrdinalIgnoreCase)
+            ? SmoModelReader.ReadNativeTransferGeometryPreview(fullPath, cancellationToken)
+            : ImportedModelReader.Read(fullPath, _blenderPath, cancellationToken);
         ImportedTextureCatalogResult catalog =
             ImportedTextureCatalog.ResolveExternalOverrides(sourceScene, []);
         ImportedScene effectiveScene = catalog.EffectiveScene;
@@ -8273,8 +8274,8 @@ public partial class MainWindow : Window
                 {
                     transform = Matrix4x4.Identity;
                     SetPortingPreviewStatus(
-                        "Показана декодированная копия SMO-донора. При записи " +
-                        "render forest копируется нативно и не проходит через preview-конвертер.");
+                        "Показана геометрия SMO-донора без материалов. При записи " +
+                        "исходная render-ветвь переносится целиком, со всеми материалами и текстурами.");
                 }
                 else if (_document is not null && _glbSkinTransferPlan?.CanReplace == true)
                 {
