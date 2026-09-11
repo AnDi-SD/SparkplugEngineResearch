@@ -19,6 +19,7 @@ static std::recursive_mutex guard;
 static std::map<void**, std::map<unsigned, void*>> originals;
 static unsigned frameId, drawId, records;
 static bool triggered;
+static unsigned traceUntilFrame;
 static unsigned bufferRecords, dynamicBufferRecords;
 static unsigned textureRecords;
 static bool explicitMipLevels;
@@ -27,6 +28,11 @@ static std::set<IDirect3DBaseTexture9*> readTextures;
 static bool resubmitTextures;
 static std::set<IDirect3DBaseTexture9*> submittedTextures;
 static bool orthographicUi;
+static bool fitWindow;
+static bool viewportScale;
+struct Presentation { HWND window=nullptr; UINT width=0,height=0; BOOL windowed=FALSE; UINT initialWidth=0,initialHeight=0; };
+static std::map<IDirect3DDevice9*,Presentation> presentations;
+static std::set<IDirect3DDevice9*> uiStarted;
 // Non-owning identities, refreshed on device creation/reset.
 static std::map<IDirect3DDevice9*,IDirect3DSurface9*> primaryTargets;
 struct BufferLock { void* data; UINT size; DWORD flags; };
@@ -56,6 +62,10 @@ static void Initialize() {
   resubmitTextures=GetEnvironmentVariableW(L"WINX_REMIX_RESUBMIT_TEXTURES",resubmitOption,8) && wcscmp(resubmitOption,L"1")==0;
   wchar_t uiOption[8]{};
   orthographicUi=GetEnvironmentVariableW(L"WINX_REMIX_ORTHOGRAPHIC_UI",uiOption,8) && wcscmp(uiOption,L"1")==0;
+  wchar_t windowOption[8]{};
+  fitWindow=GetEnvironmentVariableW(L"WINX_REMIX_FIT_WINDOW",windowOption,8) && wcscmp(windowOption,L"1")==0;
+  wchar_t scaleOption[8]{};
+  viewportScale=GetEnvironmentVariableW(L"WINX_REMIX_VIEWPORT_SCALE",scaleOption,8) && wcscmp(scaleOption,L"1")==0;
   wchar_t normalize[8]{};
   if (GetEnvironmentVariableW(L"WINX_REMIX_NORMALIZE_FVF", normalize, 8) && wcscmp(normalize,L"1")==0) {
     const HMODULE d3dx=LoadLibraryExW(L"d3dx9_43.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -105,6 +115,45 @@ static void RememberPrimaryTarget(IDirect3DDevice9* device) {
   } else primaryTargets.erase(device);
 }
 
+static void LogPresentation(const char* event, const D3DPRESENT_PARAMETERS* p, HWND fallback=nullptr) {
+  if(!logFile || !p) return;
+  HWND window=p->hDeviceWindow?p->hDeviceWindow:fallback;
+  RECT client{}, rect{};
+  GetClientRect(window,&client); GetWindowRect(window,&rect);
+  fprintf(logFile,"{\"event\":\"%s\",\"frame\":%u,\"size\":[%u,%u],\"windowed\":%d,\"hwnd\":%llu,\"client\":[%ld,%ld],\"window\":[%ld,%ld,%ld,%ld]}\n",
+    event,frameId,p->BackBufferWidth,p->BackBufferHeight,p->Windowed,
+    static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(window)),client.right,client.bottom,rect.left,rect.top,rect.right,rect.bottom);
+  fflush(logFile);
+}
+
+// Own window policy: keep the entire backbuffer visible, including after Reset.
+// Never request a display mode change. Fit to this monitor's work area.
+static void RememberPresentation(IDirect3DDevice9* d,const D3DPRESENT_PARAMETERS& p,HWND fallback) {
+  auto& state=presentations[d];
+  if(!state.initialWidth) {state.initialWidth=p.BackBufferWidth;state.initialHeight=p.BackBufferHeight;}
+  state.window=p.hDeviceWindow?p.hDeviceWindow:fallback;
+  state.width=p.BackBufferWidth;state.height=p.BackBufferHeight;state.windowed=p.Windowed;
+  uiStarted.erase(d);
+  if(!fitWindow || !state.windowed || !state.width || !state.height || !IsWindow(state.window)) return;
+  RECT client{},rect{}; MONITORINFO monitor{sizeof(monitor)};
+  if(!GetClientRect(state.window,&client) || !GetWindowRect(state.window,&rect) ||
+     !GetMonitorInfoW(MonitorFromWindow(state.window,MONITOR_DEFAULTTONEAREST),&monitor)) return;
+  const LONG borderWidth=(rect.right-rect.left)-(client.right-client.left);
+  const LONG borderHeight=(rect.bottom-rect.top)-(client.bottom-client.top);
+  const LONG availableWidth=monitor.rcWork.right-monitor.rcWork.left-borderWidth;
+  const LONG availableHeight=monitor.rcWork.bottom-monitor.rcWork.top-borderHeight;
+  if(availableWidth<=0 || availableHeight<=0) return;
+  double scale=1.0;
+  if(state.width>static_cast<UINT>(availableWidth)) scale=double(availableWidth)/state.width;
+  if(state.height*scale>availableHeight) scale=double(availableHeight)/state.height;
+  const LONG width=static_cast<LONG>(state.width*scale)+borderWidth;
+  const LONG height=static_cast<LONG>(state.height*scale)+borderHeight;
+  const LONG x=max(monitor.rcWork.left,min(rect.left,monitor.rcWork.right-width));
+  const LONG y=max(monitor.rcWork.top,min(rect.top,monitor.rcWork.bottom-height));
+  SetWindowPos(state.window,nullptr,x,y,width,height,SWP_NOZORDER|SWP_NOACTIVATE);
+  LogPresentation("fit_window",&p,state.window);
+}
+
 static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
   fprintf(logFile, ",\"%s_hr\":%ld,\"%s\":[", name, hr, name);
   for (unsigned i=0; i<16; ++i) {
@@ -119,7 +168,7 @@ static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
 static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE type, UINT count) {
   std::lock_guard<std::recursive_mutex> lock(guard);
   ++drawId;
-  if (!logFile || records >= 16384 || !(frameId < 2 || frameId % 300 == 0 || triggered)) return;
+  if (!logFile || records >= 65536 || !(frameId < 2 || frameId % 300 == 0 || triggered || frameId<traceUntilFrame)) return;
   ++records;
   D3DMATRIX world{}, view{}, projection{};
   const HRESULT whr=device->GetTransform(D3DTS_WORLD,&world);
@@ -232,13 +281,35 @@ struct ScopedFvf {
   }
 };
 
-// Remix 1.5.2 recognizes fixed-function orthographic UI only without Z writes.
-// Restrict this opt-in adaptation to the primary backbuffer; shadow targets
-// retain their original depth semantics. Restore the game's state after draw.
-struct ScopedUi {
-  IDirect3DDevice9* device; DWORD saved=0; bool changed=false;
-  explicit ScopedUi(IDirect3DDevice9* d):device(d) {
-    if(!orthographicUi) return;
+// Remix 1.5.2 scales SetViewport by current backbuffer / creation backbuffer,
+// even without a resolution override. Compensate only during each draw and
+// restore the client-visible viewport immediately afterwards. This applies to
+// offscreen targets too, since the upstream scaling does not distinguish them.
+struct ScopedViewport {
+  IDirect3DDevice9* device; D3DVIEWPORT9 saved{}; bool changed=false;
+  explicit ScopedViewport(IDirect3DDevice9* d):device(d) {
+    if(!viewportScale || sizeof(void*)!=4) return;
+    const auto found=presentations.find(d);
+    if(found==presentations.end()) return;
+    const auto& p=found->second;
+    if(!p.width || !p.height || !p.initialWidth || !p.initialHeight ||
+       (p.width==p.initialWidth && p.height==p.initialHeight) || FAILED(d->GetViewport(&saved))) return;
+    const float sx=float(p.width)/p.initialWidth, sy=float(p.height)/p.initialHeight;
+    auto inverse=[](DWORD value,float scale) {return static_cast<DWORD>(std::ceil(double(value)/scale));};
+    D3DVIEWPORT9 adjusted=saved;
+    adjusted.X=inverse(saved.X,sx);adjusted.Y=inverse(saved.Y,sy);
+    adjusted.Width=inverse(saved.Width,sx);adjusted.Height=inverse(saved.Height,sy);
+    changed=SUCCEEDED(d->SetViewport(&adjusted));
+    if(logFile && frameId<traceUntilFrame && drawId<3) fprintf(logFile,"{\"event\":\"viewport_scale\",\"frame\":%u,\"draw\":%u,\"logical\":[%lu,%lu],\"forwarded\":[%lu,%lu],\"scale\":[%.9g,%.9g]}\n",
+      frameId,drawId,saved.Width,saved.Height,adjusted.Width,adjusted.Height,sx,sy);
+  }
+  ~ScopedViewport() {if(changed) device->SetViewport(&saved);}
+};
+
+// Trigger Remix's UI boundary with a zero-area primitive. Real UI draws retain
+// Z writes: Winx uses depth to layer loading images, backgrounds and diary pages.
+static void PrepareUi(IDirect3DDevice9* d) {
+    if(!orthographicUi || uiStarted.count(d)) return;
     D3DMATRIX projection{};
     if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._44!=1.0f ||
        projection._14!=0.0f || projection._24!=0.0f || projection._34!=0.0f) return;
@@ -250,11 +321,25 @@ struct ScopedUi {
     const auto known=primaryTargets.find(d);
     const bool primary=target && known!=primaryTargets.end() && target==known->second;
     if(target) target->Release();
-    if(primary && SUCCEEDED(d->GetRenderState(D3DRS_ZWRITEENABLE,&saved)) && saved)
-      changed=SUCCEEDED(d->SetRenderState(D3DRS_ZWRITEENABLE,FALSE));
-  }
-  ~ScopedUi() {if(changed) device->SetRenderState(D3DRS_ZWRITEENABLE,saved);}
-};
+    if(!primary) return;
+    DWORD saved=0; IDirect3DVertexDeclaration9* declaration=nullptr;
+    IDirect3DVertexBuffer9* stream=nullptr; UINT offset=0,stride=0;
+    if(FAILED(d->GetRenderState(D3DRS_ZWRITEENABLE,&saved)) ||
+       FAILED(d->GetVertexDeclaration(&declaration)) || !declaration) return;
+    if(FAILED(d->GetStreamSource(0,&stream,&offset,&stride))) { declaration->Release(); return; }
+    const float vertices[9]{};
+    HRESULT hr=D3DERR_INVALIDCALL;
+    if(SUCCEEDED(d->SetFVF(D3DFVF_XYZ)) && SUCCEEDED(d->SetRenderState(D3DRS_ZWRITEENABLE,FALSE))) {
+      using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
+      hr=Original<F>(d,83)(d,D3DPT_TRIANGLELIST,1,vertices,3*sizeof(float));
+      if(SUCCEEDED(hr)) uiStarted.insert(d);
+    }
+    d->SetRenderState(D3DRS_ZWRITEENABLE,saved);
+    d->SetVertexDeclaration(declaration);
+    d->SetStreamSource(0,stream,offset,stride);
+    if(stream) stream->Release(); declaration->Release();
+    if(logFile && frameId<traceUntilFrame) fprintf(logFile,"{\"event\":\"ui_boundary\",\"frame\":%u,\"draw\":%u,\"hr\":%ld}\n",frameId,drawId,hr);
+}
 
 // Opt-in experiment: retransmit the existing CPU contents of managed textures
 // immediately before first use. No pixels are generated or edited here.
@@ -328,11 +413,23 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
 
 static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
+  RECT source{},destination{};
+  const auto state=presentations.find(d);
+  if(fitWindow && state!=presentations.end() && state->second.windowed && !a && !b && !c &&
+     GetClientRect(state->second.window,&destination) && destination.right>0 && destination.bottom>0) {
+    source={0,0,static_cast<LONG>(state->second.width),static_cast<LONG>(state->second.height)};
+    a=&source; b=&destination;
+  }
+  if(logFile && (frameId<traceUntilFrame || frameId%300==0)) {
+    fprintf(logFile,"{\"event\":\"present\",\"frame\":%u,\"draws\":%u,\"source\":[%ld,%ld,%ld,%ld],\"destination\":[%ld,%ld,%ld,%ld],\"rects\":[%d,%d]}\n",
+      frameId,drawId,a?a->left:0,a?a->top:0,a?a->right:0,a?a->bottom:0,b?b->left:0,b?b->top:0,b?b->right:0,b?b->bottom:0,a!=nullptr,b!=nullptr);
+  }
   const HRESULT hr=Original<F>(d,17)(d,a,b,c,e);
+  uiStarted.erase(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) fflush(logFile);
   ++frameId; drawId=0; triggered=(GetAsyncKeyState(VK_F8)&1)!=0;
-  if(triggered) records=0;
+  if(triggered) { records=0; traceUntilFrame=frameId+120; }
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
@@ -369,8 +466,14 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
+  LogPresentation("reset_request",p);
+  traceUntilFrame=frameId+120; records=0;
   const HRESULT hr=Original<F>(d,16)(d,p);
-  if(SUCCEEDED(hr)) RememberPrimaryTarget(d);
+  if(SUCCEEDED(hr)) {
+    RememberPrimaryTarget(d);
+    D3DDEVICE_CREATION_PARAMETERS creation{}; d->GetCreationParameters(&creation);
+    RememberPresentation(d,*p,creation.hFocusWindow);
+  }
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) { fprintf(logFile,"{\"event\":\"reset\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;
@@ -379,7 +482,8 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
   Observe(d,"DrawPrimitive",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
-  ScopedUi ui(d);
+  ScopedViewport viewport(d);
+  PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT);
   return Original<F>(d,81)(d,t,start,count);
 }
@@ -387,7 +491,8 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   Observe(d,"DrawIndexedPrimitive",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
-  ScopedUi ui(d);
+  ScopedViewport viewport(d);
+  PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
   return Original<F>(d,82)(d,t,base,min,num,start,count);
 }
@@ -395,7 +500,8 @@ static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,U
   Observe(d,"DrawPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
-  ScopedUi ui(d);
+  ScopedViewport viewport(d);
+  PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
   return Original<F>(d,83)(d,t,count,data,stride);
 }
@@ -403,15 +509,18 @@ static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVET
   Observe(d,"DrawIndexedPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
-  ScopedUi ui(d);
+  ScopedViewport viewport(d);
+  PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
   return Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride);
 }
 static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVTYPE type,HWND window,DWORD flags,D3DPRESENT_PARAMETERS* p,IDirect3DDevice9** result) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
+  LogPresentation("create_device_request",p,window);
   const HRESULT hr=Original<F>(d,16)(d,adapter,type,window,flags,p,result);
   if(SUCCEEDED(hr) && result && *result) {
     RememberPrimaryTarget(*result);
+    RememberPresentation(*result,*p,window);
     // Server forwards game Present via its swap chain; sample that boundary on x64.
     if(sizeof(void*)==8) {
       Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));

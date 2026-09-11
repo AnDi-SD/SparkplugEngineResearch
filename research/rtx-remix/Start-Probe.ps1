@@ -8,6 +8,8 @@ param(
     [switch]$TextureReadback,
     [switch]$ResubmitTextures,
     [switch]$OrthographicUi,
+    [switch]$FitWindow,
+    [switch]$ViewportScale,
     [switch]$NoDrawTrace
 )
 $ErrorActionPreference = 'Stop'
@@ -36,6 +38,8 @@ $values = @{
     WINX_REMIX_TEXTURE_READBACK=$(if ($TextureReadback) { '1' } else { '0' })
     WINX_REMIX_RESUBMIT_TEXTURES=$(if ($ResubmitTextures) { '1' } else { '0' })
     WINX_REMIX_ORTHOGRAPHIC_UI=$(if ($OrthographicUi) { '1' } else { '0' })
+    WINX_REMIX_FIT_WINDOW=$(if ($FitWindow) { '1' } else { '0' })
+    WINX_REMIX_VIEWPORT_SCALE=$(if ($ViewportScale) { '1' } else { '0' })
     DXVK_RTX_CONFIG_FILE=$config
 }
 try {

@@ -13,10 +13,14 @@ parser.add_argument("--pid", required=True, type=int)
 parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f8"])
 parser.add_argument("--hold", type=float, default=0.15)
 parser.add_argument("--capture", type=Path)
+parser.add_argument("--capture-seconds", type=float, default=0,
+                    help="Capture the selected game window twice per second for up to 45 seconds")
 parser.add_argument("--close", action="store_true")
 args = parser.parse_args()
 if not 0.01 <= args.hold <= 3:
     parser.error("hold must be between 0.01 and 3 seconds")
+if not 0 <= args.capture_seconds <= 45 or (args.capture_seconds and not args.capture):
+    parser.error("capture-seconds requires capture and must be between 0 and 45")
 
 u, k = c.WinDLL("user32", use_last_error=True), c.WinDLL("kernel32", use_last_error=True)
 u.SetProcessDPIAware()
@@ -87,9 +91,18 @@ else:
             u.keybd_event(vk, scan, flags | 2, 0)
         time.sleep(0.8)
     if args.capture:
-        rect = w.RECT()
-        if not u.GetWindowRect(hwnd, c.byref(rect)):
-            raise c.WinError(c.get_last_error())
         args.capture.parent.mkdir(parents=True, exist_ok=True)
-        ImageGrab.grab(bbox=(rect.left, rect.top, rect.right, rect.bottom), all_screens=True).save(args.capture)
+        started, index = time.monotonic(), 0
+        while True:
+            if u.GetForegroundWindow() != hwnd:
+                raise RuntimeError("Winx lost foreground; stopping window capture")
+            rect = w.RECT()
+            if not u.GetWindowRect(hwnd, c.byref(rect)):
+                raise c.WinError(c.get_last_error())
+            target = args.capture if index == 0 else args.capture.with_stem(f"{args.capture.stem}-{index:03d}")
+            ImageGrab.grab(bbox=(rect.left, rect.top, rect.right, rect.bottom), all_screens=True).save(target)
+            index += 1
+            if time.monotonic() - started >= args.capture_seconds:
+                break
+            time.sleep(0.5)
 print(json.dumps({"pid": args.pid, "hwnd": hwnd, "key": args.key, "capture": str(args.capture) if args.capture else None, "close": args.close}))
