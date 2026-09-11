@@ -6,7 +6,9 @@ param(
     [switch]$ExplicitMipLevels,
     [switch]$ImmediateTextureUpload,
     [switch]$TextureReadback,
-    [switch]$ResubmitTextures
+    [switch]$ResubmitTextures,
+    [switch]$OrthographicUi,
+    [switch]$NoDrawTrace
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -28,11 +30,12 @@ foreach ($file in @('user.conf','winx.ini')) {
 $savedEnvironment = @{}
 $values = @{
     WINX_REMIX_BACKEND=$Backend
-    WINX_REMIX_TRACE=(Join-Path $run 'draws.jsonl')
+    WINX_REMIX_TRACE=$(if ($NoDrawTrace) { $null } else { Join-Path $run 'draws.jsonl' })
     WINX_REMIX_NORMALIZE_FVF=$(if ($NormalizeFVF) { '1' } else { '0' })
     WINX_REMIX_EXPLICIT_MIPS=$(if ($ExplicitMipLevels) { '1' } else { '0' })
     WINX_REMIX_TEXTURE_READBACK=$(if ($TextureReadback) { '1' } else { '0' })
     WINX_REMIX_RESUBMIT_TEXTURES=$(if ($ResubmitTextures) { '1' } else { '0' })
+    WINX_REMIX_ORTHOGRAPHIC_UI=$(if ($OrthographicUi) { '1' } else { '0' })
     DXVK_RTX_CONFIG_FILE=$config
 }
 try {

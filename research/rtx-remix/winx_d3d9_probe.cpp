@@ -26,6 +26,9 @@ static bool textureReadback;
 static std::set<IDirect3DBaseTexture9*> readTextures;
 static bool resubmitTextures;
 static std::set<IDirect3DBaseTexture9*> submittedTextures;
+static bool orthographicUi;
+// Non-owning identities, refreshed on device creation/reset.
+static std::map<IDirect3DDevice9*,IDirect3DSurface9*> primaryTargets;
 struct BufferLock { void* data; UINT size; DWORD flags; };
 static std::map<void*, BufferLock> bufferLocks;
 using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
@@ -51,6 +54,8 @@ static void Initialize() {
   textureReadback=GetEnvironmentVariableW(L"WINX_REMIX_TEXTURE_READBACK",readbackOption,8) && wcscmp(readbackOption,L"1")==0;
   wchar_t resubmitOption[8]{};
   resubmitTextures=GetEnvironmentVariableW(L"WINX_REMIX_RESUBMIT_TEXTURES",resubmitOption,8) && wcscmp(resubmitOption,L"1")==0;
+  wchar_t uiOption[8]{};
+  orthographicUi=GetEnvironmentVariableW(L"WINX_REMIX_ORTHOGRAPHIC_UI",uiOption,8) && wcscmp(uiOption,L"1")==0;
   wchar_t normalize[8]{};
   if (GetEnvironmentVariableW(L"WINX_REMIX_NORMALIZE_FVF", normalize, 8) && wcscmp(normalize,L"1")==0) {
     const HMODULE d3dx=LoadLibraryExW(L"d3dx9_43.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -90,6 +95,14 @@ static void Patch(void* object, unsigned slot, void* function) {
   InterlockedExchangePointer(table + slot, function);
   DWORD ignored;
   VirtualProtect(table + slot, sizeof(void*), previous, &ignored);
+}
+
+static void RememberPrimaryTarget(IDirect3DDevice9* device) {
+  IDirect3DSurface9* target=nullptr;
+  if(SUCCEEDED(device->GetRenderTarget(0,&target)) && target) {
+    primaryTargets[device]=target;
+    target->Release();
+  } else primaryTargets.erase(device);
 }
 
 static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
@@ -219,6 +232,30 @@ struct ScopedFvf {
   }
 };
 
+// Remix 1.5.2 recognizes fixed-function orthographic UI only without Z writes.
+// Restrict this opt-in adaptation to the primary backbuffer; shadow targets
+// retain their original depth semantics. Restore the game's state after draw.
+struct ScopedUi {
+  IDirect3DDevice9* device; DWORD saved=0; bool changed=false;
+  explicit ScopedUi(IDirect3DDevice9* d):device(d) {
+    if(!orthographicUi) return;
+    D3DMATRIX projection{};
+    if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._44!=1.0f ||
+       projection._14!=0.0f || projection._24!=0.0f || projection._34!=0.0f) return;
+    IDirect3DVertexShader9* vs=nullptr;
+    if(FAILED(d->GetVertexShader(&vs))) return;
+    if(vs) {vs->Release();return;}
+    IDirect3DSurface9* target=nullptr;
+    d->GetRenderTarget(0,&target);
+    const auto known=primaryTargets.find(d);
+    const bool primary=target && known!=primaryTargets.end() && target==known->second;
+    if(target) target->Release();
+    if(primary && SUCCEEDED(d->GetRenderState(D3DRS_ZWRITEENABLE,&saved)) && saved)
+      changed=SUCCEEDED(d->SetRenderState(D3DRS_ZWRITEENABLE,FALSE));
+  }
+  ~ScopedUi() {if(changed) device->SetRenderState(D3DRS_ZWRITEENABLE,saved);}
+};
+
 // Opt-in experiment: retransmit the existing CPU contents of managed textures
 // immediately before first use. No pixels are generated or edited here.
 static void ResubmitTextures(IDirect3DDevice9* device) {
@@ -333,6 +370,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
   const HRESULT hr=Original<F>(d,16)(d,p);
+  if(SUCCEEDED(hr)) RememberPrimaryTarget(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) { fprintf(logFile,"{\"event\":\"reset\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;
@@ -341,6 +379,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
   Observe(d,"DrawPrimitive",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
+  ScopedUi ui(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT);
   return Original<F>(d,81)(d,t,start,count);
 }
@@ -348,6 +387,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   Observe(d,"DrawIndexedPrimitive",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
+  ScopedUi ui(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
   return Original<F>(d,82)(d,t,base,min,num,start,count);
 }
@@ -355,6 +395,7 @@ static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,U
   Observe(d,"DrawPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
+  ScopedUi ui(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
   return Original<F>(d,83)(d,t,count,data,stride);
 }
@@ -362,6 +403,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVET
   Observe(d,"DrawIndexedPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
+  ScopedUi ui(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
   return Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride);
 }
@@ -369,6 +411,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
   const HRESULT hr=Original<F>(d,16)(d,adapter,type,window,flags,p,result);
   if(SUCCEEDED(hr) && result && *result) {
+    RememberPrimaryTarget(*result);
     // Server forwards game Present via its swap chain; sample that boundary on x64.
     if(sizeof(void*)==8) {
       Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
