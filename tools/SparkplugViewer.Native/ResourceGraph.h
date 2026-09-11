@@ -20,6 +20,9 @@ public:
     std::vector<std::unique_ptr<Object>> directOwners;
     std::vector<std::uint32_t> nodeIDs;
     std::shared_ptr<sparkplug::reconstruction::spPCRenderer> renderer;
+    // Exclusive borrowed lighting context. This pointer owns nothing; the
+    // context retains this graph and releases the claim before its destruction.
+    const void* lightingOwner = nullptr;
     [[nodiscard]] Object* Find(std::uint32_t) const;
     [[nodiscard]] std::uint32_t ID(const Object*) const;
     [[nodiscard]] std::shared_ptr<sparkplug::reconstruction::spNode> Node(std::uint32_t) const;

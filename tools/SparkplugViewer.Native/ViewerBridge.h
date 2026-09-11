@@ -28,6 +28,13 @@ struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,clas
 struct SpvEnvelopeEntry {std::uint32_t id,classID,offset,size,nameOffset,nameSize;};
 struct SpvEnvelopeLayout {std::uint32_t dataOffset,fileSize;};
 struct SpvEnvelopeHeader {std::uint32_t signature,version,exportTag,platformMask;};
+// IDs are canonical graph object IDs; ordinary cache slots retain original order.
+struct SpvSceneLightCache {std::uint32_t renderNode,count,ambient,lights[8];};
+SPV_API int spv_scene_light_ids(void*,std::uint32_t*,std::uint32_t,std::uint32_t*) noexcept;
+SPV_API int spv_scene_lighting_configure(void*,const std::uint32_t*,std::uint32_t,std::uint32_t) noexcept;
+SPV_API int spv_scene_lighting_active(void*,std::uint32_t) noexcept;
+SPV_API int spv_scene_lighting_clear(void*) noexcept;
+SPV_API int spv_scene_lighting_caches(void*,SpvSceneLightCache*,std::uint32_t,std::uint32_t*) noexcept;
 SPV_API int spv_envelope_measure(const SpvEnvelopeEntry*,std::uint32_t,
     const std::uint8_t*,std::uint32_t,std::uint32_t,SpvEnvelopeLayout*) noexcept;
 SPV_API int spv_envelope_write(const SpvEnvelopeHeader*,const SpvEnvelopeEntry*,

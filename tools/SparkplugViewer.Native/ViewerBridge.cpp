@@ -44,6 +44,7 @@
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Analysis/Host/ResourceEnvelope.h"
+#include "SceneLighting.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
@@ -452,6 +453,7 @@ struct Scene {
     std::unordered_map<const spNode*,std::int32_t> nodeOrdinals;
     std::shared_ptr<spAnimation> animation;
     std::vector<std::unique_ptr<Binding>> bindings;
+    std::unique_ptr<spvhost::SceneLighting> lighting;
     void reset() {
         for(std::size_t i=0;i<nodes.size();++i) {
             nodes[i]->SetPositionForAnalysis(values<3>(initial[i].position));
@@ -467,6 +469,7 @@ struct Scene {
         for(auto& binding:bindings) { binding->playback.time=time; binding->controller.ApplyForAnalysis(time); }
         for(auto& node:nodes) if(!node->GetParentForAnalysis())
             require(node->UpdateWorldForAnalysis(),"World update failed");
+        if(lighting)lighting->RefreshAfterSample();
     }
 };
 Scene& scene(void* handle) { require(handle!=nullptr,"Null scene handle"); return *static_cast<Scene*>(handle); }
@@ -1187,6 +1190,38 @@ SPV_API int spv_scene_graph_node_ids(void* handle,std::uint32_t* output,std::uin
     return guarded([&]{const auto& value=scene(handle);require(bool(value.graph),"Scene has no loaded resource graph");
         require(count==value.nodes.size()&&(output||!count),"Scene node ID output size mismatch");
         for(std::uint32_t i=0;i<count;++i)output[i]=value.graph->ID(value.nodes[i].get());});
+}
+SPV_API int spv_scene_light_ids(void* handle,std::uint32_t* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{const auto& value=scene(handle);require(value.graph&&count,"Missing loaded scene or light count output");
+        std::uint32_t size=0;for(const auto& node:value.nodes)if(dynamic_cast<spLight*>(node.get()))++size;
+        *count=size;if(!output&&!capacity)return;
+        require(output&&capacity>=size,"Light ID output is too small");size=0;
+        for(const auto& node:value.nodes)if(dynamic_cast<spLight*>(node.get()))output[size++]=value.graph->ID(node.get());});
+}
+SPV_API int spv_scene_lighting_configure(void* handle,const std::uint32_t* ids,std::uint32_t count,std::uint32_t active) noexcept {
+    return guarded([&]{auto& value=scene(handle);require(!value.lighting&&active<=1,"Clear existing lighting before configuring; active must be Boolean");
+        auto context=std::make_unique<spvhost::SceneLighting>(value.graph,value.nodes,ids,count);
+        context->Attach(active!=0);value.lighting=std::move(context);});
+}
+SPV_API int spv_scene_lighting_active(void* handle,std::uint32_t active) noexcept {
+    return guarded([&]{auto& value=scene(handle);require(value.lighting&&active<=1,"Missing lighting context or invalid active flag");
+        value.lighting->SetHierarchyActive(active!=0);});
+}
+SPV_API int spv_scene_lighting_clear(void* handle) noexcept {
+    return guarded([&]{scene(handle).lighting.reset();});
+}
+SPV_API int spv_scene_lighting_caches(void* handle,SpvSceneLightCache* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{const auto& value=scene(handle);require(value.lighting&&count,"Missing lighting context or cache count output");
+        const auto& targets=value.lighting->Targets();*count=static_cast<std::uint32_t>(targets.size());
+        if(!output&&!capacity)return;
+        require(output&&capacity>=targets.size(),"Light cache output is too small");
+        for(std::size_t i=0;i<targets.size();++i) {
+            const auto& cache=targets[i]->GetLightCacheForAnalysis();SpvSceneLightCache row{};
+            row.renderNode=value.graph->ID(targets[i]);row.count=static_cast<std::uint32_t>(cache.GetCount());
+            row.ambient=value.graph->ID(cache.GetAmbient());
+            for(std::size_t slot=0;slot<cache.GetCount();++slot)row.lights[slot]=value.graph->ID(cache.Get(slot));
+            output[i]=row;
+        }});
 }
 SPV_API int spv_scene_graph_skin_info(void* handle,std::uint32_t id,std::uint32_t* weights,std::uint32_t* bones) noexcept {
     return guarded([&]{const auto& value=scene(handle);require(value.graph&&weights&&bones,"Missing loaded scene/skin outputs");

@@ -36,3 +36,15 @@ encoder убраны; полный дополнительный data buffer дл
 RenderNode light cache. Подготовка уже описана в
 [досье Icy](tool-viewer-light-cache-boundary-2026-09-10.md); новые алгоритмы выбора
 света не требуются. UI redesign не нужен.
+
+## Блок 2 — свет загруженной сцены
+
+[LightManager подключён](tool-viewer-scene-lighting-2026-09-11.md) к общему native
+runtime, managed API возвращает cache по конкретному RenderNode. 56 адресных checks
+на настоящем Icy, native RenderNode/SkinRender 2/2 и сборка Viewer прошли. Игра и
+reconstructed selector не изменены; активация и окончательное обновление после позы —
+явная host preview policy. GPU использование выбранного света остаётся следующим шагом.
+
+Далее — общая версия CRT sort для geometry/Alpha и подключение Occlusion Init.
+Ожидание выбора из прежнего proposal снято новым разрешением пользователя. Историческая
+версия игровой CRT неизвестна; выбранная версия и её доказательства будут названы явно.

@@ -1,0 +1,204 @@
+{
+  "block": "HOST scene lighting ownership and reconstructed cache selection",
+  "report": {
+    "checks": 56,
+    "elapsedSeconds": 1.1470766,
+    "peakWorkingSet": 39174144,
+    "model": {
+      "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "sha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C"
+    },
+    "animation": {
+      "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\xiwa.san",
+      "sha256": "07B7E1DFCC059F55B8948BB12FBEA8DF142E275E66B6B33DE522ACA1C9D5D9FC"
+    },
+    "frames": [
+      {
+        "time": 0,
+        "worldMatrixSha256": "E4EFD13560597FE575FD58D5244ECB850500C4D17D7488575E9324B7003C0526",
+        "ambientObjectId": 119,
+        "ordinaryCount": 0
+      },
+      {
+        "time": 0.5,
+        "worldMatrixSha256": "B66036EFB5231AAE5DE51BE7A6A366A2841F9F97B7C9DDD771900C577D0AD718",
+        "ambientObjectId": 119,
+        "ordinaryCount": 0
+      },
+      {
+        "time": 1,
+        "worldMatrixSha256": "DE307F80008FA217E9756D8C2C7FA6C029A8815FBF56F010D2F157715AD77117",
+        "ambientObjectId": 119,
+        "ordinaryCount": 0
+      },
+      {
+        "time": 0,
+        "worldMatrixSha256": "E4EFD13560597FE575FD58D5244ECB850500C4D17D7488575E9324B7003C0526",
+        "ambientObjectId": 119,
+        "ordinaryCount": 0
+      },
+      {
+        "time": 0.5,
+        "worldMatrixSha256": "B66036EFB5231AAE5DE51BE7A6A366A2841F9F97B7C9DDD771900C577D0AD718",
+        "ambientObjectId": 119,
+        "ordinaryCount": 0
+      }
+    ],
+    "binaries": [
+      {
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\tools\\SmoViewer\\SmoViewer.Sparkplug.Tests\\bin\\Release\\net8.0\\SmoViewer.Core.dll",
+        "sha256": "2ADD072C8BEA473051708E5CAC021143FB567ED6958F2C1C575D56820581C00D"
+      },
+      {
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\tools\\SmoViewer\\SmoViewer.Sparkplug.Tests\\bin\\Release\\net8.0\\SmoViewer.Sparkplug.dll",
+        "sha256": "C1A93849872D00505A535ABF7EF016BC0F7EAA33C989CEC51AF7048A7E54C103"
+      },
+      {
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\tools\\SmoViewer\\SmoViewer.Sparkplug.Tests\\bin\\Release\\net8.0\\SmoViewer.Sparkplug.Tests.dll",
+        "sha256": "991E8478B683DC279674A3B551DF1E6CC27BCC05BB10D7810277C7B0F58FCA60"
+      },
+      {
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\tools\\SmoViewer\\SmoViewer.Sparkplug.Tests\\bin\\Release\\net8.0\\SparkplugViewerNative.dll",
+        "sha256": "7570AAB7089C1AA8BADA089F1FD75F5889C533E8AC08781B54C5B5E9679D1888"
+      }
+    ],
+    "scope": "HOST lighting ownership/scheduling; reconstructed selection. No full original Scene frame or GPU-lighting equivalence claim."
+  },
+  "reportFile": {
+    "path": "local-data/results/tools-core-cycle-20260911-1900/lighting/icy-run1.json",
+    "sha256": "1F4C36A4BD5969D5CF04336B2DE8045869AF603652AFD17F259A05CD92B9689C"
+  },
+  "nativeSuites": {
+    "RenderNode": "PASS",
+    "SkinRender": "PASS",
+    "source": "execution transcript; original game logic unchanged"
+  },
+  "viewerBuild": "PASS, 0 warnings/errors; control build only",
+  "keySourceBindings": [
+    {
+      "path": "tools/SparkplugViewer.Native/SceneLighting.h",
+      "sha256": "3F23DB70CFE3E715F802E06E56D3CCC6715F739E4884E7655A8BB5AA3AA93617",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SparkplugViewer.Native/SceneLighting.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.h",
+      "sha256": "488BBAD226311DF46F61B62F6769B848A95CFADBB3F3D402F557366C80ADBD37",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SparkplugViewer.Native/ResourceGraph.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "sha256": "A61BD8946B9D575419A23180DAE9D7BAFC24F6F2F15169C03DBE4FCE7DF9BA69",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SparkplugViewer.Native/ResourceGraph.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "B5F9467D525663F19CE7E9FF3806DA73D691B48A8AF21984A7802D235A655DF8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "516077BC03B98055186DB5EED53E89BA29F42F845D7620228C5F015BC2D8F87C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.cs",
+      "sha256": "CF0BC07B3E7520B6F739B5374E9BCA80CC1DB159ED6EC7EFE2EBAA97DAEFE67E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.Lighting.cs",
+      "sha256": "B3D8790DF7DC3E7499B0839F7F5E26DC7032E3A5F6E2CC1D81F0AC7304F8052C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.Lighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Lighting.cs",
+      "sha256": "448E5144808314A595E502994C4F290B766A2A3AC16C42A684AE34D80F9F44E3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Lighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug.Tests/SceneLightingRegression.cs",
+      "sha256": "A271BCF0F4AE81AC81C4E655B82BF4C310ED5F1E4EA8D438340AFFBE5FF12C03",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug.Tests/SceneLightingRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug.Tests/Program.cs",
+      "sha256": "56D2FE937796A0EC7BA2E19D4EA2563974C1C9B177E21E795E113F887E8F1F74",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug.Tests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.xaml.cs",
+      "sha256": "CF30778ED6EC9B3161811EC991501B73F4EBE51BDF547B59B921A4DF56C4CE2A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/tools/SmoViewer/SmoViewer/MainWindow.xaml.cs"
+    },
+    {
+      "path": "docs/research/tool-viewer-scene-lighting-2026-09-11.md",
+      "sha256": "B5EF97583C225EA705004B386DD04216DCF1CACFBC4E3D5E50EF1E61E7F72445",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/docs/research/tool-viewer-scene-lighting-2026-09-11.md"
+    },
+    {
+      "path": ".codex-tmp/seal-lighting.py",
+      "sha256": "991BC1E3BDE9B4AB80DC756BD358A5E21AE965B18ED5870C4B3FB81F42DBAAFD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/.codex-tmp/seal-lighting.py"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.h",
+      "sha256": "7AB2CC34DC391FD22A5903B0246C92195F0D3D47D7C582AA2541E24A5046E741",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spNode.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.cpp",
+      "sha256": "C72B607BF7C22134EF9334F0B0CCB90C6E280B47BF80870EC7BD7DEAA956A631",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spNode.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLight.h",
+      "sha256": "89F28EB26B68E505293B62AA02406CC17E83D86E09D240382F7231EA389EB285",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spLight.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLight.cpp",
+      "sha256": "FC7C04D894A16C31676E9FD6FE262D8AE8362D9AE5119B447DB0F824734C1FDC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spLight.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightManager.h",
+      "sha256": "C84DA2ECB1CB5D83C58280984C41B15FCDEC10C843BDE79D5775D7BF1E57A2FB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spLightManager.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spLightManager.cpp",
+      "sha256": "157DC2B3B59CB2CB0F9B54E2CAAC80D3AC299FA9946AEE3B8EF32FFBE76B1794",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spLightManager.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNode.h",
+      "sha256": "ED4B4156C75B2E9311B0C07DDDD515925766FC7521B5875C794547620ABA3116",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spRenderNode.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNode.cpp",
+      "sha256": "485B8B98D3937C3D9C4DC4FA270080FDA6F2904FEEFB13FF7FEE30CCAC5088BF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/sources/Sparkplug/Code/Sparkplug/spRenderNode.cpp"
+    }
+  ],
+  "binarySnapshots": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/binaries/SmoViewer.Core.dll",
+      "sha256": "2ADD072C8BEA473051708E5CAC021143FB567ED6958F2C1C575D56820581C00D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/binaries/SmoViewer.Sparkplug.dll",
+      "sha256": "C1A93849872D00505A535ABF7EF016BC0F7EAA33C989CEC51AF7048A7E54C103"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/binaries/SmoViewer.Sparkplug.Tests.dll",
+      "sha256": "991E8478B683DC279674A3B551DF1E6CC27BCC05BB10D7810277C7B0F58FCA60"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/lighting/qualified/binaries/SparkplugViewerNative.dll",
+      "sha256": "7570AAB7089C1AA8BADA089F1FD75F5889C533E8AC08781B54C5B5E9679D1888"
+    }
+  ],
+  "priorEvidence": "docs/research/native-pc-skin-selected-light.md",
+  "exeScoreDelta": 0
+}
