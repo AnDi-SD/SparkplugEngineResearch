@@ -1,0 +1,224 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-light-runtime-2026-09-11T03:31:00Z",
+  "createdUtc": "2026-09-11T03:31:00Z",
+  "notes": "60 first-pass full original light color and nondeleting reference transactions.56 native callbacks.No arbitrary FPU,renderer,factory or whole-class completion.",
+  "assessments": [
+    {
+      "className": "spColorFuncEval",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-light-runtime-2026-09-11.md",
+          "sourceSha256": "EA4E061F9D9C7B9AB7822AB845A1D7DD328A5C47A8F5132BA34F0F55A58F09F2",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/light-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "6866254254EF12EF93FBF642F8164FC8A37F90228B54520EE8DECD16995A7BAD",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-pilot-run1.json",
+          "sourceSha256": "019655E8907EA1986951C4153522E8063B5FF9ED31745718854F39778A113601",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-batch-run1.json",
+          "sourceSha256": "47B72E40FA21D9673B4831A521A88195AAB66C95077F83BAFB838C90262B6345",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        }
+      ],
+      "unknowns": [
+        "Other scalar shapes,PS2 fractional conversion,normal lifecycle,Node teardown and rendering remain open."
+      ]
+    },
+    {
+      "className": "spLightController",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-light-runtime-2026-09-11.md",
+          "sourceSha256": "EA4E061F9D9C7B9AB7822AB845A1D7DD328A5C47A8F5132BA34F0F55A58F09F2",
+          "locator": "Original light update and reference transactions",
+          "observation": "20->25: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/light-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "6866254254EF12EF93FBF642F8164FC8A37F90228B54520EE8DECD16995A7BAD",
+          "locator": "Original light update and reference transactions",
+          "observation": "20->25: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-pilot-run1.json",
+          "sourceSha256": "019655E8907EA1986951C4153522E8063B5FF9ED31745718854F39778A113601",
+          "locator": "Original light update and reference transactions",
+          "observation": "20->25: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-batch-run1.json",
+          "sourceSha256": "47B72E40FA21D9673B4831A521A88195AAB66C95077F83BAFB838C90262B6345",
+          "locator": "Original light update and reference transactions",
+          "observation": "20->25: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        }
+      ],
+      "unknowns": [
+        "Other scalar shapes,PS2 fractional conversion,normal lifecycle,Node teardown and rendering remain open."
+      ]
+    },
+    {
+      "className": "spLightController",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-light-runtime-2026-09-11.md",
+          "sourceSha256": "EA4E061F9D9C7B9AB7822AB845A1D7DD328A5C47A8F5132BA34F0F55A58F09F2",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/light-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "6866254254EF12EF93FBF642F8164FC8A37F90228B54520EE8DECD16995A7BAD",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-pilot-run1.json",
+          "sourceSha256": "019655E8907EA1986951C4153522E8063B5FF9ED31745718854F39778A113601",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-batch-run1.json",
+          "sourceSha256": "47B72E40FA21D9673B4831A521A88195AAB66C95077F83BAFB838C90262B6345",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        }
+      ],
+      "unknowns": [
+        "Other scalar shapes,PS2 fractional conversion,normal lifecycle,Node teardown and rendering remain open."
+      ]
+    },
+    {
+      "className": "spLightEntity",
+      "platformKey": "pc",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "10->15: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-light-runtime-2026-09-11.md",
+          "sourceSha256": "EA4E061F9D9C7B9AB7822AB845A1D7DD328A5C47A8F5132BA34F0F55A58F09F2",
+          "locator": "Original light update and reference transactions",
+          "observation": "10->15: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/light-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "6866254254EF12EF93FBF642F8164FC8A37F90228B54520EE8DECD16995A7BAD",
+          "locator": "Original light update and reference transactions",
+          "observation": "10->15: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-pilot-run1.json",
+          "sourceSha256": "019655E8907EA1986951C4153522E8063B5FF9ED31745718854F39778A113601",
+          "locator": "Original light update and reference transactions",
+          "observation": "10->15: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-batch-run1.json",
+          "sourceSha256": "47B72E40FA21D9673B4831A521A88195AAB66C95077F83BAFB838C90262B6345",
+          "locator": "Original light update and reference transactions",
+          "observation": "10->15: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        }
+      ],
+      "unknowns": [
+        "Other scalar shapes,PS2 fractional conversion,normal lifecycle,Node teardown and rendering remain open."
+      ]
+    },
+    {
+      "className": "spLightEntity",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-light-runtime-2026-09-11.md",
+          "sourceSha256": "EA4E061F9D9C7B9AB7822AB845A1D7DD328A5C47A8F5132BA34F0F55A58F09F2",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/light-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "6866254254EF12EF93FBF642F8164FC8A37F90228B54520EE8DECD16995A7BAD",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-pilot-run1.json",
+          "sourceSha256": "019655E8907EA1986951C4153522E8063B5FF9ED31745718854F39778A113601",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/light-runtime/light-batch-run1.json",
+          "sourceSha256": "47B72E40FA21D9673B4831A521A88195AAB66C95077F83BAFB838C90262B6345",
+          "locator": "Original light update and reference transactions",
+          "observation": "15->20: Original light update through actual nested constant/color callbacks and nondeleting LightEntity reference release/replacement,explicit ABI and conversion differences.No general lifecycle/rendering completion."
+        }
+      ],
+      "unknowns": [
+        "Other scalar shapes,PS2 fractional conversion,normal lifecycle,Node teardown and rendering remain open."
+      ]
+    }
+  ]
+}
