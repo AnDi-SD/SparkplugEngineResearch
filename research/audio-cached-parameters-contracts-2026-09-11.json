@@ -1,0 +1,193 @@
+{
+  "kind": "original-audio-cached-parameters",
+  "schemaVersion": 1,
+  "counts": {
+    "attempts": 38,
+    "uniqueSuccessful": 37,
+    "pc": 18,
+    "ps2": 19,
+    "wholeReturns": 31,
+    "deviceBoundaries": 6,
+    "stackSpills": 5
+  },
+  "parameters": "PC clamps both floats0..1 intoD0/CC and byte154=1.PS2 F12/F13 clamps0..1,first multiplied by original float3D4CCCCD intoC0,secondBC,byte130=1.PC4C4140 raw low byteC8,dirty154.",
+  "volume": "Active byte14 required;float18 stored.PC positive2000*log10,nonpositive-10000;observed0/.5/1 levels-10000/-602/0,stops before COM with[this,level].PS2 observed4096*value=0/2048/4096,first original SDK1DF400 args[0,level,level],stopped before entry.",
+  "voice": "PS2 original1EE360->1DE410 tests indexobj10 unsigned<48,reads4B0670[index],returnsnonzero-state bool.Invalid48/FFFFFFFF false.PC only null obj28 whole,false;no PC score.",
+  "corrections": [
+    "Original PC COM argument order expected incorrectly by first oracle;fixed expectation only,failed version retained,successful two calls not replayed.",
+    "Exploratory table lists stopped at null before PS2 secondary header;remaining words/factory stores captured explicitly.",
+    "Scout labels manager-fade/base-lookup are not established method names;actual volume and bank removal/recreate paths documented."
+  ],
+  "limitations": [
+    "Device COM/SDK execution not claimed.PS2 SDK receives first identifier0 and branches to1DF5EC;continuation deliberately open.",
+    "PS2 boolean parameter method1EC6C0 conditional-delay SQ remains outside CPU profile.",
+    "No bank ownership/normal startup/physical audio or general FPU equivalence claim.",
+    "No new C++ or fully closed classes."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/probe_audio_cached_parameters.py",
+      "sha256": "C0BC7F008BEAB72CB91AE374EF24885E23B08BC4C3C9F7A85AF48C5C5A0D51E7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_unsigned_division.py",
+      "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameter-cases-before-com-argument-order.json",
+      "sha256": "FACF37DC45979955F0E0546FEBD5C7A2AC037A43879A19A4FE38280C1185557C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameter-cases.json",
+      "sha256": "7BA6B6FCFE517079FEA18B0FAACD0FBD7D06C90A6D02ABE2E7397DF4E3616470"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-batch-run1.json",
+      "sha256": "16193011FE1B8166787B16638A0932A3B9DBAECB021EE5BE06E1C6BE4C312527"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run1.json",
+      "sha256": "6AE0BCEE94E565A7A463ED65E29F85F0D173CD657B32D784931B270640857E2F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run2.json",
+      "sha256": "F96000833B19EB7502BE801B307CD3D750BF3A1A61BB5AC5650A114A9E38489F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/pc-volume-scale.json",
+      "sha256": "26F4DFCB8EC03517CA71D4E27B521E5A9983CCEC2C383D4CEAD7B7C349903766"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/prior-scores.json",
+      "sha256": "8C0398BE49CD9F0CE57FCB1F0E1A81E0FA92D8636EA376F6BF83BEA99AE814BA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/tables.json",
+      "sha256": "B2676454A912EFFDAFC82F18503923FF6A6570D867F2179048D66022794E9A82"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/manager-and-voice-scout/capture.json",
+      "sha256": "5B26CA7E69FF48A302240191455444F2731E441C01C6CC1772E7AEC14E3AED91"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/scalar-context/capture.json",
+      "sha256": "AAA495DCB2FAA0F94990A2D6186397CD8F17CFFE4F765B6CDC7F50EC2D286530"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/virtual-scout/capture.json",
+      "sha256": "71A65E4DDD239DAE58D63022CBE63C5557DC3EAC7577A65E4455E1D342A2293D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/volume-and-bank-dependencies/capture.json",
+      "sha256": "0B117A9E01FDFB2B072DFCE87903144B36BC67CF102564B9781BD878531FABE2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/probe-before-com-argument-order.py",
+      "sha256": "26FA680A0798892AE0E606C3E7F564897003C90B6A15028046CBE70423978829"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/seal-audio-cached-parameters.py",
+      "sha256": "DD94BF740ACB91379276D162AB2F2EC5BA91629E63621C57CAE64FB6B96DCFC5"
+    },
+    {
+      "path": "research/engine-core-remainder-contracts-2026-09-10.json",
+      "sha256": "104FB65A2D6A06C3A844597602B0E38317F7764D2D97B226CBF724D17E05BC54"
+    },
+    {
+      "path": "research/engine-platform-remainder-contracts-2026-09-10.json",
+      "sha256": "D3C7176AD4CB7F500678295A133DC5133A36B55A48573F825497B8A3C0CE7F73"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run1.json",
+        "sha256": "6AE0BCEE94E565A7A463ED65E29F85F0D173CD657B32D784931B270640857E2F"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/probe-before-com-argument-order.py",
+        "sha256": "26FA680A0798892AE0E606C3E7F564897003C90B6A15028046CBE70423978829"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameter-cases-before-com-argument-order.json",
+        "sha256": "FACF37DC45979955F0E0546FEBD5C7A2AC037A43879A19A4FE38280C1185557C"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run2.json",
+        "sha256": "F96000833B19EB7502BE801B307CD3D750BF3A1A61BB5AC5650A114A9E38489F"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/probe_audio_cached_parameters.py",
+        "sha256": "C0BC7F008BEAB72CB91AE374EF24885E23B08BC4C3C9F7A85AF48C5C5A0D51E7"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameter-cases.json",
+        "sha256": "7BA6B6FCFE517079FEA18B0FAACD0FBD7D06C90A6D02ABE2E7397DF4E3616470"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-batch-run1.json",
+        "sha256": "16193011FE1B8166787B16638A0932A3B9DBAECB021EE5BE06E1C6BE4C312527"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/probe_audio_cached_parameters.py",
+        "sha256": "C0BC7F008BEAB72CB91AE374EF24885E23B08BC4C3C9F7A85AF48C5C5A0D51E7"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameter-cases.json",
+        "sha256": "7BA6B6FCFE517079FEA18B0FAACD0FBD7D06C90A6D02ABE2E7397DF4E3616470"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/audio-runtime/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    }
+  ]
+}

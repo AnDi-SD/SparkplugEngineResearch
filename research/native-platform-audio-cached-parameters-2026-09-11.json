@@ -1,0 +1,159 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-audio-cached-parameters-2026-09-11T03:01:15Z",
+  "createdUtc": "2026-09-11T03:01:15Z",
+  "notes": "37 successful bounded original audio calls;31whole6device boundaries,one preserved COM argument-order oracle correction.PC/PS2 manager parameters and PS2 voice state;no hardware operation or base/bank score.",
+  "assessments": [
+    {
+      "className": "spDXAudioManager",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-audio-cached-parameters-2026-09-11.md",
+          "sourceSha256": "B70AE069D1FAE774CE5C1C8C5810465FE1E40FA8C59C0497E50E36CE5C50CD22",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/audio-cached-parameters-contracts-2026-09-11.json",
+          "sourceSha256": "6257E2682FDF6B5FDD8167F99B85FBC525C32AC84570E75739156EA96A4D6D70",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run1.json",
+          "sourceSha256": "6AE0BCEE94E565A7A463ED65E29F85F0D173CD657B32D784931B270640857E2F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run2.json",
+          "sourceSha256": "F96000833B19EB7502BE801B307CD3D750BF3A1A61BB5AC5650A114A9E38489F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-batch-run1.json",
+          "sourceSha256": "16193011FE1B8166787B16638A0932A3B9DBAECB021EE5BE06E1C6BE4C312527",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "20->25: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        }
+      ],
+      "unknowns": [
+        "Device SDK/COM continuation,normal startup,cache producer and general FPU equivalence remain open."
+      ]
+    },
+    {
+      "className": "spPS2AudioManager",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-audio-cached-parameters-2026-09-11.md",
+          "sourceSha256": "B70AE069D1FAE774CE5C1C8C5810465FE1E40FA8C59C0497E50E36CE5C50CD22",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/audio-cached-parameters-contracts-2026-09-11.json",
+          "sourceSha256": "6257E2682FDF6B5FDD8167F99B85FBC525C32AC84570E75739156EA96A4D6D70",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run1.json",
+          "sourceSha256": "6AE0BCEE94E565A7A463ED65E29F85F0D173CD657B32D784931B270640857E2F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run2.json",
+          "sourceSha256": "F96000833B19EB7502BE801B307CD3D750BF3A1A61BB5AC5650A114A9E38489F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-batch-run1.json",
+          "sourceSha256": "16193011FE1B8166787B16638A0932A3B9DBAECB021EE5BE06E1C6BE4C312527",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        }
+      ],
+      "unknowns": [
+        "Device SDK/COM continuation,normal startup,cache producer and general FPU equivalence remain open."
+      ]
+    },
+    {
+      "className": "spPS2AudioVoice",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-audio-cached-parameters-2026-09-11.md",
+          "sourceSha256": "B70AE069D1FAE774CE5C1C8C5810465FE1E40FA8C59C0497E50E36CE5C50CD22",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/audio-cached-parameters-contracts-2026-09-11.json",
+          "sourceSha256": "6257E2682FDF6B5FDD8167F99B85FBC525C32AC84570E75739156EA96A4D6D70",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run1.json",
+          "sourceSha256": "6AE0BCEE94E565A7A463ED65E29F85F0D173CD657B32D784931B270640857E2F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-pilot-run2.json",
+          "sourceSha256": "F96000833B19EB7502BE801B307CD3D750BF3A1A61BB5AC5650A114A9E38489F",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/audio-runtime/parameters-batch-run1.json",
+          "sourceSha256": "16193011FE1B8166787B16638A0932A3B9DBAECB021EE5BE06E1C6BE4C312527",
+          "locator": "Original concrete audio manager or PS2 voice cached methods",
+          "observation": "15->20: Original audio cached parameter/state methods with platform-specific fields/ABI;volume requests only through explicit device boundary.No hardware completion or full class restoration."
+        }
+      ],
+      "unknowns": [
+        "Device SDK/COM continuation,normal startup,cache producer and general FPU equivalence remain open."
+      ]
+    }
+  ]
+}
