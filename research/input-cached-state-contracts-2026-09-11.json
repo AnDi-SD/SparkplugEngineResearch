@@ -1,0 +1,252 @@
+{
+  "kind": "original-input-cached-state",
+  "schemaVersion": 1,
+  "counts": {
+    "mainWholeCalls": 119,
+    "pcMainCalls": 69,
+    "ps2MainCalls": 50,
+    "keyMapCallsInsideMain": 20,
+    "keyMapDiagnosticReturns": 3,
+    "keyMapDiagnosticBoundaries": 2
+  },
+  "pcKeyboard": "4CC980 handles20-byte records atobj88;scan index word0,data word4;state858[index]=bool(data&80),changed958[index]=1,last record wins,other cells retained.Query4CC9D0/4CCA00 uses this=obj14,active byte45 and real4D6470 mapping,strict stored byte==1.Integer slots3/4 alias originalzero5A7DC0.",
+  "ps2Keyboard": "Original interface thunks subtract14 and bodies1F14D0/1F14C0/1F14B0/1F1490 return0 without cache/device reads.1F14F0 writes byte44=1 and returns1.No hardware initialization claim.",
+  "mouse": "Interface slots1/2 test codes100..107,active PCbyte45/PS2byte44,strict stored1.PCbytes50A4/50B8;PS2words50/B0.Slot3 PCwords50C0/50C4 versus PS2float74/78 unsigned conversion;slot4 PCwords5098/509C/50A0 versus PS2float74/78/7C signed conversion.PS2 tested only exact nonnegative10/20/30.",
+  "keyMapBoundary": "144 reviewed key/scan pairs0..142,176;next expected key6F43C8 is3A83126F,not -1.Original unknown143/FFFFFFFF attempts read there;diagnostic hook stops before read.No safe fallback/whole unknown-key result claimed.No separate invented class attribution for helper.",
+  "selection": "107 first-pass calls plus12 new sparse keyboard index-routing calls with opposite decoy cells;old successful cases not replayed.5 separate key-map diagnostics.All source versions pinned.",
+  "limitations": [
+    "Unknown-key continuation beyond reviewed table is deferred;recommend establish caller input domain before changing software behavior.",
+    "No COM/device polling,normal lifecycle,mouse producer,PS2 fractional/out-of-range FPU conversion or derived input routing claim.",
+    "Gamepad/common input classes only scouted,no score.",
+    "Exploratory misleading ctor/sentinel labels corrected in separate index;raw captures preserved.",
+    "No new C++ or fully closed classes."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_input_cached_state.py",
+      "sha256": "43D7145C46625972566E34B14E68F0B2E7B70B2A0C449F49F8DD0264FD5B5EEB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_pc_input_key_map_boundary.py",
+      "sha256": "475A4C274B9B7CEFB10A675B6ECC259248DD0B9EAFF9641FFB8C0FDBE064D15B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/cases.json",
+      "sha256": "4217193A779A44AEFEB01D0AE087A7726A77A3C0D4D764BF79C3CE67F778DBE5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/input-batch-run1.json",
+      "sha256": "376B0E57B6DD27DF0BF0F7A6313B0A5510A40FB8A95E8E38D8B045B67E29BA20"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/input-pilot-run1.json",
+      "sha256": "0369EF21E2BFA060B5B715ACBC8131CD30B336E915CEB7CEC7A8F4B873CC12E6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-index-routing-run1.json",
+      "sha256": "684E565F3382B70A637F7140504B098ADCF4D41941C647FF25FCFD4111EF4521"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-boundary-run1.json",
+      "sha256": "8ABA09D27E0E1612260526DC41D70DE080CD53A69095724D26EA779CBDC478EE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-rows.json",
+      "sha256": "CB5BB4265A4EC9EEA600301096F208C1371045EE1283D29FC75423F27F2D9C2C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/prior-scores.json",
+      "sha256": "9B36C568DCC06E82FBE73AC634B025656D1C0EF3520A23876204ABB5F8997A2A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/routing-cases.json",
+      "sha256": "B3FB1477F435B24D8E170AAABC5CB03EE4AAEFE17266B2924E98C962B3995CD7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/scout-label-corrections.json",
+      "sha256": "24D7B5295206263460DFD379E9190B0306E0DFDA784959A2CC02BF15091C7821"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/seal-input-cached-state.py",
+      "sha256": "4E90A69E424C2FBC3FED1DAC4BF22DDA373B3D3E176ABC4D15A4C3A86D1D5059"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/probe-before-sparse-query-check.py",
+      "sha256": "40A5F66E4A4DCEE40AD92383C9611108A4165182ECF09522343F77C6F5D17C0C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/cached-methods/capture.json",
+      "sha256": "61A3045A800EA73AB329EDB798A8A7EE9AA88F24F126067F6C88BE99B801CE8C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/constant-leaves/capture.json",
+      "sha256": "7BFF92BD821E5F3D6B9646F2F335BFE5B1B41DB3344367B65FAE7B826A010B98"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/interface-tables/capture.json",
+      "sha256": "381B3B772831F518AC1C28A1995932A61C176265B0B01BC2AD1C7DC837F3885F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-sentinel/capture.json",
+      "sha256": "3E5E50AAA0475BD1189297DE9AFE9444B861211A308BF40AC3C33859F8ADABD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-table/capture.json",
+      "sha256": "8D442154C623D4A3DBD3304AF5508968BDF236BBA46747EACE1CAE4E30FA7764"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/producer-and-ps2/capture.json",
+      "sha256": "5CF94AF493147F42CE6D09AA1F879C2BFAB54E2384CDB5465BE2DB429E5D7967"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/ps2-factory-layout/capture.json",
+      "sha256": "0A81BEEB80709D03C2BE621F7FB59F602938B52BCBFF3E08733DDABFC530463E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/ps2-mouse-and-thunks/capture.json",
+      "sha256": "E912702ECC1A080B478B57B1C46974CF303910D28F7B4515468BD9905CC871D1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/scout/capture.json",
+      "sha256": "A1FD9E9827965F101579A86F99FD2EC78D2014F195A697BA38A6527E05A09E98"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/tables/capture.json",
+      "sha256": "691DDBCC260F7BF3D2D409293BD7606BF8B6B2BF799B4C7B720D2F2B850AC149"
+    },
+    {
+      "path": "research/engine-core-remainder-contracts-2026-09-10.json",
+      "sha256": "104FB65A2D6A06C3A844597602B0E38317F7764D2D97B226CBF724D17E05BC54"
+    },
+    {
+      "path": "research/engine-platform-remainder-contracts-2026-09-10.json",
+      "sha256": "D3C7176AD4CB7F500678295A133DC5133A36B55A48573F825497B8A3C0CE7F73"
+    },
+    {
+      "path": "research/ps2-stack-spill-contracts-2026-09-11.json",
+      "sha256": "BF4880520D8A2D71F63BF52905B0243A3DE7B8B0CD2E21AAF6728FA06C22B200"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/input-pilot-run1.json",
+        "sha256": "0369EF21E2BFA060B5B715ACBC8131CD30B336E915CEB7CEC7A8F4B873CC12E6"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/probe-before-sparse-query-check.py",
+        "sha256": "40A5F66E4A4DCEE40AD92383C9611108A4165182ECF09522343F77C6F5D17C0C"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/cases.json",
+        "sha256": "4217193A779A44AEFEB01D0AE087A7726A77A3C0D4D764BF79C3CE67F778DBE5"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "keyTable": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-rows.json",
+        "sha256": "CB5BB4265A4EC9EEA600301096F208C1371045EE1283D29FC75423F27F2D9C2C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/input-batch-run1.json",
+        "sha256": "376B0E57B6DD27DF0BF0F7A6313B0A5510A40FB8A95E8E38D8B045B67E29BA20"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/probe-before-sparse-query-check.py",
+        "sha256": "40A5F66E4A4DCEE40AD92383C9611108A4165182ECF09522343F77C6F5D17C0C"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/cases.json",
+        "sha256": "4217193A779A44AEFEB01D0AE087A7726A77A3C0D4D764BF79C3CE67F778DBE5"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "keyTable": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-rows.json",
+        "sha256": "CB5BB4265A4EC9EEA600301096F208C1371045EE1283D29FC75423F27F2D9C2C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-index-routing-run1.json",
+        "sha256": "684E565F3382B70A637F7140504B098ADCF4D41941C647FF25FCFD4111EF4521"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_input_cached_state.py",
+        "sha256": "43D7145C46625972566E34B14E68F0B2E7B70B2A0C449F49F8DD0264FD5B5EEB"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/routing-cases.json",
+        "sha256": "B3FB1477F435B24D8E170AAABC5CB03EE4AAEFE17266B2924E98C962B3995CD7"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "keyTable": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-rows.json",
+        "sha256": "CB5BB4265A4EC9EEA600301096F208C1371045EE1283D29FC75423F27F2D9C2C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/key-map-boundary-run1.json",
+        "sha256": "8ABA09D27E0E1612260526DC41D70DE080CD53A69095724D26EA779CBDC478EE"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/probe_pc_input_key_map_boundary.py",
+        "sha256": "475A4C274B9B7CEFB10A675B6ECC259248DD0B9EAFF9641FFB8C0FDBE064D15B"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/input-device-state/source-snapshot/pc_block_emulator.py",
+        "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+      }
+    }
+  ]
+}
