@@ -265,6 +265,11 @@ SPV_API int spv_graph_texture_keys(void*,std::uint32_t,SpvGraphTextureKey*,std::
 // Explicit tool inputs to the actual controller and pass methods. These calls
 // do not invent an AnimationManager schedule, enabled gate or visibility order.
 struct SpvGraphControllerClock {std::uint32_t classID;float accumulated,applied,playback;std::uint32_t hasPlayback,enabled;};
+// Host snapshot of shared ApplyFog submissions. Bits 0..5 name enable, mode,
+// color, start, end, density. Untouched state remains unknown. Fog ID0 selects
+// an explicit tool default (new, disabled spFog), not the game's global scene.
+struct SpvFogDraw {std::uint32_t known,enabled,mode,color;float start,end,density;};
+SPV_API int spv_graph_fog_draw(void*,std::uint32_t fog,SpvFogDraw*) noexcept;
 struct SpvGraphUVSubmission {std::uint32_t stage;float matrix[9];};
 SPV_API int spv_graph_controller_clock(void*,std::uint32_t,SpvGraphControllerClock*) noexcept;
 SPV_API int spv_graph_apply_controllers(void*,const std::uint32_t* ids,std::uint32_t count,float elapsed) noexcept;

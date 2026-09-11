@@ -1,0 +1,782 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 156597,
+      "sha256": "485B9B5DE5DBD0DBDB494384C380F31362828767462DFE15C42E8AC244603134",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 35659,
+      "sha256": "3CC8875E41F2A97D6BEED4170F9FA64C8707D7356FC34260DDF9CF1BAAD28B21",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "bytes": 10733,
+      "sha256": "8B6FD1FBC57AF0D914A6AB932F650B486BB8A95F481B50694FA9AACE150BD48C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SparkplugViewer.Native/ResourceGraph.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+      "bytes": 42003,
+      "sha256": "752125B7E4AFB359861E7AA6BA89FF34AE263AF75656127528650F696A3469D7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/Sparkplug/Code/SparkplugDX/spDXRenderer.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFog.cpp",
+      "bytes": 2518,
+      "sha256": "7D9CCD090B029FBDB320D23BD5D4BDA46FAFB0F6DD8CB8527E93ADAE203EBF7D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFog.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFogSerializer.cpp",
+      "bytes": 4550,
+      "sha256": "D09DD5D4CB9F4908516DBC3179178F7B393E06984A0F67C25C881C200003580C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFogSerializer.cpp"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoFogDraw.cs",
+      "bytes": 854,
+      "sha256": "F00071E77854F56B6CE91562CE7567E1966097AD7A3826EFDE9764C41F233303",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoFogDraw.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 22793,
+      "sha256": "CAD8E850645AA665AFDC03B1A4FDF88512D52F0D43E1D5A47DC1277D11E41C97",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedText.cs",
+      "bytes": 2951,
+      "sha256": "8B52FD375215482B0F7E7BC17171BBFAE85ECED0B5BF1AD70A19EDF62EA0F2DF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedText.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Fog.cs",
+      "bytes": 459,
+      "sha256": "FDC6DC1EB1DBDC1F44D55ED6FE3F42945793E7D4CA8830EA71D6CA1880BF675D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Fog.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "bytes": 15236,
+      "sha256": "313297DF04C0D1618B90B99283F23695CA6C8234280896796C847088B31764D1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuFogRegression.cs",
+      "bytes": 14732,
+      "sha256": "5D5CE5F97B3694FB98325C1B853BD8D85900ABF30524BEF6F2A47AF0B9AE8AB8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuFogRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 15076,
+      "sha256": "9CE0137218BA32E75BAE4A9811E293BE8143A2BD371E7DF3C0C0C021CE96EE0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 48487,
+      "sha256": "99FAF0AFDBB990064AF131F3E5E6B86998DD270900B84A7F1755D8C4E26009B9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Fog.cs",
+      "bytes": 3833,
+      "sha256": "64CF310F9981C43A4F7C04C63225688075B879BCB6F6F1F4F53A3B06BA040943",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Fog.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs",
+      "bytes": 3967,
+      "sha256": "483EDC258BE1E284BE365643F42792D710B06233276A571E73B86FDE47310E56",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs",
+      "bytes": 2237,
+      "sha256": "BF14629FF5FEF477214A4EF899FCDA996E0A026E8EC2D7AEDDF787CEFB9B0953",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs",
+      "bytes": 14975,
+      "sha256": "197EB2AEDD08565D8B29A4521C06EAEFF6B0FA7A9D3F031AEB894764B1BAF33D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs",
+      "bytes": 7377,
+      "sha256": "6B9F237270D5CB381E3919316B43259B9F88A88BBD44A3F5B8CD336DBF6EC27A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs"
+    },
+    {
+      "path": "research/check_fog_draw_transport.py",
+      "bytes": 4896,
+      "sha256": "BAF0DA692F541B034C6F2AA8B747F4FA823AD84485470793640472E856FC4A8F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/research/check_fog_draw_transport.py"
+    },
+    {
+      "path": "research/probe_pc_renderer_fog.py",
+      "bytes": 3651,
+      "sha256": "CEE41E88A7ED5FD9FF81F030107CBADAAE081873583B17B0CA96571F8BDE05C2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/research/probe_pc_renderer_fog.py"
+    },
+    {
+      "path": "research/probe_pc_material_apply.py",
+      "bytes": 5549,
+      "sha256": "8A8DCF4732165F27739DCFFF030AE9EC816F75FECB66F593FAAE14C6200164D8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/research/probe_pc_material_apply.py"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 15160,
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/research/pc_instruction_emulator.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/select-fog-samples.py",
+      "bytes": 1405,
+      "sha256": "61590FD034A7E032DF474C7642ED32B6FF4BF5E563F46AEE8DAC7B45AB8B2384",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/.codex-tmp/select-fog-samples.py"
+    },
+    {
+      "path": ".codex-tmp/check-fog-gpu.py",
+      "bytes": 891,
+      "sha256": "15D4AA983BC1546CE4EEEC953C2CA1AA4B7FA53216C07944D9017C4176E30734",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/.codex-tmp/check-fog-gpu.py"
+    },
+    {
+      "path": ".codex-tmp/check-fog-controls.py",
+      "bytes": 960,
+      "sha256": "4E5DB95DA73FB537DC50DE6E2193BEC81D9B8667E038D3DAD4C877D661777585",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/.codex-tmp/check-fog-controls.py"
+    },
+    {
+      "path": ".codex-tmp/finalize-fog-originals.py",
+      "bytes": 760,
+      "sha256": "91A8D588792702EED2B1669518F9E281CDBB9EE436F88EB03241B18CF922783B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/.codex-tmp/finalize-fog-originals.py"
+    },
+    {
+      "path": ".codex-tmp/seal-fog-gpu.py",
+      "bytes": 3879,
+      "sha256": "656B52EAC9BB0070385CC2C3E8EA7E5EB63218D6B02B121AD29F14D93A80495E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/.codex-tmp/seal-fog-gpu.py"
+    },
+    {
+      "path": "docs/research/tool-fog-gpu-2026-09-11.md",
+      "bytes": 7641,
+      "sha256": "D5AC1C3FACE25B2B006AD5FD0819D0FD70ED57DF538BE2DD39DA89E7054A8C81",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/sources/docs/research/tool-fog-gpu-2026-09-11.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy-stdout.txt",
+      "bytes": 76,
+      "sha256": "E13A714C662B6E72BA282CA479E1CF7FEFD88E953239449379167AADD768375E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-material-stdout.txt",
+      "bytes": 65,
+      "sha256": "0E6741A90D5ED00A9BD982E36C2EB568F67062549BD61C55DF75DA02CE48E624",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-material-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text-stdout.txt",
+      "bytes": 77,
+      "sha256": "646D476463CE054B0FD468A4A369C5E24920D859ED6A7583CA9021613F4A54F9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run1-log.txt",
+      "bytes": 797,
+      "sha256": "F29715A6C06CD108F502649C5E60EF53C690F019E366A5B27A2F3C746D981184",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run2-log.txt",
+      "bytes": 3637,
+      "sha256": "A3CB2B0A36626C92920A467D600E57094A1D38768AF3A794299E8340A7A5BB4F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3-log.txt",
+      "bytes": 60,
+      "sha256": "F2B0BFECD22749B60F7673D0DC2FCF425A6878A78C4BA13E6C1C44DF93A51DB0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/selected-samples.json",
+      "bytes": 1529,
+      "sha256": "A768609CD82E4A689FED4D5A5CE03E20ADEC5538408F1EE249E353EB920CAC44",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/selected-samples.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy/report.json",
+      "bytes": 4919,
+      "sha256": "39F25CD3FD37550628CFC064F237069B650E160E3C6D0F356D36BE0B8EB16302",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy/scene.png",
+      "bytes": 14425,
+      "sha256": "BBA5BFB094B136E4FB4B1FA4850D6BDD50E0CE0B042DCB58F5418A5DB8FE3510",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-icy/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-material/report.json",
+      "bytes": 839,
+      "sha256": "36AF15EDFD72410EC1A53E9FEA800D1C88212D75822234CE3C88073750D5334B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-material/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text/report.json",
+      "bytes": 3085,
+      "sha256": "CF033DEB17979471CAC4B44661C36E08FFA77D361FAA90E2A598874F1B71649F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text/scene.png",
+      "bytes": 2915,
+      "sha256": "CBA60EAD52FEEFE5386CE5E4D63C4BB8204C6643C0D490E0A1142DCAAD642B0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/control-text/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-cache/report.json",
+      "bytes": 3850,
+      "sha256": "8AB9F1AB742FCBA89B55E831D7B14D0ED68CDC5BE9EC54B06F871DA9C1D454A7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-cache/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-cache/report.smo",
+      "bytes": 89,
+      "sha256": "D59EC18701D17F68C0D0161A37FBBDBF66E2558B6C9EE427FB6D78B48AEC2B28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-cache/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-disabled/report.json",
+      "bytes": 2053,
+      "sha256": "B2A152C53CBADD8418E9801EEC735249797E1C61E42AF6809B281209CB4C8FF9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-disabled/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-disabled/report.smo",
+      "bytes": 89,
+      "sha256": "0BC6994712059ABDB2AADD51F7F7D58C6A24F8FB47B6677269CCB4EBE33D7C78",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-disabled/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp/report.json",
+      "bytes": 2414,
+      "sha256": "EAB9E410EEABDE850C53597290F5054C4B0C64948D3A333E46AE88815127C49B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp/report.smo",
+      "bytes": 89,
+      "sha256": "740035E4F2CAFB66342338E361D482C782462F10E5B86690C57FB22563237C6B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp2/report.json",
+      "bytes": 2420,
+      "sha256": "D45FA574F14D7E09CAB196D113624F35FAE9F5EF592920BB2EB5A2232C44AC32",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp2/report.smo",
+      "bytes": 89,
+      "sha256": "85EFBEA71A079F4B9725AE116E424300774152F97EA8343C78F4853C421E70CE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-exp2/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-failed-device/report.json",
+      "bytes": 2556,
+      "sha256": "DC6D5CCC78F5C70B80574543B0A787025F0065EAF31B8156F82CE15BBCC4D03C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-failed-device/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-failed-device/report.smo",
+      "bytes": 89,
+      "sha256": "D59EC18701D17F68C0D0161A37FBBDBF66E2558B6C9EE427FB6D78B48AEC2B28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-failed-device/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-linear/report.json",
+      "bytes": 2535,
+      "sha256": "BACDC64529504EA32AF03E08F3407C5A25E021E0C9C50ED9E0269B41750A0382",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-linear/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-linear/report.smo",
+      "bytes": 89,
+      "sha256": "D59EC18701D17F68C0D0161A37FBBDBF66E2558B6C9EE427FB6D78B48AEC2B28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-linear/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-density/report.json",
+      "bytes": 2441,
+      "sha256": "B776FE6821F24F4CA4E22CF19D9F52029F1D4DBDFB34357C8BFDA5FD5EA1F026",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-density/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-density/report.smo",
+      "bytes": 89,
+      "sha256": "22FC8254571A2AB8C5D2E976C584ED0AE5CB0061610C3F0CCA6A6A269A3CE813",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-density/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-linear/report.json",
+      "bytes": 2547,
+      "sha256": "A0D09C5E61E8558055369F90CCD6687EABCB91AE31549102167232C31D42AD6D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-linear/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-linear/report.smo",
+      "bytes": 89,
+      "sha256": "E5EE45677089B58F97B9D30FEBFC639AB4DCFF54AD5614594E2AA2CA017AE7C2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-raw-linear/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-sentinel-linear/report.json",
+      "bytes": 2331,
+      "sha256": "32C4C1AFAB004DC7D39E3AB2B2F053F2959824C8C26E439F4025080D0E223231",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-sentinel-linear/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-sentinel-linear/report.smo",
+      "bytes": 89,
+      "sha256": "87FA325E2E9CB3113980B97FD25709BE2878DE78725B86944BF094BDD2BBA872",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-sentinel-linear/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-unknown/report.json",
+      "bytes": 2068,
+      "sha256": "BDF976CCFD1296873C2908F253F1CC461166002EE7903411C5744E4DC37BC484",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-unknown/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-unknown/report.smo",
+      "bytes": 89,
+      "sha256": "6D435661DB62621ECBBAB7DDDF1A5014626DBBC8CB9C46C785970CC364C76350",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/final-original-unknown/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run1/report.json",
+      "bytes": 2227,
+      "sha256": "EE2D515B7B09630186B9DB5922BE03EDC246D352AF31511D77E04CB5B434C6FB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/report.json",
+      "bytes": 4744,
+      "sha256": "4AF817FC89179CB965176371AFF33E0B4E718506BE585083EC77922BB50D9A64",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/source-clear.rgba",
+      "bytes": 4096,
+      "sha256": "3047A248EA6BA8F3DF09AE7519B7024A40337EDC33C297E411ACD65931453D8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/source-clear.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/source-fog.rgba",
+      "bytes": 4096,
+      "sha256": "60FEF7B57CAEE39002AA8AC6163A19C99C8B8C0937619DA6ED0CFDE0FE5A6A37",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/gpu-run3/source-fog.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-cache/report.json",
+      "bytes": 3339,
+      "sha256": "F8180AB592D3DDB9B717EA6C4F96ABF106CDE748083A72119602E5B08E7FB526",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-cache/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-cache/report.smo",
+      "bytes": 89,
+      "sha256": "D59EC18701D17F68C0D0161A37FBBDBF66E2558B6C9EE427FB6D78B48AEC2B28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-cache/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-disabled/report.json",
+      "bytes": 1544,
+      "sha256": "9F0735CEAE6FFB98CF680F93B3A325DCAEFD2EEE955B950EAD103274CCFBA411",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-disabled/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-disabled/report.smo",
+      "bytes": 89,
+      "sha256": "0BC6994712059ABDB2AADD51F7F7D58C6A24F8FB47B6677269CCB4EBE33D7C78",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-disabled/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp/report.json",
+      "bytes": 1907,
+      "sha256": "C57F981D370D7B62094BFB08B5C356DA59A4226255178A7845B3D113D4393194",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp/report.smo",
+      "bytes": 89,
+      "sha256": "740035E4F2CAFB66342338E361D482C782462F10E5B86690C57FB22563237C6B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp2/report.json",
+      "bytes": 1910,
+      "sha256": "52AFAC7EB5BD88BB1E617A43C66B3458010622F81DED80CD906F0BD4DC298573",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp2/report.smo",
+      "bytes": 89,
+      "sha256": "85EFBEA71A079F4B9725AE116E424300774152F97EA8343C78F4853C421E70CE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-exp2/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-linear/report.json",
+      "bytes": 2024,
+      "sha256": "A0C8D123A65F963F49164AB288AC9938CF4E2E7B46D330749FA676D792C78852",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-linear/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-linear/report.smo",
+      "bytes": 89,
+      "sha256": "D59EC18701D17F68C0D0161A37FBBDBF66E2558B6C9EE427FB6D78B48AEC2B28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-linear/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-density/report.json",
+      "bytes": 1931,
+      "sha256": "0DB195856474EBB2F417E249C06938BF966E38B8781446C1C67FC3B51E0A2B9B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-density/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-density/report.smo",
+      "bytes": 89,
+      "sha256": "22FC8254571A2AB8C5D2E976C584ED0AE5CB0061610C3F0CCA6A6A269A3CE813",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-density/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-linear/report.json",
+      "bytes": 2037,
+      "sha256": "C2FD958068E274B24D8769AB22C8EB9DE4F8E6E722E30055B1D04A58F678943E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-linear/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-linear/report.smo",
+      "bytes": 89,
+      "sha256": "E5EE45677089B58F97B9D30FEBFC639AB4DCFF54AD5614594E2AA2CA017AE7C2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-raw-linear/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-sentinel-final/report.json",
+      "bytes": 1821,
+      "sha256": "6BA96E29EBEAE78F498CB5DF67BA7A60B7B6A5635D760C5BF5ED402040986AC5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-sentinel-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-sentinel-final/report.smo",
+      "bytes": 89,
+      "sha256": "87FA325E2E9CB3113980B97FD25709BE2878DE78725B86944BF094BDD2BBA872",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-sentinel-final/report.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-unknown/report.json",
+      "bytes": 1557,
+      "sha256": "05C011B5AAD5E2797664C6EB398E1197F15D8AFF60677C2EC06EA89ABB8E265C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-unknown/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-unknown/report.smo",
+      "bytes": 89,
+      "sha256": "6D435661DB62621ECBBAB7DDDF1A5014626DBBC8CB9C46C785970CC364C76350",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/fog-gpu/original-unknown/report.smo"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1295872,
+      "sha256": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/Testing/Temporary/LastTest.log",
+      "bytes": 1650,
+      "sha256": "9B8C5D797B8BDEEB017948C3B7BE86EF78C21D250A5AC11923519202C51BA8C5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/artifacts/native/viewer/Release/Testing/Temporary/LastTest.log"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 220672,
+      "sha256": "051DF6D263EE6659E4FFA7F58B47793125121B31B5027A7A433DEA2D287CFB74",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 163328,
+      "sha256": "94516E70A2157A9462CA65B19180DB9301F3F672601F16696F7E762B5453C6C2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 45056,
+      "sha256": "DD1F62CEDC69688A8234B93524AE4E0D5B9825B443EF645A23E2739CE5D88E9D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 766976,
+      "sha256": "6AFCF297DD1993F0E0ECEA05902BAEF0BDAD28856A5A94A9BE7F0AE1B4C69F4E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 43520,
+      "sha256": "CDE8C245C23FFDFF465A12513AFAB40440B7AD1EA6AE60B32301CC0EDAE7F0E7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "bytes": 1295872,
+      "sha256": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/fog-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll"
+    }
+  ],
+  "status": "verified-PC-fog-state-transport-and-modern-device-projection",
+  "block": 19,
+  "exeScoreDelta": 0,
+  "freshOriginalChecks": 177,
+  "transportChecks": 152,
+  "gpuChecks": 83,
+  "controlGpuChecks": 107,
+  "nativeChecks": 464,
+  "pristinePC": {
+    "path": "local-data/pc-pristine/WinxClub.exe",
+    "bytes": 22065152,
+    "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  },
+  "actualGpu": {
+    "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Menus\\SideQuestObject\\g_crystal.smo",
+    "skySource": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Levels\\Sky\\Sky_02.smo",
+    "checks": 83,
+    "failure": "",
+    "device": "NVIDIA GeForce RTX 3070/PCIe/SSE2",
+    "detail": {
+      "sourceHash": "4E17902BBE86647A3535D98BE4C7C7F916C6A5015C42BFD3EF9FB5408354587E",
+      "skyHash": "8A5710B993079775212C78ED62EE130F88CFBF2850812FB0A8C142A958E78C47",
+      "originalFog": {
+        "ObjectId": 5,
+        "KnownMask": 31,
+        "Enabled": 1,
+        "Mode": 3,
+        "Color": 4278216294,
+        "Start": 900,
+        "End": 3000,
+        "Density": 0,
+        "Issue": null
+      },
+      "sceneMeshes": 1,
+      "skyMeshes": 2,
+      "realFogPlacements": 1,
+      "changedComponents": 603,
+      "fieldOfView": 2.1570601924106363,
+      "native": "EF92713019BD80B172AE79F9EDECCB972AA705EEB7E2D4C866B618AE66C0F073",
+      "renderer": "94516E70A2157A9462CA65B19180DB9301F3F672601F16696F7E762B5453C6C2"
+    },
+    "seconds": 1.4715632,
+    "peakBytes": 185995264,
+    "observations": [
+      {
+        "name": "linear",
+        "depth": 450,
+        "sample": "QCDAgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "linear",
+        "depth": 900,
+        "sample": "QCDAgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "linear",
+        "depth": 1950,
+        "sample": "IEOTgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "linear",
+        "depth": 3000,
+        "sample": "AGZmgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "linear",
+        "depth": 4500,
+        "sample": "AGZmgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "alpha-byte-ignored",
+        "depth": 1950,
+        "sample": "IEOTgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 26214,
+          "Start": 900,
+          "End": 3000,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "exponential-1",
+        "depth": 1000,
+        "sample": "GEyHgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 39,
+          "Enabled": 1,
+          "Mode": 1,
+          "Color": 4278216294,
+          "Start": "NaN",
+          "End": "NaN",
+          "Density": 0.001,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "exponential-2",
+        "depth": 1000,
+        "sample": "GEyHgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 39,
+          "Enabled": 1,
+          "Mode": 2,
+          "Color": 4278216294,
+          "Start": "NaN",
+          "End": "NaN",
+          "Density": 0.001,
+          "Issue": null
+        },
+        "placements": 1
+      },
+      {
+        "name": "disabled-unused-NaN",
+        "depth": 1950,
+        "sample": "QCDAgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 1,
+          "Enabled": 0,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": "NaN",
+          "End": "NaN",
+          "Density": "NaN",
+          "Issue": null
+        },
+        "placements": 0
+      },
+      {
+        "name": "affine-device-depth",
+        "depth": 5000,
+        "sample": "IEOTgA==",
+        "fog": {
+          "ObjectId": 5,
+          "KnownMask": 31,
+          "Enabled": 1,
+          "Mode": 3,
+          "Color": 4278216294,
+          "Start": 0.25,
+          "End": 0.75,
+          "Density": 0,
+          "Issue": null
+        },
+        "placements": 1
+      }
+    ]
+  },
+  "boundaries": [
+    "No original GPU frame equivalence",
+    "No PS2 runtime",
+    "Weighted shader fog remains unverified",
+    "ID0 uses explicit disabled host default, not global scene Fog",
+    "Immutable snapshot does not implement live Fog mutation/lifetime",
+    "Unsupported consumed device parameters remain explicit diagnostics"
+  ]
+}

@@ -1042,6 +1042,27 @@ SPV_API int spv_graph_renderable(void* handle,std::uint32_t id,SpvGraphRenderabl
     return guarded([&]{require(output,"Missing Renderable output");const auto& graph=graphForView(handle);const auto& value=graphResource<spRenderable>(graph,id);
         *output={graph.ID(value.GetMaterialForAnalysis().get()),graph.ID(value.GetFogForAnalysis().get()),value.IsAlphaSortEnabledForAnalysis()?1u:0u,value.GetPriorityForAnalysis()};});
 }
+SPV_API int spv_graph_fog_draw(void* handle,std::uint32_t id,SpvFogDraw* output) noexcept {
+    static_assert(sizeof(SpvFogDraw)==28);
+    return guarded([&]{require(output,"Missing Fog draw output");const auto& graph=graphForView(handle);
+        spFog fallback;const auto* fog=id?&graphResource<spFog>(graph,id):&fallback;
+        spDXRenderer::FogStateForAnalysis state;std::array<std::uint32_t,256> cache{};
+        // Force this immutable capture to observe every selected value. No
+        // universal sentinel can differ from every possible raw IEEE/ARGB word.
+        const auto bits=[](float value){std::uint32_t word;std::memcpy(&word,&value,4);return word;};
+        cache[28]=2;cache[35]=~static_cast<std::uint32_t>(fog->GetTypeForAnalysis());cache[34]=~fog->GetColorARGBForAnalysis();
+        cache[36]=~bits(fog->GetStartForAnalysis());cache[37]=~bits(fog->GetEndForAnalysis());cache[38]=~bits(fog->GetDensityForAnalysis());
+        SpvFogDraw result{};
+        const auto submit=[](void* context,std::uint32_t index,std::uint32_t value) noexcept->std::int32_t {
+            auto& out=*static_cast<SpvFogDraw*>(context);
+            switch(index){case 28:out.known|=1;out.enabled=value;break;case 35:out.known|=2;out.mode=value;break;
+                case 34:out.known|=4;out.color=value;break;case 36:out.known|=8;std::memcpy(&out.start,&value,4);break;
+                case 37:out.known|=16;std::memcpy(&out.end,&value,4);break;case 38:out.known|=32;std::memcpy(&out.density,&value,4);break;}
+            return 0;
+        };
+        require(spDXRenderer::ApplyFogForAnalysis(state,fog,cache,submit,&result),"Unsupported shared Fog submission");
+        *output=result;});
+}
 SPV_API int spv_graph_lens_flare(void* handle,std::uint32_t id,SpvLensFlareInfo* output) noexcept {
     return guarded([&]{require(output,"Missing LensFlare output");const auto& graph=graphForView(handle);const auto& flare=graphResource<spLensFlare>(graph,id);
         *output={static_cast<std::uint32_t>(flare.GetElementsForAnalysis().size()),graph.ID(flare.GetRenderNodeForAnalysis()),flare.GetOcclusionRadiusForAnalysis(),flare.GetOcclusionSpeedForAnalysis()};});

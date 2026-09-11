@@ -215,3 +215,14 @@ StellaX → Icy результат пропускал 29 ссылок AnimTexCon
 выдача ID больше не сканирует каталоги. Промежуточный forward-reference сбой
 исправлен порядком наблюдения исходного графа; ошибочная fixture и CLI timeout
 описаны отдельно. Flat material import/preview guard пока остаётся.
+
+## Блок 19 — Fog до GPU
+
+[Общий transport и OpenGL consumer](tool-fog-gpu-2026-09-11.md) используют
+настоящий ApplyFog, известные state masks и raw bits. 10 fresh original
+captures/177 checks,152 ABI checks и83 GPU checks прошли; три смежных контроля
+дали107 checks. Настоящий g_crystal меняет603 components и точно возвращается
+после toggle. Weighted shader без oFog, global fallback и invalid consumed
+device parameters остаются явно описанными границами. First-run Unlit gate,
+JSON NaN report и sentinel expectation исправлены; game алгоритм не менялся.
+Подбор восьми active Fog файлов занял0,058 s через индексы БД.
