@@ -2,7 +2,11 @@ param(
     [Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,
     [ValidateSet('system','remix')][string]$Backend = 'remix',
     [switch]$Raytracing,
-    [switch]$NormalizeFVF
+    [switch]$NormalizeFVF,
+    [switch]$ExplicitMipLevels,
+    [switch]$ImmediateTextureUpload,
+    [switch]$TextureReadback,
+    [switch]$ResubmitTextures
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -15,6 +19,7 @@ $config = Join-Path $run 'rtx.conf'
 $text = [IO.File]::ReadAllText((Join-Path $game 'rtx.conf'))
 $text = $text.Replace('rtx.useVertexCapture - True','rtx.useVertexCapture = True')
 $text += "`r`nrtx.enableRaytracing = $($Raytracing.IsPresent.ToString())`r`n"
+if ($ImmediateTextureUpload) { $text += "d3d9.evictManagedOnUnlock = True`r`n" }
 [IO.File]::WriteAllText($config,$text,[Text.UTF8Encoding]::new($false))
 Copy-Item -LiteralPath (Join-Path $game 'd3d9.dll') -Destination (Join-Path $run 'd3d9.dll')
 foreach ($file in @('user.conf','winx.ini')) {
@@ -25,6 +30,9 @@ $values = @{
     WINX_REMIX_BACKEND=$Backend
     WINX_REMIX_TRACE=(Join-Path $run 'draws.jsonl')
     WINX_REMIX_NORMALIZE_FVF=$(if ($NormalizeFVF) { '1' } else { '0' })
+    WINX_REMIX_EXPLICIT_MIPS=$(if ($ExplicitMipLevels) { '1' } else { '0' })
+    WINX_REMIX_TEXTURE_READBACK=$(if ($TextureReadback) { '1' } else { '0' })
+    WINX_REMIX_RESUBMIT_TEXTURES=$(if ($ResubmitTextures) { '1' } else { '0' })
     DXVK_RTX_CONFIG_FILE=$config
 }
 try {

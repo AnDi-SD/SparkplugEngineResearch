@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cmath>
 #include <map>
+#include <set>
 #include <mutex>
 #include <share.h>
 #include <string>
@@ -19,6 +20,12 @@ static std::map<void**, std::map<unsigned, void*>> originals;
 static unsigned frameId, drawId, records;
 static bool triggered;
 static unsigned bufferRecords, dynamicBufferRecords;
+static unsigned textureRecords;
+static bool explicitMipLevels;
+static bool textureReadback;
+static std::set<IDirect3DBaseTexture9*> readTextures;
+static bool resubmitTextures;
+static std::set<IDirect3DBaseTexture9*> submittedTextures;
 struct BufferLock { void* data; UINT size; DWORD flags; };
 static std::map<void*, BufferLock> bufferLocks;
 using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
@@ -38,12 +45,19 @@ static void Initialize() {
     wcscat_s(path, L"d3d9.remix-original.dll");
   }
   backend = LoadLibraryW(path);
+  wchar_t mipOption[8]{};
+  explicitMipLevels=GetEnvironmentVariableW(L"WINX_REMIX_EXPLICIT_MIPS",mipOption,8) && wcscmp(mipOption,L"1")==0;
+  wchar_t readbackOption[8]{};
+  textureReadback=GetEnvironmentVariableW(L"WINX_REMIX_TEXTURE_READBACK",readbackOption,8) && wcscmp(readbackOption,L"1")==0;
+  wchar_t resubmitOption[8]{};
+  resubmitTextures=GetEnvironmentVariableW(L"WINX_REMIX_RESUBMIT_TEXTURES",resubmitOption,8) && wcscmp(resubmitOption,L"1")==0;
   wchar_t normalize[8]{};
   if (GetEnvironmentVariableW(L"WINX_REMIX_NORMALIZE_FVF", normalize, 8) && wcscmp(normalize,L"1")==0) {
     const HMODULE d3dx=LoadLibraryExW(L"d3dx9_43.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);
     if(d3dx) fvfFromDeclaration=reinterpret_cast<FvfFromDeclaration>(GetProcAddress(d3dx,"D3DXFVFFromDeclarator"));
   }
   if (GetEnvironmentVariableW(L"WINX_REMIX_TRACE", output, MAX_PATH)) {
+    if(sizeof(void*)==8) wcscat_s(output,L".x64");
     logFile = _wfsopen(output, L"wb", _SH_DENYNO);
   }
   if (logFile) {
@@ -131,7 +145,7 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
   IDirect3DVertexBuffer9* stream=nullptr; UINT offset=0,stride=0;
   if(SUCCEEDED(device->GetStreamSource(0,&stream,&offset,&stride)) && stream) {
     D3DVERTEXBUFFER_DESC desc{}; stream->GetDesc(&desc);
-    fprintf(logFile,",\"stream0\":[%lu,%u,%u,%u,%lu,%u]",reinterpret_cast<uintptr_t>(stream),offset,stride,desc.Size,desc.Usage,desc.Pool);
+    fprintf(logFile,",\"stream0\":[%llu,%u,%u,%u,%lu,%u]",static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(stream)),offset,stride,desc.Size,desc.Usage,desc.Pool);
     stream->Release();
   }
   fprintf(logFile, ",\"viewport_hr\":%ld,\"viewport\":[%lu,%lu,%lu,%lu,%.9g,%.9g]",vpHr,viewport.X,viewport.Y,viewport.Width,viewport.Height,viewport.MinZ,viewport.MaxZ);
@@ -158,6 +172,21 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
       D3DSURFACE_DESC desc{};
       if(SUCCEEDED(static_cast<IDirect3DTexture9*>(texture)->GetLevelDesc(0,&desc)))
         fprintf(logFile,",\"texture0\":[%u,%u,%u]",desc.Width,desc.Height,desc.Format);
+      if(textureReadback && readTextures.size()<64 && desc.Format==D3DFMT_A8R8G8B8 &&
+         desc.Pool==D3DPOOL_MANAGED && desc.Width<=1024 && desc.Height<=1024 && readTextures.insert(texture).second) {
+        D3DLOCKED_RECT rect{}; auto t=static_cast<IDirect3DTexture9*>(texture);
+        const HRESULT lockHr=t->LockRect(0,&rect,nullptr,D3DLOCK_READONLY);
+        fprintf(logFile,",\"textureReadbackHr\":%ld",lockHr);
+        if(SUCCEEDED(lockHr)) {
+          uint32_t hash=2166136261u; unsigned long long sum[4]{};
+          for(UINT y=0;y<desc.Height;++y) {
+            const auto row=static_cast<const unsigned char*>(rect.pBits)+y*rect.Pitch;
+            for(UINT x=0;x<desc.Width*4;++x) {hash=(hash^row[x])*16777619u;sum[x%4]+=row[x];}
+          }
+          fprintf(logFile,",\"textureHash\":%u,\"textureBgraSums\":[%llu,%llu,%llu,%llu]",hash,sum[0],sum[1],sum[2],sum[3]);
+          t->UnlockRect(0);
+        }
+      }
     }
     texture->Release();
   }
@@ -190,6 +219,28 @@ struct ScopedFvf {
   }
 };
 
+// Opt-in experiment: retransmit the existing CPU contents of managed textures
+// immediately before first use. No pixels are generated or edited here.
+static void ResubmitTextures(IDirect3DDevice9* device) {
+  if(!resubmitTextures || sizeof(void*)!=4) return;
+  for(DWORD stage=0;stage<8;++stage) {
+    IDirect3DBaseTexture9* base=nullptr;
+    if(FAILED(device->GetTexture(stage,&base)) || !base) continue;
+    if(base->GetType()==D3DRTYPE_TEXTURE && !submittedTextures.count(base)) {
+      auto texture=static_cast<IDirect3DTexture9*>(base); D3DSURFACE_DESC desc{};
+      if(SUCCEEDED(texture->GetLevelDesc(0,&desc)) && desc.Pool==D3DPOOL_MANAGED) {
+        submittedTextures.insert(base);
+        for(UINT level=0;level<texture->GetLevelCount();++level) {
+          D3DLOCKED_RECT rect{}; HRESULT hr=texture->LockRect(level,&rect,nullptr,0);
+          if(SUCCEEDED(hr)) hr=texture->UnlockRect(level);
+          if(logFile) fprintf(logFile,"{\"event\":\"resubmit_texture\",\"frame\":%u,\"width\":%u,\"height\":%u,\"level\":%u,\"hr\":%ld}\n",frameId,desc.Width,desc.Height,level,hr);
+        }
+      }
+    }
+    base->Release();
+  }
+}
+
 template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCall(Buffer* b,UINT offset,UINT size,void** data,DWORD flags) {
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
   const HRESULT hr=Original<F>(b,11)(b,offset,size,data,flags);
@@ -200,7 +251,7 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
     if(dynamic) ++dynamicBufferRecords;
     const UINT length=offset<=desc.Size ? (size ? (size<desc.Size-offset ? size : desc.Size-offset) : desc.Size-offset) : 0;
     bufferLocks[b]={*data,length,flags};
-    fprintf(logFile,"{\"event\":\"buffer_lock\",\"buffer\":%lu,\"frame\":%u,\"type\":%u,\"offset\":%u,\"size\":%u,\"length\":%u,\"usage\":%lu,\"pool\":%u,\"flags\":%lu,\"hr\":%ld}\n",reinterpret_cast<uintptr_t>(b),frameId,desc.Type,offset,size,length,desc.Usage,desc.Pool,flags,hr);
+    fprintf(logFile,"{\"event\":\"buffer_lock\",\"buffer\":%llu,\"frame\":%u,\"type\":%u,\"offset\":%u,\"size\":%u,\"length\":%u,\"usage\":%lu,\"pool\":%u,\"flags\":%lu,\"hr\":%ld}\n",static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(b)),frameId,desc.Type,offset,size,length,desc.Usage,desc.Pool,flags,hr);
     ++bufferRecords;
   }
   return hr;
@@ -212,7 +263,7 @@ template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer*
     const auto& info=found->second;
     const auto bytes=static_cast<const unsigned char*>(info.data);
     uint32_t hash=2166136261u; for(UINT i=0;i<info.size;++i) hash=(hash^bytes[i])*16777619u;
-    fprintf(logFile,"{\"event\":\"buffer_unlock\",\"buffer\":%lu,\"frame\":%u,\"fnv1a32\":%u,\"head\":[",reinterpret_cast<uintptr_t>(b),frameId,hash);
+    fprintf(logFile,"{\"event\":\"buffer_unlock\",\"buffer\":%llu,\"frame\":%u,\"fnv1a32\":%u,\"head\":[",static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(b)),frameId,hash);
     for(UINT i=0;i<info.size && i<32;++i) fprintf(logFile,"%s%u",i?",":"",bytes[i]);
     fputs("]}\n",logFile); bufferLocks.erase(found);
   }
@@ -247,6 +298,38 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   if(triggered) records=0;
   return hr;
 }
+static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,UINT,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DTexture9**,HANDLE*);
+  UINT forwardedLevels=levels;
+  // D3D9 halves each dimension with truncation down to 1. The 1.5.2 bridge
+  // uses ceil(log2(maxDimension))+1 for Levels=0, which overcounts NPOT textures.
+  if(explicitMipLevels && levels==0 && width && height) {
+    forwardedLevels=1;
+    for(UINT size=width>height?width:height;size>1;size>>=1) ++forwardedLevels;
+  }
+  const HRESULT hr=Original<F>(d,23)(d,width,height,forwardedLevels,usage,format,pool,result,shared);
+  if(SUCCEEDED(hr) && result && *result) { submittedTextures.erase(*result); readTextures.erase(*result); }
+  if(logFile && textureRecords++<2048) {
+    const bool ok=SUCCEEDED(hr) && result && *result;
+    fprintf(logFile,"{\"event\":\"create_texture\",\"frame\":%u,\"width\":%u,\"height\":%u,\"levels\":%u,\"forwardedLevels\":%u,\"usage\":%lu,\"format\":%u,\"pool\":%u,\"hr\":%ld,\"actualLevels\":%u,\"texture\":%llu}\n",frameId,width,height,levels,forwardedLevels,usage,format,pool,hr,ok?(*result)->GetLevelCount():0,ok?static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(*result)):0);
+    fflush(logFile);
+  }
+  return hr;
+}
+static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
+  const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  if(logFile) fflush(logFile);
+  ++frameId; drawId=0;
+  return hr;
+}
+static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDirect3DSwapChain9** result) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
+  const HRESULT hr=Original<F>(d,14)(d,index,result);
+  if(SUCCEEDED(hr) && result && *result) Patch(*result,3,reinterpret_cast<void*>(SwapPresent));
+  return hr;
+}
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
   const HRESULT hr=Original<F>(d,16)(d,p);
@@ -256,24 +339,28 @@ static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS
 }
 static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT start,UINT count) {
   Observe(d,"DrawPrimitive",t,count);
+  ResubmitTextures(d);
   ScopedFvf normalize(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT);
   return Original<F>(d,81)(d,t,start,count);
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   Observe(d,"DrawIndexedPrimitive",t,count);
+  ResubmitTextures(d);
   ScopedFvf normalize(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
   return Original<F>(d,82)(d,t,base,min,num,start,count);
 }
 static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT count,const void* data,UINT stride) {
   Observe(d,"DrawPrimitiveUP",t,count);
+  ResubmitTextures(d);
   ScopedFvf normalize(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
   return Original<F>(d,83)(d,t,count,data,stride);
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT min,UINT num,UINT count,const void* indices,D3DFORMAT format,const void* data,UINT stride) {
   Observe(d,"DrawIndexedPrimitiveUP",t,count);
+  ResubmitTextures(d);
   ScopedFvf normalize(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
   return Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride);
@@ -282,8 +369,15 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
   const HRESULT hr=Original<F>(d,16)(d,adapter,type,window,flags,p,result);
   if(SUCCEEDED(hr) && result && *result) {
+    // Server forwards game Present via its swap chain; sample that boundary on x64.
+    if(sizeof(void*)==8) {
+      Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
+      IDirect3DSwapChain9* swap=nullptr;
+      if(SUCCEEDED((*result)->GetSwapChain(0,&swap)) && swap) swap->Release();
+    }
     Patch(*result,16,reinterpret_cast<void*>(Reset)); Patch(*result,17,reinterpret_cast<void*>(Present));
     Patch(*result,26,reinterpret_cast<void*>(CreateVB)); Patch(*result,27,reinterpret_cast<void*>(CreateIB));
+    Patch(*result,23,reinterpret_cast<void*>(CreateTexture));
     Patch(*result,81,reinterpret_cast<void*>(Draw)); Patch(*result,82,reinterpret_cast<void*>(DrawIndexed));
     Patch(*result,83,reinterpret_cast<void*>(DrawUP)); Patch(*result,84,reinterpret_cast<void*>(DrawIndexedUP));
   }

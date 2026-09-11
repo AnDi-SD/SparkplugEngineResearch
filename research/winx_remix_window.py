@@ -10,7 +10,7 @@ from PIL import ImageGrab
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--pid", required=True, type=int)
-parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space"])
+parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f8"])
 parser.add_argument("--hold", type=float, default=0.15)
 parser.add_argument("--capture", type=Path)
 parser.add_argument("--close", action="store_true")
@@ -60,8 +60,16 @@ u.EnumWindows(visit, 0)
 if not windows:
     raise RuntimeError("No visible window for the selected Winx process")
 _, hwnd = max(windows)
+u.GetLastActivePopup.argtypes = [w.HWND]
+u.GetLastActivePopup.restype = w.HWND
+popup = u.GetLastActivePopup(hwnd)
+popup_pid = w.DWORD()
+u.GetWindowThreadProcessId(popup, c.byref(popup_pid))
+if popup_pid.value == args.pid and u.IsWindowVisible(popup):
+    hwnd = popup
 if args.close:
-    u.PostMessageW(hwnd, 0x10, 0, 0)
+    for _, owned_window in windows:
+        u.PostMessageW(owned_window, 0x10, 0, 0)
 else:
     u.ShowWindow(hwnd, 9)
     u.SetForegroundWindow(hwnd)
@@ -69,7 +77,7 @@ else:
     if u.GetForegroundWindow() != hwnd:
         raise RuntimeError("Winx did not gain foreground; refusing keyboard input/capture")
     if args.key:
-        vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32}[args.key]
+        vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f8":119}[args.key]
         scan = u.MapVirtualKeyW(vk, 0)
         flags = 1 if args.key in ("up", "down", "left", "right") else 0
         u.keybd_event(vk, scan, flags, 0)

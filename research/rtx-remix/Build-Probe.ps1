@@ -1,4 +1,4 @@
-param([string]$OutputDirectory = 'local-data/rtx-remix/build')
+param([string]$OutputDirectory = 'local-data/rtx-remix/build', [ValidateSet('x86','x64')][string]$Platform = 'x86')
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $build = [IO.Path]::GetFullPath((Join-Path $root $OutputDirectory))
@@ -12,11 +12,17 @@ $environmentScript = Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
 New-Item -ItemType Directory -Path $build -Force | Out-Null
 $source = Join-Path $PSScriptRoot 'winx_d3d9_probe.cpp'
 $exports = Join-Path $PSScriptRoot 'winx_d3d9_probe.def'
+if ($Platform -eq 'x64') {
+    # x64 uses undecorated C exports; Regex replacement must preserve function names.
+    $exportText = [IO.File]::ReadAllText($exports) -replace '=_([A-Za-z0-9]+)@[0-9]+','=$1'
+    $exports = Join-Path $build 'probe-x64.def'
+    [IO.File]::WriteAllText($exports,$exportText,[Text.Encoding]::ASCII)
+}
 $commands = @"
 @echo off
-call "$environmentScript" x86
+call "$environmentScript" $Platform
 if errorlevel 1 exit /b %errorlevel%
-cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:X86 user32.lib
+cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
 exit /b %errorlevel%
 "@
 $commandFile = Join-Path $build 'build-probe.cmd'
