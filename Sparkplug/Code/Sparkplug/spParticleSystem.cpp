@@ -18,15 +18,21 @@ namespace sparkplug::reconstruction
     bool spParticleSystem::SampleEmissionRegionForAnalysis(sparkplug::evidence::pc::ParticleRandomForAnalysis& random,
         std::uint32_t count,std::vector<Vector3>& output) const
     {return sparkplug::evidence::pc::SampleParticleRegionForAnalysis(parameters_.regionType,parameters_.region,random,count,output);}
-    bool spParticleSystem::PrepareNonLoopingForAnalysis() noexcept
+    bool spParticleSystem::CapacityForAnalysis(std::uint32_t& output) const noexcept
     {
-        if(parameters_.flags[0])return false;
         const double duration=parameters_.times[0]<0?parameters_.times[1]:parameters_.times[0];
         const double count=duration*double(parameters_.rate);
         // Native truncates then clamps unsigned count to65536. Its zero-count
         // list initialization is unsafe. These are explicit portable bounds.
         if(!std::isfinite(count)||count<1||count>=1025)return false;
-        poolState_={0,static_cast<std::uint32_t>(count),0,0,0};
+        output=static_cast<std::uint32_t>(count);
+        return true;
+    }
+    bool spParticleSystem::PrepareNonLoopingForAnalysis() noexcept
+    {
+        std::uint32_t count=0;
+        if(initialized_||parameters_.flags[0]||!CapacityForAnalysis(count))return false;
+        poolState_={0,count,0,0,0};
         return true;
     }
 }

@@ -1,0 +1,471 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystem.h",
+      "bytes": 4201,
+      "sha256": "E87B3B4070646F2FB857C4EB0479FE6B96A69C1D2729D0C0B7A66AAE7EC4817A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spParticleSystem.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystem.cpp",
+      "bytes": 2031,
+      "sha256": "808EB9D2E75A7B2A0892F50A02D32E2526E66684E6AAAB48CBBBD46605C7348F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spParticleSystem.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystemRuntime.cpp",
+      "bytes": 9117,
+      "sha256": "C8872811753FEBD42169159827DEDE942B3266030AB15F929942F16E8DB2BF99",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spParticleSystemRuntime.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spParticleSystemSerializer.cpp",
+      "bytes": 8721,
+      "sha256": "EB2360C984E474E2872212970E208077699A3A9D37459BF4E19EBD667CFDDE0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spParticleSystemSerializer.cpp"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spAxisAngleMath.h",
+      "bytes": 1076,
+      "sha256": "676BA63A3D9EB035199F3F0DD8F0B44BA9EB52E852D48AFAC202D1F64B586B83",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Analysis/PC/spAxisAngleMath.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spParticleSampling.h",
+      "bytes": 5208,
+      "sha256": "664B2D02692D79FB077E6133CE2C38A58843151B8E5519726EEC72BFB67AC5C6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Analysis/PC/spParticleSampling.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spNodeTransformMath.h",
+      "bytes": 5131,
+      "sha256": "FFD7353142093898F165C07E1F559E9B7BB6C30A0E96BDDED6F6E2EE22DE9052",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Analysis/PC/spNodeTransformMath.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEval.h",
+      "bytes": 2313,
+      "sha256": "44145AEA2D4F346B9076790F4184B588058B5AA3BE0694436A9C9492793D04FD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spFunctionEval.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFunctionEval.cpp",
+      "bytes": 4165,
+      "sha256": "0265AEB32585D3A946F26B7566E6A54E955A55AEECBABEB742102D9AB6391B81",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spFunctionEval.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.cpp",
+      "bytes": 14663,
+      "sha256": "C67DDED44C44494616E5C3C45C2497F6C128DAB6F70C9577CBDE4D51EE5D1723",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spNode.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNodeSerializer.cpp",
+      "bytes": 16192,
+      "sha256": "16620E501A688F3951610AE34A88899E943ED4DA5D5A60624536AEB472E96217",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spNodeSerializer.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderNodeSerializer.cpp",
+      "bytes": 7008,
+      "sha256": "6DAA1B935608A1536D5FD53620111FF0784B4A84A53683C52684CEF981A301EE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Code/Sparkplug/spRenderNodeSerializer.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/spParticleRuntimeTests.cpp",
+      "bytes": 8811,
+      "sha256": "760D978CE125E628C6C3D09A5E3184301A6235FA0220FC7D4EFA164E0BF07F45",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Tests/spParticleRuntimeTests.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/spParticleSerializationTests.cpp",
+      "bytes": 8443,
+      "sha256": "B4AB35EF08E5CF952202CA072CD30B45546F552D91D7EA8DF59CDF74B0A557CE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Tests/spParticleSerializationTests.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/Fixtures/particle-init.dat",
+      "bytes": 107516,
+      "sha256": "6E97F617B85CB2BE61C2095811EE0197690C46E3E67E8543B2527430645A1F68",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/Tests/Fixtures/particle-init.dat"
+    },
+    {
+      "path": "Sparkplug/CMakeLists.txt",
+      "bytes": 42156,
+      "sha256": "6569ABF4C14C8EB4336FC52F33AE0DD30A9AA17EB47BDD99095B5D18EC7DD576",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/Sparkplug/CMakeLists.txt"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "bytes": 3800,
+      "sha256": "751FABB1C9B0D16E32B9D2629AF6B4EB768C75640EAD43522B6815D6B4F74F4A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SparkplugViewer.Native/CMakeLists.txt"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "bytes": 5111,
+      "sha256": "F84BBFA1C3194FEF734322990A73C203D866D1493EBCE98704DE9FA2836F486C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SparkplugViewer.Native/Build-Native.ps1"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 30043,
+      "sha256": "BB1C94E171BD18CF1463D4AE52F8D866142900F3BE822438451236F9A019F868",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 143334,
+      "sha256": "330827463F1FFF6059D632F5FD0E77AC1036B395E23E1B43D9C8349CD6EFCEE1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "bytes": 9815,
+      "sha256": "D063A87C00D6A17166F29C3601ACF536A68750305085A100962E776260811362",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SparkplugViewer.Native/ResourceGraph.cpp"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 16993,
+      "sha256": "5B69536FE2B73E57DFD92CC3311E5E8192E8C3EF4B0EAC2FB36098B2768F449F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoParticleSystemDecoder.cs",
+      "bytes": 2706,
+      "sha256": "3D93159F12C21A9C9E48D027FAC04D2FDA8E91A774FC67267B9A2F2F2D856C55",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoParticleSystemDecoder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Particle.cs",
+      "bytes": 670,
+      "sha256": "79C68A818C6A0EEDCB035A8B33FCA1E74449ECF95567AAFA693FD806B950A9AF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Particle.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/Program.cs",
+      "bytes": 385911,
+      "sha256": "039E6A18ABCFCBF6DC65B396F3D8FB601A498C884A7F142F98A53A5184466080",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SmoViewer/SmoViewer.FormatTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoParticleReaderRegression.cs",
+      "bytes": 9369,
+      "sha256": "9A24FB6A30E571E3DA772526F4BC2F1DE3669CED4DD58B8F8B784313D0520FBD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/tools/SmoViewer/SmoViewer.FormatTests/SmoParticleReaderRegression.cs"
+    },
+    {
+      "path": "research/capture_particle_runtime_fixture.py",
+      "bytes": 1977,
+      "sha256": "CB4C229EDBD6A25293C3BBC1DBB220E6BED0EDE91C8406B335C104D7A723FD61",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/research/capture_particle_runtime_fixture.py"
+    },
+    {
+      "path": "research/check_particle_pool.py",
+      "bytes": 3989,
+      "sha256": "2C18781A7EC6F220E59901B0CB998BCC897A0090AF1924CBF682B97798323B91",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/research/check_particle_pool.py"
+    },
+    {
+      "path": "research/probe_pc_particle_runtime.py",
+      "bytes": 5259,
+      "sha256": "9B4237A0C85126CC44730481E8AEC82B4B0D6FAFFE22B20E8CD785BAC91FC263",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/research/probe_pc_particle_runtime.py"
+    },
+    {
+      "path": "research/check_tool_graph.py",
+      "bytes": 4070,
+      "sha256": "243E5773EB723636ADF176EF5722040B2ED2313D3A6EB5BA22418927EA575701",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/research/check_tool_graph.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": "docs/research/tool-particle-cpu-init-2026-09-11.md",
+      "bytes": 7877,
+      "sha256": "850908D01D42A8F2EE622A961457DB8861F353BFD59DCA2BB4F9EA7B236044F3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/docs/research/tool-particle-cpu-init-2026-09-11.md"
+    },
+    {
+      "path": ".codex-tmp/seal-particle-init.py",
+      "bytes": 4552,
+      "sha256": "8CFDC6D21E03A3752F26F783F467567B04D0B08DABFA3AFDCE323A613D4594D3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/sources/.codex-tmp/seal-particle-init.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/native-final-tests.log",
+      "bytes": 7254,
+      "sha256": "C02EFA794F4744FE7B8275750B6477B72429D121B48DA24432EDA5C0D56D566C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/native-final-tests.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/native-initial-tests.log",
+      "bytes": 5226,
+      "sha256": "972832ED2A930FA74813AD959EA6BB227733BB8173A242A32F279E978372A26D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/native-initial-tests.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/native-second-tests.log",
+      "bytes": 3442,
+      "sha256": "43D854E6B6F0BA39BD670008B3BFE243F694CF92E5587D7DA583D19CD3AC74A7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/native-second-tests.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/native-third-tests.log",
+      "bytes": 1568,
+      "sha256": "9E90031CAA17C3C79C0A57F5DBC0AAE427F577BC539A18EDC6E66DB386A4C984",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/native-third-tests.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/bg-abi-final.json",
+      "bytes": 475,
+      "sha256": "0287B83567D3DD683B3B3236AED9C0DB958E52665AF504CBAFC04360C4390421",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/bg-abi-final.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/bg-managed-final.json",
+      "bytes": 408,
+      "sha256": "3FF2B65835B3DFA598874DE3A8D190913FBB19660E9758B079EA302C4C9B7843",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/bg-managed-final.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/previous-readers-final.json",
+      "bytes": 1238,
+      "sha256": "559309A67299F72044BE9F5D4204BA8DB3CEAB62F7853BF154F2A9F0F5A6F733",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/previous-readers-final.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/managed-build-final.log",
+      "bytes": 196,
+      "sha256": "CC3BB7B8793532713AE314D275BB7353BD5F29255D2DDC6CE34E0D39E54DA384",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/managed-build-final.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/bg-graph-run1.json",
+      "bytes": 916,
+      "sha256": "4AB0A68E36F1BA001ECDCF748B2C0209CA8E1A8F17EBC576B745D0DF7FADD070",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/bg-graph-run1.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/initialize-static.txt",
+      "bytes": 2636,
+      "sha256": "42C6390C8B78B7EB345C7D240B318A4ABC20CC96F4B83459890294F89CC8E9D9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/initialize-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/reset-static.txt",
+      "bytes": 3926,
+      "sha256": "F225E28C36892E9964C4E0FB5EDAED06AC672812BC4B09F6BA70097447386BEA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/reset-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/loop-static.txt",
+      "bytes": 1711,
+      "sha256": "866233DF5D3D90526841BB1C278EAE7D67727DF68E818041C0B71139E256EF53",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/loop-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/render-init-static.txt",
+      "bytes": 2426,
+      "sha256": "C7F46DDD47695A79AB1AF336EEE0D40E424DA6240B93B63EB13F5937178B93FC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/render-init-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/axis-angle-static.txt",
+      "bytes": 8163,
+      "sha256": "1FB0D4A26816515652F7067830C6F6C2CE06377C4287A3F00291E3CB4F9406EE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/axis-angle-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/producer-static.txt",
+      "bytes": 31208,
+      "sha256": "5D535751C22F291E62ACB7647C1B3EB5B093A0A3967001B01752993D048A9E71",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/producer-static.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/directed-local.json",
+      "bytes": 14763,
+      "sha256": "AF019A4D01F527F03B7C02C64996A27BA65E166C4590F8639E4290F2B7C186C0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/directed-local.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/exact256.json",
+      "bytes": 80428,
+      "sha256": "E89B9E9C29B875E294D5A4596DE7A06BFF5101402D992E0D58C671383D8897EF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/exact256.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/nonloop.json",
+      "bytes": 13977,
+      "sha256": "010D039F891F8EEF526F7087E7B4B72FB1E8BAB4186AB40BF9C327FD0EE8CA51",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/nonloop.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/parallel-basis.json",
+      "bytes": 13739,
+      "sha256": "E16B8B6FF4E90E711039548BEF53A8133501D0670F0E585D30835742460BFA44",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/parallel-basis.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/probe-source.py",
+      "bytes": 5259,
+      "sha256": "9B4237A0C85126CC44730481E8AEC82B4B0D6FAFFE22B20E8CD785BAC91FC263",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/report.json",
+      "bytes": 167523,
+      "sha256": "557F23B52781EBF2AD916594C53219108713E772AB1861DC9FB4A8CA655132D6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/right-angle.json",
+      "bytes": 13993,
+      "sha256": "67ED03271DF2E75A18E164E197C7C0289298C3EA09F8163BFA2682186696DB85",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/right-angle.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/zero-world.json",
+      "bytes": 14247,
+      "sha256": "81EFC780FB18B762DB190660C1705B16BCBCD9C11D638EB43336B571809BDA65",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/particle/original-run1/zero-world.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2.json",
+      "bytes": 171459,
+      "sha256": "E08607C847B388F58F1BC783E8500EDF8DD926485E6732469AAF9745A45EEF59",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2-probe.py",
+      "bytes": 6379,
+      "sha256": "B55C5E6D33DE967FC5FFA4768A99876412FED5AE7BF771D044A9BF97C06D66E2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-init-run2-probe.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py",
+      "bytes": 7475,
+      "sha256": "358A5FCC82DDB3D17B3EEC428EBE792102F44E73D3DDE26A05E47834AB278C85",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-boundaries-probe.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-127.json",
+      "bytes": 61281,
+      "sha256": "863573CFC7CEFF3B8C761D8DC2BD6DC71E2A345DCA3F88B298CA6722A949E1C6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-127.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-128.json",
+      "bytes": 61555,
+      "sha256": "5FCF59B10D6F23D850F377CD493CAAC0B8EAB2FB981FAE2A66C732AE9C428365",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-128.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-129.json",
+      "bytes": 61954,
+      "sha256": "D5F93D5581E2700788FB3148DF17C38C36E75D0E64A3BA01BA4C57D2500B59C6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/local-data/results/tools-core-cycle-20260910-0730/particle-loop-init/pc2-bg-count-129.json"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1219072,
+      "sha256": "1BE664AE94C84AAB0D27D20DF09B866E9999A5759C55431FF849BD4BE07D7527",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerParticleRuntimeChecks.exe",
+      "bytes": 465920,
+      "sha256": "25FDBA5851DE50681E94AE797CD8046001BF39D40007416C5CF66C213236183C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/artifacts/native/viewer/Release/ViewerParticleRuntimeChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerParticleSerializationChecks.exe",
+      "bytes": 528896,
+      "sha256": "2EF5E63CE3F6AC06290E1E0C21C4401BB0DDAC34ACDE55C9AC0A7B8291DAE2D7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/artifacts/native/viewer/Release/ViewerParticleSerializationChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerFunctionEvalChecks.exe",
+      "bytes": 449536,
+      "sha256": "9B473C8B21B4DC5E468B6065F740CF729E1C3094453B5F8B48FC541A06D3B17A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/artifacts/native/viewer/Release/ViewerFunctionEvalChecks.exe"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll",
+      "bytes": 553984,
+      "sha256": "319A170FBDC4093D29A1DF16D73B5CB962A8063CBB473D6D12699D689BC3763B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll",
+      "bytes": 702976,
+      "sha256": "378114D2F7205099479FC11F69807C94AAC2B14C172359858B155A414F2E540D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll",
+      "bytes": 37888,
+      "sha256": "622F7810EB7E915F47B3DC119DD191194A56D62C42BE20E08DD9D6AFDD2D524C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/particle/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll"
+    }
+  ],
+  "status": "verified-scoped-cpu-init",
+  "block": 5,
+  "originalCases": 10,
+  "originalInitializedWords": 17818,
+  "newOriginal": {
+    "cases": 6,
+    "seconds": 1.2732399999949848,
+    "arenaBytes": 79600,
+    "releasedAllocations": 70
+  },
+  "hostAbi": {
+    "status": "passed",
+    "inputSha256": "5F0B9FFA6EFF16C278E4701EBE0A2518C7496189A036BFCB14519E2B5CD59BA5",
+    "nativeSha256": "1BE664AE94C84AAB0D27D20DF09B866E9999A5759C55431FF849BD4BE07D7527",
+    "originalSha256": "E08607C847B388F58F1BC783E8500EDF8DD926485E6732469AAF9745A45EEF59",
+    "scriptSha256": "2C18781A7EC6F220E59901B0CB998BCC897A0090AF1924CBF682B97798323B91",
+    "records": 539,
+    "recordBytes": 17248,
+    "checks": 1094,
+    "seconds": 0.14270480000413954
+  },
+  "managed": {
+    "status": "passed",
+    "checks": 1083,
+    "objects": 11,
+    "nodes": 3,
+    "particles": 1,
+    "records": 539,
+    "seconds": 0.2829858,
+    "source_sha256": "5F0B9FFA6EFF16C278E4701EBE0A2518C7496189A036BFCB14519E2B5CD59BA5",
+    "original_sha256": "E08607C847B388F58F1BC783E8500EDF8DD926485E6732469AAF9745A45EEF59",
+    "native_sha256": "1BE664AE94C84AAB0D27D20DF09B866E9999A5759C55431FF849BD4BE07D7527"
+  },
+  "oldReaderChecks": 67,
+  "nativeSuites": {
+    "passed": 3,
+    "total": 3,
+    "seconds": 3.34
+  },
+  "unknowns": [
+    "Frame simulation and rendering",
+    "Repeated Init/clone",
+    "Capacity above1024 and unsafe0/1 original ring",
+    "PS2 Init"
+  ],
+  "hostPolicies": [
+    "Owned vector/index ring",
+    "Zero unwritten bytes with explicit validity",
+    "Bounded double sin/cos instead of x87"
+  ],
+  "exeScoreDelta": 0
+}

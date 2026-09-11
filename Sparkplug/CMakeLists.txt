@@ -273,6 +273,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spModelSerializer.cpp
     Code/Sparkplug/spModelSerializer.h
     Code/Sparkplug/spParticleSystem.cpp
+    Code/Sparkplug/spParticleSystemRuntime.cpp
+    Analysis/PC/spAxisAngleMath.h
     Code/Sparkplug/spParticleSystem.h
     Code/Sparkplug/spParticleSystemSerializer.cpp
     Code/Sparkplug/spParticleSystemSerializer.h
@@ -710,6 +712,10 @@ if(BUILD_TESTING)
     add_test(NAME SparkplugSkyBoxTests COMMAND SparkplugSkyBoxTests)
     set_tests_properties(SparkplugSkyBoxTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugParticleSerializationTests Tests/spParticleSerializationTests.cpp)
+    add_executable(SparkplugParticleRuntimeTests Tests/spParticleRuntimeTests.cpp)
+    target_link_libraries(SparkplugParticleRuntimeTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugParticleRuntimeTests COMMAND SparkplugParticleRuntimeTests)
+    set_tests_properties(SparkplugParticleRuntimeTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugParticleSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugParticleSerializationTests COMMAND SparkplugParticleSerializationTests)
     set_tests_properties(SparkplugParticleSerializationTests PROPERTIES TIMEOUT 20)

@@ -7,6 +7,15 @@
 
 namespace sparkplug::evidence::pc
 {
+    // PC41D2D0, also inlined by the particle reader/producer. Keep its wider
+    // length and reciprocal; the generic preview-vector helper is different.
+    inline void NormalizeParticleDirectionForAnalysis(std::array<float,3>& value)
+    {
+        const double x=value[0],y=value[1],z=value[2];
+        const double length=std::sqrt((x*x+y*y)+z*z);
+        if(length>double(0.001f))for(float& v:value)v=float(double(v)*(1.0/length));
+        else value={};
+    }
     struct ParticleRandomForAnalysis
     {
         std::array<std::uint32_t,624> state{};

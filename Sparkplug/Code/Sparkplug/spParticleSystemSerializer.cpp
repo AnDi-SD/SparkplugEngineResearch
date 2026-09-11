@@ -1,6 +1,7 @@
 #include "spParticleSystemSerializer.h"
 #include "spRenderNode.h"
 #include "Analysis/PC/spSectionCursor.h"
+#include "Analysis/PC/spParticleSampling.h"
 #include <cmath>
 #include <cstring>
 
@@ -41,8 +42,10 @@ namespace sparkplug::reconstruction
         {
             if(header->IsTerminator())
             {
-                if(!Finite(p)||!regionSeen||!object->PrepareNonLoopingForAnalysis())
-                    return cursor.Fail("Particle initialization requires finite non-looping parameters, one region and 1..1024 particles");
+                if(!Finite(p)||!regionSeen)
+                    return cursor.Fail("Particle initialization requires finite parameters and one region");
+                std::string reason;
+                if(!object->InitializeForAnalysis(nullptr,&reason))return cursor.Fail(reason.c_str());
                 return true;
             }
             const auto id=header->fieldID;bool read=false;
@@ -53,10 +56,7 @@ namespace sparkplug::reconstruction
                 if(read)
                 {
                     for(float v:p.direction)if(!std::isfinite(v))return cursor.Fail("Nonfinite particle direction");
-                    const double x=p.direction[0],y=p.direction[1],z=p.direction[2];
-                    const double length=std::sqrt(x*x+y*y+z*z);
-                    if(length>double(0.001f)){const double reciprocal=1.0/length;for(float& v:p.direction)v=float(double(v)*reciprocal);}
-                    else p.direction={};
+                    evidence::pc::NormalizeParticleDirectionForAnalysis(p.direction);
                 }
             }
             else if(id==2)read=cursor.Read(p.velocity);

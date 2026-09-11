@@ -193,6 +193,10 @@ struct SpvParticleInfo {
     float region[8];std::uint32_t pool[5];
 };
 SPV_API int spv_graph_particle(void*,std::uint32_t id,SpvParticleInfo*) noexcept;
+// Initial CPU pool only, not a sampled frame or GPU particle payload.
+struct SpvParticlePoolInfo {std::uint32_t count,first,boundary,initialized;};
+struct SpvParticleRecord {float values[8];std::uint32_t written,previous,next;};
+SPV_API int spv_graph_particle_pool(void*,std::uint32_t id,SpvParticlePoolInfo*,SpvParticleRecord*,std::uint32_t capacity) noexcept;
 struct SpvFogFields {std::uint32_t type,color;float start,end,density;};
 SPV_API int spv_fog_payload_read(const std::uint8_t*,std::uint32_t,SpvFogFields*) noexcept;
 // Read-only projections of actual loaded resources. IDs preserve canonical

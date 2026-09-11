@@ -59,3 +59,13 @@ reconstructed selector не изменены; активация и оконча
 Пять original fresh objects и их world updates сравниваются по 1330 словам полного
 поддерживаемого состояния. Ошибка harness cleanup исправлена; свежий пакет прошёл
 с освобождением всех tracked allocations. Старые runtime lifetime границы сохранены.
+
+## Блок 5 — начальный CPU-пул частиц
+
+[Общий Particle Init](tool-particle-cpu-init-2026-09-11.md) подключён к reader
+и доступен через C ABI/C#. Настоящий PC2 `Menus/bg.smo` теперь загружается:
+539 первоначальных записей совпадают с игрой побитно. Десять native cases
+покрывают 17818 original words; шесть новых cases собраны одним guest за 1,273 s.
+Старые 10 managed fixtures/67 checks не нарушены. Исправлены найденные сравнением
+ошибки новой ветки вставки в кольцо и подготовки world input в тесте.
+Frame simulation/render, capacity выше 1024 и PS2 ещё не закрыты; пределы явные.

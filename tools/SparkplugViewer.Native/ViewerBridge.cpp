@@ -1043,6 +1043,17 @@ SPV_API int spv_graph_particle(void* handle,std::uint32_t id,SpvParticleInfo* ou
         output->regionValues=static_cast<std::uint32_t>(p.region.size());output->renderNode=graph.ID(particle.GetRenderNodeForAnalysis().get());
         std::copy(p.region.begin(),p.region.end(),output->region);const auto& pool=particle.GetPoolStateForAnalysis();std::copy(pool.begin(),pool.end(),output->pool);});
 }
+SPV_API int spv_graph_particle_pool(void* handle,std::uint32_t id,SpvParticlePoolInfo* info,SpvParticleRecord* output,std::uint32_t capacity) noexcept {
+    static_assert(sizeof(SpvParticleRecord)==44&&sizeof(SpvParticlePoolInfo)==16);
+    return guarded([&]{require(info,"Missing Particle pool info");const auto& particle=graphResource<spParticleSystem>(graphForView(handle),id);
+        const auto& records=particle.GetRecordsForAnalysis();const auto& links=particle.GetLinksForAnalysis();const auto& written=particle.GetRecordWrittenForAnalysis();
+        require((output&&capacity>=records.size())||(!output&&capacity==0),"Particle pool output capacity is too small");
+        require(records.size()==links.size()&&records.size()==written.size(),"Particle pool storage is inconsistent");
+        *info={static_cast<std::uint32_t>(records.size()),particle.GetFirstForAnalysis(),particle.GetBoundaryForAnalysis(),particle.IsInitializedForAnalysis()};
+        if(output)for(std::size_t i=0;i<records.size();++i){std::copy(records[i].begin(),records[i].end(),output[i].values);
+            output[i].written=written[i];output[i].previous=links[i][1];output[i].next=links[i][2];}
+    });
+}
 SPV_API int spv_graph_octree(void* handle,std::uint32_t id,SpvGraphOctree* output) noexcept {
     return guarded([&]{require(output,"Missing graph Octree output");const auto& graph=graphForView(handle);
         auto* loaded=dynamic_cast<spOctreeNode*>(graph.Find(id));require(loaded,"Expected loaded Octree node");
