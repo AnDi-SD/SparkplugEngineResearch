@@ -12,13 +12,18 @@ param(
     [switch]$ViewportScale,
     [switch]$MenuBackground,
     [switch]$SkyLayers,
+    [switch]$SkipLegacyProjectedShadows,
+    [switch]$OpaqueAlphaTest,
     [switch]$NoDrawTrace,
     [switch]$DebugMenu,
     [switch]$LiveConfig,
     [switch]$ShaderAudit,
+    [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel = 0,
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
+if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game = Join-Path $root 'local-data/Winx Club'
 if (Get-Process WinxClub,WinxClubDebug,NvRemixBridge -ErrorAction SilentlyContinue) { throw 'Close the previous game/bridge before starting another run' }
@@ -44,6 +49,19 @@ foreach ($file in @('user.conf','winx.ini')) {
     Copy-Item -LiteralPath (Join-Path $game $file) -Destination (Join-Path $run "$file.before")
 }
 Copy-Item -LiteralPath (Join-Path $game 'Media/Saved') -Destination (Join-Path $run 'saves-before') -Recurse
+$workingDirectory = $game
+if ($StartLevel) {
+    # Own isolated test workspace; the game's existing startLevel configuration
+    # route is also used by NativeLaunchWorkspace. Preserve the installed INI.
+    $workingDirectory = Join-Path $run 'workdir'
+    New-Item -ItemType Directory -Path $workingDirectory | Out-Null
+    $ini = [IO.File]::ReadAllText((Join-Path $game 'winx.ini'))
+    $ini = [regex]::Replace($ini, '(?im)^\s*(startLevel|showCinematics)\s*=.*$', '')
+    $ini += "`r`nshowCinematics=false`r`nstartLevel=$StartLevel`r`n"
+    [IO.File]::WriteAllText((Join-Path $workingDirectory 'winx.ini'), $ini, [Text.UTF8Encoding]::new($false))
+    Copy-Item -LiteralPath (Join-Path $game 'Shaders') -Destination (Join-Path $workingDirectory 'Shaders') -Recurse
+    Copy-Item -LiteralPath (Join-Path $game 'user.conf') -Destination (Join-Path $workingDirectory 'user.conf')
+}
 if ($ShaderAudit) {
     New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
 }
@@ -75,6 +93,8 @@ $values = @{
     WINX_REMIX_VIEWPORT_SCALE=$(if ($ViewportScale) { '1' } else { '0' })
     WINX_REMIX_MENU_BACKGROUND=$(if ($MenuBackground) { '1' } else { '0' })
     WINX_REMIX_SKY_LAYERS=$(if ($SkyLayers) { '1' } else { '0' })
+    WINX_REMIX_SKIP_LEGACY_PROJECTED_SHADOWS=$(if ($SkipLegacyProjectedShadows) { '1' } else { '0' })
+    WINX_REMIX_OPAQUE_ALPHA_TEST=$(if ($OpaqueAlphaTest) { '1' } else { '0' })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
     WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
     DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
@@ -85,7 +105,7 @@ try {
         $savedEnvironment[$key]=[Environment]::GetEnvironmentVariable($key,'Process')
         [Environment]::SetEnvironmentVariable($key,$values[$key],'Process')
     }
-    $gameProcess=Start-Process -FilePath $executable -WorkingDirectory $game -WindowStyle Normal -PassThru
+    $gameProcess=Start-Process -FilePath $executable -WorkingDirectory $workingDirectory -WindowStyle Normal -PassThru
     if ($LiveConfig) {
         $restoreScript = Join-Path $PSScriptRoot 'Restore-LiveConfig.ps1'
         Start-Process -FilePath powershell -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$restoreScript+'"'),'-Run',('"'+$run+'"'),'-GamePid',$gameProcess.Id) | Out-Null
@@ -94,6 +114,7 @@ try {
         pid=$gameProcess.Id; started=(Get-Date).ToString('o'); environment=$values
         proxySha256=(Get-FileHash -LiteralPath (Join-Path $run 'd3d9.dll')).Hash
         executable=$executable; executableSha256=(Get-FileHash -LiteralPath $executable).Hash
+        workingDirectory=$workingDirectory; startLevel=$StartLevel
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
     Write-Output "PID=$($gameProcess.Id) Run=$run"
 } finally {

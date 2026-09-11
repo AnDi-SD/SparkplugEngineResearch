@@ -33,6 +33,10 @@ static std::set<IDirect3DBaseTexture9*> submittedTextures;
 static bool orthographicUi;
 static bool menuBackground;
 static bool skyLayers;
+static bool skipLegacyProjectedShadows;
+static bool keepLegacyProjectedShadowsForComparison;
+static bool opaqueAlphaTest;
+static bool keepTrivialAlphaTestForComparison;
 static bool fitWindow;
 static bool viewportScale;
 struct Presentation { HWND window=nullptr; UINT width=0,height=0; BOOL windowed=FALSE; UINT initialWidth=0,initialHeight=0; };
@@ -75,6 +79,12 @@ static void Initialize() {
   menuBackground=GetEnvironmentVariableW(L"WINX_REMIX_MENU_BACKGROUND",menuOption,8) && wcscmp(menuOption,L"1")==0;
   wchar_t skyOption[8]{};
   skyLayers=GetEnvironmentVariableW(L"WINX_REMIX_SKY_LAYERS",skyOption,8) && wcscmp(skyOption,L"1")==0;
+  wchar_t shadowOption[8]{};
+  skipLegacyProjectedShadows=wcscmp(mode,L"system")!=0 &&
+    GetEnvironmentVariableW(L"WINX_REMIX_SKIP_LEGACY_PROJECTED_SHADOWS",shadowOption,8) && wcscmp(shadowOption,L"1")==0;
+  wchar_t alphaOption[8]{};
+  opaqueAlphaTest=wcscmp(mode,L"system")!=0 &&
+    GetEnvironmentVariableW(L"WINX_REMIX_OPAQUE_ALPHA_TEST",alphaOption,8) && wcscmp(alphaOption,L"1")==0;
   wchar_t windowOption[8]{};
   fitWindow=GetEnvironmentVariableW(L"WINX_REMIX_FIT_WINDOW",windowOption,8) && wcscmp(windowOption,L"1")==0;
   wchar_t scaleOption[8]{};
@@ -359,6 +369,85 @@ struct ScopedSky {
   ~ScopedSky() {if(changed) device->SetViewport(&saved);}
 };
 
+// Own RTX compatibility policy, not game camera/culling logic. Winx projects its
+// 512x512 legacy shadow target onto a second copy of nearby terrain. In Remix
+// this receiver pass corrupts the primary surface (same-camera A/B in Gardenia).
+// RT supplies the shadows instead. Match the entire observed pass, never a
+// texture hash, camera angle, mesh identity, or ordinary terrain draw.
+static bool SkipLegacyProjectedShadow(IDirect3DDevice9* d,D3DPRIMITIVETYPE type) {
+  if(!skipLegacyProjectedShadows || keepLegacyProjectedShadowsForComparison ||
+     type!=D3DPT_TRIANGLESTRIP || uiStarted.count(d)) return false;
+  auto stage=[d](D3DTEXTURESTAGESTATETYPE key,DWORD expected) {
+    DWORD value=0;return SUCCEEDED(d->GetTextureStageState(0,key,&value)) && value==expected;
+  };
+  if(!stage(D3DTSS_TEXCOORDINDEX,D3DTSS_TCI_CAMERASPACEPOSITION) ||
+     !stage(D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_COUNT3|D3DTTFF_PROJECTED) ||
+     !stage(D3DTSS_COLOROP,D3DTOP_SELECTARG1) || !stage(D3DTSS_COLORARG1,D3DTA_TEXTURE) ||
+     !stage(D3DTSS_ALPHAOP,D3DTOP_SELECTARG1) || !stage(D3DTSS_ALPHAARG1,D3DTA_TEXTURE)) return false;
+  auto state=[d](D3DRENDERSTATETYPE key,DWORD expected) {
+    DWORD value=0;return SUCCEEDED(d->GetRenderState(key,&value)) && value==expected;
+  };
+  if(!state(D3DRS_ZENABLE,D3DZB_TRUE) || !state(D3DRS_ZWRITEENABLE,TRUE) ||
+     !state(D3DRS_ALPHABLENDENABLE,TRUE) || !state(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA) ||
+     !state(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA) || !state(D3DRS_BLENDOP,D3DBLENDOP_ADD) ||
+     !state(D3DRS_ALPHATESTENABLE,TRUE) || !state(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL) ||
+     !state(D3DRS_ALPHAREF,1)) return false;
+  D3DMATRIX projection{};
+  if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._34!=1.f || projection._44!=0.f) return false;
+  IDirect3DVertexShader9* vs=nullptr;IDirect3DPixelShader9* ps=nullptr;
+  const HRESULT vhr=d->GetVertexShader(&vs),phr=d->GetPixelShader(&ps);
+  const bool fixed=SUCCEEDED(vhr) && SUCCEEDED(phr) && !vs && !ps;
+  if(vs) vs->Release();if(ps) ps->Release();if(!fixed) return false;
+  IDirect3DSurface9* target=nullptr;d->GetRenderTarget(0,&target);
+  const auto known=primaryTargets.find(d);
+  const bool primary=target && known!=primaryTargets.end() && target==known->second;
+  if(target) target->Release();if(!primary) return false;
+  IDirect3DBaseTexture9* texture=nullptr;
+  if(FAILED(d->GetTexture(0,&texture)) || !texture) return false;
+  D3DSURFACE_DESC desc{};
+  const bool shadow=texture->GetType()==D3DRTYPE_TEXTURE &&
+    SUCCEEDED(static_cast<IDirect3DTexture9*>(texture)->GetLevelDesc(0,&desc)) &&
+    (desc.Usage&D3DUSAGE_RENDERTARGET)!=0 && desc.Pool==D3DPOOL_DEFAULT &&
+    desc.Format==D3DFMT_A8R8G8B8 && desc.Width==512 && desc.Height==512;
+  texture->Release();
+  if(shadow && logFile && (frameId<traceUntilFrame || frameId%300==0))
+    fprintf(logFile,"{\"event\":\"skip_legacy_projected_shadow\",\"frame\":%u,\"draw\":%u}\n",frameId,drawId);
+  return shadow;
+}
+
+// Fixed-function output alpha is in [0,1], so alpha >= 0 is ALWAYS. Express
+// that identity explicitly for opaque world passes: Remix otherwise carries
+// their vertex alpha into ray visibility, exposing sky through terrain blends.
+// Leave the game's cached state intact and restore the device immediately.
+struct ScopedOpaqueAlphaTest {
+  IDirect3DDevice9* device; bool changed=false;
+  explicit ScopedOpaqueAlphaTest(IDirect3DDevice9* d):device(d) {
+    if(!opaqueAlphaTest || keepTrivialAlphaTestForComparison || uiStarted.count(d)) return;
+    DWORD enabled=0,func=0,ref=1,blend=0,src=0,dst=0,op=0;
+    if(FAILED(d->GetRenderState(D3DRS_ALPHATESTENABLE,&enabled)) || !enabled ||
+       FAILED(d->GetRenderState(D3DRS_ALPHAFUNC,&func)) || func!=D3DCMP_GREATEREQUAL ||
+       FAILED(d->GetRenderState(D3DRS_ALPHAREF,&ref)) || ref!=0 ||
+       FAILED(d->GetRenderState(D3DRS_ALPHABLENDENABLE,&blend))) return;
+    if(blend && (FAILED(d->GetRenderState(D3DRS_SRCBLEND,&src)) || src!=D3DBLEND_ONE ||
+       FAILED(d->GetRenderState(D3DRS_DESTBLEND,&dst)) || dst!=D3DBLEND_ZERO ||
+       FAILED(d->GetRenderState(D3DRS_BLENDOP,&op)) || op!=D3DBLENDOP_ADD)) return;
+    D3DMATRIX projection{};
+    if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._34!=1.f || projection._44!=0.f) return;
+    IDirect3DVertexShader9* vs=nullptr;IDirect3DPixelShader9* ps=nullptr;
+    const HRESULT vhr=d->GetVertexShader(&vs),phr=d->GetPixelShader(&ps);
+    const bool fixed=SUCCEEDED(vhr) && SUCCEEDED(phr) && !vs && !ps;
+    if(vs) vs->Release();if(ps) ps->Release();if(!fixed) return;
+    IDirect3DSurface9* target=nullptr;d->GetRenderTarget(0,&target);
+    const auto known=primaryTargets.find(d);
+    const bool primary=target && known!=primaryTargets.end() && target==known->second;
+    if(target) target->Release();if(!primary) return;
+    changed=SUCCEEDED(d->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_ALWAYS));
+    if(changed && logFile && (frameId<traceUntilFrame || frameId%300==0))
+      fprintf(logFile,"{\"event\":\"opaque_alpha_test\",\"frame\":%u,\"draw\":%u}\n",frameId,drawId);
+  }
+  ~ScopedOpaqueAlphaTest() {if(changed) device->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL);}
+};
+
 // Trigger Remix's UI boundary with a zero-area primitive. Real UI draws retain
 // Z writes: Winx uses depth to layer loading images, backgrounds and diary pages.
 static void PrepareUi(IDirect3DDevice9* d) {
@@ -527,6 +616,16 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepLegacyProjectedShadows" && skipLegacyProjectedShadows && (value=="True" || value=="False")) {
+      keepLegacyProjectedShadowsForComparison=value=="True";
+      if(logFile) fprintf(logFile,"{\"event\":\"shadow_comparison\",\"frame\":%u,\"keepLegacy\":%s}\n",frameId,keepLegacyProjectedShadowsForComparison?"true":"false");
+      continue;
+    }
+    if(key=="winx.keepTrivialAlphaTest" && opaqueAlphaTest && (value=="True" || value=="False")) {
+      keepTrivialAlphaTestForComparison=value=="True";
+      if(logFile) fprintf(logFile,"{\"event\":\"alpha_comparison\",\"frame\":%u,\"keepTrivial\":%s}\n",frameId,keepTrivialAlphaTestForComparison?"true":"false");
+      continue;
+    }
     if(key.rfind("rtx.",0)!=0 || key.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.")!=std::string::npos ||
        value.empty() || value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_., +-()")!=std::string::npos) continue;
     if(applied.count(key) && applied[key]==value) continue;
@@ -617,6 +716,8 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   Observe(d,"DrawIndexedPrimitive",t,count);
+  if(SkipLegacyProjectedShadow(d,t)) return D3D_OK;
+  ScopedOpaqueAlphaTest alphaTest(d);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);

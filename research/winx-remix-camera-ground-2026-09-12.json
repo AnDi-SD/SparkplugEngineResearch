@@ -1,0 +1,415 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-12",
+  "scope": "Own D3D9 compatibility adapter; Gardenia01 missing ground. No game/camera/upstream source patch.",
+  "referenceRemixCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "adapter": {
+    "path": "local-data/Winx Club/d3d9.dll",
+    "sha256": "aaa0a6e90d6d737fde863a3532914bb90fac177970173f8c6e1b5e8c4fe7e091"
+  },
+  "build": {
+    "path": "local-data/rtx-remix/build/d3d9.dll",
+    "sha256": "aaa0a6e90d6d737fde863a3532914bb90fac177970173f8c6e1b5e8c4fe7e091"
+  },
+  "backup": {
+    "path": "local-data/rtx-remix/backups/2026-09-12-before-projected-shadow-filter/d3d9.dll",
+    "sha256": "b2605d9ad4d28962970ad815bb1021751beba67fb06da1ed3e19466fa8c27372"
+  },
+  "fixes": [
+    "skip signature-matched legacy projected shadow receiver draws in RTX only",
+    "express opaque FFP alpha>=0 as ALWAYS during draw, restore state immediately",
+    "classify FAC245110A8BD959 and 3323174FD6FAE171 terrain overlays as decals"
+  ],
+  "cameraComparison": {
+    "view": true,
+    "projection": true,
+    "frustum": true,
+    "worldPosition": true,
+    "near": true,
+    "far": true,
+    "position": [
+      -2642.677734375,
+      438.3756103515625,
+      1106.03076171875
+    ],
+    "horizontalFov": 1.0471975803375244,
+    "viewportHeightOverWidth": 0.75
+  },
+  "validation": {
+    "compiler": "MSVC x86 /std:c++17 /MT /O2 /W4",
+    "buildExitCode": 0,
+    "warnings": 0,
+    "powershellParse": "passed",
+    "pythonAstParse": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "protected": [
+    {
+      "path": "local-data/Winx Club/WinxClub.exe",
+      "expected": "1b04dd9b082087141c840d6546b9b729fd1a3cd1bebfabc1267035c2b30a4ec3",
+      "actual": "1b04dd9b082087141c840d6546b9b729fd1a3cd1bebfabc1267035c2b30a4ec3",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "expected": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb",
+      "actual": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/d3d9.remix-original.dll",
+      "expected": "a9d0846720e90d36d19afb67e76a4d894eb349ecf13b847de0ceda4861669965",
+      "actual": "a9d0846720e90d36d19afb67e76a4d894eb349ecf13b847de0ceda4861669965",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/.trex/d3d9.dll",
+      "expected": "f7c310821aa98bcdfdec120330b0a89457b7c5eba58d21464af32639611c809f",
+      "actual": "f7c310821aa98bcdfdec120330b0a89457b7c5eba58d21464af32639611c809f",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/winx.ini",
+      "expected": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0",
+      "actual": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/rtx.conf",
+      "expected": "7e4bd478303ecc5efeef7249c313e6b2d4625b8997141b59251ec40741b8fbcc",
+      "actual": "7e4bd478303ecc5efeef7249c313e6b2d4625b8997141b59251ec40741b8fbcc",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/user.conf",
+      "expected": "5879d861fe4db66602f4d44ff43cd9e072627a9c4b5ed96d3bb33a323b2a8309",
+      "actual": "5879d861fe4db66602f4d44ff43cd9e072627a9c4b5ed96d3bb33a323b2a8309",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BallisticPFX.vsh",
+      "expected": "a356b9316b0ef55f03165e0b63e21105fdbc66a3f3c2a5bb1c056cbca82069ae",
+      "actual": "a356b9316b0ef55f03165e0b63e21105fdbc66a3f3c2a5bb1c056cbca82069ae",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BasicShader.vsh",
+      "expected": "be62f85210ba1efc611febb581b6c4b6c85a4410c6240f514d6db3af5265de7d",
+      "actual": "be62f85210ba1efc611febb581b6c4b6c85a4410c6240f514d6db3af5265de7d",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Blur.psh",
+      "expected": "e49f44d36238f2b7899f82d6886ae51d27ed3325358cf21cf2b5bf8246e51096",
+      "actual": "e49f44d36238f2b7899f82d6886ae51d27ed3325358cf21cf2b5bf8246e51096",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Blur.vsh",
+      "expected": "6a4ebbeb9d76e57ad0494cc76a1e01eea2b2e41450a5fd727812c3c57aac12ca",
+      "actual": "6a4ebbeb9d76e57ad0494cc76a1e01eea2b2e41450a5fd727812c3c57aac12ca",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BlurLuminance.psh",
+      "expected": "a2b9b6bebe62a2e9824d646ca4c7a3ebb6c5b198e7bde6684deee07d0f8d8aaf",
+      "actual": "a2b9b6bebe62a2e9824d646ca4c7a3ebb6c5b198e7bde6684deee07d0f8d8aaf",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Bumpmap.rfx",
+      "expected": "1deacdcd1c7692edcd5451ccd50b2b771af047ea80bb3b4fddf42750a510e245",
+      "actual": "1deacdcd1c7692edcd5451ccd50b2b771af047ea80bb3b4fddf42750a510e245",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Fixed.rfx",
+      "expected": "ac6785428ba851dea88e3a6cddc03fdf620fa06d82063db83176598140803db1",
+      "actual": "ac6785428ba851dea88e3a6cddc03fdf620fa06d82063db83176598140803db1",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Luminance.psh",
+      "expected": "882e5be6cbf5e212745c7923f81220e0c326b9b2d33e9c87920deb7f533f0d1c",
+      "actual": "882e5be6cbf5e212745c7923f81220e0c326b9b2d33e9c87920deb7f533f0d1c",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/ShadowVolumePoint.vsh",
+      "expected": "4d643c8af6315abe43a12eabf3ea03618b14c3caba5beeb3b338837dc1c73012",
+      "actual": "4d643c8af6315abe43a12eabf3ea03618b14c3caba5beeb3b338837dc1c73012",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Media/Saved/Saved00.wxs",
+      "expected": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15",
+      "actual": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Media/Saved/Saved01.wxs",
+      "expected": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf",
+      "actual": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Media/Saved/Settings00.wxs",
+      "expected": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65",
+      "actual": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Media/Saved/Settings01.wxs",
+      "expected": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01",
+      "actual": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01",
+      "unchanged": true
+    }
+  ],
+  "limitations": [
+    "Focused Gardenia01 visual verification, not all 46 levels",
+    "Fixed projected-shadow signature requires 512x512 A8R8G8B8 render target",
+    "Decal texture classification covers two observed Gardenia textures, not every terrain texture",
+    "Existing experimental F1 sweep can be interrupted by tutorial or game-over",
+    "Lighting and other transparent effects can still differ from original raster"
+  ],
+  "priorSweep": {
+    "status": "stopped_by_user_to_fix_geometry",
+    "loadedObserved": [
+      "Gardenia01",
+      "Gardenia02",
+      "Gardenia03"
+    ],
+    "allLevelsVerified": false
+  },
+  "sources": [
+    {
+      "path": "research/rtx-remix/winx_d3d9_probe.cpp",
+      "sha256": "b586b628e3fe055878fb2d4766cab07860b6d6335563c6b4b78a92c1f4c7504d"
+    },
+    {
+      "path": "research/rtx-remix/Start-Probe.ps1",
+      "sha256": "69da3ba5381a4292e9e7e25ea6e3d972617eff4a09430df82ce9212481f1c2c4"
+    },
+    {
+      "path": "research/rtx-remix/Run-WinxRemix.ps1",
+      "sha256": "f5950f58c448cf36bef544cf4a9a1cd65bf5ec961eca6e20176ae08d88c71115"
+    },
+    {
+      "path": "research/winx_remix_state.py",
+      "sha256": "732b82ef9df853e7c44ee5f5fd14e1c796af643b216cf86cb4168c74d3839551"
+    },
+    {
+      "path": "research/winx_remix_sweep.py",
+      "sha256": "61aec5e1661e4cb250ae2364050d077044073330a7d8a5abb37cc0af1dd142eb"
+    },
+    {
+      "path": "research/winx_remix_window.py",
+      "sha256": "b807af96525383ef66313f31dca13f97d61d70aca349159620cef8093d82b5a2"
+    }
+  ],
+  "runs": [
+    {
+      "name": "2026-09-12-camera-frustum",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/launch.json",
+        "sha256": "9fe4eeeb60914909d117c4c5e664d34cbb483e435848306dd3b15054952dd595"
+      },
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/game-cameras-world.json",
+          "sha256": "b95e64816d3b640569452a921b1976fa43e8bfeebbe7f14e9e6f77a403841c9e"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/complete-frame.json",
+          "sha256": "c7581928404449fe9525292e82781934e69da5d7742a2102df73798e14fee6e4"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/submitted-road-projection.png",
+          "sha256": "0399c4945ddfdc15359c79b73664243c8de900d632814d36e086e9a487a18f91"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/submitted-road-projection.json",
+          "sha256": "a928b166e693958735d636b4647aaa9993fe25880c3eb076ada8482b275a8f1e"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-frustum/idle.png",
+          "sha256": "0986f7fcb0335fed83bd52d487f51180d7f9ae25a31dfa0e6d68519e9aaf3ae1"
+        }
+      ]
+    },
+    {
+      "name": "2026-09-12-camera-depth",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/2026-09-12-camera-depth/launch.json",
+        "sha256": "1bd491dee39586f52ebb5d32e773063df0e61b5237c2f1726283e40e97a86658"
+      },
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-depth/geometry-world.png",
+          "sha256": "6a6607b581719bfeff92807f827340fd3f3ee7dfa82d7d77ae921464893c2524"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-depth/shadow-ignore-hash.png",
+          "sha256": "dd2b2873f0ff1341292e44ba11eb778a95fbdecd429e21d91d4bd06e2a72c627"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-camera-depth/shadow-restored.png",
+          "sha256": "b70fc8442f4d4bd27400a5a8f60299a3136304d8c9c18a443c86a31d1cdabaf8"
+        }
+      ]
+    },
+    {
+      "name": "2026-09-12-shadow-filter-01",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/launch.json",
+        "sha256": "45d3f4ba5a8279ae74b9e03293b113e50ea675a6a47a4fefedbcfff49f3f87ea"
+      },
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/original-pass-idle.png",
+          "sha256": "27773fc0080132ee21148ccb604850902e4624d62ae019346a67488339e19bd6"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/fixed-world.png",
+          "sha256": "644d26dc7cfce378d6b109c8180e588e08d3e309df2ec61a6ec5f078f72b2631"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/fixed-right.png",
+          "sha256": "ed3a0e31675332bd602052f9ea746f15010550209f0b880526ccb4ea84f601fd"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/fixed-left.png",
+          "sha256": "4c349dd9ab54b70d4f79e1d689bcdf43e7816c461d7c7fbe32c0a5b82683f6f6"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/camera-before.json",
+          "sha256": "cd9ac9c0dd42358ecc6e2551ece44175ab77936c77c7510779b2fbaf02df4be2"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/camera-after.json",
+          "sha256": "1d8dc0b4ab768bb197fbc986ded840fdbdbf417a984e89efa808ce94417a1ed7"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/same-camera-comparison.json",
+          "sha256": "e0a41739445701da27a4d55349319684c2ad631d82fc7c583c5cc7c1cbbe4fd4"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/filter-validation.json",
+          "sha256": "60b1235bf5f7bca6a0c71aa8be901cbd56e4db7e7b22724de3d8b61c5dbab9c7"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-shadow-filter-01/bridge-config-restored.json",
+          "sha256": "e2d6a036a0dc0a470c7d5aeda62f51667e242867c5357ee5d4bfe2e9c7ccc39d"
+        }
+      ]
+    },
+    {
+      "name": "2026-09-12-ground-alpha-01",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/launch.json",
+        "sha256": "1c8f1d452fcb4eeb34fe511413265e19a92bdbc1fa58d4e4d702bb8da8ea59ce"
+      },
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/normalized-alpha.png",
+          "sha256": "0ec160f4383c973eb48d9e55a922256fe1f61b018717202e133c3a18fc666f3f"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/original-alpha.png",
+          "sha256": "b4a5e3df84a3cdd0a79c7692f7065caefbed530147684f899df20a6496454240"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/grass-decals.png",
+          "sha256": "a4e4f5adc8e5757475f739bed0c8951842dec5b635848451adfae0a91f5fed3a"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/grass-decals-opaque-base.png",
+          "sha256": "a433d5d2d34f729d60e602375c4d987cb15107f834d21cd3298c4f58d7a2031f"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/fixed-right.png",
+          "sha256": "03f642f2127cfae37c1193f60423ffe25558e97a8b8507c15b10abb7b8912594"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/fixed-left.png",
+          "sha256": "856b476afa734aa15dfe85c61ed584920f86b0cb3daba0676bd1e80a0fc73fde"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-ground-alpha-01/bridge-config-restored.json",
+          "sha256": "f64e29c86ec1c202a37668b961a0c49c55bd5cef2ebd5636267756c3637e7e21"
+        }
+      ],
+      "sampledPolicyEvents": {
+        "opaque_alpha_test": 19807,
+        "skip_legacy_projected_shadow": 1103
+      },
+      "diagnosticChanges": [
+        {
+          "event": "alpha_comparison",
+          "frame": 8454,
+          "keepTrivial": true
+        },
+        {
+          "event": "alpha_comparison",
+          "frame": 12778,
+          "keepTrivial": true
+        },
+        {
+          "event": "live_config",
+          "frame": 12778,
+          "key": "rtx.decalTextures",
+          "value": "0xFAC245110A8BD959, 0x3323174FD6FAE171",
+          "result": 0
+        },
+        {
+          "event": "alpha_comparison",
+          "frame": 22426,
+          "keepTrivial": true
+        },
+        {
+          "event": "live_config",
+          "frame": 22426,
+          "key": "rtx.singleOffsetDecalTextures",
+          "value": "0xFAC245110A8BD959, 0x3323174FD6FAE171",
+          "result": 0
+        },
+        {
+          "event": "alpha_comparison",
+          "frame": 29586,
+          "keepTrivial": false
+        }
+      ],
+      "lastSampledPresent": 50700
+    }
+  ],
+  "normalProfile": {
+    "run": "play-rtx-20260912-022550-925",
+    "launch": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260912-022550-925/launch.json",
+      "sha256": "62856f0717e33a0db274f1b8dd24638b45b92b7fd830f4827d89828b1be5d633"
+    },
+    "liveConfig": false,
+    "drawTrace": false,
+    "bridgeConfigRestored": true,
+    "screenshots": [
+      {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260912-022550-925/normal-profile.png",
+        "sha256": "182589beba3f3cb44ea63f9b36d3ecf709df18de73ef0ddf91f4487ca4546c10"
+      },
+      {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260912-022550-925/main-menu.png",
+        "sha256": "33f5d5526c4d58b233a19f25160b42ea14ef22a3c13d1a67ee6e9eb886f6b715"
+      },
+      {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260912-022550-925/normal-gardenia.png",
+        "sha256": "ae28d09cbfc97c48dc683aa0495f9c06abead02fe0b8530a6de62b1d7c471828"
+      }
+    ],
+    "levelState": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260912-022550-925/debug-state.json",
+      "sha256": "dd43649e7922a7a04ee3820f0406b4ce321b2640c673b2b31518cd55be1f6805"
+    },
+    "verified": "Normal RTX profile; title/main menu then Gardenia01 through F1. No live config or draw trace. Ground visually intact.",
+    "automationNote": "Sweep.select raised while the state was changing; a subsequent read confirmed current=1,pending=0 and the correct selected F1 item. World verification uses the read state and final screenshot, not the failed helper status."
+  }
+}

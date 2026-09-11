@@ -23,8 +23,12 @@ if ($Mode -eq 'Original') {
         $options.OrthographicUi=$true
         $options.MenuBackground=$true
         $options.SkyLayers=$true
+        $options.SkipLegacyProjectedShadows=$true
+        $options.OpaqueAlphaTest=$true
         # Visual tuning for original Winx vertex colors, not recovered game constants.
         $options.ConfigOverride=@{
+            # Gardenia terrain overlays are coplanar with their opaque base.
+            'rtx.decalTextures'='0xFAC245110A8BD959, 0x3323174FD6FAE171'
             'rtx.vertexColorIsBakedLighting'='False'
             'rtx.lightConversionIntensityFactor'='10'
             'rtx.lightConversionDistantLightFixedIntensity'='10'

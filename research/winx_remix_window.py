@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--pid", required=True, type=int)
 parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f1", "f8"])
 parser.add_argument("--hold", type=float, default=0.15)
+parser.add_argument("--key-count", type=int, default=1, help="Repeat the selected key up to 37 times")
+parser.add_argument("--key-gap", type=float, default=0.08, help="Release interval between repeated keys")
 parser.add_argument("--settle", type=float, default=0,
                     help="Allow up to 15 seconds for rendering/live config to settle before capture")
 parser.add_argument("--capture", type=Path)
@@ -21,8 +23,10 @@ parser.add_argument("--client-size", nargs=2, type=int, metavar=("WIDTH", "HEIGH
                     help="Resize only the selected game window for presentation checks")
 parser.add_argument("--close", action="store_true")
 args = parser.parse_args()
-if not 0.01 <= args.hold <= 3:
-    parser.error("hold must be between 0.01 and 3 seconds")
+if not 0.001 <= args.hold <= 3:
+    parser.error("hold must be between 0.001 and 3 seconds")
+if not 1 <= args.key_count <= 37 or not 0.02 <= args.key_gap <= 2 or (args.hold + args.key_gap) * args.key_count > 20:
+    parser.error("key-count/gap must form a bounded sequence of at most 20 seconds")
 if not 0 <= args.settle <= 15:
     parser.error("settle must be between 0 and 15 seconds")
 if not 0 <= args.capture_seconds <= 45 or (args.capture_seconds and not args.capture):
@@ -103,11 +107,16 @@ else:
         vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f1":112, "f8":119}[args.key]
         scan = u.MapVirtualKeyW(vk, 0)
         flags = 1 if args.key in ("up", "down", "left", "right") else 0
-        u.keybd_event(vk, scan, flags, 0)
-        try:
-            time.sleep(args.hold)
-        finally:
-            u.keybd_event(vk, scan, flags | 2, 0)
+        for index in range(args.key_count):
+            if u.GetForegroundWindow() != hwnd:
+                raise RuntimeError("Winx lost foreground; stopping keyboard input")
+            u.keybd_event(vk, scan, flags, 0)
+            try:
+                time.sleep(args.hold)
+            finally:
+                u.keybd_event(vk, scan, flags | 2, 0)
+            if index + 1 < args.key_count:
+                time.sleep(args.key_gap)
         time.sleep(0.8)
     if args.capture:
         time.sleep(args.settle)
