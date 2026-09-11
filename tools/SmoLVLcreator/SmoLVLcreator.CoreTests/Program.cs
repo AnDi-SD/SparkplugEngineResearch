@@ -22,6 +22,12 @@ internal static class Program
     {
         try
         {
+            if (args.Length == 3 && args[0] == "--container-envelope")
+                return SmoContainerEnvelopeRegression.Run(args[1], args[2]);
+            if (args.Length == 3 && args[0] == "--leaf-envelope")
+                return SmoContainerEnvelopeRegression.Run(args[1], args[2], leafOnly: true);
+            if (args.Length == 1 && args[0] == "--container-envelope-boundaries")
+                return SmoContainerEnvelopeRegression.RunBoundaries();
             if (args.Length == 3 && args[0] == "--render-occurrence-workspace")
                 return SmoOccurrenceWorkspaceRegression.Run(args[1], args[2]);
             if (args.Length == 2 && args[0].Equals(

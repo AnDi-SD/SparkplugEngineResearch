@@ -20,6 +20,7 @@ namespace sparkplug::reconstruction
 {
     class spStream;
     class spResourceManager;
+    struct spSerializerFileHeader;
 
     struct spResourceFATFileEntryForAnalysis final
     {
@@ -80,6 +81,11 @@ namespace sparkplug::reconstruction
         // No original whole-file/index writer has been located. Only complete
         // inline entries are supported; fileID producers remain unresolved.
         [[nodiscard]] bool WriteInlineIndexForAnalysis(spStream& destination) const;
+
+        // Same HOST encoder, including seven header words and the empty file
+        // table. Keeps original graph producer validation and C-string names.
+        [[nodiscard]] bool WriteEnvelopePrefixForAnalysis(spStream& destination,
+            const spSerializerFileHeader& header) const;
 
         // PS2 sub_0017F460 parses file entries but neither stores nor releases
         // them. This safe counterpart consumes the exact grammar and discards

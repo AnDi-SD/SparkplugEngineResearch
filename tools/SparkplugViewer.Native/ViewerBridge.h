@@ -24,6 +24,15 @@ struct SpvGraphNode {std::uint32_t parentID,flags,children,collisions;float posi
 // No runtime resource factories are invoked or substituted for unknown types.
 struct SpvContainerInfo {std::uint32_t signature,version,exportTag,fileSize,platformMask,dataOffset,dataSize,objectCount,headerStatus;};
 struct SpvContainerEntry {std::uint32_t tableOffset,id,nameOffset,nameBytes,classID,offset,size,signatureClassID,signatureFlags;};
+// HOST lossless envelope encoder; not an original whole-file writer.
+struct SpvEnvelopeEntry {std::uint32_t id,classID,offset,size,nameOffset,nameSize;};
+struct SpvEnvelopeLayout {std::uint32_t dataOffset,fileSize;};
+struct SpvEnvelopeHeader {std::uint32_t signature,version,exportTag,platformMask;};
+SPV_API int spv_envelope_measure(const SpvEnvelopeEntry*,std::uint32_t,
+    const std::uint8_t*,std::uint32_t,std::uint32_t,SpvEnvelopeLayout*) noexcept;
+SPV_API int spv_envelope_write(const SpvEnvelopeHeader*,const SpvEnvelopeEntry*,
+    std::uint32_t,const std::uint8_t*,std::uint32_t,std::uint32_t,
+    std::uint8_t*,std::uint32_t) noexcept;
 struct SpvMeshBVInfo {std::uint32_t primitiveType,vertices,indices,faces,hasFaces,fieldMask,vertexPayloadOffset,faceClassID;};
 // Standalone CPU buffer metadata. Input is immutable and borrowed for one
 // synchronous read; each handle owns its actual shared buffer until destroy.

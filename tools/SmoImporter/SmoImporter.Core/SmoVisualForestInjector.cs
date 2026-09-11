@@ -939,28 +939,11 @@ internal static class SmoVisualForestInjector
         IReadOnlyList<DirectoryEntry> entries,
         out int dataStart)
     {
-        int tableSize = entries.Sum(entry => 18 + entry.RawName.Length);
-        dataStart = checked(SmoHeader.Size + tableSize + sizeof(uint));
-        byte[] result = new byte[checked(dataStart + dataLength)];
-        current.Data.Span[..SmoHeader.Size].CopyTo(result);
-        WriteUInt32(result, 0x0C, checked((uint)result.Length));
-        WriteUInt32(result, 0x14, checked((uint)dataStart));
-        WriteUInt32(result, 0x18, checked((uint)dataLength));
-        WriteUInt32(result, 0x1C, checked((uint)entries.Count));
-        int cursor = SmoHeader.ObjectTableOffset;
-        foreach (DirectoryEntry entry in entries)
-        {
-            WriteUInt32(result, cursor, entry.Id);
-            BinaryPrimitives.WriteUInt16LittleEndian(
-                result.AsSpan(cursor + sizeof(uint)), checked((ushort)entry.RawName.Length));
-            entry.RawName.CopyTo(result.AsSpan(cursor + sizeof(uint) + sizeof(ushort)));
-            int fields = cursor + sizeof(uint) + sizeof(ushort) + entry.RawName.Length;
-            WriteUInt32(result, fields, entry.TypeHash);
-            WriteUInt32(result, fields + sizeof(uint), entry.LogicalOffset);
-            WriteUInt32(result, fields + 2 * sizeof(uint), entry.SerializedSize);
-            cursor += 18 + entry.RawName.Length;
-        }
-        return result;
+        var envelope = new SmoContainerEnvelope(current.Header,
+            entries.Select(entry => new SmoContainerEntry(entry.Id, entry.RawName,
+                entry.TypeHash, entry.LogicalOffset, entry.SerializedSize)).ToArray(), dataLength);
+        dataStart = envelope.DataStart;
+        return envelope.AllocateContainer();
     }
 
     private static ReadOnlySpan<byte> ObjectBytes(

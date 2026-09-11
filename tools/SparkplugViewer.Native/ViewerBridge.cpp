@@ -43,6 +43,7 @@
 #include "Code/SparkBase/spMemoryStream.h"
 #include "Code/Sparkplug/spDataBlockSerializer.h"
 #include "Code/Sparkplug/spResourceFATSerializer.h"
+#include "Analysis/Host/ResourceEnvelope.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
@@ -785,6 +786,51 @@ SPV_API void* spv_container_inspect(const std::uint8_t* data,std::uint32_t count
     return result.release();
 }
 SPV_API void spv_container_destroy(void* handle) noexcept {guarded([&]{delete static_cast<ContainerIndex*>(handle);});}
+namespace {
+std::vector<sparkplug::host::resource_envelope::Entry> envelopeEntries(
+    const SpvEnvelopeEntry* input,std::uint32_t count,
+    const std::uint8_t* names,std::uint32_t nameSize) {
+    require((input||!count)&&(names||!nameSize),"Missing envelope index/names");
+    std::vector<sparkplug::host::resource_envelope::Entry> result;
+    result.reserve(count);
+    for(std::uint32_t i=0;i<count;++i) {
+        const auto& e=input[i];
+        require(e.nameOffset<=nameSize&&e.nameSize<=nameSize-e.nameOffset,
+            "Envelope raw name is outside the supplied buffer");
+        result.push_back({e.id,e.classID,e.offset,e.size,
+            e.nameSize?names+e.nameOffset:nullptr,e.nameSize});
+    }
+    return result;
+}
+}
+SPV_API int spv_envelope_measure(const SpvEnvelopeEntry* input,std::uint32_t count,
+    const std::uint8_t* names,std::uint32_t nameSize,std::uint32_t dataSize,
+    SpvEnvelopeLayout* output) noexcept {
+    return guarded([&]{
+        require(output,"Missing envelope layout output");
+        const auto entries=envelopeEntries(input,count,names,nameSize);
+        sparkplug::host::resource_envelope::Layout layout{};
+        require(sparkplug::host::resource_envelope::Measure(entries.data(),count,dataSize,layout),
+            "Envelope name length or file size exceeds the wire representation");
+        *output={layout.dataOffset,layout.fileSize};
+    });
+}
+SPV_API int spv_envelope_write(const SpvEnvelopeHeader* header,const SpvEnvelopeEntry* input,
+    std::uint32_t count,const std::uint8_t* names,std::uint32_t nameSize,
+    std::uint32_t dataSize,std::uint8_t* output,std::uint32_t capacity) noexcept {
+    return guarded([&]{
+        require(header&&output,"Missing envelope header/output");
+        const auto entries=envelopeEntries(input,count,names,nameSize);
+        sparkplug::host::resource_envelope::Layout layout{};
+        require(sparkplug::host::resource_envelope::Measure(entries.data(),count,dataSize,layout)
+            &&capacity>=layout.dataOffset,"Invalid or undersized envelope output");
+        HeaderOutput stream(output,capacity);
+        const sparkplug::host::resource_envelope::Header h{
+            header->signature,header->version,header->exportTag,header->platformMask};
+        require(sparkplug::host::resource_envelope::WritePrefix(stream,h,entries.data(),count,dataSize),
+            "Cannot write envelope prefix");
+    });
+}
 SPV_API int spv_container_info(void* handle,SpvContainerInfo* output) noexcept {
     return guarded([&]{require(handle&&output,"Missing container info input/output");*output=static_cast<ContainerIndex*>(handle)->info;});
 }

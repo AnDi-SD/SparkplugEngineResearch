@@ -4851,11 +4851,7 @@ public static class SmoProjectSerializer
         ArgumentNullException.ThrowIfNull(project);
         project.Validate();
         SmoProjectLayoutPlan plan = project.BuildLayoutPlan();
-        int tableSize = plan.Entries.Sum(entry => checked(18 + entry.RawName.Length));
-        byte[] container = new byte[checked(
-            SmoHeader.Size + tableSize + sizeof(uint) + plan.DataLength)];
-        using (var stream = new MemoryStream(container, writable: true))
-            Write(project, plan, stream);
+        byte[] container = CreateContainer(project, plan);
         SmoDocument current = SmoDocument.ParseOwned(
             container,
             project.Manifest.SourcePathHint ?? project.Manifest.SourceFileName);
@@ -4880,11 +4876,7 @@ public static class SmoProjectSerializer
             entries,
             [],
             project.DataSection.Length);
-        int tableSize = entries.Sum(entry => checked(18 + entry.RawName.Length));
-        byte[] container = new byte[checked(
-            SmoHeader.Size + tableSize + sizeof(uint) + plan.DataLength)];
-        using (var stream = new MemoryStream(container, writable: true))
-            Write(project, plan, stream);
+        byte[] container = CreateContainer(project, plan);
         SmoDocument source = SmoDocument.ParseOwned(
             container,
             project.Manifest.SourcePathHint ?? project.Manifest.SourceFileName);
@@ -5002,41 +4994,24 @@ public static class SmoProjectSerializer
         SmoProjectLayoutPlan plan,
         Stream output)
     {
-
-        int tableSize = plan.Entries.Sum(entry =>
-            checked(18 + entry.RawName.Length));
-        uint dataStart = checked((uint)(SmoHeader.Size + tableSize + sizeof(uint)));
-        uint dataSize = checked((uint)plan.DataLength);
-        uint fileSize = checked(dataStart + dataSize);
-
-        Span<byte> header = stackalloc byte[SmoHeader.Size];
-        "FFPS"u8.CopyTo(header);
-        WriteUInt32(header, 0x04, project.Manifest.Header.SerializerVersion);
-        WriteUInt32(header, 0x08, project.Manifest.Header.Unknown08);
-        WriteUInt32(header, 0x0C, fileSize);
-        WriteUInt32(header, 0x10, project.Manifest.Header.PlatformMask);
-        WriteUInt32(header, 0x14, dataStart);
-        WriteUInt32(header, 0x18, dataSize);
-        WriteUInt32(header, 0x1C, checked((uint)plan.Entries.Count));
-        output.Write(header);
-
-        Span<byte> entryPrefix = stackalloc byte[6];
-        Span<byte> entrySuffix = stackalloc byte[12];
-        foreach (SmoProjectLayoutEntry entry in plan.Entries)
-        {
-            WriteUInt32(entryPrefix, 0, entry.Id);
-            BinaryPrimitives.WriteUInt16LittleEndian(
-                entryPrefix[4..],
-                checked((ushort)entry.RawName.Length));
-            output.Write(entryPrefix);
-            output.Write(entry.RawName);
-            WriteUInt32(entrySuffix, 0, entry.TypeHash);
-            WriteUInt32(entrySuffix, 4, entry.LogicalOffset);
-            WriteUInt32(entrySuffix, 8, entry.SerializedSize);
-            output.Write(entrySuffix);
-        }
-        output.Write(stackalloc byte[4]);
+        CreateEnvelope(project, plan).WritePrefix(output);
         WriteDataSection(project, plan, output);
+    }
+
+    private static SmoContainerEnvelope CreateEnvelope(SmoProject project, SmoProjectLayoutPlan plan) =>
+        new(project.Manifest.Header.SerializerVersion, project.Manifest.Header.Unknown08,
+            project.Manifest.Header.PlatformMask,
+            plan.Entries.Select(entry => new SmoContainerEntry(entry.Id, entry.RawName,
+                entry.TypeHash, entry.LogicalOffset, entry.SerializedSize)).ToArray(), plan.DataLength);
+
+    private static byte[] CreateContainer(SmoProject project, SmoProjectLayoutPlan plan)
+    {
+        SmoContainerEnvelope envelope = CreateEnvelope(project, plan);
+        byte[] container = envelope.AllocateContainer();
+        using var stream = new MemoryStream(container, writable: true);
+        stream.Position = envelope.DataStart;
+        WriteDataSection(project, plan, stream);
+        return container;
     }
 
     private static void Verify(

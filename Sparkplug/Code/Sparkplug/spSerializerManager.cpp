@@ -486,17 +486,16 @@ namespace sparkplug::reconstruction
                 || item->size > header.dataSize - item->offset)
                 return fail("Indexed resource has no complete inline payload");
 
-        // Reserve the seven header words, then encode the known reader grammar.
-        // Whole-file layout/transaction policy is host code, not a located
-        // native SaveResources body. No external-file table is invented.
-        if (!file.Write(header) || !fat_->WriteInlineIndexForAnalysis(file)
-            || !file.Write(std::uint32_t(0)) || !file.GetCurrentPosition(header.dataOffset))
+        // Shared host envelope encoder; graph indexing and payload production
+        // above still use the reconstructed contracts. No original whole Save
+        // body or support for external-file tables is claimed.
+        if (!fat_->WriteEnvelopePrefixForAnalysis(file, header)
+            || !file.GetCurrentPosition(header.dataOffset))
             return fail("Cannot write FFPS resource/file indices");
         if (header.dataSize > maximumBytes - header.dataOffset)
             return fail("Complete FFPS exceeds the output byte limit");
         header.declaredFileSize = header.dataOffset + header.dataSize;
-        if (!file.WriteData(data.GetBuffer(), header.dataSize)
-            || !file.Seek(spStream::SeekSource::essStart, 0) || !file.Write(header))
+        if (!file.WriteData(data.GetBuffer(), header.dataSize))
             return fail("Cannot finalize FFPS header and payload");
         const auto* bytes = static_cast<const std::uint8_t*>(file.GetBuffer());
         std::vector<std::uint8_t> complete(bytes, bytes + header.declaredFileSize);

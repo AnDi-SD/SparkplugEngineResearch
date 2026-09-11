@@ -4,11 +4,14 @@
 #include "spResourceFATSerializer.h"
 
 #include "spResourceManager.h"
+#include "spSerializerManager.h"
 
 #include "../SparkBase/spStream.h"
+#include "../../Analysis/Host/ResourceEnvelope.h"
 
 #include <limits>
 #include <utility>
+#include <vector>
 
 namespace sparkplug::reconstruction
 {
@@ -110,19 +113,44 @@ namespace sparkplug::reconstruction
         return true;
     }
 
-    bool spResourceFATHelperForAnalysis::WriteInlineIndexForAnalysis(spStream& destination) const
+    static bool CollectInlineEntries(const std::list<spResourceFATEntryForAnalysis*>& resources,
+        bool hasFiles, std::vector<host::resource_envelope::Entry>& entries)
     {
-        if (!orderedFiles_.empty() || orderedResources_.size() > 65536) return false;
-        for (const auto* entry : orderedResources_)
+        if (hasFiles || resources.size() > 65536) return false;
+        for (const auto* entry : resources)
             if (!entry || !entry->id || entry->fileID || !entry->payloadWritten || entry->size < 8
                 || entry->name.size() >= std::numeric_limits<std::uint16_t>::max()
                 || entry->name.find('\0') != std::string::npos) return false;
-        if (!destination.Write(static_cast<std::uint32_t>(orderedResources_.size()))) return false;
-        for (const auto* entry : orderedResources_)
-            if (!destination.Write(entry->id) || !destination.Write(entry->GetNameForAnalysis())
-                || !destination.Write(entry->classID) || !destination.Write(entry->offset)
-                || !destination.Write(entry->size)) return false;
+        // This was already a host encoder. Share its wire grammar with the
+        // lossless editors while retaining this producer's stricter contracts.
+        entries.reserve(resources.size());
+        for (const auto* entry : resources)
+        {
+            const char* name = entry->GetNameForAnalysis();
+            entries.push_back({entry->id, entry->classID, entry->offset, entry->size,
+                reinterpret_cast<const std::uint8_t*>(name),
+                name ? static_cast<std::uint32_t>(entry->name.size() + 1) : 0u});
+        }
         return true;
+    }
+
+    bool spResourceFATHelperForAnalysis::WriteInlineIndexForAnalysis(spStream& destination) const
+    {
+        std::vector<host::resource_envelope::Entry> entries;
+        if (!CollectInlineEntries(orderedResources_, !orderedFiles_.empty(), entries)) return false;
+        return host::resource_envelope::WriteIndex(destination, entries.data(),
+            static_cast<std::uint32_t>(entries.size()));
+    }
+
+    bool spResourceFATHelperForAnalysis::WriteEnvelopePrefixForAnalysis(spStream& destination,
+        const spSerializerFileHeader& header) const
+    {
+        std::vector<host::resource_envelope::Entry> entries;
+        if (!CollectInlineEntries(orderedResources_, !orderedFiles_.empty(), entries)) return false;
+        const host::resource_envelope::Header properties{
+            header.signature, header.version, header.exportTag, header.platformMask};
+        return host::resource_envelope::WritePrefix(destination, properties, entries.data(),
+            static_cast<std::uint32_t>(entries.size()), header.dataSize);
     }
 
     bool spResourceFATHelperForAnalysis::SetNextResourceIDForAnalysis(

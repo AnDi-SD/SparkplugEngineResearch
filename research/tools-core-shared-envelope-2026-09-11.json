@@ -1,0 +1,975 @@
+{
+  "kind": "tools-core-shared-host-envelope",
+  "status": "verified-scoped-core",
+  "timestampUtc": "2026-09-11T05:25:32.986499+00:00",
+  "scope": "Shared host envelope encoder; not original whole-file Save. Four managed mutation paths and native graph producer; no external file table or platform conversion.",
+  "authorization": "User 2026-09-11: independently apply technical accelerations toward working tools cores in 3-4 days.",
+  "exactOperationComparisons": 23,
+  "boundaryChecks": 17,
+  "originalPcReaders": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-edited-object-run1.json",
+      "nodes": 2,
+      "freed": 25
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-leaf-object-run1.json",
+      "nodes": 2,
+      "freed": 25
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-removed-object-run1.json",
+      "nodes": 1,
+      "freed": 15
+    }
+  ],
+  "textureToolChecks": 2052,
+  "sourceBindings": [
+    {
+      "source": "Sparkplug/Analysis/Host/ResourceEnvelope.h",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Analysis/Host/ResourceEnvelope.h",
+      "sha256": "613C1595CFA52DF4A8E5BDE3F101436B7C0D5AD9409A6C1D62DEFCF9B2A2E783"
+    },
+    {
+      "source": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "507F8D4AFEB3B5A7F984AEC68C0F574D18E042C20E81A8E34A93F7D4A6A58B55"
+    },
+    {
+      "source": "Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "A44B705FDBFAE409460AAAD9FC09B06E881AD68711A2C59C38CE9BCDFED61B36"
+    },
+    {
+      "source": "Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "6066B275ED72D366990E53E2276D4D9ADC2B321E15C172AD339FA013A81D2915"
+    },
+    {
+      "source": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "ACD7E1469D0B887A360A9F5C2AAEBD57358537F10DC60A54C3100737464D1001"
+    },
+    {
+      "source": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "60C8A3B51DAA5355088B26C9FEEFC3B6AD6F87DFF62F387B213FD3D6E9021149"
+    },
+    {
+      "source": "tools/SmoViewer/SmoViewer.Core/SmoContainerEnvelope.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Core/SmoContainerEnvelope.cs",
+      "sha256": "1193AA760F26A5B2C8BD5BB96C78F5B789F7BAA093100F0F039B7FAF577256AF"
+    },
+    {
+      "source": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Envelope.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Envelope.cs",
+      "sha256": "E1DC0A75C42D3582FFFA01614F2CBA96FF5D47371946A8B5247A538126553567"
+    },
+    {
+      "source": "tools/SmoViewer/SmoViewer.Editing/SmoMutationTransaction.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Editing/SmoMutationTransaction.cs",
+      "sha256": "2B5A64632C20759E297CB4BE2F365DBB03C992860FC3438BC93C42C7D4E1C1D3"
+    },
+    {
+      "source": "tools/SmoViewer/SmoViewer.Editing/SmoLeafObjectReplacer.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Editing/SmoLeafObjectReplacer.cs",
+      "sha256": "87FD345944B4B3E8CD75AA2FAB51AD62F5D47767FE4A07D6F9FBD6D5BA1DCD5F"
+    },
+    {
+      "source": "tools/SmoImporter/SmoImporter.Core/SmoVisualForestInjector.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoImporter/SmoImporter.Core/SmoVisualForestInjector.cs",
+      "sha256": "DA4DF558664D25DA9BF544FAD697604F42E896ACDA5F30687A212519D4E5CC15"
+    },
+    {
+      "source": "tools/SmoLVLcreator/SmoLVLcreator.Core/SmoProject.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoLVLcreator/SmoLVLcreator.Core/SmoProject.cs",
+      "sha256": "662EB3487D09C138CD4267C0FE0AFC249F7417246842C9264CBA7BC668C336D5"
+    },
+    {
+      "source": "tools/SmoLVLcreator/SmoLVLcreator.CoreTests/SmoContainerEnvelopeRegression.cs",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoLVLcreator/SmoLVLcreator.CoreTests/SmoContainerEnvelopeRegression.cs",
+      "sha256": "510CCAF52A67750D0F8DAC6FE8307F482CB245E93FB0212EAD1B3792E239E417"
+    },
+    {
+      "source": "Sparkplug/Tests/spNodeSerializationTests.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spNodeSerializationTests.cpp",
+      "sha256": "75C02FC122E32E4E54DCABD8561F91A8EC38A6F0A4443C25D3C7B44A93148743"
+    },
+    {
+      "source": "Sparkplug/Tests/spFullLoaderTests.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spFullLoaderTests.cpp",
+      "sha256": "B16BD23F2397F287144E21E35474F27587EE7083D67E8FD760AE549022BB6730"
+    },
+    {
+      "source": "Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "sha256": "1DB386B7D99B525D6FB41F1B6D53CBF861D9721DC653EDEFE2684601899204EA"
+    },
+    {
+      "source": "docs/research/tool-shared-envelope-2026-09-11.md",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/docs/research/tool-shared-envelope-2026-09-11.md",
+      "sha256": "818079D150EC218426FE506B1D2BDBAE868181A27DE2F9DCDDACCE804E1972C5"
+    },
+    {
+      "source": "research/probe_pc_tools_envelope.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_tools_envelope.py",
+      "sha256": "987AC2368069D18CBF042B071328CC411D98DE25B20011AE09C8A92D42D451FE"
+    },
+    {
+      "source": "research/pc_instruction_emulator.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "source": "research/inspect_serializer_manager.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "source": "research/pc_loader_fixtures.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_loader_fixtures.py",
+      "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+    },
+    {
+      "source": "research/probe_pc_san_reader.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_reader.py",
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+    },
+    {
+      "source": "research/probe_pc_animation_lifecycle.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "source": "research/probe_pc_animation_keys.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_keys.py",
+      "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+    },
+    {
+      "source": "research/inspect_pc_san_keys.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/inspect_pc_san_keys.py",
+      "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+    },
+    {
+      "source": "research/probe_pc_san_file_profile.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_file_profile.py",
+      "sha256": "293E5EF594A966F223611F5713CFD4DACD821F57F51F0D87DA6056C61056E462"
+    },
+    {
+      "source": "research/pc_stl_fixtures.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_stl_fixtures.py",
+      "sha256": "B9F9339542C48DAFB7669EB24BB5FD5D887A2A4323776A612F410A27E5AC6AF4"
+    },
+    {
+      "source": "research/probe_pc_san_loader.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_loader.py",
+      "sha256": "240F72548ACFC4C4CD7AFB70267493A264CD773CD827C22FFE079C10E9872E9F"
+    },
+    {
+      "source": "research/probe_pc_animation_manager.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_manager.py",
+      "sha256": "4DEA1F483D5040FB15718D516F641F6724E406DFD4A29D797028160488767A5A"
+    },
+    {
+      "source": "research/probe_pc_actor_tick.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_actor_tick.py",
+      "sha256": "9D3B9C327199E772F09932B4C06A0114CDED287A5568ED627AA9171B5D4AF654"
+    },
+    {
+      "source": "research/compare_pc_san_reader.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/compare_pc_san_reader.py",
+      "sha256": "DB721EF745AB7D4F1CD06A3F3C8CEA153FA9A38007438BFED17DCC5644266C96"
+    },
+    {
+      "source": "research/compare_pc_san_file_roundtrip.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/compare_pc_san_file_roundtrip.py",
+      "sha256": "1E9BAF80F11A206C85163E6B9F06A839D6F3A06FE903C3DF1762635D4BDB5690"
+    },
+    {
+      "source": "research/probe_pc_node_relationships.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_relationships.py",
+      "sha256": "95D458E32158EB93C96F3596B8327EAC5D4246FE4D61F3580114FC0C2DAF623A"
+    },
+    {
+      "source": "research/probe_pc_node_serializer.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_serializer.py",
+      "sha256": "29FC64755FEB4A1B588CDA7294F5B518E22712B9F962512230146DB7875AB3CF"
+    },
+    {
+      "source": "research/probe_pc_node_file_profile.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_file_profile.py",
+      "sha256": "04B60AE256D3D2B00CA8D77CE6B41C947D68EA97A501E7011F23AE071E6C3CAD"
+    },
+    {
+      "source": "research/probe_pc_node_corpus.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_corpus.py",
+      "sha256": "FE061B754A6D7D47CA3C23A82C405FAA3A57190983EF283105DFC4F6CF18AF2E"
+    },
+    {
+      "source": "research/validate_tools_envelope.py",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/validate_tools_envelope.py",
+      "sha256": "936897C43B82B3562BAF9B0B084C67979427876CB69E60A267721C448ACB3288"
+    }
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/comparison-leaf-run1.json",
+      "sha256": "2383B85F81D3D7AEC652D22D540BE6E8235E79340BFDD7D2F216B8783AA120DB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/comparison-level-run1.json",
+      "sha256": "239BCF74489E3BE31B36CBFCA7B0A29A7A1C8FD9242D5001247802F9A4C5360D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/comparison-small-run1.json",
+      "sha256": "24214B249EFE94E14B2468DE3EBA3B558C1DEE3CBA5376BA2859D2F412454951"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-batch-validation.json",
+      "sha256": "88426E1E292A675F7A50636436B455C8353839616A4FE0C0FCE9C1F11D5F3096"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-boundaries.json",
+      "sha256": "348E3E254EBEA1B9AFAC47942537C13E6192412F656E99A858B33120541B8D33"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-managed-build.log",
+      "sha256": "061DA61D2A165E359F70202318D6290D7F3A4004D6AC79DCFB07D6091B79118B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-pilot-validation.json",
+      "sha256": "BBB5694F59F89C0E8D5F0D603128FB3B2FEC70BD0D89957E196751F499760B2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-edited-object-run1.json",
+      "sha256": "3FB2FFA00F31AC25AD137EFFF47AAEF8324C9414704824755538DE0E4A889449"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-leaf-object-run1.json",
+      "sha256": "7492A61CAB73E7C6867D88B035A5E85D6BE6F5FCAAB98E08DA774B603F115729"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/original-removed-object-run1.json",
+      "sha256": "FE780F4607915E20EE7BF9F664DC0293EB95FB66D179020DABCDC635B9C0653A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/capture.json",
+      "sha256": "AE486CFA7818011E8090E7CC0F3DF2883F957CEA6C83EC008B79042D698AA501"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/editing-add-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/importer-insert-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/importer-remove-branch.smo",
+      "sha256": "060DF022A210D60F412DBABA275CE474E2803AA5B6576126D4F54043A6E3C615"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/project-preview.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-alfea02/project-stream.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/capture.json",
+      "sha256": "D19AA5FEEFA880356429DD6B3C299FFDE69F6C02FCABA166E04558DA4139E5E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/editing-add-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/importer-insert-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/importer-remove-branch.smo",
+      "sha256": "E4A3E6349CFC5668AED86BAE76F460FE3ABE582E0F86AA76041784980D817582"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/project-preview.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-barrel/project-stream.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-alfea02/capture.json",
+      "sha256": "CA64708E8EBFE8A4822BC11E93C92AF9E1D32280398C22188A8AD6E709C3F2FD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-alfea02/leaf-replace-field.smo",
+      "sha256": "3E7E225B168813FAB7CA74F7FC00FD272514137AA25CB5A22792471B34FB914E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-barrel/capture.json",
+      "sha256": "E2AAE9654B9326C9F2AEC0D52A644613A0FD6C89296C268BC8378462DA93BBEB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-barrel/leaf-replace-field.smo",
+      "sha256": "35E1D7F38299DE96DB91BE52208B35C2714DE327D7CE8C7CF6F2121BB1CE4D2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-object/capture.json",
+      "sha256": "F8D331A073801F4976627FF625159530E8292EAE34E7209489823CBE15A03EB2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-leaf-object/leaf-replace-field.smo",
+      "sha256": "37311B41F86E9BB2987BF8623B91E700DE534B31DFB2ECC64358BB8B081E73BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/capture.json",
+      "sha256": "1C7D9C211CB7025956A4471797FBFB8072A06A3C7956620C3F5446C8DAC0AF68"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/editing-add-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/importer-insert-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/importer-remove-branch.smo",
+      "sha256": "FCB17DA17EC14EE25B5051DAFF317406373E1BE59CD578F2925B29A02FF70CCD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/project-preview.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-logo/project-stream.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/capture.json",
+      "sha256": "FEE4A750192FF8FC1BA090F16757A37050BA4E7721BCDB686378F3F615B4C544"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/editing-add-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/importer-insert-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/importer-remove-branch.smo",
+      "sha256": "F436992F7E5EC81DB37817DAE6F8EA4C22134AC5B41EA912BD93C79DDA98F5A4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/project-preview.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/after-object/project-stream.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/manifest.json",
+      "sha256": "FB98AFCA5F8A6F38AA21CFF96B80CD5A7107DD405504E08BE96BB20FE08C2627"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SixLabors.ImageSharp.dll",
+      "sha256": "609A57965D0A7B5CCFB79D919EA7384E7EC86C03266B0390A19BD5F2104BC353"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoContainerEnvelopeRegression-leaf.cs",
+      "sha256": "AA779E796BE32D8A41504941556906625E97AC97163EF3900C6096CD97CB9BAA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoContainerEnvelopeRegression.cs",
+      "sha256": "F997E15F2D82AAABEDB7BD602C974975FF14CC9CD715BA314627A2377ADDE36B"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoExporter.Core.dll",
+      "sha256": "6611A70F53422EBBC27CD6B3F53B7CF88F75CD3230BB79E7892822821DD449E7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoImporter.Core.dll",
+      "sha256": "1017D247DFDB0F037929A481F1BC864B36CD672BE1372115C085CE1DAE45BF81"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoLeafObjectReplacer.cs",
+      "sha256": "7D277E7CB566879688EDC31D1969E9A683EDCF01E5F2602658F3EF1C7EE925E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoLVLcreator.Core.dll",
+      "sha256": "EA63EF9B962E14582409AF07BFDB34B31051DD2EACAB8D086EBABFC82AE00CEB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoLVLcreator.CoreTests.deps.json",
+      "sha256": "DFAB82832F61D9A0F6D7BB0FC98A88D3388DAB4BCA599D54CFBB78D05E587243"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoLVLcreator.CoreTests.dll",
+      "sha256": "72466954DB5339872EB8102A0DA3C32780ABBCC15E09A55059540AA0A192CEDB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoLVLcreator.CoreTests.runtimeconfig.json",
+      "sha256": "28329CF08F6505E73806B17558B187C02F0C1C516FE47EBFB7A013D082AAA306"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoMutationTransaction.cs",
+      "sha256": "F27EE503BB96D5426E0BBF464239C19A181BEBE3F5F6F1F68E986E4B45ACD2BA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoProject.cs",
+      "sha256": "93FC4A26FDD696C6E4E284D497B0DE058664F6E19110D63DD949726EFC357D0C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SMOTextureTool.Core.dll",
+      "sha256": "B448469053F320CAE528A05167FA3BB515527D8EB1B1EF714EB72D6703D4193A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoViewer.Core.dll",
+      "sha256": "1188C78BDC513B2DB83A43A497000B10D8D9C4A9BA8BC2CDE7B9F142A488E047"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoViewer.Editing.dll",
+      "sha256": "3F330C72A604694564FC87174B9021157D7A6074740B11287B50C418757A553D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoViewer.Scene.dll",
+      "sha256": "EA71A04616A40352B600319F00F0A06AC59A0C34241B006687DA247A4812D2CB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoViewer.Sparkplug.dll",
+      "sha256": "72748AE82BE5299DBBD262E17761EC45F20302244A5E7E74C59F4ED15361BB63"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SmoVisualForestInjector.cs",
+      "sha256": "8FF73B3CA4C508227719DAFDC3AB5FB604FADDC29D266D459CA62414EEE0722A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/SparkplugViewerNative.dll",
+      "sha256": "2B0B7D474DE0EFF16F160DCD59895A4C0ECED6B3169855F49DDA9D08761266EB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/spResourceFATSerializer.cpp",
+      "sha256": "5FC4936FB60D21D096E1BAD648AC81EE317533127DF2FE8F7ACCF8BC57AB4801"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/unchanged-runtime-dependencies.json",
+      "sha256": "A3FB2701F586D0F7CD0C75051670FD4F9BB0878421EFD2CAE86D30022FDEE66E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/ViewerBridge.cpp",
+      "sha256": "72885A39214ED0014C7725D114BBB36C61BA3B3E8206BD24A5C37DAABEDE8388"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/baseline-sources/ViewerBridge.h",
+      "sha256": "BB21146E53D6AFA7BC2F28352760462D3D878C9AC26F06B659CF93518E8C5445"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/capture.json",
+      "sha256": "647448BAD1E4B4CE446715040E8DFABF75029944BF94ED1FA75717AFC0BC72E1"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/editing-add-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/importer-insert-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/importer-remove-branch.smo",
+      "sha256": "060DF022A210D60F412DBABA275CE474E2803AA5B6576126D4F54043A6E3C615"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/project-preview.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-alfea02/project-stream.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/capture.json",
+      "sha256": "8ED8153839ECC1CC730C6E9CFD7BCA7F8DAEAFDF1BCF1B67EDEDDF157D52AB11"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/editing-add-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/importer-insert-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/importer-remove-branch.smo",
+      "sha256": "E4A3E6349CFC5668AED86BAE76F460FE3ABE582E0F86AA76041784980D817582"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/project-preview.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-barrel/project-stream.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-alfea02/capture.json",
+      "sha256": "C2A28BFB8808640FBE059D1FA9A821F7289D690A36FC50D695D2A14FE1508F0C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-alfea02/leaf-replace-field.smo",
+      "sha256": "3E7E225B168813FAB7CA74F7FC00FD272514137AA25CB5A22792471B34FB914E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-barrel/capture.json",
+      "sha256": "094D49C8B7D8B5925717139571C676183C650BA9D428828B75FC19D67DF729C5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-barrel/leaf-replace-field.smo",
+      "sha256": "35E1D7F38299DE96DB91BE52208B35C2714DE327D7CE8C7CF6F2121BB1CE4D2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-object/capture.json",
+      "sha256": "587E252B386C21A2F3B68A9EE92D1384AFEE22ED4C4B3DC8EE473AD9075352D8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-leaf-object/leaf-replace-field.smo",
+      "sha256": "37311B41F86E9BB2987BF8623B91E700DE534B31DFB2ECC64358BB8B081E73BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/capture.json",
+      "sha256": "952CDDBA971F276FA24A582292227C953F4683AA46EEBB8EDAC517EFDF886B9F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/editing-add-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/importer-insert-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/importer-remove-branch.smo",
+      "sha256": "FCB17DA17EC14EE25B5051DAFF317406373E1BE59CD578F2925B29A02FF70CCD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/project-preview.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-logo/project-stream.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/capture.json",
+      "sha256": "F930B3A66F1439D53E37427C0A99F7B27A9A7D90D9E37C9D4B441D65EE44D813"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/editing-add-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/importer-insert-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/importer-remove-branch.smo",
+      "sha256": "F436992F7E5EC81DB37817DAE6F8EA4C22134AC5B41EA912BD93C79DDA98F5A4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/project-preview.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/before-object/project-stream.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/capture.json",
+      "sha256": "1DCA363DD3D3E26E6C9FF0ADDE99068C3C0C8B2B5F29F270E82C14D1583C5A36"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/editing-add-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/importer-insert-field.smo",
+      "sha256": "C70702E8B3A0A07BD4208659AE47E299835BA80415BC8A582B2C2D538A50115C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/importer-remove-branch.smo",
+      "sha256": "060DF022A210D60F412DBABA275CE474E2803AA5B6576126D4F54043A6E3C615"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/project-preview.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-alfea02/project-stream.smo",
+      "sha256": "1316A81D27254E1B20627433CC8E01327041D560BBEFACB949ADF38A336B79DF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/capture.json",
+      "sha256": "0F0C1CB9594B90FA9F5C1DA42E25867AE24851A7CF90B7824D8E3E9B9A493D8D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/editing-add-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/importer-insert-field.smo",
+      "sha256": "456DAC23AA2002C1123591CD5C89E18A20ECF6A6667FB0EA586CF144BDA8B908"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/importer-remove-branch.smo",
+      "sha256": "E4A3E6349CFC5668AED86BAE76F460FE3ABE582E0F86AA76041784980D817582"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/project-preview.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-barrel/project-stream.smo",
+      "sha256": "8D1976715D39E4688947889121D043563BFDD368A0E3FBA331EC719E65EFBF66"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-alfea02/capture.json",
+      "sha256": "E159C67B7E8E10474E7A8C313D6522781961AAE1F5498089ECD3A82E9926D360"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-alfea02/leaf-replace-field.smo",
+      "sha256": "3E7E225B168813FAB7CA74F7FC00FD272514137AA25CB5A22792471B34FB914E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-barrel/capture.json",
+      "sha256": "80EB3E6FB4674280B90C5FE5AE233855A1D245A32DB06C17B6FAA53317571FEE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-barrel/leaf-replace-field.smo",
+      "sha256": "35E1D7F38299DE96DB91BE52208B35C2714DE327D7CE8C7CF6F2121BB1CE4D2F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-object/capture.json",
+      "sha256": "EE574C7DBF3CD43E7AB43463E71925BAE874D65131CA0F94C232F7189820B551"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-leaf-object/leaf-replace-field.smo",
+      "sha256": "37311B41F86E9BB2987BF8623B91E700DE534B31DFB2ECC64358BB8B081E73BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/capture.json",
+      "sha256": "A80CA9425FF6E8859E88E2578778BC372137A09DB5778716BCC376A0CF6A714D"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/editing-add-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/importer-insert-field.smo",
+      "sha256": "C4FE9B952AB8976E287784D18B78BCF87643544CC4CA5356BBBC82A745D919A3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/importer-remove-branch.smo",
+      "sha256": "FCB17DA17EC14EE25B5051DAFF317406373E1BE59CD578F2925B29A02FF70CCD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/project-preview.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-logo/project-stream.smo",
+      "sha256": "DBD6A1F261008BBF1C2971030517B7C9D60A5E27F58A4A69F7C14EAF10E2E3C7"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/capture.json",
+      "sha256": "DFD0395BA501A891E68202BBE11976A846A9064A7D1BCBC5E6EC597108056FC8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/editing-add-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/importer-insert-field.smo",
+      "sha256": "F87134198413CF25E9A2CDAEF6B8E882186B310440208D228E59365A3159706C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/importer-remove-branch.smo",
+      "sha256": "F436992F7E5EC81DB37817DAE6F8EA4C22134AC5B41EA912BD93C79DDA98F5A4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/project-preview.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/final-object/project-stream.smo",
+      "sha256": "6044809A6448DC5F960DE7FF7609B156DC0BA8165C4B50CDD6DFE4596575D1C2"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/native-final-tests.log",
+      "sha256": "6D5764E682621D76EE793D8BAE5A1B6E8DEC830F568B9EE8F8FC324787392F36"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/sealer.py",
+      "sha256": "2EDD54BFD520C73F9E9A19EC56A3DA5C7E6932AED6E8D3C7AB66182E3C6443C5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-128x64.smo",
+      "sha256": "2F70668976594B45884AA49E78BADE38579661FE78AA6C40638FEE77255C76BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-13x7.smo",
+      "sha256": "B036FFF5482D2F1B84A9B44A40AAF490D9AA16F03332FA6763C00A1709A2B097"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-1x1.smo",
+      "sha256": "83A8A69851F7CEEC232480DFEFEE4F6455E9BC63AB4D236D2404B2F8F8791746"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-256x256.smo",
+      "sha256": "B8F37A8ABBD18A6CEEA8724B63A0755FD93CFC8E5BDAB6DF43A1A7E615A204F6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-64x128.smo",
+      "sha256": "96C567DA01B2E350AF13EAF79267B3387A26D75E97396B434D6F37C48C12FBA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-multi.smo",
+      "sha256": "45C6164D18CF16D872365E65832F2BFF74AB05F3CC0BBD3F4EEB0FDB09223B10"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/report.json",
+      "sha256": "290B2FE9884D1F3FA79C51377DEF2B5D09C1BDF23E537262FB9301C10BFE15C4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-128x64.smo",
+      "sha256": "2F70668976594B45884AA49E78BADE38579661FE78AA6C40638FEE77255C76BD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-13x7.smo",
+      "sha256": "B036FFF5482D2F1B84A9B44A40AAF490D9AA16F03332FA6763C00A1709A2B097"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-1x1.smo",
+      "sha256": "83A8A69851F7CEEC232480DFEFEE4F6455E9BC63AB4D236D2404B2F8F8791746"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-256x256.smo",
+      "sha256": "B8F37A8ABBD18A6CEEA8724B63A0755FD93CFC8E5BDAB6DF43A1A7E615A204F6"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-64x128.smo",
+      "sha256": "96C567DA01B2E350AF13EAF79267B3387A26D75E97396B434D6F37C48C12FBA9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-multi.smo",
+      "sha256": "45C6164D18CF16D872365E65832F2BFF74AB05F3CC0BBD3F4EEB0FDB09223B10"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/report.json",
+      "sha256": "0CA99821DEC9924263BFDD8A1CA55409513B390749CC1744430E6FA3411C4D2A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-png/tex_001_256x256_fmt29E3.png",
+      "sha256": "05998CBF6C66B5737D76070DE9557D36FEB65AD32BAC2C216565C98A5CEC80AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-final/Bloom_body-3316bce7-png/tex_002_64x64_fmt29E3.png",
+      "sha256": "F8C2535EA55618763948C586445A39539908C03F614E1F72C1C9FE9B1399F49F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-png/tex_001_256x256_fmt29E3.png",
+      "sha256": "05998CBF6C66B5737D76070DE9557D36FEB65AD32BAC2C216565C98A5CEC80AE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/texture-tool-after/Bloom_body-3316bce7-png/tex_002_64x64_fmt29E3.png",
+      "sha256": "F8C2535EA55618763948C586445A39539908C03F614E1F72C1C9FE9B1399F49F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoImporter.Core.dll",
+      "sha256": "FDD1E5559B02A07FEE485F18B024DF95A88948FE05E828D772A55F608A8EA7CD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoLVLcreator.Core.dll",
+      "sha256": "72B83BD95071F226D32E3B3B01E850B0819E6864E4619DA9DEE542B405D65960"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoLVLcreator.CoreTests.dll",
+      "sha256": "8C2DB567FA3507D2E57415AEF19B555A2D19DBB3A3370C32A9BFD49B57F61368"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoViewer.Core.dll",
+      "sha256": "DC41DCDBEAEB45A8030F67B40B97346C73CCDD41AC66A6F4630E09FEBD1364E8"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoViewer.Editing.dll",
+      "sha256": "DF44D6EC40E2435E7D1120991E67492D0063ACC5C92481A8688A9A17B16B8070"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SmoViewer.Sparkplug.dll",
+      "sha256": "00EB234CFFBA779C76C6EA89A7CECDAD99E6FFD67F685C11B2A550F632E95732"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/SparkplugViewerNative.dll",
+      "sha256": "1BEED587B1F8E0703F6AE281B7100B1BBAFDF9479D7D8B175BEFF7819BD6CDB9"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/binaries/ViewerNodeSerializationChecks.exe",
+      "sha256": "E42ADE710629E9D5937945003ED3AEC4DFA5EED074D496EB43FFD1AF4994CCCC"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/compare_pc_san_file_roundtrip.py",
+      "sha256": "1E9BAF80F11A206C85163E6B9F06A839D6F3A06FE903C3DF1762635D4BDB5690"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/compare_pc_san_reader.py",
+      "sha256": "DB721EF745AB7D4F1CD06A3F3C8CEA153FA9A38007438BFED17DCC5644266C96"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/inspect_pc_san_keys.py",
+      "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_loader_fixtures.py",
+      "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/pc_stl_fixtures.py",
+      "sha256": "B9F9339542C48DAFB7669EB24BB5FD5D887A2A4323776A612F410A27E5AC6AF4"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_actor_tick.py",
+      "sha256": "9D3B9C327199E772F09932B4C06A0114CDED287A5568ED627AA9171B5D4AF654"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_keys.py",
+      "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_animation_manager.py",
+      "sha256": "4DEA1F483D5040FB15718D516F641F6724E406DFD4A29D797028160488767A5A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_corpus.py",
+      "sha256": "FE061B754A6D7D47CA3C23A82C405FAA3A57190983EF283105DFC4F6CF18AF2E"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_file_profile.py",
+      "sha256": "04B60AE256D3D2B00CA8D77CE6B41C947D68EA97A501E7011F23AE071E6C3CAD"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_relationships.py",
+      "sha256": "95D458E32158EB93C96F3596B8327EAC5D4246FE4D61F3580114FC0C2DAF623A"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_node_serializer.py",
+      "sha256": "29FC64755FEB4A1B588CDA7294F5B518E22712B9F962512230146DB7875AB3CF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_file_profile.py",
+      "sha256": "293E5EF594A966F223611F5713CFD4DACD821F57F51F0D87DA6056C61056E462"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_loader.py",
+      "sha256": "240F72548ACFC4C4CD7AFB70267493A264CD773CD827C22FFE079C10E9872E9F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_san_reader.py",
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/probe_pc_tools_envelope.py",
+      "sha256": "987AC2368069D18CBF042B071328CC411D98DE25B20011AE09C8A92D42D451FE"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/research/validate_tools_envelope.py",
+      "sha256": "936897C43B82B3562BAF9B0B084C67979427876CB69E60A267721C448ACB3288"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "sha256": "ACD7E1469D0B887A360A9F5C2AAEBD57358537F10DC60A54C3100737464D1001"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SparkplugViewer.Native/ViewerBridge.h",
+      "sha256": "60C8A3B51DAA5355088B26C9FEEFC3B6AD6F87DFF62F387B213FD3D6E9021149"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Core/SmoContainerEnvelope.cs",
+      "sha256": "1193AA760F26A5B2C8BD5BB96C78F5B789F7BAA093100F0F039B7FAF577256AF"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Editing/SmoLeafObjectReplacer.cs",
+      "sha256": "87FD345944B4B3E8CD75AA2FAB51AD62F5D47767FE4A07D6F9FBD6D5BA1DCD5F"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Editing/SmoMutationTransaction.cs",
+      "sha256": "2B5A64632C20759E297CB4BE2F365DBB03C992860FC3438BC93C42C7D4E1C1D3"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Envelope.cs",
+      "sha256": "E1DC0A75C42D3582FFFA01614F2CBA96FF5D47371946A8B5247A538126553567"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoLVLcreator/SmoLVLcreator.Core/SmoProject.cs",
+      "sha256": "662EB3487D09C138CD4267C0FE0AFC249F7417246842C9264CBA7BC668C336D5"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoLVLcreator/SmoLVLcreator.CoreTests/SmoContainerEnvelopeRegression.cs",
+      "sha256": "510CCAF52A67750D0F8DAC6FE8307F482CB245E93FB0212EAD1B3792E239E417"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/tools/SmoImporter/SmoImporter.Core/SmoVisualForestInjector.cs",
+      "sha256": "DA4DF558664D25DA9BF544FAD697604F42E896ACDA5F30687A212519D4E5CC15"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spFullLoaderTests.cpp",
+      "sha256": "B16BD23F2397F287144E21E35474F27587EE7083D67E8FD760AE549022BB6730"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spNodeSerializationTests.cpp",
+      "sha256": "75C02FC122E32E4E54DCABD8561F91A8EC38A6F0A4443C25D3C7B44A93148743"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Tests/spSaveReferenceTests.cpp",
+      "sha256": "1DB386B7D99B525D6FB41F1B6D53CBF861D9721DC653EDEFE2684601899204EA"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spResourceFATSerializer.cpp",
+      "sha256": "507F8D4AFEB3B5A7F984AEC68C0F574D18E042C20E81A8E34A93F7D4A6A58B55"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spResourceFATSerializer.h",
+      "sha256": "A44B705FDBFAE409460AAAD9FC09B06E881AD68711A2C59C38CE9BCDFED61B36"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Code/Sparkplug/spSerializerManager.cpp",
+      "sha256": "6066B275ED72D366990E53E2276D4D9ADC2B321E15C172AD339FA013A81D2915"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/Sparkplug/Analysis/Host/ResourceEnvelope.h",
+      "sha256": "613C1595CFA52DF4A8E5BDE3F101436B7C0D5AD9409A6C1D62DEFCF9B2A2E783"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/envelope/qualified-sources/docs/research/tool-shared-envelope-2026-09-11.md",
+      "sha256": "818079D150EC218426FE506B1D2BDBAE868181A27DE2F9DCDDACCE804E1972C5"
+    }
+  ],
+  "baselineNote": "Initial managed binaries and old producer sources archived before migration. Leaf body archived before leaf change. Final captures hash actually loaded assemblies. Early intermediate captures are retained, not used to assert exact final binary bindings.",
+  "performance": "Single series only: final Alfea02 five-operation total 633.45 ms vs baseline 634.73 ms for 7 warm repetitions; no stable runtime speedup claimed.",
+  "evidenceLedgerCredit": 0
+}
