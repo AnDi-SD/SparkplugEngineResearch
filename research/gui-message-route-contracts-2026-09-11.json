@@ -1,0 +1,166 @@
+{
+  "kind": "original-paired-gui-message-routing",
+  "schemaVersion": 1,
+  "classes": [
+    "spButton",
+    "spEditBox",
+    "spTextWidget",
+    "spWidget",
+    "wxButton"
+  ],
+  "counts": {
+    "executions": 126,
+    "wholeReturns": 78,
+    "consumerBoundaries": 48,
+    "pc": 63,
+    "ps2": 63
+  },
+  "contracts": {
+    "widget": "Enabled E/F/10 forward original message to owner;11/12 set highlight then refresh;18 returns this via payload pointer;1C original NORMAL lookup or base Enable boundary.",
+    "button": "Enabled F with zero word18 of pointed event sends19 to owner with own54/50 payload,then pressed1/refresh.10/12 clear pressed before refresh;otherwise base Widget.",
+    "editBox": "Own owner forwarding;focus-self onF;char13 ABI word onPC vs signed byte onPS2;key14 payloadD removes last byte with actual empty-text-node refresh,1B/54 releases focus if current.16/17 highlight refresh.1C null root returns.",
+    "wxButton": "E/F/10 swallowed;11 enabled and Node200 sends27D1 payload16/0;12 clears HUD14 even disabled;1C modes0 bool reply,1 broadcast2715/key3/0/0,other2 no effect."
+  },
+  "boolReply": "Only low byte1 is initialized. PC test copies prior stack argument high bytes to output31001001;PS2 stack fill5A/A5 gives5A5A5A01/A5A5A501. Do not normalize full word or claim undefined upper bytes have a stable contract.",
+  "scope": "Original vtables and actual GUIObject owner Notify,borrowed32KiB inputs;full own paths or precise unexecuted refresh/lookup/focus/append/broadcast/message boundaries. Empty TextNodes for full deletion paths. No game/UI startup or new C++.",
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/probe_gui_message_routes.py",
+      "sha256": "71DA89A598663FA37C096E17EFC0C1B81FB8E2AC906F2F094C203A6FF38A7A89"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/helper-selection.json",
+      "sha256": "ED9031BE799646219BC0DB981BC58638E24CED2F7A2D2B123751B1175B786CEA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-batch-run1.json",
+      "sha256": "AD112CDEAEC9E755B5117D432F80A652665C77D9C51AE633A2191FD832B126F6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-cases.json",
+      "sha256": "26A1BC0B3430C124C6AD5BF3D3E07D185D76CA5083E71E61E00053E06B43B40C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-pilot-run1.json",
+      "sha256": "2818C40F6945522CF14936508CC9E72FD7E97C4116CAA69C42493FAEB5EA57A8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/method-selection.json",
+      "sha256": "D82ACD3173DDB331E48E18A053C7E0F08842A1DF0B5F4843F031F657BC73C8D5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/pc-message-routing.json",
+      "sha256": "B95614FB6A88AAA99C9FD112915ADF3BCA767D2F47751B14FC0CE3182614AD74"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/tail-selection.json",
+      "sha256": "FDF46D718513973E5B3FDF566CE36D077628D87E2A5B2DE699AC6AECB890CE38"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/seal-gui-message-routes.py",
+      "sha256": "CC624B8AC2D5822B9DAADB855C933E049C3DFA25BB02770AD9143382FB3DDCF3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/helpers/capture.json",
+      "sha256": "37D76C6507C9EED205172E0917D69F6C3B49FE8FC25E5CE5D03E04857262673E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/identities/capture.json",
+      "sha256": "5337CF0540AC91585D171318004040C7CCEC05233AB4458BD90450871A1D18BB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/methods/capture.json",
+      "sha256": "B426BC9D6D86C2539078EF036775D630F9D78FCD4B5BB0E0DB97160D427474C6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-messages/tails/capture.json",
+      "sha256": "570778FAD2B531DDE43801C26959E0E7B940D4A6D43D9383BDFCC956B30FA5C4"
+    },
+    {
+      "path": "research/gui-object-contracts-2026-09-10.json",
+      "sha256": "C5B2A93293480F161214DEFEF246DCE6EEA8EF4CF2EE8ABFC799D5E1623F9394"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-pilot-run1.json",
+        "sha256": "2818C40F6945522CF14936508CC9E72FD7E97C4116CAA69C42493FAEB5EA57A8"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/probe_gui_message_routes.py",
+        "sha256": "71DA89A598663FA37C096E17EFC0C1B81FB8E2AC906F2F094C203A6FF38A7A89"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-cases.json",
+        "sha256": "26A1BC0B3430C124C6AD5BF3D3E07D185D76CA5083E71E61E00053E06B43B40C"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "classCatalog": {
+        "path": "research/gui-object-contracts-2026-09-10.json",
+        "sha256": "C5B2A93293480F161214DEFEF246DCE6EEA8EF4CF2EE8ABFC799D5E1623F9394"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-batch-run1.json",
+        "sha256": "AD112CDEAEC9E755B5117D432F80A652665C77D9C51AE633A2191FD832B126F6"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/probe_gui_message_routes.py",
+        "sha256": "71DA89A598663FA37C096E17EFC0C1B81FB8E2AC906F2F094C203A6FF38A7A89"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/message-cases.json",
+        "sha256": "26A1BC0B3430C124C6AD5BF3D3E07D185D76CA5083E71E61E00053E06B43B40C"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-messages/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "classCatalog": {
+        "path": "research/gui-object-contracts-2026-09-10.json",
+        "sha256": "C5B2A93293480F161214DEFEF246DCE6EEA8EF4CF2EE8ABFC799D5E1623F9394"
+      }
+    }
+  ]
+}
