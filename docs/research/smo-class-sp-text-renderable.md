@@ -1,5 +1,9 @@
 # `spTextRenderable`: данные и границы чтения
 
+Обновление11 сентября: [CPU runtime reader/layout восстановлены](tool-text-runtime-2026-09-11.md)
+вместе с Font measurement; metadata и runtime используют один field reader.
+Ниже сохранён прежний wire-профиль. GPU text и writer остаются открытыми.
+
 Уточнение 10 сентября 2026: прежний вывод о UTF-16LE/Single был ошибкой
 нашего decoder, скрытой единственной строкой `30 00`. Подтверждены byte-string
 reader PC416DC0/441C10 и UInt32 wrap. Общий serializer предоставляет metadata

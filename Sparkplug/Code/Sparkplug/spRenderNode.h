@@ -44,10 +44,10 @@ namespace sparkplug::reconstruction
         [[nodiscard]] spRenderable* GetRenderableForAnalysis(std::size_t index) noexcept;
         [[nodiscard]] const spRenderable* GetRenderableForAnalysis(
             std::size_t index) const noexcept;
-        [[nodiscard]] bool AttachRenderableForAnalysis(std::shared_ptr<spRenderable> renderable);
-        [[nodiscard]] std::shared_ptr<spRenderable> DetachRenderableForAnalysis(
+        [[nodiscard]] virtual bool AttachRenderableForAnalysis(std::shared_ptr<spRenderable> renderable);
+        [[nodiscard]] virtual std::shared_ptr<spRenderable> DetachRenderableForAnalysis(
             spRenderable& renderable) noexcept;
-        void ClearRenderablesForAnalysis() noexcept;
+        virtual void ClearRenderablesForAnalysis() noexcept;
 
         // Native469ED0 append recomputes bounds immediately through the OLD
         // cached matrix, without changing dirty flags. These helpers expose

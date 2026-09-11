@@ -101,7 +101,7 @@ namespace
         spSerializerReadContextForAnalysis context(manager, resources);
         spMemoryStream stream; Open(stream, {0, 0}); std::string error;
         Check(!serializer.ReadPayloadForAnalysis(context, stream, 2, object, &error)
-            && context.failed && error.find("metadata inspection only") != std::string::npos,
+            && context.failed && error.find("target mismatch") != std::string::npos,
             "Virtual runtime reader refuses even a valid base-only target");
         Check(!serializer.WritePayloadForAnalysis(stream, object, &error) && !error.empty(),
             "Virtual runtime writer refused");

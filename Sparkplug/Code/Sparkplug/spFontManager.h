@@ -13,6 +13,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spFont;
     class spFontManager : public spCrossPlatform
     {
     public:
@@ -46,6 +47,14 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::size_t GetFontCountForAnalysis() const noexcept;
         [[nodiscard]] bool IsInitializedForAnalysis() const noexcept;
 
+        // PC41E770/41E730: three distinct borrowed state words28/2C/30.
+        // They are NOT the owning primary/fallback references34/38 above.
+        void SetLayoutDefaultFontForAnalysis(spFont* font) noexcept { layoutDefault_=font; }
+        void SelectFontAndColorForAnalysis(spFont* font,std::uint32_t argb) noexcept;
+        [[nodiscard]] spFont* GetSelectedFontForAnalysis() const noexcept { return selectedFont_; }
+        [[nodiscard]] std::uint32_t GetSelectedColorForAnalysis() const noexcept { return selectedColor_; }
+        std::uint32_t MeasureTextForAnalysis(const char*,std::uint32_t,std::uint32_t*) const noexcept;
+
         // Native common initialization builds renderer-owned default font
         // objects.  That graph is outside this slice; this seam preserves the
         // verified success/state transition without inventing those classes.
@@ -60,5 +69,8 @@ namespace sparkplug::reconstruction
         std::shared_ptr<spNamedObject> primaryFont_;
         std::shared_ptr<spNamedObject> fallbackFont_;
         bool initialized_ = false;
+        spFont* layoutDefault_=nullptr;
+        spFont* selectedFont_=nullptr;
+        std::uint32_t selectedColor_=0xFFFFFFFFu;
     };
 }

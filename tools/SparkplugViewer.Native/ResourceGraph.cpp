@@ -35,6 +35,10 @@
 #include "Code/Sparkplug/spFogSerializer.h"
 #include "Code/Sparkplug/spFont.h"
 #include "Code/Sparkplug/spFontSerializer.h"
+#include "Code/Sparkplug/spFontManager.h"
+#include "Code/Sparkplug/spTextRenderable.h"
+#include "Code/Sparkplug/spTextRenderableSerializer.h"
+#include "Code/Sparkplug/spTextNodeSerializer.h"
 #include "Code/Sparkplug/spCollisionInfo.h"
 #include "Code/Sparkplug/spCollisionInfoSerializer.h"
 #include "Code/Sparkplug/spOBBBV.h"
@@ -115,6 +119,8 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     Register<spLightData,spLightDataSerializer>(manager);
     Register<spFog,spFogSerializer>(manager);
     Register<spFont,spFontSerializer>(manager);
+    Register<spTextRenderable,spTextRenderableSerializer>(manager,7); // PC and common files, PC runtime
+    Register<spTextNode,spTextNodeSerializer>(manager,7);
     Register<spCollisionInfo,spCollisionInfoSerializer>(manager);
     Register<spOBBBV,spOBBBVSerializer>(manager);
     Register<spSphereBV,spSphereBVSerializer>(manager);
@@ -133,7 +139,11 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     Register<spZonePortal,spZonePortalSerializer>(manager);
     Register<spZonePortalNode,spZonePortalNodeSerializer>(manager);
     Register<spPartitionRenderable,spPartitionRenderableSerializer>(manager);
+    // Actual common layout manager, scoped to this graph load. No renderer
+    // default font/startup is invented; explicit serialized Fonts supply layout.
+    spFontManager textLayout;
     spSerializerReadContextForAnalysis context(manager,resources);
+    context.fontManager=&textLayout;
     context.directOwnedClassIDsForAnalysis={spPartitionNode::ClassID,spPartitionRenderable::ClassID};
     // Host limit: pristine Alfea02 has4266 resources and reached4096 at a
     // measured47 MiB process peak. Keep a finite8192 ceiling and64 MiB input.

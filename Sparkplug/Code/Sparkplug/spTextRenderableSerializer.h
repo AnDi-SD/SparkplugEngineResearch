@@ -1,7 +1,7 @@
 #pragma once
 
 // Inferred source path. PC441C10 supplies the own-field read slice; its
-// setters also run layout. This class exposes metadata inspection only.
+// setters also run layout. Runtime and metadata share one field reader.
 #include "spRenderable.h"
 #include "spRenderableSerializer.h"
 
@@ -17,7 +17,7 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] spClassID GetTargetClassIDForAnalysis() const noexcept override;
 
-        // Explicit host refusals, not reconstructed native clone/load behavior.
+        // Clone/write remain explicit host refusals.
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
         bool vfunc_14(spBaseObject&, spCloneManager&) const override;
         [[nodiscard]] std::unique_ptr<spBaseObject> ReadObjectHeaderAndCreateForAnalysis(
@@ -60,5 +60,8 @@ namespace sparkplug::reconstruction
         // or layout was executed; this never returns a loaded TextRenderable.
         [[nodiscard]] bool InspectPayloadForAnalysis(spStream&, std::uint32_t,
             InspectionForAnalysis&, std::string* error = nullptr) const;
+    private:
+        bool ReadTextFieldsForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
+            std::uint32_t,spRenderable&,InspectionForAnalysis*,std::string*) const;
     };
 }

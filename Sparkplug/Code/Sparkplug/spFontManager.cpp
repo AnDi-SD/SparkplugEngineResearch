@@ -1,4 +1,5 @@
 #include "spFontManager.h"
+#include "spFont.h"
 
 #include <cstring>
 
@@ -46,6 +47,17 @@ namespace sparkplug::reconstruction
     spFontManager* spFontManager::GetInstance() noexcept
     {
         return instance_;
+    }
+
+    void spFontManager::SelectFontAndColorForAnalysis(spFont* font,std::uint32_t argb) noexcept
+    { selectedFont_=font?font:layoutDefault_;selectedColor_=argb; }
+
+    std::uint32_t spFontManager::MeasureTextForAnalysis(const char* text,
+        std::uint32_t wrap,std::uint32_t* height) const noexcept
+    {
+        if(selectedFont_)return selectedFont_->MeasureTextForAnalysis(text,wrap,height);
+        if(height)*height=0;
+        return 0;
     }
 
     std::unique_ptr<spBaseObject> spFontManager::vfunc_10(spCloneManager&) const

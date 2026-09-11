@@ -476,7 +476,8 @@ namespace sparkplug::reconstruction
             finishTrace(Resolution::Cache,skipped);
             return skipped ? entry->object : fail("Cannot skip cached reference payload");
         }
-        if (!serializer) return fail("No serializer for inline resource");
+        if (!serializer) return fail(("No serializer for inline resource ID "+std::to_string(id)
+            +", class "+std::to_string(entry->classID)).c_str());
         std::uint32_t position = 0, size = 0;
         const auto origin = payloadSource.GetLogicalOriginForAnalysis();
         if (inlineSize < 8 || !payloadSource.GetCurrentPosition(position) || !payloadSource.GetSize(&size) ||

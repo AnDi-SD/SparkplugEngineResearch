@@ -1,4 +1,6 @@
 #include "spTextRenderableSerializer.h"
+#include "spTextRenderable.h"
+#include "spFont.h"
 #include "spSerializerManager.h"
 #include "spResourceManager.h"
 #include "Analysis/PC/spSectionCursor.h"
@@ -19,7 +21,7 @@ namespace sparkplug::reconstruction
 
         bool Unsupported(std::string* error)
         {
-            if (error) *error = "TextRenderable supports metadata inspection only; runtime layout/loading/writing is unavailable";
+            if (error) *error = "TextRenderable writing is not reconstructed";
             return false;
         }
     }
@@ -40,12 +42,16 @@ namespace sparkplug::reconstruction
     { return false; }
 
     std::unique_ptr<spBaseObject> spTextRenderableSerializer::ReadObjectHeaderAndCreateForAnalysis(
-        spStream&, spSerializerObjectHeaderForAnalysis*) const
-    { return nullptr; }
+        spStream& stream, spSerializerObjectHeaderForAnalysis* header) const
+    { (void)spTextRenderable::StaticRTTI();return spSerializer::ReadObjectHeaderAndCreateForAnalysis(stream,header); }
 
     bool spTextRenderableSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
-        spStream&, std::uint32_t, spBaseObject&, std::string* error) const
-    { context.failed = true; return Unsupported(error); }
+        spStream& stream, std::uint32_t size, spBaseObject& object, std::string* error) const
+    {
+        auto* text=dynamic_cast<spTextRenderable*>(&object);
+        if(!text){context.failed=true;if(error)*error="TextRenderable runtime target mismatch";return false;}
+        return ReadTextFieldsForAnalysis(context,stream,size,*text,nullptr,error);
+    }
 
     bool spTextRenderableSerializer::WritePayloadForAnalysis(spStream&, const spBaseObject&, std::string* error) const
     { return Unsupported(error); }
@@ -79,13 +85,22 @@ namespace sparkplug::reconstruction
         spSerializerManager manager;
         spResourceManager resources;
         spSerializerReadContextForAnalysis context(manager, resources);
+        return ReadTextFieldsForAnalysis(context,stream,size,observation.partial,&observation,error);
+    }
+
+    bool spTextRenderableSerializer::ReadTextFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
+        spStream& stream,std::uint32_t size,spRenderable& base,InspectionForAnalysis* observation,std::string* error) const
+    {
+        if(error)error->clear();
+        auto* runtime=dynamic_cast<spTextRenderable*>(&base);
         std::uint32_t start = 0, position = 0;
         if (!stream.GetCurrentPosition(start)
-            || !ReadRenderableFieldsForAnalysis(context, stream, size, observation.partial,
-                false, error, &observation.renderable)
+            || !ReadRenderableFieldsForAnalysis(context, stream, size, base,
+                false, error, observation?&observation->renderable:nullptr)
             || !stream.GetCurrentPosition(position) || position < start || position - start >= size)
         {
             if (error && error->empty()) *error = "Missing TextRenderable section";
+            context.failed=true;
             return false;
         }
         evidence::pc::serialization::SectionCursor cursor(context, stream, size - (position - start), true, error);
@@ -102,28 +117,61 @@ namespace sparkplug::reconstruction
                 if (header->payloadSize < sizeof(count) || !stream.Read(count)
                     || header->payloadSize != sizeof(count) + std::uint32_t(count))
                     return cursor.Fail("Invalid TextRenderable byte-string extent");
+                std::string value;bool isNull=false;
                 if (!stream.Seek(spStream::SeekSource::essCurrent, -static_cast<std::int32_t>(sizeof(count)))
-                    || !stream.ReadString(observation.text, &observation.textWasNull))
+                    || !stream.ReadString(value, &isNull))
                     return cursor.Fail("Cannot read TextRenderable byte string");
-                observation.textByteCount = count;
-                observation.textHadTrailingNull = count > observation.text.size();
+                if(observation){
+                    observation->text=std::move(value);observation->textWasNull=isNull;
+                    observation->textByteCount=count;observation->textHadTrailingNull=count>observation->text.size();
+                }else{
+                    // Native strcpy/strlen needs a terminator within this field.
+                    // Keep unterminated raw bytes available to metadata only.
+                    if(isNull||count==0||value.size()==count&&value.find('\0')==std::string::npos)
+                        return cursor.Fail("Text runtime requires a terminated, non-NULL byte string");
+                    if(!runtime->SetTextForAnalysis(value.c_str(),context.fontManager,error))
+                    {context.failed=true;return false;}
+                }
                 break;
             }
             case 1:
-                if (!cursor.Read(observation.color)) return cursor.Fail("Invalid TextRenderable UInt32 color");
+            {
+                std::uint32_t value=0;
+                if (!cursor.Read(value)) return cursor.Fail("Invalid TextRenderable UInt32 color");
+                if(observation)observation->color=value;else runtime->SetColorForAnalysis(value);
                 break;
+            }
             case 2:
-                if (!cursor.Read(observation.wrapWidth)) return cursor.Fail("Invalid TextRenderable UInt32 wrap width");
+            {
+                std::uint32_t value=0;
+                if (!cursor.Read(value)) return cursor.Fail("Invalid TextRenderable UInt32 wrap width");
+                if(observation)observation->wrapWidth=value;
+                else if(!runtime->SetWrapWidthForAnalysis(value,context.fontManager,error)){context.failed=true;return false;}
                 break;
+            }
             case 3:
-                if (!cursor.Read(observation.alignment)) return cursor.Fail("Invalid TextRenderable UInt32 alignment");
+            {
+                std::uint32_t value=0;
+                if (!cursor.Read(value)) return cursor.Fail("Invalid TextRenderable UInt32 alignment");
+                if(observation)observation->alignment=value;
+                else if(!runtime->SetAlignmentForAnalysis(value,context.fontManager,error)){context.failed=true;return false;}
                 break;
+            }
             case 4:
             {
-                evidence::pc::serialization::InspectedReference reference;
-                if (!evidence::pc::serialization::InspectReference(stream, header->payloadSize, true, reference, error))
-                    return cursor.Fail("Cannot inspect TextRenderable font reference");
-                observation.font = reference;
+                if(observation){
+                    evidence::pc::serialization::InspectedReference reference;
+                    if (!evidence::pc::serialization::InspectReference(stream, header->payloadSize, true, reference, error))
+                        return cursor.Fail("Cannot inspect TextRenderable font reference");
+                    observation->font = reference;
+                }else{
+                    auto* font=ReadFieldReferenceForAnalysis(context,spFont::ClassID,stream,*header,error);
+                    if(context.failed)return false;
+                    auto owner=std::dynamic_pointer_cast<spFont>(context.ShareObjectForAnalysis(font));
+                    if(font&&!owner)return cursor.Fail("Text Font lacks canonical owner");
+                    if(!runtime->SetFontForAnalysis(std::move(owner),context.fontManager,error))
+                    {context.failed=true;return false;}
+                }
                 break;
             }
             default:
@@ -132,7 +180,7 @@ namespace sparkplug::reconstruction
             }
             // PC441C10 accepts omitted, repeated and reordered fields. This is
             // the last wire assignment, not a claim that its layout succeeded.
-            observation.fieldMask |= 1u << header->fieldID;
+            if(observation)observation->fieldMask |= 1u << header->fieldID;
         }
         return false;
     }

@@ -16,6 +16,7 @@ namespace sparkplug::reconstruction
     class spAnimationManager;
     class spDXRenderer;
     class spDXMeshCombiner;
+    class spFontManager;
     struct spSerializerReadContextForAnalysis;
     struct spDataBlockHeaderForAnalysis;
     struct spTextureReadInspectionForAnalysis;
@@ -152,6 +153,7 @@ namespace sparkplug::reconstruction
         spResourceManager& resources;
         spAnimationManager* animationBindings = nullptr;
         spDXRenderer* pcRenderer = nullptr; // explicit CPU-only renderer/cache dependency
+        spFontManager* fontManager = nullptr; // borrowed PC text-layout state; no default-font fabrication
         spDXMeshCombiner* activeMeshCombiner = nullptr; // scoped batch, never owns
         using PCTexturePitchForAnalysis=std::uint32_t (*)(void*,std::uint32_t level,std::uint32_t packedRowBytes) noexcept;
         PCTexturePitchForAnalysis pcTexturePitchForAnalysis=nullptr; // explicit CPU shadow storage policy; default tightly packed, NOT device pitch

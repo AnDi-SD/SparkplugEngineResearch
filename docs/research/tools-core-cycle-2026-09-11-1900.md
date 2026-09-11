@@ -126,3 +126,16 @@ unsigned priority, выбранная CRT и полная occurrence identity. A
 тип loader, обнаруженный при неверном выборе контрольного меню; правильный
 `igmenu_opt_pc.smo` прошёл. Приоритет — восстановить нужный класс и reader,
 чтобы остальные ресурсы документа стали доступны ядрам.
+
+## Блок 11 — Text CPU runtime и Font atlas ownership
+
+[Общие Text классы](tool-text-runtime-2026-09-11.md) теперь выполняют настоящий
+byte-string measure/layout и derived TextNode attach/detach/clear. 246 original
+words совпали; native regression672 checks прошёл. Исправлена доказанная ошибка
+Font: атлас — runtime `spTexture`, а не `spTextureData`. Fresh original reader
+и destructor подтвердили владение настоящим DXTexture. Icy graph не нарушен.
+
+Меню дошло до legacy atlas ID30 и пока отклоняется strict texture reader.
+Следующий шаг — явная совместимая загрузка сохранённых legacy pixels в host
+слое с диагностикой. Она разрешена новой автономией11 сентября, но не будет
+объявлена восстановленным compatibility path оригинальной игры.

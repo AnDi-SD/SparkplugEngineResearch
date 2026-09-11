@@ -1,13 +1,12 @@
 #pragma once
 // Inferred source path. PC factory462EC0, reader442660, glyph setter442620.
-// This slice restores font data/lifetime; measurement/rendering/clone are not
-// implemented. Their host guards must not be mistaken for original behavior.
+// Data/lifetime and PC462C00 byte-string measurement. Rendering/clone remain open.
 #include "../SparkBase/spBaseObject.h"
 #include <array>
 #include <optional>
 
 namespace sparkplug::reconstruction {
-class spTextureData;
+class spTexture;
 class spFontSerializer;
 class spFont final : public spNamedObject {
 public:
@@ -28,12 +27,16 @@ public:
     // no invented numeric value in the host representation.
     const std::optional<std::uint32_t>& GetBaselineForAnalysis() const noexcept { return baseline_; }
     const std::array<Glyph,GlyphCount>& GetGlyphsForAnalysis() const noexcept { return glyphs_; }
-    spTextureData* GetImageForAnalysis() const noexcept { return image_.get(); }
+    spTexture* GetImageForAnalysis() const noexcept { return image_.get(); }
+    // PC462C00: empty/null returns0 WITHOUT assigning optional height output.
+    // Width/height accumulation and wrap comparison are unsigned32 operations.
+    std::uint32_t MeasureTextForAnalysis(const char* text,std::uint32_t wrapWidth,
+        std::uint32_t* height=nullptr) const noexcept;
 private:
     friend class spFontSerializer;
     std::uint32_t height_=0;
     std::optional<std::uint32_t> baseline_;
-    std::shared_ptr<spTextureData> image_;
+    std::shared_ptr<spTexture> image_;
     std::array<Glyph,GlyphCount> glyphs_{};
 };
 }

@@ -1,6 +1,6 @@
 #include "spFontSerializer.h"
 #include "spFont.h"
-#include "spTextureData.h"
+#include "spTexture.h"
 #include "spSerializerManager.h"
 #include "spResourceManager.h"
 #include "Analysis/PC/spSectionCursor.h"
@@ -40,10 +40,12 @@ bool spFontSerializer::ReadFieldsForAnalysis(spSerializerReadContextForAnalysis&
                 true,observation->image,error))return cursor.Fail("Invalid Font image extent");
             observation->hasImage=true;
         } else {
-            auto* image=ReadSequenceReferenceForAnalysis(context,spTextureData::ClassID,source,end-tail,error);
+            // PC4426D5 requests spTexture2F281E13; the loaded atlas is a
+            // runtime texture (DXTexture on PC), not serialized TextureData.
+            auto* image=ReadSequenceReferenceForAnalysis(context,spTexture::ClassID,source,end-tail,error);
             if(context.failed)return false;
-            auto owner=std::dynamic_pointer_cast<spTextureData>(context.ShareObjectForAnalysis(image));
-            if(image&&!owner)return cursor.Fail("Font image lacks canonical TextureData owner");
+            auto owner=std::dynamic_pointer_cast<spTexture>(context.ShareObjectForAnalysis(image));
+            if(image&&!owner)return cursor.Fail("Font image lacks canonical runtime Texture owner");
             font->image_=std::move(owner);
         }
         // PC442711/442725 and44274C..442787: raw UInt32 metrics, byte width,

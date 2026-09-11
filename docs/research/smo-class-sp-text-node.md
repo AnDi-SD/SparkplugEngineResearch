@@ -1,5 +1,8 @@
 # `spTextNode`: общая RenderNode-секция и корпусный профиль
 
+Обновление11 сентября: [CPU class/reader/ownership восстановлены](tool-text-runtime-2026-09-11.md).
+Ниже сохранено описание прежнего среза; полный text render ещё открыт.
+
 Уточнение 10 сентября 2026: PC4423D0/4423B0/4423C0 напрямую делегируют
 Read/Write/Index общему RenderNode serializer. Поэтому отдельная обязательная
 «ровно одна inline TextRenderable» grammar не подтверждена. Metadata decoder
