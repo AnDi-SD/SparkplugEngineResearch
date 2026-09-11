@@ -10,6 +10,8 @@ it does not enable generic MIPS64 instructions as an R5900 substitute.
 The opt-in integer-squares profile interprets three accumulator instructions
 only for exact bounded integer squares;it records every host-interpreted
 instruction,keeps original code bytes,and rejects FCR reads/writes.
+Explicit unsigned_division with stack state validates original DIVU/MFHI/MFLO
+for nonzero divisors and positive31-bit quotient/remainder;no register seams.
 Each instance executes once; exact prefix entry/registers/stops are evidence.
 """
 import hashlib,struct,sys
@@ -30,7 +32,7 @@ def pristine():
 class Ps2ScalarPrefix:
     RETURN=0x20000000
 
-    def __init__(self,ranges,*,profile='r4000',stack_window=None,upper64=None):
+    def __init__(self,ranges,*,profile='r4000',stack_window=None,upper64=None,unsigned_division=False):
         ranges=tuple(ranges)
         if not 0<len(ranges)<=64 or sum(n for a,n in ranges)>0x40000:raise ValueError('Explicit bounded code ranges required')
         self.u=unicorn.Uc(unicorn.UC_ARCH_MIPS,unicorn.UC_MODE_MIPS64|unicorn.UC_MODE_LITTLE_ENDIAN)
@@ -50,6 +52,12 @@ class Ps2ScalarPrefix:
             start,length=self.stack_extension.window
             if any(start<a+n and a<start+length for a,n in ranges+((self.RETURN,4096),)):
                 raise ValueError('Stack window must not overlap original code or RETURN')
+        self.division_extension=None
+        if type(unsigned_division) is not bool:raise ValueError('Explicit Boolean unsigned_division option required')
+        if unsigned_division:
+            if self.stack_extension is None or profile=='integer-movz':raise ValueError('Unsigned division requires explicit stack state and R4000-based profile')
+            from ps2_unsigned_division import UnsignedDivision
+            self.division_extension=UnsignedDivision()
         raw,sections=pristine()
         for a,n in ranges:
             self.map(a,n);self.write(a,read_window('ps2',raw,a,n,sections)[0])
@@ -86,6 +94,7 @@ class Ps2ScalarPrefix:
                 self.map(a,4);self.write(a,read_window('ps2',raw,a,4,sections)[0])
         self.executed=True
         def observe(u,address,size,user):
+            if self.division_extension is not None:self.division_extension.verify_pending(self)
             if address in stops:
                 if self.trace and address==self.trace[-1]+4:
                     previous=self.uint(self.trace[-1]);op=previous>>26
@@ -119,7 +128,8 @@ class Ps2ScalarPrefix:
                 raise RuntimeError(f'Unreviewed R5900 SQRT.S operand/rounding semantics {address:08X};generic MIPS uses a different source register')
             if word>>26==0x11 and (word>>21)&31==16 and 0x18<=word&63<=0x1f:
                 raise RuntimeError(f'Unreviewed R5900 COP1 accumulator instruction {address:08X}')
-            if self.stack_extension is not None:self.stack_extension.guard_scalar(word,address)
+            division_qualified=self.division_extension.qualify(self,address,word) if self.division_extension is not None else False
+            if self.stack_extension is not None and not division_qualified:self.stack_extension.guard_scalar(word,address)
             if self.profile=='integer-movz':
                 # SLL/NOP, JR/JALR, MOVZ, ADDU/DADDU; BEQ/BNE, ADDIU,
                 # ANDI, LW/LBU, SB/SW, LD/SD. No floating point, HI/LO,
@@ -146,4 +156,8 @@ class Ps2ScalarPrefix:
                 stackSpillInterpretation=ext.events,
                 instructionCountScope='Original instruction addresses,including all explicitly interpreted operations',
                 stackSpillScope='Aligned SP-based SQ/LQ within explicit mapped stack window;non-delay only;explicit upper64 GPR shadow;scalar ISA allowlist;not general EE CPU;guest code unchanged')
+        if self.division_extension is not None:
+            if self.division_extension.pending is not None:raise RuntimeError('Unverified DIVU/MFHI/MFLO effect at completion')
+            result.update(unsignedDivisionObservations=self.division_extension.events,
+                unsignedDivisionScope='Original native DIVU/MFHI/MFLO,nonzero divisor,quotient/remainder<=INT32_MAX,no delay slots;HI0/LO0 and GPR low64 validated. No host-written result,HI1/LO1 or general EE division claim.')
         return result

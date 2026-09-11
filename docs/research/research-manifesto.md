@@ -202,6 +202,15 @@ coverage и каждого адреса использовать `PcInstructions
 в evidence; неподтверждённые варианты отвергать. По умолчанию старые
 профили SQ/LQ не разрешают. Это наш CPU-стенд, не восстановленный класс.
 
+Для DIVU/MFHI/MFLO доступен отдельный
+[`unsigned_division=True`](native-ps2-unsigned-division-2026-09-11.md)
+с explicit stack state: ненулевой unsigned32 делитель,частное/остаток
+до0x7FFFFFFF,без delay slot. Исходные инструкции исполняет Unicorn,
+checker только проверяет HI0/LO0 и GPR после исполнения,не подставляет
+результат. Default scalar allowlist прежний;HI1/LO1,нулевой делитель,
+большие результаты и signed DIV остаются вне квалифицированной области.
+Это наш CPU-стенд,не игровой алгоритм;на каждый эффект нужен verified record.
+
 SQRT.S на generic MIPS не считать PS2 инструкцией с тем же поведением:
 [проба11 сентября](native-trigger-orientation-and-sqrt-guard-2026-09-11.md)
 показала выбор FS вместо EE FT и результат3 вместо5. До отдельной

@@ -1,0 +1,246 @@
+{
+  "kind": "qualified-ps2-unsigned-division-and-ai-continuations",
+  "schemaVersion": 1,
+  "counts": {
+    "executions": 19,
+    "wholeReturns": 4,
+    "selectorBoundaries": 4,
+    "addaBoundaries": 11,
+    "actualRngOutputs": 30,
+    "stackOperations": 236,
+    "accumulatorOperations": 33,
+    "verifiedDivisionInstructions": 38,
+    "unitTestMethods": 42
+  },
+  "cpuDomain": "Original DIVU/MFHI/MFLO executed by Unicorn;checker never writes results.Nonzero low32 unsigned divisor,quotient/remainder<=INT32_MAX;verified HI0/LO0,MFHI/MFLO destination low64 and explicit upper64 shadow.No delay slots,signedDIV,zero divisor,high-bit results or HI1/LO1 claim.Default profiles unchanged.",
+  "gameBehavior": {
+    "MinotaurDefend": "Full entry25FCE0 through DIVU25FD28 and MFHI25FD2C;deadline3B4=uint32(now+3000+r%1501),command3B8;target returns,missing target stops at actual selector225DF0 key1/parameter0.",
+    "MosquitoAttack": "Entry2605A0 through DIVU26061C/MFHI260620;deadline3B8=uint32(now+500+r1%501),amplitude3BC sign flip,second actual RNG;stops before ADDA2606A8.Movement random float and camera binding remain beyond boundary."
+  },
+  "comparison": "Archived exact PC inputs and native RNG outputs match;PS2 fields guarded using formulas proven by previous PC guarded-memory runs.No PC replay and no cross-platform whole-object hash comparison.",
+  "limitations": [
+    "Borrowed existing graph/globals,not normal startup.",
+    "General EE ACC,FPU and selector return behavior remain open.",
+    "No new C++ or fully closed class;CPU infrastructure receives no game-class score.",
+    "Earlier5 default-native observations are exploratory with no saved exact inline runner;not used for class credit.",
+    "Broad LIKE query346 snapshot-containing rows corrected to0 exact live wrapper sourcePath references,21 archived wrapper sources verified."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/probe_ps2_ai_division_entry.py",
+      "sha256": "B7CB25EC5D1EDAD6D42835D444FEFA95E4A7636DB96EECDAB86BDEBD65E5682B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_unsigned_division.py",
+      "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_integer_square_accumulator.py",
+      "sha256": "7A99967355E668A17A5BA5682205EA75D3D5309D95016CE26F9766EB18F4E9A0"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_scalar_prefix.py",
+      "sha256": "EF4A7235C1A88FCB1CD0B691F928C8639D1B015910BF73D5614DFF3D1C3EDCF8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_sqrt_guard.py",
+      "sha256": "708C3DAC9EA44D06CFA5483D6E5CAA917D6D5BED41961AF901DB741D3E8C62B2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_stack_spills.py",
+      "sha256": "E647942B4A507CAA18280595E26FDAC46982CE43BE3F153697EB7ABF0686FAC9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_unsigned_division.py",
+      "sha256": "3A06483DD1FE5AF39D71903ADF5A229BDAC73B0A0019DBF6C31518E3FD63B157"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/baseline-native-divu-run1.json",
+      "sha256": "5E1347E558AB7111C4923D99EB19B87941D7E6F4954E3AC5178107DB019A10B8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/cases.json",
+      "sha256": "D131804EA95F7CA3D9EB154F4D0F5A369374FD48AE0DE0BD1E80DD2280860642"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-batch-run1.json",
+      "sha256": "554132F484E06B8B69670D2874EBDA4EB7E00D9BC1C27694C887D0EC6F8DCE9E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-pilot-run1.json",
+      "sha256": "EE4FE55C2C025FDCC0BE8E041A5B1D8279B3FAA341CCC1B7BB64002E23EF1CBC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/prior-scores.json",
+      "sha256": "DA606989AF6041C203A3A43E0A10407B031CDF6A7BF0CE73A1118C334CCD9225"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/shared-wrapper-direct-reference-audit.json",
+      "sha256": "4119A301F593B76008FABCBC10E4500DB7D9000AC68F9DEA6736670A9FE90F14"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/shared-wrapper-exact-reference-audit.json",
+      "sha256": "0172D7EE017992AC7B6B1EAF0549FEE5878EF3B93DE2B1C00025F457FA803B13"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/unit-suite-run1.json",
+      "sha256": "3FDD9A8438192F7477716B1F25D6EB3372561A479D7F912426EA175D25DE3E7E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/before-ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/before-ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/seal-ps2-unsigned-division.py",
+      "sha256": "BC011ED06AB16C607F0A9A428A28697357412836AC102A5DF34B265116AB6DE4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/instructions/capture.json",
+      "sha256": "CE9D1915B7D270D5EA4EC37BAF6EC1A81780F7FB62EDA74C37B0D26DD5B8D1B5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-entry-reset/methods/capture.json",
+      "sha256": "2EA1D053F39B502158F8B73102756DB5F489BCDF09596E4CDD7AED749ACA42E9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+      "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+    },
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "research/ai-random-entry-contracts-2026-09-11.json",
+      "sha256": "7CF32AB9956089C83B08DA1C14078FC86547E635A0BBECCE783698534D067E8D"
+    },
+    {
+      "path": "research/ps2-stack-spill-contracts-2026-09-11.json",
+      "sha256": "BF4880520D8A2D71F63BF52905B0243A3DE7B8B0CD2E21AAF6728FA06C22B200"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-pilot-run1.json",
+      "sha256": "C38803C4E4E369DEBCEA2BA4EF8F692872EB4B866E8082225DF4F16CDFE5B13C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-batch-run1.json",
+      "sha256": "4DE1F1C9254272207C08DFA100F8A6C420BE2E93455622F503E12F361F6FFDF6"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-pilot-run1.json",
+        "sha256": "EE4FE55C2C025FDCC0BE8E041A5B1D8279B3FAA341CCC1B7BB64002E23EF1CBC"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/probe_ps2_ai_division_entry.py",
+        "sha256": "B7CB25EC5D1EDAD6D42835D444FEFA95E4A7636DB96EECDAB86BDEBD65E5682B"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/cases.json",
+        "sha256": "D131804EA95F7CA3D9EB154F4D0F5A369374FD48AE0DE0BD1E80DD2280860642"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "divisionChecker": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_unsigned_division.py",
+        "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+      },
+      "nativeStateSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+        "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-batch-run1.json",
+        "sha256": "554132F484E06B8B69670D2874EBDA4EB7E00D9BC1C27694C887D0EC6F8DCE9E"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/probe_ps2_ai_division_entry.py",
+        "sha256": "B7CB25EC5D1EDAD6D42835D444FEFA95E4A7636DB96EECDAB86BDEBD65E5682B"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/cases.json",
+        "sha256": "D131804EA95F7CA3D9EB154F4D0F5A369374FD48AE0DE0BD1E80DD2280860642"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "divisionChecker": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_unsigned_division.py",
+        "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+      },
+      "nativeStateSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+        "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/unit-suite-run1.json",
+        "sha256": "3FDD9A8438192F7477716B1F25D6EB3372561A479D7F912426EA175D25DE3E7E"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "divisionChecker": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/ps2_unsigned_division.py",
+        "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+      },
+      "testSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/source-snapshot/test_ps2_unsigned_division.py",
+        "sha256": "3A06483DD1FE5AF39D71903ADF5A229BDAC73B0A0019DBF6C31518E3FD63B157"
+      }
+    }
+  ]
+}

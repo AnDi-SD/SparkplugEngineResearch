@@ -1,0 +1,97 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ps2-unsigned-division-2026-09-11T01:30:03Z",
+  "createdUtc": "2026-09-11T01:30:03Z",
+  "notes": "2 PS2 +5 updates for original AI v10 continuations following qualified DIVU;19 first-pass executions.PC preserved without new score;42 CPU guard tests passed.",
+  "assessments": [
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original full v10 through real perception,RNG,DIVU,deadline/command writes;target returns,missing target reaches actual selector.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-unsigned-division-2026-09-11.md",
+          "sourceSha256": "CB39A17CAEEAA429B88C349761CC6F9C4B7680F62C878056BFC3C7AB1D5B8E70",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original full v10 through real perception,RNG,DIVU,deadline/command writes;target returns,missing target reaches actual selector."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-unsigned-division-contracts-2026-09-11.json",
+          "sourceSha256": "8418B1D94BE8A84FA1991848457678477D0F7AB0A127BD8C60838C1768B74BB7",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original full v10 through real perception,RNG,DIVU,deadline/command writes;target returns,missing target reaches actual selector."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-pilot-run1.json",
+          "sourceSha256": "EE4FE55C2C025FDCC0BE8E041A5B1D8279B3FAA341CCC1B7BB64002E23EF1CBC",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original full v10 through real perception,RNG,DIVU,deadline/command writes;target returns,missing target reaches actual selector."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-batch-run1.json",
+          "sourceSha256": "554132F484E06B8B69670D2874EBDA4EB7E00D9BC1C27694C887D0EC6F8DCE9E",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original full v10 through real perception,RNG,DIVU,deadline/command writes;target returns,missing target reaches actual selector."
+        }
+      ],
+      "unknowns": [
+        "Normal startup,next-action callback returns and full AI runtime remain open.",
+        "Mosquito general ADDA/MADD arithmetic and subsequent movement/camera writes not executed in this package."
+      ]
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original v10 through first RNG,DIVU,deadline and amplitude writes,second RNG;explicit pre-ADDA boundary.No movement/camera completion claim.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ps2-unsigned-division-2026-09-11.md",
+          "sourceSha256": "CB39A17CAEEAA429B88C349761CC6F9C4B7680F62C878056BFC3C7AB1D5B8E70",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original v10 through first RNG,DIVU,deadline and amplitude writes,second RNG;explicit pre-ADDA boundary.No movement/camera completion claim."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ps2-unsigned-division-contracts-2026-09-11.json",
+          "sourceSha256": "8418B1D94BE8A84FA1991848457678477D0F7AB0A127BD8C60838C1768B74BB7",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original v10 through first RNG,DIVU,deadline and amplitude writes,second RNG;explicit pre-ADDA boundary.No movement/camera completion claim."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-pilot-run1.json",
+          "sourceSha256": "EE4FE55C2C025FDCC0BE8E041A5B1D8279B3FAA341CCC1B7BB64002E23EF1CBC",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original v10 through first RNG,DIVU,deadline and amplitude writes,second RNG;explicit pre-ADDA boundary.No movement/camera completion claim."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ps2-unsigned-division/entry-batch-run1.json",
+          "sourceSha256": "554132F484E06B8B69670D2874EBDA4EB7E00D9BC1C27694C887D0EC6F8DCE9E",
+          "locator": "PS2 AI v10 through native qualified unsigned division",
+          "observation": "35->40: Original v10 through first RNG,DIVU,deadline and amplitude writes,second RNG;explicit pre-ADDA boundary.No movement/camera completion claim."
+        }
+      ],
+      "unknowns": [
+        "Normal startup,next-action callback returns and full AI runtime remain open.",
+        "Mosquito general ADDA/MADD arithmetic and subsequent movement/camera writes not executed in this package."
+      ]
+    }
+  ]
+}
