@@ -1,0 +1,267 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ai-activation-fields-2026-09-11T03:56:50Z",
+  "createdUtc": "2026-09-11T03:56:50Z",
+  "notes": "34 first-pass original activation transactions:22 full IceWormHoles and12 declared Kiko boundaries;166 actual NodeFind calls.No listener,basis or whole Kiko completion.",
+  "assessments": [
+    {
+      "className": "wxIceWormHolesAIAction",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    },
+    {
+      "className": "wxIceWormHolesAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    },
+    {
+      "className": "wxKikoHoleAIAction",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    },
+    {
+      "className": "wxKikoHoleAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    },
+    {
+      "className": "wxKikoMovingAIAction",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "25->30: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    },
+    {
+      "className": "wxKikoMovingAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-activation-fields-2026-09-11.md",
+          "sourceSha256": "35B384F0E786115B816A5504C402A4AADC760FD0C2D5D3E92872437A8BEF16C9",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-activation-fields-contracts-2026-09-11.json",
+          "sourceSha256": "B0EDA9BD0E4C21D6EEB8F40455FD8D4F2926253CA8CE74C0006C6775C2215A3A",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-pilot-run1.json",
+          "sourceSha256": "B2EB166744FDDD76981C00D41A394CC671FC8A30543F804DF25BAF06327730C5",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-activation-fields/activation-batch-run1.json",
+          "sourceSha256": "20BBF302EF1FF771DA427E4DF06A4F25F15E978CB3437E08475E9C0E0D032049",
+          "locator": "Original AI activation and explicit listener/orientation boundaries",
+          "observation": "20->25: Original activation fields:IceWormHoles full exact in/out search and type/state;KikoHole prefix to listener binding;KikoMoving prefix to basis with actual movement position writes.No whole Kiko or class completion."
+        }
+      ],
+      "unknowns": [
+        "Kiko listener allocation and orientation arithmetic,normal scene/lifecycle and remaining AI paths stay open."
+      ]
+    }
+  ]
+}
