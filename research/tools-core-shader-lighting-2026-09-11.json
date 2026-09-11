@@ -1,0 +1,551 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.h",
+      "bytes": 26208,
+      "sha256": "1B82E5F55B0DC649A70C9F4C198C304FADE8D2D4750DDF2D32B3397DE57319B2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXRenderer.h"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+      "bytes": 41553,
+      "sha256": "BA5D8040B4AEB75951AB6304EBBA3ADEF6DF9FD0A9A5B057A6D51356025E0932",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXRenderer.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShader.h",
+      "bytes": 4488,
+      "sha256": "BD3B1AC8981B1E4EC4EC4E5CA39E339A657C98C4A00E3EB34D67D01ABC4D5F96",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXShader.h"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXShader.cpp",
+      "bytes": 13018,
+      "sha256": "618143C3ECE1BDC05B20F3D66570A9781DF2CC57D90DED5CF5AAB07AE7125E3C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXShader.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXLight.h",
+      "bytes": 2531,
+      "sha256": "1E091AA8FF4EFC96AD51A18C665E1417B94882D47BC98155C08599EC2B74D30B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXLight.h"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXLight.cpp",
+      "bytes": 4229,
+      "sha256": "C6F288D355DBB1AF0F2BDE19CBB19C69C4654A83F54B5C5CC8E77577C6EE815E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Code/SparkplugDX/spDXLight.cpp"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spColorMath.h",
+      "bytes": 513,
+      "sha256": "968AE057E749A23A172D53F43255898DAE39F53939D8AEC5A2108855439EA344",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/Sparkplug/Analysis/PC/spColorMath.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/SceneLighting.h",
+      "bytes": 5463,
+      "sha256": "3F23DB70CFE3E715F802E06E56D3CCC6715F739E4884E7655A8BB5AA3AA93617",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/SceneLighting.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ShaderLighting.h",
+      "bytes": 4213,
+      "sha256": "1FC403CAC177F67EC7F5A9A7A7CBC94CC61997257AD612DA3A744A4526720FB8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/ShaderLighting.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 31462,
+      "sha256": "12BDF6816ED39F067B0098C2CE3038EFE3CEDB9240DA317DD6CA3EE6C2529086",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 145220,
+      "sha256": "4DBE9CD6AE29A399849A35BBC1BBDF51A553876EA272BA44B7107B959E6EFF7F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Tests/ShaderLightingTests.cpp",
+      "bytes": 4851,
+      "sha256": "A62183C3C291313D4FAA3A967DAB187E73970ADB5EF75A94D0659502BF88926C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/Tests/ShaderLightingTests.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "bytes": 5128,
+      "sha256": "147022AAE6F57C034C87D0C8FCBC71232E2F30B582D787302C7BDB9F4DC00B27",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/Build-Native.ps1"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "bytes": 4123,
+      "sha256": "577500C395693AC06B80274B2527C4D0C312D33AF1CB3AB47256173FD52194C5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SparkplugViewer.Native/CMakeLists.txt"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.ShaderLighting.cs",
+      "bytes": 2701,
+      "sha256": "265FFFF4201725E7820E98B89A60D32C2D1EA6B56D0BA924CD2968290B3FB11A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.ShaderLighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.Lighting.cs",
+      "bytes": 5080,
+      "sha256": "B3D8790DF7DC3E7499B0839F7F5E26DC7032E3A5F6E2CC1D81F0AC7304F8052C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.Lighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.cs",
+      "bytes": 4528,
+      "sha256": "1B7EDFD63EF9223ECF95D2F2BEEBBB573656F822B9DA053915EF1810D02BCD97",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugSceneRuntime.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.ShaderLighting.cs",
+      "bytes": 897,
+      "sha256": "F0E792E84442DF1F294209FA24373CE86AE351963B350781811C1C1406C41CCD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.ShaderLighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Lighting.cs",
+      "bytes": 9670,
+      "sha256": "000A8BA6A17CB6AA77908891EEAE3EEE8A080543E7D7437A5E9B8E888B04005D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Lighting.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 46483,
+      "sha256": "9F96CBC8F7FE3939CDC49C1C235B476CD3C6F0D755FD07DA686CF4C286F09B6B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs",
+      "bytes": 14490,
+      "sha256": "6198D182121B8C54507C27ED84B4BADBEA27891B27F5370D6C635D36B9D92182",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs",
+      "bytes": 7281,
+      "sha256": "56A8CCFED69C9873BE7EA52BF097AF4B7F5D4FD1BBE46B6A41485E219F166678",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.xaml.cs",
+      "bytes": 215701,
+      "sha256": "31721AEAC139C95F028696BD37DD38D96E3AE14373CE982A1DFD95023EDADFF5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer/MainWindow.xaml.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuLightingRegression.cs",
+      "bytes": 8937,
+      "sha256": "52CA384F04055204F082CCA4A4A0471577AB42D1445FF8E6594993DDBA2C02F2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuLightingRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs",
+      "bytes": 8739,
+      "sha256": "85EAD852C77AD777DF112E68C3A9B8188D49573A5298FB521881C8C3B5FE30C4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuAnimationCapture.cs",
+      "bytes": 5233,
+      "sha256": "8C41CB6350BA0E58A1D9C470AB2CBB454CFADED3924CCBC364951A67485C2472",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuAnimationCapture.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 13777,
+      "sha256": "FA4A2FE8C6E28850D38B63A0548BDA347B489DE59D205D5DCD9F99963EAA84D4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug.Tests/SceneLightingRegression.cs",
+      "bytes": 14064,
+      "sha256": "2E221C89793EB2BCC5DB12F3F97C481019D8F24C3F26ED632724C192A6B2C82A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug.Tests/SceneLightingRegression.cs"
+    },
+    {
+      "path": "docs/research/tool-shader-lighting-2026-09-11.md",
+      "bytes": 6680,
+      "sha256": "155EAACF50FA791DB53D0B4E579535690A9962EC741813624D68E62E168D73B3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/docs/research/tool-shader-lighting-2026-09-11.md"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/seal-shader-lighting.py",
+      "bytes": 4069,
+      "sha256": "8996FBD0245D97EEB0B001174BE83428170BF208AA4CCD239E7C9ACE11129945",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/sources/.codex-tmp/seal-shader-lighting.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/scene-final.json",
+      "bytes": 7677,
+      "sha256": "F6A4E4B7D08E4A7FA1E7FBDD201FD90EA72FB2626BE2FCB37F571C72CC1531CA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/scene-final.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-final/report.json",
+      "bytes": 3556,
+      "sha256": "CA30F2C5505D4E12563448384A718EDE5833232A5523EB3914BB86522BC4E20B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-final/scene.png",
+      "bytes": 14303,
+      "sha256": "6D4F94BB8A2E031FEA6833676B9964C6F368A9EC827586F7C2794C405EC78E38",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-final/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-run1/report.json",
+      "bytes": 824,
+      "sha256": "DC777EB48AF65F8DF033BD2674E4F060D3494F1EE52B5B76D3E8EE9C14E09153",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-run1/scene.png",
+      "bytes": 14303,
+      "sha256": "6D4F94BB8A2E031FEA6833676B9964C6F368A9EC827586F7C2794C405EC78E38",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/icy-pixels-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/material-pixels-final/report.json",
+      "bytes": 839,
+      "sha256": "30776C3E5E164AD528F3F29652E1E43A5CC05951B93ED0673C5A4141ADA46839",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/material-pixels-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/numeric-final/report.json",
+      "bytes": 4722,
+      "sha256": "45EA81ABDCFA43EEE2E31DD2F3A21DF8A8C000F5743ED811FB41CB7B6BA0105A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/numeric-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/numeric-run1/report.json",
+      "bytes": 4477,
+      "sha256": "9C4A20714C64CD984ACDF6C2953F120856375CA87287C71D5A3D4A6954EE5803",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/numeric-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/capture.json",
+      "bytes": 7316074,
+      "sha256": "B093907D9D5F7F456ABF4D373F8F3B8274120A0288BB6AF04C9FEEE1E9EF1469",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/capture.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/invalid.san",
+      "bytes": 11,
+      "sha256": "3DC98777AF5CE9BB371E4C8E97DFAC23C7DC0EA380514BCB6EBD65F8551652E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/invalid.san"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/static-duration.san",
+      "bytes": 41648,
+      "sha256": "249CE2B521B7CE6F7CAFB8535C8784A821D3194DAA3541D217407EDE13D8DF5D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-final/static-duration.san"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/capture.json",
+      "bytes": 7316074,
+      "sha256": "7E9B8F115CC677BE806552ABFC262F7C1333C065B977739DC055F2C3BD1FF831",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/capture.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/invalid.san",
+      "bytes": 11,
+      "sha256": "3DC98777AF5CE9BB371E4C8E97DFAC23C7DC0EA380514BCB6EBD65F8551652E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/invalid.san"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/static-duration.san",
+      "bytes": 41648,
+      "sha256": "249CE2B521B7CE6F7CAFB8535C8784A821D3194DAA3541D217407EDE13D8DF5D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/shader-lighting/viewer-animation-run1/static-duration.san"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 158720,
+      "sha256": "F35C65BDB5C319BD1D32FB7FB1FEB5DC233944AF4766C0F4853B8736AE611777",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 142336,
+      "sha256": "D7343FFE070115D59E0FD41DE3B5544F0002AD2697417D2DA6E0E00572E10B91",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 731648,
+      "sha256": "6E2F1C11C5081443F1D074B362F5256B52504D5FD0FF7D0161C704A665490A48",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 40448,
+      "sha256": "314A0226B961D9BF92B91DAFFB875EE32E4CCAADE735E49C59045DFBA93B18BE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 40448,
+      "sha256": "94F40D90AD4D20D7B1BE21B7A06686166DFA0CEFD023966CE23390D0D530D645",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll",
+      "bytes": 260608,
+      "sha256": "B7C3202F93149E14D898DEF5E222CD85AE1C8B8EBADA6631B4B544C0F49C622D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "bytes": 1245696,
+      "sha256": "21F6E3D79E7FBFDE6E3CB2DC1CE2C1649DEA8C9E6D94C249C22E6A3BCBADA07F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug.Tests/bin/Release/net8.0/SmoViewer.Sparkplug.Tests.dll",
+      "bytes": 46080,
+      "sha256": "76E3841494BA2911BD3B203B302635FAFAF50CDF9CAE095AF3CA916A9A08AF7D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/tools/SmoViewer/SmoViewer.Sparkplug.Tests/bin/Release/net8.0/SmoViewer.Sparkplug.Tests.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerShaderLightingChecks.exe",
+      "bytes": 432640,
+      "sha256": "84163A0B8970BDADDB216A855F251CBB3E97BF4D6DD54266B24C2606D981F025",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/artifacts/native/viewer/Release/ViewerShaderLightingChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/Testing/Temporary/LastTest.log",
+      "bytes": 900,
+      "sha256": "E0D3D66C3630537120A7539459CDB5251D0CC3D8D38DB0AB1436A7F86E24FB6A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/artifacts/native/viewer/Release/Testing/Temporary/LastTest.log"
+    },
+    {
+      "path": "local-data/pc-pristine/Shaders/Fixed.rfx",
+      "bytes": 41601,
+      "sha256": "AC6785428BA851DEA88E3A6CDDC03FDF620FA06D82063DB83176598140803DB1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/shader-lighting/qualified/artifacts/local-data/pc-pristine/Shaders/Fixed.rfx"
+    }
+  ],
+  "status": "verified-weighted-selected-light-consumer",
+  "block": 9,
+  "sceneChecks": 156,
+  "nativeProjectionChecks": 61,
+  "gpuNumericChecks": 21,
+  "materialPixelChecks": 31,
+  "viewerChecks": 13167,
+  "viewerPoses": 43,
+  "exeScoreDelta": 0,
+  "reconstructedAlgorithmsChanged": false,
+  "sourceFieldProjectionExtracted": true,
+  "shaderSource": {
+    "path": "local-data/pc-pristine/Shaders/Fixed.rfx",
+    "bytes": 41601,
+    "sha256": "AC6785428BA851DEA88E3A6CDDC03FDF620FA06D82063DB83176598140803DB1"
+  },
+  "native": {
+    "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+    "bytes": 1245696,
+    "sha256": "21F6E3D79E7FBFDE6E3CB2DC1CE2C1649DEA8C9E6D94C249C22E6A3BCBADA07F"
+  },
+  "boundaries": [
+    "Weighted Fixed.rfx path; rigid fixed-function lighting remains separate",
+    "Host document light selection/activation and frame schedule",
+    "Explicit renderer constant ARGB zero",
+    "Unknown consumed constants refuse; unmarked ABI values are padding",
+    "Modern device lit instruction contract; no universal original GPU/float bit parity",
+    "Icy ambient RGB product zero; vertex color supplies RGB",
+    "Custom shaders, fog, shadows and game-global lights not claimed"
+  ],
+  "pixels": {
+    "source": "local-data/pc-pristine/Media/Characters/Icy/Icy.smo",
+    "checks": 9,
+    "device": "NVIDIA GeForce RTX 3070/PCIe/SSE2",
+    "failure": "",
+    "seconds": 1.3570882,
+    "peakBytes": 188190720,
+    "detail": {
+      "meshes": 12,
+      "passes": 12,
+      "withoutMaterial": 0,
+      "covered": 7752,
+      "upload": {
+        "GeometryCount": 12,
+        "TextureCount": 1,
+        "PlacementCount": 12,
+        "ElapsedMilliseconds": 4.8329
+      },
+      "staticMs": [
+        0.4195,
+        0.2849,
+        0.2571
+      ],
+      "liveMs": [
+        0.3017,
+        0.5344,
+        0.294
+      ],
+      "lightingEffect": {
+        "contributes": false,
+        "changedComponents": 0,
+        "shaderInputs": [
+          {
+            "ColorMode": 4,
+            "UseSpecular": true,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": true,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": true,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": true,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          },
+          {
+            "ColorMode": 4,
+            "UseSpecular": false,
+            "ambient": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "lights": 0
+          }
+        ],
+        "selected": [
+          {
+            "container": 2,
+            "ambient": 118,
+            "ordinary": []
+          }
+        ]
+      },
+      "decodeIssues": [],
+      "textureIssues": [],
+      "native": "21F6E3D79E7FBFDE6E3CB2DC1CE2C1649DEA8C9E6D94C249C22E6A3BCBADA07F",
+      "renderer": "D7343FFE070115D59E0FD41DE3B5544F0002AD2697417D2DA6E0E00572E10B91"
+    }
+  }
+}

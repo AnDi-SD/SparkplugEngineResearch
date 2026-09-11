@@ -314,6 +314,9 @@ namespace sparkplug::reconstruction
         // by4BDE50/4AE930. Caller keeps cache, objects and storage alive. Unknown
         // device words and optional identity mapping are explicit boundary inputs.
         using LightIdentityForAnalysis=std::uintptr_t (*)(const spLight&) noexcept;
+        // Shared field projection used by the draw caller and modern hosts.
+        // Unknown attenuation payload remains NaN; no light eligibility change.
+        [[nodiscard]] static spDXShader::LightForAnalysis ReadShaderLightForAnalysis(const spDXLight&);
         [[nodiscard]] static bool ResolveLightCacheForAnalysis(const spLightManager::CacheForAnalysis&,
             std::array<DeviceLightInputForAnalysis,9>& storage,LightListInputForAnalysis&,
             std::uint32_t unknownDeviceWord,LightIdentityForAnalysis identity=nullptr);

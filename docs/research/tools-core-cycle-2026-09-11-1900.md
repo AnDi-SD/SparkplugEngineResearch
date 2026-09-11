@@ -99,3 +99,14 @@ OpenGL — следующий самостоятельный блок, полн�
 Исправлены оставшиеся GPU occurrence keys LVLcreator: actual window прошёл
 833 checks. Ошибки новых тестов и границы сохранены в досье. Game lighting
 shader, authored mip chain и original Alpha sorting остаются следующими шагами.
+
+## Блок 9 — выбранный свет в вершинном шейдере персонажей
+
+[Общий shader-lighting consumer](tool-shader-lighting-2026-09-11.md) передаёт
+actual RenderNode cache через оригинальные PC constant producers в OpenGL.
+61 native projection assertions, 156 checks Icy/SAN, 21 GPU numeric checks,
+31 прежняя material check и 43 Viewer poses прошли. Icy показывает собственный
+vertex color: его ambient product имеет нулевой RGB, что подтверждено отдельно.
+Новые тестовые ошибки порядка DTO цветов/округления/ожидаемого вклада света
+исправлены; оригинальные алгоритмы не менялись. Rigid fixed-function lighting,
+custom shaders и полный игровой frame остаются отдельными границами.

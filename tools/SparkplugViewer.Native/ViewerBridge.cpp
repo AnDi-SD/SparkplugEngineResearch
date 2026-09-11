@@ -45,6 +45,7 @@
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Analysis/Host/ResourceEnvelope.h"
 #include "SceneLighting.h"
+#include "ShaderLighting.h"
 #include "MaterialSubmission.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
@@ -1249,6 +1250,18 @@ SPV_API int spv_scene_lighting_caches(void* handle,SpvSceneLightCache* output,st
             for(std::size_t slot=0;slot<cache.GetCount();++slot)row.lights[slot]=value.graph->ID(cache.Get(slot));
             output[i]=row;
         }});
+}
+SPV_API int spv_scene_shader_lighting(void* handle,std::uint32_t renderNodeID,std::uint32_t materialID,
+    const float* view,std::uint32_t constantColor,SpvShaderLighting* output) noexcept {
+    return guarded([&]{const auto& value=scene(handle);
+        require(value.graph&&value.lighting&&view&&output,"Missing scene shader lighting input/output");
+        auto& target=graphResource<spRenderNode>(*value.graph,renderNodeID);
+        const auto& targets=value.lighting->Targets();
+        require(std::find(targets.begin(),targets.end(),&target)!=targets.end(),"RenderNode is outside lighting context");
+        const auto& material=graphResource<spDXMaterial>(*value.graph,materialID);
+        const auto captured=spvhost::CaptureShaderLighting(target.GetLightCacheForAnalysis(),material,view,constantColor);
+        *output=captured; // no partial output on a refused producer
+    });
 }
 SPV_API int spv_scene_graph_skin_info(void* handle,std::uint32_t id,std::uint32_t* weights,std::uint32_t* bones) noexcept {
     return guarded([&]{const auto& value=scene(handle);require(value.graph&&weights&&bones,"Missing loaded scene/skin outputs");

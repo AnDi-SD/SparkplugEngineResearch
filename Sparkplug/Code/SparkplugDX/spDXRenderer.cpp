@@ -114,6 +114,24 @@ namespace sparkplug::reconstruction
         return &state.cached[index];
     }
 
+    spDXShader::LightForAnalysis spDXRenderer::ReadShaderLightForAnalysis(const spDXLight& light)
+    {
+        spDXShader::LightForAnalysis result;
+        result.type=static_cast<std::uint32_t>(light.GetTypeForAnalysis());result.color=light.GetColorForAnalysis();
+        result.worldPosition=light.GetWorldPositionForAnalysis();
+        const auto& world=light.GetWorldOrientationForAnalysis();const auto& local=light.GetOrientationForAnalysis();
+        for(unsigned i=0;i<3;++i)
+        {
+            result.worldDirection[i]=world[6+i];result.localDirection[i]=local[6+i];
+            const auto value=light.GetDevicePayloadForAnalysis()[21+i];
+            if(value)std::memcpy(&result.attenuation[i],&*value,4);
+            else result.attenuation[i]=std::numeric_limits<float>::quiet_NaN();
+        }
+        result.attenuation[3]=light.GetRangeForAnalysis();
+        result.innerAngle=light.GetHotspotAngleForAnalysis();result.outerAngle=light.GetFalloffAngleForAnalysis();
+        return result;
+    }
+
     bool spDXRenderer::ResolveLightCacheForAnalysis(const spLightManager::CacheForAnalysis& cache,
         std::array<DeviceLightInputForAnalysis,9>& storage,LightListInputForAnalysis& output,
         const std::uint32_t unknownDeviceWord,LightIdentityForAnalysis identity)
@@ -264,20 +282,7 @@ namespace sparkplug::reconstruction
                 const auto read=[](const DeviceLightInputForAnalysis& input)->std::optional<spDXShader::LightForAnalysis>
                 {
                     if(!input.sourceObject)return std::nullopt;
-                    const auto& light=*input.sourceObject;spDXShader::LightForAnalysis result;
-                    result.type=static_cast<std::uint32_t>(light.GetTypeForAnalysis());result.color=light.GetColorForAnalysis();
-                    result.worldPosition=light.GetWorldPositionForAnalysis();
-                    const auto& world=light.GetWorldOrientationForAnalysis();const auto& local=light.GetOrientationForAnalysis();
-                    for(unsigned i=0;i<3;++i)
-                    {
-                        result.worldDirection[i]=world[6+i];result.localDirection[i]=local[6+i];
-                        const auto value=light.GetDevicePayloadForAnalysis()[21+i];
-                        if(value)std::memcpy(&result.attenuation[i],&*value,4);
-                        else result.attenuation[i]=std::numeric_limits<float>::quiet_NaN(); // unknown: type22 guard refuses
-                    }
-                    result.attenuation[3]=light.GetRangeForAnalysis();
-                    result.innerAngle=light.GetHotspotAngleForAnalysis();result.outerAngle=light.GetFalloffAngleForAnalysis();
-                    return result;
+                    return ReadShaderLightForAnalysis(*input.sourceObject);
                 };
                 resolved.lights.clear();resolved.ambientLight.reset();resolved.directionalLight.reset();
                 for(const auto* input:lights->input->lights)
