@@ -1,0 +1,76 @@
+{
+  "kind": "native-research-support-evidence",
+  "schemaVersion": 1,
+  "assessmentUpdates": 0,
+  "scope": "Interim cycle audit through block37;run1 graph incomplete,run2 failed before result,run3 old embedded paths resolved explicitly by run4.No guest execution or ledger/source history mutation.",
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run4.json",
+      "sha256": "956EEEB561CF0E396EE19B0DE7E1F6939DF6C329F2D3BE15814D0F43A5427B26"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audit-source-snapshot/audit_native_cycle.py",
+      "sha256": "6793F20730C28B3B043E350606576AD90AEC07879E31D16C976C39B062EAA35C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run1.json",
+      "sha256": "E5A18143221E714CDE8E4D7CD531C41F0E9AC41443E8A8AFFBC614831CD4FEFB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run3.json",
+      "sha256": "E56D3FDCD21AB53B5B0A77C5C7DEA37C515EB59F6D5AB0DBDD75E42FE901915B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audit-before-path-normalization.py",
+      "sha256": "C8E63E3B94E0E585AAC68564273FCD4F095B1E12D1822EAA5F69E9CFC7B9D6F4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audit-before-binding-shape-support.py",
+      "sha256": "8CC7EE281C9C27D78C545CBE887CE421179E513F27D1D4BFA02735F22C6D6FD9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audit-before-archive-bindings.py",
+      "sha256": "81BCBC43BF3ED47D26BD8E8A296FAE356001E51EE79A7D08A122E475E071B7BB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/audit-pass-corrections.json",
+      "sha256": "DC9E8E394A2E73C8E4FAC0133A271027B29DA9A6FF5957BD17C21E40A3B91079"
+    },
+    {
+      "path": "docs/research/native-cycle-integrity-2026-09-11.md",
+      "sha256": "0C7BA54AFADA7CF9014464692F250D49431E3B0979E87A37FE467EBAADC11C5B"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run1.json",
+        "sha256": "E5A18143221E714CDE8E4D7CD531C41F0E9AC41443E8A8AFFBC614831CD4FEFB"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audit-before-path-normalization.py",
+        "sha256": "C8E63E3B94E0E585AAC68564273FCD4F095B1E12D1822EAA5F69E9CFC7B9D6F4"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run3.json",
+        "sha256": "E56D3FDCD21AB53B5B0A77C5C7DEA37C515EB59F6D5AB0DBDD75E42FE901915B"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audit-before-archive-bindings.py",
+        "sha256": "81BCBC43BF3ED47D26BD8E8A296FAE356001E51EE79A7D08A122E475E071B7BB"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/interim-cycle-audit-run4.json",
+        "sha256": "956EEEB561CF0E396EE19B0DE7E1F6939DF6C329F2D3BE15814D0F43A5427B26"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/audit-source-snapshot/audit_native_cycle.py",
+        "sha256": "6793F20730C28B3B043E350606576AD90AEC07879E31D16C976C39B062EAA35C"
+      }
+    }
+  ]
+}
