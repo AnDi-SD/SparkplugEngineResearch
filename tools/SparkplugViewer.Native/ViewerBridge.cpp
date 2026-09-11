@@ -719,6 +719,14 @@ SPV_API int spv_mesh_indices(void* handle,std::uint32_t* output,std::uint32_t co
     return guarded([&]{require(handle,"Missing render mesh handle");const auto& values=static_cast<spvhost::RenderMeshView*>(handle)->indices;
         require(values.size()==count&&(output||!count),"Mesh index output count mismatch");if(count)std::copy(values.begin(),values.end(),output);});
 }
+SPV_API int spv_mesh_triangles(void* handle,std::uint32_t* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{require(handle&&count,"Missing triangle projection input/output");
+        const auto& mesh=*static_cast<spvhost::RenderMeshView*>(handle);
+        require(mesh.triangleProjectionAvailable,"Triangle projection is unavailable for this mesh view");
+        const auto& values=mesh.triangleIndices;
+        require((output&&capacity>=values.size())||(!output&&!capacity),"Triangle output capacity too small");
+        if(output)std::copy(values.begin(),values.end(),output);*count=static_cast<std::uint32_t>(values.size());});
+}
 SPV_API int spv_vertex_layout(std::uint32_t flags,SpvVertexLayout* output) noexcept {
     return guarded([&]{require(output,"Missing vertex layout output");spVertexBuffer vb;
         require(vb.InitializeForAnalysis(flags,0),"Cannot initialize original vertex layout");*output=spvhost::RenderMeshView::Layout(vb);});

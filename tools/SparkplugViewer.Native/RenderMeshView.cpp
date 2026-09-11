@@ -3,6 +3,7 @@
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spVertexBuffer.h"
+#include "Analysis/Host/RenderTopology.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -55,9 +56,12 @@ void RenderMeshView::Capture(const spIndexBuffer& ib,const spVertexBuffer& vb,
     Require((flags&0x1e)==0||(flags&0x1e)==0x1e,"Host mesh view requires absent or four authored blend weights");
     indices.resize(info.indices);
     for(std::uint32_t i=0;i<info.indices;++i) {
-        const auto index=ib.GetIndexForAnalysis(i);Require(index&&*index<info.vertices,"Host mesh view index is outside its vertex buffer");
+        const auto index=ib.GetIndexForAnalysis(i);Require(index.has_value(),"Host mesh view index is missing");
         indices[i]=*index;
     }
+    triangleProjectionAvailable=info.primitiveType==2||info.primitiveType==3;
+    if(triangleProjectionAvailable)triangleIndices=sparkplug::host::render_topology::Triangles(indices,info.primitiveType,info.vertices);
+    else for(const auto index:indices)Require(index<info.vertices,"Host mesh view index is outside its vertex buffer");
     vertices.assign(info.vertices,{});const auto& data=vb.GetDataForAnalysis();
     Require(data.size()==std::uint64_t(info.vertices)*layout.stride,"Vertex buffer size differs from original component layout");
     for(std::uint32_t i=0;i<info.vertices;++i) {

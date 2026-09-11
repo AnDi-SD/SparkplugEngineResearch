@@ -13,6 +13,8 @@ public:
     SpvMeshInfo info{};
     std::vector<SpvMeshVertex> vertices;
     std::vector<std::uint32_t> indices;
+    std::vector<std::uint32_t> triangleIndices;
+    bool triangleProjectionAvailable=false;
     static SpvVertexLayout Layout(const sparkplug::reconstruction::spVertexBuffer&);
 private:
     bool metadataOnly=false;

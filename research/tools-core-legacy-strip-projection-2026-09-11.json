@@ -1,0 +1,798 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "Sparkplug/Analysis/Host/RenderTopology.h",
+      "bytes": 1732,
+      "sha256": "73BD82CD176850A62270C4BB3F653CF070817A4E5E9B0DEAF075D778D48609CF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/Sparkplug/Analysis/Host/RenderTopology.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/RenderMeshView.h",
+      "bytes": 1120,
+      "sha256": "282451B438CF7E1976C16F7B7B3ED6A2C9658FB6DC2F142A99F7F21769324366",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/RenderMeshView.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/RenderMeshView.cpp",
+      "bytes": 5846,
+      "sha256": "349D6C98BC5B0C3ED3367010D05D4939C4D5D09F902B3A7FA5AC7073814102E9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/RenderMeshView.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 33183,
+      "sha256": "B8AA6A12EE05EADC7607043674A51CCC909D277AAB982B529A88467F585E24AE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 150739,
+      "sha256": "4F78FBF4E658336A23B602D59DA105167286BFAFF7BFF9F92333287750EEC678",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "bytes": 5182,
+      "sha256": "536DF354F2F7E3CAD02FCFC74AB77C96D9C84AA4267AF956BD984F13F8FD2D6C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/Build-Native.ps1"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "bytes": 5061,
+      "sha256": "0EA040B302C2259D35ADCF822EF964B73A2F9EBF22621125CBC05005A497C429",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/CMakeLists.txt"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Tests/RenderTopologyTests.cpp",
+      "bytes": 1822,
+      "sha256": "874480470AA559A4C30DA3D28A4423330494C321C612A8A81C1DC65B0D2D4D2C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SparkplugViewer.Native/Tests/RenderTopologyTests.cpp"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoMeshDecoder.cs",
+      "bytes": 7277,
+      "sha256": "2F53DE00198D39A7268B3CE6EC8BA2BAFD6270361DECF47A65D6BB1B82DA644E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoMeshDecoder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs",
+      "bytes": 27636,
+      "sha256": "8391030E7ED30F1173F683EECF4AA4A99BF284E88E50C5D3C1B7E26AE8C73AFB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "bytes": 14281,
+      "sha256": "09C748DDDCAFF6B87EAE2D70235DDB124D556C82C4980D10AAADC289E7021E0B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs",
+      "bytes": 9458,
+      "sha256": "964A79E22F598C77DEB810441456FA8B0081F9B4F4DBB1B6CCB55177F1437909",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs",
+      "bytes": 6966,
+      "sha256": "D58B5D3D4E4AA55FE919FCE18F4514BF6E70BC79E99E8FCC67C9E21F2A895D37",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs"
+    },
+    {
+      "path": "research/probe_pc_legacy_strip_tail.py",
+      "bytes": 4760,
+      "sha256": "05B8F0CEDF684B460FFA2D91DB2C7EFDA1DC99FA0FEA5D12746FF481117A2C0C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/research/probe_pc_legacy_strip_tail.py"
+    },
+    {
+      "path": "research/check_legacy_strip_projection.py",
+      "bytes": 4350,
+      "sha256": "06C685F5D34212F19D39878874719185671D91CDBC8AA30B64AB87B296CD24AE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/research/check_legacy_strip_projection.py"
+    },
+    {
+      "path": ".codex-tmp/inspect-menu-mesh.py",
+      "bytes": 2644,
+      "sha256": "F448ED922A997BF245A594EFE757E20B44675D4A5C3C1C00D1E9DC9CA72FB651",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/.codex-tmp/inspect-menu-mesh.py"
+    },
+    {
+      "path": ".codex-tmp/seal-legacy-strip.py",
+      "bytes": 3546,
+      "sha256": "EDB9DA0254603F6FFB9EBF965538FFBD52E4A75D7B04F451BE94664B28C46B5C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/.codex-tmp/seal-legacy-strip.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": "docs/research/tool-legacy-strip-projection-2026-09-11.md",
+      "bytes": 5509,
+      "sha256": "49F2C3E6EEBB2B20B267A0673477210B8A11272240B88BBC7C76DCB4ED17168D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/sources/docs/research/tool-legacy-strip-projection-2026-09-11.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/abi-run1.json",
+      "bytes": 4834,
+      "sha256": "E46B42E367B93C198ED3BA7663E6B04B90EC6816366E6F3FAB6A82A9F86EC6FE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/abi-run1.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/initial-inspection.json",
+      "bytes": 79448,
+      "sha256": "864B8B6987EEC7F830317D60E915813864A59F1C7ACCBC1AE5F01A049714809E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/initial-inspection.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-managed-run1.json",
+      "bytes": 5358,
+      "sha256": "9CE60C10F97FFDFAAB66951AEF8A7140267687A5F08612571117F024DDF9C50D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-managed-run1.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/alfea02-gpu-run1/report.json",
+      "bytes": 1955,
+      "sha256": "49CDE14EF0585F91A5F578054833603394677F367AD3A4501CAC9001D66348EE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/alfea02-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/alfea02-gpu-run1/scene.png",
+      "bytes": 21087,
+      "sha256": "3C63CFF442B4E63C53221811CC322DE5CC832D6205026B7FF71656422BF3C172",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/alfea02-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/icy-gpu-run1/report.json",
+      "bytes": 3747,
+      "sha256": "F4D3A0348E7523822C7B405C2B6AC6DF17361B229B2FE065BE2696249413174B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/icy-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/icy-gpu-run1/scene.png",
+      "bytes": 14303,
+      "sha256": "6D4F94BB8A2E031FEA6833676B9964C6F368A9EC827586F7C2794C405EC78E38",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/icy-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-gpu-run1/report.json",
+      "bytes": 2281,
+      "sha256": "16A5DCFBA8069618DF67A0C3C76B14A1C29E8334D6D3C0E935432705134C3116",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-gpu-run1/scene.png",
+      "bytes": 1794,
+      "sha256": "75E34734EE44368DB460A4294594106A9FE3FF61AE4DDA0E385324ABFBE7B30E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/menu-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/mesh-11.bin",
+      "bytes": 750,
+      "sha256": "71CB2F7211A6721FFB5C7E0588F08669A951F077622E51412F3696EA3AF81856",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/mesh-11.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/mesh-6.bin",
+      "bytes": 202,
+      "sha256": "8354B8AD04525B9E5D265D13AB2CA2541F716EC499B85E750949CC2B34132334",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/mesh-6.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/probe-source.py",
+      "bytes": 4760,
+      "sha256": "05B8F0CEDF684B460FFA2D91DB2C7EFDA1DC99FA0FEA5D12746FF481117A2C0C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/report.json",
+      "bytes": 5692,
+      "sha256": "62213BFEA528CA9E1BD07F09201D151ABF9C6AEDB8A4EA71146FF445A5364B96",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/menu-mesh/original-run1/report.json"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1273344,
+      "sha256": "12F2E671909A257BBECEA8CA1980A60296B0C60D0B60C8E984B573E9DEE44ECB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerRenderTopologyChecks.exe",
+      "bytes": 273408,
+      "sha256": "BF96B1041DA884105DFC34E4A23A62F27C1A0E91C697074F9C9B5C1ACB93191B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/artifacts/native/viewer/Release/ViewerRenderTopologyChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerMeshReaderChecks.exe",
+      "bytes": 557056,
+      "sha256": "8C0F434345FB2CBCE3E8C579D9427979B1A4C679FE65624F4FD4C771B07E8CA3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/artifacts/native/viewer/Release/ViewerMeshReaderChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/Testing/Temporary/LastTest.log",
+      "bytes": 1672,
+      "sha256": "6014945FE11525B78867389FB0F41F58980E073DEB8565DC96DFD05B037C8BDA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/artifacts/native/viewer/Release/Testing/Temporary/LastTest.log"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 169984,
+      "sha256": "7E4BD6E1A1696295588021919CFE5F6F999F895EE9C1B1DF897CC2116309B21D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 749568,
+      "sha256": "F9CF012F438AE0D6C61AAF092B3A392408FBF3718D561297409459F59C871AFC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 41472,
+      "sha256": "730A0BCDD95791FD889DD39BDB131AC5B8A842FEEDF25BECD2904E96BCEB9D0A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 40960,
+      "sha256": "91B79782360A7EDFEB162CA2738667553C8C50FA43D3A57AFC5BF80B75348784",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 147456,
+      "sha256": "ADFC2BDD929253A0A4C4C1B9BB18D921F55A91463D1BA54EE14F897786FAACF1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll",
+      "bytes": 583168,
+      "sha256": "4C900D02B9FA66C576956B6F2C32C1F215532ECDFC7D2A04AFCCC26661BAF18B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll",
+      "bytes": 749568,
+      "sha256": "F9CF012F438AE0D6C61AAF092B3A392408FBF3718D561297409459F59C871AFC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll",
+      "bytes": 41472,
+      "sha256": "730A0BCDD95791FD889DD39BDB131AC5B8A842FEEDF25BECD2904E96BCEB9D0A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Scene.dll",
+      "bytes": 40960,
+      "sha256": "91B79782360A7EDFEB162CA2738667553C8C50FA43D3A57AFC5BF80B75348784",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/menu-mesh/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.Scene.dll"
+    }
+  ],
+  "status": "verified-host-legacy-strip-projection",
+  "block": 13,
+  "nativeSha256": "12F2E671909A257BBECEA8CA1980A60296B0C60D0B60C8E984B573E9DEE44ECB",
+  "originalChecks": 17,
+  "nativeChecks": 358,
+  "abiChecks": 373,
+  "managedChecks": 124,
+  "gpuChecks": 27,
+  "meshes": 41,
+  "vertices": 1284,
+  "triangles": 1202,
+  "exeScoreDelta": 0,
+  "reconstructedAlgorithmsChanged": false,
+  "boundaries": [
+    "Original reader/upload bytes, not native GPU draw",
+    "Raw strip tails preserved; validated modern triangle projection",
+    "64MiB host triangle output cap",
+    "Menu Text GPU and original legacy texture selection remain open"
+  ],
+  "original": {
+    "status": "passed-scoped-reader-upload",
+    "source": "local-data/pc-pristine/Media/Menus/menu.smo",
+    "sourceSha256": "1AFD3D65A4F974BD352F8A94F77697339668A3C13C1E314DDF0BA6188573E844",
+    "pcSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "cases": [
+      {
+        "id": 6,
+        "offset": 5767,
+        "size": 202,
+        "inputSha256": "8354B8AD04525B9E5D265D13AB2CA2541F716EC499B85E750949CC2B34132334",
+        "primitives": 8,
+        "vertices": 4,
+        "indices": [
+          2,
+          2,
+          2,
+          0,
+          1,
+          3,
+          3,
+          3,
+          52685,
+          52685
+        ],
+        "meshWords": [
+          2368,
+          8,
+          4,
+          3,
+          822147088,
+          822147168,
+          0,
+          20,
+          144,
+          0,
+          0,
+          338,
+          36,
+          0,
+          0,
+          0,
+          822147360
+        ],
+        "uploadedIndices": "02000200020000000100030003000300cdcdcdcd",
+        "vertexSha256": "D21FFF160D44CEC38891F69BF1DC16A120F526DF0A32663D901C1C290549C89F",
+        "instructions": 30527,
+        "arena": 63904,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "released": true
+      },
+      {
+        "id": 11,
+        "offset": 6283,
+        "size": 750,
+        "inputSha256": "71CB2F7211A6721FFB5C7E0588F08669A951F077622E51412F3696EA3AF81856",
+        "primitives": 98,
+        "vertices": 32,
+        "indices": [
+          24,
+          24,
+          24,
+          25,
+          17,
+          26,
+          27,
+          28,
+          28,
+          28,
+          1,
+          1,
+          1,
+          2,
+          0,
+          3,
+          3,
+          3,
+          27,
+          27,
+          27,
+          27,
+          29,
+          28,
+          30,
+          31,
+          31,
+          31,
+          24,
+          24,
+          24,
+          24,
+          23,
+          17,
+          22,
+          21,
+          21,
+          21,
+          21,
+          21,
+          21,
+          21,
+          20,
+          17,
+          19,
+          18,
+          18,
+          18,
+          15,
+          15,
+          15,
+          15,
+          16,
+          8,
+          17,
+          18,
+          18,
+          18,
+          12,
+          12,
+          12,
+          12,
+          13,
+          8,
+          14,
+          15,
+          15,
+          15,
+          9,
+          9,
+          9,
+          9,
+          10,
+          8,
+          11,
+          12,
+          12,
+          12,
+          9,
+          9,
+          9,
+          9,
+          8,
+          0,
+          7,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          5,
+          0,
+          4,
+          3,
+          3,
+          3,
+          52685,
+          52685
+        ],
+        "meshWords": [
+          256,
+          98,
+          32,
+          3,
+          822147632,
+          822147888,
+          0,
+          200,
+          512,
+          0,
+          0,
+          66,
+          16,
+          0,
+          0,
+          0,
+          822148448
+        ],
+        "uploadedIndices": "180018001800190011001a001b001c001c001c00010001000100020000000300030003001b001b001b001b001d001c001e001f001f001f00180018001800180017001100160015001500150015001500150015001400110013001200120012000f000f000f000f001000080011001200120012000c000c000c000c000d0008000e000f000f000f0009000900090009000a0008000b000c000c000c0009000900090009000800000007000600060006000600060006000600050000000400030003000300cdcdcdcd",
+        "vertexSha256": "0D2BA78797C5700253DC0466FBF75BD92AEBACE1E0900713C4D41AA40B7A9F84",
+        "instructions": 37860,
+        "arena": 64976,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "released": true
+      }
+    ],
+    "checks": 17,
+    "scope": "Actual original standalone reader and upload copy; declared COM/stream/allocation fixture, no GPU/whole-game proof",
+    "elapsedSeconds": 2.6841625000088243,
+    "dependencies": [
+      {
+        "path": "research/inspect_pc_san_keys.py",
+        "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+      },
+      {
+        "path": "research/inspect_serializer_manager.py",
+        "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+      },
+      {
+        "path": "research/pc_declaration_fixture.py",
+        "sha256": "D52429DFEDE05ED5348EE1803D8C3DE962DD51FEF18220314A9A29EB4BCA17CD"
+      },
+      {
+        "path": "research/pc_instruction_emulator.py",
+        "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+      },
+      {
+        "path": "research/pc_loader_fixtures.py",
+        "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+      },
+      {
+        "path": "research/probe_pc_animation_keys.py",
+        "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+      },
+      {
+        "path": "research/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      },
+      {
+        "path": "research/probe_pc_dx_buffers.py",
+        "sha256": "DE0E43655B38B0A799E5BCD0AFFE8D498154DA2574C4314FA32375155DEEC793"
+      },
+      {
+        "path": "research/probe_pc_dx_mesh_payload.py",
+        "sha256": "4FBAA0DD76671A975B8E9F4F5CA46076EDFFF14D33F387D97E76AC04ED3891FF"
+      },
+      {
+        "path": "research/probe_pc_legacy_strip_tail.py",
+        "sha256": "05B8F0CEDF684B460FFA2D91DB2C7EFDA1DC99FA0FEA5D12746FF481117A2C0C"
+      },
+      {
+        "path": "research/probe_pc_san_reader.py",
+        "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+      }
+    ]
+  },
+  "abi": {
+    "status": "passed",
+    "sourceSha256": "1AFD3D65A4F974BD352F8A94F77697339668A3C13C1E314DDF0BA6188573E844",
+    "nativeSha256": "12F2E671909A257BBECEA8CA1980A60296B0C60D0B60C8E984B573E9DEE44ECB",
+    "originalSha256": "62213BFEA528CA9E1BD07F09201D151ABF9C6AEDB8A4EA71146FF445A5364B96",
+    "inspectionSha256": "864B8B6987EEC7F830317D60E915813864A59F1C7ACCBC1AE5F01A049714809E",
+    "checks": 373,
+    "meshes": [
+      {
+        "id": 6,
+        "vertices": 4,
+        "rawIndices": 10,
+        "triangles": 2
+      },
+      {
+        "id": 11,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 15,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 19,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 25,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 37,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 41,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 45,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 49,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 60,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 64,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 68,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 72,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 83,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 87,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 91,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 95,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 106,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 110,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 114,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 118,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 129,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 133,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 137,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 141,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 152,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 156,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 160,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 164,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 173,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 177,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 183,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 187,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 198,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 202,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 206,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 210,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 221,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 225,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 229,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      },
+      {
+        "id": 233,
+        "vertices": 32,
+        "rawIndices": 100,
+        "triangles": 30
+      }
+    ],
+    "elapsedSeconds": 0.032489999997778796,
+    "scriptSha256": "06C685F5D34212F19D39878874719185671D91CDBC8AA30B64AB87B296CD24AE"
+  }
+}

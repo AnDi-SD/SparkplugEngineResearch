@@ -150,6 +150,10 @@ SPV_API void spv_mesh_destroy(void*) noexcept;
 SPV_API int spv_mesh_info(void*,SpvMeshInfo*) noexcept;
 SPV_API int spv_mesh_vertices(void*,SpvMeshVertex*,std::uint32_t) noexcept;
 SPV_API int spv_mesh_indices(void*,std::uint32_t*,std::uint32_t) noexcept;
+// Raw indices above preserve the source, including unused invalid strip tail
+// values. This bounded HOST projection validates every emitted triangle index.
+// Null output/capacity0 queries count; maximum projected storage64MiB.
+SPV_API int spv_mesh_triangles(void*,std::uint32_t*,std::uint32_t,std::uint32_t*) noexcept;
 SPV_API int spv_vertex_layout(std::uint32_t componentFlags,SpvVertexLayout*) noexcept;
 // kind 0: MeshBV field stream (no SBOO header), 1: geometry field, 2: face field.
 // Leaf readers invoke the same actual serializers as whole resource loading.

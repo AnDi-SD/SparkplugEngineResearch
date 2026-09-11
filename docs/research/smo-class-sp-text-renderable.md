@@ -4,6 +4,8 @@
 вместе с Font measurement; metadata и runtime используют один field reader.
 Ниже сохранён прежний wire-профиль. GPU text и writer остаются открытыми.
 
+## Исторический wire-срез10 сентября
+
 Уточнение 10 сентября 2026: прежний вывод о UTF-16LE/Single был ошибкой
 нашего decoder, скрытой единственной строкой `30 00`. Подтверждены byte-string
 reader PC416DC0/441C10 и UInt32 wrap. Общий serializer предоставляет metadata

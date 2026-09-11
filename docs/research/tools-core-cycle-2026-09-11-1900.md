@@ -151,3 +151,13 @@ loader сохранён. Source-selection старой игры всё ещё н
 Следующая конкретная зависимость:41 Mesh меню отклонён из-за индексов вне VB;
 это выявлено GPU preflight и сохранено в final managed report. Text GPU также
 ещё не подключён. Полный вывод меню пока не заявлен.
+
+## Блок13 — геометрия старого меню
+
+[Общая strip projection](tool-legacy-strip-projection-2026-09-11.md) устранила
+41 host rejection: original reader действительно сохраняет два`CDCD` в конце
+strip, но они попадают только в вырожденные окна. Raw indices неизменны;
+проверяются реально выводимые triangles. Обе C# conversion routines удалены.
+17 original,358 native и373 C ABI checks прошли; menu41 placements/1202
+triangles теперь выводится на RTX3070. Icy и Alfea02 также прошли. Следующий
+связанный пробел — GPU Text для оставшихся десяти occurrences меню.

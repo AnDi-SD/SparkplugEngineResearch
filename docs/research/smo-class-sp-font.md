@@ -1,5 +1,11 @@
 # `spFont`: общий reader и корпусный профиль
 
+Обновление11 сентября: [CPU measurement и Font atlas ownership](tool-text-runtime-2026-09-11.md)
+подтверждены оригинальными PC вызовами. Runtime atlas имеет тип `spTexture`;
+прежняя трактовка его как `spTextureData` была ошибкой реконструкции.
+[Общий tool graph](tool-legacy-texture-and-text-graph-2026-09-11.md) теперь
+предоставляет настоящие Font и atlas C#-потребителям. GPU text ещё открыт.
+
 Уточнение 10 сентября 2026: подключён общий `spFont`/`spFontSerializer`.
 Factory обнуляет height/image/glyphs, **baseline оставляет неинициализированным**.
 Общий код представляет его optional до reader assignment. Неизвестные и
@@ -16,7 +22,7 @@ Writer/clone/font renderer не восстановлены этим срезом
 Единственный field 0 имеет layout:
 
 ```text
-relationship<spTextureData> atlas
+relationship<spTexture> atlas   // runtime; serialized wire resource may be TextureData
 UInt32 height
 UInt32 baseline
 for character 0x20..0xFF:          // ровно 224 записи
