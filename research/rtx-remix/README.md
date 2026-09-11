@@ -6,7 +6,7 @@
 
 ## Запуск установленного прототипа
 
-В папке игры подготовлены `Play-RTX.cmd`, `Play-Original.cmd` и
+В папке игры подготовлены `Play-RTX.cmd`, `Play-RTX-Debug.cmd`, `Play-Original.cmd` и
 `Play-Remix-Raster.cmd`. Они вызывают:
 
 ```powershell
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Run-WinxR
 скриптом. Обычные профили не пишут подробную покадровую диагностику.
 Каждый запуск сохраняет применённую конфигурацию и хеш DLL в новой папке
 `local-data/rtx-remix/runs/play-*`.
+
+`Play-RTX-Debug.cmd` передаёт `-DebugMenu` и запускает уже существующий
+`WinxClubDebug.exe`, проверяя его хеш. F1 открывает штатное дебагменю;
+LOAD LEVEL позволяет переходить между уровнями. Основной EXE не заменяется.
 
 Профили задают параметры через окружение дочернего процесса. Поэтому
 для воспроизведения результата использовать эти команды, а не прямой
@@ -42,27 +46,42 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Run-WinxR
   Компенсация действует только внутри draw, игровое состояние возвращается.
 * `WINX_REMIX_FIT_WINDOW=1`: окно под размер кадра с ограничением рабочей
   областью монитора; весь backbuffer масштабируется в client area.
+* `WINX_REMIX_MENU_BACKGROUND=1`: отдельная перспектива фона меню распознаётся
+  по наблюдённой сигнатуре камеры и сохраняет штатную отрисовку. Убраны чёрные
+  лучи в заставке, главном меню, выборе сохранений и дневнике.
+* `WINX_REMIX_SKY_LAYERS=1`: ранние fixed-function слои вокруг камеры с
+  отключённой глубиной помечаются как небо через временный MinZ=MaxZ=1.
+  В Гардинии это устраняет ошибочное освещение от захваченного купола неба.
 
-`Original` выключает все эти адаптации. `Raster` включает всё, кроме UI boundary;
-`RTX` включает все пять. FVF-нормализация и чтение текстур оставлены только
+`Original` выключает все эти адаптации. `Raster` включает mip, передачу текстур,
+viewport и окно. `RTX` включает все семь. FVF-нормализация и чтение текстур оставлены только
 как выключенные по умолчанию диагностические эксперименты.
+
+RTX-профиль дополнительно сохраняет исходную яркость вершинных цветов
+(`rtx.vertexColorIsBakedLighting=False`), задаёт интенсивности конвертации point/
+directional света10, localtonemap exposure1 и shadows5. Это наш художественный
+подбор для Алфеи и Гардинии, не восстановленные константы игры. Прежние настройки
+без этого подбора остаются доступными через Start-Probe без ConfigOverride.
 
 Проверены загрузка существующего сохранения Алфеи, RT-кадр с Блум,
 изменение камеры, HUD и открытие дневника. Загрузочная картинка и дневник
 проверены целиком при1280×960; уменьшение client до800×600 сохраняет весь кадр.
-Остаются чрезмерно оранжевое освещение, отличия прозрачных/проекционных эффектов
-и искажения фона меню.
-Отдельные анимации/NPC, другие локации, переходы и длительная игра полностью
-не проверены. Полноценный Remix-мод с заменами материалов и света не создан.
+Проверен переход Алфея→Gardenia01 через F1. Цвета Алфеи приближены к исходным;
+сняты сравнительные кадры. Остаются отличия прозрачных/проекционных эффектов и
+дефект участка дорожки в Гардинии: он присутствует в обычной отрисовке, но
+пропускает фон в RT. Исправление неба решает освещение, не этот отдельный дефект.
+Остальные уровни и длительная игра полностью не проверены. Полноценный Remix-мод
+с индивидуальными заменами материалов и света не создан.
 
 ## Сборка и диагностика
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Build-Probe.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Start-Probe.ps1 -Name fresh-test -ExplicitMipLevels -ResubmitTextures -Raytracing -OrthographicUi -FitWindow -ViewportScale
+powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Start-Probe.ps1 -Name fresh-test -ExplicitMipLevels -ResubmitTextures -Raytracing -OrthographicUi -FitWindow -ViewportScale -MenuBackground -SkyLayers
 ```
 
-Нужны MSVC x86 и Windows SDK. Сборка создаёт
+Нужны MSVC x86, Windows SDK и `public/include/remix/remix_c.h` из reference
+checkout ниже. Сборка создаёт
 `local-data/rtx-remix/build/d3d9.dll`, сама её не устанавливает.
 В текущей установке эта DLL уже лежит рядом с WinxClub.exe, а официальная
 x86 DLL сохранена как `d3d9.remix-original.dll`.
@@ -75,6 +94,15 @@ Ex-only CreateDeviceEx/PresentEx не покрыты. Диагностика с�
 [живой отчёт](../../docs/research/winx-rtx-remix-live-2026-09-11.md).
 Исправления окна и загрузочных экранов:
 [проверка 11 сентября](../../docs/research/winx-remix-window-loading-2026-09-11.md).
+Фон, цвета и небо: [сравнения и ограничения](../../docs/research/winx-remix-visuals-2026-09-11.md).
+
+`Start-Probe -LiveConfig` позволяет менять `rtx.*` через `live.conf` в папке
+запуска и официальный SetConfigVariable. Это только диагностика, отключённая
+в обычном профиле. Launcher временно включает API в bridge.conf, сохраняет
+исходное состояние и восстанавливает его после выхода игры скрытым помощником.
+Изменённый во время теста bridge.conf автоматически не перезаписывается.
+Из live.conf нельзя запускать код; удаление строки не сбрасывает ранее применённое
+значение — для этого нужна явная обратная настройка или новый запуск.
 
 Возврат штатного клиента Remix после выхода игры:
 

@@ -1,4 +1,4 @@
-param([ValidateSet('RTX','Raster','Original')][string]$Mode='RTX')
+param([ValidateSet('RTX','Raster','Original')][string]$Mode='RTX', [switch]$DebugMenu)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
@@ -9,6 +9,7 @@ if ((Get-FileHash -LiteralPath (Join-Path $game 'd3d9.dll')).Hash -ne (Get-FileH
 }
 $name="play-$($Mode.ToLowerInvariant())-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff')"
 $options=@{ Name=$name; NoDrawTrace=$true }
+if ($DebugMenu) { $options.DebugMenu=$true }
 if ($Mode -eq 'Original') {
     $options.Backend='system'
 } else {
@@ -19,6 +20,16 @@ if ($Mode -eq 'Original') {
     if ($Mode -eq 'RTX') {
         $options.Raytracing=$true
         $options.OrthographicUi=$true
+        $options.MenuBackground=$true
+        $options.SkyLayers=$true
+        # Visual tuning for original Winx vertex colors, not recovered game constants.
+        $options.ConfigOverride=@{
+            'rtx.vertexColorIsBakedLighting'='False'
+            'rtx.lightConversionIntensityFactor'='10'
+            'rtx.lightConversionDistantLightFixedIntensity'='10'
+            'rtx.localtonemap.exposure'='1'
+            'rtx.localtonemap.shadows'='5'
+        }
     }
 }
 & (Join-Path $PSScriptRoot 'Start-Probe.ps1') @options
