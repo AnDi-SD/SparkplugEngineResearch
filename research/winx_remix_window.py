@@ -15,12 +15,16 @@ parser.add_argument("--hold", type=float, default=0.15)
 parser.add_argument("--capture", type=Path)
 parser.add_argument("--capture-seconds", type=float, default=0,
                     help="Capture the selected game window twice per second for up to 45 seconds")
+parser.add_argument("--client-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"),
+                    help="Resize only the selected game window for presentation checks")
 parser.add_argument("--close", action="store_true")
 args = parser.parse_args()
 if not 0.01 <= args.hold <= 3:
     parser.error("hold must be between 0.01 and 3 seconds")
 if not 0 <= args.capture_seconds <= 45 or (args.capture_seconds and not args.capture):
     parser.error("capture-seconds requires capture and must be between 0 and 45")
+if args.client_size and any(not 320 <= v <= 3840 for v in args.client_size):
+    parser.error("client-size dimensions must be between 320 and 3840")
 
 u, k = c.WinDLL("user32", use_last_error=True), c.WinDLL("kernel32", use_last_error=True)
 u.SetProcessDPIAware()
@@ -80,6 +84,17 @@ else:
     time.sleep(0.3)
     if u.GetForegroundWindow() != hwnd:
         raise RuntimeError("Winx did not gain foreground; refusing keyboard input/capture")
+    if args.client_size:
+        u.GetClientRect.argtypes = [w.HWND, c.POINTER(w.RECT)]
+        u.SetWindowPos.argtypes = [w.HWND, w.HWND, c.c_int, c.c_int, c.c_int, c.c_int, w.UINT]
+        outer, client = w.RECT(), w.RECT()
+        if not u.GetWindowRect(hwnd, c.byref(outer)) or not u.GetClientRect(hwnd, c.byref(client)):
+            raise c.WinError(c.get_last_error())
+        width = args.client_size[0] + outer.right - outer.left - client.right
+        height = args.client_size[1] + outer.bottom - outer.top - client.bottom
+        if not u.SetWindowPos(hwnd, None, 0, 0, width, height, 0x16):
+            raise c.WinError(c.get_last_error())
+        time.sleep(0.8)
     if args.key:
         vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f8":119}[args.key]
         scan = u.MapVirtualKeyW(vk, 0)

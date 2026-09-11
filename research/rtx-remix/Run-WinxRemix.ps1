@@ -14,6 +14,8 @@ if ($Mode -eq 'Original') {
 } else {
     $options.ExplicitMipLevels=$true
     $options.ResubmitTextures=$true
+    $options.FitWindow=$true
+    $options.ViewportScale=$true
     if ($Mode -eq 'RTX') {
         $options.Raytracing=$true
         $options.OrthographicUi=$true
