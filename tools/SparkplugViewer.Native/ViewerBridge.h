@@ -30,6 +30,11 @@ struct SpvEnvelopeLayout {std::uint32_t dataOffset,fileSize;};
 struct SpvEnvelopeHeader {std::uint32_t signature,version,exportTag,platformMask;};
 // IDs are canonical graph object IDs; ordinary cache slots retain original order.
 struct SpvSceneLightCache {std::uint32_t renderNode,count,ambient,lights[8];};
+struct SpvAlphaInfo {std::uint32_t queued,priority,particle;float sphere[4];};
+struct SpvAlphaInput {std::uint32_t token,priority,particle;float center[3],world[16];};
+struct SpvAlphaOutput {std::uint32_t token,priority,particle;float distanceSquared;};
+SPV_API int spv_graph_alpha_info(void*,std::uint32_t,SpvAlphaInfo*) noexcept;
+SPV_API int spv_alpha_order(const SpvAlphaInput*,std::uint32_t,const float*,std::uint32_t,std::uint32_t,SpvAlphaOutput*) noexcept;
 // HOST transport for the consumed Fixed.rfx vertex-shader constants. A zero
 // in an unmarked field is ABI padding, never an inferred original register.
 struct SpvShaderLight {

@@ -126,9 +126,7 @@ namespace sparkplug::reconstruction
         using R=spDXRenderer;
         // Native423FD0 tests alpha routing BEFORE callbacks and all draw input
         // reads. Skin returns false even when enqueue succeeded or was disabled.
-        const auto* initialMaterial=dynamic_cast<const spDXMaterial*>(GetMaterialForAnalysis().get());
-        const auto* initialPass=initialMaterial?dynamic_cast<const spMaterialPassLayer*>(initialMaterial->GetPassForAnalysis(0)):nullptr;
-        if(initialPass&&initialPass->GetFinalBlendOperationForAnalysis()!=0&&IsAlphaSortEnabledForAnalysis())
+        if(RequiresPCAlphaQueueForAnalysis())
         {
             if(!state.alphaQueue)return false; // unavailable renderer alpha state
             if(!state.alphaQueue->flushing&&state.alphaQueue->sortTransparent)

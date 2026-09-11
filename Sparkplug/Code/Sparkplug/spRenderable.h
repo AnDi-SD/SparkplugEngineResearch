@@ -53,6 +53,9 @@ namespace sparkplug::reconstruction
 
         void SetAlphaSortEnabledForAnalysis(bool enabled) noexcept;
         [[nodiscard]] bool IsAlphaSortEnabledForAnalysis() const noexcept;
+        // PC423FD0 material/pass/object portion of the alpha routing gate.
+        // Renderer flushing/sort flags and queue ownership remain with caller.
+        [[nodiscard]] bool RequiresPCAlphaQueueForAnalysis() const noexcept;
         void SetPriorityForAnalysis(std::uint32_t priority) noexcept;
         [[nodiscard]] std::uint32_t GetPriorityForAnalysis() const noexcept;
 

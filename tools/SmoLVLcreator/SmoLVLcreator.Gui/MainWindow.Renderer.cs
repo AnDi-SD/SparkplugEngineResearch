@@ -323,15 +323,15 @@ public partial class MainWindow
                     $"{upload.PlacementCount:N0} placements · " +
                     $"{upload.ElapsedMilliseconds:F1} ms";
             }
-            if (_gpuRenderer.MaterialIssues.Count > 0)
+            if (_gpuRenderer.RenderIssues.Count > 0)
             {
-                string message = string.Join("\n", _gpuRenderer.MaterialIssues.Take(8));
+                string message = string.Join("\n", _gpuRenderer.RenderIssues.Take(8));
                 if (_gpuMaterialIssueText != message)
                 {
                     _gpuMaterialIssueText = message;
                     DiagnosticsText.Text = message;
                     DiagnosticsText.Foreground = NoticeBrush;
-                    StatusText.Text = $"Не удалось отобразить материалов: {_gpuRenderer.MaterialIssues.Count}";
+                    StatusText.Text = $"Ошибок рендера: {_gpuRenderer.RenderIssues.Count}";
                 }
             }
         }

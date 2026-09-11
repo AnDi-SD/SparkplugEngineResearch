@@ -1,4 +1,6 @@
 #include "spRenderable.h"
+#include "../SparkplugDX/spDXMaterial.h"
+#include "spMaterialPassLayer.h"
 
 #include <utility>
 
@@ -82,6 +84,13 @@ namespace sparkplug::reconstruction
     bool spRenderable::IsAlphaSortEnabledForAnalysis() const noexcept
     {
         return alphaSortEnabled_;
+    }
+    bool spRenderable::RequiresPCAlphaQueueForAnalysis() const noexcept
+    {
+        const auto* material=dynamic_cast<const spDXMaterial*>(GetMaterialForAnalysis().get());
+        const auto* pass=material?dynamic_cast<const spMaterialPassLayer*>(material->GetPassForAnalysis(0)):nullptr;
+        // Missing pass is the existing portable guard, not an original null guarantee.
+        return pass&&pass->GetFinalBlendOperationForAnalysis()!=0&&IsAlphaSortEnabledForAnalysis();
     }
 
     void spRenderable::SetPriorityForAnalysis(const std::uint32_t priority) noexcept

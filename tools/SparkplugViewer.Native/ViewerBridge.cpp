@@ -46,6 +46,7 @@
 #include "Analysis/Host/ResourceEnvelope.h"
 #include "SceneLighting.h"
 #include "ShaderLighting.h"
+#include "AlphaOrdering.h"
 #include "MaterialSubmission.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
@@ -1070,6 +1071,20 @@ SPV_API int spv_graph_model(void* handle,std::uint32_t id,SpvGraphModel* output)
         *output={graph.ID(model.GetBaseMeshForAnalysis().get()),graph.ID(model.GetMaterialForAnalysis().get()),
             graph.ID(model.GetFogForAnalysis().get()),model.IsAlphaSortEnabledForAnalysis()?1u:0u,
             model.GetPriorityForAnalysis(),model.GetProjectionGroupForAnalysis()};});
+}
+SPV_API int spv_graph_alpha_info(void* handle,std::uint32_t id,SpvAlphaInfo* output) noexcept {
+    return guarded([&]{require(output,"Missing alpha resource output");
+        const auto& object=graphResource<spRenderable>(graphForView(handle),id);SpvAlphaInfo result{};
+        result.queued=object.RequiresPCAlphaQueueForAnalysis()?1u:0u;result.priority=object.GetPriorityForAnalysis();
+        result.particle=object.IsExactly(0x5AFA1A4F)?1u:0u;
+        const auto& sphere=object.GetBoundingSphereForAnalysis();std::copy(sphere.begin(),sphere.end(),result.sphere);
+        *output=result;});
+}
+SPV_API int spv_alpha_order(const SpvAlphaInput* input,std::uint32_t count,const float* view,
+    std::uint32_t depthOnly,std::uint32_t priorityBase,SpvAlphaOutput* output) noexcept {
+    return guarded([&]{require(output||!count,"Missing alpha order output");
+        const auto result=spvhost::OrderAlpha(input,count,view,depthOnly,priorityBase);
+        if(count)std::copy(result.begin(),result.end(),output);});
 }
 SPV_API int spv_graph_material(void* handle,std::uint32_t id,SpvGraphMaterial* output) noexcept {
     return guarded([&]{require(output,"Missing graph material output");const auto& graph=graphForView(handle);

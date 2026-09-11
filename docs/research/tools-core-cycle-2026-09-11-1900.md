@@ -110,3 +110,19 @@ vertex color: его ambient product имеет нулевой RGB, что по�
 Новые тестовые ошибки порядка DTO цветов/округления/ожидаемого вклада света
 исправлены; оригинальные алгоритмы не менялись. Rigid fixed-function lighting,
 custom shaders и полный игровой frame остаются отдельными границами.
+
+## Блок 10 — игровой alpha gate и порядок прозрачности
+
+[Общий native alpha расчёт](tool-alpha-ordering-2026-09-11.md) заменил C# sort
+по центру геометрии. Учитываются настоящий material/pass gate, sphere,
+unsigned priority, выбранная CRT и полная occurrence identity. Alfea02:
+20 queued units из 160 raw AlphaSort; Icy: 6 из 12. 89 C ABI checks с пятью
+старыми original captures, 20 GPU integration checks, 43 Viewer poses и 207
+размещений реального окна LVLcreator прошли. Полный original queue/frame не
+заявлен: современный batch и правила камеры названы явно.
+
+Следующая найденная зависимость — `spTextNode/52E86EFE`: отдельный файл
+`Media/Menus/menu.smo` пока блокируется на object ID26. Это реальный открытый
+тип loader, обнаруженный при неверном выборе контрольного меню; правильный
+`igmenu_opt_pc.smo` прошёл. Приоритет — восстановить нужный класс и reader,
+чтобы остальные ресурсы документа стали доступны ядрам.
