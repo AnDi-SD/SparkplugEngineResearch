@@ -1,0 +1,249 @@
+{
+  "kind": "original-gamepad-cached-state",
+  "schemaVersion": 1,
+  "counts": {
+    "attempts": 271,
+    "wholeUniqueSuccesses": 270,
+    "pc": 133,
+    "ps2": 137,
+    "scalar": 218,
+    "normalized": 52,
+    "actualVirtualCalls": 96,
+    "stackSpillOperations": 104
+  },
+  "scalar": "Actual concrete primary/secondary tables;original PS2 receiver adjustors -14.PC active45 gates slots1..4/6;PS2 cache queries ungated.PC axes111..114,buttons127..142;PS2 axes111..114,buttons115..118/127..138.PS2 delta slot4 excludes117/118.PC bool nonzero,slot3 button0/1;PS2 slot3 raw byte.PC Y delta previous-current,PS2 current-previous.",
+  "normalization": "PC clamps small axes to0 with absolute deadzone200/range1000.PS2 subtracts signed maximum*fraction for any nonzero value,without interior zero clamp,then divides by maximum-deadzone and clamps -1..1.Actual range/value virtual methods executed,not replaced.Explicit fixture fractions0.5/0.25 differ from static PS2 factory defaults about0.4/0.15.",
+  "corrections": [
+    "First PS2 scalar axis113 expected a false fall-through;original branch1EFC7C with delay-slot load1EFC80 actually returns word54.Oracle only corrected,failed version and selection retained;successful PC case not replayed.",
+    "Exploratory PC edge tail capture starts mid-instruction4CB9A9;full exact-entry4CB770 window used for semantics.",
+    "Prior query corrected case-sensitive class spelling spDXGamePad to spDXGamepad before import."
+  ],
+  "limitations": [
+    "No hardware polling,normal device construction or cache producer execution.",
+    "No new C++ or fully closed class.",
+    "PS2 selected finite FPU model outputs,not general EE hardware rounding equivalence;unsupported/null-range normalization,NaN/denormal/divide-zero excluded.",
+    "PC slot5 null output pointer on supported codes not qualified;PS2 null checks executed."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_cached_state.py",
+      "sha256": "8523DCF1BCAF3B4D72900EE80093FB0F7D02699EBD313841E1EDD70091F903D3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_normalized.py",
+      "sha256": "C38968EAA1D260C2753072DBAC461FE2C20832CACCF5C6F74C24873CDBE8B0D5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_unsigned_division.py",
+      "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/cases-before-axis-delay-oracle.json",
+      "sha256": "2570DB3E81C5285719D1599B3C77374DE4FE6715462585D71EBB4B60918E33C4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/cases.json",
+      "sha256": "30E119E8CB86B2C4D2DF4185BA5D0E0F725154ECF0312184B87EAD44BFBFBE37"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-batch-run1.json",
+      "sha256": "DC8317F5B0980524F32488039F2AEF922B33CB66D787D3D940FAC13FC528B20B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-pilot-run1.json",
+      "sha256": "822E45541253A237D4143861FAF0F84755D8E58A2FDB702D7981C7D415F489B7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-pilot-run2.json",
+      "sha256": "45C174A354D5D638F82F9EE5CF370422C142D463F54F601001925BD55C5E1366"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-batch-run1.json",
+      "sha256": "33FB0B752074B5489051583F4FF2BC74E13CD27DCFB172359FA731494B4E5871"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-cases.json",
+      "sha256": "36256690E2CCE75B37CBB6919B2072FFA176E7CF144E6230FECA20A3B1EDE38C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-pilot-run1.json",
+      "sha256": "550CE7151A7C8A432402EFEA8FDAD04921B59E807B6A1F09E5B20BCB8289BB4B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/prior-scores-reviewed.json",
+      "sha256": "EAB58A7E0BAE06A5B38D0BED0C911CD4C6B3D9D9AF4F34286A9720417CBD1D7E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/prior-scores.json",
+      "sha256": "416E8D0DD36DC1323226C622E6DA1B37AC8367A6193937127715327A5571B756"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/table-rows.json",
+      "sha256": "53B07A0DA6BD7F0F0E41420D899BD77D8132031A36FFF935DD9060F32A3EB1CA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/ps2-methods/capture.json",
+      "sha256": "6CEFB3639F410CEDD405707ED894380BB011DF021381755275DC5AE10A5C6DF2"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/remaining-methods/capture.json",
+      "sha256": "06FF536016E2F3F04A520D169E8F6E09E3D04F16C7BDCED58F3A846DBDE683B5"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/reviewed-tables-and-edge/capture.json",
+      "sha256": "1AF35A3ECF11687D4B113F134371600F23486060542997DBABC61405AA928ED8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/probe-before-axis-delay-oracle.py",
+      "sha256": "8ED9B7D1AF7AFA7C10DAA4E217B98F88DA13020EF0614F72279F9B99EA260583"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/seal-gamepad-cached-state.py",
+      "sha256": "B143FB543ED7FF37C5389BE89D87B2B455B3081848FF1DF8557198AF34C8B355"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/input-device-state/cached-methods/capture.json",
+      "sha256": "61A3045A800EA73AB329EDB798A8A7EE9AA88F24F126067F6C88BE99B801CE8C"
+    },
+    {
+      "path": "research/engine-platform-remainder-contracts-2026-09-10.json",
+      "sha256": "D3C7176AD4CB7F500678295A133DC5133A36B55A48573F825497B8A3C0CE7F73"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-pilot-run1.json",
+        "sha256": "822E45541253A237D4143861FAF0F84755D8E58A2FDB702D7981C7D415F489B7"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/probe-before-axis-delay-oracle.py",
+        "sha256": "8ED9B7D1AF7AFA7C10DAA4E217B98F88DA13020EF0614F72279F9B99EA260583"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/cases-before-axis-delay-oracle.json",
+        "sha256": "2570DB3E81C5285719D1599B3C77374DE4FE6715462585D71EBB4B60918E33C4"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-pilot-run2.json",
+        "sha256": "45C174A354D5D638F82F9EE5CF370422C142D463F54F601001925BD55C5E1366"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_cached_state.py",
+        "sha256": "8523DCF1BCAF3B4D72900EE80093FB0F7D02699EBD313841E1EDD70091F903D3"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/cases.json",
+        "sha256": "30E119E8CB86B2C4D2DF4185BA5D0E0F725154ECF0312184B87EAD44BFBFBE37"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/gamepad-batch-run1.json",
+        "sha256": "DC8317F5B0980524F32488039F2AEF922B33CB66D787D3D940FAC13FC528B20B"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_cached_state.py",
+        "sha256": "8523DCF1BCAF3B4D72900EE80093FB0F7D02699EBD313841E1EDD70091F903D3"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/cases.json",
+        "sha256": "30E119E8CB86B2C4D2DF4185BA5D0E0F725154ECF0312184B87EAD44BFBFBE37"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-pilot-run1.json",
+        "sha256": "550CE7151A7C8A432402EFEA8FDAD04921B59E807B6A1F09E5B20BCB8289BB4B"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_normalized.py",
+        "sha256": "C38968EAA1D260C2753072DBAC461FE2C20832CACCF5C6F74C24873CDBE8B0D5"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-cases.json",
+        "sha256": "36256690E2CCE75B37CBB6919B2072FFA176E7CF144E6230FECA20A3B1EDE38C"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "fixtureModule": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_cached_state.py",
+        "sha256": "8523DCF1BCAF3B4D72900EE80093FB0F7D02699EBD313841E1EDD70091F903D3"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-batch-run1.json",
+        "sha256": "33FB0B752074B5489051583F4FF2BC74E13CD27DCFB172359FA731494B4E5871"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_normalized.py",
+        "sha256": "C38968EAA1D260C2753072DBAC461FE2C20832CACCF5C6F74C24873CDBE8B0D5"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/normalized-cases.json",
+        "sha256": "36256690E2CCE75B37CBB6919B2072FFA176E7CF144E6230FECA20A3B1EDE38C"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "fixtureModule": {
+        "path": "local-data/results/native-cycle-20260911-0730/gamepad-cached-state/source-snapshot/probe_gamepad_cached_state.py",
+        "sha256": "8523DCF1BCAF3B4D72900EE80093FB0F7D02699EBD313841E1EDD70091F903D3"
+      }
+    }
+  ]
+}
