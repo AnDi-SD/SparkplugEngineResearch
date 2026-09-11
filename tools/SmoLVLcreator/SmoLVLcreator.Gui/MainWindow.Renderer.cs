@@ -6,6 +6,7 @@ using SmoViewer.Core;
 using SmoViewer.Rendering.Wpf;
 using SmoViewer.Scene;
 using System.Numerics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -79,7 +80,7 @@ public partial class MainWindow
     private readonly HashSet<Key> _cameraMovementKeys = [];
     private Vector3D _cameraVelocity;
     private bool _cameraOrbitingFocus;
-    private (int MeshObjectIndex, int SceneObjectIndex)? _cameraFocusKey;
+    private (int MeshObjectIndex, int SceneObjectIndex, SmoRenderOccurrenceKey? Slot)? _cameraFocusKey;
     private int _activePlacementIndex;
     private Point _lastViewportMouse;
     private bool _viewportOrbiting;
@@ -464,7 +465,7 @@ public partial class MainWindow
                 }
                 var id = new SmoPlacementId(
                     mesh.Mesh.ObjectIndex,
-                    mesh.SceneObjectIndex);
+                    mesh.SceneObjectIndex, mesh.OccurrenceKey);
                 return _document.TryGetPlacement(
                     id,
                     out SmoEditablePlacement? placement)
@@ -522,7 +523,7 @@ public partial class MainWindow
             {
                 var id = new SmoPlacementId(
                     mesh.Mesh.ObjectIndex,
-                    mesh.SceneObjectIndex);
+                    mesh.SceneObjectIndex, mesh.OccurrenceKey);
                 return _document.TryGetPlacement(
                     id,
                     out SmoEditablePlacement? placement)
@@ -627,7 +628,7 @@ public partial class MainWindow
         return !_document.TryGetPlacement(
                    new SmoPlacementId(
                        mesh.Mesh.ObjectIndex,
-                       mesh.SceneObjectIndex),
+                       mesh.SceneObjectIndex, mesh.OccurrenceKey),
                    out SmoEditablePlacement? placement) ||
                (!_hiddenEntities.Contains(placement!.Entity.Id) &&
                 !_document.RemovedEntityIds.Contains(placement.Entity.Id));
@@ -712,7 +713,7 @@ public partial class MainWindow
             }
             var meshes = _workspace.PreparedScene.Meshes
                 .Where(mesh => !_document.TryGetPlacement(
-                    new SmoPlacementId(mesh.Mesh.ObjectIndex, mesh.SceneObjectIndex),
+                    new SmoPlacementId(mesh.Mesh.ObjectIndex, mesh.SceneObjectIndex, mesh.OccurrenceKey),
                     out SmoEditablePlacement? sourcePlacement) ||
                     !_document.RemovedEntityIds.Contains(sourcePlacement!.Entity.Id))
                 .Select(mesh => replacementMeshes.TryGetValue(
@@ -851,10 +852,10 @@ public partial class MainWindow
         SmoLevelPlacement placement = asset.Placements[_activePlacementIndex];
         var selectionKey = new PlacementSelectionKey(
             asset.ObjectIndex,
-            placement.SceneObjectIndex);
+            placement.SceneObjectIndex, placement.OccurrenceKey);
         if (_document is null ||
             !_document.TryGetPlacement(
-                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex),
+                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex, placement.OccurrenceKey),
                 out SmoEditablePlacement? editablePlacement))
         {
             return;
@@ -895,10 +896,10 @@ public partial class MainWindow
         SmoLevelPlacement placement = asset.Placements[placementIndex];
         var selectionKey = new PlacementSelectionKey(
             asset.ObjectIndex,
-            placement.SceneObjectIndex);
+            placement.SceneObjectIndex, placement.OccurrenceKey);
         if (_document is null ||
             !_document.TryGetPlacement(
-                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex),
+                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex, placement.OccurrenceKey),
                 out SmoEditablePlacement? editablePlacement))
         {
             return false;
@@ -1012,7 +1013,7 @@ public partial class MainWindow
         if (_document is not null &&
             _activeSelectionKey is PlacementSelectionKey active &&
             _document.TryGetPlacement(
-                new SmoPlacementId(active.MeshObjectIndex, active.SceneObjectIndex),
+                new SmoPlacementId(active.MeshObjectIndex, active.SceneObjectIndex, active.OccurrenceKey),
                 out SmoEditablePlacement? placement) &&
             _document.TryGetCompositeModel(
                 placement!.Entity.Id,
@@ -1041,7 +1042,7 @@ public partial class MainWindow
         {
             return new PlacementSelectionKey(
                 part.Asset.ObjectIndex,
-                part.Source.SceneObjectIndex);
+                part.Source.SceneObjectIndex, part.Source.OccurrenceKey);
         }
         return null;
     }
@@ -1059,7 +1060,7 @@ public partial class MainWindow
             {
                 _activeSelectionKey = new PlacementSelectionKey(
                     placement.Asset.ObjectIndex,
-                    placement.Source.SceneObjectIndex);
+                    placement.Source.SceneObjectIndex, placement.Source.OccurrenceKey);
                 return;
             }
             if (entity.Collisions.Count > 0)
@@ -1097,7 +1098,7 @@ public partial class MainWindow
                 {
                     var placementId = new SmoPlacementId(
                         mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex);
+                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
                     return _document.TryGetPlacement(
                                placementId,
                                out SmoEditablePlacement? placement) &&
@@ -1107,7 +1108,7 @@ public partial class MainWindow
                 {
                     var placementId = new SmoPlacementId(
                         mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex);
+                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
                     return _document.TryGetPlacement(
                         placementId,
                         out SmoEditablePlacement? placement)
@@ -1164,7 +1165,7 @@ public partial class MainWindow
                  _document.TryGetPlacement(
                      new SmoPlacementId(
                          selection.MeshObjectIndex,
-                         selection.SceneObjectIndex),
+                         selection.SceneObjectIndex, selection.OccurrenceKey),
                      out SmoEditablePlacement? placement))
         {
             entity = placement!.Entity;
@@ -1448,8 +1449,8 @@ public partial class MainWindow
         int sceneObjectIndex = asset.Placements[placementIndex].SceneObjectIndex;
         FrameMeshes((_renderPreparedScene ?? _workspace.PreparedScene).Meshes.Where(mesh =>
             mesh.Mesh.ObjectIndex == asset.ObjectIndex &&
-            mesh.SceneObjectIndex == sceneObjectIndex));
-        _cameraFocusKey = (asset.ObjectIndex, sceneObjectIndex);
+            mesh.SceneObjectIndex == sceneObjectIndex && mesh.OccurrenceKey == asset.Placements[placementIndex].OccurrenceKey));
+        _cameraFocusKey = (asset.ObjectIndex, sceneObjectIndex, asset.Placements[placementIndex].OccurrenceKey);
     }
 
     private void FrameMeshes(IEnumerable<SmoSceneMesh> meshes)
@@ -1510,7 +1511,7 @@ public partial class MainWindow
                 {
                     var placementId = new SmoPlacementId(
                         mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex);
+                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
                     return _document.TryGetPlacement(
                                placementId,
                                out SmoEditablePlacement? placement) &&
@@ -1520,7 +1521,7 @@ public partial class MainWindow
                 {
                     var placementId = new SmoPlacementId(
                         mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex);
+                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
                     return _document.TryGetPlacement(
                         placementId,
                         out SmoEditablePlacement? placement)
@@ -1571,13 +1572,13 @@ public partial class MainWindow
             placementIndex,
             0,
             asset.Placements.Count - 1)];
-        var focusKey = (asset.ObjectIndex, placement.SceneObjectIndex);
+        var focusKey = (asset.ObjectIndex, placement.SceneObjectIndex, placement.OccurrenceKey);
         if (_cameraFocusKey == focusKey && _cameraOrbitingFocus)
             return;
 
         IEnumerable<SmoSceneMesh> meshes = (_renderPreparedScene ?? _workspace.PreparedScene).Meshes.Where(mesh =>
             mesh.Mesh.ObjectIndex == asset.ObjectIndex &&
-            mesh.SceneObjectIndex == placement.SceneObjectIndex);
+            mesh.SceneObjectIndex == placement.SceneObjectIndex && mesh.OccurrenceKey == placement.OccurrenceKey);
         if (!TryCalculateBounds(meshes, out CameraBounds bounds))
             return;
 
@@ -1956,7 +1957,7 @@ public partial class MainWindow
 
         int placementIndex = FindPlacementIndex(
             asset,
-            hit.SceneMesh.SceneObjectIndex);
+            hit.SceneMesh.SceneObjectIndex, hit.SceneMesh.OccurrenceKey);
         if (!toggle)
         {
             ReplacePlacementSelection(
@@ -1983,7 +1984,7 @@ public partial class MainWindow
                 if (_document!.TryGetPlacement(
                         new SmoPlacementId(
                             asset.ObjectIndex,
-                            asset.Placements[placementIndex].SceneObjectIndex),
+                            asset.Placements[placementIndex].SceneObjectIndex, asset.Placements[placementIndex].OccurrenceKey),
                         out SmoEditablePlacement? editablePlacement))
                 {
                     if (individualPart)
@@ -2316,14 +2317,14 @@ public partial class MainWindow
         return _document.ExpandLinkedEntities(_selectedEntities);
     }
 
-    private static int FindPlacementIndex(SmoLevelAsset asset, int sceneObjectIndex)
+    private static int FindPlacementIndex(SmoLevelAsset asset, int sceneObjectIndex, SmoRenderOccurrenceKey? occurrenceKey)
     {
         for (int index = 0; index < asset.Placements.Count; index++)
         {
-            if (asset.Placements[index].SceneObjectIndex == sceneObjectIndex)
+            if (asset.Placements[index].SceneObjectIndex == sceneObjectIndex && asset.Placements[index].OccurrenceKey == occurrenceKey)
                 return index;
         }
-        return 0;
+        throw new InvalidDataException("The selected occurrence is absent from this asset.");
     }
 
     private bool TryResolveActiveSelection(
@@ -2342,7 +2343,7 @@ public partial class MainWindow
         asset = item?.Asset;
         if (asset is null)
             return false;
-        placementIndex = FindPlacementIndex(asset, active.SceneObjectIndex);
+        placementIndex = FindPlacementIndex(asset, active.SceneObjectIndex, active.OccurrenceKey);
         return true;
     }
 
@@ -2794,7 +2795,7 @@ public partial class MainWindow
                         {
                             var placementId = new SmoPlacementId(
                                 mesh.Mesh.ObjectIndex,
-                                mesh.SceneObjectIndex);
+                                mesh.SceneObjectIndex, mesh.OccurrenceKey);
                             return _document.TryGetPlacement(
                                        placementId,
                                        out SmoEditablePlacement? placement) &&
@@ -2804,7 +2805,7 @@ public partial class MainWindow
                         {
                             var placementId = new SmoPlacementId(
                                 mesh.Mesh.ObjectIndex,
-                                mesh.SceneObjectIndex);
+                                mesh.SceneObjectIndex, mesh.OccurrenceKey);
                             return _document.TryGetPlacement(
                                 placementId,
                                 out SmoEditablePlacement? placement)
@@ -2838,7 +2839,7 @@ public partial class MainWindow
                         {
                             var placementId = new SmoPlacementId(
                                 mesh.Mesh.ObjectIndex,
-                                mesh.SceneObjectIndex);
+                                mesh.SceneObjectIndex, mesh.OccurrenceKey);
                             return _document.TryGetPlacement(
                                        placementId,
                                        out SmoEditablePlacement? placement) &&
@@ -2848,7 +2849,7 @@ public partial class MainWindow
                         {
                             var placementId = new SmoPlacementId(
                                 mesh.Mesh.ObjectIndex,
-                                mesh.SceneObjectIndex);
+                                mesh.SceneObjectIndex, mesh.OccurrenceKey);
                             return _document.TryGetPlacement(
                                 placementId,
                                 out SmoEditablePlacement? placement)
@@ -2906,7 +2907,7 @@ public partial class MainWindow
                     {
                         var placementId = new SmoPlacementId(
                             mesh.Mesh.ObjectIndex,
-                            mesh.SceneObjectIndex);
+                            mesh.SceneObjectIndex, mesh.OccurrenceKey);
                         return _document.TryGetPlacement(
                                    placementId,
                                    out SmoEditablePlacement? placement) &&
@@ -2916,7 +2917,7 @@ public partial class MainWindow
                     {
                         var placementId = new SmoPlacementId(
                             mesh.Mesh.ObjectIndex,
-                            mesh.SceneObjectIndex);
+                            mesh.SceneObjectIndex, mesh.OccurrenceKey);
                         return _document.TryGetPlacement(
                             placementId,
                             out SmoEditablePlacement? placement)
@@ -3506,7 +3507,7 @@ public partial class MainWindow
                  _document.TryGetPlacement(
                      new SmoPlacementId(
                          active.MeshObjectIndex,
-                         active.SceneObjectIndex),
+                         active.SceneObjectIndex, active.OccurrenceKey),
                      out SmoEditablePlacement? activePlacement))
         {
             activeEntity = activePlacement!.Entity;
@@ -3736,7 +3737,7 @@ public partial class MainWindow
             !_document.TryGetPlacement(
                 new SmoPlacementId(
                     active.MeshObjectIndex,
-                    active.SceneObjectIndex),
+                    active.SceneObjectIndex, active.OccurrenceKey),
                 out SmoEditablePlacement? placement))
         {
             return false;
@@ -3874,7 +3875,8 @@ public partial class MainWindow
 
     private readonly record struct PlacementSelectionKey(
         int MeshObjectIndex,
-        int SceneObjectIndex);
+        int SceneObjectIndex,
+        SmoRenderOccurrenceKey? OccurrenceKey = null);
 
     private sealed record PendingPlacementSelection(
         Guid Id,

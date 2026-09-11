@@ -52,7 +52,8 @@ internal static class SmoLevelCollisionLinker
         {
             var placementId = new SmoPlacementId(
                 sceneMesh.Mesh.ObjectIndex,
-                sceneMesh.SceneObjectIndex);
+                sceneMesh.SceneObjectIndex,
+                sceneMesh.OccurrenceKey);
             if (!placements.TryGetValue(placementId, out SmoEditablePlacement? placement))
                 continue;
 

@@ -212,7 +212,7 @@ public partial class MainWindow
                         SmoLevelPlacement placement = asset.Placements[index];
                         Matrix4x4 transform = placement.WorldTransform;
                         if (_document?.TryGetPlacement(
-                                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex),
+                                new SmoPlacementId(asset.ObjectIndex, placement.SceneObjectIndex, placement.OccurrenceKey),
                                 out SmoEditablePlacement? editable) == true)
                         {
                             transform = editable!.WorldTransform;
@@ -223,7 +223,7 @@ public partial class MainWindow
                             transform,
                             catalogMeshes.FirstOrDefault(mesh =>
                                 mesh.Mesh.ObjectIndex == asset.ObjectIndex &&
-                                mesh.SceneObjectIndex == placement.SceneObjectIndex)));
+                                mesh.SceneObjectIndex == placement.SceneObjectIndex && mesh.OccurrenceKey == placement.OccurrenceKey)));
                     }
                 }
                 break;
@@ -267,7 +267,7 @@ public partial class MainWindow
                 return _document.TryGetPlacement(
                            new SmoPlacementId(
                                asset.ObjectIndex,
-                               placement.SceneObjectIndex),
+                               placement.SceneObjectIndex, placement.OccurrenceKey),
                            out SmoEditablePlacement? editable) &&
                        _hiddenEntities.Contains(editable!.Entity.Id);
             });
@@ -283,13 +283,13 @@ public partial class MainWindow
             return null;
         int placementIndex = FindPlacementIndex(
             asset,
-            placement.Source.SceneObjectIndex);
+            placement.Source.SceneObjectIndex, placement.Source.OccurrenceKey);
         IReadOnlyList<SmoSceneMesh> catalogMeshes =
             (_renderPreparedScene ?? _workspace?.PreparedScene)?.Meshes ??
             Array.Empty<SmoSceneMesh>();
         SmoSceneMesh? previewMesh = catalogMeshes.FirstOrDefault(mesh =>
             mesh.Mesh.ObjectIndex == asset.ObjectIndex &&
-            mesh.SceneObjectIndex == placement.Source.SceneObjectIndex);
+            mesh.SceneObjectIndex == placement.Source.SceneObjectIndex && mesh.OccurrenceKey == placement.Source.OccurrenceKey);
         return new CatalogVisualPart(item, placementIndex, previewMesh);
     }
 
@@ -544,7 +544,7 @@ public partial class MainWindow
                     asset.Placements.Count - 1);
                 SmoLevelPlacement source = asset.Placements[index];
                 if (_document.TryGetPlacement(
-                        new SmoPlacementId(asset.ObjectIndex, source.SceneObjectIndex),
+                        new SmoPlacementId(asset.ObjectIndex, source.SceneObjectIndex, source.OccurrenceKey),
                         out SmoEditablePlacement? placement))
                 {
                     resolved.Add((
@@ -576,7 +576,7 @@ public partial class MainWindow
         _activePlacementIndex = activeIndex;
         _activeSelectionKey = new PlacementSelectionKey(
             activeAsset.ObjectIndex,
-            sourcePlacement.SceneObjectIndex);
+            sourcePlacement.SceneObjectIndex, sourcePlacement.OccurrenceKey);
         _activeCollisionEntityIndex = null;
         ApplyPlacementHighlights();
         UpdateInspector(activeAssetItem, activeIndex, updateViewportSelection: false);
@@ -868,7 +868,7 @@ public partial class MainWindow
                     asset.ObjectIndex,
                     _document!.GetPlacement(new SmoPlacementId(
                         asset.ObjectIndex,
-                        sceneIndex)).WorldTransform,
+                        sceneIndex, part.PreviewMesh?.OccurrenceKey ?? asset.Placements[part.PlacementIndex].OccurrenceKey)).WorldTransform,
                     asset.DisplayName);
             })
             .GroupBy(part => (part.MeshObjectIndex, part.SourceWorldTransform))
@@ -1183,7 +1183,7 @@ public partial class MainWindow
                 .OrderByDescending(part =>
                     _activeSelectionKey is PlacementSelectionKey active &&
                     part.AssetItem.Asset!.ObjectIndex == active.MeshObjectIndex &&
-                    part.PreviewMesh!.SceneObjectIndex == active.SceneObjectIndex)
+                    part.PreviewMesh!.SceneObjectIndex == active.SceneObjectIndex && part.PreviewMesh.OccurrenceKey == active.OccurrenceKey)
                 .ToArray();
             CatalogVisualPart? targetPart = null;
             SmoLevelModelGraphPlan? modelPlan = null;
@@ -1223,7 +1223,7 @@ public partial class MainWindow
             Matrix4x4 referenceWorld = _document.TryGetPlacement(
                     new SmoPlacementId(
                         asset.ObjectIndex,
-                        sourceMesh.SceneObjectIndex),
+                        sourceMesh.SceneObjectIndex, sourceMesh.OccurrenceKey),
                     out SmoEditablePlacement? placement)
                 ? placement!.WorldTransform
                 : sourceMesh.WorldTransform;

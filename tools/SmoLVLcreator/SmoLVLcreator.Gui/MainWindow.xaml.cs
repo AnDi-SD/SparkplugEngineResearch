@@ -924,7 +924,7 @@ public partial class MainWindow : Window
                         !_document!.TryGetPlacement(
                             new SmoPlacementId(
                                 asset.ObjectIndex,
-                                asset.Placements[index].SceneObjectIndex),
+                                asset.Placements[index].SceneObjectIndex, asset.Placements[index].OccurrenceKey),
                             out SmoEditablePlacement? placement) ||
                         !_document.RemovedEntityIds.Contains(placement!.Entity.Id))
                     .ToArray()
@@ -1026,7 +1026,7 @@ public partial class MainWindow : Window
         return _document.TryGetPlacement(
                    new SmoPlacementId(
                        asset.ObjectIndex,
-                       placement.SceneObjectIndex),
+                       placement.SceneObjectIndex, placement.OccurrenceKey),
                    out SmoEditablePlacement? editable) &&
                _hiddenEntities.Contains(editable!.Entity.Id);
     }
@@ -1212,7 +1212,7 @@ public partial class MainWindow : Window
         SmoLevelPlacement placement = asset.Placements[placementIndex];
         var placementId = new SmoPlacementId(
             asset.ObjectIndex,
-            placement.SceneObjectIndex);
+            placement.SceneObjectIndex, placement.OccurrenceKey);
         SmoEditablePlacement? editable = null;
         Matrix4x4 worldTransform =
             _document?.TryGetPlacement(placementId, out editable) == true

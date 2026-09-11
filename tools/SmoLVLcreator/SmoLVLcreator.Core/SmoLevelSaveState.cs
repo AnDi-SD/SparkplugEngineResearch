@@ -51,7 +51,7 @@ internal sealed class SmoLevelSaveState
                     entity.OriginalWorldTransform,
                     entity.WorldTransform,
                     string.Join(",", entity.Parts.Select(part =>
-                        $"mesh:{part.Asset.ObjectIndex}/scene:{part.Source.SceneObjectIndex}")),
+                        $"mesh:{part.Asset.ObjectIndex}/scene:{part.Source.SceneObjectIndex}/slot:{part.Source.OccurrenceKey}")),
                     string.Join(",", entity.Collisions.Select(shape =>
                         $"info:{shape.Source.CollisionInfoObjectIndex}/" +
                         $"meshBV:{shape.Source.MeshBoundingVolumeObjectIndex}"))))

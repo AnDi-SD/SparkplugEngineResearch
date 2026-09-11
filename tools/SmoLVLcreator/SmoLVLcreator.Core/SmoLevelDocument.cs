@@ -8,7 +8,8 @@ namespace SmoLVLcreator.Core;
 
 public readonly record struct SmoPlacementId(
     int MeshObjectIndex,
-    int SceneObjectIndex);
+    int SceneObjectIndex,
+    SmoRenderOccurrenceKey? OccurrenceKey = null);
 
 /// <summary>One placed object; several physical mesh parts can share it.</summary>
 public readonly record struct SmoLevelEntityId(int SceneObjectIndex);
@@ -26,6 +27,7 @@ public enum SmoLevelEntityKind
 public sealed class SmoLevelDocument
 {
     private readonly Dictionary<SmoPlacementId, SmoEditablePlacement> _placements;
+    private readonly Dictionary<SmoPlacementId, SmoEditablePlacement> _uniqueLegacyPlacements;
     private readonly Dictionary<SmoLevelEntityId, SmoLevelEntity> _entities;
     private readonly Dictionary<SmoLevelEntityId, SmoCompositeModel> _compositeModelsByEntity;
     private readonly Dictionary<SmoLevelEntityId, SmoLevelCollisionLink[]> _collisionLinks;
@@ -57,7 +59,8 @@ public sealed class SmoLevelDocument
             {
                 var id = new SmoPlacementId(
                     asset.ObjectIndex,
-                    placement.SceneObjectIndex);
+                    placement.SceneObjectIndex,
+                    placement.OccurrenceKey);
                 if (!_placements.TryAdd(
                     id,
                     new SmoEditablePlacement(
@@ -67,11 +70,15 @@ public sealed class SmoLevelDocument
                         placement.WorldTransform,
                         placement.WorldTransform)))
                     throw new InvalidDataException(
-                        $"REPEATED_RENDERABLE_AUTHORING: mesh [{asset.ObjectIndex}], renderable [{placement.SceneObjectIndex}] has multiple actual support slots. " +
-                        "Workspace preserves their OccurrenceKey values; the current editor command model cannot address these slots independently.");
+                        $"Duplicate placement identity for mesh [{asset.ObjectIndex}], renderable [{placement.SceneObjectIndex}], slot {placement.OccurrenceKey}.");
             }
         }
 
+        // Existing two-field callers remain valid only when the reference is
+        // unambiguous. Repeated instances require their actual container slot.
+        _uniqueLegacyPlacements = _placements.Values
+            .GroupBy(p => new SmoPlacementId(p.Id.MeshObjectIndex,p.Id.SceneObjectIndex))
+            .Where(group => group.Count()==1).ToDictionary(group=>group.Key,group=>group.Single());
         _entities = new Dictionary<SmoLevelEntityId, SmoLevelEntity>();
         _collisions = workspace.Collisions
             .Select(collision => new SmoEditableCollision(
@@ -80,14 +87,7 @@ public sealed class SmoLevelDocument
                 collision.WorldTransform))
             .ToList();
         foreach (IGrouping<int, SmoEditablePlacement> group in
-                 _placements.Values.GroupBy(placement =>
-                      SmoPlacementTransformWriter.FindStaticPlacementOwnerIndex(
-                          workspace.Document,
-                          placement.Source.SceneObjectIndex) ??
-                      SmoPlacementTransformWriter.FindNodeTransformOwnerIndex(
-                          workspace.Document,
-                          placement.Source.SceneObjectIndex) ??
-                      placement.Source.SceneObjectIndex))
+                 _placements.Values.GroupBy(placement => ResolveTransformOwner(workspace.Document,placement.Source)))
         {
             var id = new SmoLevelEntityId(group.Key);
             SmoEditablePlacement[] parts = group.ToArray();
@@ -194,17 +194,37 @@ public sealed class SmoLevelDocument
 
     public event EventHandler? Changed;
 
+    private static int ResolveTransformOwner(SmoDocument document,SmoLevelPlacement placement)
+    {
+        if(placement.OccurrenceKey is { } key)
+        {
+            var loaded=SmoLoadedResources.Get(document);
+            if(!loaded.RenderContainersByObjectIndex.TryGetValue(key.ContainerObjectIndex,out var container)
+                ||(uint)key.MemberSlot>=(uint)container.RenderableObjectIndices.Count
+                ||container.RenderableObjectIndices[key.MemberSlot]!=placement.SceneObjectIndex)
+                throw new InvalidDataException("Placement no longer identifies an actual loaded support member.");
+            // One original container owns one transform. Repeated members of
+            // that container stay separate slots but share its editor entity.
+            if(container.Kind is SmoRenderContainerKind.RenderNode or SmoRenderContainerKind.StaticRenderObject)
+                return container.ObjectIndex;
+        }
+        return SmoPlacementTransformWriter.FindStaticPlacementOwnerIndex(document,placement.SceneObjectIndex)
+            ??SmoPlacementTransformWriter.FindNodeTransformOwnerIndex(document,placement.SceneObjectIndex)
+            ??placement.SceneObjectIndex;
+    }
+
     public bool TryGetPlacement(
         SmoPlacementId id,
-        out SmoEditablePlacement? placement) =>
-        _placements.TryGetValue(id, out placement);
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out SmoEditablePlacement? placement) =>
+        _placements.TryGetValue(id, out placement)
+        ||(id.OccurrenceKey is null&&_uniqueLegacyPlacements.TryGetValue(id,out placement));
 
     public SmoEditablePlacement GetPlacement(SmoPlacementId id) =>
-        _placements.TryGetValue(id, out SmoEditablePlacement? placement)
+        TryGetPlacement(id, out SmoEditablePlacement? placement)
             ? placement
             : throw new KeyNotFoundException(
                 $"Placement mesh [{id.MeshObjectIndex}] / scene " +
-                $"[{id.SceneObjectIndex}] is not part of this level document.");
+                $"[{id.SceneObjectIndex}] / slot {id.OccurrenceKey} is absent or ambiguous; repeated references require an explicit occurrence key.");
 
     public bool TryGetEntity(
         SmoLevelEntityId id,
@@ -1330,7 +1350,8 @@ public sealed class SmoLevelDocument
         {
             var placementId = new SmoPlacementId(
                 mesh.Mesh.ObjectIndex,
-                mesh.SceneObjectIndex);
+                mesh.SceneObjectIndex,
+                mesh.OccurrenceKey);
             if (!_placements.TryGetValue(
                     placementId,
                     out SmoEditablePlacement? placement) ||

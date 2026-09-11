@@ -26,10 +26,9 @@ internal static class SmoCompositeModelResolver
         if (entities.Length < 2)
             return Array.Empty<SmoCompositeModel>();
 
-        Dictionary<(int Mesh, int Scene), SmoSceneMesh> sceneMeshes = workspace
+        Dictionary<SmoPlacementId, SmoSceneMesh> sceneMeshes = workspace
             .PreparedScene.Meshes
-            .GroupBy(mesh => (mesh.Mesh.ObjectIndex, mesh.SceneObjectIndex))
-            .ToDictionary(group => group.Key, group => group.First());
+            .ToDictionary(mesh=>new SmoPlacementId(mesh.Mesh.ObjectIndex,mesh.SceneObjectIndex,mesh.OccurrenceKey));
         ModelAtom[] atoms = entities.Select((entity, index) =>
             CreateAtom(workspace, sceneMeshes, entity, index)).ToArray();
         var sets = new DisjointSets(atoms.Length);
@@ -50,7 +49,7 @@ internal static class SmoCompositeModelResolver
 
     private static ModelAtom CreateAtom(
         SmoLevelWorkspace workspace,
-        IReadOnlyDictionary<(int Mesh, int Scene), SmoSceneMesh> sceneMeshes,
+        IReadOnlyDictionary<SmoPlacementId, SmoSceneMesh> sceneMeshes,
         SmoLevelEntity entity,
         int index)
     {
@@ -83,7 +82,7 @@ internal static class SmoCompositeModelResolver
             }
 
             if (sceneMeshes.TryGetValue(
-                    (part.Asset.ObjectIndex, part.Source.SceneObjectIndex),
+                    part.Id,
                     out SmoSceneMesh? sceneMesh))
             {
                 bounds = bounds.Include(sceneMesh);

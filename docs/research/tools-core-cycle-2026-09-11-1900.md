@@ -69,3 +69,13 @@ reconstructed selector не изменены; активация и оконча
 Старые 10 managed fixtures/67 checks не нарушены. Исправлены найденные сравнением
 ошибки новой ветки вставки в кольцо и подготовки world input в тесте.
 Frame simulation/render, capacity выше 1024 и PS2 ещё не закрыты; пределы явные.
+
+## Блок 6 — адресация размещений в LVLcreator
+
+[Команды редактора](tool-lvlcreator-occurrence-commands-2026-09-11.md) теперь
+используют actual container/member slot. Menu открывается с 207 placements,
+Alfea02 сохраняет 1008. Movement/undo/redo/selection export/save job/reload
+прошли: меняется один настоящий Node, его повторные slots сохраняются,
+остальные размещения не двигаются. GUI получает только необходимую передачу
+ключа; CoreTests/GUI builds прошли без warnings/errors. Исправлен устаревший
+test picking без GPU provider; 63 прежние editor assertions прошли.

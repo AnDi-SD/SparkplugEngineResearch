@@ -54,7 +54,7 @@ public static class SmoLevelExportService
             .Select(part => new SmoExportPlacementSelection(
                 part.Asset.ObjectIndex,
                 part.Source.SceneObjectIndex,
-                part.WorldTransform))
+                part.WorldTransform){OccurrenceKey=part.Source.OccurrenceKey})
             .ToArray();
         return SmoExportSceneSelection.Create(source, placements);
     }

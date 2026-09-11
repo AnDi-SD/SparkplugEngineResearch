@@ -30,6 +30,13 @@ internal static class Program
                 return SmoContainerEnvelopeRegression.RunBoundaries();
             if (args.Length == 3 && args[0] == "--render-occurrence-workspace")
                 return SmoOccurrenceWorkspaceRegression.Run(args[1], args[2]);
+            if (args.Length == 3 && args[0] == "--render-occurrence-edit")
+                return SmoOccurrenceWorkspaceRegression.RunEdit(args[1], args[2]);
+            if (args.Length >= 2 && args[0] == "--editable-workspaces")
+            {
+                foreach(string path in args.Skip(1))ValidateWorkspace(path);
+                Console.WriteLine($"PASS: {_assertions} existing workspace/editor assertions");return 0;
+            }
             if (args.Length == 2 && args[0].Equals(
                     "--isolated-external-model-batch",
                     StringComparison.OrdinalIgnoreCase))
@@ -4269,9 +4276,13 @@ internal static class Program
         True(
             workspace.PreparedScene.Meshes.Count == workspace.PlacementCount,
             "catalog placements come from the authoritative render scene");
-        True(
-            new SmoScenePickIndex(workspace.PreparedScene.Meshes).Count > 0,
-            "render scene builds a reusable picking index");
+        // This workspace test has no GPU context. Since the shared GPU-skinning
+        // migration, Skin picking explicitly requires backend position output.
+        var pickIndex = new SmoScenePickIndex(workspace.PreparedScene.Meshes);
+        True(pickIndex.Count + pickIndex.Issues.Count == workspace.PreparedScene.Meshes.Count,
+            "every prepared occurrence is pickable or has an explicit missing-backend diagnostic");
+        True(pickIndex.Issues.All(issue => issue.Contains("SKIN_PICKING_POSITIONS_UNAVAILABLE",StringComparison.Ordinal)),
+            "headless workspace does not synthesize skinned picking positions");
         ValidateEditableDocument(workspace);
         True(
             workspace.PlacementCount >= workspace.Assets.Count,
