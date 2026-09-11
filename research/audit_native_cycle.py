@@ -76,7 +76,9 @@ def audit(baseline,output,extras):
         if path in parsed:continue
         parsed.add(path);document=read(ROOT/path)
         for p,h,loc in walk_refs(document):add(p,h,path+loc)
-        if path.startswith(cycle+'/'):visit_stops(document,path)
+        # An earlier audit repeats already inspected stop records in its report.
+        # Traverse its source references, but do not count derived copies as guests.
+        if path.startswith(cycle+'/') and not (isinstance(document,dict) and document.get('kind')=='native-cycle-sealed-reference-and-ledger-audit'):visit_stops(document,path)
         declared=document.get('sourceBindings',[]) if isinstance(document,dict) else []
         binding_items=declared.items() if isinstance(declared,dict) else enumerate(declared)
         for index,binding in binding_items:
