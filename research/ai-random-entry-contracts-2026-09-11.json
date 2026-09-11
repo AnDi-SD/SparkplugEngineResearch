@@ -1,0 +1,170 @@
+{
+  "kind": "original-ai-random-entry",
+  "schemaVersion": 1,
+  "counts": {
+    "executions": 54,
+    "pcWholeReturns": 15,
+    "pcSelectorBoundaries": 12,
+    "ps2SelectorBoundaries": 4,
+    "ps2ArithmeticBoundaries": 23,
+    "actualRngOutputs": 57,
+    "stackOperations": 316,
+    "accumulatorOperations": 45
+  },
+  "pcBehavior": "MinotaurAttack target path uses one RNG:float32(250000+r*240000/2^32);missing target stops at selector before RNG.MinotaurDefend deadline=uint32(now+3000+r%1501).Mosquito uses two RNG:deadline=uint32(now+500+r1%501),movement254=float32(100+r2*150/2^32),flips own amplitude and binds movement target to camera Node on target path.",
+  "ps2Limits": {
+    "MinotaurAttack": "25F358 before ADDA.S,after actual RNG and FPR preparation;no final float field",
+    "MinotaurDefend": "25FD28 before DIVU,after actual RNG;no deadline/command pointer",
+    "MosquitoAttack": "26061C before DIVU,after first RNG;no second RNG/negation/full ACC/camera result"
+  },
+  "oracle": "New field oracle derives from observed original RNG return values;generator correctness relies on earlier native transaction contract,full returned624-word state,index consumption and unchanged array guards.Explicit selected input indices1,2,3,15;not serial replay or synthetic RNG returns.",
+  "limitations": [
+    "Borrowed graph and existing timer/camera globals,not normal startup.",
+    "PS2 complete methods not claimed;DIVU outside stack profile,ADDA/generalMADD outside exact integer-square profile.",
+    "No new C++ or fully closed classes;old RNG/perception receive no new score."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/probe_ai_random_entry.py",
+      "sha256": "9D60035DAE1386371F3CCB2C68B9D74C4C51A29B92085F8D02101369054237F4"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/additional-spec.json",
+      "sha256": "C2B796859AE17DE72F1D4EF471846DD2E51833042ED09B194184159B4F36346E"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/cases.json",
+      "sha256": "4D38D075C88EE05C790879E4E10D52D3E3BF7A72D06AD6680CD776FBE70240FE"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/prior-scores.json",
+      "sha256": "F21AA1B66FC4130F7AE2F0DC905F20BEDDFE6FD0CB830A3157689A2B701995BD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-batch-run1.json",
+      "sha256": "4DE1F1C9254272207C08DFA100F8A6C420BE2E93455622F503E12F361F6FFDF6"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-pilot-run1.json",
+      "sha256": "C38803C4E4E369DEBCEA2BA4EF8F692872EB4B866E8082225DF4F16CDFE5B13C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/seal-ai-random-entry.py",
+      "sha256": "FA6533396FD292439A62E77947AD7A97E449D1EA7C5BD3D6F7421C95371DF2F1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/additional/capture.json",
+      "sha256": "BDD7D028BE2C882768458E1001C3579F0B7F0581EDB06E21BDE94561C92816A7"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-entry-reset/methods/capture.json",
+      "sha256": "2EA1D053F39B502158F8B73102756DB5F489BCDF09596E4CDD7AED749ACA42E9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+      "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+    },
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "research/ai-perception-control-contracts-2026-09-11.json",
+      "sha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196"
+    },
+    {
+      "path": "research/native-rng-transactions-2026-09-11.json",
+      "sha256": "2A17DBA7899FDF6209273480CE2398DB80F64145FCE3DAE4EF1B31E0BA1FBDC6"
+    },
+    {
+      "path": "research/ai-attack-entry-contracts-2026-09-11.json",
+      "sha256": "AA7C7102E8816B7F81FEB867B7A923DB03D17BA0EE4D835C839E6F62A017F417"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-pilot-run1.json",
+        "sha256": "C38803C4E4E369DEBCEA2BA4EF8F692872EB4B866E8082225DF4F16CDFE5B13C"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/probe_ai_random_entry.py",
+        "sha256": "9D60035DAE1386371F3CCB2C68B9D74C4C51A29B92085F8D02101369054237F4"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/cases.json",
+        "sha256": "4D38D075C88EE05C790879E4E10D52D3E3BF7A72D06AD6680CD776FBE70240FE"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "nativeStateSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+        "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/random-batch-run1.json",
+        "sha256": "4DE1F1C9254272207C08DFA100F8A6C420BE2E93455622F503E12F361F6FFDF6"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/probe_ai_random_entry.py",
+        "sha256": "9D60035DAE1386371F3CCB2C68B9D74C4C51A29B92085F8D02101369054237F4"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/cases.json",
+        "sha256": "4D38D075C88EE05C790879E4E10D52D3E3BF7A72D06AD6680CD776FBE70240FE"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-random-entry/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "nativeStateSource": {
+        "path": "local-data/results/native-cycle-20260911-0730/rng-transactions/cold-pilot-run1.json",
+        "sha256": "3FDCEC7C0DDF4B873195C0ADD2CBB4BA2A3E54860C2A09CA8AC661BEF5344DC3"
+      }
+    }
+  ]
+}
