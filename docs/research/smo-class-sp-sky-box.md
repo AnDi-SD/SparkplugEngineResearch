@@ -34,3 +34,10 @@ no-op. [Доказательства](native-pc-scene-special-managers.md). Ге
 RenderNodeSerializer, который оригинал регистрирует в 6D4B00. Три
 reader/writer cases и два raw world cases совпали с PC. Отдельного
 SkyBoxSerializer нет. [Досье внедрения](tool-skybox-shared-core-2026-09-09.md).
+
+11 сентября Viewer/LVLcreator подключили
+[отдельный Sky GPU pass](tool-skybox-gpu-2026-09-11.md). Camera-parent world
+вычисляется общими Node/SkyBox; transport сохраняет также прежнюю world
+position для no-inherit branch. Это host projection, не полный перенос
+manager/lifetime/visibility. World-only editor transform требует local pose
+и получает явную диагностику до подключения такого producer.

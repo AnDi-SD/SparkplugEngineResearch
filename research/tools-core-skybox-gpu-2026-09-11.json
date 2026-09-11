@@ -1,0 +1,1012 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 154905,
+      "sha256": "415F583BC82F624751E652534C7554F6BAF51E453956998C8DA4C2E7564B737F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 35258,
+      "sha256": "1D2509A4E8133D4FD388E08CC76AC3AEC8D2DCD1427EC8DB99BAA585D55F9AD0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/SkyPreview.h",
+      "bytes": 3663,
+      "sha256": "5299B625A011F47FEAC2EEDF003FB8A06AB46C847ECEAC7A4BAD6199AFE00E85",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SparkplugViewer.Native/SkyPreview.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.cpp",
+      "bytes": 14663,
+      "sha256": "C67DDED44C44494616E5C3C45C2497F6C128DAB6F70C9577CBDE4D51EE5D1723",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spNode.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spNode.h",
+      "bytes": 8407,
+      "sha256": "F439A991294346D2CFD0F4BA60491957DD8A01E87B58F0580E58AB1FD70168D1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spNode.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkyBox.cpp",
+      "bytes": 1649,
+      "sha256": "7A562123799998DBD76DA31D8AD05ADC06EC0308D7F3272FC2DBA30E534236DA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spSkyBox.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkyBox.h",
+      "bytes": 1306,
+      "sha256": "21A912F01B5C53AB6A07678F85338F61BE5E903930C534206F63698A0FCE3D52",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spSkyBox.h"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 22360,
+      "sha256": "6382CF34C130808259E16502F7616EFE9796A3AAE676AAFDA473344F605F8D14",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSkyBoxPose.cs",
+      "bytes": 938,
+      "sha256": "CEF1E1C4F65C2FE009F8A5A57A301DED985CA6855F041C73A4C08F28F256DA50",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoSkyBoxPose.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.cs",
+      "bytes": 5299,
+      "sha256": "B3D0423D9286ADAC1FDFB1DB32D6263B7D960BE3A8C81B54EA3362EABFC0C630",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Sky.cs",
+      "bytes": 785,
+      "sha256": "AF4D26A21828A3FEE162605C9F6D3E353083F6ADD4E8864C1D76950C68CC783A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Sky.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "bytes": 15149,
+      "sha256": "FF1A068B2B6A47C68EAD5E8DA3F84B261F01C9FC6546E7B1B683688D0B058E05",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 48217,
+      "sha256": "5FAE445C2BBA53724C53A756FD614107413F24E0CC3E3A5460B8535E587CB3CB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Sky.cs",
+      "bytes": 2956,
+      "sha256": "115A271DBABAA9D50F92D579E82AB84F5945E994800A1428E678CC81B93ABFF5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Sky.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs",
+      "bytes": 3920,
+      "sha256": "FA9A6F38DD52A5D7F105F257DD0AC5F817E5869DE1C589C7C3AAF8C2642FD244",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs",
+      "bytes": 14871,
+      "sha256": "772B51B3739CD286C2350D387459E0C1065609F65DC74508F5B0E5016FAF511E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs",
+      "bytes": 2198,
+      "sha256": "C3FD8C05C81C5B881178AB87CB18BCDCA65B8C61BE07079C198E1561F08538E5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuSkyRegression.cs",
+      "bytes": 8055,
+      "sha256": "41349BC5668F8B6FC48C1B66D6A10AD64DADC60A7832B16F3B89ACFEC2AA9DD4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuSkyRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 14820,
+      "sha256": "7387DF50CF9C3E1EEA6502F114D243DF76BA1D9CCCF6BC6F6DEE4C43608159B5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/TextSceneWindowRegression.cs",
+      "bytes": 4973,
+      "sha256": "09652F4C00423A27224F30FBA3402D64A6A26716DAF2421FA0CBE36E31C4EAA7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/TextSceneWindowRegression.cs"
+    },
+    {
+      "path": "research/probe_pc_sky_camera_transport.py",
+      "bytes": 5425,
+      "sha256": "0A9DF0539FEF873FC3CA313EF66324B108F027948767B3B23031E1AB917D82E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_sky_camera_transport.py"
+    },
+    {
+      "path": "research/select_sky_gpu_samples.py",
+      "bytes": 2061,
+      "sha256": "D54A14F6B96A7A6992C41B4D7F18218FFE4BCF199967ECE9C349D92BC133AF6E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/select_sky_gpu_samples.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": "docs/research/tool-skybox-gpu-2026-09-11.md",
+      "bytes": 8058,
+      "sha256": "AE8920651D63B14537476C221FFC7FE7D92E3898EA78B436D0CFA94999ABAAE7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/docs/research/tool-skybox-gpu-2026-09-11.md"
+    },
+    {
+      "path": "docs/research/smo-class-sp-sky-box.md",
+      "bytes": 3445,
+      "sha256": "BD77EAFA7A006E0081E75D410F2AA6350C948238607DA4420CBBB13998D5FF52",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/docs/research/smo-class-sp-sky-box.md"
+    },
+    {
+      "path": "docs/research/research-manifesto.md",
+      "bytes": 44428,
+      "sha256": "5D0B29A84A448EC4843AF54CE0BB7095CF74E61AAF88D76844599BBBC928BA4E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/docs/research/research-manifesto.md"
+    },
+    {
+      "path": ".codex-tmp/seal-sky-gpu.py",
+      "bytes": 4823,
+      "sha256": "3538698C36C0F3D97D3F368CC213ADAC7ED29DBB21C5C88C944343DFE2508F0B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/.codex-tmp/seal-sky-gpu.py"
+    },
+    {
+      "path": ".codex-tmp/check-sky-gpu.py",
+      "bytes": 922,
+      "sha256": "C6FFB855564EE4F4549F3EF3D0978F04D7231B41F503B128C139AD6A7D7147F3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/.codex-tmp/check-sky-gpu.py"
+    },
+    {
+      "path": ".codex-tmp/check-sky-consumers.py",
+      "bytes": 1092,
+      "sha256": "EBF3B810AED3B2DE870B94049A607D26AC716BB5AA0940E93D6504C48B81D109",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/.codex-tmp/check-sky-consumers.py"
+    },
+    {
+      "path": "research/inspect_pc_san_keys.py",
+      "bytes": 5671,
+      "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/inspect_pc_san_keys.py"
+    },
+    {
+      "path": "research/inspect_serializer_manager.py",
+      "bytes": 20585,
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/inspect_serializer_manager.py"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 15160,
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/pc_instruction_emulator.py"
+    },
+    {
+      "path": "research/probe_pc_animation_keys.py",
+      "bytes": 11349,
+      "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_animation_keys.py"
+    },
+    {
+      "path": "research/probe_pc_animation_lifecycle.py",
+      "bytes": 10907,
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_animation_lifecycle.py"
+    },
+    {
+      "path": "research/probe_pc_san_reader.py",
+      "bytes": 8643,
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_san_reader.py"
+    },
+    {
+      "path": "research/probe_pc_scene_lights.py",
+      "bytes": 15984,
+      "sha256": "FCBE75FA4A50C9A78B26B2210487B2EF46447CAA73B4BB3E5255EFB38D41AB95",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_scene_lights.py"
+    },
+    {
+      "path": "research/probe_pc_scene_render_registry.py",
+      "bytes": 6592,
+      "sha256": "70BA5F1F44B781E401806603BDB1377E6AED7E4EF40D26BF17E41A34C46BA03F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_scene_render_registry.py"
+    },
+    {
+      "path": "research/probe_pc_scene_special_registry.py",
+      "bytes": 6734,
+      "sha256": "700B2079A6EE7A658AB7C9E060604ECA1AA7710A988A07ED98A6B7598D0AE843",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_scene_special_registry.py"
+    },
+    {
+      "path": "research/probe_pc_scene_world.py",
+      "bytes": 9795,
+      "sha256": "26459BAC8F3C8B16B8FF43C323D2BF6780B7DCEBE14CA2787943D02865186B3F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/sources/research/probe_pc_scene_world.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final-stdout.txt",
+      "bytes": 50,
+      "sha256": "413497FCA755C64649B1061210F4129076B5768522D7909447AB5932BE0295EB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1-stdout.txt",
+      "bytes": 50,
+      "sha256": "9EF4AB8DDCA21B9B88F92B5F09AF5294708C6E0BA953DBBB7671CAA684C2A5DE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2-stdout.txt",
+      "bytes": 50,
+      "sha256": "413497FCA755C64649B1061210F4129076B5768522D7909447AB5932BE0295EB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final-stdout.txt",
+      "bytes": 51,
+      "sha256": "2B59AE1F5946587F7A25208BBB5F643E292446BA83502E5B6DE6BE5862666437",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1-stdout.txt",
+      "bytes": 51,
+      "sha256": "2B59AE1F5946587F7A25208BBB5F643E292446BA83502E5B6DE6BE5862666437",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final-stdout.txt",
+      "bytes": 76,
+      "sha256": "43EE1FB06981A775AA51F93EA38E9BA3ABD727553EC7330BFDE79A8933E2BDD1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1-stdout.txt",
+      "bytes": 76,
+      "sha256": "658984072AA5994F9C2D373FC5095EBCF23B959E89DA5F65AF8B7B85D246602B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final-stdout.txt",
+      "bytes": 77,
+      "sha256": "5FDCFF5CF1BE5A8CEFC34F5736EC577F24A3CCA7B56ABEA696814758CF6EAE93",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1-stdout.txt",
+      "bytes": 77,
+      "sha256": "C59325C4CD92C7D9F7FF63729874689F5D5D9E0FE5008053CB48746F66EDB2F7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final-stdout.txt",
+      "bytes": 50,
+      "sha256": "6A7F07789B6C7467287B0DDDAD881A0456A19E097566AD770AF01D44D2895A42",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1-stdout.txt",
+      "bytes": 50,
+      "sha256": "6A7F07789B6C7467287B0DDDAD881A0456A19E097566AD770AF01D44D2895A42",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/native-tests-final.log",
+      "bytes": 1573,
+      "sha256": "5DE9E6F96CCF926C38D2119F2519D808E2E659BD13B39C6702DFF98EFFA93AAA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/native-tests-final.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final-stdout.txt",
+      "bytes": 51,
+      "sha256": "83D63840DD049FAD13028EB5AFAD8C0C8ECC1B5EA639E011AFCB769B59CC75FD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1-stdout.txt",
+      "bytes": 51,
+      "sha256": "F967A10832751F8D3FD63179AEE3E3B3394719575A92C794C325884067112D8F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2-stdout.txt",
+      "bytes": 51,
+      "sha256": "83D63840DD049FAD13028EB5AFAD8C0C8ECC1B5EA639E011AFCB769B59CC75FD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/selected-samples-run2.json",
+      "bytes": 3875,
+      "sha256": "F819F7E00DA7782D5EC073114387FD8952E1CE2BFD465011EFA5C0CFA3B366F3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/selected-samples-run2.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/selected-samples.json",
+      "bytes": 3873,
+      "sha256": "C9F095EBDA193ACF1D88837692DBF78B0020963E4A6B8D49455F1FC893265869",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/selected-samples.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-final-stdout.txt",
+      "bytes": 49,
+      "sha256": "82A743E6BA18A9370E4C60C1C41101225D486E2687BFD6CA2AE1BF40F00A83A3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-final-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-run1-stdout.txt",
+      "bytes": 49,
+      "sha256": "56F88114DDB59172C562972DFA8AA0AF143E06A30F0E32AEA407323262885A82",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/mixed.png",
+      "bytes": 3170,
+      "sha256": "785306DE439F206ADEB5A1F575181D9198BDEE5C3C829B6025DBFA6CB87A1DF5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "06F58D9CD7BC7EFD15DBFBA82B4CD027576B342FEB44E1E06C66823958E54686",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/report.json",
+      "bytes": 1065,
+      "sha256": "E8E641605769C4E5F189B3CEC31F47E862A574492844877CCE2BE30D622A3F9A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/sky.png",
+      "bytes": 1966,
+      "sha256": "AE7A66078013D9E245AFABC1126BBFE75DEA4D38EB9000CCF7B699C5ECF9B03C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/sky.rgba",
+      "bytes": 65536,
+      "sha256": "907C64EAC0714E84BF22010FF88A1BCC13E096F2F6BB2EC42C6689B303812382",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-final/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "06F58D9CD7BC7EFD15DBFBA82B4CD027576B342FEB44E1E06C66823958E54686",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/report.json",
+      "bytes": 1065,
+      "sha256": "2E78806FF05FEC9F34E375B0C0684F36BBA1AF959C547A3D3B687A804483C1CB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/sky.rgba",
+      "bytes": 65536,
+      "sha256": "907C64EAC0714E84BF22010FF88A1BCC13E096F2F6BB2EC42C6689B303812382",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run1/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/mixed.png",
+      "bytes": 3170,
+      "sha256": "785306DE439F206ADEB5A1F575181D9198BDEE5C3C829B6025DBFA6CB87A1DF5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "06F58D9CD7BC7EFD15DBFBA82B4CD027576B342FEB44E1E06C66823958E54686",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/report.json",
+      "bytes": 1065,
+      "sha256": "FB6AB30A32E5C1EF83802D93AE411273DC9BB8567DA651BC94CBBA5D1A49CA15",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/sky.png",
+      "bytes": 1966,
+      "sha256": "AE7A66078013D9E245AFABC1126BBFE75DEA4D38EB9000CCF7B699C5ECF9B03C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/sky.rgba",
+      "bytes": 65536,
+      "sha256": "907C64EAC0714E84BF22010FF88A1BCC13E096F2F6BB2EC42C6689B303812382",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/date-gpu-run2/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/mixed.png",
+      "bytes": 8114,
+      "sha256": "6ABD771AB420E868BEE95134657193CE94171423C67BCA899FB67D021477C619",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "A0324A6522AD5FF140937D128F94A6513F27DEE8DC96E6C044F5C1F81D66DD93",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/report.json",
+      "bytes": 1051,
+      "sha256": "ABD5D8188E9986333FA2A4A257E367E09FAF9F4D37E1EBC444F983CF3DD487B9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/sky.png",
+      "bytes": 3000,
+      "sha256": "92203E9061FFE5E360AFBB75F172143CC894FF2F5B5FAD8BA8D5FFC83399ABF6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/sky.rgba",
+      "bytes": 65536,
+      "sha256": "A852321A68F8AD75029AEE0092676E20602B8D84B9037D4CF42AC921B6B638DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-final/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/mixed.png",
+      "bytes": 8092,
+      "sha256": "FAD612A5F75F6BE9D86C365501B0B1878DC1F3144A70756A98245FAE1BD694A7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "D81F40A32F5A51DCEE16BE4D0ADED3BAAF9E40C41D6CE78FD44571B9F2A677E3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/report.json",
+      "bytes": 1051,
+      "sha256": "DA2EC2AC768652AB4E032D71EED6C469191CFA9F51695C825AA42AE6453706E6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/sky.png",
+      "bytes": 3000,
+      "sha256": "92203E9061FFE5E360AFBB75F172143CC894FF2F5B5FAD8BA8D5FFC83399ABF6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/sky.rgba",
+      "bytes": 65536,
+      "sha256": "A852321A68F8AD75029AEE0092676E20602B8D84B9037D4CF42AC921B6B638DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/gardenia-gpu-run1/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final/report.json",
+      "bytes": 4919,
+      "sha256": "CA966746E68CAF4D2816205CCCD770D79D5575BA477EA2C1BBF9C848DBE54369",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final/scene.png",
+      "bytes": 14425,
+      "sha256": "BBA5BFB094B136E4FB4B1FA4850D6BDD50E0CE0B042DCB58F5418A5DB8FE3510",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-final/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1/report.json",
+      "bytes": 4920,
+      "sha256": "DC550169058E250BE326C11D27F4F08D98D40C25E3E8CE3F8A908A0DAE429FEE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1/scene.png",
+      "bytes": 14425,
+      "sha256": "BBA5BFB094B136E4FB4B1FA4850D6BDD50E0CE0B042DCB58F5418A5DB8FE3510",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/icy-control-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final/report.json",
+      "bytes": 3084,
+      "sha256": "25A018C744EE4AE1940DA2EC4047D3DC22915897A01B8BF7EA533383FE3F87ED",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final/scene.png",
+      "bytes": 2915,
+      "sha256": "CBA60EAD52FEEFE5386CE5E4D63C4BB8204C6643C0D490E0A1142DCAAD642B0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-final/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1/report.json",
+      "bytes": 3084,
+      "sha256": "8947A5945E9FD74F6E8EC2E22864E7AC3BE970D685FE1D6886C959D13D98D7AE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1/scene.png",
+      "bytes": 2915,
+      "sha256": "CBA60EAD52FEEFE5386CE5E4D63C4BB8204C6643C0D490E0A1142DCAAD642B0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/menu-control-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/mixed.png",
+      "bytes": 19980,
+      "sha256": "55520AB22654C577146A30917B62D3BB0CAFD39C3DDEE2FCED8E12C0B54E720A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "162C90BB8227551D11E30C4F30B4D43E93C6C14FF79C455009100011A383382E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/report.json",
+      "bytes": 1040,
+      "sha256": "F8440E039667392A3ACF79D22073BB5D2494BC18BD5060B7F785363785D0FD6E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/sky.png",
+      "bytes": 4320,
+      "sha256": "DA710F00299F9E4EFDF0CE9FF2ED28E0A36C7D2A92ECBCEE77808697574B86B4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/sky.rgba",
+      "bytes": 65536,
+      "sha256": "1D3C8EA55D5A48315652A275EC9C3185B14CF7F5F2A5DA4E7F12947F0AB6ADCF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-final/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/mixed.png",
+      "bytes": 19981,
+      "sha256": "9B9A7932EF470B00C48F3F45596E0CB45815C668E462845BCC0E951B56FDEF15",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "B5AA4B4B7BF895F4098FE2C8F1FD80D9A574A471AF7691DC8C3E0F1FF83F67A8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/report.json",
+      "bytes": 1041,
+      "sha256": "BCF7F45BEC5A6070B7EA838346083BA3233BB81F55986ADBA234F8E01981D23B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/sky.png",
+      "bytes": 4320,
+      "sha256": "DA710F00299F9E4EFDF0CE9FF2ED28E0A36C7D2A92ECBCEE77808697574B86B4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/sky.rgba",
+      "bytes": 65536,
+      "sha256": "1D3C8EA55D5A48315652A275EC9C3185B14CF7F5F2A5DA4E7F12947F0AB6ADCF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/multiple-gpu-run1/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/original-run1/probe-source.py",
+      "bytes": 5425,
+      "sha256": "0A9DF0539FEF873FC3CA313EF66324B108F027948767B3B23031E1AB917D82E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/original-run1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/original-run1/report.json",
+      "bytes": 7742,
+      "sha256": "93FC5C486D184B9B0D3333E6B4A56A53A348E459AB08F575C1FEF94F695DEF18",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/original-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/mixed.png",
+      "bytes": 6003,
+      "sha256": "4D97195DDEA9444C23112E137DC2E2E1A9BE5D4B225C2F09F763B3216B488359",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "31B6AB512650F25313F9A2D9BC95B8FEC5E1FE91451A1DEE19D244ECEA3EF193",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/report.json",
+      "bytes": 1167,
+      "sha256": "283393CDB9E3AA5B95B8B411974C5A338FF4B9A40F3B6C4E28B3D242F8EBDD67",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/sky.png",
+      "bytes": 3000,
+      "sha256": "92203E9061FFE5E360AFBB75F172143CC894FF2F5B5FAD8BA8D5FFC83399ABF6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/sky.rgba",
+      "bytes": 65536,
+      "sha256": "A852321A68F8AD75029AEE0092676E20602B8D84B9037D4CF42AC921B6B638DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-final/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "64D39DEBC9974930B1FE8D76948B7438357269A87698F82A57A7639E2D87BCE6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/report.json",
+      "bytes": 1167,
+      "sha256": "FED15048E71E447B97C7EBBA5FC0EDEA1326F377EA01651C184DD8E18B52E613",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/sky.rgba",
+      "bytes": 65536,
+      "sha256": "A852321A68F8AD75029AEE0092676E20602B8D84B9037D4CF42AC921B6B638DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run1/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/mixed.png",
+      "bytes": 5998,
+      "sha256": "CC9240746724E987DADFABEBADC63E76A7F2A23B541F435201263C4201F362E9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/mixed.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/mixed.rgba",
+      "bytes": 65536,
+      "sha256": "697954AD11C7B6898603A2A79EA09D771D1350EB0D9FBCA02C7390D33DAB2475",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/mixed.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/report.json",
+      "bytes": 1167,
+      "sha256": "1BE202CDD58BF4EFBCC4083035308636AC53CD25D070F8E3AA23FE811AD9C3B1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/sky.png",
+      "bytes": 3000,
+      "sha256": "92203E9061FFE5E360AFBB75F172143CC894FF2F5B5FAD8BA8D5FFC83399ABF6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/sky.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/sky.rgba",
+      "bytes": 65536,
+      "sha256": "A852321A68F8AD75029AEE0092676E20602B8D84B9037D4CF42AC921B6B638DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/race-gpu-run2/sky.rgba"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-final/report.json",
+      "bytes": 511,
+      "sha256": "FD80F99F9643512C0837BED039F0A9CB9DA60FFBA641EEE2E59424B45624CE3B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-run1/report.json",
+      "bytes": 511,
+      "sha256": "38F3F35C7613C4544885DAEE78B7354F5C3CACB987F859127D136A40F1156300",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sky-gpu/windows-run1/report.json"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1293824,
+      "sha256": "F86B4FE91336472142DA8AA948EDEA3AEC80F159A0022510EC28B5FB29C41CAC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerSkyBoxChecks.exe",
+      "bytes": 419328,
+      "sha256": "00FA01A0AD80481A6F854D739AEED5A87BE46C723EE389412B72DD1207DBB401",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/artifacts/native/viewer/Release/ViewerSkyBoxChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerNodeWorldChecks.exe",
+      "bytes": 396800,
+      "sha256": "7EF4827F29D5C43328C1650171E3E833041941F14043D478595CE04F3D2361DC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/artifacts/native/viewer/Release/ViewerNodeWorldChecks.exe"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 203776,
+      "sha256": "2169055C36084A6BE08B0B6D15E8602D8A3355D58F7A9C2D2EFD6E6891DADD6B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 760832,
+      "sha256": "ECC94B5BC3651AE65B1B0A5CCDB6555C1B6638589D566FEA291BBB760CEC0609",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 43008,
+      "sha256": "FFBFE2A948CE099873EF885C05F4EF853B52EF269293EB061A0F72512C57BE28",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 44544,
+      "sha256": "0CC71580A0556447B6229EB3B6C534F1BE4F7AE69FF3B219FC61CCE246D709FE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 157184,
+      "sha256": "8802852962DAF7FA63956E4DAFC410FB29CE122FBCD0CE06A366125F7608E80F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll",
+      "bytes": 261120,
+      "sha256": "57484EFEB71B23BF0C5A4D88EF231AB926C2F185D4FC15E566A07E9CCDF0AAFA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll",
+      "bytes": 406016,
+      "sha256": "313BCF2EE69FF7E6C02758D78971F8D2373F767162D4400892A7D95358BE2F34",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sky-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll"
+    }
+  ],
+  "status": "verified-host-SkyBox-camera-world-and-separate-GPU-pass",
+  "block": 17,
+  "nativeSha256": "F86B4FE91336472142DA8AA948EDEA3AEC80F159A0022510EC28B5FB29C41CAC",
+  "rendererSha256": "8802852962DAF7FA63956E4DAFC410FB29CE122FBCD0CE06A366125F7608E80F",
+  "originalChecks": 25,
+  "originalWorldBytes": 360,
+  "nativeChecks": 99,
+  "gpuChecks": 152,
+  "actualWindowChecks": 8,
+  "exeScoreDelta": 0,
+  "selectionSeconds": 0.029724199994234368,
+  "original": {
+    "status": "passed-scoped-worlds",
+    "nativeSha256": "F86B4FE91336472142DA8AA948EDEA3AEC80F159A0022510EC28B5FB29C41CAC",
+    "sourceExecutableSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "cases": [
+      {
+        "flags": 461573,
+        "poseHex": "050b07000000a03f000020c00000704000000040000000bf0000a03f0000803f0000000000000000000000000000803f0000000000000000000000000000803f00008841000098410000b841",
+        "cameraWorld": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          10.0,
+          -20.0,
+          30.0,
+          1.0
+        ],
+        "originalWorldHex": "000034410000b4c10000074200000040000000bf0000a03f0000803f0000000000000000000000000000803f0000000000000000000000000000803f",
+        "expectedMatrixHex": "0000004000000000000000000000000000000080000000bf000000800000000000000000000000000000a03f00000000000034410000b4c1000007420000803f",
+        "actualMatrixHex": "0000004000000000000000000000000000000080000000bf000000800000000000000000000000000000a03f00000000000034410000b4c1000007420000803f"
+      },
+      {
+        "flags": 461569,
+        "poseHex": "010b07000000a03f000020c00000704000000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf0000000000008841000098410000b841",
+        "cameraWorld": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          11.25,
+          -19.5,
+          29.75,
+          1.0
+        ],
+        "originalWorldHex": "00005c41000092c10000064200000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf00000000",
+        "expectedMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000005c41000092c1000006420000803f",
+        "actualMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000005c41000092c1000006420000803f"
+      },
+      {
+        "flags": 330497,
+        "poseHex": "010b05000000a03f000020c00000704000000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf0000000000008841000098410000b841",
+        "cameraWorld": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          12.5,
+          -19.0,
+          29.5,
+          1.0
+        ],
+        "originalWorldHex": "0000704100008ec10000054200000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf00000000",
+        "expectedMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf00000000000000000000704100008ec1000005420000803f",
+        "actualMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf00000000000000000000704100008ec1000005420000803f"
+      },
+      {
+        "flags": 68353,
+        "poseHex": "010b01000000a03f000020c00000704000000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf0000000000008841000098410000b841",
+        "cameraWorld": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          13.75,
+          -18.5,
+          29.25,
+          1.0
+        ],
+        "originalWorldHex": "0000824100008ac10000044200000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf00000000",
+        "expectedMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf00000000000000000000824100008ac1000004420000803f",
+        "actualMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf00000000000000000000824100008ac1000004420000803f"
+      },
+      {
+        "flags": 396033,
+        "poseHex": "010b06000000a03f000020c00000704000000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf0000000000008841000098410000b841",
+        "cameraWorld": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          15.0,
+          -18.0,
+          29.0,
+          1.0
+        ],
+        "originalWorldHex": "00008841000098410000b84100000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf00000000",
+        "expectedMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000008841000098410000b8410000803f",
+        "actualMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000008841000098410000b8410000803f"
+      },
+      {
+        "flags": 2817,
+        "poseHex": "010b00000000a03f000020c00000704000000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf0000000000008841000098410000b841",
+        "cameraWorld": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          16.25,
+          -17.5,
+          28.75,
+          1.0
+        ],
+        "originalWorldHex": "00008841000098410000b84100000040000000bf0000a03f0000803f000000000000000000000000000000000000803f00000000000080bf00000000",
+        "expectedMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000008841000098410000b8410000803f",
+        "actualMatrixHex": "000000400000000000000000000000000000008000000080000000bf00000000000000000000a0bf000000000000000000008841000098410000b8410000803f"
+      }
+    ],
+    "arenaReservedBytes": 2272,
+    "remainingAllocations": [],
+    "checks": 25,
+    "seconds": 4.198884099998395,
+    "dependencies": [
+      {
+        "path": "research/inspect_pc_san_keys.py",
+        "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+      },
+      {
+        "path": "research/inspect_serializer_manager.py",
+        "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+      },
+      {
+        "path": "research/pc_instruction_emulator.py",
+        "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+      },
+      {
+        "path": "research/probe_pc_animation_keys.py",
+        "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+      },
+      {
+        "path": "research/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      },
+      {
+        "path": "research/probe_pc_san_reader.py",
+        "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+      },
+      {
+        "path": "research/probe_pc_scene_lights.py",
+        "sha256": "FCBE75FA4A50C9A78B26B2210487B2EF46447CAA73B4BB3E5255EFB38D41AB95"
+      },
+      {
+        "path": "research/probe_pc_scene_render_registry.py",
+        "sha256": "70BA5F1F44B781E401806603BDB1377E6AED7E4EF40D26BF17E41A34C46BA03F"
+      },
+      {
+        "path": "research/probe_pc_scene_special_registry.py",
+        "sha256": "700B2079A6EE7A658AB7C9E060604ECA1AA7710A988A07ED98A6B7598D0AE843"
+      },
+      {
+        "path": "research/probe_pc_scene_world.py",
+        "sha256": "26459BAC8F3C8B16B8FF43C323D2BF6780B7DCEBE14CA2787943D02865186B3F"
+      },
+      {
+        "path": "research/probe_pc_sky_camera_transport.py",
+        "sha256": "0A9DF0539FEF873FC3CA313EF66324B108F027948767B3B23031E1AB917D82E0"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\DatingAssets\\mini_level_date_02.smo",
+      "sky": 1,
+      "meshes": 97,
+      "alpha": 0
+    },
+    {
+      "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Levels\\Challenges\\race_01.smo",
+      "sky": 1,
+      "meshes": 882,
+      "alpha": 0
+    },
+    {
+      "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Levels\\Gardenia\\Gardenia02.smo",
+      "sky": 1,
+      "meshes": 772,
+      "alpha": 0
+    },
+    {
+      "source": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Levels\\Sky\\Sky_02.smo",
+      "sky": 2,
+      "meshes": 44,
+      "alpha": 1
+    }
+  ],
+  "boundaries": [
+    "Host transform projection, not original clone or complete manager reparent",
+    "Original graph descendants/bounds/light cache/Fog ownership remain untouched",
+    "World-only editor changes require refreshed local pose and are diagnosed",
+    "PC consumer, not PS2 runtime or full original frame"
+  ]
+}

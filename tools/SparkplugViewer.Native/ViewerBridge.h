@@ -316,6 +316,11 @@ SPV_API int spv_scene_graph_skin_palette(void*,std::uint32_t skin,float*,std::ui
 // kind: 0 RenderNode, 1 StaticRenderObject, 2 PartitionRenderable, 3 SkyBox.
 // Membership is an inspection view, not a normal/special pass schedule.
 struct SpvGraphRenderContainer {std::uint32_t id,kind,renderables;float world[16],inverse[16];};
+// Immutable local transform observation; flag word retains original Node bits.
+struct SpvSkyPose {std::uint32_t flags;float position[3],scale[3],orientation[9],retainedWorldPosition[3];};
+SPV_API int spv_graph_sky_pose(void*,std::uint32_t id,SpvSkyPose*) noexcept;
+// Camera world is a finite unit-scale game-coordinate affine matrix (16 floats).
+SPV_API int spv_sky_camera_world(const SpvSkyPose*,const float* cameraWorld,float* output,std::uint32_t count) noexcept;
 SPV_API int spv_graph_render_containers(void*,SpvGraphRenderContainer*,std::uint32_t capacity,std::uint32_t* count) noexcept;
 SPV_API int spv_graph_render_members(void*,std::uint32_t container,std::uint32_t* ids,std::uint32_t count) noexcept;
 // One actual Model/Skin occurrence. This projects the confirmed input matrix

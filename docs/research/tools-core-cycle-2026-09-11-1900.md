@@ -192,3 +192,14 @@ loading.smo совпал со всеми 1364 GPU bytes; menu atlas совпал
 копия upload arrays; проверена поздняя замена base preview с освобождением GPU
 handle. Transient preview сохраняет явную backend генерацию. Изученность EXE
 не повышается за интеграционный транспорт.
+
+## Блок 17 — SkyBox в общем GPU backend
+
+[Отдельный проход](tool-skybox-gpu-2026-09-11.md) использует camera-parent
+world из общих Node/SkyBox и отдельную общую alpha queue. Шесть fresh original
+worlds подтвердили также retained world position без inheritance. Четыре
+реальные сцены, включая два SkyBox и Sky alpha, прошли GPU проверку;
+Viewer/LVLcreator подключили 97 placements в настоящих скрытых окнах.
+Мировая правка SkyBox без обновлённой local pose пока явно диагностируется
+как SKY_EDIT_POSE; полный manager/visibility/Fog lifetime не заявлен.
+Подбор файлов ускорен двухэтапным indexed SQLite запросом, без corpus scan.

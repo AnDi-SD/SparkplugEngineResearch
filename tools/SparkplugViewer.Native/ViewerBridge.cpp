@@ -47,6 +47,7 @@
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Analysis/Host/ResourceEnvelope.h"
 #include "SceneLighting.h"
+#include "SkyPreview.h"
 #include "ShaderLighting.h"
 #include "AlphaOrdering.h"
 #include "MaterialSubmission.h"
@@ -1436,6 +1437,16 @@ SPV_API int spv_graph_render_members(void* handle,std::uint32_t id,std::uint32_t
     });
 }
 static_assert(sizeof(SpvGraphRenderContainer)==140);
+static_assert(sizeof(SpvSkyPose)==76);
+SPV_API int spv_graph_sky_pose(void* handle,std::uint32_t id,SpvSkyPose* output) noexcept {
+    return guarded([&]{require(output,"Missing sky pose output");
+        auto* sky=dynamic_cast<spSkyBox*>(graphForView(handle).Find(id));require(sky,"Expected actual SkyBox");
+        *output=spvhost::SkyPose(*sky);});
+}
+SPV_API int spv_sky_camera_world(const SpvSkyPose* pose,const float* cameraWorld,float* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(pose&&cameraWorld&&output&&count==16,"Invalid sky world extent");
+        const auto world=spvhost::SkyCameraWorld(*pose,cameraWorld);std::copy(world.begin(),world.end(),output);});
+}
 SPV_API int spv_graph_render_occurrence(void* handle,std::uint32_t id,std::uint32_t slot,SpvGraphRenderOccurrence* output) noexcept {
     return guarded([&]{
         require(output,"Missing render occurrence output");const auto& graph=graphForView(handle);
