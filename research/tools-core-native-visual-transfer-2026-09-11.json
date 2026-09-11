@@ -1,0 +1,3613 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoFileReferenceTrace.cs",
+      "bytes": 17501,
+      "sha256": "3DFB07B1FCC219B5AF39529652397402151DFB16A8F1143A6DBF992CEF319ECD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoFileReferenceTrace.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoFileReferenceRemapContext.cs",
+      "bytes": 2364,
+      "sha256": "D37C2B44B59FBCA3CC1F8317EF56E53EFCB817EDB4CB8CB502464B4B1FD4AB83",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoFileReferenceRemapContext.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 22360,
+      "sha256": "6382CF34C130808259E16502F7616EFE9796A3AAE676AAFDA473344F605F8D14",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoSkinDecoder.cs",
+      "bytes": 3924,
+      "sha256": "10BC4C385DAE963829CD96DC45C8788BE0F530709934CB4C5037511CD43385BE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoSkinDecoder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Editing/SmoMutationTransaction.cs",
+      "bytes": 27354,
+      "sha256": "2B5A64632C20759E297CB4BE2F365DBB03C992860FC3438BC93C42C7D4E1C1D3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoViewer/SmoViewer.Editing/SmoMutationTransaction.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoNativeVisualGraphReplacer.cs",
+      "bytes": 63090,
+      "sha256": "818583D13FA5E699EC3EBDB0825ED8947A5BE89678EF0BB95C4BB48FE3F14905",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.Core/SmoNativeVisualGraphReplacer.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoVisualForestInjector.cs",
+      "bytes": 43674,
+      "sha256": "DA4DF558664D25DA9BF544FAD697604F42E896ACDA5F30687A212519D4E5CC15",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.Core/SmoVisualForestInjector.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.Core/SmoAdditiveForestPlanner.cs",
+      "bytes": 18942,
+      "sha256": "660E8873221C227491ACEA6623525DE2F3D60513E675032D8DDD5DAC4FA1081E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.Core/SmoAdditiveForestPlanner.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/ForestReferenceRemapRegression.cs",
+      "bytes": 30342,
+      "sha256": "E010CEB9ACFB81605AAAC4C3640B2FCECF287ED6357ADEF3EEA6C7BDC981F02D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.FormatTests/ForestReferenceRemapRegression.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/NativeMaterialTransferRegression.cs",
+      "bytes": 7601,
+      "sha256": "D4ADDB42EDE7DAE670A31F8886F2B6E6CA921C8FEAD3CD5547D32E97A0DAFD39",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.FormatTests/NativeMaterialTransferRegression.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/SmoNativeVisualReplacementRegression.cs",
+      "bytes": 8604,
+      "sha256": "9F7BC66A03D476C821EF5A543CC94549E0EF04E05E1BCA61D8788424FAED5CF6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.FormatTests/SmoNativeVisualReplacementRegression.cs"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/Program.cs",
+      "bytes": 13153,
+      "sha256": "FFF09C98CABB37BF5F25321F13FFBA3037054D95058A0BD376F0673A972B6C34",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SmoImporter/SmoImporter.FormatTests/Program.cs"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.cpp",
+      "bytes": 8817,
+      "sha256": "0A1163C2A6C25B1FEFC78E214BBFBFAFE33D07A994F230C2920985224739E256",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/Sparkplug/Code/Sparkplug/spAnimTexControllerSerializer.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spSkinSerializer.cpp",
+      "bytes": 11301,
+      "sha256": "C0EE9E04EB0C5978C91ED2D45E8ADD3EBA9872C7E91C87AF7FBAB845C31355BD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/Sparkplug/Code/Sparkplug/spSkinSerializer.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ResourceGraph.cpp",
+      "bytes": 10733,
+      "sha256": "8B6FD1FBC57AF0D914A6AB932F650B486BB8A95F481B50694FA9AACE150BD48C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/tools/SparkplugViewer.Native/ResourceGraph.cpp"
+    },
+    {
+      "path": "research/check_tool_graph.py",
+      "bytes": 4070,
+      "sha256": "243E5773EB723636ADF176EF5722040B2ED2313D3A6EB5BA22418927EA575701",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/research/check_tool_graph.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/check-donor-transfer.py",
+      "bytes": 2064,
+      "sha256": "FE464BBE420CCB9544CC62941F1312C561E6C45C569929724A92086DED1DFE9B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/.codex-tmp/check-donor-transfer.py"
+    },
+    {
+      "path": ".codex-tmp/probe-donor-transfer.py",
+      "bytes": 1088,
+      "sha256": "0EC1ED1E6DEA132BA9CBA983B41E3DF9C5274ED277D454501BD56ED692080FD0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/.codex-tmp/probe-donor-transfer.py"
+    },
+    {
+      "path": ".codex-tmp/diff-donor-transfer.py",
+      "bytes": 1464,
+      "sha256": "99494ECAC5807A74348C3E56537084A8B1668288B9C0A282CC1D1ECA360D5B9C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/.codex-tmp/diff-donor-transfer.py"
+    },
+    {
+      "path": ".codex-tmp/seal-donor-transfer.py",
+      "bytes": 3827,
+      "sha256": "2BBCCCD15724A867307598E247FF9BAB5C659D75AA11BBE4557092F2E1D5609C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/.codex-tmp/seal-donor-transfer.py"
+    },
+    {
+      "path": ".codex-tmp/NativeMaterialTransferWithDiagnostic.cs.txt",
+      "bytes": 10687,
+      "sha256": "74552A27BEC22D6AB9515BB8C073C6DD810682A3A444B7062A36F3331AD87F67",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/.codex-tmp/NativeMaterialTransferWithDiagnostic.cs.txt"
+    },
+    {
+      "path": "docs/research/tool-native-visual-transfer-2026-09-11.md",
+      "bytes": 7560,
+      "sha256": "DAFE0BB924F048828F2AD97210DDAD84F9BCA873C9E18356D3325F1958AA2B94",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/sources/docs/research/tool-native-visual-transfer-2026-09-11.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-diff.json",
+      "bytes": 8240,
+      "sha256": "EC6461AF6BE6B74E5A483A3411D2486DD24EB05E256F0D07992AD734503EF577",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-diff.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-graph.json",
+      "bytes": 776,
+      "sha256": "6ABB9EDC08F5E4DDAA9E0B573C3556D21724B2244D2FC0CAED6049264310E2B9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-graph.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-log.txt",
+      "bytes": 257,
+      "sha256": "E5CBC5D879B0A59E663D0BDE6D5D9FD47C1EDAA04E2BB17F0BE3FABCA643BA35",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/baseline-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1-log.txt",
+      "bytes": 195,
+      "sha256": "382BEAB66B9514FB20C8A5739E240C9341CF6BD9D5AFE78BD64A676843502C91",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1-process.json",
+      "bytes": 823,
+      "sha256": "48668535BB0AFC2853AA8D0712B850CD4EC9E44A7FE3BE918E56503AADE2333D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final-log.txt",
+      "bytes": 46,
+      "sha256": "BCA3E0D9291C2E7700DEC254C8EE5E49A252D8C60F0BBFB4A559B96D61BC27DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final-process.json",
+      "bytes": 536,
+      "sha256": "B3B5C46A92761E3230A6976D3FE8EBB6898A7A5A8428129E2836DDD882B26C1C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified-log.txt",
+      "bytes": 46,
+      "sha256": "BCA3E0D9291C2E7700DEC254C8EE5E49A252D8C60F0BBFB4A559B96D61BC27DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified-process.json",
+      "bytes": 957,
+      "sha256": "10F0C7C3B7A3C8C1F1BBCEE2F6A8F8F7CB9B571C0EA22194A5007E7EBFA86B20",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1-log.txt",
+      "bytes": 1510,
+      "sha256": "204F8678A432BE73F85789BC442E4CF44A81BEA832C5ADC21B13881BDD6A5B6F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1-process.json",
+      "bytes": 2048,
+      "sha256": "236DCFD313051670310E7DB9ABD65629ED32C99BAA1DD95088B84FE0D3B6A8CB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2-log.txt",
+      "bytes": 46,
+      "sha256": "BCA3E0D9291C2E7700DEC254C8EE5E49A252D8C60F0BBFB4A559B96D61BC27DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2-process.json",
+      "bytes": 536,
+      "sha256": "B43361EED51D5E3D776D3D482A75B7724FA68D071702476B0B26C56AE515C9BE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run1-process.json",
+      "bytes": 474,
+      "sha256": "8328CC1759B40F48563B09C0B32BE76784546BC67FB52717D99403F348E76EBB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run2-log.txt",
+      "bytes": 1635,
+      "sha256": "C0BEC46728832A44E6DAF55FB818EE4997266FDE03C739ADC272B175B8D98A3B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run2-process.json",
+      "bytes": 2298,
+      "sha256": "7CE19B0B582099FBE026DA11EBF090E4A583EBD4530D6F44BCFE5506D93EF601",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/inverse-debug-run2-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final-log.txt",
+      "bytes": 105,
+      "sha256": "9B6C23665FDD133A265290FE466A6605A24A885C11179FFFE7CE4A67639FABFF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final-process.json",
+      "bytes": 1134,
+      "sha256": "3D1B941AD8FAFC478DF50D0C22FEEF15D5AB100898F8847DB306491A0519EDCC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run1-log.txt",
+      "bytes": 790,
+      "sha256": "B9E14DB7322223B25FDAA0289642ABD6218C35A538A12CCB99FD8FA808469E83",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run1-process.json",
+      "bytes": 1427,
+      "sha256": "E66D0BB9C1D306E05130C115A95A2F2902074FB6EE5077AC59289F0D8840E759",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2-log.txt",
+      "bytes": 105,
+      "sha256": "4EF4CA3504DC147A670C32842D28AA85381B530AEAB1C12345C0F5D798648B89",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2-process.json",
+      "bytes": 717,
+      "sha256": "A9CB448CB644F228AF64B82EF97586FCB76F8BF1A7E2962875F5ADD2205B648F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final-log.txt",
+      "bytes": 106,
+      "sha256": "C6D393086F3FF4693BD19733A012C6A319AD523766299DBD5BFC68B63A50CA5F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final-process.json",
+      "bytes": 1137,
+      "sha256": "28E59C93E451C13B625457E15C615245D687D34F0073BB2E3A6D9E3D75E706C5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1-log.txt",
+      "bytes": 106,
+      "sha256": "8B6732E2B7A91181A8E5DA81F678ACBE4E80AF7D88A7EBDF87D0B7475818B67E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1-process.json",
+      "bytes": 721,
+      "sha256": "FF37C967EEBC26C3950C54E7E37A5AEA9454EEBAA5102ADECF320F58E8B86B90",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2-log.txt",
+      "bytes": 106,
+      "sha256": "6F178E87D43F1179D858571C4C2B8643CBA3C22C682D248808F952154C762BBF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2-process.json",
+      "bytes": 721,
+      "sha256": "9BDB08AFB3FAFCC793A22251F6773658AA6C6428AD8BD5BF1BB1B4EC5485D441",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/observed-run1-log.txt",
+      "bytes": 262,
+      "sha256": "B9AEEDD11D8CE3D2205E7248B640B7F2EFDBFBA3BE8422CF58510E800734BF31",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/observed-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/observed-run1-run.json",
+      "bytes": 438,
+      "sha256": "780502024CE580905905AA3E4BA24D4FB76595D4FDEF9000A21E8150C5079894",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/observed-run1-run.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-forward-final-log.txt",
+      "bytes": 36,
+      "sha256": "922BBB73422A04196AC868D11E9A8B089D37A23C126286ABC1B721CA17D370B3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-forward-final-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-forward-final-process.json",
+      "bytes": 932,
+      "sha256": "B67F1EE7E51397A4A70937592B5BCE337764AC80441CBE01520A8DB070D3CE5B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-forward-final-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-inverse-final-log.txt",
+      "bytes": 36,
+      "sha256": "922BBB73422A04196AC868D11E9A8B089D37A23C126286ABC1B721CA17D370B3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-inverse-final-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-inverse-final-process.json",
+      "bytes": 932,
+      "sha256": "88543AC7AD0369ACFE915C2FA8408B8ADFF0ADAD427A0061EB8BA8D514B1B5A8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-inverse-final-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-run1-log.txt",
+      "bytes": 36,
+      "sha256": "922BBB73422A04196AC868D11E9A8B089D37A23C126286ABC1B721CA17D370B3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-run1-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-run1-process.json",
+      "bytes": 516,
+      "sha256": "5A3624877E41E59C57AE4ADFED4BB2A1337F223989B622F1D12F1A2D3121625A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/retained-nodes-run1-process.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/stella-to-icy-baseline.smo",
+      "bytes": 653891,
+      "sha256": "24F2E1E884B1C9E09E3F54CAA00F5B851A92D149FBECF29321F188F799FA5D2B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/stella-to-icy-baseline.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/stella-to-icy-observed-run1.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/stella-to-icy-observed-run1.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1/diagnostic.json",
+      "bytes": 116359,
+      "sha256": "7C60FB1A3818A1EBC8120BB7B66EE084E480A08EAAAC1BA4F7F065F68AD06797",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1/diagnostic.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1/palette-rewritten.smo",
+      "bytes": 509977,
+      "sha256": "BDBD6ABFFB795A3A9188C8F0F81AA1CBD7AFF8E9D2040C719891986603C39E16",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/collapse-diagnostic-run1/palette-rewritten.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/additive.smo",
+      "bytes": 713,
+      "sha256": "27E65DEBF3EB6939D3604814D893843B5B85761DCF0E4376CCD604571604E943",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/batch-additive.smo",
+      "bytes": 805,
+      "sha256": "E2C044934D60BEF3FD7C7BB3F29DA1B51E3892064F53AF88CF69E30E555BE758",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/batch-additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/batch-remapped.smo",
+      "bytes": 805,
+      "sha256": "0441B4944568E967F02C93F0CEE12F1E26A7EF7FEC2D645A28CB22A79299250F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/batch-remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/native-transfer-input.smo",
+      "bytes": 721,
+      "sha256": "121E17AE4958EC924B780ADF5F0FDB6AB0823350643D7346FA2AA543E8EDDFD8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/native-transfer-input.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/native-transfer.smo",
+      "bytes": 721,
+      "sha256": "59519F22127982D00343617F751052DAF0CF31F96165A2C67E61E69B7519E449",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/native-transfer.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/remapped-twice.smo",
+      "bytes": 713,
+      "sha256": "98B71149E7FC5C466974A993ABE26582834597867FF33598FA893EF0B3A1C596",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/remapped-twice.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/remapped.smo",
+      "bytes": 713,
+      "sha256": "71BC3D9E5CFD48026DBA9A22FD913BC020C6759485CFF01C47E42E49C374CDE7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/report.json",
+      "bytes": 515,
+      "sha256": "B79BB9171307885ADA52D135CD6E8346B7A361C261AABDA547AA59A638DFB3A4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/worker-reference-transport.json",
+      "bytes": 1273,
+      "sha256": "3D23AA07B6CC3F110CD2FBF039BC08DEF644A25910F7BE3564A0B2BBF880C22D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-final/worker-reference-transport.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/additive.smo",
+      "bytes": 713,
+      "sha256": "27E65DEBF3EB6939D3604814D893843B5B85761DCF0E4376CCD604571604E943",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/batch-additive.smo",
+      "bytes": 805,
+      "sha256": "E2C044934D60BEF3FD7C7BB3F29DA1B51E3892064F53AF88CF69E30E555BE758",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/batch-additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/batch-remapped.smo",
+      "bytes": 805,
+      "sha256": "0441B4944568E967F02C93F0CEE12F1E26A7EF7FEC2D645A28CB22A79299250F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/batch-remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/native-transfer-input.smo",
+      "bytes": 721,
+      "sha256": "121E17AE4958EC924B780ADF5F0FDB6AB0823350643D7346FA2AA543E8EDDFD8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/native-transfer-input.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/native-transfer.smo",
+      "bytes": 721,
+      "sha256": "59519F22127982D00343617F751052DAF0CF31F96165A2C67E61E69B7519E449",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/native-transfer.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/remapped-twice.smo",
+      "bytes": 713,
+      "sha256": "98B71149E7FC5C466974A993ABE26582834597867FF33598FA893EF0B3A1C596",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/remapped-twice.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/remapped.smo",
+      "bytes": 713,
+      "sha256": "71BC3D9E5CFD48026DBA9A22FD913BC020C6759485CFF01C47E42E49C374CDE7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/report.json",
+      "bytes": 515,
+      "sha256": "B79BB9171307885ADA52D135CD6E8346B7A361C261AABDA547AA59A638DFB3A4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/worker-reference-transport.json",
+      "bytes": 1273,
+      "sha256": "3D23AA07B6CC3F110CD2FBF039BC08DEF644A25910F7BE3564A0B2BBF880C22D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-qualified/worker-reference-transport.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1/batch-additive.smo",
+      "bytes": 805,
+      "sha256": "E2C044934D60BEF3FD7C7BB3F29DA1B51E3892064F53AF88CF69E30E555BE758",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1/batch-additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1/batch-remapped.smo",
+      "bytes": 805,
+      "sha256": "0441B4944568E967F02C93F0CEE12F1E26A7EF7FEC2D645A28CB22A79299250F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run1/batch-remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/additive.smo",
+      "bytes": 713,
+      "sha256": "27E65DEBF3EB6939D3604814D893843B5B85761DCF0E4376CCD604571604E943",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/batch-additive.smo",
+      "bytes": 805,
+      "sha256": "E2C044934D60BEF3FD7C7BB3F29DA1B51E3892064F53AF88CF69E30E555BE758",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/batch-additive.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/batch-remapped.smo",
+      "bytes": 805,
+      "sha256": "0441B4944568E967F02C93F0CEE12F1E26A7EF7FEC2D645A28CB22A79299250F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/batch-remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/native-transfer-input.smo",
+      "bytes": 721,
+      "sha256": "121E17AE4958EC924B780ADF5F0FDB6AB0823350643D7346FA2AA543E8EDDFD8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/native-transfer-input.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/native-transfer.smo",
+      "bytes": 721,
+      "sha256": "59519F22127982D00343617F751052DAF0CF31F96165A2C67E61E69B7519E449",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/native-transfer.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/remapped-twice.smo",
+      "bytes": 713,
+      "sha256": "98B71149E7FC5C466974A993ABE26582834597867FF33598FA893EF0B3A1C596",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/remapped-twice.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/remapped.smo",
+      "bytes": 713,
+      "sha256": "71BC3D9E5CFD48026DBA9A22FD913BC020C6759485CFF01C47E42E49C374CDE7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/remapped.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/report.json",
+      "bytes": 515,
+      "sha256": "B79BB9171307885ADA52D135CD6E8346B7A361C261AABDA547AA59A638DFB3A4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/worker-reference-transport.json",
+      "bytes": 1273,
+      "sha256": "3D23AA07B6CC3F110CD2FBF039BC08DEF644A25910F7BE3564A0B2BBF880C22D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/forest-run2/worker-reference-transport.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final/report.json",
+      "bytes": 10955,
+      "sha256": "397EC8FAD75AC337C81E5014D654754DD9E7F56CAD53DF6C022674426DD02EEA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final/transferred.smo",
+      "bytes": 509597,
+      "sha256": "8CB9846A0549C40130073ABFEBD7CBB4A08CFA977EEDEC24E3B2E6F8B6512141",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-final/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2/report.json",
+      "bytes": 10954,
+      "sha256": "BEEBFD7EBF6531D4E00424292943E10429FE3FA9F542D6A2EB22C41072DF6087",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2/transferred.smo",
+      "bytes": 509597,
+      "sha256": "8CB9846A0549C40130073ABFEBD7CBB4A08CFA977EEDEC24E3B2E6F8B6512141",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-icy-run2/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final/report.json",
+      "bytes": 105127,
+      "sha256": "CEA39674478C0A9308D8A81F2929252DC97F64230FBBB0896720564BBBEFF257",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final/transferred.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-final/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1/report.json",
+      "bytes": 105127,
+      "sha256": "352D75CA1690ED6FB1671E8EC752AB5A8BD9B32747C5D333187C9090EB390F83",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1/transferred.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run1/transferred.smo"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2/report.json",
+      "bytes": 105127,
+      "sha256": "C868126640B8C4BB8A9EFDC8E7BA7694E6EDD5F5179C4999B21151D5EEA88A74",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2/transferred.smo",
+      "bytes": 653891,
+      "sha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/donor-transfer/materials-stella-run2/transferred.smo"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoImporter.FormatTests.dll",
+      "bytes": 679424,
+      "sha256": "B5D1995FD96CEF28A11CC6949751E281646B75F5C22744D3BF2344BAB7186602",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoImporter.FormatTests.dll"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoImporter.Core.dll",
+      "bytes": 1161216,
+      "sha256": "1E63B974A966D2EB781C72FB82F29A7B83120429CAE00CD0A47344B822A33C95",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoImporter.Core.dll"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll",
+      "bytes": 762368,
+      "sha256": "6A817665D22B14F1F1815BDD745FF2431A8B23B119CE0B50E96571657C0E047C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Editing.dll",
+      "bytes": 102912,
+      "sha256": "C4882A2B47ABDE8618ED5167B14C1367370EBB08FB7494696578D718C58C28D1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Editing.dll"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll",
+      "bytes": 43008,
+      "sha256": "AE3ECC71E9D01CDA28F5F7687C5C4300A69A689EF80F00AAA12F63753BD21936",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll",
+      "bytes": 1293824,
+      "sha256": "F86B4FE91336472142DA8AA948EDEA3AEC80F159A0022510EC28B5FB29C41CAC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/donor-transfer/qualified/artifacts/tools/SmoImporter/SmoImporter.FormatTests/bin/Release/net8.0/SparkplugViewerNative.dll"
+    }
+  ],
+  "status": "verified-native-SMO-forest-reference-relocation",
+  "block": 18,
+  "hostOnly": true,
+  "exeScoreDelta": 0,
+  "checks": 99,
+  "retainedNodeRuns": 2,
+  "correctedAnimatedTextureReferences": 29,
+  "actualMaterialSnapshots": [
+    {
+      "status": "passed",
+      "checks": 11,
+      "target": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Stella\\StellaX.smo",
+      "donor": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "targetSha256": "8DC895389412F770FC5B1C80ED619559F8576413394EA63C0CB51DE17BD03095",
+      "donorSha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+      "outputSha256": "8CB9846A0549C40130073ABFEBD7CBB4A08CFA977EEDEC24E3B2E6F8B6512141",
+      "analyzeSeconds": 0.2575494,
+      "replaceSeconds": 0.1794004,
+      "IgnoredDonorBoneNames": [
+        "Cape_01",
+        "Cape_02",
+        "Hair_01",
+        "Hair_02",
+        "Hair_03",
+        "Hair_04"
+      ],
+      "MeshCount": 12,
+      "TextureCount": 1,
+      "materials": 3,
+      "passes": 3,
+      "layers": 3,
+      "animationKeys": 0,
+      "observedSites": 330,
+      "processPeakWorkingSet": 63651840,
+      "snapshots": [
+        {
+          "donorId": 5,
+          "outputId": 127,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1059892397,
+                1064103150,
+                1064826873,
+                1056898816
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 1120403456,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 2,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": null,
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      1,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 73,
+          "outputId": 189,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:69637900",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "3D09E9773D22C84846A86FB7E075143ADEC1DEC6796FA1060D2AAE4F5E3C79D2"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "8341BAE377D3071771DCF70FEF41B524E7D9B8B347D4772FC596A304FD542CCA"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "5FBFDA81683BC37E2C30DF0A4D3E3966C759FDEDEA548B08424C8442263A2671"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "0C3A3476E1DCC61B27E7C4B0C6FDEA0519584BA0C35D181CABD6C38A81979B8C"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "BD800450B9F17FED2E9E2403FA80D218DF4E25C53F63784FAF67FF6F174FD914"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "F298620DB2F3FE2EC63F80A6891631F139435294664BE7185DB1E629C71C9278"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "3E52ED26402322C1BDBF2EE01CC7A35C64B6790B35A2B7BADB1EEED9B2811421"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "CA3707B9DCE101E15CCA82820139FE35107731E6621CEFBF7C477ECD2C09C385"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "6B63BFCF40D4F54A6A1C25865778328247EABDD301A1351B721E7ADE4DA5D916"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 77,
+          "outputId": 193,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1059431846,
+                1062458325,
+                1062392532,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 2,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:69637900",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "3D09E9773D22C84846A86FB7E075143ADEC1DEC6796FA1060D2AAE4F5E3C79D2"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "8341BAE377D3071771DCF70FEF41B524E7D9B8B347D4772FC596A304FD542CCA"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "5FBFDA81683BC37E2C30DF0A4D3E3966C759FDEDEA548B08424C8442263A2671"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "0C3A3476E1DCC61B27E7C4B0C6FDEA0519584BA0C35D181CABD6C38A81979B8C"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "BD800450B9F17FED2E9E2403FA80D218DF4E25C53F63784FAF67FF6F174FD914"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "F298620DB2F3FE2EC63F80A6891631F139435294664BE7185DB1E629C71C9278"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "3E52ED26402322C1BDBF2EE01CC7A35C64B6790B35A2B7BADB1EEED9B2811421"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "CA3707B9DCE101E15CCA82820139FE35107731E6621CEFBF7C477ECD2C09C385"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "6B63BFCF40D4F54A6A1C25865778328247EABDD301A1351B721E7ADE4DA5D916"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "checks": 15,
+      "target": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Icy\\Icy.smo",
+      "donor": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\pc-pristine\\Media\\Characters\\Stella\\StellaX.smo",
+      "targetSha256": "744EEDD682725C5712789E13598FB478AB7190CBC022CDB98B291E2E900D485C",
+      "donorSha256": "8DC895389412F770FC5B1C80ED619559F8576413394EA63C0CB51DE17BD03095",
+      "outputSha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+      "analyzeSeconds": 0.0534751,
+      "replaceSeconds": 0.3386521,
+      "IgnoredDonorBoneNames": [],
+      "MeshCount": 8,
+      "TextureCount": 12,
+      "materials": 5,
+      "passes": 6,
+      "layers": 6,
+      "animationKeys": 38,
+      "observedSites": 264,
+      "processPeakWorkingSet": 60260352,
+      "snapshots": [
+        {
+          "donorId": 4,
+          "outputId": 122,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:7374656C6C615F7800",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "ED0201ECCCB28969008B1FB1DB501ECBB9FA7E3863570AA18D16C18B75DBBF8F"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "D20D5862CDF997A3C68DA0DE066A7959D28423E72E6127F15EFE6A3934994B52"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "0C11DE5CDF8E459BC54EB49909A959C1E3EE9BAEBBD4BDD15BA2A4F80046A646"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "442F7425B162CD660D635F74C719BB0BE135BF1FF569F4F64E21C49F8C287671"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "A8D0333D6717676ED0DECA23F08F0C83B6A9DEF3E3A2871BB70904C8710F18E9"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "08EA606FF2C234F01A37A440D7336042376423C42C9536CF06B8FBC734A20D4C"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "C14FC7AE52E5ACFF8DD3C4B5BD49A7FEA4DF1464BE81B2572D94EB1354B6B752"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "65F5E21DF47EDCCEF90BC3C53009655215773F6EF987BBAAA36F7CB897C54238"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "9A83F498E120781F4D0BBC99D199C346952D5C80D536B220B4B6EC524B78BD49"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 63,
+          "outputId": 181,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:7374656C6C615F7800",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "ED0201ECCCB28969008B1FB1DB501ECBB9FA7E3863570AA18D16C18B75DBBF8F"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "D20D5862CDF997A3C68DA0DE066A7959D28423E72E6127F15EFE6A3934994B52"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "0C11DE5CDF8E459BC54EB49909A959C1E3EE9BAEBBD4BDD15BA2A4F80046A646"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "442F7425B162CD660D635F74C719BB0BE135BF1FF569F4F64E21C49F8C287671"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "A8D0333D6717676ED0DECA23F08F0C83B6A9DEF3E3A2871BB70904C8710F18E9"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "08EA606FF2C234F01A37A440D7336042376423C42C9536CF06B8FBC734A20D4C"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "C14FC7AE52E5ACFF8DD3C4B5BD49A7FEA4DF1464BE81B2572D94EB1354B6B752"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "65F5E21DF47EDCCEF90BC3C53009655215773F6EF987BBAAA36F7CB897C54238"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "9A83F498E120781F4D0BBC99D199C346952D5C80D536B220B4B6EC524B78BD49"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 67,
+          "outputId": 185,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:7374656C6C615F7800",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "ED0201ECCCB28969008B1FB1DB501ECBB9FA7E3863570AA18D16C18B75DBBF8F"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "D20D5862CDF997A3C68DA0DE066A7959D28423E72E6127F15EFE6A3934994B52"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "0C11DE5CDF8E459BC54EB49909A959C1E3EE9BAEBBD4BDD15BA2A4F80046A646"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "442F7425B162CD660D635F74C719BB0BE135BF1FF569F4F64E21C49F8C287671"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "A8D0333D6717676ED0DECA23F08F0C83B6A9DEF3E3A2871BB70904C8710F18E9"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "08EA606FF2C234F01A37A440D7336042376423C42C9536CF06B8FBC734A20D4C"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "C14FC7AE52E5ACFF8DD3C4B5BD49A7FEA4DF1464BE81B2572D94EB1354B6B752"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "65F5E21DF47EDCCEF90BC3C53009655215773F6EF987BBAAA36F7CB897C54238"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "9A83F498E120781F4D0BBC99D199C346952D5C80D536B220B4B6EC524B78BD49"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 75,
+          "outputId": 193,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              2,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:7374656C6C615F78303100",
+                      "Width": 16,
+                      "Height": 16,
+                      "MipLevelCount": 5,
+                      "levels": [
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "795E7ECD010966CAF0AFDFAC0F6E6D724D7B8D36DEF1EAB7AFE8667C3098F9D2"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "C807631F6FF9BBB9DC60D3CD065D5ACC11592113860977AB60ECFAA99CC9B775"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "BBA5F70690885E0A61313879E4A4E34C9B5BF7124A3EE6140025E3A01DD696B2"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "C151434AD1493F47323165A1143D0B40A60E70749FC99F751C9881847E83BB30"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "1F7F558AD029043D1CD0FA3A96C6596F0847489EBD70E9BA18716D8318F99220"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              },
+              {
+                "Blend": 6,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:737061726B6C65733030303100",
+                      "Width": 64,
+                      "Height": 64,
+                      "MipLevelCount": 7,
+                      "levels": [
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "66AD278862DCDDF4EA38BC32CCE588B5651E6FE95007FDD27A174DF0A580D038"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "8554498D9030B1BA14C0ED639D40DE6E68FD4D986E48AEF66B2D34D4C8853E82"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "2A8005FA18BA9E75FE97FB49FE56F4C2939310954E7039554B7D28645C55F1FE"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "DF8234BF4F80769C6B224F8D411A0DA50D33DA64BD0B282DF5BBE3CA70EDD09C"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "25D8A2B2A80079A1A7F65E8B9B52DD4D85B8634598F9625483EACC92C9548428"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      1,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": true,
+                    "UvBoundHere": false,
+                    "animation": {
+                      "identity": "16FB0E47:",
+                      "duration": 1067590179,
+                      "keys": [
+                        {
+                          "time": 1023969417,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303100",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "66AD278862DCDDF4EA38BC32CCE588B5651E6FE95007FDD27A174DF0A580D038"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "8554498D9030B1BA14C0ED639D40DE6E68FD4D986E48AEF66B2D34D4C8853E82"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "2A8005FA18BA9E75FE97FB49FE56F4C2939310954E7039554B7D28645C55F1FE"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "DF8234BF4F80769C6B224F8D411A0DA50D33DA64BD0B282DF5BBE3CA70EDD09C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "25D8A2B2A80079A1A7F65E8B9B52DD4D85B8634598F9625483EACC92C9548428"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1032358025,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303100",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "66AD278862DCDDF4EA38BC32CCE588B5651E6FE95007FDD27A174DF0A580D038"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "8554498D9030B1BA14C0ED639D40DE6E68FD4D986E48AEF66B2D34D4C8853E82"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "2A8005FA18BA9E75FE97FB49FE56F4C2939310954E7039554B7D28645C55F1FE"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "DF8234BF4F80769C6B224F8D411A0DA50D33DA64BD0B282DF5BBE3CA70EDD09C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "25D8A2B2A80079A1A7F65E8B9B52DD4D85B8634598F9625483EACC92C9548428"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1036831950,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303100",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "66AD278862DCDDF4EA38BC32CCE588B5651E6FE95007FDD27A174DF0A580D038"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "8554498D9030B1BA14C0ED639D40DE6E68FD4D986E48AEF66B2D34D4C8853E82"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "2A8005FA18BA9E75FE97FB49FE56F4C2939310954E7039554B7D28645C55F1FE"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "DF8234BF4F80769C6B224F8D411A0DA50D33DA64BD0B282DF5BBE3CA70EDD09C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "25D8A2B2A80079A1A7F65E8B9B52DD4D85B8634598F9625483EACC92C9548428"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1040746633,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303200",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1985206469CE0405546CDE448E1A9676248A573AA77A2BC861BCF86C97C17C1D"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "DB34C01DC6A5BABB84A7D43C410D44E3FBAE6A23201F44AE7BFFF3DDB87211E7"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "1E3A25F293181B8D9BE9D9C35340B8EA4345BB335193D9E6FF0DCBC1C7E965EA"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "73263F3B66F9E9B7270CC9A829B9108D6623D1684928E6E87B89F3F988CA84A5"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "0592161F3C8816DC9881D02CE52C78D52631C55761423BD8D70D610FBC99BCDE"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1042983595,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303200",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1985206469CE0405546CDE448E1A9676248A573AA77A2BC861BCF86C97C17C1D"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "DB34C01DC6A5BABB84A7D43C410D44E3FBAE6A23201F44AE7BFFF3DDB87211E7"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "1E3A25F293181B8D9BE9D9C35340B8EA4345BB335193D9E6FF0DCBC1C7E965EA"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "73263F3B66F9E9B7270CC9A829B9108D6623D1684928E6E87B89F3F988CA84A5"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "0592161F3C8816DC9881D02CE52C78D52631C55761423BD8D70D610FBC99BCDE"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1045220557,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303300",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "03EF7A102B45230A03C4F271E249F41DA9B44BA93EBC85573A14A4B6C6A56C6B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "732DE49D1826B137093FA320468847772DD6F3D96633025EFCF028F8EE7BA18A"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D3ACD0BD85BCB91D40F6164049859E4D7FB3AAC77E406E03F2A344245D08540"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "7837507DEA7502FBF3D12583248696D2879BBC230ECD8B3C4DE69D55D8F22D2C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "E7E25F2711EC1D99C4A494995E80369DF95FB182DFC5E112F81CD763F0CDDC23"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "C5A99799FBDB82F73AD023C2D1A8578823C3AC87C7770D8C8EBEF65BEE2711AD"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1047457519,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303300",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "03EF7A102B45230A03C4F271E249F41DA9B44BA93EBC85573A14A4B6C6A56C6B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "732DE49D1826B137093FA320468847772DD6F3D96633025EFCF028F8EE7BA18A"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D3ACD0BD85BCB91D40F6164049859E4D7FB3AAC77E406E03F2A344245D08540"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "7837507DEA7502FBF3D12583248696D2879BBC230ECD8B3C4DE69D55D8F22D2C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "E7E25F2711EC1D99C4A494995E80369DF95FB182DFC5E112F81CD763F0CDDC23"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "C5A99799FBDB82F73AD023C2D1A8578823C3AC87C7770D8C8EBEF65BEE2711AD"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1049135241,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303400",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "5587D870BAEAC8D469224D1B4DA1B1AED167EEF59D4848DD46B76D4051838B77"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "794295F8B39F0EC8771C5021950F470C257A0703DFEA08B3A670F27AAD799869"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "17437962677A3EB36BD607DFC616B59D4F1BD2079C0711AA148DD0360AC71B19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "BDF70521FACB488B1D63803EDF0C1F623D5D08CA7808DF2C5095630751924E9B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "C9AAF634B1706B3F7795FB8B856958766859C9B827ABDFE620695D1816CC5C76"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "AC5F758C944865F7D30C353DD40E281E90E12E58DD3EA36782683711E331C402"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1050253722,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303400",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "5587D870BAEAC8D469224D1B4DA1B1AED167EEF59D4848DD46B76D4051838B77"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "794295F8B39F0EC8771C5021950F470C257A0703DFEA08B3A670F27AAD799869"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "17437962677A3EB36BD607DFC616B59D4F1BD2079C0711AA148DD0360AC71B19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "BDF70521FACB488B1D63803EDF0C1F623D5D08CA7808DF2C5095630751924E9B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "C9AAF634B1706B3F7795FB8B856958766859C9B827ABDFE620695D1816CC5C76"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "AC5F758C944865F7D30C353DD40E281E90E12E58DD3EA36782683711E331C402"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1051372203,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303500",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "928AB0A522FA8093C739E61D002893C0B7A0A1688296F147171D78C775818C25"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "3806265A90D682058191134DB712878D84E94CCB537D8B139107BA2AC70C04F1"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "D1C467F8449F44EE126CE5F99DD1FBB78051A369BF38BB7305E575741A828556"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "3229AD6116340D61FCC758077BCF7360BA4CB9C31597587B8D9CA53B33DBC01E"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "BC6BA2C974F97CFA802F95D1D0EDEF4E06DF7DDD4CF909266335E996DEAFCFC6"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "43CD786D919658902C29445F3FAA4E6962430832DCA66CF47B882E672F6583FE"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1052490684,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303500",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "928AB0A522FA8093C739E61D002893C0B7A0A1688296F147171D78C775818C25"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "3806265A90D682058191134DB712878D84E94CCB537D8B139107BA2AC70C04F1"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "D1C467F8449F44EE126CE5F99DD1FBB78051A369BF38BB7305E575741A828556"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "3229AD6116340D61FCC758077BCF7360BA4CB9C31597587B8D9CA53B33DBC01E"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "BC6BA2C974F97CFA802F95D1D0EDEF4E06DF7DDD4CF909266335E996DEAFCFC6"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "43CD786D919658902C29445F3FAA4E6962430832DCA66CF47B882E672F6583FE"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1053609165,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303600",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1B530D138BC399A5B871C249E6CFB188DD6D56B0DAB641538D1E0460617DBBE7"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "CA44985CE133F35305A54CCDBEB19C0449B9320E2393B69058A5473DCEE4F01B"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "68D82BE9C5FD62709B37411212B462BCF4A5192544EFC2051238C71E8E65AC19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "50BED3989A2E92B8B43EFFFA337DDF32506209818347F0B0D8FDA28092F3D24B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "351828A86DBE2154F561377F13A072AA6204C82DC543B073BF67EC5A653C7E5B"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1054727646,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303600",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1B530D138BC399A5B871C249E6CFB188DD6D56B0DAB641538D1E0460617DBBE7"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "CA44985CE133F35305A54CCDBEB19C0449B9320E2393B69058A5473DCEE4F01B"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "68D82BE9C5FD62709B37411212B462BCF4A5192544EFC2051238C71E8E65AC19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "50BED3989A2E92B8B43EFFFA337DDF32506209818347F0B0D8FDA28092F3D24B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "351828A86DBE2154F561377F13A072AA6204C82DC543B073BF67EC5A653C7E5B"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1055846127,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303700",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "61D5D427DD3E9F63B263A40AA00D77958AB55B9F1B194B7C412EBB8187DA3638"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "1AC3BE2D6E37BC00C941DE1BB6D04045C608325F80438F67B2F4A167B1E926A9"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A7983D710ED11616D20A805355588183564274BF43F861D579B02719DD4837B8"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "E1EE956943E49CBF9BEACE7B474E939D9DABC668130FA4AE60C9C0CD3AC7DCDC"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "05FB8CCC642344E9AB8DBF0A02F171C44CFD1DD22D7516E7EE8A234BF523542A"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1056964608,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303700",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "61D5D427DD3E9F63B263A40AA00D77958AB55B9F1B194B7C412EBB8187DA3638"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "1AC3BE2D6E37BC00C941DE1BB6D04045C608325F80438F67B2F4A167B1E926A9"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A7983D710ED11616D20A805355588183564274BF43F861D579B02719DD4837B8"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "E1EE956943E49CBF9BEACE7B474E939D9DABC668130FA4AE60C9C0CD3AC7DCDC"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "05FB8CCC642344E9AB8DBF0A02F171C44CFD1DD22D7516E7EE8A234BF523542A"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1057523849,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303800",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "D2EA65B207AA39A4084704D5A6E318D0E8FA044E8EA42A6B873B1D970DECDB0B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "65722F46F945EA13851175AE6D999D472A7906C358C812152F6BF93AE30D59AC"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A964532A0891973B458CE8481838FC9ECBF1C3F5C121B634BAE926A24F57A8B6"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "FEEF71CA73CBD64AE1F2F8937E71D6FAA188075758863794922BDA6BA86A324B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "5D67153B00DE28703616B36D38B40E3327647AB1110BBA91DB0057682F3DB7C9"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "E690710F7F19A0A3F4C56C64099C8C6CA969D1149402C94196F55FDB44C2F119"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1058083090,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303800",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "D2EA65B207AA39A4084704D5A6E318D0E8FA044E8EA42A6B873B1D970DECDB0B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "65722F46F945EA13851175AE6D999D472A7906C358C812152F6BF93AE30D59AC"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A964532A0891973B458CE8481838FC9ECBF1C3F5C121B634BAE926A24F57A8B6"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "FEEF71CA73CBD64AE1F2F8937E71D6FAA188075758863794922BDA6BA86A324B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "5D67153B00DE28703616B36D38B40E3327647AB1110BBA91DB0057682F3DB7C9"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "E690710F7F19A0A3F4C56C64099C8C6CA969D1149402C94196F55FDB44C2F119"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1058642331,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303900",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "26E37BED358490AF757F5E0EDE4828FD9029753C516972300E8AC72FB9A66046"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "F3872C9A332F80F294601AC22D6C74DC8BD583D4CD43D4556047292C9E86EEFA"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A90EF71443B0ABF39A8C837B872B2EF523722719F50E2755377C9C9D9E777A14"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "CDBEA5C2B809B1BF1F8BBEA8BBCA78973BE4186839360BD217AA212250206793"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "4907A0622EE87A7475699A54600BB18530242919EF81A1F233C0869022D999D8"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "78D694E285D6BE96CDCDF1D47619771D756FC9416615AD4BAFADF96C29972E3B"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1059201572,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303900",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "26E37BED358490AF757F5E0EDE4828FD9029753C516972300E8AC72FB9A66046"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "F3872C9A332F80F294601AC22D6C74DC8BD583D4CD43D4556047292C9E86EEFA"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A90EF71443B0ABF39A8C837B872B2EF523722719F50E2755377C9C9D9E777A14"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "CDBEA5C2B809B1BF1F8BBEA8BBCA78973BE4186839360BD217AA212250206793"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "4907A0622EE87A7475699A54600BB18530242919EF81A1F233C0869022D999D8"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "78D694E285D6BE96CDCDF1D47619771D756FC9416615AD4BAFADF96C29972E3B"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1059760813,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030313000",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "C503DF7EBBC99E282E208B086602B24F91EA8E8FD068286DCAE0A645C464B6EE"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "15C753B8A8B636DF595A9C64EFDA5A061F47F7BF9B1EFE4802209322E2FA3A3C"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D7D7A08D20952DD72148A892F145E6A2E9BA8810DA182F801876BA6E42B7C7A"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "8D424F47914AE8B97FD67D3CA747D44B3E4F5E326461D191728F028B3CDF750C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "83D2E72359F3193CF7F484B975EE54A422B6D14B3F10188797C4D41DD152E663"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "5B7F68F2DBD10366EF751283B23168F98898B98A01FB51600538F30A7E6C610F"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1060320054,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030313000",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "C503DF7EBBC99E282E208B086602B24F91EA8E8FD068286DCAE0A645C464B6EE"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "15C753B8A8B636DF595A9C64EFDA5A061F47F7BF9B1EFE4802209322E2FA3A3C"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D7D7A08D20952DD72148A892F145E6A2E9BA8810DA182F801876BA6E42B7C7A"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "8D424F47914AE8B97FD67D3CA747D44B3E4F5E326461D191728F028B3CDF750C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "83D2E72359F3193CF7F484B975EE54A422B6D14B3F10188797C4D41DD152E663"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "5B7F68F2DBD10366EF751283B23168F98898B98A01FB51600538F30A7E6C610F"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1060879295,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030313000",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "C503DF7EBBC99E282E208B086602B24F91EA8E8FD068286DCAE0A645C464B6EE"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "15C753B8A8B636DF595A9C64EFDA5A061F47F7BF9B1EFE4802209322E2FA3A3C"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D7D7A08D20952DD72148A892F145E6A2E9BA8810DA182F801876BA6E42B7C7A"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "8D424F47914AE8B97FD67D3CA747D44B3E4F5E326461D191728F028B3CDF750C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "83D2E72359F3193CF7F484B975EE54A422B6D14B3F10188797C4D41DD152E663"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "5B7F68F2DBD10366EF751283B23168F98898B98A01FB51600538F30A7E6C610F"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1061438536,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303900",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "26E37BED358490AF757F5E0EDE4828FD9029753C516972300E8AC72FB9A66046"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "F3872C9A332F80F294601AC22D6C74DC8BD583D4CD43D4556047292C9E86EEFA"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A90EF71443B0ABF39A8C837B872B2EF523722719F50E2755377C9C9D9E777A14"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "CDBEA5C2B809B1BF1F8BBEA8BBCA78973BE4186839360BD217AA212250206793"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "4907A0622EE87A7475699A54600BB18530242919EF81A1F233C0869022D999D8"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "78D694E285D6BE96CDCDF1D47619771D756FC9416615AD4BAFADF96C29972E3B"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1061997777,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303900",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "26E37BED358490AF757F5E0EDE4828FD9029753C516972300E8AC72FB9A66046"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "F3872C9A332F80F294601AC22D6C74DC8BD583D4CD43D4556047292C9E86EEFA"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A90EF71443B0ABF39A8C837B872B2EF523722719F50E2755377C9C9D9E777A14"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "CDBEA5C2B809B1BF1F8BBEA8BBCA78973BE4186839360BD217AA212250206793"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "4907A0622EE87A7475699A54600BB18530242919EF81A1F233C0869022D999D8"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "78D694E285D6BE96CDCDF1D47619771D756FC9416615AD4BAFADF96C29972E3B"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1062557018,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303800",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "D2EA65B207AA39A4084704D5A6E318D0E8FA044E8EA42A6B873B1D970DECDB0B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "65722F46F945EA13851175AE6D999D472A7906C358C812152F6BF93AE30D59AC"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A964532A0891973B458CE8481838FC9ECBF1C3F5C121B634BAE926A24F57A8B6"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "FEEF71CA73CBD64AE1F2F8937E71D6FAA188075758863794922BDA6BA86A324B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "5D67153B00DE28703616B36D38B40E3327647AB1110BBA91DB0057682F3DB7C9"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "E690710F7F19A0A3F4C56C64099C8C6CA969D1149402C94196F55FDB44C2F119"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1063116259,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303800",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "D2EA65B207AA39A4084704D5A6E318D0E8FA044E8EA42A6B873B1D970DECDB0B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "65722F46F945EA13851175AE6D999D472A7906C358C812152F6BF93AE30D59AC"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A964532A0891973B458CE8481838FC9ECBF1C3F5C121B634BAE926A24F57A8B6"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "FEEF71CA73CBD64AE1F2F8937E71D6FAA188075758863794922BDA6BA86A324B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "5D67153B00DE28703616B36D38B40E3327647AB1110BBA91DB0057682F3DB7C9"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "E690710F7F19A0A3F4C56C64099C8C6CA969D1149402C94196F55FDB44C2F119"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1063675500,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303700",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "61D5D427DD3E9F63B263A40AA00D77958AB55B9F1B194B7C412EBB8187DA3638"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "1AC3BE2D6E37BC00C941DE1BB6D04045C608325F80438F67B2F4A167B1E926A9"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A7983D710ED11616D20A805355588183564274BF43F861D579B02719DD4837B8"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "E1EE956943E49CBF9BEACE7B474E939D9DABC668130FA4AE60C9C0CD3AC7DCDC"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "05FB8CCC642344E9AB8DBF0A02F171C44CFD1DD22D7516E7EE8A234BF523542A"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1064234741,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303700",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "61D5D427DD3E9F63B263A40AA00D77958AB55B9F1B194B7C412EBB8187DA3638"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "1AC3BE2D6E37BC00C941DE1BB6D04045C608325F80438F67B2F4A167B1E926A9"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "A7983D710ED11616D20A805355588183564274BF43F861D579B02719DD4837B8"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "E1EE956943E49CBF9BEACE7B474E939D9DABC668130FA4AE60C9C0CD3AC7DCDC"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "05FB8CCC642344E9AB8DBF0A02F171C44CFD1DD22D7516E7EE8A234BF523542A"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1064793982,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303600",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1B530D138BC399A5B871C249E6CFB188DD6D56B0DAB641538D1E0460617DBBE7"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "CA44985CE133F35305A54CCDBEB19C0449B9320E2393B69058A5473DCEE4F01B"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "68D82BE9C5FD62709B37411212B462BCF4A5192544EFC2051238C71E8E65AC19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "50BED3989A2E92B8B43EFFFA337DDF32506209818347F0B0D8FDA28092F3D24B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "351828A86DBE2154F561377F13A072AA6204C82DC543B073BF67EC5A653C7E5B"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1065353219,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303600",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1B530D138BC399A5B871C249E6CFB188DD6D56B0DAB641538D1E0460617DBBE7"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "CA44985CE133F35305A54CCDBEB19C0449B9320E2393B69058A5473DCEE4F01B"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "68D82BE9C5FD62709B37411212B462BCF4A5192544EFC2051238C71E8E65AC19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "50BED3989A2E92B8B43EFFFA337DDF32506209818347F0B0D8FDA28092F3D24B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "351828A86DBE2154F561377F13A072AA6204C82DC543B073BF67EC5A653C7E5B"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "7C84EE4BCC3BE53808DA290BD55B97C7DE487350B7C368851E9E92538F41CCA5"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1065632839,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303500",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "928AB0A522FA8093C739E61D002893C0B7A0A1688296F147171D78C775818C25"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "3806265A90D682058191134DB712878D84E94CCB537D8B139107BA2AC70C04F1"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "D1C467F8449F44EE126CE5F99DD1FBB78051A369BF38BB7305E575741A828556"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "3229AD6116340D61FCC758077BCF7360BA4CB9C31597587B8D9CA53B33DBC01E"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "BC6BA2C974F97CFA802F95D1D0EDEF4E06DF7DDD4CF909266335E996DEAFCFC6"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "43CD786D919658902C29445F3FAA4E6962430832DCA66CF47B882E672F6583FE"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1065912459,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303500",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "928AB0A522FA8093C739E61D002893C0B7A0A1688296F147171D78C775818C25"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "3806265A90D682058191134DB712878D84E94CCB537D8B139107BA2AC70C04F1"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "D1C467F8449F44EE126CE5F99DD1FBB78051A369BF38BB7305E575741A828556"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "3229AD6116340D61FCC758077BCF7360BA4CB9C31597587B8D9CA53B33DBC01E"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "BC6BA2C974F97CFA802F95D1D0EDEF4E06DF7DDD4CF909266335E996DEAFCFC6"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "43CD786D919658902C29445F3FAA4E6962430832DCA66CF47B882E672F6583FE"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1066192079,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303400",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "5587D870BAEAC8D469224D1B4DA1B1AED167EEF59D4848DD46B76D4051838B77"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "794295F8B39F0EC8771C5021950F470C257A0703DFEA08B3A670F27AAD799869"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "17437962677A3EB36BD607DFC616B59D4F1BD2079C0711AA148DD0360AC71B19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "BDF70521FACB488B1D63803EDF0C1F623D5D08CA7808DF2C5095630751924E9B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "C9AAF634B1706B3F7795FB8B856958766859C9B827ABDFE620695D1816CC5C76"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "AC5F758C944865F7D30C353DD40E281E90E12E58DD3EA36782683711E331C402"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1066471699,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303400",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "5587D870BAEAC8D469224D1B4DA1B1AED167EEF59D4848DD46B76D4051838B77"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "794295F8B39F0EC8771C5021950F470C257A0703DFEA08B3A670F27AAD799869"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "17437962677A3EB36BD607DFC616B59D4F1BD2079C0711AA148DD0360AC71B19"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "BDF70521FACB488B1D63803EDF0C1F623D5D08CA7808DF2C5095630751924E9B"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "C9AAF634B1706B3F7795FB8B856958766859C9B827ABDFE620695D1816CC5C76"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "AC5F758C944865F7D30C353DD40E281E90E12E58DD3EA36782683711E331C402"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1066751319,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303300",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "03EF7A102B45230A03C4F271E249F41DA9B44BA93EBC85573A14A4B6C6A56C6B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "732DE49D1826B137093FA320468847772DD6F3D96633025EFCF028F8EE7BA18A"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D3ACD0BD85BCB91D40F6164049859E4D7FB3AAC77E406E03F2A344245D08540"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "7837507DEA7502FBF3D12583248696D2879BBC230ECD8B3C4DE69D55D8F22D2C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "E7E25F2711EC1D99C4A494995E80369DF95FB182DFC5E112F81CD763F0CDDC23"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "C5A99799FBDB82F73AD023C2D1A8578823C3AC87C7770D8C8EBEF65BEE2711AD"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1067030939,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303300",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "03EF7A102B45230A03C4F271E249F41DA9B44BA93EBC85573A14A4B6C6A56C6B"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "732DE49D1826B137093FA320468847772DD6F3D96633025EFCF028F8EE7BA18A"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "4D3ACD0BD85BCB91D40F6164049859E4D7FB3AAC77E406E03F2A344245D08540"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "7837507DEA7502FBF3D12583248696D2879BBC230ECD8B3C4DE69D55D8F22D2C"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "E7E25F2711EC1D99C4A494995E80369DF95FB182DFC5E112F81CD763F0CDDC23"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "C5A99799FBDB82F73AD023C2D1A8578823C3AC87C7770D8C8EBEF65BEE2711AD"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1067310559,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303200",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1985206469CE0405546CDE448E1A9676248A573AA77A2BC861BCF86C97C17C1D"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "DB34C01DC6A5BABB84A7D43C410D44E3FBAE6A23201F44AE7BFFF3DDB87211E7"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "1E3A25F293181B8D9BE9D9C35340B8EA4345BB335193D9E6FF0DCBC1C7E965EA"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "73263F3B66F9E9B7270CC9A829B9108D6623D1684928E6E87B89F3F988CA84A5"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "0592161F3C8816DC9881D02CE52C78D52631C55761423BD8D70D610FBC99BCDE"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "time": 1067590179,
+                          "texture": {
+                            "identity": "78EA082B:737061726B6C65733030303200",
+                            "Width": 64,
+                            "Height": 64,
+                            "MipLevelCount": 7,
+                            "levels": [
+                              {
+                                "Width": 64,
+                                "Height": 64,
+                                "sha256": "1985206469CE0405546CDE448E1A9676248A573AA77A2BC861BCF86C97C17C1D"
+                              },
+                              {
+                                "Width": 32,
+                                "Height": 32,
+                                "sha256": "DB34C01DC6A5BABB84A7D43C410D44E3FBAE6A23201F44AE7BFFF3DDB87211E7"
+                              },
+                              {
+                                "Width": 16,
+                                "Height": 16,
+                                "sha256": "1E3A25F293181B8D9BE9D9C35340B8EA4345BB335193D9E6FF0DCBC1C7E965EA"
+                              },
+                              {
+                                "Width": 8,
+                                "Height": 8,
+                                "sha256": "73263F3B66F9E9B7270CC9A829B9108D6623D1684928E6E87B89F3F988CA84A5"
+                              },
+                              {
+                                "Width": 4,
+                                "Height": 4,
+                                "sha256": "0592161F3C8816DC9881D02CE52C78D52631C55761423BD8D70D610FBC99BCDE"
+                              },
+                              {
+                                "Width": 2,
+                                "Height": 2,
+                                "sha256": "68C454F1B2069D79AF716DA2A38FB4F198091692256945F577F5DD484BA58C64"
+                              },
+                              {
+                                "Width": 1,
+                                "Height": 1,
+                                "sha256": "14B2D1009B68CAC612477541C3822926CA7DAE71FAAB961E1603E6210B1213C4"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "donorId": 91,
+          "outputId": 209,
+          "material": {
+            "RenderStates": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              1,
+              3,
+              0,
+              4,
+              0,
+              6
+            ],
+            "VertexAlpha": 0,
+            "colors": [
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                1065353216,
+                1065353216,
+                1065353216,
+                1065353216
+              ],
+              [
+                0,
+                0,
+                0,
+                1065353216
+              ]
+            ],
+            "power": 0,
+            "colorController": null,
+            "passes": [
+              {
+                "Blend": 0,
+                "layers": [
+                  {
+                    "ClassId": 592205675,
+                    "texture": {
+                      "identity": "78EA082B:7374656C6C615F7800",
+                      "Width": 256,
+                      "Height": 256,
+                      "MipLevelCount": 9,
+                      "levels": [
+                        {
+                          "Width": 256,
+                          "Height": 256,
+                          "sha256": "ED0201ECCCB28969008B1FB1DB501ECBB9FA7E3863570AA18D16C18B75DBBF8F"
+                        },
+                        {
+                          "Width": 128,
+                          "Height": 128,
+                          "sha256": "D20D5862CDF997A3C68DA0DE066A7959D28423E72E6127F15EFE6A3934994B52"
+                        },
+                        {
+                          "Width": 64,
+                          "Height": 64,
+                          "sha256": "0C11DE5CDF8E459BC54EB49909A959C1E3EE9BAEBBD4BDD15BA2A4F80046A646"
+                        },
+                        {
+                          "Width": 32,
+                          "Height": 32,
+                          "sha256": "442F7425B162CD660D635F74C719BB0BE135BF1FF569F4F64E21C49F8C287671"
+                        },
+                        {
+                          "Width": 16,
+                          "Height": 16,
+                          "sha256": "A8D0333D6717676ED0DECA23F08F0C83B6A9DEF3E3A2871BB70904C8710F18E9"
+                        },
+                        {
+                          "Width": 8,
+                          "Height": 8,
+                          "sha256": "08EA606FF2C234F01A37A440D7336042376423C42C9536CF06B8FBC734A20D4C"
+                        },
+                        {
+                          "Width": 4,
+                          "Height": 4,
+                          "sha256": "C14FC7AE52E5ACFF8DD3C4B5BD49A7FEA4DF1464BE81B2572D94EB1354B6B752"
+                        },
+                        {
+                          "Width": 2,
+                          "Height": 2,
+                          "sha256": "65F5E21DF47EDCCEF90BC3C53009655215773F6EF987BBAAA36F7CB897C54238"
+                        },
+                        {
+                          "Width": 1,
+                          "Height": 1,
+                          "sha256": "9A83F498E120781F4D0BBC99D199C346952D5C80D536B220B4B6EC524B78BD49"
+                        }
+                      ]
+                    },
+                    "uvController": null,
+                    "UvEnabled": false,
+                    "uv": [
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216,
+                      0,
+                      0,
+                      0,
+                      1065353216
+                    ],
+                    "TextureStates": [
+                      0,
+                      3,
+                      3,
+                      0,
+                      0,
+                      4278190080,
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "AnimationBoundHere": false,
+                    "UvBoundHere": false,
+                    "animation": null
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "unchangedNativeSha256": "F86B4FE91336472142DA8AA948EDEA3AEC80F159A0022510EC28B5FB29C41CAC",
+  "oldOutputSha256": "24F2E1E884B1C9E09E3F54CAA00F5B851A92D149FBECF29321F188F799FA5D2B",
+  "newOutputSha256": "172A9EA7D698A8A96050684A954DF42D6842BEC4DB9A13569788B6CDCA133FA1",
+  "boundaries": [
+    "PC native SMO transfer, not general ImportedScene material authoring",
+    "Actual reader coverage is required; no inference from field size",
+    "Host allocates identities and normalizes donor-only bones explicitly",
+    "No new original execution or PS2 runtime in this integration block"
+  ]
+}

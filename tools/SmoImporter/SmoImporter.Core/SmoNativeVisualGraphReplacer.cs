@@ -108,71 +108,40 @@ public static class SmoNativeVisualGraphReplacer
         NativeReplacementLayout layout = BuildLayout(
             target, donor, cancellationToken);
         SmoDocument effectiveDonor = layout.Donor;
-        SmoDocument current = target;
-        foreach (SmoObjectEntry root in layout.TargetRoots
-                     .OrderByDescending(entry => entry.PhysicalOffset))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            SmoObjectEntry currentRoot = current.Objects.Single(entry =>
-                entry.Id == root.Id);
-            if (currentRoot.ParentIndex is not int parentIndex)
-            {
-                throw new InvalidDataException(
-                    $"Target visual root {root.Id} has no inline owner.");
-            }
-            uint ownerId = current.Objects[parentIndex].Id;
-            current = SmoDocument.Parse(
-                SmoVisualForestInjector.RemoveInlineBranch(
-                    current, ownerId, currentRoot.Id),
-                target.SourcePath);
-            if (current.HasErrors)
-            {
-                throw new InvalidDataException(
-                    $"Removing target visual root {root.Id} produced an invalid SMO.");
-            }
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        // Never recycle an ID that belonged to the removed target forest.  Some
-        // service objects can keep reference-only fields to visual bones until
-        // those references are translated below.
+        // IDs start beyond the complete original catalog; monotonic allocation
+        // needs no repeated catalog scans and cannot recycle a removed ID.
         uint nextId = target.Objects.Max(entry => entry.Id);
         var idMap = new Dictionary<uint, uint>();
-        foreach (SmoObjectEntry entry in layout.DonorVisualEntries
-                     .OrderBy(entry => entry.LogicalOffset))
+        foreach (SmoObjectEntry entry in layout.DonorVisualEntries.OrderBy(entry => entry.LogicalOffset))
+            idMap.Add(entry.Id, nextId = checked(nextId + 1));
+
+        // Observe the intact graph before producing the transient, dangling-ID
+        // authoring state. Only retained consumers' reference-only sites change.
+        SmoDocument current = RemapRetainedTargetReferences(target, layout, idMap, cancellationToken);
+        current = SmoDocument.Parse(SmoVisualForestInjector.RemoveInlineBranches(
+            current, layout.TargetRoots.Select(root => root.Id)), target.SourcePath);
+        if (current.HasErrors)
+            throw new InvalidDataException("Removing target visual roots produced an invalid SMO.");
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var branches = layout.DonorRoots.OrderBy(entry => entry.PhysicalOffset).Select(root =>
         {
-            do
-            {
-                nextId = checked(nextId + 1);
-            }
-            while (current.Objects.Any(existing => existing.Id == nextId) ||
-                   idMap.ContainsValue(nextId));
-            idMap.Add(entry.Id, nextId);
-        }
-
-        current = RemapRetainedTargetReferences(
-            target,
-            current,
-            layout,
-            idMap,
-            cancellationToken);
-
-        IReadOnlyDictionary<uint, uint> externalReferenceMap =
-            BuildExternalReferenceMap(
-                target,
-                effectiveDonor,
-                layout,
-                cancellationToken);
-        SmoVisualForestAttachment[] attachments = layout.DonorRoots
-            .OrderBy(entry => entry.PhysicalOffset)
-            .Select(root => BuildAttachment(
-                effectiveDonor,
-                root,
-                layout.TargetOwnerId,
-                layout.TargetFieldType,
-                idMap,
-                externalReferenceMap))
-            .ToArray();
+            if (root.ParentIndex is not int parentIndex)
+                throw new InvalidDataException($"Donor visual root {root.Id} has no owner.");
+            var parent = effectiveDonor.Objects[parentIndex];
+            var field = FindExactInlineField(effectiveDonor, parent, root);
+            return (Root: root, PhysicalOffset: checked((int)parent.PhysicalOffset + field.Offset),
+                Length: checked(field.HeaderSize + (int)field.PayloadSize));
+        }).ToArray();
+        var ranges = RequireReferenceTrace(effectiveDonor).CaptureRanges(effectiveDonor,
+            branches.Select(branch => (branch.PhysicalOffset, branch.Length)).ToArray());
+        var relocation = new Dictionary<uint, uint>(BuildExternalReferenceMap(
+            target, effectiveDonor, layout, ranges, cancellationToken));
+        foreach (var pair in idMap) relocation.Add(pair.Key, pair.Value);
+        var destinationIds = current.Objects.Select(entry => entry.Id).Concat(idMap.Values).ToHashSet();
+        SmoVisualForestAttachment[] attachments = branches.Select((branch, index) => BuildAttachment(
+            effectiveDonor, branch.Root, branch.PhysicalOffset, branch.Length, ranges[index],
+            layout.TargetOwnerId, layout.TargetFieldType, relocation, destinationIds)).ToArray();
 
         byte[] outputData = layout.AnchorFieldType is int anchorFieldType
             ? SmoVisualForestInjector.InjectAfterLastFieldType(
@@ -350,9 +319,12 @@ public static class SmoNativeVisualGraphReplacer
                 fallbackInverseBind));
         }
 
-        SmoDocument current = RewriteReferenceOnlyCollapsedPaletteEntries(
+        // Observe the intact graph before palette replacement temporarily adds
+        // forward references; StripInlineCollapsedPaletteBones then relocates
+        // their inline owners. The intermediate state is not a loadable file.
+        SmoDocument current = RewriteDirectCollapsedBoneReferences(
             donor, collapses, cancellationToken);
-        current = RewriteDirectCollapsedBoneReferences(
+        current = RewriteReferenceOnlyCollapsedPaletteEntries(
             current, collapses, cancellationToken);
         current = StripInlineCollapsedPaletteBones(
             current, collapses, cancellationToken);
@@ -484,100 +456,52 @@ public static class SmoNativeVisualGraphReplacer
         IReadOnlyDictionary<uint, DonorBoneCollapse> collapses,
         CancellationToken cancellationToken)
     {
-        SmoNodeHierarchy hierarchy = SmoNodeHierarchy.Decode(donor);
-        var childLinks = new HashSet<(
-            uint OwnerId, byte FieldType, uint ChildId)>();
-        foreach ((int parentIndex, IReadOnlyList<int> childIndices) in
-                 hierarchy.ChildrenByParent)
-        {
-            foreach (int childIndex in childIndices)
-            {
-                SmoObjectEntry child = donor.Objects[childIndex];
-                if (!collapses.ContainsKey(child.Id))
-                    continue;
-                SmoObjectEntry parent = donor.Objects[parentIndex];
-                foreach (SmoObjectField field in SmoObjectFieldReader.Read(donor, parent))
-                {
-                    if (field.PayloadSize == ObjectReferenceSize &&
-                        BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span) ==
-                            child.Id &&
-                        BinaryPrimitives.ReadUInt32LittleEndian(
-                            field.Payload.Span[sizeof(uint)..]) == 0)
-                    {
-                        childLinks.Add((
-                            parent.Id,
-                            checked((byte)field.FieldType),
-                            child.Id));
-                    }
-                }
-            }
-        }
-
-        var remapTransaction = new SmoMutationTransaction(donor);
-        bool remapped = false;
-        foreach (SmoObjectEntry owner in donor.Objects)
+        var observed = RequireReferenceTrace(donor).CaptureRange(donor, 0, donor.Data.Length);
+        var sites = observed.Sites.Where(site => site.InlineSize == 0 &&
+            collapses.ContainsKey(site.ObjectId)).ToDictionary(site => site.Offset);
+        var childFields = new List<(int OwnerIndex, SmoFieldSelector Selector, int Offset)>();
+        var childSites = new HashSet<int>();
+        var directSites = new HashSet<int>();
+        foreach (var owner in donor.Objects)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (collapses.ContainsKey(owner.Id))
-                continue;
-            foreach (SmoObjectField field in SmoObjectFieldReader.Read(donor, owner))
+            var fields = SmoObjectFieldReader.Read(donor, owner);
+            for (int index = 0; index < fields.Count; ++index)
             {
-                if (field.PayloadSize != ObjectReferenceSize ||
-                    childLinks.Contains((
-                        owner.Id,
-                        checked((byte)field.FieldType),
-                        BinaryPrimitives.ReadUInt32LittleEndian(field.Payload.Span))))
-                {
+                var field = fields[index];
+                int offset = checked((int)owner.PhysicalOffset + field.RelativePayloadOffset);
+                if (!sites.ContainsKey(offset)) continue;
+                directSites.Add(offset);
+                if (!SmoSerializedFieldRegistry.TryDescribeField(
+                        owner.TypeHash, fields, index, out var descriptor) || descriptor?.Key != "node.child")
                     continue;
-                }
-                uint referencedId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    field.Payload.Span);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    field.Payload.Span[sizeof(uint)..]);
-                if (inlineSize != 0 ||
-                    !collapses.TryGetValue(
-                        referencedId, out DonorBoneCollapse? collapse))
-                {
-                    continue;
-                }
-                byte[] mapped = new byte[sizeof(uint)];
-                BinaryPrimitives.WriteUInt32LittleEndian(
-                    mapped, collapse.FallbackNodeId);
-                remapTransaction.SetFieldPayloadSlice(
-                    owner.Index, field.Selector, 0, mapped);
-                remapped = true;
+                childFields.Add((owner.Index, field.Selector, offset));
+                childSites.Add(offset);
             }
         }
-        SmoDocument current = remapped
-            ? SmoDocument.Parse(remapTransaction.Commit().Data, donor.SourcePath)
-            : donor;
-        if (current.HasErrors)
-            throw new InvalidDataException(
-                "Remapping direct donor bone references produced an invalid SMO.");
-
-        foreach ((uint ownerId, byte fieldType, uint childId) in childLinks
-                     .OrderByDescending(link =>
-                     {
-                         SmoObjectEntry owner = current.Objects.Single(entry =>
-                             entry.Id == link.OwnerId);
-                         SmoObjectField field = SmoObjectFieldReader.Read(current, owner)
-                             .Single(candidate =>
-                                 candidate.FieldType == link.FieldType &&
-                                 candidate.PayloadSize == ObjectReferenceSize &&
-                                 BinaryPrimitives.ReadUInt32LittleEndian(
-                                     candidate.Payload.Span) == link.ChildId);
-                         return owner.LogicalOffset +
-                             (ulong)field.RelativeHeaderOffset;
-                     }))
+        byte[] data = donor.Data.ToArray();
+        bool remapped = false;
+        foreach (var site in sites.Values)
         {
-            current = SmoDocument.Parse(
-                SmoVisualForestInjector.RemoveReference(
-                    current, ownerId, fieldType, childId),
-                donor.SourcePath);
-            if (current.HasErrors)
-                throw new InvalidDataException(
-                    "Removing donor-only bone child links produced an invalid SMO.");
+            cancellationToken.ThrowIfCancellationRequested();
+            // Palette IDs need their inverse-bind matrices changed together in
+            // the following typed palette operation, never as direct fixups.
+            if (!directSites.Contains(site.Offset) || childSites.Contains(site.Offset) || collapses.ContainsKey(site.ConsumerId)) continue;
+            BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(site.Offset), collapses[site.ObjectId].FallbackNodeId);
+            remapped = true;
         }
+        var current = remapped ? SmoDocument.Parse(data, donor.SourcePath) : donor;
+        if (childFields.Count != 0)
+        {
+            // Remove the exact schema-backed child fields in one transaction.
+            // Equal-sized opaque fields and nested non-child references survive.
+            var transaction = new SmoMutationTransaction(current);
+            foreach (var child in childFields.OrderByDescending(value => value.Offset))
+                transaction.RemoveField(child.OwnerIndex, child.Selector);
+            current = SmoDocument.Parse(transaction.Commit().Data, donor.SourcePath);
+        }
+        if (current.HasErrors)
+            throw new InvalidDataException("Normalizing observed donor bone references produced an invalid SMO.");
         return current;
     }
 
@@ -1043,77 +967,46 @@ public static class SmoNativeVisualGraphReplacer
         return current;
     }
 
+    private static SmoFileReferenceTrace RequireReferenceTrace(SmoDocument document)
+    {
+        var loaded = SmoLoadedResources.Get(document);
+        return loaded.ReferenceTrace ?? throw new InvalidDataException(
+            loaded.ReferenceTraceIssue ?? loaded.LoadIssue ?? "Native visual transfer requires actual reader reference observations.");
+    }
+
     private static SmoDocument RemapRetainedTargetReferences(
         SmoDocument target,
-        SmoDocument current,
         NativeReplacementLayout layout,
         IReadOnlyDictionary<uint, uint> donorIdMap,
         CancellationToken cancellationToken)
     {
+        var observed = RequireReferenceTrace(target).CaptureRange(target, 0, target.Data.Length);
+        var sites = observed.Sites.Where(site => site.InlineSize == 0 &&
+            layout.RemovedTargetIds.Contains(site.ObjectId) &&
+            !layout.RemovedTargetIds.Contains(site.ConsumerId)).ToArray();
+        if (sites.Length == 0) return target;
         var referenceMap = new Dictionary<uint, uint>();
-        foreach (SmoObjectEntry owner in current.Objects)
+        var targetById = target.Objects.ToDictionary(entry => entry.Id);
+        foreach (var site in sites)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ReadOnlySpan<byte> bytes = ObjectBytes(current, owner);
-            foreach (SmoDataBlockHeader field in ReadDirectFields(bytes))
-            {
-                if (field.PayloadSize != ObjectReferenceSize)
-                    continue;
-                uint oldId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[field.PayloadOffset..]);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + sizeof(uint))..]);
-                if (inlineSize != 0 || !layout.RemovedTargetIds.Contains(oldId) ||
-                    referenceMap.ContainsKey(oldId))
-                {
-                    continue;
-                }
-
-                SmoObjectEntry removed = target.Objects.Single(entry =>
-                    entry.Id == oldId);
-                SmoObjectEntry[] donorMatches = layout.DonorVisualEntries
-                    .Where(entry =>
-                        entry.TypeHash == removed.TypeHash &&
-                        entry.RawName.Span.SequenceEqual(removed.RawName.Span))
-                    .ToArray();
-                if (donorMatches.Length != 1)
-                {
-                    throw new InvalidDataException(
-                        $"Retained target object {owner.Id} references removed " +
-                        $"visual object {oldId} ({removed.Name}), but the donor " +
-                        $"forest has {donorMatches.Length} exact replacements.");
-                }
-                referenceMap.Add(oldId, donorIdMap[donorMatches[0].Id]);
-            }
+            if (referenceMap.ContainsKey(site.ObjectId)) continue;
+            var removed = targetById[site.ObjectId];
+            var matches = layout.DonorVisualEntries.Where(entry => entry.TypeHash == removed.TypeHash &&
+                entry.RawName.Span.SequenceEqual(removed.RawName.Span)).ToArray();
+            if (matches.Length != 1)
+                throw new InvalidDataException($"Retained target object {site.ConsumerId} references removed visual " +
+                    $"object {site.ObjectId} ({removed.Name}), but the donor forest has {matches.Length} exact replacements.");
+            referenceMap.Add(site.ObjectId, donorIdMap[matches[0].Id]);
         }
-        if (referenceMap.Count == 0)
-            return current;
-
-        byte[] data = current.Data.ToArray();
-        foreach (SmoObjectEntry owner in current.Objects)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            ReadOnlySpan<byte> bytes = ObjectBytes(current, owner);
-            foreach (SmoDataBlockHeader field in ReadDirectFields(bytes))
-            {
-                if (field.PayloadSize != ObjectReferenceSize)
-                    continue;
-                uint oldId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[field.PayloadOffset..]);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + sizeof(uint))..]);
-                if (inlineSize != 0 || !referenceMap.TryGetValue(oldId, out uint newId))
-                    continue;
-                BinaryPrimitives.WriteUInt32LittleEndian(
-                    data.AsSpan(checked((int)owner.PhysicalOffset + field.PayloadOffset)),
-                    newId);
-            }
-        }
-
-        SmoDocument remapped = SmoDocument.Parse(data, target.SourcePath);
+        byte[] data = target.Data.ToArray();
+        // Host fixups at sealed reader offsets, never a field-size classifier.
+        // Inline identities remain intact for the following bulk removal.
+        foreach (var site in sites)
+            BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(site.Offset), referenceMap[site.ObjectId]);
+        var remapped = SmoDocument.Parse(data, target.SourcePath);
         if (remapped.HasErrors)
-            throw new InvalidDataException(
-                "Remapping retained target references produced an invalid SMO.");
+            throw new InvalidDataException("Remapping retained target references produced an invalid SMO.");
         return remapped;
     }
 
@@ -1222,217 +1115,51 @@ public static class SmoNativeVisualGraphReplacer
         SmoDocument target,
         SmoDocument donor,
         NativeReplacementLayout layout,
+        IReadOnlyList<SmoFileReferenceRange> ranges,
         CancellationToken cancellationToken)
     {
-        HashSet<uint> internalIds = layout.DonorVisualEntries
-            .Select(entry => entry.Id)
-            .ToHashSet();
+        var internalIds = layout.DonorVisualEntries.Select(entry => entry.Id).ToHashSet();
+        var donorById = donor.Objects.ToDictionary(entry => entry.Id);
         var result = new Dictionary<uint, uint>();
-        foreach (SmoObjectEntry entry in layout.DonorVisualEntries)
+        foreach (uint id in ranges.SelectMany(range => range.Sites).Select(site => site.ObjectId).Distinct())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ReadOnlySpan<byte> bytes = ObjectBytes(donor, entry);
-            foreach (SmoDataBlockHeader field in ReadDirectFields(bytes))
-            {
-                if (field.PayloadSize != ObjectReferenceSize)
-                    continue;
-                uint referencedId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[field.PayloadOffset..]);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + sizeof(uint))..]);
-                if (inlineSize != 0 || referencedId == 0 ||
-                    internalIds.Contains(referencedId) ||
-                    result.ContainsKey(referencedId))
-                {
-                    continue;
-                }
-                SmoObjectEntry donorReference = donor.Objects.SingleOrDefault(
-                        candidate => candidate.Id == referencedId)
-                    ?? throw new InvalidDataException(
-                        $"Donor object {entry.Id} references unknown object {referencedId}.");
-                SmoObjectEntry[] candidates = target.Objects.Where(candidate =>
-                        !layout.RemovedTargetIds.Contains(candidate.Id) &&
-                        candidate.TypeHash == donorReference.TypeHash &&
-                        candidate.Name.Equals(
-                            donorReference.Name, StringComparison.Ordinal))
-                    .ToArray();
-                if (candidates.Length != 1)
-                {
-                    throw new InvalidDataException(
-                        $"External donor reference {referencedId} " +
-                        $"({donorReference.Name}) has {candidates.Length} exact " +
-                        "matches in the retained target graph.");
-                }
-                result.Add(referencedId, candidates[0].Id);
-            }
-        }
-        foreach (SmoObjectEntry skinEntry in layout.DonorVisualEntries.Where(
-                     entry => entry.TypeHash == SmoClassIds.Skin))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!SmoSkinDecoder.TryDecode(
-                    donor, skinEntry, out SmoSkin? skin, out string error) ||
-                skin is null)
-            {
-                throw new InvalidDataException(error);
-            }
-            foreach (SmoSkinBone bone in skin.Bones.Where(bone =>
-                         !internalIds.Contains(bone.NodeObjectId) &&
-                         !result.ContainsKey(bone.NodeObjectId)))
-            {
-                SmoObjectEntry donorReference = donor.Objects[bone.NodeObjectIndex];
-                SmoObjectEntry[] candidates = target.Objects.Where(candidate =>
-                        !layout.RemovedTargetIds.Contains(candidate.Id) &&
-                        candidate.TypeHash == donorReference.TypeHash &&
-                        candidate.RawName.Span.SequenceEqual(
-                            donorReference.RawName.Span))
-                    .ToArray();
-                if (candidates.Length != 1)
-                {
-                    throw new InvalidDataException(
-                        $"External donor skin bone {bone.NodeObjectId} " +
-                        $"({donorReference.Name}) has {candidates.Length} exact " +
-                        "matches in the retained target graph.");
-                }
-                result.Add(bone.NodeObjectId, candidates[0].Id);
-            }
+            if (id == 0 || internalIds.Contains(id)) continue;
+            if (!donorById.TryGetValue(id, out var reference))
+                throw new InvalidDataException($"Donor forest references unknown object {id}.");
+            var candidates = target.Objects.Where(candidate => !layout.RemovedTargetIds.Contains(candidate.Id) &&
+                candidate.TypeHash == reference.TypeHash && candidate.RawName.Span.SequenceEqual(reference.RawName.Span)).ToArray();
+            if (candidates.Length != 1)
+                throw new InvalidDataException($"External donor reference {id} ({reference.Name}) has " +
+                    $"{candidates.Length} exact matches in the retained target graph.");
+            result.Add(id, candidates[0].Id);
         }
         return result;
     }
 
     private static SmoVisualForestAttachment BuildAttachment(
-        SmoDocument donor,
-        SmoObjectEntry root,
-        uint targetOwnerId,
-        int targetFieldType,
-        IReadOnlyDictionary<uint, uint> idMap,
-        IReadOnlyDictionary<uint, uint> externalReferenceMap)
+        SmoDocument donor, SmoObjectEntry root, int fieldPhysical, int fieldLength,
+        SmoFileReferenceRange range, uint targetOwnerId, int targetFieldType,
+        IReadOnlyDictionary<uint, uint> relocation, IReadOnlySet<uint> destinationIds)
     {
-        if (root.ParentIndex is not int parentIndex)
-            throw new InvalidDataException($"Donor visual root {root.Id} has no owner.");
-        SmoObjectEntry parent = donor.Objects[parentIndex];
-        SmoDataBlockHeader field = FindExactInlineField(donor, parent, root);
-        int fieldPhysical = checked((int)parent.PhysicalOffset + field.Offset);
-        int fieldLength = checked(field.HeaderSize + (int)field.PayloadSize);
-        byte[] data = donor.Data.Span.Slice(fieldPhysical, fieldLength).ToArray();
+        var entries = donor.Objects.Where(entry => IsInside(root, entry))
+            .OrderBy(entry => entry.PhysicalOffset).ThenByDescending(entry => entry.SerializedSize).ToArray();
+        foreach (var entry in entries)
+        {
+            int relative = checked((int)entry.PhysicalOffset - fieldPhysical);
+            if (!range.Objects.Any(value => value.ObjectId == entry.Id && value.RelativeOffset == relative &&
+                    value.ClassId == entry.TypeHash && value.SerializedSize == entry.SerializedSize) ||
+                !range.Sites.Any(site => site.Offset == relative - ObjectReferenceSize &&
+                    site.ObjectId == entry.Id && site.InlineSize == entry.SerializedSize))
+                throw new InvalidDataException($"Donor visual object {entry.Id} lacks observed inline identity/coverage.");
+        }
+        byte[] data = range.Relocate(donor.Data.Span.Slice(fieldPhysical, fieldLength), relocation, destinationIds);
         if ((uint)targetFieldType > 0x1F)
             throw new InvalidDataException("Target visual field type is not representable.");
         data[0] = checked((byte)((data[0] & 0xE0) | targetFieldType));
-
-        SmoObjectEntry[] entries = donor.Objects
-            .Where(entry => IsInside(root, entry))
-            .OrderBy(entry => entry.PhysicalOffset)
-            .ThenByDescending(entry => entry.SerializedSize)
-            .ToArray();
-        foreach (SmoObjectEntry entry in entries)
-        {
-            int relative = checked((int)entry.PhysicalOffset - fieldPhysical);
-            int prefix = checked(relative - ObjectReferenceSize);
-            if (prefix < 0 ||
-                BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(prefix)) != entry.Id)
-            {
-                throw new InvalidDataException(
-                    $"Donor visual object {entry.Id} has no inline prefix.");
-            }
-            BinaryPrimitives.WriteUInt32LittleEndian(
-                data.AsSpan(prefix), idMap[entry.Id]);
-
-            ReadOnlySpan<byte> objectBytes = ObjectBytes(donor, entry);
-            foreach (SmoDataBlockHeader objectField in ReadDirectFields(objectBytes))
-            {
-                if (objectField.PayloadSize != ObjectReferenceSize)
-                    continue;
-                uint referencedId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    objectBytes[objectField.PayloadOffset..]);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    objectBytes[(objectField.PayloadOffset + sizeof(uint))..]);
-                if (inlineSize != 0)
-                    continue;
-                uint mapped = idMap.GetValueOrDefault(
-                    referencedId,
-                    externalReferenceMap.GetValueOrDefault(
-                        referencedId, referencedId));
-                if (mapped == referencedId)
-                    continue;
-                int payload = checked(relative + objectField.PayloadOffset);
-                BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(payload), mapped);
-            }
-
-        }
-        foreach (SmoObjectEntry skinEntry in entries.Where(entry =>
-                     entry.TypeHash == SmoClassIds.Skin))
-        {
-            PatchSkinPaletteReferences(
-                donor,
-                skinEntry,
-                data,
-                checked((int)skinEntry.PhysicalOffset - fieldPhysical),
-                idMap,
-                externalReferenceMap);
-        }
-
-        return new SmoVisualForestAttachment(
-            targetOwnerId,
-            data,
-            entries.Select(entry => new SmoVisualForestEntry(
-                idMap[entry.Id],
-                entry.RawName.ToArray(),
-                entry.TypeHash,
-                checked((int)entry.PhysicalOffset - fieldPhysical),
-                entry.SerializedSize)).ToArray());
-    }
-
-    private static void PatchSkinPaletteReferences(
-        SmoDocument donor,
-        SmoObjectEntry skinEntry,
-        Span<byte> attachment,
-        int skinRelativeOffset,
-        IReadOnlyDictionary<uint, uint> idMap,
-        IReadOnlyDictionary<uint, uint> externalReferenceMap)
-    {
-        if (!SmoSkinDecoder.TryDecode(
-                donor, skinEntry, out SmoSkin? skin, out string error) ||
-            skin is null)
-        {
-            throw new InvalidDataException(error);
-        }
-        SmoObjectField paletteField = FindSkinPaletteField(donor, skinEntry);
-        ReadOnlySpan<byte> payload = paletteField.Payload.Span;
-        uint count = BinaryPrimitives.ReadUInt32LittleEndian(
-            payload[sizeof(uint)..]);
-        if (count != skin.Bones.Count)
-            throw new InvalidDataException(
-                $"Skin {skinEntry.Id} palette count changed during decode.");
-
-        int cursor = 2 * sizeof(uint);
-        foreach (SmoSkinBone bone in skin.Bones)
-        {
-            uint oldId = BinaryPrimitives.ReadUInt32LittleEndian(payload[cursor..]);
-            uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                payload[(cursor + sizeof(uint))..]);
-            if (oldId != bone.NodeObjectId || inlineSize != bone.InlineSerializedSize)
-            {
-                throw new InvalidDataException(
-                    $"Skin {skinEntry.Id} palette entry {bone.PaletteIndex} " +
-                    "does not match its decoded node relationship.");
-            }
-            if (!idMap.TryGetValue(oldId, out uint mapped) &&
-                !externalReferenceMap.TryGetValue(oldId, out mapped))
-            {
-                throw new InvalidDataException(
-                    $"Skin {skinEntry.Id} bone {bone.PaletteIndex} references " +
-                    $"unmapped donor object {oldId}.");
-            }
-            int outputOffset = checked(
-                skinRelativeOffset + paletteField.RelativePayloadOffset + cursor);
-            BinaryPrimitives.WriteUInt32LittleEndian(
-                attachment[outputOffset..], mapped);
-            cursor = checked(
-                cursor + ObjectReferenceSize + (int)inlineSize + Matrix4x4Size);
-        }
-        if (cursor != payload.Length)
-            throw new InvalidDataException(
-                $"Skin {skinEntry.Id} palette traversal is incomplete.");
+        return new SmoVisualForestAttachment(targetOwnerId, data,
+            entries.Select(entry => new SmoVisualForestEntry(relocation[entry.Id], entry.RawName.ToArray(),
+                entry.TypeHash, checked((int)entry.PhysicalOffset - fieldPhysical), entry.SerializedSize)).ToArray());
     }
 
     private static SmoObjectField FindSkinPaletteField(
@@ -1548,28 +1275,13 @@ public static class SmoNativeVisualGraphReplacer
     }
 
     private static void VerifyNoReferencesToRemovedTargetObjects(
-        SmoDocument output,
-        IReadOnlySet<uint> removedIds)
+        SmoDocument output, IReadOnlySet<uint> removedIds)
     {
-        foreach (SmoObjectEntry owner in output.Objects)
-        {
-            ReadOnlySpan<byte> bytes = ObjectBytes(output, owner);
-            foreach (SmoDataBlockHeader field in ReadDirectFields(bytes))
-            {
-                if (field.PayloadSize != ObjectReferenceSize)
-                    continue;
-                uint referencedId = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[field.PayloadOffset..]);
-                uint inlineSize = BinaryPrimitives.ReadUInt32LittleEndian(
-                    bytes[(field.PayloadOffset + sizeof(uint))..]);
-                if (inlineSize == 0 && removedIds.Contains(referencedId))
-                {
-                    throw new InvalidDataException(
-                        $"Output object {owner.Id} still references removed target " +
-                        $"visual object {referencedId}.");
-                }
-            }
-        }
+        var observed = RequireReferenceTrace(output).CaptureRange(output, 0, output.Data.Length);
+        foreach (var site in observed.Sites)
+            if (removedIds.Contains(site.ObjectId))
+                throw new InvalidDataException($"Output object {site.ConsumerId} still references removed target " +
+                    $"visual object {site.ObjectId}.");
     }
 
     private static int? FindStablePredecessorFieldType(

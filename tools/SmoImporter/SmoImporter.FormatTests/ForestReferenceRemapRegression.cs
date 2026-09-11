@@ -73,6 +73,26 @@ internal static class ForestReferenceRemapRegression
         byte[] originalField = plan.Operations[0].Attachment.FieldData.ToArray();
         var idMap = plan.GeneratedObjectIds.ToDictionary(id => id, id => id + 100);
         var mapped = SmoAdditiveForestPlanner.RemapObjectIds(plan, idMap);
+        var relocationIds = idMap.Values.Append(1u).ToHashSet();
+        var observedRange = plan.ReferenceRanges![0];
+        Check(observedRange.Relocate(originalField, idMap, relocationIds).AsSpan()
+            .SequenceEqual(mapped.Operations[0].Attachment.FieldData),
+            "Cross-file relocation and same-file remap agree when identities agree.");
+        var crossFileMap = new Dictionary<uint, uint> { [1] = 90, [2] = 1, [3] = 2, [4] = 3, [7] = 4 };
+        var crossDestinations = crossFileMap.Values.ToHashSet();
+        byte[] crossBytes = observedRange.Relocate(originalField, crossFileMap, crossDestinations);
+        Check(observedRange.Sites.All(site => BinaryPrimitives.ReadUInt32LittleEndian(crossBytes.AsSpan(site.Offset)) ==
+                crossFileMap.GetValueOrDefault(site.ObjectId, site.ObjectId)),
+            "Cross-file catalogs may reuse IDs belonging to unused source ancestors.");
+        Reject(() => observedRange.Relocate(originalField, new Dictionary<uint, uint>(idMap) { [7] = 102 }, relocationIds),
+            "Cross-file copied objects cannot converge to one ID.");
+        Reject(() => observedRange.Relocate(originalField, idMap, idMap.Values.ToHashSet()),
+            "Cross-file external references must resolve in the destination catalog.");
+        Reject(() => observedRange.Relocate(originalField, new Dictionary<uint, uint>(idMap) { [7] = 0 }, relocationIds),
+            "Cross-file relocation cannot make a nonnull reference null.");
+        byte[] modifiedRange = originalField.ToArray(); modifiedRange[^1] ^= 1;
+        Reject(() => observedRange.Relocate(modifiedRange, idMap, relocationIds),
+            "Cross-file relocation cannot reuse observations after byte changes.");
         Check(plan.Operations[0].Attachment.FieldData.AsSpan().SequenceEqual(originalField),
             "Remapping does not mutate the original sealed plan.");
         Check(mapped.ReferenceRanges?.Count == 1 && mapped.GeneratedObjectIds.Order().SequenceEqual(new uint[] { 102, 103, 104, 107 }),
@@ -182,6 +202,7 @@ internal static class ForestReferenceRemapRegression
         Check(File.ReadAllBytes(templatePath).AsSpan().SequenceEqual(original), "Original mesh template is unchanged.");
         Directory.CreateDirectory(output);
         VerifyBatchCapture();
+        VerifyNativeTransfer();
         File.WriteAllBytes(Path.Combine(output, "additive.smo"), additiveBytes);
         File.WriteAllBytes(Path.Combine(output, "remapped.smo"), once.Data.ToArray());
         File.WriteAllBytes(Path.Combine(output, "remapped-twice.smo"), repeated.Data.ToArray());
@@ -198,6 +219,57 @@ internal static class ForestReferenceRemapRegression
 
         SmoDocument Install(SmoAdditiveForestPlan value, string name) => SmoDocument.ParseOwned(
             SmoVisualForestInjector.Inject(source, 1, value.Operations.Select(item => item.Attachment).ToArray()), name);
+        void VerifyNativeTransfer()
+        {
+            // The bone is owned by the palette and attached only once, by the
+            // retained root. Two Node parents are correctly rejected by runtime.
+            var nativeRender = new FixtureObject(2, SmoClassIds.RenderNode); nativeRender.End();
+            var nativeSkin = new FixtureObject(3, SmoClassIds.Skin); nativeSkin.End();
+            nativeSkin.Reference(0, new FixtureObject(4, SmoClassIds.MeshData, meshBytes), inline: true);
+            nativeSkin.End();
+            var nativePalette = new List<byte>([..BitConverter.GetBytes(4u), ..BitConverter.GetBytes(3u)]);
+            for (int index = 0; index < 3; ++index)
+            {
+                nativePalette.AddRange(BitConverter.GetBytes(index == 2 ? 1u : 7u));
+                nativePalette.AddRange(BitConverter.GetBytes(index == 0 ? checked((uint)bone.Bytes.Count) : 0u));
+                if (index == 0) nativePalette.AddRange(bone.Bytes);
+                Matrix4x4 matrix = Matrix4x4.Identity; matrix.M41 = index;
+                byte[] matrixBytes = new byte[64]; MemoryMarshal.Write(matrixBytes.AsSpan(), in matrix);
+                nativePalette.AddRange(matrixBytes);
+            }
+            nativeSkin.FieldWithInline(0, nativePalette.ToArray(), bone, 16); nativeSkin.End();
+            nativeRender.Reference(0, nativeSkin, inline: true); nativeRender.End();
+            var nativeRoot = new FixtureObject(1, SmoClassIds.Node);
+            nativeRoot.Field(30, [..BitConverter.GetBytes(7u), ..new byte[4]]);
+            nativeRoot.Reference(5, nativeRender, inline: true);
+            nativeRoot.Reference(5, bone, inline: false);
+            nativeRoot.End();
+            byte[] nativeBytes = Container(nativeRoot);
+            var nativeInput = SmoDocument.ParseOwned(nativeBytes.ToArray(), "native-reference-fixture");
+            string nativeOutput = Path.Combine(output, "native-transfer.smo");
+            var result = SmoNativeVisualGraphReplacer.Replace(nativeInput, nativeInput, nativeOutput);
+            var actual = SmoDocument.Load(nativeOutput);
+            var resources = SmoLoadedResources.Get(actual);
+            Check(resources.LoadIssue is null && resources.ReferenceTrace is not null,
+                resources.LoadIssue ?? "Native replacement must load through the actual reader.");
+            var actualBone = actual.Objects.Single(entry => entry.Name == "remap-7");
+            var actualSkin = actual.Objects.Single(entry => entry.TypeHash == SmoClassIds.Skin);
+            Check(SmoSkinDecoder.TryDecode(actual, actualSkin, out var decoded, out string error), error);
+            Check(decoded!.Bones.Select(value => value.NodeObjectId).SequenceEqual(new uint[] { actualBone.Id, actualBone.Id, 1 }),
+                "Native replacement relocates nested palette references and retains external root identity.");
+            var actualRange = resources.ReferenceTrace!.CaptureRange(actual, 0, actual.Data.Length);
+            Check(actualRange.Sites.Any(site => site.ConsumerId == 1 && site.InlineSize == 0 && site.ObjectId == actualBone.Id),
+                "Retained target consumer follows the relocated donor bone.");
+            foreach (var entry in new[] { actual.Objects.Single(entry => entry.Id == 1), actualBone })
+            {
+                var opaque = SmoObjectFieldReader.Read(actual, entry).Single(field => field.FieldType == 30);
+                Check(opaque.Payload.Span.SequenceEqual(new byte[] { 7, 0, 0, 0, 0, 0, 0, 0 }),
+                    "Native replacement preserves ID-shaped opaque bytes in retained and copied objects.");
+            }
+            Check(nativeInput.Data.Span.SequenceEqual(nativeBytes) && result.MeshCount == 1,
+                "Native replacement retains its input and exact mesh count.");
+            File.WriteAllBytes(Path.Combine(output, "native-transfer-input.smo"), nativeBytes);
+        }
         void VerifyBatchCapture()
         {
             var batchRoot = new FixtureObject(1, SmoClassIds.Node);
@@ -332,6 +404,12 @@ internal static class ForestReferenceRemapRegression
         private readonly List<(FixtureObject Object, int Offset)> children = [];
         public void End() => Bytes.Add(0);
         public void Field(int type, byte[] payload) => Bytes.AddRange(SmoDataBlockWriter.BuildField(type, payload));
+        public void FieldWithInline(int type, byte[] payload, FixtureObject child, int payloadOffset)
+        {
+            byte[] field = SmoDataBlockWriter.BuildField(type, payload);
+            children.Add((child, Bytes.Count + field.Length - payload.Length + payloadOffset));
+            Bytes.AddRange(field);
+        }
         public void Reference(int type, FixtureObject target, bool inline)
         {
             byte[] payload = [..BitConverter.GetBytes(target.Id),

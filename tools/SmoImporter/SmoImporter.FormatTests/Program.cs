@@ -1,5 +1,11 @@
 using SmoImporter.Core;
 
+if (args is ["--native-material-transfer", string materialTarget, string materialDonor, string materialTransferOutput])
+{
+    try { return NativeMaterialTransferRegression.Run(materialTarget, materialDonor, materialTransferOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--static-matrix-authoring", string staticMatrixOutput])
 {
     try { return StaticMatrixWriterRegression.Run(staticMatrixOutput); }
@@ -225,13 +231,19 @@ if (args.Length == 2 && args[0] == "--model-import-smoke")
 
 if (args.Length == 3 && args[0] == "--native-smo-visual-replacement")
 {
+    try
+    {
     SmoNativeVisualReplacementRegression.Run(args[1], args[2]);
     Console.WriteLine("NATIVE SMO VISUAL REPLACEMENT PASS");
     return 0;
+    }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 4 && args[0] == "--native-smo-visual-write")
 {
+    try
+    {
     SmoNativeVisualGraphReplaceResult result =
         SmoNativeVisualGraphReplacer.Replace(
             SmoViewer.Core.SmoDocument.Load(Path.GetFullPath(args[1])),
@@ -242,6 +254,8 @@ if (args.Length == 4 && args[0] == "--native-smo-visual-write")
         $"meshes={result.MeshCount}; textures={result.TextureCount}; " +
         $"sha256={result.Sha256}");
     return 0;
+    }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 2 && args[0] == "--model-mesh-bounds")

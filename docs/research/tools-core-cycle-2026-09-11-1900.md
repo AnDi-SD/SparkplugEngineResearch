@@ -203,3 +203,15 @@ Viewer/LVLcreator подключили 97 placements в настоящих ск�
 Мировая правка SkyBox без обновлённой local pose пока явно диагностируется
 как SKY_EDIT_POSE; полный manager/visibility/Fog lifetime не заявлен.
 Подбор файлов ускорен двухэтапным indexed SQLite запросом, без corpus scan.
+
+## Блок 18 — перенос native SMO без угадывания ссылок
+
+[Importer forest relocation](tool-native-visual-transfer-2026-09-11.md)
+перешёл на общую reader trace. Найдена и исправлена реальная ошибка: старый
+StellaX → Icy результат пропускал 29 ссылок AnimTexController и не загружался
+общим reader. Новый файл отличается только этими ID sites. Материалы обоих
+направлений, 38 animation keys и все runtime mip levels сохранены; 73 remap
+и 26 material checks, две проверки target nodes прошли. Ветки удаляются batch,
+выдача ID больше не сканирует каталоги. Промежуточный forward-reference сбой
+исправлен порядком наблюдения исходного графа; ошибочная fixture и CLI timeout
+описаны отдельно. Flat material import/preview guard пока остаётся.
