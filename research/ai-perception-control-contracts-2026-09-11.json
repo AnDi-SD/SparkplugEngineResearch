@@ -1,0 +1,315 @@
+{
+  "kind": "original-perception-and-ai-control",
+  "schemaVersion": 1,
+  "classes": [
+    {
+      "className": "wxAttackAIAction",
+      "methods": {
+        "pc": "005AA2A0",
+        "ps2": "00243AA0"
+      },
+      "group": "Attack"
+    },
+    {
+      "className": "wxBacoAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "00244680"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxDroidAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "0024A850"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxDroidWanderAIAction",
+      "methods": {
+        "pc": "005BD870",
+        "ps2": "00249680"
+      },
+      "group": "DroidWander"
+    },
+    {
+      "className": "wxFlyingWanderAIAction",
+      "methods": {
+        "pc": "005B5100",
+        "ps2": "0024B930"
+      },
+      "group": "permission-target-key2"
+    },
+    {
+      "className": "wxFrogAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "0024C340"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxIceGargoyleAttackAIAction",
+      "methods": {
+        "pc": "005ADBC0",
+        "ps2": "002519E0"
+      },
+      "group": "no-target-key0"
+    },
+    {
+      "className": "wxIceGargoyleClawAIAction",
+      "methods": {
+        "pc": "005ADBC0",
+        "ps2": "00252210"
+      },
+      "group": "no-target-key0"
+    },
+    {
+      "className": "wxIceGargoyleWithdrawlAIAction",
+      "methods": {
+        "pc": "005ADBC0",
+        "ps2": "00252D40"
+      },
+      "group": "no-target-key0"
+    },
+    {
+      "className": "wxIceWormAttackAIAction",
+      "methods": {
+        "pc": "005ADBC0",
+        "ps2": "00253BF0"
+      },
+      "group": "no-target-key0"
+    },
+    {
+      "className": "wxIdleAIAction",
+      "methods": {
+        "pc": "005B5100",
+        "ps2": "0025AE00"
+      },
+      "group": "permission-target-key2"
+    },
+    {
+      "className": "wxMinotaurAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "0025F040"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "0025FAF0"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "00260400"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "00261760"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "methods": {
+        "pc": "005B4970",
+        "ps2": "00262540"
+      },
+      "group": "no-target-key1"
+    },
+    {
+      "className": "wxWanderAIAction",
+      "methods": {
+        "pc": "005B5100",
+        "ps2": "0026B930"
+      },
+      "group": "permission-target-key2"
+    }
+  ],
+  "perceptionMethods": {
+    "pc": "004F1910",
+    "ps2": "0036EBC0"
+  },
+  "counts": {
+    "executions": 108,
+    "directPerception": 18,
+    "actionMethods": 90,
+    "wholeReturns": 64,
+    "selectorBoundaries": 40,
+    "visibilityBoundaries": 4,
+    "stackOperations": 568,
+    "accumulatorOperations": 111
+  },
+  "behavior": "Nearest3D squared-distance target;ties choose last. Perception30/34/38 retain last visited position even if another target selected. Actual v12 calls query,then requests key0/1/2 according to permission and target;stops at real owner selector. Droid visibility receives owner world position withY+50,camera position,float0.",
+  "limitations": [
+    "Literal input graphs,not normal startup or populated perception lifecycle.",
+    "Selector and visibility are actual boundaries,not completed transitions or replacement callbacks.",
+    "Dynamic numeric domain is small exact integers;not general PS2 FPU or arbitrary coordinate equivalence.",
+    "No new C++ classes or fully closed class."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/probe_ai_perception_control.py",
+      "sha256": "6586C027BEFA54E6258F650387F783251B061F17E633EF3CF5EC0809A95C4435"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/probe_pc_animation_lifecycle.py",
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/cases.json",
+      "sha256": "37A953CCC1845CA5BFBFCE26E25E52C5A267BFF3986C868BC4657CA321D18748"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+      "sha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+      "sha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/dependency-spec.json",
+      "sha256": "7C1A6102FA2375DD7F9B9E79367523A026088DF264FCBDE41797603CCAA24E6F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/method-spec.json",
+      "sha256": "00BF9322E7C6B62CA709478BC0683346328E079E30E9992D3BD63B25333B4095"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/perception-spec.json",
+      "sha256": "1BC32B0CC465197C663236A02DA7C62C7B4AFC46532DC33BD156993B3F6A4C32"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/prior-scores.json",
+      "sha256": "E799FFEFDEB0EB1499B0EA0E8A465BAFB75691D7530A4784E49720FED6062DE3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/seal-ai-perception-control.py",
+      "sha256": "01C7D66E403093B0D772F5BDD6297AF04F4BB5367662313DDD69135E9D6E7D1F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/methods/capture.json",
+      "sha256": "891392BDEE2F6912EB4EB551377872A8731268B2ADF50FFDCE670871C0C33F40"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/dependencies/capture.json",
+      "sha256": "495CA5FE5A406CEA07B284543B7EDC415C1BF1D85871B9715022D2D226F4F4CD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/perception/capture.json",
+      "sha256": "6A4636CC7065A72F27E1D7B2AAE345ED650EAD89B8239DEF560A11E1E137B976"
+    },
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "research/game-remainder-contracts-2026-09-10.json",
+      "sha256": "B393EB13B669BB9FBCD5CF9909D5CE8FF15E66E0B509ACE5CC5A73CF9F961009"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+        "sha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/probe_ai_perception_control.py",
+        "sha256": "6586C027BEFA54E6258F650387F783251B061F17E633EF3CF5EC0809A95C4435"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/cases.json",
+        "sha256": "37A953CCC1845CA5BFBFCE26E25E52C5A267BFF3986C868BC4657CA321D18748"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "stackExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_stack_spills.py",
+        "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+      },
+      "accumulatorExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+        "sha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/probe_ai_perception_control.py",
+        "sha256": "6586C027BEFA54E6258F650387F783251B061F17E633EF3CF5EC0809A95C4435"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/cases.json",
+        "sha256": "37A953CCC1845CA5BFBFCE26E25E52C5A267BFF3986C868BC4657CA321D18748"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      },
+      "stackExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_stack_spills.py",
+        "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+      },
+      "accumulatorExtension": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-control-events/source-snapshot/ps2_integer_square_accumulator.py",
+        "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+      }
+    }
+  ]
+}

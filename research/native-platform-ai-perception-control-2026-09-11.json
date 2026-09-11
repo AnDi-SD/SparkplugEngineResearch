@@ -1,0 +1,1593 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ai-perception-control-2026-09-11T00:28:54Z",
+  "createdUtc": "2026-09-11T00:28:54Z",
+  "notes": "36 +5 platform updates:nearest perception and17 AIAction v12 control contracts;108 first-pass executions,real downstream boundaries.",
+  "assessments": [
+    {
+      "className": "wxAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxBacoAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxBacoAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxDroidAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxDroidAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxDroidWanderAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxDroidWanderAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxFlyingWanderAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxFlyingWanderAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxFrogAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxFrogAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleClawAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleClawAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleWithdrawlAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleWithdrawlAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIdleAIAction",
+      "platformKey": "pc",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxIdleAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "20->25: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "20->25: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "20->25: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "20->25: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMinotaurAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMinotaurAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxPerception",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxPerception",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Nearest-target full query,null-owner/empty/ordered lists,tie chooses last,scratch position retains last visited node."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "35->40: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "35->40: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "35->40: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "35->40: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 50.0,
+      "lowerBound": 40.0,
+      "upperBound": 65.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "45->50: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "45->50: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "45->50: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "45->50: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "45->50: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "40->45: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxWanderAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "30->35: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    },
+    {
+      "className": "wxWanderAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 30.0,
+      "lowerBound": 20.0,
+      "upperBound": 45.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-perception-control-2026-09-11.md",
+          "sourceSha256": "7888613B94BC3A8E101B02A95A45F048CDB251BA1AB0641AB56653034A9E5B1B",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-perception-control-contracts-2026-09-11.json",
+          "sourceSha256": "A367F7B42C03EDA11B23E5039750E18138B63226B8F60D40771712621E62D196",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-pilot-run1.json",
+          "sourceSha256": "DFC42E541D18D44833920AFEA18EFDF1CEA4DCAFE72FAB4F7A49FCCE71DD1E2F",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-control-events/control-batch-run1.json",
+          "sourceSha256": "229BCC4C3768018D9F57BE2EAC87F6D2C4A9901D877E2D0A8C36F2505B10BDBA",
+          "locator": "Nearest perception and AIAction v12",
+          "observation": "25->30: Real v12 control and perception call,permission/target branches;actual state selector or Droid visibility boundary,without fake callbacks."
+        }
+      ],
+      "unknowns": [
+        "Complete startup,perception list population and other class methods remain open.",
+        "Arbitrary float/EE arithmetic and complete state/visibility consumers not established by this batch."
+      ]
+    }
+  ]
+}
