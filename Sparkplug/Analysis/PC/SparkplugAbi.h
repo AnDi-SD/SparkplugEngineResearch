@@ -781,8 +781,8 @@ namespace sparkplug::evidence::pc
         spCrossPlatformLayout base;    // 0x00
         Address32 supportVTable;       // 0x14: singleton-support subobject
         std::uint8_t managerState18[0x1C]; // 0x18: container/backend state
-        Address32 primaryFont;         // 0x34: intrusive reference
-        Address32 fallbackFont;        // 0x38: intrusive reference
+        Address32 primaryMaterial;         // 0x34: intrusive reference
+        Address32 fallbackMaterial;        // 0x38: intrusive reference
     };
 
     struct spPCFontManagerLayout final
@@ -1970,8 +1970,8 @@ namespace sparkplug::evidence::pc
     static_assert(offsetof(spDebugManagerLayout, supportVTable) == 0x10);
     static_assert(sizeof(spFontManagerLayout) == 0x3C);
     static_assert(offsetof(spFontManagerLayout, supportVTable) == 0x14);
-    static_assert(offsetof(spFontManagerLayout, primaryFont) == 0x34);
-    static_assert(offsetof(spFontManagerLayout, fallbackFont) == 0x38);
+    static_assert(offsetof(spFontManagerLayout, primaryMaterial) == 0x34);
+    static_assert(offsetof(spFontManagerLayout, fallbackMaterial) == 0x38);
     static_assert(sizeof(spPCFontManagerLayout) == 0x3C);
     static_assert(sizeof(spInputManagerObservedPrefixLayout) == 0x20);
     static_assert(offsetof(spInputManagerObservedPrefixLayout,
@@ -3665,7 +3665,7 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spFontManagerProtectedConstructorEntry = 0x0041FB00;
     inline constexpr Address32 spFontManagerDestructor = 0x0041FB90;
     inline constexpr Address32 spFontManagerInitialize = 0x0041E8B0;
-    inline constexpr Address32 spFontManagerSetPrimaryFont = 0x0041E870;
+    inline constexpr Address32 spFontManagerSetPrimaryMaterial = 0x0041E870;
     inline constexpr Address32 spFontManagerVTable = 0x006DC424;
     inline constexpr Address32 spFontManagerSupportVTable = 0x006DC420;
     inline constexpr Address32 spFontManagerSingleton = 0x00755270;

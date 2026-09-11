@@ -53,15 +53,16 @@ namespace sparkplug::reconstruction
 
     bool spPCFontManager::InitializeForAnalysis()
     {
-        if (!spFontManager::InitializeForAnalysis())
+        if (!InitializePCMaterialForAnalysis())
         {
             return false;
         }
-        // PC 0x004C3830 allocates a platform font buffer only after the common
-        // initializer succeeds.  The D3D-backed allocation is represented by
-        // state until its owner class has been reconstructed.
-        platformBufferReady_ = true;
-        return true;
+        // PC4C3830 next calls4C36A0 to build a system Font and assigns its
+        // borrowed pointer28/2C. No modern system-font producer is supplied.
+        // Keep the completed material prefix, but do not invent font success.
+        platformBufferReady_ = false;
+        MarkInitializedForAnalysis(false);
+        return false;
     }
 
     bool spPCFontManager::IsPlatformBufferReadyForAnalysis() const noexcept

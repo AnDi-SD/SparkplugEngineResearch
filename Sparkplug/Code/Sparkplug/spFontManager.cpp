@@ -1,5 +1,10 @@
 #include "spFontManager.h"
 #include "spFont.h"
+#include "spMaterial.h"
+#include "spMaterialPassLayer.h"
+#include "spStdLayer.h"
+#include "spMaterialTexture.h"
+#include "../SparkplugDX/spDXMaterial.h"
 
 #include <cstring>
 
@@ -29,11 +34,10 @@ namespace sparkplug::reconstruction
 
     spFontManager::~spFontManager()
     {
-        // The native destructor releases every vector entry, then the two
-        // default-font references, before clearing the singleton support base.
-        fallbackFont_.reset();
-        primaryFont_.reset();
+        // PC41FB90: registry entries, fallback38, primary34, then storage.
         fonts_.clear();
+        fallbackMaterial_.reset();
+        primaryMaterial_.reset();
         initialized_ = false;
         instance_ = nullptr;
     }
@@ -98,27 +102,29 @@ namespace sparkplug::reconstruction
         return nullptr;
     }
 
-    void spFontManager::SetPrimaryFontForAnalysis(
-        std::shared_ptr<spNamedObject> font)
+    void spFontManager::SetPrimaryMaterialForAnalysis(
+        std::shared_ptr<spMaterial> material)
     {
-        primaryFont_ = std::move(font);
+        primaryMaterial_ = std::move(material);
     }
 
-    void spFontManager::SetFallbackFontForAnalysis(
-        std::shared_ptr<spNamedObject> font)
+    void spFontManager::SetFallbackMaterialForAnalysis(
+        std::shared_ptr<spMaterial> material)
     {
-        fallbackFont_ = std::move(font);
+        fallbackMaterial_ = std::move(material);
     }
 
-    spNamedObject* spFontManager::GetPrimaryFontForAnalysis() const noexcept
+    spMaterial* spFontManager::GetPrimaryMaterialForAnalysis() const noexcept
     {
-        return primaryFont_.get();
+        return primaryMaterial_.get();
     }
 
-    spNamedObject* spFontManager::GetFallbackFontForAnalysis() const noexcept
+    spMaterial* spFontManager::GetFallbackMaterialForAnalysis() const noexcept
     {
-        return fallbackFont_.get();
+        return fallbackMaterial_.get();
     }
+    const std::shared_ptr<spMaterial>& spFontManager::GetCurrentMaterialForAnalysis() const noexcept
+    { return primaryMaterial_?primaryMaterial_:fallbackMaterial_; }
 
     std::size_t spFontManager::GetFontCountForAnalysis() const noexcept
     {
@@ -132,8 +138,23 @@ namespace sparkplug::reconstruction
 
     bool spFontManager::InitializeForAnalysis()
     {
-        initialized_ = true;
-        return true;
+        initialized_ = false;
+        return false;
+    }
+    bool spFontManager::InitializePCMaterialForAnalysis()
+    {
+        initialized_=false;
+        auto material=std::make_shared<spDXMaterial>();fallbackMaterial_=material;
+        auto pass=std::make_shared<spMaterialPassLayer>();pass->SetFinalBlendOperationForAnalysis(2);
+        auto layer=std::make_unique<spStdLayer>();
+        layer->GetMaterialTextureForAnalysis()->SetTextureStateForAnalysis(2,3);
+        layer->GetMaterialTextureForAnalysis()->SetTextureStateForAnalysis(1,3);
+        if(!pass->SetLayerForAnalysis(pass->GetLayerCountForAnalysis(),std::move(layer)))return false;
+        (void)material->SetRenderStateForAnalysis(8,2);(void)material->SetRenderStateForAnalysis(3,0);
+        material->SetVertexAlphaByteForAnalysis(1);(void)material->SetRenderStateForAnalysis(9,1);
+        material->SetRenderOverrideByteForAnalysis(1);
+        if(!material->SetPassForAnalysis(material->GetPassCountForAnalysis(),pass))return false;
+        primaryMaterial_=fallbackMaterial_;initialized_=true;return true;
     }
 
     void spFontManager::MarkInitializedForAnalysis(const bool value) noexcept

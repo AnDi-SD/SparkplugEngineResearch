@@ -445,8 +445,8 @@ namespace sparkplug::evidence::ps2
         Address32 field24;             // 0x24: initialized to zero
         Address32 field28;             // 0x28: initialized to zero
         Address32 field2C;             // 0x2c: initialized from 0x00476cb8
-        Address32 primaryFont;         // 0x30: intrusive reference
-        Address32 fallbackFont;        // 0x34: intrusive reference
+        Address32 primaryMaterial;         // 0x30: intrusive reference
+        Address32 fallbackMaterial;        // 0x34: intrusive reference
     };
 
     struct spPS2FontManagerLayout final
@@ -1044,8 +1044,8 @@ namespace sparkplug::evidence::ps2
     static_assert(offsetof(spFontManagerLayout, supportVTable) == 0x14);
     static_assert(offsetof(spFontManagerLayout, fontCount) == 0x1C);
     static_assert(offsetof(spFontManagerLayout, field2C) == 0x2C);
-    static_assert(offsetof(spFontManagerLayout, primaryFont) == 0x30);
-    static_assert(offsetof(spFontManagerLayout, fallbackFont) == 0x34);
+    static_assert(offsetof(spFontManagerLayout, primaryMaterial) == 0x30);
+    static_assert(offsetof(spFontManagerLayout, fallbackMaterial) == 0x34);
     static_assert(sizeof(spPS2FontManagerLayout) == 0x38);
     static_assert(sizeof(spInputManagerObservedPrefixLayout) == 0x20);
     static_assert(offsetof(spInputManagerObservedPrefixLayout,

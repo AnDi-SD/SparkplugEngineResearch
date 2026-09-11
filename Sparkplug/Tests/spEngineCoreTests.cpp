@@ -3489,14 +3489,16 @@ int main()
                 && manager.FindFontForAnalysis("Default") == first.get()
                 && manager.FindFontForAnalysis("Missing") == nullptr,
             "font lookup returns the first exact named entry");
-        manager.SetPrimaryFontForAnalysis(first);
-        manager.SetFallbackFontForAnalysis(second);
-        Require(manager.GetPrimaryFontForAnalysis() == first.get()
-                && manager.GetFallbackFontForAnalysis() == second.get(),
-            "both native default-font reference roles remain independent");
-        Require(manager.InitializeForAnalysis()
-                && manager.IsInitializedForAnalysis(),
-            "PS2 leaf retains the common initialization transition");
+        auto firstMaterial=std::make_shared<spMaterialData>();
+        auto secondMaterial=std::make_shared<spMaterialData>();
+        manager.SetPrimaryMaterialForAnalysis(firstMaterial);
+        manager.SetFallbackMaterialForAnalysis(secondMaterial);
+        Require(manager.GetPrimaryMaterialForAnalysis() == firstMaterial.get()
+                && manager.GetFallbackMaterialForAnalysis() == secondMaterial.get(),
+            "both native material reference roles remain independent");
+        Require(!manager.InitializeForAnalysis()
+                && !manager.IsInitializedForAnalysis(),
+            "Unprovided PS2 material factory does not report synthetic startup success");
 
         auto cloneBase = manager.Clone();
         auto* clone = dynamic_cast<spPS2FontManager*>(cloneBase.get());
@@ -3514,9 +3516,10 @@ int main()
     {
         spPCFontManager manager;
         Require(!manager.IsPlatformBufferReadyForAnalysis()
-                && manager.InitializeForAnalysis()
-                && manager.IsPlatformBufferReadyForAnalysis(),
-            "PC initialization adds its platform-buffer stage after common setup");
+                && !manager.InitializeForAnalysis()
+                && !manager.IsPlatformBufferReadyForAnalysis()
+                && manager.GetFallbackMaterialForAnalysis()!=nullptr,
+            "PC material prefix completes but unresolved system Font production remains explicit");
     }
 #endif
 
@@ -4846,9 +4849,9 @@ int main()
             && sizeof(sparkplug::evidence::ps2::spFontManagerLayout) == 0x38,
         "font-manager layouts preserve the four-byte platform container shift");
     Require(offsetof(sparkplug::evidence::pc::spFontManagerLayout,
-                primaryFont) == 0x34
+                primaryMaterial) == 0x34
             && offsetof(sparkplug::evidence::ps2::spFontManagerLayout,
-                primaryFont) == 0x30,
+                primaryMaterial) == 0x30,
         "native default-font references follow their platform container ABIs");
     Require(spFontManager::ClassID
                 == sparkplug::evidence::pc::spFontManagerClassID

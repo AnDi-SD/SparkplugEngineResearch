@@ -161,3 +161,12 @@ strip, но они попадают только в вырожденные ок�
 17 original,358 native и373 C ABI checks прошли; menu41 placements/1202
 triangles теперь выводится на RTX3070. Icy и Alfea02 также прошли. Следующий
 связанный пробел — GPU Text для оставшихся десяти occurrences меню.
+
+## Блок14 — оригинальная Text geometry и настоящие материалы FontManager
+
+[CPU generator](tool-text-geometry-2026-09-11.md) совпал с2484 original output
+bytes в11 случаях;324 native checks и affected EngineCore прошли. Установлено,
+что owning34/38 — материалы, а не Fonts; PS2 static path подтверждает ту же
+структуру30/34. Старые fake-success startup flags устранены. Доказанная
+граница: original long-word wrap зацикливается; host возвращает явную ошибку
+по iteration bound. Следующий блок — общий GPU consumer этого генератора.

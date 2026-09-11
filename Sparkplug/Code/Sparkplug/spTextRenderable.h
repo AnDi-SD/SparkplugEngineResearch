@@ -2,6 +2,7 @@
 // Inferred path; PC41A640 factory, 4380F0 owning setter, 437EE0 layout.
 // std::string/shared_ptr replace native storage, not its byte-string rules.
 #include "spRenderable.h"
+#include "spFontManager.h"
 #include <optional>
 #include <string>
 namespace sparkplug::reconstruction {
@@ -22,6 +23,11 @@ public:
     bool SetAlignmentForAnalysis(std::uint32_t,spFontManager*,std::string* error=nullptr);
     void SetColorForAnalysis(std::uint32_t color) noexcept { color_=color; }
     bool RebuildLayoutForAnalysis(spFontManager*,std::string* error=nullptr);
+    // Geometry part of437D30. Callbacks/alpha dispatch/material save/restore
+    // remain external; alignment uses cached measured width exactly as PC.
+    bool BuildPCGeometryForAnalysis(spFontManager&,
+        spFontManager::Text3DGeometryForAnalysis&,std::string* error=nullptr) const;
+    bool RequiresPCAlphaQueueForAnalysis() const noexcept override { return IsAlphaSortEnabledForAnalysis(); }
     const std::optional<std::string>& GetTextForAnalysis() const noexcept { return text_; }
     const std::shared_ptr<spFont>& GetFontForAnalysis() const noexcept { return font_; }
     std::uint32_t GetColorForAnalysis() const noexcept { return color_; }

@@ -7,13 +7,16 @@
 #include "../SparkBase/spBaseObject.h"
 
 #include <cstddef>
+#include <array>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
 
 namespace sparkplug::reconstruction
 {
     class spFont;
+    class spMaterial;
     class spFontManager : public spCrossPlatform
     {
     public:
@@ -39,26 +42,44 @@ namespace sparkplug::reconstruction
             std::shared_ptr<spNamedObject> font);
         [[nodiscard]] spNamedObject* FindFontForAnalysis(
             std::string_view name) const noexcept;
-        void SetPrimaryFontForAnalysis(std::shared_ptr<spNamedObject> font);
-        void SetFallbackFontForAnalysis(std::shared_ptr<spNamedObject> font);
+        void SetPrimaryMaterialForAnalysis(std::shared_ptr<spMaterial> material);
+        void SetFallbackMaterialForAnalysis(std::shared_ptr<spMaterial> material);
 
-        [[nodiscard]] spNamedObject* GetPrimaryFontForAnalysis() const noexcept;
-        [[nodiscard]] spNamedObject* GetFallbackFontForAnalysis() const noexcept;
+        [[nodiscard]] spMaterial* GetPrimaryMaterialForAnalysis() const noexcept;
+        [[nodiscard]] spMaterial* GetFallbackMaterialForAnalysis() const noexcept;
+        [[nodiscard]] const std::shared_ptr<spMaterial>& GetCurrentMaterialForAnalysis() const noexcept;
         [[nodiscard]] std::size_t GetFontCountForAnalysis() const noexcept;
         [[nodiscard]] bool IsInitializedForAnalysis() const noexcept;
 
         // PC41E770/41E730: three distinct borrowed state words28/2C/30.
-        // They are NOT the owning primary/fallback references34/38 above.
+        // They are NOT the owning material references34/38 above.
         void SetLayoutDefaultFontForAnalysis(spFont* font) noexcept { layoutDefault_=font; }
         void SelectFontAndColorForAnalysis(spFont* font,std::uint32_t argb) noexcept;
         [[nodiscard]] spFont* GetSelectedFontForAnalysis() const noexcept { return selectedFont_; }
         [[nodiscard]] std::uint32_t GetSelectedColorForAnalysis() const noexcept { return selectedColor_; }
         std::uint32_t MeasureTextForAnalysis(const char*,std::uint32_t,std::uint32_t*) const noexcept;
 
-        // Native common initialization builds renderer-owned default font
-        // objects.  That graph is outside this slice; this seam preserves the
-        // verified success/state transition without inventing those classes.
+        // PC41E8B0 builds a DXMaterial, one pass and one StdLayer. Power stays
+        // undefined. This does not initialize the platform's default Font.
+        bool InitializePCMaterialForAnalysis();
+        // Full platform initialization needs an explicit backend font producer;
+        // unresolved startup must not report synthetic success.
         virtual bool InitializeForAnalysis();
+        struct Text3DVertexForAnalysis {
+            std::array<float,3> position{};
+            std::uint32_t color=0;
+            std::array<float,2> uv{};
+        };
+        struct Text3DGeometryForAnalysis {
+            std::vector<Text3DVertexForAnalysis> vertices;
+            std::vector<std::uint16_t> indices;
+        };
+        // CPU producer inside PC41F3C0; backend acquisition/material/draw are
+        // external. Byte strings, signed wrap comparison and word rollback.
+        // Host limits:65535 input bytes,4096 glyphs,8*(length+1) iterations.
+        bool BuildPCText3DGeometryForAnalysis(const std::array<float,3>& position,
+            const char* text,std::uint32_t wrap,Text3DGeometryForAnalysis& output,
+            std::string* error=nullptr) const;
 
     protected:
         void MarkInitializedForAnalysis(const bool value) noexcept;
@@ -66,8 +87,8 @@ namespace sparkplug::reconstruction
     private:
         static spFontManager* instance_;
         std::vector<std::shared_ptr<spNamedObject>> fonts_;
-        std::shared_ptr<spNamedObject> primaryFont_;
-        std::shared_ptr<spNamedObject> fallbackFont_;
+        std::shared_ptr<spMaterial> primaryMaterial_;
+        std::shared_ptr<spMaterial> fallbackMaterial_;
         bool initialized_ = false;
         spFont* layoutDefault_=nullptr;
         spFont* selectedFont_=nullptr;

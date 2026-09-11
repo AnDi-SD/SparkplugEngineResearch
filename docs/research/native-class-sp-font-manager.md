@@ -1,4 +1,13 @@
-# `spFontManager`: common font registry and defaults
+# `spFontManager`: font registry, materials and text geometry
+
+Обновление11 сентября: [оригинальные PC вызовы](tool-text-geometry-2026-09-11.md)
+исправили прежнюю трактовку двух owning-полей: PC34/38 и PS230/34 хранят
+**материалы**, а не шрифты. PC41E8B0 создаёт DXMaterial/pass/StdLayer;
+PS2168620 имеет ту же последовательность с PS2Material. Восстановлены PC
+byte-text geometry41F3C0 и alignment producer437D30. Старые fake-success
+инициализаторы больше не объявляют несуществующий системный Font готовым.
+
+## Историческая запись до уточнения11 сентября
 
 Статус: identity/base, registration, singleton, exact platform layouts,
 container lifetime, append/name lookup, two default-font references and common

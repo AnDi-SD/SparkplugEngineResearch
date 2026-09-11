@@ -394,6 +394,7 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spEntityManager.cpp
     Code/Sparkplug/spEntityManager.h
     Code/Sparkplug/spFontManager.cpp
+    Code/Sparkplug/spFontManagerGeometry.cpp
     Code/Sparkplug/spFontManager.h
     Code/Sparkplug/spInputManager.cpp
     Code/Sparkplug/spInputManager.h
@@ -533,6 +534,10 @@ if(BUILD_TESTING)
     add_executable(SparkplugFontSerializationTests Tests/spFontSerializationTests.cpp)
     add_executable(SparkplugTextInspectionTests Tests/spTextInspectionTests.cpp)
     add_executable(SparkplugTextRuntimeTests Tests/spTextRuntimeTests.cpp)
+    add_executable(SparkplugTextGeometryTests Tests/spTextGeometryTests.cpp)
+    target_link_libraries(SparkplugTextGeometryTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTextGeometryTests COMMAND SparkplugTextGeometryTests)
+    set_tests_properties(SparkplugTextGeometryTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugTextRuntimeTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugTextRuntimeTests COMMAND SparkplugTextRuntimeTests)
     set_tests_properties(SparkplugTextRuntimeTests PROPERTIES TIMEOUT 20)

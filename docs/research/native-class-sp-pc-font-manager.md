@@ -14,8 +14,10 @@ Vtable anchors are registration getter `0x004C3590`, destructor
 the inherited empty base-copy path, so fonts and backend state are not copied.
 
 Leaf initialization `0x004C3830` first calls common `0x0041E8B0`; failure is
-propagated. On success it calls the PC backend allocator/helper and stores the
-same resulting pointer at `+0x28/+0x2C`. The portable reconstruction records
-that second-stage transition without pretending to implement its unresolved
-D3D resource type. Original header, helper name/type and buffer ownership
-contract remain open.
+propagated. On success it calls `4C36A0` to find/build a platform Font and stores
+the same borrowed pointer at `+0x28/+0x2C`. The common stage creates an owning
+material graph at34/38, not font buffers. The platform Font producer is not
+provided by the modern host: initialization now retains the completed material
+prefix but returns false, with readiness false. Its former unconditional
+success/readiness flags were incomplete reconstruction placeholders.
+[Original geometry/material evidence,11 September](tool-text-geometry-2026-09-11.md).

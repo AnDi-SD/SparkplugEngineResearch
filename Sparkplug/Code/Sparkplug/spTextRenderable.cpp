@@ -63,4 +63,12 @@ void spTextRenderable::GetBoundsForAnalysis(BoundsPosition& minimum,BoundsPositi
     minimum=minimum_.value_or(BoundsPosition{unknown,unknown,unknown});
     maximum=maximum_.value_or(BoundsPosition{unknown,unknown,unknown});
 }
+bool spTextRenderable::BuildPCGeometryForAnalysis(spFontManager& manager,
+    spFontManager::Text3DGeometryForAnalysis& output,std::string* error) const {
+    manager.SelectFontAndColorForAnalysis(font_.get(),color_);
+    std::array<float,3> position{};
+    if(alignment_==1)position[0]=static_cast<float>(-double(measuredWidth_)*0.5);
+    else if(alignment_==2)position[0]=static_cast<float>(-double(measuredWidth_));
+    return manager.BuildPCText3DGeometryForAnalysis(position,text_?text_->c_str():nullptr,wrap_,output,error);
+}
 }
