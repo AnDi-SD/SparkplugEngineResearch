@@ -45,6 +45,7 @@
 #include "Code/Sparkplug/spResourceFATSerializer.h"
 #include "Analysis/Host/ResourceEnvelope.h"
 #include "SceneLighting.h"
+#include "MaterialSubmission.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
@@ -1154,6 +1155,21 @@ SPV_API int spv_graph_apply_controllers(void* handle,const std::uint32_t* ids,st
         }
         for(auto* controller:controllers)controller->ApplyForAnalysis(elapsed);
     });
+}
+static_assert(sizeof(SpvMaterialDrawPass)==1044);
+SPV_API void* spv_material_submission_create(void* handle) noexcept {
+    std::unique_ptr<spvhost::MaterialSubmission> result;
+    if(!guarded([&]{require(handle,"Missing material submission graph");
+        result=std::make_unique<spvhost::MaterialSubmission>(static_cast<spvhost::GraphHandle*>(handle)->graph);
+    }))return nullptr;
+    return result.release();
+}
+SPV_API void spv_material_submission_destroy(void* handle) noexcept {
+    (void)guarded([&]{delete static_cast<spvhost::MaterialSubmission*>(handle);});
+}
+SPV_API int spv_material_submission_capture(void* handle,std::uint32_t id,std::uint32_t frame,SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{require(handle,"Missing material submission context");
+        static_cast<spvhost::MaterialSubmission*>(handle)->Capture(id,frame,output,capacity,count);});
 }
 SPV_API int spv_graph_update_material_color(void* handle,std::uint32_t id,std::uint32_t frame,std::uint32_t force,std::uint32_t* evaluated) noexcept {
     return guarded([&]{require(evaluated&&force<=1,"Invalid material color update output or force flag");*evaluated=0;

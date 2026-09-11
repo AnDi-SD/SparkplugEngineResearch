@@ -230,6 +230,19 @@ struct SpvGraphUVSubmission {std::uint32_t stage;float matrix[9];};
 SPV_API int spv_graph_controller_clock(void*,std::uint32_t,SpvGraphControllerClock*) noexcept;
 SPV_API int spv_graph_apply_controllers(void*,const std::uint32_t* ids,std::uint32_t count,float elapsed) noexcept;
 SPV_API int spv_graph_update_material_color(void*,std::uint32_t material,std::uint32_t frame,std::uint32_t force,std::uint32_t* evaluated) noexcept;
+// Immutable per-pass transport from common material submission. Device indices
+// render={7,8,9,14,15,19,20,22,23,24,25,27,29,137,145,148};
+// stage={colorOp,alphaOp,addressU,addressV,border,mag,min,mip,coordinates,transform}.
+// Known masks distinguish untouched startup state from valid zero values.
+struct SpvMaterialDrawPass {
+    std::uint32_t pass,vertexAlpha,knownRender,knownUV;
+    std::uint32_t render[16];float colors[17];std::uint32_t textures[8];
+    std::uint32_t stages[80],knownStages[8];float uv[128];
+};
+SPV_API void* spv_material_submission_create(void* graph) noexcept;
+SPV_API void spv_material_submission_destroy(void*) noexcept;
+SPV_API int spv_material_submission_capture(void*,std::uint32_t material,std::uint32_t frame,
+    SpvMaterialDrawPass*,std::uint32_t capacity,std::uint32_t* count) noexcept;
 // Output capacity must cover the pass's layer count. Output consists only of
 // actual UV submissions in original call order. Failure can retain mutations
 // performed by preceding layers; original updates are not transactional.

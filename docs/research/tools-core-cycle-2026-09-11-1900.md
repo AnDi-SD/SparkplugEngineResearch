@@ -79,3 +79,12 @@ Alfea02 сохраняет 1008. Movement/undo/redo/selection export/save job/re
 остальные размещения не двигаются. GUI получает только необходимую передачу
 ключа; CoreTests/GUI builds прошли без warnings/errors. Исправлен устаревший
 test picking без GPU provider; 63 прежние editor assertions прошли.
+
+## Блок 7 — общая подготовка материала к рисованию
+
+[Native material submission](tool-material-submission-2026-09-11.md) передаёт
+современному backend все проходы, actual translated states, textures и UV.
+Четыре SMO дали 2184 материала/2236 проходов; native suites 3/3 и C ABI lifetime
+checks прошли. Исправлены ожидание отключённых UV и Python byte-buffer slice
+в новых тестах; игровые классы не менялись. Подключение этих результатов к
+OpenGL — следующий самостоятельный блок, полный вывод света пока не закрыт.
