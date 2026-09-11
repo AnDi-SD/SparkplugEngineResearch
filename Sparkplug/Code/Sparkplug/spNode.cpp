@@ -171,6 +171,18 @@ namespace sparkplug::reconstruction
         return evidence::pc::node_math::Affine(worldPosition_, worldOrientation_, worldScale_);
     }
 
+    spNode::Vector3 spNode::TransformPointToWorldForAnalysis(const Vector3& point) const noexcept
+    {
+        const double x=double(point[0])*worldScale_[0],y=double(point[1])*worldScale_[1],z=double(point[2])*worldScale_[2];
+        const auto& m=worldOrientation_;
+        // 4206A1/4206C0/4206DC store all three rotated values before adding
+        // position. Y/Z accumulate z,x,y, whereas X accumulates z,y,x.
+        Vector3 rotated{static_cast<float>((z*m[6]+y*m[3])+x*m[0]),
+            static_cast<float>((z*m[7]+x*m[1])+y*m[4]),static_cast<float>((z*m[8]+x*m[2])+y*m[5])};
+        for(std::size_t i=0;i<3;++i)rotated[i]=static_cast<float>(double(rotated[i])+worldPosition_[i]);
+        return rotated;
+    }
+
     bool spNode::UpdateWorldForAnalysis(
         const std::uint32_t inheritedFlags, const Matrix3* cameraOrientation) noexcept
     {

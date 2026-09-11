@@ -1,8 +1,10 @@
 #pragma once
 
 // Original TU is proven by PC 006E8D14. This is the shared, partial class:
-// geometry producer/driver and leaves, not the full runtime Init/reader.
+// geometry producer/driver, fresh PC Init and world positions. Camera silhouette
+// and scene/partition registration are separate unimplemented boundaries.
 #include "spNode.h"
+#include "../../Analysis/PC/GeometryHelper4604F0.h"
 #include <optional>
 
 namespace sparkplug::reconstruction
@@ -39,6 +41,21 @@ public:
     [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
     [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
     [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
+    using SortDispatchForAnalysis=evidence::pc::GeometryHelper4604F0::SortDispatchForAnalysis;
+    // PC470FE0, fresh object only. The external CRT version is explicitly
+    // supplied by the host; repeated Init and single-triangle shape remain
+    // unsupported because original captures expose stale-pointer lifetimes.
+    [[nodiscard]] bool InitializeForAnalysis(const spIndexBuffer&,const spVertexBuffer&,
+        const SortDispatchForAnalysis&,std::string* error=nullptr);
+    [[nodiscard]] bool UpdateWorldForAnalysis(std::uint32_t inheritedFlags=0,
+        const Matrix3* cameraOrientation=nullptr) noexcept override;
+    [[nodiscard]] bool IsInitializedForAnalysis() const noexcept{return initialized_;}
+    [[nodiscard]] bool IsCameraDirtyForAnalysis() const noexcept{return cameraDirty_;}
+    [[nodiscard]] const spIndexBuffer* GetIndexBufferForAnalysis() const noexcept{return indices_.get();}
+    [[nodiscard]] const spVertexBuffer* GetLocalVertexBufferForAnalysis() const noexcept{return localVertices_.get();}
+    [[nodiscard]] const auto& GetLocalBoundsForAnalysis() const noexcept{return localBounds_;}
+    [[nodiscard]] const auto& GetLocalSphereForAnalysis() const noexcept{return localSphere_;}
+    [[nodiscard]] const auto& GetWorldSphereForAnalysis() const noexcept{return worldSphere_;}
 
     // Explicit internal state for direct leaf comparisons. This does not
     // initialize an occluder, read geometry, construct faces or weld buffers.
@@ -48,7 +65,8 @@ public:
         std::uint32_t borderCount,std::uint8_t priorPlanar);
     // Host preparation: finite world-VB positions and UInt16 triangle indices,
     // at most4096 points/1024 triangles. Valid input replaces analysis state;
-    // invalid input preserves it. No buffer reading, welding or game Init.
+    // invalid input preserves it. Refuses an initialized runtime owner. No
+    // buffer reading, welding or game Init.
     bool SetShapeBuffersForAnalysis(std::vector<Vector3> points,
         std::vector<std::uint16_t> triangleIndices,std::uint32_t walkStamp=0);
     // PC470B20/13B4F40 and470E30/13D0460, respectively. Require the explicit
@@ -70,6 +88,11 @@ public:
     [[nodiscard]] auto GetBorderCountForAnalysis() const noexcept{return borderCount_;}
     [[nodiscard]] auto GetPlanarByteForAnalysis() const noexcept{return planar_;}
 private:
+    bool initializationAttempted_=false,initialized_=false,cameraDirty_=false;
+    std::unique_ptr<spIndexBuffer> indices_;
+    std::unique_ptr<spVertexBuffer> localVertices_;
+    std::array<float,6> localBounds_{};
+    std::array<float,4> localSphere_{},worldSphere_{};
     FaceForAnalysis* FindOrCreateFaceForAnalysis(const Vector3*,const Vector3*,const Vector3*);
     static constexpr std::size_t MaxShapeEdgesForAnalysis=6144;
     std::vector<Vector3> points_;

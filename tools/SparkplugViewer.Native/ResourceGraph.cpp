@@ -3,6 +3,8 @@
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
+#include "Code/Sparkplug/spOcclusionVolumeSerializer.h"
+#include "Analysis/Host/LegacySortPolicy.h"
 #include "Code/Sparkplug/spRenderNode.h"
 #include "Code/Sparkplug/spLensFlare.h"
 #include "Code/Sparkplug/spLensFlareSerializer.h"
@@ -91,6 +93,10 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     // therefore cannot accidentally reuse a different file's same-name texture.
     spSerializerManager manager;spResourceManager resources;
     Register<spNode,spNodeSerializer>(manager);
+    (void)spOcclusionVolume::StaticRTTI();
+    if(!manager.RegisterForAnalysis(spOcclusionVolume::ClassID,
+        std::make_shared<spOcclusionVolumeSerializer>(sparkplug::host::LegacySortPolicy::GeometryDispatch()),6,1))
+        throw std::runtime_error("Cannot register PC Occlusion reader with explicit CRT policy");
     Register<spRenderNode,spRenderNodeSerializer>(manager);
     Register<spSkyBox,spRenderNodeSerializer>(manager); // exact original6D4B00 mapping
     Register<spLensFlare,spLensFlareSerializer>(manager);

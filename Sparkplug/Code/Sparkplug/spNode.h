@@ -74,6 +74,9 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const Vector3& GetWorldScaleForAnalysis() const noexcept;
         [[nodiscard]] const Matrix3& GetWorldOrientationForAnalysis() const noexcept;
         [[nodiscard]] Matrix4 GetWorldMatrixForAnalysis() const noexcept;
+        // PC420660: signed scale, original per-axis accumulation/store order,
+        // then translation. Distinct from transforming a composed float matrix.
+        [[nodiscard]] Vector3 TransformPointToWorldForAnalysis(const Vector3&) const noexcept;
 
         // PC vslot +0x30. Reconstructs represented transform/cache/child state.
         // Represented collision transforms update before descendants. Scene

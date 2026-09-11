@@ -1,0 +1,1244 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "Sparkplug/Analysis/PC/Msvcr71Qsort7107031.h",
+      "bytes": 948,
+      "sha256": "D8BD838888936AE97529614E581850E6EEA61A14D8779FD1C198A585B4180026",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/PC/Msvcr71Qsort7107031.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/Msvcr71Qsort7107031.cpp",
+      "bytes": 3126,
+      "sha256": "274A844CDF86D612BE6954B8DF6483DF208D7392D03AED523305FCAB1C984EC2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/PC/Msvcr71Qsort7107031.cpp"
+    },
+    {
+      "path": "Sparkplug/Analysis/Host/LegacySortPolicy.h",
+      "bytes": 2027,
+      "sha256": "02756332CE4874B25910240656062D4D63C62CCFC7DC165BA28730908AA8138B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/Host/LegacySortPolicy.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/GeometryHelper4604F0.h",
+      "bytes": 3033,
+      "sha256": "0B270F1B90A9924FEF23881A5DB073A3FBD99EBA24992B155036BE7708239BBB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/PC/GeometryHelper4604F0.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/GeometryHelper4604F0.cpp",
+      "bytes": 8607,
+      "sha256": "D74C3DA9BE8345CFF4BBB3F59293A85EA4877AB46FC425333CD03A10BDBD389A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/PC/GeometryHelper4604F0.cpp"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spRendererQueueMath.h",
+      "bytes": 2847,
+      "sha256": "AE0E46C151276F45242C15053F1573EE4AF3A1CB920979A8149408E1A63489A8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Analysis/PC/spRendererQueueMath.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderer.h",
+      "bytes": 6206,
+      "sha256": "33907B7320F30BD02C91094E7A1C2015DF4FB54215DA66FB93D5EA52E8FC94DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Code/Sparkplug/spRenderer.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spRenderer.cpp",
+      "bytes": 7843,
+      "sha256": "0984400ED182D3CD6DE1B2C4D610E1B575958E1517A9BFAD8044C5AF5FD74786",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Code/Sparkplug/spRenderer.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/spMsvcr71SortTests.cpp",
+      "bytes": 9059,
+      "sha256": "F0B14F3D13776149C8D7A5814B1CD6FEFA79D88290DA12CC2353B28FF5528190",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Tests/spMsvcr71SortTests.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/Fixtures/msvcr71-qsort7107031.dat",
+      "bytes": 4461,
+      "sha256": "BA03C18E0A846463A350CECA219BD124541E96B0A6784D580A5813E86F2EFBE5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/Sparkplug/Tests/Fixtures/msvcr71-qsort7107031.dat"
+    },
+    {
+      "path": "research/pc_legacy_qsort.py",
+      "bytes": 2251,
+      "sha256": "9A39B1ED9E732948FD33A44F94A19E17B067256150ACE832E0299226C5D27296",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/research/pc_legacy_qsort.py"
+    },
+    {
+      "path": "research/probe_pc_legacy_sort.py",
+      "bytes": 6299,
+      "sha256": "A7138205C9C17AF818B319E4716FE6DC4F7BF7D5A7EC6AB0B0F76CB694849D72",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/research/probe_pc_legacy_sort.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": "docs/research/tool-shared-sort-policy-2026-09-11.md",
+      "bytes": 2663,
+      "sha256": "87A209F161466807A87D9864ED2576D0490C9FF7218B67A720F2C7EFECF33FD1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/sources/docs/research/tool-shared-sort-policy-2026-09-11.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sort/original-run1/report.json",
+      "bytes": 21617,
+      "sha256": "54F0653CC1DA674ECF9F693288726FC73E6184D125943B715B373BDCCDC55EA9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sort/original-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sort/original-run1/capture.dat",
+      "bytes": 4461,
+      "sha256": "BA03C18E0A846463A350CECA219BD124541E96B0A6784D580A5813E86F2EFBE5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sort/original-run1/capture.dat"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sort/native-tests.log",
+      "bytes": 2260,
+      "sha256": "DB681F65DC10190694E3F1600DB76677DB0CE8523EE76DCC916769787049176A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sort/native-tests.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sort/ViewerMsvcr71SortChecks.exe",
+      "bytes": 457728,
+      "sha256": "C6FA88705C93D4A42A19EF64AFF5DB0B0B14AE45EFF61672BDF44E34CB383457",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sort/ViewerMsvcr71SortChecks.exe"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/sort/ViewerGeometryHelperChecks.exe",
+      "bytes": 341504,
+      "sha256": "F509A15ED1A731C4CAA729055074589A129D762F3A7BE7F7DE4B1D08643F751F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/sort/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/sort/ViewerGeometryHelperChecks.exe"
+    }
+  ],
+  "block": "Named portable CRT dependency shared by geometry and Alpha callbacks",
+  "status": "verified",
+  "original": {
+    "status": "completed",
+    "pcSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "crtSha256": "DCA0E5FAF6C94B6ADFF4D90D40795D5A91BA3A3059EA408E992A0F039A494D46",
+    "version": "7.10.7031.4",
+    "scope": "Explicit named host CRT dependency; original comparator bytes. No historical distribution version or full Alpha frame claim.",
+    "profile": "micro",
+    "instructionLimit": 100000,
+    "secondsPerCall": 2,
+    "childSeconds": 30,
+    "workers": 1,
+    "cases": [
+      {
+        "name": "alpha-empty",
+        "kind": 1,
+        "count": 0,
+        "width": 24,
+        "inputHex": "",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "",
+        "comparatorPairs": [],
+        "instructions": 6,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "alpha-single",
+        "kind": 1,
+        "count": 1,
+        "width": 24,
+        "inputHex": "0100000000000100000002000000803f0700000000ccbbaa",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "0100000000000100000002000000803f0700000000ccbbaa",
+        "comparatorPairs": [],
+        "instructions": 6,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "geometry-eight",
+        "kind": 0,
+        "count": 8,
+        "width": 2,
+        "inputHex": "00000100020003000400050006000700",
+        "verticesHex": "000020c1000020c10000204100002041000020c100002041000020410000204100002041000020c10000204100002041000020c1000020c10000204100002041000020c100002041000020410000204100002041000020c10000204100002041",
+        "status": "returned",
+        "outputHex": "02000600010005000300070004000000",
+        "comparatorPairs": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "instructions": 4732,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "geometry-nine",
+        "kind": 0,
+        "count": 9,
+        "width": 2,
+        "inputHex": "000001000200030004000500060007000800",
+        "verticesHex": "000020c1000020c10000204100002041000020c100002041000020410000204100002041000020c10000204100002041000020c1000020c10000204100002041000020c100002041000020410000204100002041000020c10000204100002041000000000000008000002041",
+        "status": "returned",
+        "outputHex": "080002000600050001000700030004000000",
+        "comparatorPairs": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "instructions": 3359,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "geometry-equal-twelve",
+        "kind": 0,
+        "count": 12,
+        "width": 2,
+        "inputHex": "00000100020003000400050006000700080009000a000b00",
+        "verticesHex": "000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041000020c1000020c100002041",
+        "status": "returned",
+        "outputHex": "00000100020003000400050006000700080009000a000b00",
+        "comparatorPairs": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            11,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "instructions": 4122,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "geometry-duplicate-five",
+        "kind": 0,
+        "count": 5,
+        "width": 2,
+        "inputHex": "00000100020003000400",
+        "verticesHex": "000020c1000020c10000204100002041000020c100002041000020410000204100002041000020c10000204100002041000020c1000020c100002041",
+        "status": "returned",
+        "outputHex": "02000100030004000000",
+        "comparatorPairs": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "instructions": 860,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "alpha-eight-mixed",
+        "kind": 1,
+        "count": 8,
+        "width": 24,
+        "inputHex": "010000000000010000000200000000000300000000ccbbaa02000000000001001000020000000041ffffffff00ccbbaa030000001000010020000200000040400700000001ccbbaa040000001000010000000200000080400200000000ccbbaa0500000000000100100002000000c0400800000001ccbbaa060000000000010020000200000000400100000000ccbbaa0700000010000100000002000000803f0000000000ccbbaa0800000010000100100002000000e0400400000001ccbbaa",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "02000000000001001000020000000041ffffffff00ccbbaa010000000000010000000200000000000300000000ccbbaa040000001000010000000200000080400200000000ccbbaa060000000000010020000200000000400100000000ccbbaa0700000010000100000002000000803f0000000000ccbbaa0800000010000100100002000000e0400400000001ccbbaa0500000000000100100002000000c0400800000001ccbbaa030000001000010020000200000040400700000001ccbbaa",
+        "comparatorPairs": [
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "instructions": 1682,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "alpha-nine-equal",
+        "kind": 1,
+        "count": 9,
+        "width": 24,
+        "inputHex": "0100000000000100000002000000a0400900000000ccbbaa0200000000000100100002000000a0400900000000ccbbaa0300000010000100200002000000a0400900000000ccbbaa0400000010000100000002000000a0400900000000ccbbaa0500000000000100100002000000a0400900000000ccbbaa0600000000000100200002000000a0400900000000ccbbaa0700000010000100000002000000a0400900000000ccbbaa0800000010000100100002000000a0400900000000ccbbaa0900000000000100200002000000a0400900000000ccbbaa",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "0900000000000100200002000000a0400900000000ccbbaa0500000000000100100002000000a0400900000000ccbbaa0300000010000100200002000000a0400900000000ccbbaa0400000010000100000002000000a0400900000000ccbbaa0200000000000100100002000000a0400900000000ccbbaa0600000000000100200002000000a0400900000000ccbbaa0700000010000100000002000000a0400900000000ccbbaa0800000010000100100002000000a0400900000000ccbbaa0100000000000100000002000000a0400900000000ccbbaa",
+        "comparatorPairs": [
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            8,
+            5
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "instructions": 1924,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "alpha-nine-repeated",
+        "kind": 1,
+        "count": 9,
+        "width": 24,
+        "inputHex": "010000000000010000000200000010410300000000ccbbaa0200000000000100000002000000803f0300000000ccbbaa030000001000010000000200000010410300000000ccbbaa040000001000010000000200000080400300000000ccbbaa050000000000010000000200000010410300000000ccbbaa0600000000000100000002000000e0400300000000ccbbaa070000001000010000000200000040400300000000ccbbaa080000001000010000000200000000000300000000ccbbaa0900000000000100000002000000a0400300000000ccbbaa",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "050000000000010000000200000010410300000000ccbbaa010000000000010000000200000010410300000000ccbbaa030000001000010000000200000010410300000000ccbbaa0600000000000100000002000000e0400300000000ccbbaa0900000000000100000002000000a0400300000000ccbbaa040000001000010000000200000080400300000000ccbbaa070000001000010000000200000040400300000000ccbbaa0200000000000100000002000000803f0300000000ccbbaa080000001000010000000200000000000300000000ccbbaa",
+        "comparatorPairs": [
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            9,
+            8
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            9,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            9,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            9,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "instructions": 2088,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      },
+      {
+        "name": "alpha-nine-nan-zero",
+        "kind": 1,
+        "count": 9,
+        "width": 24,
+        "inputHex": "0100000000000100000002000100c07f0100000000ccbbaa020000000000010010000200000000000100000000ccbbaa030000001000010020000200000000800100000000ccbbaa040000001000010000000200000080400100000000ccbbaa0500000000000100100002000200c07f0100000000ccbbaa060000000000010020000200000010410100000000ccbbaa0700000010000100000002000000807f0100000000ccbbaa080000001000010010000200000080bf0100000000ccbbaa090000000000010020000200000000000100000000ccbbaa",
+        "verticesHex": "",
+        "status": "returned",
+        "outputHex": "090000000000010020000200000000000100000000ccbbaa0500000000000100100002000200c07f0100000000ccbbaa0700000010000100000002000000807f0100000000ccbbaa060000000000010020000200000010410100000000ccbbaa040000001000010000000200000080400100000000ccbbaa030000001000010020000200000000800100000000ccbbaa020000000000010010000200000000000100000000ccbbaa080000001000010010000200000080bf0100000000ccbbaa0100000000000100000002000100c07f0100000000ccbbaa",
+        "comparatorPairs": [
+          [
+            1,
+            5
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            8,
+            5
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            7,
+            6
+          ]
+        ],
+        "instructions": 2610,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        },
+        "trackedAllocationsFreed": true
+      }
+    ],
+    "elapsedSeconds": 2.838954899998498,
+    "arenaUsed": 2208,
+    "allowedCrtInstructions": 282,
+    "sources": [
+      {
+        "path": "research\\probe_pc_legacy_sort.py",
+        "sha256": "A7138205C9C17AF818B319E4716FE6DC4F7BF7D5A7EC6AB0B0F76CB694849D72"
+      },
+      {
+        "path": "research\\pc_legacy_qsort.py",
+        "sha256": "9A39B1ED9E732948FD33A44F94A19E17B067256150ACE832E0299226C5D27296"
+      },
+      {
+        "path": "research\\pc_instruction_emulator.py",
+        "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+      },
+      {
+        "path": "research\\probe_pc_san_reader.py",
+        "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+      },
+      {
+        "path": "research\\probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      },
+      {
+        "path": "local-data\\results\\tools-core-cycle-20260910-0730\\occlusion-optimizer\\msvcr71-7.10.7031.4.dll",
+        "sha256": "DCA0E5FAF6C94B6ADFF4D90D40795D5A91BA3A3059EA408E992A0F039A494D46"
+      }
+    ]
+  },
+  "comparedCalls": 222,
+  "historicalGameCrtVersion": "unknown",
+  "exeScoreDelta": 0
+}

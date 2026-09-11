@@ -32,7 +32,7 @@ bool spOcclusionVolume::SetPreparedTopologyForAnalysis(std::vector<Vector3> poin
     std::uint32_t borderCount,std::uint8_t priorPlanar)
 {
     // Host bounds belong only to this direct-state analysis seam.
-    if(points.size()>4096||planes.size()>4096||edges.size()>4096)return false;
+    if(initialized_||points.size()>4096||planes.size()>4096||edges.size()>4096)return false;
     for(const auto& edge:edges)if(edge.start>=points.size()||edge.end>=points.size()||
         edge.own>=planes.size()||(edge.opposite&&*edge.opposite>=planes.size()))return false;
     edges_.clear();points_=std::move(points);faces_.clear();faces_.reserve(planes.size());
@@ -50,7 +50,7 @@ bool spOcclusionVolume::SetPreparedTopologyForAnalysis(std::vector<Vector3> poin
 bool spOcclusionVolume::SetShapeBuffersForAnalysis(std::vector<Vector3> points,
     std::vector<std::uint16_t> triangleIndices,std::uint32_t walkStamp)
 {
-    if(points.size()>4096||triangleIndices.size()>3072||triangleIndices.size()%3)return false;
+    if(initialized_||points.size()>4096||triangleIndices.size()>3072||triangleIndices.size()%3)return false;
     for(const auto& point:points)for(float value:point)if(!std::isfinite(value))return false;
     for(auto index:triangleIndices)if(index>=points.size())return false;
     // PC13D0486 reserves triangleCount faces. fresh-init-batch-run1 exposes

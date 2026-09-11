@@ -59,6 +59,9 @@ add_library(SparkplugEngine STATIC
     Analysis/PC/spVertexBounds.h
     Analysis/PC/GeometryHelper4604F0.h
     Analysis/PC/GeometryHelper4604F0.cpp
+    Analysis/PC/Msvcr71Qsort7107031.cpp
+    Analysis/PC/Msvcr71Qsort7107031.h
+    Analysis/Host/LegacySortPolicy.h
     Code/Sparkplug/spBoundingVolume.cpp
     Code/Sparkplug/spBoundingVolume.h
     Code/Sparkplug/spOBBBV.cpp
@@ -321,6 +324,9 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spLensFlareSerializer.cpp
     Code/Sparkplug/spLensFlareSerializer.h
     Code/Sparkplug/spOcclusionVolume.cpp
+    Code/Sparkplug/spOcclusionVolumeRuntime.cpp
+    Code/Sparkplug/spOcclusionVolumeSerializer.cpp
+    Code/Sparkplug/spOcclusionVolumeSerializer.h
     Code/Sparkplug/spOcclusionVolume.h
     Code/Sparkplug/spRenderNodeSerializer.cpp
     Code/Sparkplug/spRenderNodeSerializer.h
@@ -678,10 +684,18 @@ if(BUILD_TESTING)
     add_executable(SparkplugSkyBoxTests Tests/spSkyBoxTests.cpp)
     add_executable(SparkplugLensFlareTests Tests/spLensFlareTests.cpp)
     add_executable(SparkplugOcclusionTopologyTests Tests/spOcclusionTopologyTests.cpp)
+    add_executable(SparkplugOcclusionRuntimeTests Tests/spOcclusionRuntimeTests.cpp)
+    target_link_libraries(SparkplugOcclusionRuntimeTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugOcclusionRuntimeTests COMMAND SparkplugOcclusionRuntimeTests)
+    set_tests_properties(SparkplugOcclusionRuntimeTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugOcclusionTopologyTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugOcclusionTopologyTests COMMAND SparkplugOcclusionTopologyTests)
     set_tests_properties(SparkplugOcclusionTopologyTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugGeometryHelperTests Tests/spGeometryHelperTests.cpp)
+    add_executable(SparkplugMsvcr71SortTests Tests/spMsvcr71SortTests.cpp)
+    target_link_libraries(SparkplugMsvcr71SortTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMsvcr71SortTests COMMAND SparkplugMsvcr71SortTests)
+    set_tests_properties(SparkplugMsvcr71SortTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugGeometryHelperTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugGeometryHelperTests COMMAND SparkplugGeometryHelperTests)
     set_tests_properties(SparkplugGeometryHelperTests PROPERTIES TIMEOUT 20)

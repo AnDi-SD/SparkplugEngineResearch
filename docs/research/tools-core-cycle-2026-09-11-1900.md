@@ -48,3 +48,14 @@ reconstructed selector не изменены; активация и оконча
 Далее — общая версия CRT sort для geometry/Alpha и подключение Occlusion Init.
 Ожидание выбора из прежнего proposal снято новым разрешением пользователя. Историческая
 версия игровой CRT неизвестна; выбранная версия и её доказательства будут названы явно.
+
+## Блоки 3–4 — общий sort и Occlusion runtime
+
+[Версионная CRT policy](tool-shared-sort-policy-2026-09-11.md) реализована один раз
+для geometry и Alpha. Десять original cases дали точное совпадение перестановок
+и 222 comparator calls. [Occlusion Init/reader/world](tool-occlusion-core-2026-09-11.md)
+перенесены и подключены к общему PC loader: race_02 теперь загружается целиком
+(7513 objects/319 Node/2 Occlusion), создаёт сцену и LightManager за 0,208 s.
+Пять original fresh objects и их world updates сравниваются по 1330 словам полного
+поддерживаемого состояния. Ошибка harness cleanup исправлена; свежий пакет прошёл
+с освобождением всех tracked allocations. Старые runtime lifetime границы сохранены.
