@@ -1,0 +1,1729 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-ai-exit-cleanup-2026-09-11T03:48:35Z",
+  "createdUtc": "2026-09-11T03:48:35Z",
+  "notes": "80 first-pass original exits for20 paired classes;12 actual PC perception getter calls.No callback returns,allocator,full AI completion or CPU extension.",
+  "assessments": [
+    {
+      "className": "wxAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxBacoAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxBacoAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxBacoAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDarcyAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDarcyAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDarcyAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDroidAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDroidAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDroidAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDroidWanderAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxDroidWanderAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxDroidWanderAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxFrogAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxFrogAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxFrogAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxHurtAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxHurtAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxHurtAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleClawAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleClawAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleClawAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleSleepingAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleSleepingAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleSleepingAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleWithdrawlAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceGargoyleWithdrawlAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceGargoyleWithdrawlAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxIceWormAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxIceWormAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxKnutAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxKnutAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxKnutAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMinotaurAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMinotaurAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMinotaurAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMinotaurDefendAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMinotaurDefendAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxMosquitoAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 45.0,
+      "lowerBound": 35.0,
+      "upperBound": 60.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxMosquitoAttackAIAction",
+          "observation": "40->45: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 55.0,
+      "lowerBound": 45.0,
+      "upperBound": 70.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxShadowBeastAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 50.0,
+      "lowerBound": 40.0,
+      "upperBound": 65.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "45->50: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "45->50: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "45->50: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "45->50: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxShadowBeastAttackAIAction",
+          "observation": "45->50: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 60.0,
+      "lowerBound": 50.0,
+      "upperBound": 75.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "55->60: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "55->60: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "55->60: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "55->60: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "55->60: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxSpiderAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 55.0,
+      "lowerBound": 45.0,
+      "upperBound": 70.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxSpiderAttackAIAction",
+          "observation": "50->55: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxTrollAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxTrollAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxTrollAttackAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxTrollBeforeFightAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "35->40: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxTrollBeforeFightAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-ai-exit-cleanup-2026-09-11.md",
+          "sourceSha256": "8990F475E8E6F7AC18A2925B93E7F5B3A32C49CBBF42E49CDFECFE7ECA27D2BA",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/ai-exit-cleanup-contracts-2026-09-11.json",
+          "sourceSha256": "5D5170E59E2201E56F4AAED088FA17CA1E5F553C94CE0E723A2E47A6DDF846C6",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+          "sourceSha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+          "sourceSha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859",
+          "locator": "Original AI exit cleanup for wxTrollBeforeFightAIAction",
+          "observation": "30->35: Original virtual-slot11 cleanup with exact class-specific command bytes,target ownership,cached-vs-current command selection and perception/movement side effects.No full active AI completion."
+        }
+      ],
+      "unknowns": [
+        "Remaining active AI paths,external state switching,null graph handling and full lifecycle remain open."
+      ]
+    }
+  ]
+}

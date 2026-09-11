@@ -1,0 +1,177 @@
+{
+  "kind": "original-ai-exit-cleanup",
+  "schemaVersion": 1,
+  "counts": {
+    "mainAttempts": 80,
+    "uniqueSuccessful": 80,
+    "pc": 40,
+    "ps2": 40,
+    "wholeReturns": 80,
+    "originalPerceptionGetters": 12,
+    "stackSpills": 0
+  },
+  "classes": [
+    "wxAttackAIAction",
+    "wxBacoAttackAIAction",
+    "wxDarcyAttackAIAction",
+    "wxDroidAttackAIAction",
+    "wxDroidWanderAIAction",
+    "wxFrogAttackAIAction",
+    "wxHurtAIAction",
+    "wxIceGargoyleAttackAIAction",
+    "wxIceGargoyleClawAIAction",
+    "wxIceGargoyleSleepingAIAction",
+    "wxIceGargoyleWithdrawlAIAction",
+    "wxIceWormAttackAIAction",
+    "wxKnutAttackAIAction",
+    "wxMinotaurAttackAIAction",
+    "wxMinotaurDefendAIAction",
+    "wxMosquitoAttackAIAction",
+    "wxShadowBeastAttackAIAction",
+    "wxSpiderAttackAIAction",
+    "wxTrollAttackAIAction",
+    "wxTrollBeforeFightAIAction"
+  ],
+  "contract": "Twenty original virtual-slot11 exits clear exact command bytes and class-specific target words. Frog/MinotaurAttack/MinotaurDefend use cached command pointers,deliberately distinct from character current command. Droid/Spider/Shadow restore perception70=1,74=float25,78=0 via actual PC515350(false) twice or direct PS2 pointer. Mosquito clears movement target1E0/1EC. Exact class-specific map is preserved in probe and dossier.",
+  "limits": [
+    "No null graph,allocation of missing perception,external state dispatcher or full AI/gameplay completion.",
+    "Whole12KiB memory comparison;PC micro profile and explicit non-throwing SEH only. PS2 scalar original leaves include JR delay-slot stores;no CPU extensions.",
+    "No new C++ or repeated score for empty/previously tested exits."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/probe_ai_exit_cleanup.py",
+      "sha256": "3A59F6D9D77419294389DBF8306C069CD57DD26419DC94BC4601C317BE341CB8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_unsigned_division.py",
+      "sha256": "3399BB77393EE1E9B6F865F57A5DFFAF309D8CC6816F034EEAC630C841D2C429"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/cases.json",
+      "sha256": "A021B0C549D55146A8AEA26802DCA8600360C14B6F4389B81016C4A6C8828C15"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+      "sha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+      "sha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/prior-scores.json",
+      "sha256": "80E9C2FB2C6D8776CC447B5E6C7D322ADAC6126BCF63D34A4C7B71EA1C51CBBA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/selection.json",
+      "sha256": "5E94C2F2E531DD7712039EB8FB74762F84456E9D5B7D720DE1C2D6C6CC5486E1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/methods/capture.json",
+      "sha256": "4BA32DBC15B09EB9DFD3771C4E643C2444136A0606BA139D340950608BAD06E9"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/perception-getter/capture.json",
+      "sha256": "9D000940EB5B68E0761BBAEBA3BCD62F46652000413FEE23821CE9025D269A3C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/perception-getter-complete/capture.json",
+      "sha256": "6D6C62F2E00C291E31E261C11EAFF497419D477C8843B3A65B724AC7275D8DDD"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/seal-ai-exit-cleanup.py",
+      "sha256": "73AEDA788B13D2D83F77CF2E2B44D88BA48BEA5CAA7088FCC9FA28D43BD95F06"
+    },
+    {
+      "path": "research/ai-action-construction-contracts-2026-09-10.json",
+      "sha256": "A139F482CFE5F06EBA672822448A021D3944AB75452AEC2E1FAD4509727405E7"
+    },
+    {
+      "path": "research/ai-command-reset-contracts-2026-09-11.json",
+      "sha256": "CF6C34450D0A8F3FEF7B38996BACE5CFF7C240F79D30345B6959A71CFD95D866"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-pilot-run1.json",
+        "sha256": "2968F0C6867E9AA46281801FD11E761EC1C46F9A61A38D18F781096C112BF9DC"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/probe_ai_exit_cleanup.py",
+        "sha256": "3A59F6D9D77419294389DBF8306C069CD57DD26419DC94BC4601C317BE341CB8"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/cases.json",
+        "sha256": "A021B0C549D55146A8AEA26802DCA8600360C14B6F4389B81016C4A6C8828C15"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "catalog": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/selection.json",
+        "sha256": "5E94C2F2E531DD7712039EB8FB74762F84456E9D5B7D720DE1C2D6C6CC5486E1"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/exit-batch-run1.json",
+        "sha256": "BDA59547F990F73778415001C78BC428AAC7830DB7D930B18370D3DFF0253859"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/probe_ai_exit_cleanup.py",
+        "sha256": "3A59F6D9D77419294389DBF8306C069CD57DD26419DC94BC4601C317BE341CB8"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/cases.json",
+        "sha256": "A021B0C549D55146A8AEA26802DCA8600360C14B6F4389B81016C4A6C8828C15"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "EE22C732A15547D5AC05FD2A47B3399FD7AE2C0E00BD3EA230CEFED975C80D8A"
+      },
+      "catalog": {
+        "path": "local-data/results/native-cycle-20260911-0730/ai-exit-cleanup/selection.json",
+        "sha256": "5E94C2F2E531DD7712039EB8FB74762F84456E9D5B7D720DE1C2D6C6CC5486E1"
+      }
+    }
+  ]
+}
