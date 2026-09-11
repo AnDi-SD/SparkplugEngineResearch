@@ -1,0 +1,267 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-movie-controller-runtime-2026-09-11T03:41:21Z",
+  "createdUtc": "2026-09-11T03:41:21Z",
+  "notes": "32 first-pass full original movie-controller/video/material-query transactions.18 native callbacks.No decoder,rendering or whole-class completion.",
+  "assessments": [
+    {
+      "className": "spMaterialMovieTexture",
+      "platformKey": "pc",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    },
+    {
+      "className": "spMaterialMovieTexture",
+      "platformKey": "ps2",
+      "coverageScore": 15.0,
+      "lowerBound": 5.0,
+      "upperBound": 30.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "10->15: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    },
+    {
+      "className": "spMovieTextureController",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    },
+    {
+      "className": "spMovieTextureController",
+      "platformKey": "ps2",
+      "coverageScore": 20.0,
+      "lowerBound": 10.0,
+      "upperBound": 35.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "15->20: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "15->20: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "15->20: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "15->20: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "15->20: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    },
+    {
+      "className": "spPCVideoStream",
+      "platformKey": "pc",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    },
+    {
+      "className": "spPS2VideoStream",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-movie-controller-runtime-2026-09-11.md",
+          "sourceSha256": "1E3856D3490CF3E2C59ED2A3091141BC8FBDC891C5C582058B9779C7A4218688",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/movie-controller-runtime-contracts-2026-09-11.json",
+          "sourceSha256": "360C2E1ADD8DF5F991B4E5CE70E170DBB8C5CBE50C44C9DD8F32700EE6218D4D",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-pilot-run1.json",
+          "sourceSha256": "FA5FF992D6FF9E2E90D7A044AEADE1E0BFD805FE8CA498EA0A406F00CABC546E",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/movie-controller-runtime/movie-batch-run1.json",
+          "sourceSha256": "E71294A0AB283FF9385AF4EC87A2FB69F63640B62CF0A24BD69439C423283154",
+          "locator": "Original movie controller and video/material query transactions",
+          "observation": "20->25: Original movie controller dispatch,concrete PC/PS2 video-interface return behavior and material resource-word query.Explicit class/table identity;no decoder or playback completion."
+        }
+      ],
+      "unknowns": [
+        "Normal lifecycle,resource meaning,decoder and rendering remain open."
+      ]
+    }
+  ]
+}
