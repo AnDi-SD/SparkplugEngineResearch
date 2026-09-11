@@ -277,6 +277,20 @@ SPV_API void* spv_material_submission_create(void* graph) noexcept;
 SPV_API void spv_material_submission_destroy(void*) noexcept;
 SPV_API int spv_material_submission_capture(void*,std::uint32_t material,std::uint32_t frame,
     SpvMaterialDrawPass*,std::uint32_t capacity,std::uint32_t* count) noexcept;
+// Text geometry uses actual Font/default material; powerAssigned preserves the
+// unknown native default word. Material0 names the actual runtime default,
+// never a fabricated FAT identity. Platform default Fonts remain unavailable.
+struct SpvTextViewInfo {std::uint32_t font,atlas,vertices,indices,powerAssigned,passes,material;};
+struct SpvTextVertex {float position[3];std::uint32_t color;float uv[2];};
+SPV_API void* spv_text_view_create(void* graph,std::uint32_t text) noexcept;
+SPV_API void spv_text_view_destroy(void*) noexcept;
+SPV_API int spv_text_view_info(void*,SpvTextViewInfo*) noexcept;
+SPV_API int spv_text_view_vertices(void*,SpvTextVertex*,std::uint32_t count) noexcept;
+SPV_API int spv_text_view_indices(void*,std::uint16_t*,std::uint32_t count) noexcept;
+SPV_API int spv_text_view_draws(void*,SpvMaterialDrawPass*,std::uint32_t count) noexcept;
+// Rebind the actual Font atlas before applying live material/controller state.
+// Validation is atomic for output; prior original object mutations are retained.
+SPV_API int spv_text_view_capture(void*,std::uint32_t frame,SpvMaterialDrawPass*,std::uint32_t count) noexcept;
 // Output capacity must cover the pass's layer count. Output consists only of
 // actual UV submissions in original call order. Failure can retain mutations
 // performed by preceding layers; original updates are not transactional.

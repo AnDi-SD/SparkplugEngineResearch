@@ -61,9 +61,19 @@ MaterialSubmission::MaterialSubmission(std::shared_ptr<ResourceGraph> graph):gra
 }
 void MaterialSubmission::Capture(std::uint32_t id,std::uint32_t frame,
     SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count) {
-    Check(count&&capacity<=8&&(output||!capacity),"Invalid material draw output");
     auto* material=dynamic_cast<spDXMaterial*>(graph_->Find(id));
     Check(material&&material->HasInitializedSpecularPowerForAnalysis(),"Material draw requires loaded PC material with known power");
+    CaptureObject(material,frame,output,capacity,count,Renderer::UnassignedPowerPolicyForAnalysis::Reject);
+}
+void MaterialSubmission::CaptureTextDefault(spDXMaterial& material,std::uint32_t frame,
+    SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count) {
+    Check(material.GetRenderStatesForAnalysis()[8]==2,"Text default requires unlit vertex color mode");
+    CaptureObject(&material,frame,output,capacity,count,Renderer::UnassignedPowerPolicyForAnalysis::ObserveUnknown);
+}
+void MaterialSubmission::CaptureObject(spDXMaterial* material,std::uint32_t frame,
+    SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count,
+    Renderer::UnassignedPowerPolicyForAnalysis powerPolicy) {
+    Check(count&&capacity<=8&&(output||!capacity),"Invalid material draw output");
     const auto passCount=material->GetPassCountForAnalysis();
     Check(passCount<=capacity,"Material draw output capacity is too small");
     std::array<spMaterialPassLayer*,8> passes{};
@@ -74,7 +84,7 @@ void MaterialSubmission::Capture(std::uint32_t id,std::uint32_t frame,
             Check(passes[i]->GetLayerForAnalysis(l)&&passes[i]->GetLayerForAnalysis(l)->GetMaterialTextureForAnalysis(),"Missing material draw layer");
     }
     state_.frame=frame;
-    Check(Renderer::InstallMaterialForAnalysis(state_.lighting,state_.installedMaterial,material,frame),"Material draw color update failed; prior mutations retained");
+    Check(Renderer::InstallMaterialForAnalysis(state_.lighting,state_.installedMaterial,material,frame,nullptr,powerPolicy),"Material draw color update failed; prior mutations retained");
     Check(Renderer::ApplyMaterialStateSetForAnalysis(state_.raw,material->GetRenderStatesForAnalysis(),nullptr,state_.lighting,RenderCached,this),"Material draw state translation failed; prior mutations retained");
     const auto& lighting=state_.lighting;
     std::copy(lighting.diffuse.begin(),lighting.diffuse.end(),current_.colors);

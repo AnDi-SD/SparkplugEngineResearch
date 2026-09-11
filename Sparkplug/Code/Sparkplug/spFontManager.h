@@ -62,6 +62,9 @@ namespace sparkplug::reconstruction
         // PC41E8B0 builds a DXMaterial, one pass and one StdLayer. Power stays
         // undefined. This does not initialize the platform's default Font.
         bool InitializePCMaterialForAnalysis();
+        // PC41F3F8..41F44B: select primary/fallback, require first StdLayer,
+        // replace its owning texture with selected Font's image. No GPU call.
+        bool BindPCTextAtlasForAnalysis(std::string* error=nullptr);
         // Full platform initialization needs an explicit backend font producer;
         // unresolved startup must not report synthetic success.
         virtual bool InitializeForAnalysis();

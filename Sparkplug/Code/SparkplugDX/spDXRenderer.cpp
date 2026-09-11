@@ -522,14 +522,20 @@ namespace sparkplug::reconstruction
     }
 
     bool spDXRenderer::InstallMaterialForAnalysis(LightingStateForAnalysis& state,
-        spDXMaterial*& borrowedOwner,spDXMaterial* material,std::uint32_t frame,bool* evaluated)
+        spDXMaterial*& borrowedOwner,spDXMaterial* material,std::uint32_t frame,bool* evaluated,
+        UnassignedPowerPolicyForAnalysis powerPolicy)
     {
         if(evaluated)*evaluated=false;
-        if(!material||!material->HasInitializedSpecularPowerForAnalysis())return false;
+        if(!material||(!material->HasInitializedSpecularPowerForAnalysis()&&
+            powerPolicy==UnassignedPowerPolicyForAnalysis::Reject))return false;
         borrowedOwner=material;
         state.diffuse=material->GetDiffuseColorForAnalysis();state.ambient=material->GetAmbientColorForAnalysis();
         state.specular=material->GetSpecularColorForAnalysis();state.emissive=material->GetEmissiveColorForAnalysis();
-        state.specularPower=material->GetSpecularPowerForAnalysis();
+        state.specularPowerAssigned=material->HasInitializedSpecularPowerForAnalysis();
+        // PC4BE180 copies even an unassigned word. Its value is not known:
+        // preserve presence separately and transport an explicit host sentinel.
+        state.specularPower=state.specularPowerAssigned?material->GetSpecularPowerForAnalysis():
+            std::numeric_limits<float>::quiet_NaN();
         return material->UpdateColorForFrameForAnalysis(frame,false,evaluated);
     }
     bool spDXRenderer::ApplyMaterialStateSetForAnalysis(MaterialStateWordsForAnalysis& raw,

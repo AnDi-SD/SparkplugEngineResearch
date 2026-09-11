@@ -170,3 +170,14 @@ bytes в11 случаях;324 native checks и affected EngineCore прошли.
 структуру30/34. Старые fake-success startup flags устранены. Доказанная
 граница: original long-word wrap зацикливается; host возвращает явную ошибку
 по iteration bound. Следующий блок — общий GPU consumer этого генератора.
+
+## Блок 15 — настоящий Text в Viewer и LVLcreator
+
+[Общий GPU consumer](tool-text-gpu-2026-09-11.md) выводит десять Text меню:
+41 Mesh + 10 Text, 51 passes и один atlas upload. Самостоятельный Text material
+и замена atlas подтверждены свежим original run; unknown Font default power
+сохраняется явно. Пустой Text не требует rendering dependencies. 471 C ABI,
+175 managed, 634 native и 47 actual-window checks прошли; GPU toggle меняет
+1592 components и точно восстанавливает изображение. Icy control сохранён.
+В LVLcreator осталось 41 editable Mesh placement: generated Text не выдаётся
+за новый сериализованный Mesh. Полный Text frame, writer и UI ещё не закрыты.

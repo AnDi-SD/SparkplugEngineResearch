@@ -104,11 +104,15 @@ namespace sparkplug::reconstruction
             float specularPower=0;
             std::uint32_t packedColorC194=0,diffuseSource=0,ambientSource=0;
             std::uint32_t globalBlackARGB=0xff000000; // mutable original73FE98
+            bool specularPowerAssigned=true; // host presence, not another native field
         };
+        enum class UnassignedPowerPolicyForAnalysis { Reject, ObserveUnknown };
         // PC4BE180: borrow owner and copy17 words BEFORE DX4A9530 update.
-        // Uninitialized native power/NULL input remain explicit host guards.
+        // NULL input is guarded. Unknown native power defaults to rejection;
+        // explicit observation retains unknown presence with a host NaN sentinel.
         [[nodiscard]] static bool InstallMaterialForAnalysis(LightingStateForAnalysis&,
-            spDXMaterial*& borrowedOwner,spDXMaterial*,std::uint32_t frame,bool* evaluated=nullptr);
+            spDXMaterial*& borrowedOwner,spDXMaterial*,std::uint32_t frame,bool* evaluated=nullptr,
+            UnassignedPowerPolicyForAnalysis=UnassignedPowerPolicyForAnalysis::Reject);
         using MaterialStateWordsForAnalysis=std::array<std::uint32_t,11>;
         struct MaterialStateOverridesForAnalysis final
         {

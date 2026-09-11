@@ -27,6 +27,9 @@ public:
     // remain external; alignment uses cached measured width exactly as PC.
     bool BuildPCGeometryForAnalysis(spFontManager&,
         spFontManager::Text3DGeometryForAnalysis&,std::string* error=nullptr) const;
+    // Material/font selection prefix437D6D..437D9C. Caller owns the manager
+    // draw scope and restoration; no alpha gate/callback/frame claim.
+    bool SelectPCDrawResourcesForAnalysis(spFontManager&,std::string* error=nullptr) const;
     bool RequiresPCAlphaQueueForAnalysis() const noexcept override { return IsAlphaSortEnabledForAnalysis(); }
     const std::optional<std::string>& GetTextForAnalysis() const noexcept { return text_; }
     const std::shared_ptr<spFont>& GetFontForAnalysis() const noexcept { return font_; }

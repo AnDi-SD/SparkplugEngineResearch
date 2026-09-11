@@ -28,6 +28,7 @@ public:
     const std::optional<std::uint32_t>& GetBaselineForAnalysis() const noexcept { return baseline_; }
     const std::array<Glyph,GlyphCount>& GetGlyphsForAnalysis() const noexcept { return glyphs_; }
     spTexture* GetImageForAnalysis() const noexcept { return image_.get(); }
+    const std::shared_ptr<spTexture>& GetImageOwnerForAnalysis() const noexcept { return image_; }
     // PC462C00: empty/null returns0 WITHOUT assigning optional height output.
     // Width/height accumulation and wrap comparison are unsigned32 operations.
     std::uint32_t MeasureTextForAnalysis(const char* text,std::uint32_t wrapWidth,

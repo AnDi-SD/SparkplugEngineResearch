@@ -5,6 +5,7 @@
 #include "Code/Sparkplug/spStdLayer.h"
 #include "Code/Sparkplug/spMaterialTexture.h"
 #include <cstring>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -228,6 +229,13 @@ int main(int argc,char** argv)
             spDXMaterial material;spDXMaterial* owner=nullptr;spDXRenderer::LightingStateForAnalysis state;
             Check(!spDXRenderer::InstallMaterialForAnalysis(state,owner,&material,0)&&!owner,"uninitialized power is not a native default");
             Check(!spDXRenderer::InstallMaterialForAnalysis(state,owner,nullptr,0),"NULL material host guard");
+            Check(spDXRenderer::InstallMaterialForAnalysis(state,owner,&material,0,nullptr,
+                spDXRenderer::UnassignedPowerPolicyForAnalysis::ObserveUnknown)&&owner==&material&&
+                !state.specularPowerAssigned&&std::isnan(state.specularPower)&&state.diffuse==material.GetDiffuseColorForAnalysis(),
+                "explicit original unassigned-word observation preserves known colors and unknown power");
+            material.SetSpecularPowerForAnalysis(8);
+            Check(spDXRenderer::InstallMaterialForAnalysis(state,owner,&material,0)&&state.specularPowerAssigned&&state.specularPower==8,
+                "assigned material restores known power after unknown observation");
             spDXRenderer::MaterialStateWordsForAnalysis raw{};spDXRenderer::MaterialStateOverridesForAnalysis bad;bad.selectors[0]=1;
             Check(!spDXRenderer::ApplyMaterialStateSetForAnalysis(raw,material.GetRenderStatesForAnalysis(),&bad,state,nullptr,nullptr)&&raw[8]==255,"unsafe override slot host guard after lighting invalidation");
             for(const char* mode:{"empty","two-auto","two-stage0","two-stage1","eight-no-uv","failed"})PassUpdate(mode);

@@ -1,6 +1,7 @@
 #include "spTextRenderable.h"
 #include "spFont.h"
 #include "spFontManager.h"
+#include "spMaterial.h"
 #include <cmath>
 #include <limits>
 namespace sparkplug::reconstruction {
@@ -70,5 +71,14 @@ bool spTextRenderable::BuildPCGeometryForAnalysis(spFontManager& manager,
     if(alignment_==1)position[0]=static_cast<float>(-double(measuredWidth_)*0.5);
     else if(alignment_==2)position[0]=static_cast<float>(-double(measuredWidth_));
     return manager.BuildPCText3DGeometryForAnalysis(position,text_?text_->c_str():nullptr,wrap_,output,error);
+}
+bool spTextRenderable::SelectPCDrawResourcesForAnalysis(spFontManager& manager,std::string* error) const {
+    if(error)error->clear();
+    const auto& original=GetMaterialForAnalysis();
+    auto material=std::dynamic_pointer_cast<spMaterial>(original);
+    if(original&&!material)return Fail(error,"TEXT_MATERIAL_TYPE: expected actual Material");
+    manager.SetPrimaryMaterialForAnalysis(std::move(material));
+    manager.SelectFontAndColorForAnalysis(font_.get(),color_);
+    return true;
 }
 }

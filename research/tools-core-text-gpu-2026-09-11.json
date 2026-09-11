@@ -1,0 +1,1121 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFont.h",
+      "bytes": 2041,
+      "sha256": "5B8069A6BC7A3AAA03186B9084BCA64BBF3E11DCDEDFAC39FB8E4AD27D6746AF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFont.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFontManager.h",
+      "bytes": 4648,
+      "sha256": "9A02B1B3DCE140615EDBA3F8B13C1994FCAB7C2E5FA09A4BA21607D78476DB82",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFontManager.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFontManager.cpp",
+      "bytes": 6038,
+      "sha256": "7EEF0E7CC0A601F93E26BCF88216638EB6E3DC74A516936759DB5D1D300D9C73",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFontManager.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spFontManagerGeometry.cpp",
+      "bytes": 4216,
+      "sha256": "A8F26F3242E3FDC99EEDF38E1FDBDA384D8B12DAE1591793A9D36E277A448AB8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spFontManagerGeometry.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextRenderable.h",
+      "bytes": 3221,
+      "sha256": "215EDA614C67305CD43012C3F329B889B6B6B179C52B5D842D757C4A47CE912B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spTextRenderable.h"
+    },
+    {
+      "path": "Sparkplug/Code/Sparkplug/spTextRenderable.cpp",
+      "bytes": 4996,
+      "sha256": "9970AC93F2A0600D017F197DC7D3389FCE20F6356E7CBBE95D3C67E1B7C6E6ED",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/Sparkplug/spTextRenderable.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.h",
+      "bytes": 26546,
+      "sha256": "1D6FE617CD60DBD6E2C1FC0D7008F297A56FA50C563A5D7E226149CCD3BA3D9F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/SparkplugDX/spDXRenderer.h"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+      "bytes": 42003,
+      "sha256": "752125B7E4AFB359861E7AA6BA89FF34AE263AF75656127528650F696A3469D7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Code/SparkplugDX/spDXRenderer.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/spMaterialApplyTests.cpp",
+      "bytes": 20188,
+      "sha256": "0507D341D86440674A0FA8E45507685DF7EC327B1F8C9CC81ADF71D1AA16A234",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Tests/spMaterialApplyTests.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/spTextGeometryTests.cpp",
+      "bytes": 11744,
+      "sha256": "44C851BE03CBAF02809BB48620FB3D34ADBED906601D293F7A305769E6D4761C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Tests/spTextGeometryTests.cpp"
+    },
+    {
+      "path": "Sparkplug/Tests/Fixtures/text-geometry-pc.dat",
+      "bytes": 7004,
+      "sha256": "A8E211A68086892D7AB8EBECF356A7871863AA34795A5C5A47142802C0C829B2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Tests/Fixtures/text-geometry-pc.dat"
+    },
+    {
+      "path": "Sparkplug/Tests/Fixtures/text-material-pc.dat",
+      "bytes": 4794,
+      "sha256": "D5AB7EC0239EED85CCB17500E1478757199A31413F7D297188731121DD1D0F83",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/Sparkplug/Tests/Fixtures/text-material-pc.dat"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/TextView.h",
+      "bytes": 4403,
+      "sha256": "FDF50DA62ADB9EDD00420362834771740A8CE89CE3BAA96899F448BFE917465E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/TextView.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/MaterialSubmission.h",
+      "bytes": 1786,
+      "sha256": "A479342421D50A0E0F2E0EF7C5DCC4ECB6313A9F95B190DD0DC86AB191416A2B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/MaterialSubmission.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/MaterialSubmission.cpp",
+      "bytes": 8410,
+      "sha256": "04B60AF541ED5201AE41AEC5D27C50825827157B67924291BBBBE863D8753F26",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/MaterialSubmission.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 34323,
+      "sha256": "81F96733E493F6A7C020588D679AD9616F8458FD21C9B0CE6EE99D70DBC618BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 153178,
+      "sha256": "DEE80AED98EB63149E980B640F3DB8E222CCC17741BBFBE2108A2BF59A5FD75E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/CMakeLists.txt",
+      "bytes": 5394,
+      "sha256": "FC4F1D1F8C4A4E91213FB1B50BF3F1EE39A1CF9C72D2EE6BB285CD07287D8319",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/CMakeLists.txt"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Build-Native.ps1",
+      "bytes": 5226,
+      "sha256": "590D297FBF3B5A0BE395C4E2630E30FA16DC01BE65661460A31CFA73CDBA8474",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/Build-Native.ps1"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/Tests/ShaderLightingTests.cpp",
+      "bytes": 4851,
+      "sha256": "A62183C3C291313D4FAA3A967DAB187E73970ADB5EF75A94D0659502BF88926C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SparkplugViewer.Native/Tests/ShaderLightingTests.cpp"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/AssemblyInfo.cs",
+      "bytes": 152,
+      "sha256": "2D44A787FFB69E062716880FBA7BA2A857925134AEBE7F3BCCFD17EF2CFDA82A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/AssemblyInfo.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 22222,
+      "sha256": "7301EB9F948505A0AC80C8B2D1A86A4581D0FFD8E16EC939D237BC4DB111B1AC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedText.cs",
+      "bytes": 2908,
+      "sha256": "149AF11DFB7CF03F92EA8046353B2A437CCF2C607DFA1B6C77E83C725C9B56BF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedText.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.Submission.cs",
+      "bytes": 5683,
+      "sha256": "7D2376C55BF0B571556CBFABDFA9D4935B1D6ED47BDE334E9C15A2CD80A5113C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.Submission.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialView.cs",
+      "bytes": 5427,
+      "sha256": "6EEDBD718FD3F888763C643860793AB8E2AE9218974CC5AA2253C98284D38A32",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialView.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "bytes": 15122,
+      "sha256": "26B6FF0CB2612F95D83A77B3FF391A38B18C0064E1D469A5A8E8D83B1D00C433",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.TextRuntime.cs",
+      "bytes": 3208,
+      "sha256": "A4C6E346582AE9BDF5962E7D3770D892848C68A586ACF70F729D2716273BA9EA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.TextRuntime.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs",
+      "bytes": 2246,
+      "sha256": "78826CE220BE43A6E972856EDFFBD6AFAC11CE6F8E443438EC06665925270A74",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Text.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 45832,
+      "sha256": "619ECF16233D6471897E75683993270BA39AC9B5018E89D627BCFCE3FC4F732B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs",
+      "bytes": 14792,
+      "sha256": "50DB340D2E0B5A2DC21C02F310737A185CB4CE60D7132CFA8ADB8B33A8A85983",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs",
+      "bytes": 3622,
+      "sha256": "4DA21F696681BE520767D07049F4EEB6D87B35896AF5925C23AF639F759DC7CC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Alpha.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.xaml.cs",
+      "bytes": 215999,
+      "sha256": "ED90349C69DDEFF605DF33902C7C123E454E14CD8D4160D35BDFE8BD282513F6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer/MainWindow.xaml.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs",
+      "bytes": 8038,
+      "sha256": "B17355FCBA428A6133ACC8654D7FC81F9E15B192187A58117C0FD1AAC8D77886",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs",
+      "bytes": 10856,
+      "sha256": "9ECA09A326C5C13F5BCEA22CAF64E762967DFA57816AC1945244423D167487FB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/TextSceneWindowRegression.cs",
+      "bytes": 4374,
+      "sha256": "5B4CA8518E4C00A2BBA9FF057EBADA488A033E8F3214316874C084788B13E00A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/TextSceneWindowRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 14565,
+      "sha256": "167853F3A635BBCBF943669C33F20A5DF878908488D3A04936C7710F3A3E21E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.Gui/MainWindow.Renderer.cs",
+      "bytes": 157989,
+      "sha256": "A5E4F2A093E1ADB816A85881A19660BF91D875DD0A9535500D0F6D59913242F2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/tools/SmoLVLcreator/SmoLVLcreator.Gui/MainWindow.Renderer.cs"
+    },
+    {
+      "path": "research/probe_pc_text_geometry.py",
+      "bytes": 11654,
+      "sha256": "FCD4CDAC31923B4BC16BAD8B5178686637237D7D80B0DF77BFC09251BF069077",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/probe_pc_text_geometry.py"
+    },
+    {
+      "path": "research/probe_pc_unassigned_material_power.py",
+      "bytes": 2601,
+      "sha256": "D944E3335CCC0154D8D01AE761532A4AEFF54E0B2D43A1C2D2A1CC18D2180043",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/probe_pc_unassigned_material_power.py"
+    },
+    {
+      "path": "research/check_text_geometry_view.py",
+      "bytes": 7961,
+      "sha256": "BE46B39336D6556E1FE2F4368CC1103C23E3210A7E4A2480A2BB07F55AB25CFF",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/check_text_geometry_view.py"
+    },
+    {
+      "path": "research/check_text_graph.py",
+      "bytes": 7926,
+      "sha256": "9013BD3C1A818705849D831B0409885263199D872DF19CFA66A2C483E9BE19F9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/check_text_graph.py"
+    },
+    {
+      "path": "research/build_text_material_fixture.py",
+      "bytes": 1146,
+      "sha256": "0E1E58114656C7F59981C0CCABD6BA950D5CF45215336FF1B6AF45E0AFB1CB5F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/build_text_material_fixture.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/seal-text-gpu.py",
+      "bytes": 5477,
+      "sha256": "FAB7718A2A1A42EEB171F78CB19ADD93191ACF6ECB9E248DD8D346E457BA5907",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/.codex-tmp/seal-text-gpu.py"
+    },
+    {
+      "path": "docs/research/tool-text-gpu-2026-09-11.md",
+      "bytes": 7656,
+      "sha256": "9BBFDF52EB6E94D4AFC4564DD2F92E0326EE53C5D29D9CBE2BB659A08C513B72",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/docs/research/tool-text-gpu-2026-09-11.md"
+    },
+    {
+      "path": "docs/research/smo-class-sp-text-renderable.md",
+      "bytes": 3303,
+      "sha256": "F193A4BA8145E33D2E859A03E54F7DC1E16BFB882C78FF59A9EE7A203FEBDBF9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/docs/research/smo-class-sp-text-renderable.md"
+    },
+    {
+      "path": "docs/research/native-class-sp-font-manager.md",
+      "bytes": 4106,
+      "sha256": "67583E467D4B61088B0AC1BA9882627B6F00CDF13B4A6AC4BECE663BFD7558C4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/sources/docs/research/native-class-sp-font-manager.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-graph-run1.json",
+      "bytes": 804,
+      "sha256": "EB1C7D7E38058DB7094B5EC69460CE7518AF499577BFCB9F654AE15466998226",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-graph-run1.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-graph-run2.json",
+      "bytes": 804,
+      "sha256": "B9512E5AC607DF99D70BF9565A3CADABC896DB78803703291F5089F5885603F0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-graph-run2.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/font-input.bin",
+      "bytes": 3830,
+      "sha256": "8DEE21D44A6763F3207A442532E56A894A2CFE76E94AEEB7905ACD1AE42516BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/font-input.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/probe-source.py",
+      "bytes": 11111,
+      "sha256": "300D91C26F018CECECE583C5C185DD520A0AB8BE8BC72990513F252981642539",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/report.json",
+      "bytes": 6192,
+      "sha256": "62921DD2824B58E655F4DB29206B552BF3692F01EA00340758CE380C9E0A2CD4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/font-input.bin",
+      "bytes": 3830,
+      "sha256": "8DEE21D44A6763F3207A442532E56A894A2CFE76E94AEEB7905ACD1AE42516BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/font-input.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/probe-source.py",
+      "bytes": 11298,
+      "sha256": "B85EE899FD614269EFE78D1D7F2097FCB40A15A7BC114BCBB767DF5E1065A5C7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/report.json",
+      "bytes": 12304,
+      "sha256": "BC02E7EA605061F0437D040C7036FCD6B679917622ED7159C6DFA82E8CBC37A1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/font-input.bin",
+      "bytes": 3830,
+      "sha256": "8DEE21D44A6763F3207A442532E56A894A2CFE76E94AEEB7905ACD1AE42516BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/font-input.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/probe-source.py",
+      "bytes": 11537,
+      "sha256": "F4C5F2B1E0228107BF1988577F3F33F302FD6A457D33843DA2ACDED495A0EC1D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/report.json",
+      "bytes": 12528,
+      "sha256": "30DB33C02331942EB654AA87428090180BD10DF5058EE6A783760EB7409F72DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run3/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/font-input.bin",
+      "bytes": 3830,
+      "sha256": "8DEE21D44A6763F3207A442532E56A894A2CFE76E94AEEB7905ACD1AE42516BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/font-input.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/probe-source.py",
+      "bytes": 11600,
+      "sha256": "4B3B2A92D68205493E97E5DFE236227FFA218706DC1C5D3A06E2BEFA99191730",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/report.json",
+      "bytes": 12672,
+      "sha256": "2613ECFC856E26D447FF774B1DB59C34D3A884F290E9C77E1DABFE885AA87BF3",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run4/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/font-input.bin",
+      "bytes": 3830,
+      "sha256": "8DEE21D44A6763F3207A442532E56A894A2CFE76E94AEEB7905ACD1AE42516BC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/font-input.bin"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/probe-source.py",
+      "bytes": 11654,
+      "sha256": "FCD4CDAC31923B4BC16BAD8B5178686637237D7D80B0DF77BFC09251BF069077",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/report.json",
+      "bytes": 12772,
+      "sha256": "EC3548E7AC2F4A2A83E5721E4DA017DB57BEB63EDC6F03CB26A3F59E1A4F3D1A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/custom-original-run5/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run1/report.json",
+      "bytes": 3795,
+      "sha256": "AF7A6F8F53B462102F45C793499C743B0430CD1FFE521A53FC45080509DA4E8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run1/scene.png",
+      "bytes": 14303,
+      "sha256": "6D4F94BB8A2E031FEA6833676B9964C6F368A9EC827586F7C2794C405EC78E38",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run2/report.json",
+      "bytes": 3796,
+      "sha256": "E92609373C22D136E57656A5D3492C4860648AA6C2AC53E71857E087251C5FEA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run2/scene.png",
+      "bytes": 14303,
+      "sha256": "6D4F94BB8A2E031FEA6833676B9964C6F368A9EC827586F7C2794C405EC78E38",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/icy-gpu-run2/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run1/report.json",
+      "bytes": 612,
+      "sha256": "1C478F717B17B9526938889C9EA1F69641C218F3A7AABF282DBA5D502CA488A0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run2/report.json",
+      "bytes": 604,
+      "sha256": "81948788AA4EB5C353A26B852CE567BFC7D011250851FE7BDB41E8D6BA08728F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run3/report.json",
+      "bytes": 9384,
+      "sha256": "9D3A1F1FB3E1500152029BF53FE54AD87477B60AD7503E48BE25CC846DC02234",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run3/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run4/report.json",
+      "bytes": 9384,
+      "sha256": "E158851CAFDCA32C3B4F2876A19D9C440F898919A91C71B7C65FA9B6E3CAF912",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run4/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run5/report.json",
+      "bytes": 9455,
+      "sha256": "37B2E0425F38BB74DE3708CA2BA9C26DAF49E251756352D6FF1C02DEA3EBBE6E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run5/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run6/report.json",
+      "bytes": 9384,
+      "sha256": "ADD83D66C74100EC4A170F117323C822477770CD1E0DF9ECD075547DA9F0CB9E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-abi-run6/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run1/report.json",
+      "bytes": 1232,
+      "sha256": "64F3D9F5049A5472FE997C349A65102DC909ECB8B5C2D5FB9E6BE18C1062E810",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run1/scene.png",
+      "bytes": 2937,
+      "sha256": "B07CBEE1BD4BB5B3D2CA082602A902D00744200958369CA730CCD9E10BA4C554",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run2/report.json",
+      "bytes": 1232,
+      "sha256": "727BA2872BDFB1CB46F8239888A0B0A0322F7DD86B56627336BE346D631814D2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run2/scene.png",
+      "bytes": 2937,
+      "sha256": "B07CBEE1BD4BB5B3D2CA082602A902D00744200958369CA730CCD9E10BA4C554",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run2/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run3/report.json",
+      "bytes": 1231,
+      "sha256": "0E7C80431A3E5203D86BB928603F076B87D8DDAAA962EF1E101C3DFB5BF45C47",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run3/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run3/scene.png",
+      "bytes": 2937,
+      "sha256": "B07CBEE1BD4BB5B3D2CA082602A902D00744200958369CA730CCD9E10BA4C554",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-gpu-run3/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-managed-run1/report.json",
+      "bytes": 4171,
+      "sha256": "39FA262298000B0AF94FBE3DF0D105F14E27E1F1A1F7D014F50D2522AADB9CB2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-managed-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-managed-run2/report.json",
+      "bytes": 4171,
+      "sha256": "3A15BF94AF7CEC83CBA311BBF9060317875A660752698EF1D11AA1CDF2045328",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/menu-managed-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/power-original-run1/probe-source.py",
+      "bytes": 2601,
+      "sha256": "D944E3335CCC0154D8D01AE761532A4AEFF54E0B2D43A1C2D2A1CC18D2180043",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/power-original-run1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/power-original-run1/report.json",
+      "bytes": 2200,
+      "sha256": "F531A94C617057974359EE7D67EF46B6E26228C6C13743FD2DE72E0F244FCA3C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/power-original-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/windows-run1/report.json",
+      "bytes": 436,
+      "sha256": "1C656FB12727CD560A9B69377292F1A460E3BA3495C59DE034BAF131E47EB194",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/windows-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/windows-run2/report.json",
+      "bytes": 436,
+      "sha256": "D4F319A775A3676CE40B1FD43D68C4AC98F7B80AF0269409DF5C147F74CAB703",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/text-gpu/windows-run2/report.json"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1288192,
+      "sha256": "AC46C1C4FC0E08A0E7BFAD376B5C34D9A3E66D437674CE9A8E41BEC91078BF08",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerTextGeometryChecks.exe",
+      "bytes": 492544,
+      "sha256": "1804D52620059B9386A0C0A4AA87C6D5052F4D69960547002B9C5A6E14D16E6E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/artifacts/native/viewer/Release/ViewerTextGeometryChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerMaterialApplyChecks.exe",
+      "bytes": 472064,
+      "sha256": "F82E218CBF8C3F41B53096757C4D958DBA441FEFFABE39595C6343C338812E2C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/artifacts/native/viewer/Release/ViewerMaterialApplyChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/ViewerShaderLightingChecks.exe",
+      "bytes": 433664,
+      "sha256": "E52DD87D23CF4D9794B2FA8D8DF9FBE7129937AC20F0A6FBCB394153998587FD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/artifacts/native/viewer/Release/ViewerShaderLightingChecks.exe"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/Testing/Temporary/LastTest.log",
+      "bytes": 2416,
+      "sha256": "46EEEF3422B1E4254DB2FB311E85ACECD2B033ADFAC05D50DDE01968AA79640D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/artifacts/native/viewer/Release/Testing/Temporary/LastTest.log"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 181760,
+      "sha256": "DF7456A98B72BA87C89180056D157859A07A542E8B1E1D4B0D20EE10C8CD4E2B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 756736,
+      "sha256": "55D373251DAAE75AE20DDCADCD3F0BBBCAAC1255F178AE8CC54E7EB3C4284006",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 44032,
+      "sha256": "84B9A07064F9BE746E03F09B33616DAD2BDE14E3AECB4A808C6D4F49EC357B56",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 42496,
+      "sha256": "D9714D18058E84C5D2211BB770EA1BFB3264586C0C3158C1C1869CB319E00792",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 150528,
+      "sha256": "904FF45C0F8906D0CA3A28D4F93037CF17ACD25EE09242760CD7F6A5546C541E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll",
+      "bytes": 261120,
+      "sha256": "E49DBE498414C738BEA1233ABFA106BE29F602B9BB07CA0D079B48EAF6853A05",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll",
+      "bytes": 406016,
+      "sha256": "DFD8BAD81D045B107CB7219D55662625673E1B7E41B29A897A64ABCBCF12C36A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll",
+      "bytes": 585216,
+      "sha256": "00DFA2F5CBB5B4C684289F7C026FB6B187360C01B9D7E8E8842A074EC44F9C01",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/text-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll"
+    }
+  ],
+  "status": "verified-PC-Text-common-material-and-GPU-consumer",
+  "block": 15,
+  "nativeSha256": "AC46C1C4FC0E08A0E7BFAD376B5C34D9A3E66D437674CE9A8E41BEC91078BF08",
+  "originalChecks": 59,
+  "newOriginalGeometryBytes": 864,
+  "nativeChecks": 634,
+  "abiChecks": 602,
+  "managedChecks": 175,
+  "windowChecks": 47,
+  "gpuChecks": 21,
+  "exeScoreDelta": 0,
+  "menu": {
+    "meshes": 41,
+    "texts": 10,
+    "passes": 51,
+    "atlasUploads": 1,
+    "editablePlacements": 41,
+    "changedTextComponents": 1592
+  },
+  "boundaries": [
+    "Host explicit manager/material submission scope, not original complete frame",
+    "Unknown default power observed, not invented",
+    "Text transient graphics buffers are not editable Mesh resources",
+    "PC consumer; PS2 geometry execution remains open",
+    "Default Font producer and Text writer/clone open"
+  ],
+  "original": {
+    "status": "passed-scoped-geometry",
+    "pc": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+    "checks": 54,
+    "calls": [
+      {
+        "entry": "00462EC0",
+        "instructions": 4406,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00442500",
+        "instructions": 3273,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004C35A0",
+        "instructions": 3369,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004AB520",
+        "instructions": 4947,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004AB520",
+        "instructions": 104,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00442660",
+        "instructions": 18566,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "0041E8B0",
+        "instructions": 15100,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004C35A0",
+        "instructions": 92,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "0041E8B0",
+        "instructions": 638,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "0041E870",
+        "instructions": 16,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "0041A640",
+        "instructions": 6797,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441AC0",
+        "instructions": 3327,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441C10",
+        "instructions": 7705,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00437D30",
+        "instructions": 6126,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441C10",
+        "instructions": 1242,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00437D30",
+        "instructions": 617,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441C10",
+        "instructions": 1244,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00437D30",
+        "instructions": 620,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441C10",
+        "instructions": 1244,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00437D30",
+        "instructions": 613,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004380D0",
+        "instructions": 128,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00441B80",
+        "instructions": 3266,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004C3620",
+        "instructions": 2210,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004C3620",
+        "instructions": 602,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "004425C0",
+        "instructions": 30,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00463020",
+        "instructions": 185,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "00458C90",
+        "instructions": 40,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      },
+      {
+        "entry": "0041E430",
+        "instructions": 62,
+        "limits": {
+          "profile": "micro",
+          "instructionLimit": 100000,
+          "timeoutUs": 2000000
+        }
+      }
+    ],
+    "cases": [
+      {
+        "name": "text-align-0",
+        "origin": "TextRenderable",
+        "alignment": 0,
+        "text": "4142",
+        "wrap": 0,
+        "color": 2131899478,
+        "width": 12,
+        "vertices": 8,
+        "indices": 12,
+        "vertexBytes": "0000000000000000000010415634127f0000003e0000803e0000a04000000000000010415634127f0000c03e0000803e0000000000000000000040c05634127f0000003e0000403f0000a04000000000000040c05634127f0000c03e0000403f0000a04000000000000010415634127f0000003e0000803e0000404100000000000010415634127f0000c03e0000803e0000a04000000000000040c05634127f0000003e0000403f0000404100000000000040c05634127f0000c03e0000403f",
+        "indexBytes": "000001000200010003000200040005000600050007000600",
+        "events": [
+          {
+            "kind": "setup",
+            "material": 822140672
+          },
+          {
+            "kind": "acquire"
+          },
+          {
+            "kind": "draw",
+            "args": [
+              2,
+              4,
+              8
+            ]
+          }
+        ],
+        "returned": 1
+      },
+      {
+        "name": "text-align-1",
+        "origin": "TextRenderable",
+        "alignment": 1,
+        "text": "4142",
+        "wrap": 0,
+        "color": 2131899478,
+        "width": 12,
+        "vertices": 8,
+        "indices": 12,
+        "vertexBytes": "0000c0c000000000000010415634127f0000003e0000803e000080bf00000000000010415634127f0000c03e0000803e0000c0c000000000000040c05634127f0000003e0000403f000080bf00000000000040c05634127f0000c03e0000403f000080bf00000000000010415634127f0000003e0000803e0000c04000000000000010415634127f0000c03e0000803e000080bf00000000000040c05634127f0000003e0000403f0000c04000000000000040c05634127f0000c03e0000403f",
+        "indexBytes": "000001000200010003000200040005000600050007000600",
+        "events": [
+          {
+            "kind": "setup",
+            "material": 822140672
+          },
+          {
+            "kind": "acquire"
+          },
+          {
+            "kind": "draw",
+            "args": [
+              2,
+              4,
+              8
+            ]
+          }
+        ],
+        "returned": 1
+      },
+      {
+        "name": "text-align-2",
+        "origin": "TextRenderable",
+        "alignment": 2,
+        "text": "4142",
+        "wrap": 0,
+        "color": 2131899478,
+        "width": 12,
+        "vertices": 8,
+        "indices": 12,
+        "vertexBytes": "000040c100000000000010415634127f0000003e0000803e0000e0c000000000000010415634127f0000c03e0000803e000040c100000000000040c05634127f0000003e0000403f0000e0c000000000000040c05634127f0000c03e0000403f0000e0c000000000000010415634127f0000003e0000803e0000000000000000000010415634127f0000c03e0000803e0000e0c000000000000040c05634127f0000003e0000403f0000000000000000000040c05634127f0000c03e0000403f",
+        "indexBytes": "000001000200010003000200040005000600050007000600",
+        "events": [
+          {
+            "kind": "setup",
+            "material": 822140672
+          },
+          {
+            "kind": "acquire"
+          },
+          {
+            "kind": "draw",
+            "args": [
+              2,
+              4,
+              8
+            ]
+          }
+        ],
+        "returned": 1
+      },
+      {
+        "name": "text-align-7",
+        "origin": "TextRenderable",
+        "alignment": 7,
+        "text": "4142",
+        "wrap": 0,
+        "color": 2131899478,
+        "width": 12,
+        "vertices": 8,
+        "indices": 12,
+        "vertexBytes": "0000000000000000000010415634127f0000003e0000803e0000a04000000000000010415634127f0000c03e0000803e0000000000000000000040c05634127f0000003e0000403f0000a04000000000000040c05634127f0000c03e0000403f0000a04000000000000010415634127f0000003e0000803e0000404100000000000010415634127f0000c03e0000803e0000a04000000000000040c05634127f0000003e0000403f0000404100000000000040c05634127f0000c03e0000403f",
+        "indexBytes": "000001000200010003000200040005000600050007000600",
+        "events": [
+          {
+            "kind": "setup",
+            "material": 822140672
+          },
+          {
+            "kind": "acquire"
+          },
+          {
+            "kind": "draw",
+            "args": [
+              2,
+              4,
+              8
+            ]
+          }
+        ],
+        "returned": 1
+      }
+    ],
+    "seams": [
+      "backend Setup0",
+      "backend acquire buffer flags900",
+      "backend draw triangles counts only"
+    ],
+    "scope": "Original PC CPU geometry and default material initialization; declared output buffers, no GPU/startup proof",
+    "material": {
+      "size": 188,
+      "states": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        3,
+        0,
+        2,
+        1,
+        6
+      ],
+      "colors": "0000803f0000803f0000803f0000803f000000000000000000000000000000000000803f0000803f0000803f0000803f00000000000000000000000000000000cccccccc",
+      "flags": [
+        1,
+        1
+      ],
+      "passBlend": 2,
+      "layers": 1,
+      "layerTable": 7239424,
+      "textureStates": [
+        0,
+        3,
+        3,
+        0,
+        0,
+        4278190080,
+        2,
+        0,
+        0
+      ],
+      "refs": 2
+    },
+    "textDrawPhase": "explicit renderer+44=1",
+    "customMaterial": {
+      "id": "3100DF00",
+      "atlas": "3100DC70",
+      "oldAtlas": "3100DCC0",
+      "deviceEvents": [
+        "AddRef",
+        "AddRef",
+        "Release",
+        "Release"
+      ]
+    },
+    "elapsedSeconds": 1.2000503999879584,
+    "arena": 58144,
+    "remainingAllocations": [],
+    "deviceEvents": [
+      "AddRef",
+      "AddRef",
+      "Release",
+      "Release"
+    ],
+    "deviceRefs": 1,
+    "dependencies": [
+      {
+        "path": "research/inspect_pc_san_keys.py",
+        "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+      },
+      {
+        "path": "research/inspect_serializer_manager.py",
+        "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+      },
+      {
+        "path": "research/pc_instruction_emulator.py",
+        "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+      },
+      {
+        "path": "research/pc_loader_fixtures.py",
+        "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+      },
+      {
+        "path": "research/pc_serializer_fixtures.py",
+        "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+      },
+      {
+        "path": "research/pc_texture_fixtures.py",
+        "sha256": "83ECA73C44973009850B7BAD2C5B27F3BF99E258BCABEC3DFAB59ACDDACF877A"
+      },
+      {
+        "path": "research/probe_pc_animation_keys.py",
+        "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+      },
+      {
+        "path": "research/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      },
+      {
+        "path": "research/probe_pc_san_reader.py",
+        "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+      },
+      {
+        "path": "research/probe_pc_text_geometry.py",
+        "sha256": "FCD4CDAC31923B4BC16BAD8B5178686637237D7D80B0DF77BFC09251BF069077"
+      },
+      {
+        "path": "research/probe_pc_text_runtime.py",
+        "sha256": "DAA12CDA01C0CE7804C9CE6C778927C885449681446178054399A009DBA7556F"
+      }
+    ]
+  }
+}

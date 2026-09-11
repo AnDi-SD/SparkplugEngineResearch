@@ -126,6 +126,20 @@ namespace sparkplug::reconstruction
     const std::shared_ptr<spMaterial>& spFontManager::GetCurrentMaterialForAnalysis() const noexcept
     { return primaryMaterial_?primaryMaterial_:fallbackMaterial_; }
 
+    bool spFontManager::BindPCTextAtlasForAnalysis(std::string* error)
+    {
+        if(error)error->clear();
+        const auto& material=GetCurrentMaterialForAnalysis();
+        auto* pass=material?dynamic_cast<spMaterialPassLayer*>(material->GetPassForAnalysis(0)):nullptr;
+        auto* layer=pass&&pass->GetLayerCountForAnalysis()?dynamic_cast<spStdLayer*>(pass->GetLayerForAnalysis(0).get()):nullptr;
+        if(!selectedFont_||!layer||!layer->GetMaterialTextureForAnalysis()) {
+            if(error)*error="TEXT_MATERIAL_SHAPE: selected Font and first StdLayer are required";
+            return false; // explicit host guard; original dereferences
+        }
+        layer->GetMaterialTextureForAnalysis()->SetOwnedFallBackTextureForAnalysis(selectedFont_->GetImageOwnerForAnalysis());
+        return true;
+    }
+
     std::size_t spFontManager::GetFontCountForAnalysis() const noexcept
     {
         return fonts_.size();

@@ -50,6 +50,7 @@
 #include "ShaderLighting.h"
 #include "AlphaOrdering.h"
 #include "MaterialSubmission.h"
+#include "TextView.h"
 #include "Code/Sparkplug/spMeshBV.h"
 #include "Code/Sparkplug/spMeshBVSerializer.h"
 #include "Code/Sparkplug/spPS2MeshDataSerializer.h"
@@ -1224,6 +1225,36 @@ SPV_API int spv_graph_apply_controllers(void* handle,const std::uint32_t* ids,st
     });
 }
 static_assert(sizeof(SpvMaterialDrawPass)==1044);
+static_assert(sizeof(SpvTextVertex)==24&&sizeof(SpvTextViewInfo)==28);
+SPV_API void* spv_text_view_create(void* handle,std::uint32_t id) noexcept {
+    std::unique_ptr<spvhost::TextView> result;
+    if(!guarded([&]{require(handle,"Missing Text graph");result=std::make_unique<spvhost::TextView>(
+        static_cast<spvhost::GraphHandle*>(handle)->graph,id);}))return nullptr;
+    return result.release();
+}
+SPV_API void spv_text_view_destroy(void* handle) noexcept {guarded([&]{delete static_cast<spvhost::TextView*>(handle);});}
+SPV_API int spv_text_view_info(void* handle,SpvTextViewInfo* output) noexcept {
+    return guarded([&]{require(handle&&output,"Missing Text info");*output=static_cast<spvhost::TextView*>(handle)->info;});
+}
+SPV_API int spv_text_view_vertices(void* handle,SpvTextVertex* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing Text view");const auto& vertices=static_cast<spvhost::TextView*>(handle)->geometry.vertices;
+        require(count==vertices.size()&&(output||!count),"Text vertex extent mismatch");
+        for(std::size_t i=0;i<vertices.size();++i) {
+            std::copy(vertices[i].position.begin(),vertices[i].position.end(),output[i].position);
+            output[i].color=vertices[i].color;std::copy(vertices[i].uv.begin(),vertices[i].uv.end(),output[i].uv);
+        }});
+}
+SPV_API int spv_text_view_indices(void* handle,std::uint16_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing Text view");const auto& indices=static_cast<spvhost::TextView*>(handle)->geometry.indices;
+        require(count==indices.size()&&(output||!count),"Text index extent mismatch");std::copy(indices.begin(),indices.end(),output);});
+}
+SPV_API int spv_text_view_draws(void* handle,SpvMaterialDrawPass* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing Text view");const auto& text=*static_cast<spvhost::TextView*>(handle);
+        require(count==text.info.passes&&(output||!count),"Text draw extent mismatch");std::copy_n(text.draws.begin(),count,output);});
+}
+SPV_API int spv_text_view_capture(void* handle,std::uint32_t frame,SpvMaterialDrawPass* output,std::uint32_t count) noexcept {
+    return guarded([&]{require(handle,"Missing Text view");static_cast<spvhost::TextView*>(handle)->Capture(frame,output,count);});
+}
 SPV_API void* spv_material_submission_create(void* handle) noexcept {
     std::unique_ptr<spvhost::MaterialSubmission> result;
     if(!guarded([&]{require(handle,"Missing material submission graph");
@@ -1404,7 +1435,8 @@ SPV_API int spv_graph_render_occurrence(void* handle,std::uint32_t id,std::uint3
             require(slot<partition->GetRenderablesForAnalysis().size(),"Render occurrence slot out of range");
             member=partition->GetRenderablesForAnalysis()[slot].get();world=&partition->GetWorldMatrixForAnalysis();
         } else throw std::runtime_error("Expected an actual render support container");
-        require(dynamic_cast<const spModel*>(member),"Render occurrence is not a supported Model/Skin");
+        require(dynamic_cast<const spModel*>(member)||dynamic_cast<const spTextRenderable*>(member),
+            "Render occurrence is not a supported Model/Skin/Text");
         *output={};output->renderable=graph.ID(member);
         if(const auto* skin=dynamic_cast<const spSkin*>(member)) {
             const auto skinWorld=skin->GetRenderWorldMatrixForAnalysis();

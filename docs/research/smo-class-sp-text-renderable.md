@@ -2,7 +2,8 @@
 
 Обновление11 сентября: [CPU runtime reader/layout восстановлены](tool-text-runtime-2026-09-11.md)
 вместе с Font measurement; metadata и runtime используют один field reader.
-Ниже сохранён прежний wire-профиль. GPU text и writer остаются открытыми.
+Ниже сохранён прежний wire-профиль. [Общий PC GPU consumer подключён](tool-text-gpu-2026-09-11.md)
+к Viewer/LVLcreator; writer и полный игровой frame остаются открытыми.
 
 ## Исторический wire-срез10 сентября
 

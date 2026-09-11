@@ -12,8 +12,12 @@ public:
     explicit MaterialSubmission(std::shared_ptr<ResourceGraph>);
     void Capture(std::uint32_t material,std::uint32_t frame,
         SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count);
+    void CaptureTextDefault(sparkplug::reconstruction::spDXMaterial&,std::uint32_t frame,
+        SpvMaterialDrawPass* output,std::uint32_t capacity,std::uint32_t* count);
 private:
     using Renderer=sparkplug::reconstruction::spDXRenderer;
+    void CaptureObject(sparkplug::reconstruction::spDXMaterial*,std::uint32_t,
+        SpvMaterialDrawPass*,std::uint32_t,std::uint32_t*,Renderer::UnassignedPowerPolicyForAnalysis);
     std::shared_ptr<ResourceGraph> graph_;
     std::unique_ptr<sparkplug::reconstruction::spDXMaterial> fallback_;
     Renderer::SubmissionStateForAnalysis state_;

@@ -411,6 +411,8 @@ public partial class MainWindow
                 new SmoRenderObjectKey(0, mesh.SceneObjectIndex, mesh.OccurrenceKey),
                 PaletteColor(index++));
         }
+        foreach(var text in scene.Texts)
+            _gpuRenderer.AddText(text,new SmoRenderObjectKey(0,text.Text.ObjectIndex,text.OccurrenceKey));
 
         if (TryCalculateBounds(scene.Meshes, out CameraBounds sceneBounds))
         {
