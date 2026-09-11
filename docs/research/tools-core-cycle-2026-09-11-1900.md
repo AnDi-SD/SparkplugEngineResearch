@@ -181,3 +181,14 @@ bytes в11 случаях;324 native checks и affected EngineCore прошли.
 1592 components и точно восстанавливает изображение. Icy control сохранён.
 В LVLcreator осталось 41 editable Mesh placement: generated Text не выдаётся
 за новый сериализованный Mesh. Полный Text frame, writer и UI ещё не закрыты.
+
+## Блок 16 — точные runtime mip-уровни на GPU
+
+[Транспорт полной цепочки](tool-runtime-texture-mips-2026-09-11.md) заменяет
+повторную OpenGL генерацию для настоящих runtime textures. Свежий original
+loading.smo совпал со всеми 1364 GPU bytes; menu atlas совпал на всех десяти
+уровнях, тогда как прежняя генерация отличалась на 20 636 components.
+521 C ABI, 179 managed, 99 GPU и 1271 native checks прошли. Убрана дополнительная
+копия upload arrays; проверена поздняя замена base preview с освобождением GPU
+handle. Transient preview сохраняет явную backend генерацию. Изученность EXE
+не повышается за интеграционный транспорт.

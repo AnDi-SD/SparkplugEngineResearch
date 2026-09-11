@@ -246,12 +246,17 @@ struct SpvGraphLayer {
     std::uint32_t states[12];float uv[9];
 };
 struct SpvGraphTexture {std::uint32_t width,height,surfaceFormat,mips;};
+struct SpvGraphTextureMip {std::uint32_t width,height,bytes;};
 struct SpvGraphTextureKey {float time;std::uint32_t texture;};
 SPV_API int spv_graph_model(void*,std::uint32_t,SpvGraphModel*) noexcept;
 SPV_API int spv_graph_material(void*,std::uint32_t,SpvGraphMaterial*) noexcept;
 SPV_API int spv_graph_pass(void*,std::uint32_t material,std::uint32_t pass,SpvGraphPass*) noexcept;
 SPV_API int spv_graph_layer(void*,std::uint32_t material,std::uint32_t pass,std::uint32_t layer,SpvGraphLayer*) noexcept;
 SPV_API int spv_graph_texture(void*,std::uint32_t,SpvGraphTexture*) noexcept;
+// Exact common runtime mip shadow, including levels produced by the original
+// missing-mip algorithm. No backend regeneration or new pixel conversion.
+SPV_API int spv_graph_texture_mip_info(void*,std::uint32_t texture,std::uint32_t level,SpvGraphTextureMip*) noexcept;
+SPV_API int spv_graph_texture_mip_bgra(void*,std::uint32_t texture,std::uint32_t level,std::uint8_t*,std::uint32_t bytes) noexcept;
 // BGRA host upload projection of an already selected/initialized CPU texture.
 // Does not inspect a different serialized representation as a fallback.
 SPV_API int spv_graph_texture_bgra(void*,std::uint32_t,std::uint8_t*,std::uint32_t) noexcept;

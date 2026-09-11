@@ -1178,12 +1178,29 @@ SPV_API int spv_graph_texture(void* handle,std::uint32_t id,SpvGraphTexture* out
             static_cast<std::uint32_t>(texture.GetMipsForAnalysis().size())};});
 }
 SPV_API int spv_graph_texture_bgra(void* handle,std::uint32_t id,std::uint8_t* output,std::uint32_t count) noexcept {
+    return spv_graph_texture_mip_bgra(handle,id,0,output,count);
+}
+namespace {
+const spDXTexture::MipForAnalysis& graphTextureMip(const spDXTexture& texture,std::uint32_t level) {
+    require(texture.IsInitializedForAnalysis()&&level<texture.GetMipsForAnalysis().size(),"Runtime texture mip is unavailable");
+    const auto& mip=texture.GetMipsForAnalysis()[level];const auto format=texture.GetSurfaceFormatForAnalysis();
+    require(format==3||format==4,"Runtime texture surface format is not exposed by the BGRA upload adapter");
+    const auto bytes=std::uint64_t(mip.width)*mip.height*4;
+    require(bytes>0&&bytes<=16u*1024u*1024u,"Runtime texture mip exceeds the bounded BGRA upload");
+    require(mip.rowBytes==mip.width*4&&mip.rows==mip.height&&mip.packedBytes.size()==bytes,"Runtime BGRA mip layout mismatch");
+    return mip;
+}
+}
+SPV_API int spv_graph_texture_mip_info(void* handle,std::uint32_t id,std::uint32_t level,SpvGraphTextureMip* output) noexcept {
+    static_assert(sizeof(SpvGraphTextureMip)==12);
+    return guarded([&]{require(output,"Missing runtime mip info output");
+        const auto& mip=graphTextureMip(graphResource<spDXTexture>(graphForView(handle),id),level);
+        *output={mip.width,mip.height,static_cast<std::uint32_t>(mip.packedBytes.size())};});
+}
+SPV_API int spv_graph_texture_mip_bgra(void* handle,std::uint32_t id,std::uint32_t level,std::uint8_t* output,std::uint32_t count) noexcept {
     return guarded([&]{const auto& texture=graphResource<spDXTexture>(graphForView(handle),id);
-        require(texture.IsInitializedForAnalysis()&&!texture.GetMipsForAnalysis().empty(),"Runtime texture has no initialized mip");
-        const auto& mip=texture.GetMipsForAnalysis().front();const auto format=texture.GetSurfaceFormatForAnalysis();
-        require(format==3||format==4,"Runtime texture surface format is not exposed by the BGRA upload adapter");
-        require(count<=16u*1024u*1024u&&count==std::uint64_t(mip.width)*mip.height*4&&output,"Runtime texture output size mismatch");
-        require(mip.rowBytes==mip.width*4&&mip.rows==mip.height&&mip.packedBytes.size()==count,"Runtime BGRA mip layout mismatch");
+        const auto& mip=graphTextureMip(texture,level);const auto format=texture.GetSurfaceFormatForAnalysis();
+        require(count==mip.packedBytes.size()&&output,"Runtime texture output size mismatch");
         if(format==3)std::memcpy(output,mip.packedBytes.data(),count);
         else projectXrgb(mip.packedBytes.data(),output,count);});
 }

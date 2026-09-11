@@ -1,0 +1,1159 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.cpp",
+      "bytes": 154185,
+      "sha256": "C811955C31EEC62C98F6ACD27761557F8D6ACF99B6E639674C99C012454A5E34",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SparkplugViewer.Native/ViewerBridge.cpp"
+    },
+    {
+      "path": "tools/SparkplugViewer.Native/ViewerBridge.h",
+      "bytes": 34789,
+      "sha256": "2B5C57F311173095C14F4C2F422E65F6BDCAE3DE5E15264E15F0A63D9880FAE2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SparkplugViewer.Native/ViewerBridge.h"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoTexture.cs",
+      "bytes": 3937,
+      "sha256": "4EA77505FA919635C1917BB879FE7D2BD0A1565189F5BFE795D66E4EFFCC3C46",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.Core/SmoTexture.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialView.cs",
+      "bytes": 6193,
+      "sha256": "BDD9335FC48B12354715EC946BFAC0794F884A3861BC5E7B1D6AAC3C48098814",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialView.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs",
+      "bytes": 9610,
+      "sha256": "D64030CB34F5AA34C9F8912EE0645025BF6E7B34BD321F31770761ECD908D13B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.Sparkplug/NativeMethods.Graph.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 47897,
+      "sha256": "6FC6FDF747F2A7543AD87522F46E5E941E662C4F545A043AC465298E77EE5287",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMipChainRegression.cs",
+      "bytes": 6919,
+      "sha256": "8734D74509EDAB7CDEE326C9A69CA7AAA492D563996CC7C387C0B15B3CBE0BDB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMipChainRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs",
+      "bytes": 11373,
+      "sha256": "B262EBA7080D3F7163BEE2C723D1E924E9E70977A8B0D7EA385452F58150CD54",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs",
+      "bytes": 10163,
+      "sha256": "681CE6C62F831FBB6002F4FD86098BD737C8FADEB3608BF881109C2846FAC1DC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/tools/SmoViewer/SmoViewer.FormatTests/SmoTextRuntimeRegression.cs"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTexture.cpp",
+      "bytes": 5009,
+      "sha256": "DCECBDE047DAB0EC91933C5C9D2E926E917B390AF99AF6369D8B77550CDA778B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/Sparkplug/Code/SparkplugDX/spDXTexture.cpp"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXTexture.h",
+      "bytes": 3159,
+      "sha256": "C225A648D50A3EDFEEF113A3B3DC10AE976600E55DBFB13661059E3E694F841E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/Sparkplug/Code/SparkplugDX/spDXTexture.h"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/spTextureMipFilter.h",
+      "bytes": 3724,
+      "sha256": "A53E3D1D2D1D87DE2B4537921E1D5B82145F9DAF68DC0A34590D123B8BEB487B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/Sparkplug/Analysis/PC/spTextureMipFilter.h"
+    },
+    {
+      "path": "research/check_runtime_texture_mips.py",
+      "bytes": 5793,
+      "sha256": "5802508DBB02CF58046DBED22ADB85F4EC925278996E2A9BD9D16D3CFD26AFF5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/check_runtime_texture_mips.py"
+    },
+    {
+      "path": "research/probe_pc_runtime_mip_transport.py",
+      "bytes": 1689,
+      "sha256": "D901594E5CDBF4E0B497CB6D743E69A71C64EFE702F3B368C9B6F964E1820C1F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/probe_pc_runtime_mip_transport.py"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/seal-runtime-mips.py",
+      "bytes": 4923,
+      "sha256": "085F014BA6D3620D5263281CBB21270DE5F6735117DA4B44E0E147BC63A5AFB6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/.codex-tmp/seal-runtime-mips.py"
+    },
+    {
+      "path": ".codex-tmp/check-mip-gpu.py",
+      "bytes": 943,
+      "sha256": "7699C59894913B54DD59311980FE7B762D4F34355CB694139CEAA1B6041BEB9C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/.codex-tmp/check-mip-gpu.py"
+    },
+    {
+      "path": "docs/research/tool-runtime-texture-mips-2026-09-11.md",
+      "bytes": 6282,
+      "sha256": "E6422F75DBA5B6EAFEE44ED2DAD5399404872246CCFE6E3764A3D3B8E36AC44F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/docs/research/tool-runtime-texture-mips-2026-09-11.md"
+    },
+    {
+      "path": "research/inspect_pc_san_keys.py",
+      "bytes": 5671,
+      "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/inspect_pc_san_keys.py"
+    },
+    {
+      "path": "research/inspect_serializer_manager.py",
+      "bytes": 20585,
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/inspect_serializer_manager.py"
+    },
+    {
+      "path": "research/pc_instruction_emulator.py",
+      "bytes": 15160,
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/pc_instruction_emulator.py"
+    },
+    {
+      "path": "research/pc_loader_fixtures.py",
+      "bytes": 3945,
+      "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/pc_loader_fixtures.py"
+    },
+    {
+      "path": "research/pc_serializer_fixtures.py",
+      "bytes": 1373,
+      "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/pc_serializer_fixtures.py"
+    },
+    {
+      "path": "research/pc_texture_fixtures.py",
+      "bytes": 6364,
+      "sha256": "83ECA73C44973009850B7BAD2C5B27F3BF99E258BCABEC3DFAB59ACDDACF877A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/pc_texture_fixtures.py"
+    },
+    {
+      "path": "research/pc_texture_mip_fixtures.py",
+      "bytes": 4264,
+      "sha256": "5821AC09D5C2B1F92BD48691488C0FC432E8CC2A6A8219809839A7F3710EB956",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/pc_texture_mip_fixtures.py"
+    },
+    {
+      "path": "research/probe_pc_animation_keys.py",
+      "bytes": 11349,
+      "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/probe_pc_animation_keys.py"
+    },
+    {
+      "path": "research/probe_pc_animation_lifecycle.py",
+      "bytes": 10907,
+      "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/probe_pc_animation_lifecycle.py"
+    },
+    {
+      "path": "research/probe_pc_san_reader.py",
+      "bytes": 8643,
+      "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/probe_pc_san_reader.py"
+    },
+    {
+      "path": "research/probe_pc_texture_missing_mips.py",
+      "bytes": 15613,
+      "sha256": "E30EAE8E029897EE438E99FB7C1C3CA89810EB7A6EA96BB65188B010A472C220",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/sources/research/probe_pc_texture_missing_mips.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2-stdout.txt",
+      "bytes": 76,
+      "sha256": "5786FD31533CB48FC052EA993C86F9B08A883430A208E4ED25DECFFC2968A6E5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1-stdout.txt",
+      "bytes": 76,
+      "sha256": "E7ED1028147B12A360973F366772B8B14C9A263B58508BFAB56B8D9EE029168D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3-stdout.txt",
+      "bytes": 77,
+      "sha256": "026DF21742BC32AF55D93BD890F66710DEB1F1B73CD4D87DE1646BB48F6823F7",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3-stdout.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/native-tests-run1.log",
+      "bytes": 1765,
+      "sha256": "956AB23811C304C8E9E5AEDF4050A1662B47BEB165F11726C4DC33B029BB7089",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/native-tests-run1.log"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-abi-run1/report.json",
+      "bytes": 2593,
+      "sha256": "2B03CA82A2B8F6F8FBF5D2B8FF13DADA8E446C1DE37CF34C5D6E972D3A403E2F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-abi-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run1/report.json",
+      "bytes": 4848,
+      "sha256": "A6FC97CB1C1B6030EFD15D8DA7CE746D19149B4526F88F46D348F6063321ECB1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run1/scene.png",
+      "bytes": 14425,
+      "sha256": "BBA5BFB094B136E4FB4B1FA4850D6BDD50E0CE0B042DCB58F5418A5DB8FE3510",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2/report.json",
+      "bytes": 4920,
+      "sha256": "0F7A1370B7636CCA945EE567CB43D0569A6C2FC978998B69E67AE4ECC713753A",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2/scene.png",
+      "bytes": 14425,
+      "sha256": "BBA5BFB094B136E4FB4B1FA4850D6BDD50E0CE0B042DCB58F5418A5DB8FE3510",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/icy-gpu-run2/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-abi-run1/report.json",
+      "bytes": 1739,
+      "sha256": "219CA1207EBAD327B9BF0F0E74838D3B7130C80A9A65CF6350D900E20902EEA5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-abi-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1/report.json",
+      "bytes": 1877,
+      "sha256": "44D1DA1E1DE2F010BD5BE5B3A762C800723A317C1987416F130C42F9C9781349",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1/scene.png",
+      "bytes": 752,
+      "sha256": "5BC45EAB5B8F35D3585B3C1EB963EDA5A3D685E5D6FA64BD10A269C566D2B930",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/loading-gpu-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-abi-run1/report.json",
+      "bytes": 2797,
+      "sha256": "3A02FD3DA2CD16E88BA147A7AD1E4D8B0AEF0CF1F36C9B22D8F3B955034629FD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-abi-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run1/report.json",
+      "bytes": 1374,
+      "sha256": "14408C10CCC046417777B36D917AA9760B080FB78FDFB0B10709A1E6F43237F6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run2/report.json",
+      "bytes": 2364,
+      "sha256": "08B2C24B0B886BCEA3D3D55F72E6C2879690BB95719FAB7844AF139EE870E706",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run2/scene.png",
+      "bytes": 2915,
+      "sha256": "CBA60EAD52FEEFE5386CE5E4D63C4BB8204C6643C0D490E0A1142DCAAD642B0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run2/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3/report.json",
+      "bytes": 3086,
+      "sha256": "6C9AC2AEA8210482D9DDDEAE2ED884F2D65A36A4D1CBCDF999AF4F362BBC1EF4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3/scene.png",
+      "bytes": 2915,
+      "sha256": "CBA60EAD52FEEFE5386CE5E4D63C4BB8204C6643C0D490E0A1142DCAAD642B0F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-gpu-run3/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-managed-run1/report.json",
+      "bytes": 1036,
+      "sha256": "7970FBC545EE9ED1EA4F8E73655FBE300A80A89BEB3C71A5265CBA070934E70D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-managed-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-managed-run2/report.json",
+      "bytes": 5068,
+      "sha256": "15F385D96BB71B728FDB684EB4ADB410083A14F359379A32ABD4D4ABEA9359C5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/menu-managed-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/original-log.txt",
+      "bytes": 1134,
+      "sha256": "FA3E14A06696C80AFE1B03378C4DE7A28C5A6DD8453FE6EDDB533DE621D78D69",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/original-log.txt"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/probe-source.py",
+      "bytes": 1689,
+      "sha256": "D901594E5CDBF4E0B497CB6D743E69A71C64EFE702F3B368C9B6F964E1820C1F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/probe-source.py"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/report.json",
+      "bytes": 16587,
+      "sha256": "55861DF18B90D2FFC123D1B365ED5385111E08768FEDE1E6D4F91D595E362E57",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/local-data/results/tools-core-cycle-20260911-1900/texture-mips/original1/report.json"
+    },
+    {
+      "path": "artifacts/native/viewer/Release/SparkplugViewerNative.dll",
+      "bytes": 1289216,
+      "sha256": "D7F252B8A7BA976A14164023C0114AFB4117CB3A27B79E0A2085EA9FB4D33390",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/artifacts/native/viewer/Release/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 190976,
+      "sha256": "B2C4F3735481B94810A0F493B6DC3B391C2C996CA0AE5BAAA8CA981A0E23F3DB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 759808,
+      "sha256": "CAC5D13244D6BE8CBD6E6B17BFAC9557BB796F9ACB9A5584318005126F1DF837",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 44032,
+      "sha256": "62E0C7C6DEA9DC89310077CC239CAF2D3C3FFC472A1BC668D1F8F7BD14B3AA1E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 42496,
+      "sha256": "BB0B7C07D430CCA50F32A8E37107A6E8FF10B8396F717A2B6BEB8F4E32C0FE10",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 153088,
+      "sha256": "07650A59E5A54325C2DA3EB36C81C77E4D142665C13CCF40921EEA65D362CE50",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll",
+      "bytes": 587264,
+      "sha256": "4D79BF6CF8D7932769D406A813B396977F4F25A387194018F3F221FF48967E7D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/texture-mips/qualified2/artifacts/tools/SmoViewer/SmoViewer.FormatTests/bin/Release/net8.0/SmoViewer.FormatTests.dll"
+    }
+  ],
+  "status": "verified-runtime-mips-through-OpenGL",
+  "block": 16,
+  "nativeSha256": "D7F252B8A7BA976A14164023C0114AFB4117CB3A27B79E0A2085EA9FB4D33390",
+  "originalToGpuBytes": 1364,
+  "nativeChecks": 1271,
+  "abiChecks": 521,
+  "managedChecks": 179,
+  "gpuChecks": 99,
+  "exeScoreDelta": 0,
+  "menu": {
+    "storedMips": 1,
+    "runtimeMips": 10,
+    "gpuBytes": 1398100,
+    "regeneratedDifferentComponents": 20636,
+    "extraUploadCopies": 0
+  },
+  "boundaries": [
+    "PC BGRA/BGRX runtime chain only",
+    "Legacy source selection remains explicit host policy",
+    "Transient/base-only textures retain backend generation",
+    "Not full original frame or PS2 consumer"
+  ],
+  "original": {
+    "kind": "original-texture-missing-mips",
+    "inputSha256": "0E8EB7A89E952CD0CF096AE4F5E3F1FE4D56BEC3696DB427567F0BB2BF04427E",
+    "pattern": "corpus",
+    "payloadSha256": "F340CD9D72D92D324D87C37226A5D46A232D0BB3AE097BA0D7902FD883D3EF68",
+    "originalObjectOffset": 1053,
+    "originalObjectSize": 1088,
+    "dimensions": [
+      16,
+      16
+    ],
+    "payloadSize": 1080,
+    "inputKind": "unchanged-slice",
+    "executionProfile": "file",
+    "arenaLimitBytes": 131072,
+    "maxSurfaceBytes": 2048,
+    "maxLevels": 5,
+    "nativeInstructions": 129571,
+    "readerResult": 1,
+    "readerSeconds": 0.63266200000362,
+    "helperVisits": {
+      "004ABBA0": 1,
+      "004AB030": 1,
+      "0061039A": 4,
+      "0060FDB4": 4,
+      "00619219": 8,
+      "0061A4D4": 4,
+      "0061A5DE": 4,
+      "0061A6B1": 4,
+      "0061A884": 4,
+      "0061AA5A": 4,
+      "0061AE22": 4,
+      "0061B316": 4,
+      "0061B6B8": 4,
+      "0061C44F": 4,
+      "0061BDC9": 0
+    },
+    "coefficientTables": [
+      {
+        "args": [
+          16,
+          8,
+          1
+        ],
+        "hex": "4401000014000000070000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e020000000000803d14000000010000000000803d020000000000e03e14000000020000000000e03e030000000000803d14000000020000000000803d030000000000e03e14000000030000000000e03e040000000000803d14000000030000000000803d040000000000e03e14000000040000000000e03e050000000000803d14000000040000000000803d050000000000e03e14000000050000000000e03e060000000000803d14000000050000000000803d060000000000e03e14000000060000000000e03e070000000000803d14000000060000000000803d070000000000e03e14000000070000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          16,
+          8,
+          1
+        ],
+        "hex": "4401000014000000070000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e020000000000803d14000000010000000000803d020000000000e03e14000000020000000000e03e030000000000803d14000000020000000000803d030000000000e03e14000000030000000000e03e040000000000803d14000000030000000000803d040000000000e03e14000000040000000000e03e050000000000803d14000000040000000000803d050000000000e03e14000000050000000000e03e060000000000803d14000000050000000000803d060000000000e03e14000000060000000000e03e070000000000803d14000000060000000000803d070000000000e03e14000000070000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          8,
+          4,
+          1
+        ],
+        "hex": "a400000014000000030000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e020000000000803d14000000010000000000803d020000000000e03e14000000020000000000e03e030000000000803d14000000020000000000803d030000000000e03e14000000030000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          8,
+          4,
+          1
+        ],
+        "hex": "a400000014000000030000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e020000000000803d14000000010000000000803d020000000000e03e14000000020000000000e03e030000000000803d14000000020000000000803d030000000000e03e14000000030000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          4,
+          2,
+          1
+        ],
+        "hex": "5400000014000000010000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          4,
+          2,
+          1
+        ],
+        "hex": "5400000014000000010000000000803d000000000000e03e14000000000000000000e03e010000000000803d14000000000000000000803d010000000000e03e14000000010000000000e03e000000000000803d"
+      },
+      {
+        "args": [
+          2,
+          1,
+          1
+        ],
+        "hex": "1c0000000c000000000000000000003f0c000000000000000000003f"
+      },
+      {
+        "args": [
+          2,
+          1,
+          1
+        ],
+        "hex": "1c0000000c000000000000000000003f0c000000000000000000003f"
+      }
+    ],
+    "codecs": [
+      {
+        "kind": 1,
+        "methods": [
+          "00624332",
+          "00625743",
+          "0061F153"
+        ]
+      },
+      {
+        "kind": 1,
+        "methods": [
+          "00624332",
+          "00625743",
+          "0061F153"
+        ]
+      }
+    ],
+    "state": [
+      5,
+      3435973633,
+      0,
+      3435973633,
+      16,
+      16,
+      3435973836,
+      0
+    ],
+    "levels": [
+      {
+        "width": 16,
+        "height": 16,
+        "packedHex": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff"
+      },
+      {
+        "width": 8,
+        "height": 8,
+        "packedHex": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff"
+      },
+      {
+        "width": 4,
+        "height": 4,
+        "packedHex": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff"
+      },
+      {
+        "width": 2,
+        "height": 2,
+        "packedHex": "000000ff000000ff000000ff000000ff"
+      },
+      {
+        "width": 1,
+        "height": 1,
+        "packedHex": "000000ff"
+      }
+    ],
+    "events": [
+      [
+        "CreateTexture",
+        16,
+        16,
+        0,
+        0,
+        21,
+        1,
+        0
+      ],
+      [
+        "GetSurfaceLevel",
+        0
+      ],
+      [
+        "GetDesc",
+        21,
+        16,
+        16
+      ],
+      [
+        "LockRect",
+        68,
+        16,
+        0
+      ],
+      [
+        "UnlockRect",
+        0
+      ],
+      [
+        "ReleaseSurface",
+        0
+      ],
+      [
+        "GetLevelCount",
+        5
+      ],
+      [
+        "GetSurfaceLevel",
+        0
+      ],
+      [
+        "GetDesc",
+        21,
+        16,
+        16
+      ],
+      [
+        "GetSurfaceLevel",
+        1
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetDesc",
+        21,
+        16,
+        16
+      ],
+      [
+        "GetDesc",
+        21,
+        16,
+        16
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "RegOpenKeyA",
+        "Software\\Microsoft\\Direct3D",
+        2
+      ],
+      [
+        "LockRect",
+        68,
+        2064,
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        0
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        36,
+        2048,
+        1
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        1
+      ],
+      [
+        "UnlockRect",
+        1
+      ],
+      [
+        "ReleaseSurface",
+        1
+      ],
+      [
+        "UnlockRect",
+        0
+      ],
+      [
+        "ReleaseSurface",
+        0
+      ],
+      [
+        "ReleaseSurface",
+        0
+      ],
+      [
+        "ReleaseSurface",
+        1
+      ],
+      [
+        "GetSurfaceLevel",
+        1
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetSurfaceLevel",
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetDesc",
+        21,
+        8,
+        8
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        36,
+        2064,
+        1
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        1
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        20,
+        2048,
+        2
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        2
+      ],
+      [
+        "UnlockRect",
+        2
+      ],
+      [
+        "ReleaseSurface",
+        2
+      ],
+      [
+        "UnlockRect",
+        1
+      ],
+      [
+        "ReleaseSurface",
+        1
+      ],
+      [
+        "ReleaseSurface",
+        1
+      ],
+      [
+        "ReleaseSurface",
+        2
+      ],
+      [
+        "GetSurfaceLevel",
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetSurfaceLevel",
+        3
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetDesc",
+        21,
+        4,
+        4
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        20,
+        2064,
+        2
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        12,
+        2048,
+        3
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        3
+      ],
+      [
+        "UnlockRect",
+        3
+      ],
+      [
+        "ReleaseSurface",
+        3
+      ],
+      [
+        "UnlockRect",
+        2
+      ],
+      [
+        "ReleaseSurface",
+        2
+      ],
+      [
+        "ReleaseSurface",
+        2
+      ],
+      [
+        "ReleaseSurface",
+        3
+      ],
+      [
+        "GetSurfaceLevel",
+        3
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetSurfaceLevel",
+        4
+      ],
+      [
+        "GetDesc",
+        21,
+        1,
+        1
+      ],
+      [
+        "GetDesc",
+        21,
+        1,
+        1
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetDesc",
+        21,
+        2,
+        2
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        12,
+        2064,
+        3
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        3
+      ],
+      [
+        "GetDesc",
+        21,
+        1,
+        1
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "LockRect",
+        8,
+        2048,
+        4
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9.dll",
+        0
+      ],
+      [
+        "GetModuleHandleA",
+        "d3d9d.dll",
+        0
+      ],
+      [
+        "AddRefSurface",
+        4
+      ],
+      [
+        "UnlockRect",
+        4
+      ],
+      [
+        "ReleaseSurface",
+        4
+      ],
+      [
+        "UnlockRect",
+        3
+      ],
+      [
+        "ReleaseSurface",
+        3
+      ],
+      [
+        "ReleaseSurface",
+        3
+      ],
+      [
+        "ReleaseSurface",
+        4
+      ],
+      [
+        "GetLevelCount",
+        5
+      ]
+    ],
+    "status": "completed",
+    "releasedAllocations": 49,
+    "cursor": 1080,
+    "arenaReservedBytes": 62480,
+    "seconds": 0.6822488000034355,
+    "ftolCalls": 180,
+    "dependencies": [
+      {
+        "path": "research/inspect_pc_san_keys.py",
+        "sha256": "D6ACC5C45A69340F688EC42013F327C22C4A832DB7B06D0E42CADD4CCE99DC19"
+      },
+      {
+        "path": "research/inspect_serializer_manager.py",
+        "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+      },
+      {
+        "path": "research/pc_instruction_emulator.py",
+        "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+      },
+      {
+        "path": "research/pc_loader_fixtures.py",
+        "sha256": "96FB3BDF6B1AB133729DF4A306C8F6CB935B82E4DFB21A27AC8D1BC386924D06"
+      },
+      {
+        "path": "research/pc_serializer_fixtures.py",
+        "sha256": "4A41757EFFBD83FACEDBF886219ACEA6628DF02219E7C3B34D1F0907133B197D"
+      },
+      {
+        "path": "research/pc_texture_fixtures.py",
+        "sha256": "83ECA73C44973009850B7BAD2C5B27F3BF99E258BCABEC3DFAB59ACDDACF877A"
+      },
+      {
+        "path": "research/pc_texture_mip_fixtures.py",
+        "sha256": "5821AC09D5C2B1F92BD48691488C0FC432E8CC2A6A8219809839A7F3710EB956"
+      },
+      {
+        "path": "research/probe_pc_animation_keys.py",
+        "sha256": "599731E2BC6E7360C75C4CE88D39E126CB3CF03B32C139C41FB9B8015CC40C43"
+      },
+      {
+        "path": "research/probe_pc_animation_lifecycle.py",
+        "sha256": "FF7BE0DA7410FE9C0CBFAE590A8080B1749F616AD8776EB4500703FAE06F4B04"
+      },
+      {
+        "path": "research/probe_pc_runtime_mip_transport.py",
+        "sha256": "D901594E5CDBF4E0B497CB6D743E69A71C64EFE702F3B368C9B6F964E1820C1F"
+      },
+      {
+        "path": "research/probe_pc_san_reader.py",
+        "sha256": "2FC9DEFCB06AD2CE2EE552F53A39F0128AA7354609B5EEFF2348B88F35C5DD4C"
+      },
+      {
+        "path": "research/probe_pc_texture_missing_mips.py",
+        "sha256": "E30EAE8E029897EE438E99FB7C1C3CA89810EB7A6EA96BB65188B010A472C220"
+      }
+    ],
+    "sourceExecutableSha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+  }
+}
