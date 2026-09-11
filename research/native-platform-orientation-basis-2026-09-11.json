@@ -1,0 +1,95 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-orientation-basis-2026-09-11T04:06:16Z",
+  "createdUtc": "2026-09-11T04:06:16Z",
+  "notes": "28 first-pass basis/Kiko transactions;18 whole and10 PS2 MULA boundaries.Confirmed stale-local branch on both platforms.PC Kiko full;PS2 score unchanged.",
+  "assessments": [
+    {
+      "className": "wxKikoMovingAIAction",
+      "platformKey": "pc",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-orientation-basis-2026-09-11.md",
+          "sourceSha256": "9FC16D0797B69E652F6899BD19010994892ECAD5398C0C77A7C833DF36F0BABD",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "30->35: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/orientation-basis-contracts-2026-09-11.json",
+          "sourceSha256": "04DE91611005F6DDEA9CCC76C3675DE919C19A04EE39955500CD427C69C86DE3",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "30->35: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/kiko-moving-orientation/basis-pilot-run1.json",
+          "sourceSha256": "2E5A49D604654351DFB41697F5A0441D5ACA08FEBB6C558EC4A3026912922070",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "30->35: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/kiko-moving-orientation/basis-batch-run1.json",
+          "sourceSha256": "C526E0622357341B8D76DEA2AEDDD6C46AC498280131BB1D687CFC1EA9E37AD4",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "30->35: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        }
+      ],
+      "unknowns": [
+        "PS2 MULA/MSUB cross arithmetic,near-vector caller domain and remaining active AI/lifecycle stay open."
+      ]
+    },
+    {
+      "className": "wxKikoMovingAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 25.0,
+      "lowerBound": 15.0,
+      "upperBound": 40.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "25->25: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-orientation-basis-2026-09-11.md",
+          "sourceSha256": "9FC16D0797B69E652F6899BD19010994892ECAD5398C0C77A7C833DF36F0BABD",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "25->25: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/orientation-basis-contracts-2026-09-11.json",
+          "sourceSha256": "04DE91611005F6DDEA9CCC76C3675DE919C19A04EE39955500CD427C69C86DE3",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "25->25: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/kiko-moving-orientation/basis-pilot-run1.json",
+          "sourceSha256": "2E5A49D604654351DFB41697F5A0441D5ACA08FEBB6C558EC4A3026912922070",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "25->25: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/kiko-moving-orientation/basis-batch-run1.json",
+          "sourceSha256": "C526E0622357341B8D76DEA2AEDDD6C46AC498280131BB1D687CFC1EA9E37AD4",
+          "locator": "Original basis and KikoMoving whole/bounded activation",
+          "observation": "25->25: Original KikoMoving activation through basis:PC whole position/orientation/state/target,PS2 deeper boundary1091D8. Paired near/equal basis branch depends on explicit prior local stack bytes;port pending caller-domain decision."
+        }
+      ],
+      "unknowns": [
+        "PS2 MULA/MSUB cross arithmetic,near-vector caller domain and remaining active AI/lifecycle stay open."
+      ]
+    }
+  ]
+}
