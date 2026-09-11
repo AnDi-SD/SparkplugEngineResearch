@@ -45,6 +45,7 @@ static std::map<void*, BufferLock> bufferLocks;
 using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
 static FvfFromDeclaration fvfFromDeclaration;
 static wchar_t liveConfigPath[MAX_PATH]{};
+static void InitializeShaderAudit();
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -60,6 +61,7 @@ static void Initialize() {
     wcscat_s(path, L"d3d9.remix-original.dll");
   }
   backend = LoadLibraryW(path);
+  InitializeShaderAudit();
   if(wcscmp(mode,L"system")!=0) GetEnvironmentVariableW(L"WINX_REMIX_LIVE_CONFIG",liveConfigPath,MAX_PATH);
   wchar_t mipOption[8]{};
   explicitMipLevels=GetEnvironmentVariableW(L"WINX_REMIX_EXPLICIT_MIPS",mipOption,8) && wcscmp(mipOption,L"1")==0;
@@ -117,6 +119,8 @@ static void Patch(void* object, unsigned slot, void* function) {
   DWORD ignored;
   VirtualProtect(table + slot, sizeof(void*), previous, &ignored);
 }
+
+#include "winx_shader_audit.h"
 
 static void RememberPrimaryTarget(IDirect3DDevice9* device) {
   IDirect3DSurface9* target=nullptr;
@@ -177,6 +181,7 @@ static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
 }
 
 static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE type, UINT count) {
+  AuditShaderDraw(device);
   std::lock_guard<std::recursive_mutex> lock(guard);
   ++drawId;
   if (!logFile || records >= 65536 || !(frameId < 2 || frameId % 300 == 0 || triggered || frameId<traceUntilFrame)) return;
@@ -546,6 +551,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
       frameId,drawId,a?a->left:0,a?a->top:0,a?a->right:0,a?a->bottom:0,b?b->left:0,b?b->top:0,b?b->right:0,b?b->bottom:0,a!=nullptr,b!=nullptr);
   }
   const HRESULT hr=Original<F>(d,17)(d,a,b,c,e);
+  ShaderAuditSnapshot(triggered);
   uiStarted.erase(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) fflush(logFile);
@@ -607,7 +613,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT);
-  return Original<F>(d,81)(d,t,start,count);
+  return AuditShaderDrawResult(Original<F>(d,81)(d,t,start,count));
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   Observe(d,"DrawIndexedPrimitive",t,count);
@@ -617,7 +623,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
-  return Original<F>(d,82)(d,t,base,min,num,start,count);
+  return AuditShaderDrawResult(Original<F>(d,82)(d,t,base,min,num,start,count));
 }
 static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT count,const void* data,UINT stride) {
   Observe(d,"DrawPrimitiveUP",t,count);
@@ -627,7 +633,7 @@ static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,U
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,const void*,UINT);
-  return Original<F>(d,83)(d,t,count,data,stride);
+  return AuditShaderDrawResult(Original<F>(d,83)(d,t,count,data,stride));
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT min,UINT num,UINT count,const void* indices,D3DFORMAT format,const void* data,UINT stride) {
   Observe(d,"DrawIndexedPrimitiveUP",t,count);
@@ -637,7 +643,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVET
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
-  return Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride);
+  return AuditShaderDrawResult(Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride));
 }
 static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVTYPE type,HWND window,DWORD flags,D3DPRESENT_PARAMETERS* p,IDirect3DDevice9** result) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
@@ -645,6 +651,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
   const HRESULT hr=Original<F>(d,16)(d,adapter,type,window,flags,p,result);
   if(SUCCEEDED(hr) && result && *result) {
     RememberPrimaryTarget(*result);
+    InstallShaderAudit(*result);
     RememberPresentation(*result,*p,window);
     // Server forwards game Present via its swap chain; sample that boundary on x64.
     if(sizeof(void*)==8) {

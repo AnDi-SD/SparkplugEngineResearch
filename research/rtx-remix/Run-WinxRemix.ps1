@@ -1,4 +1,4 @@
-param([ValidateSet('RTX','Raster','Original')][string]$Mode='RTX', [switch]$DebugMenu)
+param([ValidateSet('RTX','Raster','Original')][string]$Mode='RTX', [switch]$DebugMenu, [switch]$ShaderAudit)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
@@ -10,6 +10,7 @@ if ((Get-FileHash -LiteralPath (Join-Path $game 'd3d9.dll')).Hash -ne (Get-FileH
 $name="play-$($Mode.ToLowerInvariant())-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff')"
 $options=@{ Name=$name; NoDrawTrace=$true }
 if ($DebugMenu) { $options.DebugMenu=$true }
+if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($Mode -eq 'Original') {
     $options.Backend='system'
 } else {

@@ -15,6 +15,7 @@ param(
     [switch]$NoDrawTrace,
     [switch]$DebugMenu,
     [switch]$LiveConfig,
+    [switch]$ShaderAudit,
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
@@ -43,6 +44,9 @@ foreach ($file in @('user.conf','winx.ini')) {
     Copy-Item -LiteralPath (Join-Path $game $file) -Destination (Join-Path $run "$file.before")
 }
 Copy-Item -LiteralPath (Join-Path $game 'Media/Saved') -Destination (Join-Path $run 'saves-before') -Recurse
+if ($ShaderAudit) {
+    New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
+}
 if ($LiveConfig) {
     if ($Backend -ne 'remix') { throw 'Live config requires the Remix backend' }
     $bridgeConfig = Join-Path $game '.trex/bridge.conf'
@@ -72,6 +76,8 @@ $values = @{
     WINX_REMIX_MENU_BACKGROUND=$(if ($MenuBackground) { '1' } else { '0' })
     WINX_REMIX_SKY_LAYERS=$(if ($SkyLayers) { '1' } else { '0' })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
+    WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
+    DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
     DXVK_RTX_CONFIG_FILE=$config
 }
 try {

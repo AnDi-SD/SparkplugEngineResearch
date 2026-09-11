@@ -1,0 +1,1201 @@
+{
+  "schema": 1,
+  "date": "2026-09-12",
+  "created": "2026-09-12T00:24:41.355606+03:00",
+  "status": "tested_scene_shaders_transferred_all_game_coverage_open",
+  "description": "Own optional D3D9 diagnostic adapter; unchanged game and stock Remix runtime.",
+  "validation": {
+    "msvcX86W4Build": "passed_without_warnings",
+    "pythonSyntax": "passed",
+    "powershellSyntax": "passed",
+    "diffCheck": "passed",
+    "remixExactShaderMatches": 15,
+    "remixSpirvHeadersVerified": 15,
+    "nativeExactShaderSetMatches": 15,
+    "unchangedProtectedFiles": 20,
+    "installedMatchesBuild": true,
+    "gameProcessesClosed": true,
+    "upstreamWorkingTreeClean": true
+  },
+  "comparison": {
+    "sameShaderBytecodeSet": true,
+    "remixUnique": 15,
+    "nativeUnique": 15,
+    "pairs": [
+      {
+        "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27",
+        "remixId": 11,
+        "nativeId": 11,
+        "remixDraws": 48046,
+        "nativeDraws": 20260
+      },
+      {
+        "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525",
+        "remixId": 13,
+        "nativeId": 13,
+        "remixDraws": 119426,
+        "nativeDraws": 114868
+      },
+      {
+        "sha256": "389000895a2da4cfa1a89a105e9e61292cf91ab294640abee049175b9d088998",
+        "remixId": 14,
+        "nativeId": 12,
+        "remixDraws": 24365,
+        "nativeDraws": 23920
+      },
+      {
+        "sha256": "3a904027c935606866f54b526d2d91b57e216b963cf592a924ae261686871823",
+        "remixId": 9,
+        "nativeId": 9,
+        "remixDraws": 95750,
+        "nativeDraws": 26730
+      },
+      {
+        "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90",
+        "remixId": 7,
+        "nativeId": 7,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3",
+        "remixId": 1,
+        "nativeId": 1,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7",
+        "remixId": 2,
+        "nativeId": 2,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098",
+        "remixId": 12,
+        "nativeId": 14,
+        "remixDraws": 14619,
+        "nativeDraws": 14352
+      },
+      {
+        "sha256": "9ce7bddaa2217d12d7d770fcac4eb2e3ab920920b610155c21406f91bad6b417",
+        "remixId": 10,
+        "nativeId": 10,
+        "remixDraws": 120115,
+        "nativeDraws": 50650
+      },
+      {
+        "sha256": "ae0045bb24ccefb07755f5a5b318e6573553165e41ecf6128d7bd867af6dd3ff",
+        "remixId": 8,
+        "nativeId": 8,
+        "remixDraws": 38300,
+        "nativeDraws": 10692
+      },
+      {
+        "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f",
+        "remixId": 4,
+        "nativeId": 4,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6",
+        "remixId": 15,
+        "nativeId": 15,
+        "remixDraws": 32500,
+        "nativeDraws": 28702
+      },
+      {
+        "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d",
+        "remixId": 3,
+        "nativeId": 3,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94",
+        "remixId": 6,
+        "nativeId": 6,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      },
+      {
+        "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079",
+        "remixId": 5,
+        "nativeId": 5,
+        "remixDraws": 0,
+        "nativeDraws": 0
+      }
+    ],
+    "nativeOnly": [],
+    "remixOnly": [],
+    "preservedFiles": 20,
+    "changedFiles": []
+  },
+  "upstreamCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "files": [
+    {
+      "path": "docs/research/winx-remix-shader-audit-2026-09-12.md",
+      "bytes": 12450,
+      "sha256": "29cd3a4b48381aa3d3674d3ed9a9958c5d886d384ae61a7d2a18ab36a9b51fd9"
+    },
+    {
+      "path": "local-data/rtx-remix/build/d3d9.dll",
+      "bytes": 262656,
+      "sha256": "b2605d9ad4d28962970ad815bb1021751beba67fb06da1ed3e19466fa8c27372"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/alfea.png",
+      "bytes": 1147130,
+      "sha256": "b4c0a4ec5c0632ba438a2ffdf0c50db7d91268f168b7b4766240d48cb34f3ef8"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/coverage-alfea.json",
+      "bytes": 12514,
+      "sha256": "c750526b037597a4eabbe40983ce02a45a1719dbf3592e983b20736008ead16b"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/d3d9.dll",
+      "bytes": 262656,
+      "sha256": "b2605d9ad4d28962970ad815bb1021751beba67fb06da1ed3e19466fa8c27372"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/debug-load.png",
+      "bytes": 478186,
+      "sha256": "df46e07e81e5ec32523aa86fecd17a4dc1e18c8c71548b3d54fd25c1c5770fa2"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/debug-menu.png",
+      "bytes": 1152064,
+      "sha256": "ee5da5f90ab1e36244f983c907f47db0e46b3207a51bb13c989bc8dbfb920925"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/diary.png",
+      "bytes": 437756,
+      "sha256": "a5896f6fe89eb7d483c2261ac4422e8fa5dadd8c21dc66057a2b003a663899a6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/GameStateLog.txt",
+      "bytes": 1388,
+      "sha256": "ca21c59ff4ede864707176e49f6792503e6f98a523c38380d492196b785d68e4"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/gardenia.png",
+      "bytes": 1582948,
+      "sha256": "107aee1383a6a6a6bba87dce9703575e28d83661808a2cc09ff153ee46ce8697"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/launch.json",
+      "bytes": 1607,
+      "sha256": "09a81f3647e1e43cfafc5e4bf4e82986dd7806901d812fd17ec65ace80b3b3cc"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/loading.png",
+      "bytes": 389623,
+      "sha256": "8d95fce798151b917efa89146073d80e3d8661755852529e72f8bebbca39eaf8"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/menu.png",
+      "bytes": 355717,
+      "sha256": "b265f36e79d7f5890f826ca3f0361039d570bc7590de4bd907dc078c4dc3eb85"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/rtx.conf",
+      "bytes": 399,
+      "sha256": "e5c7da2789a48e4cb8e47b74af8a8789b3b00093bfd4dc64539ff9df12d727e0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/runtime-logs/bridge32.log",
+      "bytes": 5506,
+      "sha256": "69a575beef9826b51ae78155198d82ec2f8c61aba93c5b63eba0d78c30f6d60b"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/runtime-logs/bridge64.log",
+      "bytes": 1904,
+      "sha256": "56f5fee7cb60801bb1f5a4a5d20b87a31d19876459fcf4ceb9cb9059527fdd42"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/runtime-logs/remix-dxvk.log",
+      "bytes": 17848,
+      "sha256": "1b9d3bad90b712041a3811de2d1b9d57f81de62e2a0f3d815101c61748edaf85"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/saves-before/Saved00.wxs",
+      "bytes": 349,
+      "sha256": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/saves-before/Saved01.wxs",
+      "bytes": 349,
+      "sha256": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/saves-before/Settings00.wxs",
+      "bytes": 40,
+      "sha256": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/saves-before/Settings01.wxs",
+      "bytes": 40,
+      "sha256": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/saves.png",
+      "bytes": 364772,
+      "sha256": "4fc312ed353553108664e356a063ddc1bfc300331a24cee6d84981d56e4155a2"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BallisticPFX.vsh.asm",
+      "bytes": 1081,
+      "sha256": "4d47d62f12ccba56b5ae8e6d557178acb175add82ac80d3586a9afb2011bff62"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BallisticPFX.vsh.assembled.bin",
+      "bytes": 656,
+      "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BasicShader.vsh.asm",
+      "bytes": 180,
+      "sha256": "3db6af609bfe278d34ec962957628868cf9b2c8a6bc3d3cce565ea71bb43a19f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BasicShader.vsh.assembled.bin",
+      "bytes": 96,
+      "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Blur.psh.asm",
+      "bytes": 259,
+      "sha256": "4e90f2b3d597f2d2309709da4db16868d191dd9d0fe651482f9a43244e7262dd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Blur.psh.assembled.bin",
+      "bytes": 140,
+      "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Blur.vsh.asm",
+      "bytes": 479,
+      "sha256": "b4aacdcaf62377f7f08ea4a119af2b1bf2105a17610ee3bbce325153a034b4ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Blur.vsh.assembled.bin",
+      "bytes": 256,
+      "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BlurLuminance.psh.asm",
+      "bytes": 317,
+      "sha256": "236aa1b70a0045cdf7f0b0cdc0e6f3468ff638f60675cee974e207d756307901"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/BlurLuminance.psh.assembled.bin",
+      "bytes": 184,
+      "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Luminance.psh.asm",
+      "bytes": 265,
+      "sha256": "279b3d6c38732b97a2f0b0561c4f09041969b064dac5e71e50e8ac592972b044"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/Luminance.psh.assembled.bin",
+      "bytes": 124,
+      "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0001.asm",
+      "bytes": 1081,
+      "sha256": "4d47d62f12ccba56b5ae8e6d557178acb175add82ac80d3586a9afb2011bff62"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0002.asm",
+      "bytes": 180,
+      "sha256": "3db6af609bfe278d34ec962957628868cf9b2c8a6bc3d3cce565ea71bb43a19f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0003.asm",
+      "bytes": 479,
+      "sha256": "b4aacdcaf62377f7f08ea4a119af2b1bf2105a17610ee3bbce325153a034b4ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0004.asm",
+      "bytes": 560,
+      "sha256": "01b9a751370a74404d9bc64838b3096ced905ffd5c1597381047e8c7de9b786a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0005.asm",
+      "bytes": 259,
+      "sha256": "4e90f2b3d597f2d2309709da4db16868d191dd9d0fe651482f9a43244e7262dd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0006.asm",
+      "bytes": 317,
+      "sha256": "236aa1b70a0045cdf7f0b0cdc0e6f3468ff638f60675cee974e207d756307901"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0007.asm",
+      "bytes": 265,
+      "sha256": "279b3d6c38732b97a2f0b0561c4f09041969b064dac5e71e50e8ac592972b044"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0008.asm",
+      "bytes": 3149,
+      "sha256": "1f5ab3bfeaec06cf9d0bed520dfeda0b46e26ec39f6e7930215d58345b690b95"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0009.asm",
+      "bytes": 3190,
+      "sha256": "7d5f9291600232859303745a36fa69dbdcc6888f5cb529c0b29167ff991415ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0010.asm",
+      "bytes": 1397,
+      "sha256": "26abd79dd1094f8f0bc8100553b292d49d57a1d054a982ca726ea5a30ebc2d80"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0011.asm",
+      "bytes": 1356,
+      "sha256": "b849dccb7f7d9bb70111d905584bed9933dfe681fd9251ff70602ab44f9a9934"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0012.asm",
+      "bytes": 2769,
+      "sha256": "70b1c115695b261febe9a18191c0bced2fe7752261008fe21fcf15c87dfd2819"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0013.asm",
+      "bytes": 2649,
+      "sha256": "4c831eb1c7002ee3be948e39a1bd41f6c6a86193c49df0dfdc783eb64ee1f5ba"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0014.asm",
+      "bytes": 2690,
+      "sha256": "889dafdd23c70c4bc7d730df464bbb5825270f8005effdcd71e1c070a2f9781e"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/shader-0015.asm",
+      "bytes": 1317,
+      "sha256": "436be0b9ca1b5fb69830a7410dfc9b5483bdcf1e6f22275c998d608747abd016"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/ShadowVolumePoint.vsh.asm",
+      "bytes": 560,
+      "sha256": "01b9a751370a74404d9bc64838b3096ced905ffd5c1597381047e8c7de9b786a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-analysis/ShadowVolumePoint.vsh.assembled.bin",
+      "bytes": 340,
+      "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shader-coverage.json",
+      "bytes": 15481,
+      "sha256": "8c64c16f461afba9e659a593055c3e3338577bc7a6b682fdfffee284407f8f2d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/audit.jsonl",
+      "bytes": 90110,
+      "sha256": "7c3859e536e783c9b434afd734f9b84611fee8934fe312473d609f0be0118a06"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0001.bin",
+      "bytes": 656,
+      "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0002.bin",
+      "bytes": 96,
+      "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0003.bin",
+      "bytes": 256,
+      "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0004.bin",
+      "bytes": 340,
+      "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0005.bin",
+      "bytes": 140,
+      "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0006.bin",
+      "bytes": 184,
+      "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0007.bin",
+      "bytes": 124,
+      "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0008.bin",
+      "bytes": 1904,
+      "sha256": "ae0045bb24ccefb07755f5a5b318e6573553165e41ecf6128d7bd867af6dd3ff"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0009.bin",
+      "bytes": 1928,
+      "sha256": "3a904027c935606866f54b526d2d91b57e216b963cf592a924ae261686871823"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0010.bin",
+      "bytes": 836,
+      "sha256": "9ce7bddaa2217d12d7d770fcac4eb2e3ab920920b610155c21406f91bad6b417"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0011.bin",
+      "bytes": 812,
+      "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0012.bin",
+      "bytes": 1696,
+      "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0013.bin",
+      "bytes": 1604,
+      "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0014.bin",
+      "bytes": 1628,
+      "sha256": "389000895a2da4cfa1a89a105e9e61292cf91ab294640abee049175b9d088998"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client/shader-0015.bin",
+      "bytes": 776,
+      "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_FS_2971de55e6864bfbedb3fd87a5b90df0fb5693c3.spv",
+      "bytes": 9044,
+      "sha256": "07778580804ec29def42745fecf54ad413ed1d65b4e1d29bd398ef1933b04b95"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_FS_2e8fc7bdc00f8d96d6a8adfb3aa880d4b6bc559e.spv",
+      "bytes": 7464,
+      "sha256": "1f6884cbe1c998d5a9b7bce3c99a46814bf9bb29c840dfe55d40c9253b38edba"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_FS_327b5b2e9b7e8cbb3b3724155527803e45c64daa.spv",
+      "bytes": 8972,
+      "sha256": "f790fe0bf44f57db38cb95cddc286848e7685305a9128e7e5131e61e356bd0da"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_FS_516fd910cd77475a5f4c7443ffa12a80bbf3e742.spv",
+      "bytes": 8952,
+      "sha256": "463d0988560ebde57a7b60c160640b83489a51a822360bbe68a5b5f87980b0bd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_329f3a505835e9f8fe41af5057ee71c22bba69cf.spv",
+      "bytes": 8868,
+      "sha256": "553b107396917d851cbe2d648e24bad9d26727407d715b361882fa666b8a5570"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_3e46b33ded3744796f0ba36ccaaaebddd9a06294.spv",
+      "bytes": 8912,
+      "sha256": "38b7cda9287e9768300fbd38c4e710bb39c30bca31aa979abcbec41016bab90b"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_5699d65180b2d0912cc315df542cdcd24e782f58.spv",
+      "bytes": 8868,
+      "sha256": "5089ab3c34b73771f6e3653939bbd92a4241d63466452a018f8b245cdd233657"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_677481239ad9842e9756e0e86c3c2368076af530.spv",
+      "bytes": 12492,
+      "sha256": "a24b8b31f9c65f62e98f01703d4a1580596ef4e8e088357ce5145db68099a754"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_99fe3b40bf1bbc21c9b4d2de11ba756d754725ab.spv",
+      "bytes": 9048,
+      "sha256": "14ea1478a0a0e4040ad5c9a307826806bf5cbb078e0fcca54672b4c74636d910"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_b4b2815ae2411cd80e6c2f4b19b0937235221362.spv",
+      "bytes": 8912,
+      "sha256": "c570e053e68ce9a8b90411e45aad6f601e2ca739161bbebc5a910f0a4df1352f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_be0bc11238903036618edbf60a6128321023a6ef.spv",
+      "bytes": 12492,
+      "sha256": "59dd3948bd4c24688e15a1625a550b98c758c4e89d7b6b94407c80cf64570e4a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_bffa6f8c9f5bdb515ce1d7c33e20b1cf58fb1e9f.spv",
+      "bytes": 8912,
+      "sha256": "fb0262c2a6bcb278bf730e5d6a64d441d64bc937154debb8247aa9dce7c5bf96"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FF_VS_c218919ca39b07b3469d27fee8b65bb69033c9b3.spv",
+      "bytes": 9048,
+      "sha256": "96e0dfa6aaffdd65d26bdfddca38d865c9d3169ef1802fd2b974444840502f4c"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_3883106639d97d802f865433d8f755db6ec7fe6b.dxso",
+      "bytes": 124,
+      "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_3883106639d97d802f865433d8f755db6ec7fe6b.dxso.dis",
+      "bytes": 1313,
+      "sha256": "67b8feca5803631b75d9595b7af10be7d03b5f80b69220c75b05d30927e32d71"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_3883106639d97d802f865433d8f755db6ec7fe6b.spv",
+      "bytes": 12392,
+      "sha256": "554aa1a8dd3ebab564d8b7abc6c00a74df5f150c470f3524a49e389c33439a31"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_b30a706773d49db0d31be8a2ce57eac38bffb282.dxso",
+      "bytes": 184,
+      "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_b30a706773d49db0d31be8a2ce57eac38bffb282.dxso.dis",
+      "bytes": 1919,
+      "sha256": "e82fc6fe90159afa069e66c95bc068148bf9baababfa8df74672ae428b9096f0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_b30a706773d49db0d31be8a2ce57eac38bffb282.spv",
+      "bytes": 26248,
+      "sha256": "2a4d24b01ca4ef3df378d1430c9f7fa624c1a0a9231c83b10cf4db40978d53d2"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_ecd64e546b1a2ab560c43ed9aa525353ea77a540.dxso",
+      "bytes": 140,
+      "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_ecd64e546b1a2ab560c43ed9aa525353ea77a540.dxso.dis",
+      "bytes": 1523,
+      "sha256": "96a3ec68a40deac791de3282c7e737cc7e3c1d974a9e51f911b3fb781a17a8de"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/FS_ecd64e546b1a2ab560c43ed9aa525353ea77a540.spv",
+      "bytes": 25820,
+      "sha256": "d64dbee2c4fb46ea81ab4d192edb279b426946a3fbdf81421e2465ac46833d64"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_08b212b247d4537e5cd5acdb8d84747f0c79b1ef.dxso",
+      "bytes": 256,
+      "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_08b212b247d4537e5cd5acdb8d84747f0c79b1ef.dxso.dis",
+      "bytes": 2573,
+      "sha256": "9588008dc69950582ec38da76f5e85d158c0224caf244dcd453580616023e01d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_08b212b247d4537e5cd5acdb8d84747f0c79b1ef.spv",
+      "bytes": 9416,
+      "sha256": "348be42937cad4bda3d46d2b7ec30572822a5576b7c4c34047da0ce6f67237a5"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_1b5f0d5b49cff0ea173311eff64159f29c81e74d.dxso",
+      "bytes": 1696,
+      "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_1b5f0d5b49cff0ea173311eff64159f29c81e74d.dxso.dis",
+      "bytes": 12458,
+      "sha256": "f4ad6f5d1d774f829da45e43c57b155679fd379d47bedee10a8a49ae8304c022"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_1b5f0d5b49cff0ea173311eff64159f29c81e74d.spv",
+      "bytes": 23556,
+      "sha256": "1c57d20f5692501ffcbd69928e937299a4b51d6be9a07b605f335e3212234a1c"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_720f365db6b55c3e65fd0a9ae396712a72d7f19e.dxso",
+      "bytes": 656,
+      "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_720f365db6b55c3e65fd0a9ae396712a72d7f19e.dxso.dis",
+      "bytes": 6220,
+      "sha256": "5a6cde434e358d94b2026b25b1bf2f497e3368577eb2a1ae524e0b54b1e2546f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_720f365db6b55c3e65fd0a9ae396712a72d7f19e.spv",
+      "bytes": 14228,
+      "sha256": "7f49470c58a026b47fe855d3a9ca330bdcd009071d29624554466b2c8a4cff25"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_92470d33ded392a079d5225d61e2dcd6704797e1.dxso",
+      "bytes": 96,
+      "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_92470d33ded392a079d5225d61e2dcd6704797e1.dxso.dis",
+      "bytes": 952,
+      "sha256": "5a4f83f9751e6ba4320649005b49fd80593156f06a1f7ec5c542f7b574a4d1c7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_92470d33ded392a079d5225d61e2dcd6704797e1.spv",
+      "bytes": 6680,
+      "sha256": "5a439fae9c2473395aca9a83e9c5d0b0546cde935e2f3c8a7f11d888e3e9f8fe"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9731482caabe70cec7fd679a40c53da0df2d2be7.dxso",
+      "bytes": 812,
+      "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9731482caabe70cec7fd679a40c53da0df2d2be7.dxso.dis",
+      "bytes": 5798,
+      "sha256": "a1576c10dae5ee0c88f17545b1e1a391854d3d5f91a1cc3a09f137712a495cc4"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9731482caabe70cec7fd679a40c53da0df2d2be7.spv",
+      "bytes": 13440,
+      "sha256": "1b1e978a825d0d53304b4cf713d664514ba850359338de841dbcf3a45d12f1ce"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9b4b538f2e3940dd4606f76eed2b00c4f00ddc59.dxso",
+      "bytes": 776,
+      "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9b4b538f2e3940dd4606f76eed2b00c4f00ddc59.dxso.dis",
+      "bytes": 5822,
+      "sha256": "902914f0eae6e8605302565bfc243a75c0c805e8106071a71841432b5ec7ca6a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_9b4b538f2e3940dd4606f76eed2b00c4f00ddc59.spv",
+      "bytes": 13576,
+      "sha256": "954f6c2fe968f0b7e3113a9480b293ad62015015c12f5763a4fd660908c1f491"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_cc5726df26a50c727f6276e295b736288110bb7d.dxso",
+      "bytes": 340,
+      "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_cc5726df26a50c727f6276e295b736288110bb7d.dxso.dis",
+      "bytes": 3332,
+      "sha256": "e914c1af7ac99bb47b193dcba2bb10a8c7b67b7c586d75a3ddeebb67ed682a9b"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_cc5726df26a50c727f6276e295b736288110bb7d.spv",
+      "bytes": 10484,
+      "sha256": "46bfe7f8f8adbed97c93efe10488d545f44669ff46f9dcb2227621edc36cde21"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d577e3d58167f62875360147643056716af866b6.dxso",
+      "bytes": 1904,
+      "sha256": "ae0045bb24ccefb07755f5a5b318e6573553165e41ecf6128d7bd867af6dd3ff"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d577e3d58167f62875360147643056716af866b6.dxso.dis",
+      "bytes": 14282,
+      "sha256": "b9a2ca117359b04d0e8832abe33e9b77641cc8f09aa54b6397fdb2f58cadb933"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d577e3d58167f62875360147643056716af866b6.spv",
+      "bytes": 25232,
+      "sha256": "a4bb01c6b696f623d35e3470a1beab9ad2cbc72585511467cd6f235c4e3b364f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d96eb0da25de5d6905b52b12c67982812496e2ad.dxso",
+      "bytes": 1604,
+      "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d96eb0da25de5d6905b52b12c67982812496e2ad.dxso.dis",
+      "bytes": 12002,
+      "sha256": "03eb44c76438c63c57aabffd0ea16979bb54d459366eecab597d1cf6b4524d55"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_d96eb0da25de5d6905b52b12c67982812496e2ad.spv",
+      "bytes": 22896,
+      "sha256": "8b838190789e8fd9d58bea310e795a50ac07d60e9435d1a5ad3dc16c6601a0d9"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e014b2ebc473e710e2c296d4b3a5d1e8676b3aa3.dxso",
+      "bytes": 1928,
+      "sha256": "3a904027c935606866f54b526d2d91b57e216b963cf592a924ae261686871823"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e014b2ebc473e710e2c296d4b3a5d1e8676b3aa3.dxso.dis",
+      "bytes": 14507,
+      "sha256": "3e111175ac6ab00fc771df4898c7dc81d351e937e0513e04a6607f54d1e3bdc7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e014b2ebc473e710e2c296d4b3a5d1e8676b3aa3.spv",
+      "bytes": 25636,
+      "sha256": "1977ae20964a8fdef6a448ba85858cf55271300035b512a5e10d6014c6c8e462"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e67bd6d1844d7c27a7d654df0234759d144cf78c.dxso",
+      "bytes": 1628,
+      "sha256": "389000895a2da4cfa1a89a105e9e61292cf91ab294640abee049175b9d088998"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e67bd6d1844d7c27a7d654df0234759d144cf78c.dxso.dis",
+      "bytes": 12227,
+      "sha256": "7a8ff0cda163b24dbbfcbb08cc8d3f163fd1572a57890f272bef1b0d55164efb"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_e67bd6d1844d7c27a7d654df0234759d144cf78c.spv",
+      "bytes": 23300,
+      "sha256": "cec6761ad132d5e7097ba6c90c3eb10ca84b7afd492f2cc76735addf0d1abe12"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_ffe930cfcab553d33a873bf1415ba2c50766fcea.dxso",
+      "bytes": 836,
+      "sha256": "9ce7bddaa2217d12d7d770fcac4eb2e3ab920920b610155c21406f91bad6b417"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_ffe930cfcab553d33a873bf1415ba2c50766fcea.dxso.dis",
+      "bytes": 6023,
+      "sha256": "dcd21d296be00e3cfb7355d40c772fe2d774e9cc4926cd9d32436ea0b4d4648f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-server/VS_ffe930cfcab553d33a873bf1415ba2c50766fcea.spv",
+      "bytes": 13844,
+      "sha256": "80c5dddaffc82723aedc5b706c58eacd87414b1d74954abe72fd26a6aceda715"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/title.png",
+      "bytes": 683387,
+      "sha256": "0506830b7068b2eab8464c222dc04f890191ce41496b29c47edd073121f94c45"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/user.conf.before",
+      "bytes": 24,
+      "sha256": "5879d861fe4db66602f4d44ff43cd9e072627a9c4b5ed96d3bb33a323b2a8309"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-audit/winx.ini.before",
+      "bytes": 106,
+      "sha256": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/alfea.png",
+      "bytes": 727401,
+      "sha256": "9cc50cf32a39c169637e9ec4a93665a2d250102b62fd5b27b212e8fc455f1d4a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/cancel-select.png",
+      "bytes": 528242,
+      "sha256": "58a4de98df02c25a920708a2913dc103b5f32b43ff1722b4f449fa4c0e35b600"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/continue-confirmed.png",
+      "bytes": 517545,
+      "sha256": "c84efe2ceb414f9978b5d3de13067d99ea32536106426b389bc98167ac0150b0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/continue-saves.png",
+      "bytes": 536064,
+      "sha256": "ee248ebf62f24678c5c036321e8f865645e9f6caa82a673485d54e36974ffb52"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/continue.png",
+      "bytes": 532767,
+      "sha256": "ab56f6902761acffbf8845a046e617f8a68a7816baab2f7a3f5454aee1c05109"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/d3d9.dll",
+      "bytes": 262656,
+      "sha256": "b2605d9ad4d28962970ad815bb1021751beba67fb06da1ed3e19466fa8c27372"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/debug-load.png",
+      "bytes": 624305,
+      "sha256": "d36460818e0a6748cc32c20f3dac97faebbc87cd8002f7ecdde25c75abf2d23c"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/debug-menu.png",
+      "bytes": 734510,
+      "sha256": "60fc82aadb7062860ee43c8e3abe7382e0061d78a7686cf469292ca91acc0b5f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/GameStateLog.txt",
+      "bytes": 1335,
+      "sha256": "2b8362f9fb8ebd94ba6f2dcf810405f4d64a1e4c595547875d61b72c2402e220"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/gardenia.png",
+      "bytes": 2022708,
+      "sha256": "ca7b8a6d38225c7b6217837075a3d9b8483b9c19b87f6cfc8f4413676fe2e480"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/launch.json",
+      "bytes": 1503,
+      "sha256": "b22b63d244f527472bece3abe119c3bf32bd2cc91493bcfafa36be2167ed89af"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/load-saves.png",
+      "bytes": 521237,
+      "sha256": "d31c245bd25b20127d6b3fed4501d0b45f34cdf92045f0a337b05c0280adb23c"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/loading-alfea.png",
+      "bytes": 533610,
+      "sha256": "858d54cbc1b97b58a36af17e5c848e1f4a0be0da67493114b8b4f9fdb3b38a98"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/loading.png",
+      "bytes": 533108,
+      "sha256": "aff28a5b616926b63cce52f6dccd56d4fbd240e2b742f36d70cd3259416312dd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/menu-return.png",
+      "bytes": 535972,
+      "sha256": "5cbd604044523d15349684838f503ef8569dd9785f944386b3f93068c6cb9427"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/menu.png",
+      "bytes": 516057,
+      "sha256": "9409811d9499a36bbed1621f40d8a2c843917a03b070d3ccd2300a2898a8eafb"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/rtx.conf",
+      "bytes": 206,
+      "sha256": "76f1289972919ce91dd46ab25edecfe312f6f3c6c9bd9e2adb82cde086e0c969"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/saves-before/Saved00.wxs",
+      "bytes": 349,
+      "sha256": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/saves-before/Saved01.wxs",
+      "bytes": 349,
+      "sha256": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/saves-before/Settings00.wxs",
+      "bytes": 40,
+      "sha256": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/saves-before/Settings01.wxs",
+      "bytes": 40,
+      "sha256": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/saves.png",
+      "bytes": 535887,
+      "sha256": "9a80c364e63e2bcf425f5630e78ee1b98aa8a4c7c26117acdca384b76ed8100e"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BallisticPFX.vsh.asm",
+      "bytes": 1081,
+      "sha256": "4d47d62f12ccba56b5ae8e6d557178acb175add82ac80d3586a9afb2011bff62"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BallisticPFX.vsh.assembled.bin",
+      "bytes": 656,
+      "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BasicShader.vsh.asm",
+      "bytes": 180,
+      "sha256": "3db6af609bfe278d34ec962957628868cf9b2c8a6bc3d3cce565ea71bb43a19f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BasicShader.vsh.assembled.bin",
+      "bytes": 96,
+      "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Blur.psh.asm",
+      "bytes": 259,
+      "sha256": "4e90f2b3d597f2d2309709da4db16868d191dd9d0fe651482f9a43244e7262dd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Blur.psh.assembled.bin",
+      "bytes": 140,
+      "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Blur.vsh.asm",
+      "bytes": 479,
+      "sha256": "b4aacdcaf62377f7f08ea4a119af2b1bf2105a17610ee3bbce325153a034b4ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Blur.vsh.assembled.bin",
+      "bytes": 256,
+      "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BlurLuminance.psh.asm",
+      "bytes": 317,
+      "sha256": "236aa1b70a0045cdf7f0b0cdc0e6f3468ff638f60675cee974e207d756307901"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/BlurLuminance.psh.assembled.bin",
+      "bytes": 184,
+      "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Luminance.psh.asm",
+      "bytes": 265,
+      "sha256": "279b3d6c38732b97a2f0b0561c4f09041969b064dac5e71e50e8ac592972b044"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/Luminance.psh.assembled.bin",
+      "bytes": 124,
+      "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0001.asm",
+      "bytes": 1081,
+      "sha256": "4d47d62f12ccba56b5ae8e6d557178acb175add82ac80d3586a9afb2011bff62"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0002.asm",
+      "bytes": 180,
+      "sha256": "3db6af609bfe278d34ec962957628868cf9b2c8a6bc3d3cce565ea71bb43a19f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0003.asm",
+      "bytes": 479,
+      "sha256": "b4aacdcaf62377f7f08ea4a119af2b1bf2105a17610ee3bbce325153a034b4ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0004.asm",
+      "bytes": 560,
+      "sha256": "01b9a751370a74404d9bc64838b3096ced905ffd5c1597381047e8c7de9b786a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0005.asm",
+      "bytes": 259,
+      "sha256": "4e90f2b3d597f2d2309709da4db16868d191dd9d0fe651482f9a43244e7262dd"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0006.asm",
+      "bytes": 317,
+      "sha256": "236aa1b70a0045cdf7f0b0cdc0e6f3468ff638f60675cee974e207d756307901"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0007.asm",
+      "bytes": 265,
+      "sha256": "279b3d6c38732b97a2f0b0561c4f09041969b064dac5e71e50e8ac592972b044"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0008.asm",
+      "bytes": 3149,
+      "sha256": "1f5ab3bfeaec06cf9d0bed520dfeda0b46e26ec39f6e7930215d58345b690b95"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0009.asm",
+      "bytes": 3190,
+      "sha256": "7d5f9291600232859303745a36fa69dbdcc6888f5cb529c0b29167ff991415ca"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0010.asm",
+      "bytes": 1397,
+      "sha256": "26abd79dd1094f8f0bc8100553b292d49d57a1d054a982ca726ea5a30ebc2d80"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0011.asm",
+      "bytes": 1356,
+      "sha256": "b849dccb7f7d9bb70111d905584bed9933dfe681fd9251ff70602ab44f9a9934"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0012.asm",
+      "bytes": 2690,
+      "sha256": "889dafdd23c70c4bc7d730df464bbb5825270f8005effdcd71e1c070a2f9781e"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0013.asm",
+      "bytes": 2649,
+      "sha256": "4c831eb1c7002ee3be948e39a1bd41f6c6a86193c49df0dfdc783eb64ee1f5ba"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0014.asm",
+      "bytes": 2769,
+      "sha256": "70b1c115695b261febe9a18191c0bced2fe7752261008fe21fcf15c87dfd2819"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/shader-0015.asm",
+      "bytes": 1317,
+      "sha256": "436be0b9ca1b5fb69830a7410dfc9b5483bdcf1e6f22275c998d608747abd016"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/ShadowVolumePoint.vsh.asm",
+      "bytes": 560,
+      "sha256": "01b9a751370a74404d9bc64838b3096ced905ffd5c1597381047e8c7de9b786a"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-analysis/ShadowVolumePoint.vsh.assembled.bin",
+      "bytes": 340,
+      "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shader-coverage.json",
+      "bytes": 13440,
+      "sha256": "032f02820ee6352eb16f42a4c8d9bdd52ec569222ecff31d8c1506352e966fbb"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/audit.jsonl",
+      "bytes": 101544,
+      "sha256": "840f2e5c9f1d5f430b64ba2c64377962515b8aebe6b9e6afc264bec575351c41"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0001.bin",
+      "bytes": 656,
+      "sha256": "529dbabef8fdd2d0a3064380d41cf6bf3d245938322f0f6acd026662db8bcaa3"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0002.bin",
+      "bytes": 96,
+      "sha256": "591769d6c99a7b09b966dc75b93454e49d02cef00375bc9d11f2afa9315ebec7"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0003.bin",
+      "bytes": 256,
+      "sha256": "c3effd87b0faf34642d7d3e7cfc44f1e600d5ef004d988cc6b4df99c232d479d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0004.bin",
+      "bytes": 340,
+      "sha256": "af7f422a128a337d7f6365bd844e18db1351f9342f76c4df6f78349021beb13f"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0005.bin",
+      "bytes": 140,
+      "sha256": "e91beef87c1a0c408e445ffa09340e66372c22d22afd7b5f30cd8bf016d3d079"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0006.bin",
+      "bytes": 184,
+      "sha256": "e13aa92450cb10bca522bafa11e8cdd6ff8bb0c2912f632b4c533adf80c9ae94"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0007.bin",
+      "bytes": 124,
+      "sha256": "3c9f3002af5aaad699df7f7504ea391ac64a9555fc2d7e4133ba925943028c90"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0008.bin",
+      "bytes": 1904,
+      "sha256": "ae0045bb24ccefb07755f5a5b318e6573553165e41ecf6128d7bd867af6dd3ff"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0009.bin",
+      "bytes": 1928,
+      "sha256": "3a904027c935606866f54b526d2d91b57e216b963cf592a924ae261686871823"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0010.bin",
+      "bytes": 836,
+      "sha256": "9ce7bddaa2217d12d7d770fcac4eb2e3ab920920b610155c21406f91bad6b417"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0011.bin",
+      "bytes": 812,
+      "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0012.bin",
+      "bytes": 1628,
+      "sha256": "389000895a2da4cfa1a89a105e9e61292cf91ab294640abee049175b9d088998"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0013.bin",
+      "bytes": 1604,
+      "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0014.bin",
+      "bytes": 1696,
+      "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/shaders-client/shader-0015.bin",
+      "bytes": 776,
+      "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/user.conf.before",
+      "bytes": 24,
+      "sha256": "5879d861fe4db66602f4d44ff43cd9e072627a9c4b5ed96d3bb33a323b2a8309"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-shader-native/winx.ini.before",
+      "bytes": 106,
+      "sha256": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0"
+    },
+    {
+      "path": "local-data/rtx-remix/shader-audit-2026-09-12/comparison.json",
+      "bytes": 3136,
+      "sha256": "fc9e1b2df57c577f2c5ab2b395f3cf68d61579701f969da5eecbc14a54c05cd5"
+    },
+    {
+      "path": "local-data/rtx-remix/shader-audit-2026-09-12/d3d9.before.dll",
+      "bytes": 244736,
+      "sha256": "812532f6fc6fd27616c51dea0bbd8f9460196346264787559fe06c1e4af4e049"
+    },
+    {
+      "path": "local-data/rtx-remix/shader-audit-2026-09-12/preserved-before.json",
+      "bytes": 2302,
+      "sha256": "9d69cdf88f93f0c60c083ece982ed28a5057a789b30de686fdcd9ab17f81dffb"
+    },
+    {
+      "path": "local-data/rtx-remix/shader-audit-2026-09-12/validation.json",
+      "bytes": 386,
+      "sha256": "40d5d113e60f91ec762ed8eda5ac41f6d73c2dede4994d37591178ce1ac9f297"
+    },
+    {
+      "path": "local-data/Winx Club/Play-RTX-Shader-Audit.cmd",
+      "bytes": 172,
+      "sha256": "77eba084a37ea3439140a93742fc0953fe4958bd7a1273e686dfdce32904bdc7"
+    },
+    {
+      "path": "research/rtx-remix/analyze_shader_audit.py",
+      "bytes": 7651,
+      "sha256": "9cbf8da3e27548a705893705f153bb37c111eb5d471cd7d74a06132cefed8baf"
+    },
+    {
+      "path": "research/rtx-remix/Build-Probe.ps1",
+      "bytes": 2185,
+      "sha256": "d95fda4f1d6c3304f9743d70c18ee77723513abac9fc3ac439ef520f2deab5e5"
+    },
+    {
+      "path": "research/rtx-remix/README.md",
+      "bytes": 13860,
+      "sha256": "9b7902f774bf12c4341f2fce3cd6b066ee64dfea453fe1f7996213dd5c122dad"
+    },
+    {
+      "path": "research/rtx-remix/Run-WinxRemix.ps1",
+      "bytes": 1683,
+      "sha256": "24bb414509af6f8401dc9e41ba2fed1b849cc08b59639ac9eb299f11e35a81e5"
+    },
+    {
+      "path": "research/rtx-remix/Start-Probe.ps1",
+      "bytes": 5843,
+      "sha256": "809d5da7cb5cf6414dfed04acdcaf0dc99aabd81a264b469e3925869b862d700"
+    },
+    {
+      "path": "research/rtx-remix/winx_d3d9_probe.cpp",
+      "bytes": 40375,
+      "sha256": "d494f3fbf3e27963388ff2a1667bffa03a87af625f22d29e1d751452f0dc5e93"
+    },
+    {
+      "path": "research/rtx-remix/winx_shader_audit.h",
+      "bytes": 8253,
+      "sha256": "9b48b5960fdb9242b9de993ddbe1f238c2eba3207ff002483b6a0d9fdb58f164"
+    }
+  ],
+  "limitations": [
+    "Only menu, loading, Alfea, Gardenia01 and diary; unvisited scene variants remain open.",
+    "Exact shader transfer and SPIR-V translation do not prove correct ray-traced materials or geometry.",
+    "Native SetShader/SetConstants hook completeness is not established.",
+    "Shader constants were counted on Remix client, not compared byte-for-byte on the server.",
+    "Periodic draw counters end at last snapshot; Ex-only device creation is not covered."
+  ]
+}
