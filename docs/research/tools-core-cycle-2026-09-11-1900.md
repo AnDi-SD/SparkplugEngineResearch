@@ -236,3 +236,15 @@ JSON NaN report и sentinel expectation исправлены; game алгори�
 совпадение output с обоими qualified результатами блока18. Обычный full reader
 и его authoring guard сохранены. First-run Save assertion исправлена вызовом
 штатной кнопки планирования; GUI guard не менялся. Игровой код не изменён.
+
+## Блок 21 — конечный контроль потребителей и SAN console fix
+
+[Выбранные end-to-end операции](tool-final-consumer-checks-2026-09-11.md)
+прошли у Exporter/LVLcreator/TextureTool/SanToVmd/WinxHairPatcher:6513+423+16+38
+managed checks и39 Python tests. Вместе с актуальными Viewer/Importer из19/20
+это проверка всех семи потребителей, не обещание полноты всех ядер.
+Full Icy VMD сохранил прежние2601 keys и точный output hash. Найден и исправлен
+реальный host bug: консольная UnicodeEncodeError при API-вызове меняла успешный
+conversion result и могла прервать batch. Первоначальный отказ сохранён.
+Пять TextureTool build warnings (toolchain/analyzer и test Bitmap.Save) остаются
+явными; ошибки сборки отсутствуют.

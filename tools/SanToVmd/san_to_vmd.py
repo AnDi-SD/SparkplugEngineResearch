@@ -657,6 +657,18 @@ def write_vmd(path, clip, retargeter, model_name):
 
 # ------------------- Запуск: input → output ---------------------------
 
+def _print_status(message):
+    """Console encoding must not change a completed conversion's result.
+
+    API callers do not run __main__'s stdout setup. Escape only unrepresentable
+    console characters; filesystem names and UTF-8 JSON remain unchanged.
+    """
+    encoding = getattr(sys.stdout, "encoding", None)
+    if encoding:
+        message = message.encode(encoding, errors="backslashreplace").decode(encoding)
+    print(message)
+
+
 def find_files(directory, extension):
     """Список файлов одного типа прямо в input, без обхода вложенных папок."""
     # lower() позволяет одинаково воспринимать .san, .SAN и .San.
@@ -694,8 +706,8 @@ def convert_files(directory, output):
     with closing(read_skeleton(skeleton_path)) as source:
         model_name, target, iks = read_pmd(model_path)
         with closing(Retargeter(source, target, iks, BODY_ONLY, MOTION_SCALE)) as rig:
-            print(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
-            print("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
+            _print_status(f"Скелет: {skeleton_path.name}; модель MMD: {model_path.name}; анимаций: {len(paths)}")
+            _print_status("Готовые VMD появятся в output. Одноимённые результаты будут обновлены.")
 
             # Шаг 4. Обрабатываем по одной анимации, чтобы не хранить весь набор в памяти.
             # Ошибка одного SAN не мешает получить остальные исправные анимации.
@@ -709,10 +721,10 @@ def convert_files(directory, output):
                         row.update(status="ok", duration=clip.duration, frames=frames, bones=bones,
                                    ignored_tracks=clip.ignored, ignored_tags=clip.tags,
                                    missing_tracks=sorted(set(rig.order)-set(clip.tracks)))
-                    print(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
+                    _print_status(f"ГОТОВО {path.name} → {destination.name}: {frames} кадров")
                 except (OSError, ValueError, struct.error, OverflowError) as error:
                     row.update(status="error", error=str(error))
-                    print(f"ОШИБКА {path.name}: {error}")
+                    _print_status(f"ОШИБКА {path.name}: {error}")
                 rows.append(row)
 
             # Шаг 5. Сохраняем читаемый отчёт. Там видно, какие файлы удались,
@@ -723,7 +735,7 @@ def convert_files(directory, output):
             (output / "conversion_report.json").write_text(
                 json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             errors = sum(row["status"] == "error" for row in rows)
-            print(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
+            _print_status(f"Готово: {len(rows)-errors}; ошибок: {errors}. Результаты: {output}")
             return 1 if errors else 0  # Ноль означает успешное завершение программы.
 
 
@@ -736,7 +748,7 @@ def main():
             raise ConversionError("Параметры запуска не нужны. Положите SMO, PMD и SAN в input и запустите run.bat.")
         return convert_files(INPUT_DIR, OUTPUT_DIR)
     except (OSError, ValueError, struct.error, OverflowError) as error:
-        print(f"ОШИБКА: {error}")
+        _print_status(f"ОШИБКА: {error}")
         return 1
 
 

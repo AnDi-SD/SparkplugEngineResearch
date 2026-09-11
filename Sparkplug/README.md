@@ -28,13 +28,20 @@ Sparkplug/
 метода/поля в софте. [Широкий PC SMO/SAN контракт](../docs/research/pc-smo-san-completion-contract.md)
 сохраняется для долгосрочного исследования, отдельно от готовности приложений.
 Постоянные правила — [манифест исследования](../docs/research/research-manifesto.md).
-Последний итог: [цикл CP99–CP123 до 07:00 МСК 8 сентября](../docs/research/native-cycle-report-2026-09-08-0700.md),
-63 CTest suite; PC workflow-v2 45,62%, широкие engine gates 0/7 passed.
+Текущее внедрение в инструменты: [срез11 сентября](../docs/research/tools-core-migration-status-2026-09-11.md).
+В общие классы перенесены необходимые Occlusion/Particle Init и Text runtime;
+materials, alpha, mips, SkyBox и Fog подключены к современному backend.
+Последний [срез полного EXE](../docs/research/native-cycle-2026-09-11-0730.md)
+даёт PC36,032742% и PS226,923642%; интеграционные блоки не повышают эти оценки.
+[Цикл CP99–CP123 от8 сентября](../docs/research/native-cycle-report-2026-09-08-0700.md)
+с63 CTest suites и PC workflow-v2 45,62% относится к прежнему scope.
 [Общий PC loader](../docs/research/native-pc-smo-san-loader.md) уже исполнен на
 bbush.san целиком и сопоставлен с portable fields/bindings/PRS. PC FAT58 и RTTI
 consumer layouts добавлены в Analysis/PC. [SAN field writer и nested blocks](../docs/research/native-pc-san-writer.md)
 восстановлены отдельно. [Portable full-file core для SAN](../docs/research/native-pc-full-loader.md)
-уже собран; полный SMO load/save, внешние зависимости и startup ещё открыты.
+уже собран; выбранные целые SMO, включая уровни и legacy меню, также загружаются.
+Общий host envelope writer подключён к инструментам. Полный original Save,
+внешние зависимости и весь startup не объявляются завершёнными.
 Это не объявление готовности приложений. Разделы ниже сохраняют хронологию
 исследования; числа тестов внутри датированных этапов относятся к тем этапам.
 

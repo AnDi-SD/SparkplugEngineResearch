@@ -4,6 +4,9 @@
 
 ## Навигация
 
+- [Состояние семи ядер tools на11 сентября и остаток к сроку14–15 сентября](research/tools-core-migration-status-2026-09-11.md)
+- [Цикл11 сентября: общие классы, GPU, native transfer и проверки](research/tools-core-cycle-2026-09-11-1900.md)
+- [Конечный сквозной контроль потребителей общего ядра](research/tool-final-consumer-checks-2026-09-11.md)
 - [Обязательные основы разработки: игра как источник истины, общие классы и современный backend](engine/software-development-rules.md)
 - [Viewer 0.7.0: прямое подключение C++-классов Sparkplug и границы переноса](research/tool-viewer-sparkplug-core-2026-09-08.md)
 - [Текущая цель: инструменты и необходимые части реальных классов](research/tool-driven-research-scope.md)

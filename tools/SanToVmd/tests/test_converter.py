@@ -3,6 +3,7 @@
 import math
 import contextlib
 import io
+import json
 from pathlib import Path
 import struct
 import sys
@@ -268,16 +269,24 @@ class ConverterTests(unittest.TestCase):
             for name in ("model.smo", "model.pmd"):
                 (directory/name).write_bytes(b"reader mocked in this batch test")
             (directory/"a_bad.san").write_bytes(b"broken")
-            (directory/"z_good.SAN").write_bytes(raw)
+            (directory/"z_good_あ.SAN").write_bytes(raw)
             (output/"a_bad.vmd").write_bytes(b"previous result")
-            (output/"z_good.vmd").write_bytes(b"outdated result")
+            (output/"z_good_あ.vmd").write_bytes(b"outdated result")
+            console_bytes = io.BytesIO()
+            console = io.TextIOWrapper(console_bytes, encoding="cp1251", errors="strict")
             with patch.object(converter, "read_skeleton", return_value=converter.Skeleton()), \
                  patch.object(converter, "read_pmd", return_value=("test", {}, [])), \
                  patch.object(converter, "Retargeter", return_value=TestRig()), \
-                 contextlib.redirect_stdout(io.StringIO()):
+                 contextlib.redirect_stdout(console):
                 self.assertEqual(converter.convert_files(directory, output), 1)
             self.assertEqual((output/"a_bad.vmd").read_bytes(), b"previous result")
-            self.assertTrue((output/"z_good.vmd").read_bytes().startswith(b"Vocaloid Motion Data 0002"))
+            self.assertTrue((output/"z_good_あ.vmd").read_bytes().startswith(b"Vocaloid Motion Data 0002"))
+            report = json.loads((output/"conversion_report.json").read_text(encoding="utf-8"))
+            self.assertEqual([(row["source"], row["status"]) for row in report["files"]],
+                             [("a_bad.san", "error"), ("z_good_あ.SAN", "ok")])
+            console.flush()
+            self.assertIn("ГОТОВО", console_bytes.getvalue().decode("cp1251"))
+            console.close()
             self.assertFalse(list(output.glob("*.tmp")))
 
 
