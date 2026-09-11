@@ -1,0 +1,139 @@
+{
+  "kind": "original-gui-manager-focus-handoff",
+  "schemaVersion": 1,
+  "className": "spGUIManager",
+  "methods": {
+    "pc": "00451AD0",
+    "ps2": "00163FD0"
+  },
+  "counts": {
+    "executions": 28,
+    "wholeReturns": 16,
+    "oldRefreshBoundaries": 8,
+    "newRefreshBoundaries": 4,
+    "actualNotifyEntries": 38
+  },
+  "behavior": "Notify old receiver with[17,0,0,0,manager,0,0,0] while manager4C still old;store new pointer;notify new with[16,0,0,0,manager,0,0,0] after store. Same pointer still gets both notifications. No refcount change in tested paths.",
+  "callbackScope": "Real disabled EditBox Notify and declared GUIObject/Widget diagnostic receivers return. Enabled EditBox changes highlight before actual refresh boundary;old boundary leaves focus pointer old,new boundary sees new pointer. No resumed guest or synthetic callback result.",
+  "limitations": [
+    "Literal manager input,direct method;not original startup.",
+    "Enabled refresh body,input/rendering,arbitrary/reentrant callbacks remain open.",
+    "No new C++ or closed class;other callback classes receive no new score."
+  ],
+  "sources": [
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/capture_native_ranges.py",
+      "sha256": "910D6BA64C6EDACB5E90690417A4E4B33E04E449BFDF191918238F2C4109FBD1"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/inspect_executable_architecture.py",
+      "sha256": "02EC7D3AB7922B084B26BB3B71E650AF2620883460140DD8F4F78A1F695BF971"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/inspect_serializer_manager.py",
+      "sha256": "E3146C34E8AD9EE8780A1285404CA40E73FBF7E5C3E261CE3E21B561F8A2C5AB"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/pc_block_emulator.py",
+      "sha256": "A615B7889F63B397511A31FE631A40725C54188651BA5A1227B867E29C42457B"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/pc_instruction_emulator.py",
+      "sha256": "6B2A45EF9AE88B102AC7DC0CC1D57876E0B7C8D9EE5E8DB0EF49E2EBCC03A52F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/probe_gui_focus_handoff.py",
+      "sha256": "2253507842AF75EA5F9418F4B0F2A6D3145757A254E30F81C384D6F59D1D45F8"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/probe_ps2_stack_spills.py",
+      "sha256": "6C3A84E49F72151777B04351F3A9F3BE985008A2903883556072A2CDB7F32D2D"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/ps2_integer_square_accumulator.py",
+      "sha256": "1DE9D0B7A4203239B81EC79AF320B859E3F7066CEA081DDD9A3A14E833B1247C"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/ps2_scalar_prefix.py",
+      "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/ps2_stack_spills.py",
+      "sha256": "0091528C4EFF9BA81512155A02B5608671A75B3930B10C3A5419D792D9978DAA"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-batch-run1.json",
+      "sha256": "EAA0BC00D2858E42B4CDE6B3F2F53A16B191286E469D4CA0F5E4E26FB6EAB8B3"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-cases.json",
+      "sha256": "793803612974362588A56A54034A7841A882FEA8D0006CBA8255A6E740F74C3F"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-pilot-run1.json",
+      "sha256": "2F1F9703C4962B22BFE2348BF41A0D47D2556B827FD6C77C12044707DFB91908"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/method-selection.json",
+      "sha256": "ED384920066A4047935BA6DDFEB15FEB1C93010B1B39FAEB8A27F36CCDDDFFEF"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/seal-gui-focus-handoff.py",
+      "sha256": "1FFDD9A2119FA408732B785EA16FDA594DFEA2B303ECBAA30C1CD157329DF840"
+    },
+    {
+      "path": "local-data/results/native-cycle-20260911-0730/gui-focus/methods/capture.json",
+      "sha256": "2977CA2103F9DA8A9E36B233CE06E2090D4EDD2E6FA64E8869DACCDC2432012F"
+    },
+    {
+      "path": "research/gui-object-contracts-2026-09-10.json",
+      "sha256": "C5B2A93293480F161214DEFEF246DCE6EEA8EF4CF2EE8ABFC799D5E1623F9394"
+    },
+    {
+      "path": "research/gui-message-route-contracts-2026-09-11.json",
+      "sha256": "EBD339D0AE0BC9E79C38ED95A484EF2865F6E0F500B1D0055D78E168D66F3B09"
+    },
+    {
+      "path": "research/engine-core-remainder-contracts-2026-09-10.json",
+      "sha256": "104FB65A2D6A06C3A844597602B0E38317F7764D2D97B226CBF724D17E05BC54"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-pilot-run1.json",
+        "sha256": "2F1F9703C4962B22BFE2348BF41A0D47D2556B827FD6C77C12044707DFB91908"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/probe_gui_focus_handoff.py",
+        "sha256": "2253507842AF75EA5F9418F4B0F2A6D3145757A254E30F81C384D6F59D1D45F8"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-cases.json",
+        "sha256": "793803612974362588A56A54034A7841A882FEA8D0006CBA8255A6E740F74C3F"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    },
+    {
+      "result": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-batch-run1.json",
+        "sha256": "EAA0BC00D2858E42B4CDE6B3F2F53A16B191286E469D4CA0F5E4E26FB6EAB8B3"
+      },
+      "probe": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/probe_gui_focus_handoff.py",
+        "sha256": "2253507842AF75EA5F9418F4B0F2A6D3145757A254E30F81C384D6F59D1D45F8"
+      },
+      "selection": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/focus-cases.json",
+        "sha256": "793803612974362588A56A54034A7841A882FEA8D0006CBA8255A6E740F74C3F"
+      },
+      "wrapper": {
+        "path": "local-data/results/native-cycle-20260911-0730/gui-focus/source-snapshot/ps2_scalar_prefix.py",
+        "sha256": "9DE3DEE1E17D799D413FD2B18D78745001D76967C9C35D95F542B89623A7CE12"
+      }
+    }
+  ]
+}
