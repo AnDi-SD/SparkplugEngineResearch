@@ -1,5 +1,6 @@
 #include "ResourceGraph.h"
 #include "BorrowedInput.h"
+#include "LegacyTextureAdapter.h"
 #include "Code/Sparkplug/spSerializerManager.h"
 #include "Code/Sparkplug/spResourceManager.h"
 #include "Code/Sparkplug/spNodeSerializer.h"
@@ -90,7 +91,7 @@ std::shared_ptr<spPCRenderer> CpuRenderer() {
     // no device and never enters legacy startup. Calls are serialized by C ABI.
     static auto renderer=std::make_shared<spPCRenderer>();return renderer;
 }
-ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool captureReadTrace) {
+ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool captureReadTrace,bool allowLegacyTextures) {
     if(!bytes||count<36||count>64u*1024u*1024u)throw std::runtime_error("SMO must fit 64 MiB");
     renderer=CpuRenderer();
     // Cache/serializer lifetime is confined to this load. Separate documents
@@ -115,7 +116,10 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     // Actual PC startup6D1880/6D1940 registers the same TextureData wire ID
     // for DX mask6 and common mask1 (CP15). Both readers create DXTexture.
     Register<spTextureData,spDXTextureDataSerializer>(manager,6);
-    Register<spTextureData,spTextureDataSerializer>(manager,spSerializerManager::PlatformCommon);
+    if(allowLegacyTextures){
+        if(!manager.RegisterForAnalysis(spTextureData::ClassID,std::make_shared<LegacyTextureAdapter>(legacyTextureIDs),
+            spSerializerManager::PlatformCommon,1))throw std::runtime_error("Cannot register host legacy texture adapter");
+    }else Register<spTextureData,spTextureDataSerializer>(manager,spSerializerManager::PlatformCommon);
     Register<spLightData,spLightDataSerializer>(manager);
     Register<spFog,spFogSerializer>(manager);
     Register<spFont,spFontSerializer>(manager);

@@ -139,3 +139,15 @@ Font: атлас — runtime `spTexture`, а не `spTextureData`. Fresh origina
 Следующий шаг — явная совместимая загрузка сохранённых legacy pixels в host
 слое с диагностикой. Она разрешена новой автономией11 сентября, но не будет
 объявлена восстановленным compatibility path оригинальной игры.
+
+## Блок12 — legacy pixels и доступ к настоящим Text/Font из C#
+
+[Явный host adapter](tool-legacy-texture-and-text-graph-2026-09-11.md) использует
+общий pixel reader и сообщает адаптированные IDs. Старое меню целиком загружено:
+238 объектов/63 Nodes, десять Text/Font цепочек и один atlas. 52 native checks,
+531 C ABI checks на трёх SMO, managed projections и Book GPU прошли. Strict
+loader сохранён. Source-selection старой игры всё ещё не подтверждён.
+
+Следующая конкретная зависимость:41 Mesh меню отклонён из-за индексов вне VB;
+это выявлено GPU preflight и сохранено в final managed report. Text GPU также
+ещё не подключён. Полный вывод меню пока не заявлен.

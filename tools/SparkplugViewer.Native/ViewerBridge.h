@@ -166,6 +166,18 @@ SPV_API void* spv_graph_load(const std::uint8_t*,std::uint32_t) noexcept;
 // Optional host observations from the same original readers. This is not an
 // alternative loader or a second field/reference parser.
 SPV_API void* spv_graph_load_with_trace(const std::uint8_t*,std::uint32_t) noexcept;
+// Explicit tool policy: legacy stored pixels may receive a host SourceNone
+// envelope. Query every adapted ID; the two existing load APIs stay strict.
+SPV_API void* spv_graph_load_for_tools(const std::uint8_t*,std::uint32_t,std::uint32_t captureTrace) noexcept;
+SPV_API int spv_graph_legacy_texture_ids(void*,std::uint32_t*,std::uint32_t,std::uint32_t*) noexcept;
+struct SpvGraphText {
+    std::uint32_t font,color,wrap,alignment,width,textBytes,textPresent,boundsMask;
+    float sphere[4],minimum[3],maximum[3];
+};
+struct SpvGraphFont {std::uint32_t height,baseline,baselinePresent,image;};
+SPV_API int spv_graph_text(void*,std::uint32_t,SpvGraphText*) noexcept;
+SPV_API int spv_graph_text_bytes(void*,std::uint32_t,std::uint8_t*,std::uint32_t) noexcept;
+SPV_API int spv_graph_text_node(void*,std::uint32_t,std::uint32_t*) noexcept;
 struct SpvReferenceRead {
     std::uint32_t consumerId,id,inlineSize,idPhysicalOffset,sizePhysicalOffset,resolution,success;
 };
@@ -191,6 +203,7 @@ SPV_API int spv_light_fields_read(const std::uint8_t*,std::uint32_t,SpvLightFiel
 // observed wire extent, not a loaded texture. Glyph layout is host-only.
 struct SpvFontInfo {std::uint32_t height,baseline,hasBaseline,hasImage,imageOffset,imageSize;};
 struct SpvFontGlyph {std::uint32_t width;float uv0[2],uv1[2];};
+SPV_API int spv_graph_font(void*,std::uint32_t,SpvGraphFont*,SpvFontGlyph*,std::uint32_t) noexcept;
 SPV_API int spv_font_read(const std::uint8_t*,std::uint32_t,SpvFontInfo*,SpvFontGlyph*,std::uint32_t) noexcept;
 // Scalar observation from an actual BV. Values contain the requested field;
 // halfExtents/boundingRadius describe size fields only, not extra game members.

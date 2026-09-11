@@ -20,6 +20,8 @@
 #include "Code/Sparkplug/spFont.h"
 #include "Code/Sparkplug/spFontSerializer.h"
 #include "Code/Sparkplug/spTextRenderableSerializer.h"
+#include "Code/Sparkplug/spTextRenderable.h"
+#include "Code/Sparkplug/spTextNode.h"
 #include "Code/Sparkplug/spSphereBV.h"
 #include "Code/Sparkplug/spSphereBVSerializer.h"
 #include "Code/Sparkplug/spBoxBV.h"
@@ -859,6 +861,13 @@ SPV_API void* spv_graph_load_with_trace(const std::uint8_t* data,std::uint32_t c
         result->graph=std::make_shared<spvhost::ResourceGraph>(data,count,true);}))return nullptr;
     return result.release();
 }
+SPV_API void* spv_graph_load_for_tools(const std::uint8_t* data,std::uint32_t count,std::uint32_t captureTrace) noexcept {
+    std::unique_ptr<spvhost::GraphHandle> result;
+    if(!guarded([&]{require(captureTrace<=1,"Tool graph captureTrace must be boolean");
+        result=std::make_unique<spvhost::GraphHandle>();
+        result->graph=std::make_shared<spvhost::ResourceGraph>(data,count,captureTrace!=0,true);}))return nullptr;
+    return result.release();
+}
 SPV_API int spv_graph_reference_trace_info(void* handle,std::uint32_t* references,
     std::uint32_t* payloads,std::uint32_t* origin) noexcept {
     return guarded([&]{require(handle&&references&&payloads&&origin,"Invalid reference trace output");
@@ -1078,6 +1087,40 @@ SPV_API int spv_graph_alpha_info(void* handle,std::uint32_t id,SpvAlphaInfo* out
         result.queued=object.RequiresPCAlphaQueueForAnalysis()?1u:0u;result.priority=object.GetPriorityForAnalysis();
         result.particle=object.IsExactly(0x5AFA1A4F)?1u:0u;
         const auto& sphere=object.GetBoundingSphereForAnalysis();std::copy(sphere.begin(),sphere.end(),result.sphere);
+        *output=result;});
+}
+SPV_API int spv_graph_legacy_texture_ids(void* handle,std::uint32_t* output,std::uint32_t capacity,std::uint32_t* count) noexcept {
+    return guarded([&]{require(count,"Missing compatibility count");const auto& ids=graphForView(handle).legacyTextureIDs;
+        require((output&&capacity>=ids.size())||(!output&&capacity==0),"Compatibility output too small");
+        if(output)std::copy(ids.begin(),ids.end(),output);*count=static_cast<std::uint32_t>(ids.size());});
+}
+SPV_API int spv_graph_text(void* handle,std::uint32_t id,SpvGraphText* output) noexcept {
+    static_assert(sizeof(SpvGraphText)==72);
+    return guarded([&]{require(output,"Missing Text output");const auto& graph=graphForView(handle);
+        const auto& text=graphResource<spTextRenderable>(graph,id);SpvGraphText result{};
+        result.font=graph.ID(text.GetFontForAnalysis().get());result.color=text.GetColorForAnalysis();result.wrap=text.GetWrapWidthForAnalysis();
+        result.alignment=text.GetAlignmentForAnalysis();result.width=text.GetMeasuredWidthForAnalysis();
+        result.textPresent=text.GetTextForAnalysis().has_value();result.textBytes=result.textPresent?static_cast<std::uint32_t>(text.GetTextForAnalysis()->size()):0;
+        std::copy(text.GetBoundingSphereForAnalysis().begin(),text.GetBoundingSphereForAnalysis().end(),result.sphere);
+        if(text.GetMinimumForAnalysis()){result.boundsMask|=1;std::copy(text.GetMinimumForAnalysis()->begin(),text.GetMinimumForAnalysis()->end(),result.minimum);}
+        if(text.GetMaximumForAnalysis()){result.boundsMask|=2;std::copy(text.GetMaximumForAnalysis()->begin(),text.GetMaximumForAnalysis()->end(),result.maximum);}
+        *output=result;});
+}
+SPV_API int spv_graph_text_bytes(void* handle,std::uint32_t id,std::uint8_t* output,std::uint32_t count) noexcept {
+    return guarded([&]{const auto& text=graphResource<spTextRenderable>(graphForView(handle),id).GetTextForAnalysis();
+        const auto size=text?text->size():0;require(count==size&&(output||!count),"Text byte output extent mismatch");
+        if(count)std::memcpy(output,text->data(),count);});
+}
+SPV_API int spv_graph_text_node(void* handle,std::uint32_t id,std::uint32_t* output) noexcept {
+    return guarded([&]{require(output,"Missing TextNode cached member output");const auto& graph=graphForView(handle);
+        const auto& node=graphResource<spTextNode>(graph,id);*output=graph.ID(node.GetTextRenderableForAnalysis());});
+}
+SPV_API int spv_graph_font(void* handle,std::uint32_t id,SpvGraphFont* output,SpvFontGlyph* glyphs,std::uint32_t count) noexcept {
+    return guarded([&]{require(output&&((glyphs&&count==spFont::GlyphCount)||(!glyphs&&!count)),"Invalid Font output extent");
+        const auto& graph=graphForView(handle);const auto& font=graphResource<spFont>(graph,id);
+        SpvGraphFont result{font.GetHeightForAnalysis(),font.GetBaselineForAnalysis().value_or(0),font.GetBaselineForAnalysis().has_value(),graph.ID(font.GetImageForAnalysis())};
+        if(glyphs){std::size_t i=0;for(const auto& glyph:font.GetGlyphsForAnalysis()){
+            glyphs[i].width=glyph.width;std::copy(glyph.uv0.begin(),glyph.uv0.end(),glyphs[i].uv0);std::copy(glyph.uv1.begin(),glyph.uv1.end(),glyphs[i].uv1);++i;}}
         *output=result;});
 }
 SPV_API int spv_alpha_order(const SpvAlphaInput* input,std::uint32_t count,const float* view,
