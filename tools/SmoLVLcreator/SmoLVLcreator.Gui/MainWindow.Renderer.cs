@@ -66,6 +66,7 @@ public partial class MainWindow
     private readonly List<string> _scenePickingReadbackIssues = [];
     private bool _scenePickingNeedsGpuRefresh;
     private string? _scenePickingDiagnosticText;
+    private string? _gpuMaterialIssueText;
     private bool _gpuRendererAvailable;
     private string? _gpuViewportFailureReason;
     private Point3D _sceneCenter;
@@ -322,6 +323,17 @@ public partial class MainWindow
                     $"{upload.PlacementCount:N0} placements · " +
                     $"{upload.ElapsedMilliseconds:F1} ms";
             }
+            if (_gpuRenderer.MaterialIssues.Count > 0)
+            {
+                string message = string.Join("\n", _gpuRenderer.MaterialIssues.Take(8));
+                if (_gpuMaterialIssueText != message)
+                {
+                    _gpuMaterialIssueText = message;
+                    DiagnosticsText.Text = message;
+                    DiagnosticsText.Foreground = NoticeBrush;
+                    StatusText.Text = $"Не удалось отобразить материалов: {_gpuRenderer.MaterialIssues.Count}";
+                }
+            }
         }
         catch (Exception exception)
         {
@@ -396,7 +408,7 @@ public partial class MainWindow
         {
             _gpuRenderer.Add(
                 mesh,
-                new SmoRenderObjectKey(0, mesh.SceneObjectIndex),
+                new SmoRenderObjectKey(0, mesh.SceneObjectIndex, mesh.OccurrenceKey),
                 PaletteColor(index++));
         }
 
@@ -473,12 +485,12 @@ public partial class MainWindow
                     : mesh;
             })
             .ToArray();
-        foreach (IGrouping<int, SmoSceneMesh> placement in effectiveMeshes
-                     .GroupBy(mesh => mesh.SceneObjectIndex))
+        foreach (SmoSceneMesh placement in effectiveMeshes
+                     .DistinctBy(mesh => (mesh.SceneObjectIndex, mesh.OccurrenceKey)))
         {
             _gpuRenderer.SetModelTransform(
-                new SmoRenderObjectKey(0, placement.Key),
-                placement.First().WorldTransform);
+                new SmoRenderObjectKey(0, placement.SceneObjectIndex, placement.OccurrenceKey),
+                placement.WorldTransform);
         }
         UpdateScenePickIndex(effectiveMeshes.Where(IsSceneMeshVisible));
         UpdateDocumentCaption();
@@ -534,13 +546,14 @@ public partial class MainWindow
 
     private void ClearScenePickingPositions()
     {
+        _gpuMaterialIssueText = null;
         _scenePickingPositions.Clear();
         _scenePickingReadbackIssues.Clear();
         _scenePickingNeedsGpuRefresh = false;
     }
 
     private static (SmoRenderObjectKey Key, int MeshObjectIndex) ScenePickingKey(SmoSceneMesh mesh) =>
-        (new SmoRenderObjectKey(0, mesh.SceneObjectIndex), mesh.Mesh.ObjectIndex);
+        (new SmoRenderObjectKey(0, mesh.SceneObjectIndex, mesh.OccurrenceKey), mesh.Mesh.ObjectIndex);
 
     private Vector3[]? CachedScenePickingPositions(SmoSceneMesh mesh) =>
         _scenePickingPositions.TryGetValue(ScenePickingKey(mesh), out Vector3[]? positions)
@@ -972,7 +985,7 @@ public partial class MainWindow
             foreach (SmoRenderObjectKey key in entity.Parts
                          .Select(part => new SmoRenderObjectKey(
                              0,
-                             part.Source.SceneObjectIndex))
+                             part.Source.SceneObjectIndex, part.Source.OccurrenceKey))
                          .Distinct())
             {
                 _gpuRenderer.SetAppearance(key, visible, false, 1);
@@ -987,7 +1000,7 @@ public partial class MainWindow
                      .SelectMany(selection => _document.GetEntity(selection).Parts)
                      .Select(part => new SmoRenderObjectKey(
                          0,
-                         part.Source.SceneObjectIndex))
+                         part.Source.SceneObjectIndex, part.Source.OccurrenceKey))
                      .Distinct())
         {
             _gpuRenderer.SetAppearance(key, true, true, 1);
@@ -999,9 +1012,12 @@ public partial class MainWindow
                      _pendingPlacementByScene.Where(pair => pair.Value.Id == pending.Id &&
                          pair.Value.External == pending.External))
             {
-                var key = new SmoRenderObjectKey(0, sceneIndex);
-                _gpuRenderer.SetAppearance(key, true, true, 1);
-                _highlightedRenderKeys.Add(key);
+                foreach (var mesh in (_renderPreparedScene ?? _workspace!.PreparedScene).Meshes.Where(mesh => mesh.SceneObjectIndex == sceneIndex))
+                {
+                    var key = new SmoRenderObjectKey(0, sceneIndex, mesh.OccurrenceKey);
+                    _gpuRenderer.SetAppearance(key, true, true, 1);
+                    _highlightedRenderKeys.Add(key);
+                }
             }
         }
         RebuildScenePickIndex();

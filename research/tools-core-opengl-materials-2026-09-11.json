@@ -1,0 +1,420 @@
+{
+  "keySourceBindings": [
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs",
+      "bytes": 18291,
+      "sha256": "DE14499379C2689E01B389A35CBC27323DBBD770D9591BAB323AB438DE9C4688",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SmoLoadedResources.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.cs",
+      "bytes": 5195,
+      "sha256": "794C3DA9A9A98B4412B3662B3DFE6D5A212C0ECA23496689C8A5AC70353C22BE",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.Submission.cs",
+      "bytes": 3957,
+      "sha256": "0688572C23AF58FA3E5A1D012CAE5F261586DE4C2509FE31DB619EC4DEFF1034",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Core/SparkplugMaterialRuntime.Submission.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs",
+      "bytes": 13971,
+      "sha256": "484F6D2D05E051BEF47893EC7A05FE3DA0C7F303D46ACDADB90DE8082F58C114",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Scene/SmoSceneBuilder.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs",
+      "bytes": 45714,
+      "sha256": "5B037BC043EB78D391473C92CBE5A973B0D9E585436AFFCFB085235F855AD9E2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs",
+      "bytes": 14141,
+      "sha256": "08C29893AF4A81C6DF596DC2A0EB3F7F3847D1B66721EDEB4B7F40F94E5B1C1F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Materials.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs",
+      "bytes": 7141,
+      "sha256": "43BB3537C06D580B41C2B1C888C1B32D7D45068D13BE1431EC9D2D65F2B00538",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.MaterialShader.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Picking.cs",
+      "bytes": 7512,
+      "sha256": "A2F0A9944F67C32A071113DFAE909DA4A989D617A8E41261B9E6966579E1A103",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.Rendering.Wpf/SmoGpuSceneRenderer.Picking.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.xaml.cs",
+      "bytes": 215615,
+      "sha256": "61ADB3251E277327A798EF98781056868296CE271F25844DE988BD2CA2F79AAA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer/MainWindow.xaml.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer/MainWindow.GpuRenderer.cs",
+      "bytes": 10883,
+      "sha256": "282FC118E2578874E6FACCEB76F328AD834A460E9D4C673FF49C346B0B392AC1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer/MainWindow.GpuRenderer.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/Program.cs",
+      "bytes": 13233,
+      "sha256": "D917058863C04C109ADB82DA8ECDD84D61AD047D72CAB435E088B118BD5F31F9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/Program.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/SmoViewer.GuiTests.csproj",
+      "bytes": 715,
+      "sha256": "6644DD07F7EE00AB412927C72A77A697832B57883A7D6A2AD5BBAEDAEAFED667",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/SmoViewer.GuiTests.csproj"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialRegression.cs",
+      "bytes": 8947,
+      "sha256": "8398D5D025D12C9FAB3B670006EF94736B2679D63FEED46282AA44D4D58AB449",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs",
+      "bytes": 6223,
+      "sha256": "81BC85D87207619E01FDFFABAD3FD7AAF1080B43CBE81B907250D2C934019796",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuMaterialSceneRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/LvlOccurrenceRendererRegression.cs",
+      "bytes": 5742,
+      "sha256": "182CDDDE75FF0D446063F5D2F1407D48C5ADBD2C6B199F15B48277728A432B86",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/LvlOccurrenceRendererRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuReadbackRegression.cs",
+      "bytes": 16745,
+      "sha256": "42B4E8A64BCF4B427A2F34412A4039CA9B10A6DA228CB315E46555458FC17E49",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuReadbackRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuSkinningRegression.cs",
+      "bytes": 8196,
+      "sha256": "65E07EB59AE3BA02807C3FAB1799495965CF96B689A683D184F9121E56595A2C",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuSkinningRegression.cs"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/GpuAnimationCapture.cs",
+      "bytes": 4912,
+      "sha256": "A9CE1061A278E775F329D7974A755A148499CC48C10E171FADCA2255A62A666B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoViewer/SmoViewer.GuiTests/GpuAnimationCapture.cs"
+    },
+    {
+      "path": "tools/SmoLVLcreator/SmoLVLcreator.Gui/MainWindow.Renderer.cs",
+      "bytes": 157884,
+      "sha256": "DDEB7A6EA7683D53EB6DE560A41089482D91BA67868C3E464ED17584A1EBAFB9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/tools/SmoLVLcreator/SmoLVLcreator.Gui/MainWindow.Renderer.cs"
+    },
+    {
+      "path": "docs/research/tool-opengl-material-passes-2026-09-11.md",
+      "bytes": 8143,
+      "sha256": "3C6902002055AA2468ACD0584FA914A90CABC727BEDD28AE76CD56F713DEE608",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/docs/research/tool-opengl-material-passes-2026-09-11.md"
+    },
+    {
+      "path": "research/seal_core_evidence.py",
+      "bytes": 1572,
+      "sha256": "649CA362B1314E6945CB390107B7599B79EF33C53D826D0BF07E45A3D7635B8E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/research/seal_core_evidence.py"
+    },
+    {
+      "path": ".codex-tmp/seal-material-gpu.py",
+      "bytes": 3281,
+      "sha256": "41C3175B158F32900D24013852B5CCC7AACE8DA5431CE55B71CD6B100603D9FC",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/sources/.codex-tmp/seal-material-gpu.py"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run1.json",
+      "bytes": 650,
+      "sha256": "1BF037CC92F9721FC6E80217A65D82D6E069B5E854ED137B928C734547C8F530",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run1.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run2.json",
+      "bytes": 804,
+      "sha256": "3313D793FEB9A6964BE7A1F4DC0CAD47541A300D71436E92454D8C8460CAA194",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run2.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run3.json",
+      "bytes": 91,
+      "sha256": "81B50D83FBB43AA68E06C362F3CD94E0769F4A5211841D878232BCC5EBA545DD",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/lvl-bindings-run3.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-final/report.json",
+      "bytes": 1289,
+      "sha256": "EECDD2E340AECBF74CA651B5055A8DC86C694737E77A54EAF5DC5BECD05E770F",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-final/scene.png",
+      "bytes": 26817,
+      "sha256": "9F28994DEA9FB776557613058E5DD34CCC054F0D3F859FC0672FFB25B0CFBDF2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-final/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-run1/report.json",
+      "bytes": 12559,
+      "sha256": "D098CB675EDDF62724035D3EA44DF6040A3AC9A7056F98088FE9DAA55A6E32E2",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-run1/scene.png",
+      "bytes": 26760,
+      "sha256": "2C5E6E928B7CC8CF186447980378E53C592CB48D01AD1566C57175BEF3917278",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea01-run1/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-final/report.json",
+      "bytes": 1519,
+      "sha256": "2150DA956792DFB3259D6E7EA91710977D1F0EB4AF30A8961363A1131BFB43F0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-final/scene.png",
+      "bytes": 21155,
+      "sha256": "13C27F913872A8875359D1F789E4633B607F6B52DCF9D8A8B165207728C0F5FA",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-final/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run1/report.json",
+      "bytes": 719,
+      "sha256": "A19DF3882AD951B5060B72B677E098E1AEB3CB7B4B938F71F4595A00357EB59E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run1/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run2/report.json",
+      "bytes": 1522,
+      "sha256": "9E36602BB0FB565035C029F0FE24233898010DC285D433615C727A1E056C3BC4",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run2/scene.png",
+      "bytes": 21113,
+      "sha256": "132BE22F94C53AA5A791C98C058EA519AED1F98146F01717236F5BCD123C341B",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/alfea02-run2/scene.png"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/pixels-final/report.json",
+      "bytes": 839,
+      "sha256": "DF065635FE3A967FD2DCE4AB56CD0C2ADA520D9A9B0B1A7E71ADBF365441F2B9",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/pixels-final/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/pixels-run2/report.json",
+      "bytes": 839,
+      "sha256": "72540BCC64EC035E5CE87A7A8D2F6CEAC714C12EA8389708414341827A4BB766",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/pixels-run2/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/skin-numeric/report.json",
+      "bytes": 2755,
+      "sha256": "EEF19B9920436F10E6FDE848CD0BF918A03C36E3A301198BED35AF7AB6487DDB",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/skin-numeric/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/skin-readback/report.json",
+      "bytes": 2318,
+      "sha256": "14934143F013318A6F35E6DB3EB2C4F45184565099513A1C8EC300D751BC1949",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/skin-readback/report.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/capture.json",
+      "bytes": 7316074,
+      "sha256": "FBC7B81101DBBE3F5FF693B2844C66D47E0CE1FFF419FCEEFE17DA1614FEBC13",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/capture.json"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/invalid.san",
+      "bytes": 11,
+      "sha256": "3DC98777AF5CE9BB371E4C8E97DFAC23C7DC0EA380514BCB6EBD65F8551652E0",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/invalid.san"
+    },
+    {
+      "path": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/static-duration.san",
+      "bytes": 41648,
+      "sha256": "249CE2B521B7CE6F7CAFB8535C8784A821D3194DAA3541D217407EDE13D8DF5D",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/results/tools-core-cycle-20260911-1900/material-gpu/viewer-animation-final/static-duration.san"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll",
+      "bytes": 140800,
+      "sha256": "D59636EC6AC74E85A83F4F0FA4A72EF12468810164E25E8C18DD0DFAEACB3FE6",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.GuiTests.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll",
+      "bytes": 113664,
+      "sha256": "AA6D97C0630C24121BBE5400E4A465CB67668E55557C609F20CAF63E8772E603",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Rendering.Wpf.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll",
+      "bytes": 723456,
+      "sha256": "E4C0BD7FFCD815E11E96B58237A4088E6A2DD258AB4B7F655AC4509C63F3BD08",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll",
+      "bytes": 40448,
+      "sha256": "206A2A4191AA43AC10ED5F2D68A43CB37A899AF341B3D0227FAD40606B76D476",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Scene.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll",
+      "bytes": 39424,
+      "sha256": "AF199A4C9C3504B74FAB32B95B1920DB2FD63EA3FAAD63A4DDD19F06CF70038E",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.Sparkplug.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll",
+      "bytes": 260608,
+      "sha256": "6201BD5CEAD6E989783CA7C922A615E8000CD413434CD9AD1DE16C518221C0A1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoViewer.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll",
+      "bytes": 406016,
+      "sha256": "04A3D9295698BAA0B66E5FC08F4FE6BCF3FF31D24F698870E0DD39427C2B09C8",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.Core.dll",
+      "bytes": 536064,
+      "sha256": "868FD78403439E85F78F04353DE1907D9950F3125840070ED55B4BFD1F09F0E5",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SmoLVLcreator.Core.dll"
+    },
+    {
+      "path": "tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll",
+      "bytes": 1231872,
+      "sha256": "B8FC8F437F457020F9F065B0AAF148609307FBEAE7E8003DB73F6D1F066B9520",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/tools/SmoViewer/SmoViewer.GuiTests/bin/Release/net8.0-windows/SparkplugViewerNative.dll"
+    },
+    {
+      "path": "local-data/pc-pristine/Shaders/Fixed.rfx",
+      "bytes": 41601,
+      "sha256": "AC6785428BA851DEA88E3A6CDDC03FDF620FA06D82063DB83176598140803DB1",
+      "snapshot": "local-data/results/tools-core-cycle-20260911-1900/material-gpu/qualified/artifacts/local-data/pc-pristine/Shaders/Fixed.rfx"
+    }
+  ],
+  "status": "verified-opengl-material-device-contract",
+  "block": 8,
+  "pixelChecks": 31,
+  "levels": [
+    {
+      "source": "local-data/pc-pristine/Media/Levels/Alfea/Alfea01.smo",
+      "checks": 6,
+      "device": "NVIDIA GeForce RTX 3070/PCIe/SSE2",
+      "failure": "",
+      "seconds": 1.8399045,
+      "peakBytes": 260849664,
+      "detail": {
+        "meshes": 1141,
+        "passes": 1180,
+        "withoutMaterial": 4,
+        "covered": 11757,
+        "upload": {
+          "GeometryCount": 554,
+          "TextureCount": 63,
+          "PlacementCount": 1141,
+          "ElapsedMilliseconds": 78.7702
+        },
+        "staticMs": [
+          5.1439,
+          5.1692,
+          5.4438
+        ],
+        "liveMs": [
+          7.7154,
+          6.15,
+          5.7913
+        ],
+        "decodeIssues": [],
+        "textureIssues": [
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [1059] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [1090] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [4235] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [4330] has no material; renderer default/current state is required."
+        ],
+        "native": "B8FC8F437F457020F9F065B0AAF148609307FBEAE7E8003DB73F6D1F066B9520",
+        "renderer": "AA6D97C0630C24121BBE5400E4A465CB67668E55557C609F20CAF63E8772E603"
+      }
+    },
+    {
+      "source": "local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+      "checks": 6,
+      "device": "NVIDIA GeForce RTX 3070/PCIe/SSE2",
+      "failure": "",
+      "seconds": 1.9078602,
+      "peakBytes": 261726208,
+      "detail": {
+        "meshes": 1008,
+        "passes": 1021,
+        "withoutMaterial": 5,
+        "covered": 8248,
+        "upload": {
+          "GeometryCount": 702,
+          "TextureCount": 85,
+          "PlacementCount": 1008,
+          "ElapsedMilliseconds": 97.6686
+        },
+        "staticMs": [
+          4.964,
+          4.6407,
+          4.9148
+        ],
+        "liveMs": [
+          5.0633,
+          4.5563,
+          4.23
+        ],
+        "decodeIssues": [
+          "RENDER_OCCURRENCE: container [409] slot 0, renderable [410]: Render occurrence is not a supported Model/Skin"
+        ],
+        "textureIssues": [
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [2] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [6] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [1442] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [1449] has no material; renderer default/current state is required.",
+          "NULL_MATERIAL_RENDER_CONTEXT: Model [2727] has no material; renderer default/current state is required."
+        ],
+        "native": "B8FC8F437F457020F9F065B0AAF148609307FBEAE7E8003DB73F6D1F066B9520",
+        "renderer": "AA6D97C0630C24121BBE5400E4A465CB67668E55557C609F20CAF63E8772E603"
+      }
+    }
+  ],
+  "lvlOccurrenceChecks": 833,
+  "skinNumericChecks": 11,
+  "skinReadbackChecks": 27,
+  "viewerHandlerChecks": 13124,
+  "viewerPoses": 43,
+  "viewerSeconds": 4.737,
+  "gameCodeChanged": false,
+  "exeScoreDelta": 0,
+  "originalShader": {
+    "path": "local-data/pc-pristine/Shaders/Fixed.rfx",
+    "bytes": 41601,
+    "sha256": "AC6785428BA851DEA88E3A6CDDC03FDF620FA06D82063DB83176598140803DB1"
+  },
+  "boundaries": [
+    "Lit editor light still pending actual scene light consumer",
+    "Host preview frame/draw scheduling",
+    "Host distance alpha sorting, native AlphaSort membership",
+    "No game default/current material inference for NULL material",
+    "GL generated mipmaps from runtime BGRA level0",
+    "Unsupported state/UV has explicit diagnostics",
+    "192x192 profiling is not fullscreen performance"
+  ]
+}

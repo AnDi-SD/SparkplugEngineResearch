@@ -88,3 +88,14 @@ test picking без GPU provider; 63 прежние editor assertions прошл
 checks прошли. Исправлены ожидание отключённых UV и Python byte-buffer slice
 в новых тестах; игровые классы не менялись. Подключение этих результатов к
 OpenGL — следующий самостоятельный блок, полный вывод света пока не закрыт.
+
+## Блок 8 — OpenGL passes, texture stages и подключение LVLcreator
+
+[Материальные проходы подключены](tool-opengl-material-passes-2026-09-11.md) ко
+всем потребителям shared renderer через общий scene snapshot; Viewer обновляет
+анимированные материалы на своём native graph. 31 pixel checks на RTX3070,
+две реальные сцены (1008/1141 placements), skin/picking и 43 Viewer poses прошли.
+Память level test около 249 MiB; кадры небольшого 192×192 target — 4,2–7,7 ms.
+Исправлены оставшиеся GPU occurrence keys LVLcreator: actual window прошёл
+833 checks. Ошибки новых тестов и границы сохранены в досье. Game lighting
+shader, authored mip chain и original Alpha sorting остаются следующими шагами.
