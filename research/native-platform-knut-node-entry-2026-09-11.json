@@ -1,0 +1,109 @@
+{
+  "kind": "native-platform-research",
+  "schemaVersion": 1,
+  "manifestId": "native-platform-knut-node-entry-2026-09-11T02:01:06Z",
+  "createdUtc": "2026-09-11T02:01:06Z",
+  "notes": "2 Knut +5 platform updates for full original v10 Node search/cache/enable continuation.36 unique successes from37 attempts;one missing PS2 strcmp dependency repaired without replaying successful PC pilot.",
+  "assessments": [
+    {
+      "className": "wxKnutAttackAIAction",
+      "platformKey": "pc",
+      "coverageScore": 40.0,
+      "lowerBound": 30.0,
+      "upperBound": 55.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "pc",
+          "sourcePath": "docs/research/native-knut-node-entry-2026-09-11.md",
+          "sourceSha256": "6BB378B749AE3333F004A3D819E9773A1924AE12B06E6B4F5BF875002778BADD",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "research/knut-node-entry-contracts-2026-09-11.json",
+          "sourceSha256": "CEC052612940D675DA3A56482491F1376D1ACDEFA8FD892FD2450EB10513BBC1",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-pilot-run1.json",
+          "sourceSha256": "C8B46962F3D1B59742977903A69DB7A941F89C82EEE203629651180C451065B5",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-pilot-run2.json",
+          "sourceSha256": "1306AC2B62B4A017272404157AF10FFF606F7DE808D9D52AC65B6E09D17C70C7",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "pc",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-batch-run1.json",
+          "sourceSha256": "19601A4AD9C62307BFF54DD5D6D09B24B2789E105EBE92CCB8151D4A5A226BAD",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "35->40: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        }
+      ],
+      "unknowns": [
+        "Normal scene/resource startup,required-node absence,derived callbacks and full AI lifecycle remain open."
+      ]
+    },
+    {
+      "className": "wxKnutAttackAIAction",
+      "platformKey": "ps2",
+      "coverageScore": 35.0,
+      "lowerBound": 25.0,
+      "upperBound": 50.0,
+      "researchStatus": "scouted",
+      "assessmentOrigin": "new_research",
+      "summary": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open.",
+      "evidenceRefs": [
+        {
+          "platformKey": "ps2",
+          "sourcePath": "docs/research/native-knut-node-entry-2026-09-11.md",
+          "sourceSha256": "6BB378B749AE3333F004A3D819E9773A1924AE12B06E6B4F5BF875002778BADD",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "research/knut-node-entry-contracts-2026-09-11.json",
+          "sourceSha256": "CEC052612940D675DA3A56482491F1376D1ACDEFA8FD892FD2450EB10513BBC1",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-pilot-run1.json",
+          "sourceSha256": "C8B46962F3D1B59742977903A69DB7A941F89C82EEE203629651180C451065B5",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-pilot-run2.json",
+          "sourceSha256": "1306AC2B62B4A017272404157AF10FFF606F7DE808D9D52AC65B6E09D17C70C7",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        },
+        {
+          "platformKey": "ps2",
+          "sourcePath": "local-data/results/native-cycle-20260911-0730/knut-node-entry/knut-batch-run1.json",
+          "sourceSha256": "19601A4AD9C62307BFF54DD5D6D09B24B2789E105EBE92CCB8151D4A5A226BAD",
+          "locator": "Full original Knut Node-search/cache/Enable entry",
+          "observation": "30->35: Full original Knut v10 through Node searches,shield reference increment,optional cache behavior and recursive Enable;explicit existing scene graph,normal startup remains open."
+        }
+      ],
+      "unknowns": [
+        "Normal scene/resource startup,required-node absence,derived callbacks and full AI lifecycle remain open."
+      ]
+    }
+  ]
+}
