@@ -1,0 +1,12 @@
+LIBRARY d3d9
+EXPORTS
+  Direct3DCreate9=_ProxyCreate9@4
+  Direct3DCreate9Ex=_ProxyCreate9Ex@8
+  D3DPERF_BeginEvent=_ProxyBegin@8
+  D3DPERF_EndEvent=_ProxyEnd@0
+  D3DPERF_SetMarker=_ProxyMarker@8
+  D3DPERF_SetRegion=_ProxyRegion@8
+  D3DPERF_SetOptions=_ProxyOptions@4
+  D3DPERF_GetStatus=_ProxyStatus@0
+  D3DPERF_QueryRepeatFrame=_ProxyRepeat@0
+  Direct3D9EnableMaximizedWindowedModeShim=_ProxyMaximized@4
