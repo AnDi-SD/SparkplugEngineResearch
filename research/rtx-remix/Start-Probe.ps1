@@ -80,6 +80,16 @@ if ($LiveConfig) {
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'bridge-config-state.json') -Encoding UTF8
     [IO.File]::WriteAllText((Join-Path $run 'live.conf'),'# Diagnostic settings only; restart to clear them.',[Text.UTF8Encoding]::new($false))
 }
+# Record the effective bridge configuration as well as renderer settings. This
+# is also needed for ordinary runs, without the diagnostic LiveConfig switch.
+$bridgeConfigSha256 = $null
+if ($Backend -eq 'remix') {
+    $activeBridgeConfig = Join-Path $game '.trex/bridge.conf'
+    if (Test-Path -LiteralPath $activeBridgeConfig) {
+        Copy-Item -LiteralPath $activeBridgeConfig -Destination (Join-Path $run 'bridge.conf')
+        $bridgeConfigSha256 = (Get-FileHash -LiteralPath (Join-Path $run 'bridge.conf')).Hash
+    }
+}
 $savedEnvironment = @{}
 $values = @{
     WINX_REMIX_BACKEND=$Backend
@@ -115,6 +125,7 @@ try {
         proxySha256=(Get-FileHash -LiteralPath (Join-Path $run 'd3d9.dll')).Hash
         executable=$executable; executableSha256=(Get-FileHash -LiteralPath $executable).Hash
         workingDirectory=$workingDirectory; startLevel=$StartLevel
+        bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
     Write-Output "PID=$($gameProcess.Id) Run=$run"
 } finally {
