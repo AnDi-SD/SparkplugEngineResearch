@@ -2,6 +2,7 @@ param(
     [ValidateSet('RTX','Raster','Original')][string]$Mode='RTX',
     [switch]$DebugMenu,
     [switch]$ShaderAudit,
+    [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
     [switch]$Windowed,
     [switch]$AutoSurfaceRoles,
@@ -24,6 +25,7 @@ $name="play-$($Mode.ToLowerInvariant())-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff'
 $options=@{ Name=$name; NoDrawTrace=$true }
 if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
+if ($ShaderSemantics) { $options.ShaderSemantics=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
 if ($SceneLights) { $options.SceneLights=$true }
 if ($SceneGeometry) { $options.SceneGeometry=$true }

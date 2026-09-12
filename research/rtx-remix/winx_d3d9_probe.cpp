@@ -56,6 +56,7 @@ static void InitializeSurfaceRoles();
 static void InitializeSceneAudit();
 static remixapi_Interface* GetRemixApi();
 namespace material_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
+namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -111,6 +112,7 @@ static void Initialize() {
     fflush(logFile);
   }
   InitializeSurfaceRoles();
+  shader_semantics::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -142,6 +144,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
+#include "winx_shader_semantics.h"
 
 static void RememberPrimaryTarget(IDirect3DDevice9* device) {
   IDirect3DSurface9* target=nullptr;
@@ -206,6 +209,7 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
   AuditShaderDraw(device);
   std::lock_guard<std::recursive_mutex> lock(guard);
   ++drawId;
+  shader_semantics::Draw(device);
   material_audit::Draw(device,call);
   if (!logFile || records >= 65536 || !(frameId < 2 || frameId % 300 == 0 || triggered || frameId<traceUntilFrame)) return;
   ++records;
@@ -697,6 +701,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   const HRESULT hr=Original<F>(d,17)(d,a,b,c,e);
   EndSurfaceRoleFrame();
   ShaderAuditSnapshot(triggered);
+  shader_semantics::EndFrame();
   uiStarted.erase(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) fflush(logFile);

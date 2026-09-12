@@ -87,6 +87,7 @@ def main():
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--source-probe',type=Path,default=ROOT/'.codex-tmp/Sparkplug-build-pc2100-utf8/SparkplugShaderCompileTests.exe')
     parser.add_argument('--sdk',default='d3dx9_24.dll')
+    parser.add_argument('--native-keys',action='store_true',help='Use observed shader manager keys; verify each key against its bound shader')
     args=parser.parse_args();started=time.perf_counter()
     output=args.output.resolve()
     if not output.is_relative_to(ROOT/'local-data'):
@@ -94,6 +95,24 @@ def main():
     output.mkdir(parents=True,exist_ok=False)
     programs_dir=output/'programs';programs_dir.mkdir()
     sdk=D3dx(args.sdk);inputs=[];originals=[];programs=[];templates=[]
+    observed={};observed_draws=Counter();native_snapshot=None
+    if args.native_keys:
+        path=args.run/'shader-semantics.jsonl'
+        if path.stat().st_size>17*1024*1024:raise ValueError('Unbounded semantics log')
+        initialized=False
+        with path.open(encoding='utf-8') as f:
+            for line in f:
+                row=json.loads(line)
+                if row['event']=='init':initialized=row['installed']
+                elif row['event']=='snapshot':native_snapshot=row
+                elif row['event'] in ('draw','selection'):
+                    key=tuple(row['key'])
+                    if len(key)!=2 or any(type(v)!=int or not 0<=v<=0xffffffff for v in key):raise ValueError('Invalid native key')
+                    if not row['bytecodeEqual']:raise ValueError('Unverified native shader')
+                    observed.setdefault(key,Counter())[row['shader']]+=1
+                    if row['event']=='draw':observed_draws[key,row['shader']]+=1
+                    if len(observed)>1024:raise ValueError('Too many native keys')
+        if not initialized or not observed or native_snapshot is None:raise ValueError('No installed, sampled native key observer')
     for p in sorted((args.run/'shaders-client').glob('shader-*.bin')):
         data=p.read_bytes();assembly,normalized=sdk.disassemble(data)
         originals.append(dict(file=p.name,sha256=sha(data),normalizedSha256=sha(normalized.encode()),
@@ -141,7 +160,8 @@ def main():
                     codeSha256=sha(attributes['CODE'].encode('latin1')),
                     constants=[dict(e.attrib) for e in node.iter() if e.tag=='RmShaderConstant']))
                 if path.name=='Fixed.rfx' and attributes.get('PIXEL_SHADER')=='FALSE':
-                    keys=candidates()
+                    keys=({key:dict(origin='observed native manager') for key in sorted(observed)}
+                          if args.native_keys else candidates())
                     text=fields(attributes)+' '+str(len(keys))+'\n'+'\n'.join(f'{a} {b}' for a,b in keys)+'\n'
                     requests=call_source(args.source_probe,'--source-batch',text)
                     if len(requests)!=len(keys):
@@ -175,24 +195,37 @@ def main():
     for original in originals:
         identity=int(re.search(r'(\d+)\.bin$',original['file'])[1])
         original['drawsThroughLastSnapshot']=sum(count for vs,ps,count in latest['totalDraws'] if identity in (vs,ps))
+    native_checks=[]
+    by_identity={int(re.search(r'(\d+)\.bin$',p['file'])[1]):p for p in originals}
+    for key,identities in observed.items():
+        for identity,count in identities.items():
+            original=by_identity.get(identity)
+            matches=[] if original is None else [m for m in original['matches'] if m['key']==list(key)]
+            native_checks.append(dict(key=list(key),shader=identity,observations=count,sampledDraws=observed_draws[key,identity],
+                exactInstructions=bool(matches),exactConstants=any(m['reflectedConstantsEqual'] for m in matches)))
     summary=dict(resourceFiles=len(inputs),shaderRecords=len(templates)+sum(p['assembly'] and ':' not in p['label'] for p in programs),
         compiledCases=len(programs),compileFailures=sum(p['hresult']<0 or 'bytecodeSha256' not in p for p in programs),
         capturedShaders=len(originals),capturedMatched=sum(bool(p['matches']) for p in originals),
         capturedUnmatched=[p['file'] for p in originals if not p['matches']],
         elapsedSeconds=round(time.perf_counter()-started,3))
+    if args.native_keys:
+        summary.update(nativeKeys=len(observed),nativeBindings=len(native_checks),
+            nativeBindingFailures=sum(not (r['exactInstructions'] and r['exactConstants']) for r in native_checks))
     report=dict(schema=1,scope='PC source and executable-instruction identity; no game rendering changes',
         compiler=dict(path=str(sdk.path),sha256=sha(sdk.path.read_bytes()),flags=0),
         sourceProbe=dict(path=str(args.source_probe.resolve()),sha256=sha(args.source_probe.read_bytes())),
         analyzerSha256=sha(Path(__file__).read_bytes()),sdkBoundarySha256=sha((ROOT/'research/pc_shader_sdk.py').read_bytes()),
         inputs=inputs,templates=templates,programs=programs,originals=originals,parameterTypes=parameter_types,summary=summary,
+        nativeKeyChecks=native_checks,nativeKeySnapshot=native_snapshot,
         limits=['Matching removes only disassembler comments, preserving every executable instruction and declaration.',
-                'Candidate keys are not observed native keys; several keys can compile to the same program.',
+                ('Keys came from the original manager and are verified individually against sampled bound bytecode.' if args.native_keys else
+                 'Candidate keys are not observed native keys; several keys can compile to the same program.'),
                 'Compiler creator metadata may differ; raw bytecode equality is reported separately.',
                 'Synthetic branch coverage is separate from captured draw usage.',
                 'No GPU image equivalence, full-game variant coverage or PS2 behavior is inferred.'])
     (output/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(summary,ensure_ascii=False))
-    return int(bool(summary['capturedUnmatched']) or summary['compileFailures']>0)
+    return int(bool(summary['capturedUnmatched']) or summary['compileFailures']>0 or summary.get('nativeBindingFailures',0)>0)
 
 
 if __name__=='__main__':

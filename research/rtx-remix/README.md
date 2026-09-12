@@ -262,6 +262,26 @@ RGBA diffuse/ambient/emissive/specular, источники цвета, флаг�
 Основной target, perspective/depth и наличие COLOR0/COLOR1/NORMAL/POSITIONT
 позволяют разделять проходы; они не доказывают идентичность native камеры.
 Материалы и shader constants этим режимом не изменяются.
+
+`-ShaderSemantics` (только проверенный `-DebugMenu`) дополнительно связывает
+оригинальные ключи shader manager с точным байткодом. Он автоматически включает
+ShaderAudit и MaterialAudit. Пример универсального диагностического профиля:
+
+```powershell
+./Run-WinxRemix.ps1 -Mode RTX -DebugMenu -ShaderSemantics -SceneLights -SceneGeometry -StartLevel 27 -Windowed
+```
+
+После закрытия записи используйте общий анализатор из корня репозитория:
+
+```powershell
+python research/analyze_pc_shader_contract.py --native-keys --run local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА --output local-data/results/СВЕЖЕЕ-ИМЯ
+```
+
+`shader-semantics.jsonl` различает первый выбор ключа и sampled draw; NULL
+manager учитывается отдельно от полученного VS. Варианты создают общие C++
+классы; отдельного shader-key алгоритма в DLL нет. Мост не изменяет цвет,
+матрицы или shader constants. Проверки и границы:
+[shader-key-v2](../../docs/research/winx-remix-shader-key-2026-09-12.md).
 Точные байткоды новых VS сохраняются рядом как `materials.jsonl.shader-*.bin`;
 это позволяет независимо проверить таблицы и повторно использовать их дальше.
 

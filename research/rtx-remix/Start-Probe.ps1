@@ -18,6 +18,7 @@ param(
     [switch]$DebugMenu,
     [switch]$LiveConfig,
     [switch]$ShaderAudit,
+    [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
     [switch]$SceneAudit,
     [switch]$SceneLights,
@@ -30,6 +31,8 @@ param(
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($ShaderSemantics -and -not $DebugMenu) { throw 'Shader semantics require the hash-verified DebugMenu executable' }
+if ($ShaderSemantics) { $ShaderAudit=$true; $MaterialAudit=$true }
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
 if ($SceneAudit -and -not $DebugMenu) { throw 'Scene audit requires the hash-verified DebugMenu executable' }
 if ($SceneLights -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene lights require RTX and the hash-verified DebugMenu executable' }
@@ -155,6 +158,7 @@ $values = @{
     WINX_REMIX_SURFACE_ASSETS=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-assets' } else { $null })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
     WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
+    WINX_REMIX_SHADER_SEMANTICS=$(if ($ShaderSemantics) { Join-Path $run 'shader-semantics.jsonl' } else { $null })
     WINX_REMIX_MATERIAL_AUDIT=$(if ($MaterialAudit) { Join-Path $run 'materials.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
@@ -185,6 +189,7 @@ try {
         autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
         sceneAudit=$SceneAudit.IsPresent
         materialAudit=$MaterialAudit.IsPresent
+        shaderSemantics=$ShaderSemantics.IsPresent
         sceneLights=$SceneLights.IsPresent
         sceneGeometry=$SceneGeometry.IsPresent
         sceneLightGain=$LightGain
