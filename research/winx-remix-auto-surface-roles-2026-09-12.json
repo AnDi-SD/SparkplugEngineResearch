@@ -1,0 +1,139 @@
+{
+  "date": "2026-09-12",
+  "status": "Own universal surface prototype; gameplay A/B verified; stock USD capture crashed once; opt-in, not default",
+  "source_reference": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "runtime": "remix-main+68edea01",
+  "runs": [
+    {
+      "name": "2026-09-12-auto-roles-gardenia02",
+      "files": {
+        "local-data/rtx-remix/runs/2026-09-12-auto-roles-gardenia02/launch.json": "937e91e7d4317a2e401a806409d2884f2f5a5c31928dbef6d51d9968787dae00",
+        "local-data/rtx-remix/runs/2026-09-12-auto-roles-gardenia02/rtx.conf": "884ea4f068f9caf97e2ad628e415a1c18579ac8f732049012dde50b3aaa49fa0",
+        "local-data/rtx-remix/runs/2026-09-12-auto-roles-gardenia02/surface-roles.jsonl": "2e865e5b401675c390b454f5f99a96cadd94ce0163d40f77fae6a35a0b62257d",
+        "local-data/rtx-remix/runs/2026-09-12-auto-roles-gardenia02/workdir/rtx-remix/logs/bridge64.log": "33e531b70b9df4f11cc75f27ef51ce715581df7894c794aa11a9293176b35eae",
+        "local-data/rtx-remix/runs/2026-09-12-auto-roles-gardenia02/workdir/rtx-remix/logs/remix-dxvk.log": "dfb1df9187116f6af84f4435049c878984f3887ccec8eb84c6e39f65c105d715"
+      }
+    },
+    {
+      "name": "2026-09-12-auto-api-v4-gardenia02",
+      "files": {
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/launch.json": "12ee56025a1c178c3e686e753aeba14bb333f2d47dca921b8c3a888c49751910",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/rtx.conf": "884ea4f068f9caf97e2ad628e415a1c18579ac8f732049012dde50b3aaa49fa0",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/level.png": "b986f6bd8465ee6ee909e64336a92c32f51e1fa2265f62473ad94473359549b6",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/capture-crash.dmp": "6d405dbb2fe8ff00f67fc503c43e686143ff0cd934de705c9d6e66d9647f7434",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/capture-crash.json": "677e4ccbb9769db2d9103b0adebaa3e3d71f12f999f3e8d68511b724b659e97a",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/surface-roles.jsonl": "2ef887866e63cd6ab57b9515efae763e0babeca32d60bf8d0899a294e74b1b44",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/workdir/rtx-remix/logs/bridge64.log": "429df22689ff0a2f738a25f0b43ccbd7a4d6253177e8c8cf717f294a3e29851c",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-v4-gardenia02/workdir/rtx-remix/logs/remix-dxvk.log": "1b273be200d2b3e07a22eba6033e3197b0b2c393e60cafff948e7cd5ca6f4645"
+      },
+      "usd_mods_present": true,
+      "last_sample": {
+        "event": "frame",
+        "frame": 6062,
+        "bases": 69,
+        "overlays": 11,
+        "standalone": 30,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "overlay_texture_identities": {
+        "FAC245110A8BD959": 56,
+        "1CAD75BDFFCE6E85": 94,
+        "9D7AA1512FBF3A54": 63
+      },
+      "disabled_samples": 0
+    },
+    {
+      "name": "2026-09-12-auto-api-ab-gardenia02",
+      "files": {
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/launch.json": "abab670ffb405ac76160546135b1dc64a1784617b8334af1364a924a44b4cbf7",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/rtx.conf": "884ea4f068f9caf97e2ad628e415a1c18579ac8f732049012dde50b3aaa49fa0",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/on.png": "44ca8728c64763c751349d7c369354e4668d6b7669deedf67965cec6350100f4",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/off.png": "03298eea703f879b2172fec58157f8724da6dc4b56bba8842f19e768a100a1fb",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/restored.png": "0ff73fa328a27178095355e3109f8e8371315e2be5469aeab47d9324f3d1692f",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/point.json": "200a6f275e7f32285d23264aa2c933f390e9418ecfcb85ec034e36ad154b8111",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/surface-roles.jsonl": "d15e0f915d02afcb67261d99b8467a213249bdfd5eceb7f910105885045169d7",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/workdir/rtx-remix/logs/bridge64.log": "827f924d13b4c0fbd836f82268be0db2871454327292e43dd6ce22082d941b9e",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-ab-gardenia02/workdir/rtx-remix/logs/remix-dxvk.log": "37592b7f3acb434815984ea2940ab198d2d27d1a65d478ddaf0da4f19e4f8d9a"
+      },
+      "usd_mods_present": true,
+      "last_sample": {
+        "event": "frame",
+        "frame": 13200,
+        "bases": 68,
+        "overlays": 11,
+        "standalone": 29,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "overlay_texture_identities": {
+        "1CAD75BDFFCE6E85": 141,
+        "9D7AA1512FBF3A54": 99,
+        "FAC245110A8BD959": 85
+      },
+      "disabled_samples": 14
+    },
+    {
+      "name": "2026-09-12-auto-api-gardenia01",
+      "files": {
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/launch.json": "e53361ff2b5ce42f2e4fdcc48d2ca1f7307b8f745863e385a0dbfde71f5cf10d",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/rtx.conf": "884ea4f068f9caf97e2ad628e415a1c18579ac8f732049012dde50b3aaa49fa0",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/level.png": "f56a63b76e6377c493500a39f47cf98a9400f0bffaff90efef74c3ca44e6734a",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/surface-roles.jsonl": "0e62a1b583390469df03f249f2460cb90e00ee0fd6a301f54f928626aad5c542",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/workdir/rtx-remix/logs/bridge64.log": "456e7708b447ca30e1c1fda3ab475aba14e669fde9773997925ea63a47291b64",
+        "local-data/rtx-remix/runs/2026-09-12-auto-api-gardenia01/workdir/rtx-remix/logs/remix-dxvk.log": "7c794c21fcb88b0a77f535f8d11f4871f05394c8a4e46a5dfd0e3e9f7826962b"
+      },
+      "usd_mods_present": true,
+      "last_sample": {
+        "event": "frame",
+        "frame": 11100,
+        "bases": 286,
+        "overlays": 32,
+        "standalone": 102,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "overlay_texture_identities": {
+        "FAC245110A8BD959": 1152
+      },
+      "disabled_samples": 0
+    },
+    {
+      "name": "play-rtx-20260912-122222-965",
+      "files": {
+        "local-data/rtx-remix/runs/play-rtx-20260912-122222-965/launch.json": "876920e3eca2763a75f5e0f96e11d485a4a2cdca5e471e1c3a2d1cd08f75f1e5",
+        "local-data/rtx-remix/runs/play-rtx-20260912-122222-965/rtx.conf": "884ea4f068f9caf97e2ad628e415a1c18579ac8f732049012dde50b3aaa49fa0",
+        "local-data/rtx-remix/runs/play-rtx-20260912-122222-965/auto-no-trace.png": "a0d50e16a29755aca4294f02dce4d6fc188ef9bb63208296726473d1b3d5e852",
+        "local-data/rtx-remix/runs/play-rtx-20260912-122222-965/surface-roles.jsonl": "c8b0432a28593738f4464af266c8e2f450bcaf980d1d8836d6794f749851f942"
+      },
+      "usd_mods_present": true,
+      "last_sample": {
+        "event": "frame",
+        "frame": 12600,
+        "bases": 55,
+        "overlays": 13,
+        "standalone": 20,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "overlay_texture_identities": {
+        "9D7AA1512FBF3A54": 328,
+        "1CAD75BDFFCE6E85": 123,
+        "FAC245110A8BD959": 82
+      },
+      "disabled_samples": 0
+    }
+  ],
+  "binaries": {
+    "local-data/Winx Club/d3d9.dll": "2508d75d412fd34dcfcde010d4051f0a9a0c0ea8b9cb5fe30d3411d8842b5bb6",
+    "local-data/Winx Club/d3d9.remix-original.dll": "a9d0846720e90d36d19afb67e76a4d894eb349ecf13b847de0ceda4861669965",
+    "local-data/Winx Club/.trex/d3d9.dll": "f7c310821aa98bcdfdec120330b0a89457b7c5eba58d21464af32639611c809f",
+    "local-data/Winx Club/WinxClub.exe": "1b04dd9b082087141c840d6546b9b729fd1a3cd1bebfabc1267035c2b30a4ec3",
+    "local-data/Winx Club/WinxClubDebug.exe": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb"
+  },
+  "fresh_baseline_check": {
+    "winx.ini": true,
+    "user.conf": true,
+    "save_files_identical": true
+  }
+}

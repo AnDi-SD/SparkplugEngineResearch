@@ -3,9 +3,11 @@ param(
     [switch]$DebugMenu,
     [switch]$ShaderAudit,
     [switch]$Windowed,
+    [switch]$AutoSurfaceRoles,
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires RTX mode' }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
 $build=Join-Path $root 'local-data/rtx-remix/build/d3d9.dll'
@@ -33,17 +35,18 @@ if ($Mode -eq 'Original') {
         $options.SkyLayers=$true
         $options.SkipLegacyProjectedShadows=$true
         $options.OpaqueAlphaTest=$true
-        $options.SurfaceRoles=$true
+        if ($AutoSurfaceRoles) { $options.AutoSurfaceRoles=$true }
+        else { $options.SurfaceRoles=$true }
         # Visual tuning for original Winx vertex colors, not recovered game constants.
         $options.ConfigOverride=@{
-            # Gardenia terrain overlays are coplanar with their opaque base.
-            'rtx.decalTextures'='0xFAC245110A8BD959, 0x3323174FD6FAE171'
             'rtx.vertexColorIsBakedLighting'='False'
             'rtx.lightConversionIntensityFactor'='10'
             'rtx.lightConversionDistantLightFixedIntensity'='10'
             'rtx.localtonemap.exposure'='1'
             'rtx.localtonemap.shadows'='5'
         }
+        # Historical comparison profile until stock USD capture supports API materials.
+        if (-not $AutoSurfaceRoles) { $options.ConfigOverride['rtx.decalTextures']='0xFAC245110A8BD959, 0x3323174FD6FAE171' }
     }
 }
 & (Join-Path $PSScriptRoot 'Start-Probe.ps1') @options

@@ -12,6 +12,7 @@
 #include <share.h>
 #include <string>
 #include <sstream>
+#include <vector>
 #define REMIX_ALLOW_X86
 #include <remix/remix_c.h>
 
@@ -50,6 +51,7 @@ using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
 static FvfFromDeclaration fvfFromDeclaration;
 static wchar_t liveConfigPath[MAX_PATH]{};
 static void InitializeShaderAudit();
+static void InitializeSurfaceRoles();
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -103,6 +105,7 @@ static void Initialize() {
       wcscmp(mode, L"system") == 0 ? "system" : "remix", backend ? "true" : "false", GetCurrentProcessId());
     fflush(logFile);
   }
+  InitializeSurfaceRoles();
 }
 
 template<class F> static F Proc(const char* name) {
@@ -534,11 +537,18 @@ static void ResubmitTextures(IDirect3DDevice9* device) {
   }
 }
 
+#include "winx_surface_roles.h"
+
 template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCall(Buffer* b,UINT offset,UINT size,void** data,DWORD flags) {
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
   const HRESULT hr=Original<F>(b,11)(b,offset,size,data,flags);
   std::lock_guard<std::recursive_mutex> lock(guard);
+  if(autoSurfaceRoles && SUCCEEDED(hr) && !(flags&D3DLOCK_READONLY)) ClearSurfaceBases();
   Desc desc{}; b->GetDesc(&desc);
+  if(autoSurfaceRoles && SUCCEEDED(hr) && data && *data && !(flags&D3DLOCK_READONLY) && offset<=desc.Size) {
+    const UINT length=size?size:desc.Size-offset;
+    surfaceWrites[b]={*data,offset,length,desc.Size,flags};
+  }
   const bool dynamic=(desc.Usage&D3DUSAGE_DYNAMIC)!=0;
   if(SUCCEEDED(hr) && data && *data && logFile && bufferRecords<1024 && (!dynamic || dynamicBufferRecords<20)) {
     if(dynamic) ++dynamicBufferRecords;
@@ -551,6 +561,7 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
 }
 template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer* b) {
   std::lock_guard<std::recursive_mutex> lock(guard);
+  if(autoSurfaceRoles) CaptureSurfaceWrite(b);
   auto found=bufferLocks.find(b);
   if(found!=bufferLocks.end()) {
     const auto& info=found->second;
@@ -561,12 +572,21 @@ template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer*
     fputs("]}\n",logFile); bufferLocks.erase(found);
   }
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*);
-  return Original<F>(b,12)(b);
+  const HRESULT hr=Original<F>(b,12)(b);
+  if(autoSurfaceRoles && FAILED(hr)) ForgetSurfaceBuffer(b);
+  return hr;
+}
+template<class Buffer> static ULONG STDMETHODCALLTYPE SurfaceBufferRelease(Buffer* b) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  using F=ULONG(STDMETHODCALLTYPE*)(Buffer*);const ULONG refs=Original<F>(b,2)(b);
+  if(!refs && autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(b);}
+  return refs;
 }
 static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD usage,DWORD fvf,D3DPOOL pool,IDirect3DVertexBuffer9** result,HANDLE* shared) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,DWORD,D3DPOOL,IDirect3DVertexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,26)(d,size,usage,fvf,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>));
   }
@@ -576,6 +596,7 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DIndexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,27)(d,size,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>));
   }
@@ -589,18 +610,7 @@ static void ApplyLiveConfig() {
   if(!liveConfigPath[0]) return;
   static ULONGLONG nextCheck=0; const auto now=GetTickCount64();
   if(now<nextCheck) return; nextCheck=now+500;
-  static remixapi_Interface api{}; static bool attempted=false;
-  if(!attempted) {
-    attempted=true;
-    auto init=reinterpret_cast<PFN_remixapi_InitializeLibrary>(GetProcAddress(backend,"remixapi_InitializeLibrary"));
-    remixapi_InitializeLibraryInfo info{};
-    info.sType=REMIXAPI_STRUCT_TYPE_INITIALIZE_LIBRARY_INFO;
-    info.version=REMIXAPI_VERSION_MAKE(REMIXAPI_VERSION_MAJOR,REMIXAPI_VERSION_MINOR,REMIXAPI_VERSION_PATCH);
-    const auto result=init?init(&info,&api):REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
-    if(logFile) fprintf(logFile,"{\"event\":\"live_config_init\",\"result\":%d}\n",result);
-    if(result!=REMIXAPI_ERROR_CODE_SUCCESS) api={};
-  }
-  if(!api.SetConfigVariable) return;
+  auto api=GetRemixApi();if(!api) return;
   FILE* file=_wfsopen(liveConfigPath,L"rb",_SH_DENYNO); if(!file) return;
   std::string content; char chunk[1024]; size_t count=0;
   while((count=fread(chunk,1,sizeof(chunk),file))!=0 && content.size()<16384) content.append(chunk,count);
@@ -616,6 +626,10 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepAutoSurfaceRoles" && autoSurfaceRoles && (value=="True" || value=="False")) {
+      keepAutoSurfaceRolesForComparison=value=="True";ClearSurfaceBases();continue;
+    }
+    if(autoSurfaceRoles && (key=="rtx.decalTextures" || key=="rtx.dynamicDecalTextures" || key=="rtx.singleOffsetDecalTextures" || key=="rtx.nonOffsetDecalTextures")) continue;
     if(key=="winx.keepLegacyProjectedShadows" && skipLegacyProjectedShadows && (value=="True" || value=="False")) {
       keepLegacyProjectedShadowsForComparison=value=="True";
       if(logFile) fprintf(logFile,"{\"event\":\"shadow_comparison\",\"frame\":%u,\"keepLegacy\":%s}\n",frameId,keepLegacyProjectedShadowsForComparison?"true":"false");
@@ -629,7 +643,7 @@ static void ApplyLiveConfig() {
     if(key.rfind("rtx.",0)!=0 || key.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.")!=std::string::npos ||
        value.empty() || value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_., +-()")!=std::string::npos) continue;
     if(applied.count(key) && applied[key]==value) continue;
-    const auto result=api.SetConfigVariable(key.c_str(),value.c_str());
+    const auto result=api->SetConfigVariable(key.c_str(),value.c_str());
     if(result==REMIXAPI_ERROR_CODE_SUCCESS) applied[key]=value;
     if(logFile) fprintf(logFile,"{\"event\":\"live_config\",\"frame\":%u,\"key\":\"%s\",\"value\":\"%s\",\"result\":%d}\n",frameId,key.c_str(),value.c_str(),result);
   }
@@ -650,6 +664,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
       frameId,drawId,a?a->left:0,a?a->top:0,a?a->right:0,a?a->bottom:0,b?b->left:0,b?b->top:0,b?b->right:0,b?b->bottom:0,a!=nullptr,b!=nullptr);
   }
   const HRESULT hr=Original<F>(d,17)(d,a,b,c,e);
+  EndSurfaceRoleFrame();
   ShaderAuditSnapshot(triggered);
   uiStarted.erase(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
@@ -668,7 +683,7 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
     for(UINT size=width>height?width:height;size>1;size>>=1) ++forwardedLevels;
   }
   const HRESULT hr=Original<F>(d,23)(d,width,height,forwardedLevels,usage,format,pool,result,shared);
-  if(SUCCEEDED(hr) && result && *result) { submittedTextures.erase(*result); readTextures.erase(*result); }
+  if(SUCCEEDED(hr) && result && *result) { submittedTextures.erase(*result); readTextures.erase(*result); surfaceTextureHashes.erase(*result); }
   if(logFile && textureRecords++<2048) {
     const bool ok=SUCCEEDED(hr) && result && *result;
     fprintf(logFile,"{\"event\":\"create_texture\",\"frame\":%u,\"width\":%u,\"height\":%u,\"levels\":%u,\"forwardedLevels\":%u,\"usage\":%lu,\"format\":%u,\"pool\":%u,\"hr\":%ld,\"actualLevels\":%u,\"texture\":%llu}\n",frameId,width,height,levels,forwardedLevels,usage,format,pool,hr,ok?(*result)->GetLevelCount():0,ok?static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(*result)):0);
@@ -679,6 +694,7 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
 static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);
+  EndSurfaceRoleFrame();
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) fflush(logFile);
   ++frameId; drawId=0;
@@ -693,6 +709,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
   LogPresentation("reset_request",p);
+  ClearSurfaceBases();
   traceUntilFrame=frameId+120; records=0;
   const HRESULT hr=Original<F>(d,16)(d,p);
   if(SUCCEEDED(hr)) {
@@ -705,6 +722,7 @@ static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT start,UINT count) {
+  std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawPrimitive",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
@@ -715,18 +733,22 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
   return AuditShaderDrawResult(Original<F>(d,81)(d,t,start,count));
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
+  std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawIndexedPrimitive",t,count);
   if(SkipLegacyProjectedShadow(d,t)) return D3D_OK;
   ScopedOpaqueAlphaTest alphaTest(d);
   ResubmitTextures(d);
+  ScopedSurfaceRole surfaceRole(d,t,base,min,num,start,count);
+  if(surfaceRole.scopedDecal) return surfaceRole.complete(D3D_OK);
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
-  return AuditShaderDrawResult(Original<F>(d,82)(d,t,base,min,num,start,count));
+  return surfaceRole.complete(AuditShaderDrawResult(Original<F>(d,82)(d,t,base,min,num,start,count)));
 }
 static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT count,const void* data,UINT stride) {
+  std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);
@@ -737,6 +759,7 @@ static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,U
   return AuditShaderDrawResult(Original<F>(d,83)(d,t,count,data,stride));
 }
 static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT min,UINT num,UINT count,const void* indices,D3DFORMAT format,const void* data,UINT stride) {
+  std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawIndexedPrimitiveUP",t,count);
   ResubmitTextures(d);
   ScopedFvf normalize(d);

@@ -20,6 +20,7 @@ param(
     [switch]$ShaderAudit,
     [switch]$Windowed,
     [switch]$SurfaceRoles,
+    [switch]$AutoSurfaceRoles,
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel = 0,
     [hashtable]$ConfigOverride = @{}
 )
@@ -28,6 +29,7 @@ if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isol
 if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
 if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
 if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
+if ($AutoSurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing -or $SurfaceRoles -or -not $OpaqueAlphaTest)) { throw 'Automatic surface roles require RTX and OpaqueAlphaTest, without legacy SurfaceRoles' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game = Join-Path $root 'local-data/Winx Club'
 if (Get-Process WinxClub,WinxClubDebug,NvRemixBridge -ErrorAction SilentlyContinue) { throw 'Close the previous game/bridge before starting another run' }
@@ -38,6 +40,7 @@ if ($DebugMenu -and (Get-FileHash -LiteralPath $executable).Hash -ne 'C27EA9DB42
 $run = Join-Path $root "local-data/rtx-remix/runs/$Name"
 if (Test-Path -LiteralPath $run) { throw 'Choose a fresh run name to preserve evidence' }
 New-Item -ItemType Directory -Path $run | Out-Null
+if ($AutoSurfaceRoles) { New-Item -ItemType Directory -Path (Join-Path $run 'surface-assets') | Out-Null }
 $config = Join-Path $run 'rtx.conf'
 $text = [IO.File]::ReadAllText((Join-Path $game 'rtx.conf'))
 $text = $text.Replace('rtx.useVertexCapture - True','rtx.useVertexCapture = True')
@@ -46,6 +49,10 @@ if ($ImmediateTextureUpload) { $text += "d3d9.evictManagedOnUnlock = True`r`n" }
 foreach ($key in ($ConfigOverride.Keys | Sort-Object)) {
     if ($key -notmatch '^[a-zA-Z0-9_.]+$' -or "$($ConfigOverride[$key])" -match '[\r\n]') { throw 'Invalid config override' }
     $text += "$key = $($ConfigOverride[$key])`r`n"
+}
+if ($AutoSurfaceRoles) {
+    # The adapter owns these categories per draw. No persistent texture lists.
+    $text += "`r`nrtx.decalTextures = `r`nrtx.dynamicDecalTextures = `r`nrtx.singleOffsetDecalTextures = `r`nrtx.nonOffsetDecalTextures = `r`nrtx.useObsoleteHashOnTextureUpload = False`r`n"
 }
 [IO.File]::WriteAllText($config,$text,[Text.UTF8Encoding]::new($false))
 Copy-Item -LiteralPath (Join-Path $game 'd3d9.dll') -Destination (Join-Path $run 'd3d9.dll')
@@ -76,10 +83,21 @@ if ($SurfaceRoles) {
     New-Item -ItemType Directory -Force -Path $surfaceRoleDirectory | Out-Null
     Copy-Item -LiteralPath $surfaceRoleSource -Destination (Join-Path $surfaceRoleDirectory 'mod.usda')
 }
+if ($AutoSurfaceRoles) {
+    $legacyRoleFile = Join-Path $workingDirectory 'rtx-remix/mods/winx-surface-roles/mod.usda'
+    if (Test-Path -LiteralPath $legacyRoleFile) {
+        $ownedRoleSource = Join-Path $PSScriptRoot 'surface-roles/mod.usda'
+        if ((Get-FileHash -LiteralPath $legacyRoleFile).Hash -ne (Get-FileHash -LiteralPath $ownedRoleSource).Hash) {
+            throw 'Legacy surface-role mod was modified; preserve it and disable it explicitly before using automatic roles'
+        }
+        Copy-Item -LiteralPath $legacyRoleFile -Destination (Join-Path $run 'legacy-surface-roles.usda.before')
+        Remove-Item -LiteralPath $legacyRoleFile
+    }
+}
 if ($ShaderAudit) {
     New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
 }
-if ($LiveConfig) {
+if ($LiveConfig -or $AutoSurfaceRoles) {
     if ($Backend -ne 'remix') { throw 'Live config requires the Remix backend' }
     $bridgeConfig = Join-Path $game '.trex/bridge.conf'
     $bridgeExisted = Test-Path -LiteralPath $bridgeConfig
@@ -119,6 +137,9 @@ $values = @{
     WINX_REMIX_SKY_LAYERS=$(if ($SkyLayers) { '1' } else { '0' })
     WINX_REMIX_SKIP_LEGACY_PROJECTED_SHADOWS=$(if ($SkipLegacyProjectedShadows) { '1' } else { '0' })
     WINX_REMIX_OPAQUE_ALPHA_TEST=$(if ($OpaqueAlphaTest) { '1' } else { '0' })
+    WINX_REMIX_AUTO_SURFACE_ROLES=$(if ($AutoSurfaceRoles) { '1' } else { '0' })
+    WINX_REMIX_SURFACE_AUDIT=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-roles.jsonl' } else { $null })
+    WINX_REMIX_SURFACE_ASSETS=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-assets' } else { $null })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
     WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
     DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
@@ -130,7 +151,7 @@ try {
         [Environment]::SetEnvironmentVariable($key,$values[$key],'Process')
     }
     $gameProcess=Start-Process -FilePath $executable -WorkingDirectory $workingDirectory -WindowStyle Normal -PassThru
-    if ($LiveConfig) {
+    if ($LiveConfig -or $AutoSurfaceRoles) {
         $restoreScript = Join-Path $PSScriptRoot 'Restore-LiveConfig.ps1'
         Start-Process -FilePath powershell -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$restoreScript+'"'),'-Run',('"'+$run+'"'),'-GamePid',$gameProcess.Id) | Out-Null
     }
@@ -141,6 +162,7 @@ try {
         workingDirectory=$workingDirectory; startLevel=$StartLevel
         windowedOverride=$Windowed.IsPresent
         surfaceRolesSha256=$(if ($SurfaceRoles) { (Get-FileHash -LiteralPath $surfaceRoleSource).Hash } else { $null })
+        autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
         bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
     Write-Output "PID=$($gameProcess.Id) Run=$run"
