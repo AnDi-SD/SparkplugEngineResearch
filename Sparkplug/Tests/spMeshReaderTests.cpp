@@ -127,7 +127,55 @@ namespace
         std::cout<<"[["<<mesh.GetFVFCodeForAnalysis()<<','<<mesh.GetVertexStrideForAnalysis()<<','
             <<mesh.GetVertexByteSizeForAnalysis()<<','<<mesh.GetIndexByteSizeForAnalysis()<<','<<mesh.GetComponentWeightCountForAnalysis()
             <<"],\""<<Hex(mesh.GetDXVertexBufferForAnalysis()->GetDataForAnalysis())<<"\",\""
-            <<Hex(mesh.GetDXIndexBufferForAnalysis()->GetDataForAnalysis())<<"\"]";
+        <<Hex(mesh.GetDXIndexBufferForAnalysis()->GetDataForAnalysis())<<"\"]";
+    }
+    // Own bounded transport for comparing the shared class to original PC/PS2
+    // layout calls. Each row is a sequence of reinitializations of one object.
+    void VertexLayoutNativeRegressions()
+    {
+        // Complete original PC 0x45FEA0 and PS2 0x15C8E0 calls agree.
+        spVertexBuffer buffer;
+        Check(buffer.InitializeForAnalysis(0x2104, 1), "gapped native component mask");
+        Check(buffer.GetComponentFlagsForAnalysis() == 0x2104
+            && buffer.GetVertexStrideForAnalysis() == 16
+            && buffer.GetComponentCountForAnalysis() == 4
+            && buffer.GetComponentOffsetsForAnalysis()[9] == 3
+            && buffer.GetComponentOffsetsForAnalysis()[3] == 0
+            && buffer.GetComponentOffsetsForAnalysis()[14] == 0,
+            "weight/UV gaps terminate groups; color remains at byte 12 and raw flags survive");
+        Check(buffer.InitializeForAnalysis(0x940, 1)
+            && buffer.InitializeForAnalysis(0x2408, 1)
+            && buffer.GetVertexStrideForAnalysis() == 24
+            && buffer.GetComponentOffsetsForAnalysis()[7] == 3
+            && buffer.GetComponentOffsetsForAnalysis()[9] == 6
+            && buffer.GetComponentOffsetsForAnalysis()[12] == 7
+            && buffer.GetComponentOffsetsForAnalysis()[11] == 3,
+            "reinitialization retains absent offsets and overwrites the present field");
+        auto copy = buffer.CopyBufferForAnalysis();
+        Check(copy && copy->GetDataForAnalysis() == buffer.GetDataForAnalysis()
+            && copy->GetComponentOffsetsForAnalysis()[9] == 0,
+            "copy creates a fresh layout; absent stale offsets are not vertex data");
+    }
+    void CaptureVertexLayouts()
+    {
+        unsigned sequences=0;Check(bool(std::cin>>sequences)&&sequences<=128,"bounded layout sequences");
+        std::cout<<'[';
+        for(unsigned s=0;s<sequences;++s)
+        {
+            unsigned count=0;Check(bool(std::cin>>count)&&count<=32,"bounded layout calls");
+            spVertexBuffer buffer;if(s)std::cout<<',';std::cout<<'[';
+            for(unsigned i=0;i<count;++i)
+            {
+                std::uint32_t mask=0;Check(bool(std::cin>>mask),"layout mask");
+                Check(buffer.InitializeForAnalysis(mask,0),"shared layout initialization");
+                if(i)std::cout<<',';
+                std::cout<<'['<<buffer.GetVertexStrideForAnalysis()<<','<<buffer.GetComponentCountForAnalysis();
+                for(auto offset:buffer.GetComponentOffsetsForAnalysis())std::cout<<','<<offset;
+                std::cout<<']';
+            }
+            std::cout<<']';
+        }
+        std::cout<<"]\n";
     }
     void Readers(bool capture=false)
     {
@@ -234,11 +282,14 @@ namespace
 }
 int main(int argc,char** argv)
 {
-    try{if(argc==5&&std::string_view(argv[1])=="--write-graph")
+    try{if(argc==2&&std::string_view(argv[1])=="--vertex-layouts"){CaptureVertexLayouts();return 0;}
+        if(argc==2&&std::string_view(argv[1])=="--read-payload")
+        {std::string bytes;Check(bool(std::cin>>bytes)&&bytes.size()<4096,"bounded mesh payload");CaptureMeshRead(Unhex(bytes));std::cout<<'\n';return 0;}
+        if(argc==5&&std::string_view(argv[1])=="--write-graph")
         {std::string ib,vb;std::cin>>ib>>vb;std::cout<<GraphMesh(Unhex(ib),Unhex(vb),std::stoul(argv[3]),std::string_view(argv[4])=="base",argv[2])<<'\n';return 0;}
         if(argc==4&&(std::string_view(argv[1])=="--write"||std::string_view(argv[1])=="--write-roundtrip"||std::string_view(argv[1])=="--write-base"))
         {std::string ib,vb;std::cin>>ib>>vb;const auto policy=std::stoul(argv[3]);const bool base=std::string_view(argv[1])=="--write-base";const auto output=WriteMesh(Unhex(ib),Unhex(vb),policy,base);std::cout<<"[\""<<(base?"base:":"")<<argv[2]<<"\","<<policy<<",\""<<ib<<"\",\""<<vb<<"\",\""<<Hex(output)<<'"';
             if(std::string_view(argv[1])=="--write-roundtrip"){std::cout<<',';CaptureMeshRead(output);}std::cout<<"]\n";return 0;}
-        if(argc==2&&std::string_view(argv[1])=="--capture"){Readers(true);return 0;}Readers();Writers();WholeLoad();Failures();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC mesh reader/writer and whole composed FFPS\n";return 0;}
+        if(argc==2&&std::string_view(argv[1])=="--capture"){Readers(true);return 0;}VertexLayoutNativeRegressions();Readers();Writers();WholeLoad();Failures();std::cout<<"PASS "<<checks<<'/'<<checks<<": PC mesh reader/writer and whole composed FFPS\n";return 0;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

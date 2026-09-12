@@ -62,6 +62,8 @@ namespace sparkplug::reconstruction
 
         // Safe portable names for native nonvirtual routines. The first word
         // is the exact m_uComponentFlags bit mask; flags is exact m_uFlags.
+        // Weight/UV groups stop at the first missing bit. Layout rebuilds
+        // retain absent component offsets; only construction clears the table.
         [[nodiscard]] bool InitializeForAnalysis(
             std::uint32_t componentFlags,
             std::uint32_t vertexCount,
@@ -89,6 +91,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::uint16_t GetVertexStrideForAnalysis() const noexcept;
         [[nodiscard]] std::uint16_t GetComponentCountForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetVertexSizeForAnalysis() const noexcept;
+        // Offsets are in 32-bit words. An absent component can retain an old
+        // offset after reinitialization; it must not be inferred from offset alone.
         [[nodiscard]] const std::array<std::uint16_t, ComponentOffsetCount>&
             GetComponentOffsetsForAnalysis() const noexcept;
         [[nodiscard]] const std::vector<std::byte>& GetDataForAnalysis() const noexcept;

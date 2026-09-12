@@ -766,6 +766,9 @@ namespace sparkplug::reconstruction
         }
 
         const auto& input = source.GetDataForAnalysis();
+        // Original PC 0x429A40 -> 0x4AA000 preserves authored vertex bytes.
+        // Packed palette indices alone expand to four unnormalized floats;
+        // COLOR0 (including alpha), normals and UVs are not relit here.
         if (!expandsPackedField)
         {
             std::memcpy(destination.data(), input.data(),

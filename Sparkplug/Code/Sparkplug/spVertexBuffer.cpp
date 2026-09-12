@@ -58,7 +58,8 @@ namespace sparkplug::reconstruction
 
     void spVertexBuffer::RebuildComponentLayoutForAnalysis() noexcept
     {
-        componentOffsets_.fill(0);
+        // PC 0x45FEA0 / PS2 0x15C8E0 overwrite only present components.
+        // Absent offsets retain the constructor/previous layout values.
         vertexStride_ = 12;
         std::uint16_t nextFloat = 3;
 
@@ -79,6 +80,10 @@ namespace sparkplug::reconstruction
         add(0x000001, 1, 1);
         for (std::size_t index = 0; index < 4; ++index)
         {
+            if ((componentFlags_ & (0x000002U << index)) == 0)
+            {
+                break;
+            }
             add(0x000002U << index, 2 + index, 1);
         }
         add(0x000020, 6, 1);
@@ -89,6 +94,10 @@ namespace sparkplug::reconstruction
         add(0x000400, 11, 3);
         for (std::size_t index = 0; index < 8; ++index)
         {
+            if ((componentFlags_ & (0x000800U << index)) == 0)
+            {
+                break;
+            }
             add(0x000800U << index, 12 + index, 2);
         }
         add(0x080000, 20, 3);
