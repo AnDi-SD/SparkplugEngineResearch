@@ -57,6 +57,7 @@ static void InitializeSceneAudit();
 static remixapi_Interface* GetRemixApi();
 namespace material_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
 namespace native_draw_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
+namespace native_mesh_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -117,6 +118,7 @@ static void Initialize() {
   // Verify pristine scene-entry bytes before the optional scene observer hooks
   // that entry. This reader installs no hook of its own.
   native_draw_audit::Initialize();
+  native_mesh_source::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -148,6 +150,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
+#include "winx_native_mesh_source.h"
 #include "winx_shader_semantics.h"
 #include "winx_native_draw_audit.h"
 
@@ -564,6 +567,7 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
   const HRESULT hr=Original<F>(b,11)(b,offset,size,data,flags);
   std::lock_guard<std::recursive_mutex> lock(guard);
+  if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))native_mesh_source::Forget(b);
   if(autoSurfaceRoles && SUCCEEDED(hr) && !(flags&D3DLOCK_READONLY)) ClearSurfaceBases();
   Desc desc{}; b->GetDesc(&desc);
   if(autoSurfaceRoles && SUCCEEDED(hr) && data && *data && !(flags&D3DLOCK_READONLY) && offset<=desc.Size) {
@@ -601,6 +605,7 @@ template<class Buffer> static ULONG STDMETHODCALLTYPE SurfaceBufferRelease(Buffe
   std::lock_guard<std::recursive_mutex> lock(guard);
   using F=ULONG(STDMETHODCALLTYPE*)(Buffer*);const ULONG refs=Original<F>(b,2)(b);
   if(!refs && autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(b);}
+  if(!refs)native_mesh_source::Forget(b);
   return refs;
 }
 static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD usage,DWORD fvf,D3DPOOL pool,IDirect3DVertexBuffer9** result,HANDLE* shared) {
@@ -608,6 +613,7 @@ static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD us
   const HRESULT hr=Original<F>(d,26)(d,size,usage,fvf,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
+    if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>));
   }
@@ -618,6 +624,7 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
   const HRESULT hr=Original<F>(d,27)(d,size,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
+    if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>));
   }
@@ -667,6 +674,14 @@ static void ApplyLiveConfig() {
     if(key=="winx.keepMaterialChannels"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
       keepMaterialChannelsForComparison=value=="True";continue;
     }
+    if(key=="winx.nativeMeshSubmit"&&native_mesh_source::enabled&&materialChannelsEnabled&&(value=="True"||value=="False")) {
+      const bool submit=value=="True";
+      if(submit!=native_mesh_source::submitEnabled&&native_mesh_source::output) {
+        fprintf(native_mesh_source::output,"{\"event\":\"source_switch\",\"frame\":%u,\"native\":%s}\n",frameId,submit?"true":"false");
+        fflush(native_mesh_source::output);
+      }
+      native_mesh_source::submitEnabled=submit;continue;
+    }
     if(key=="winx.preserveUnlitColor"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
       SetPreserveUnlitColor(value=="True");continue;
     }
@@ -698,6 +713,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   ApplyLiveConfig();
   EndSceneLightFrame();
   native_draw_audit::EndFrame();
+  native_mesh_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -780,6 +796,7 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
 static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
   EndSceneLightFrame();
   native_draw_audit::EndFrame();
+  native_mesh_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);

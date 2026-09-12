@@ -21,6 +21,8 @@ param(
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
     [switch]$NativeDrawAudit,
+    [switch]$NativeMeshSource,
+    [switch]$NativeMeshSubmit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$SceneAudit,
@@ -40,6 +42,9 @@ if ($ShaderSemantics -and -not $DebugMenu) { throw 'Shader semantics require the
 if ($ShaderSemantics) { $ShaderAudit=$true; $MaterialAudit=$true }
 if ($NativeDrawAudit -and -not $DebugMenu) { throw 'Native draw audit requires the hash-verified DebugMenu executable' }
 if ($NativeDrawAudit) { $MaterialAudit=$true }
+if ($NativeMeshSubmit) { $NativeMeshSource=$true }
+if ($NativeMeshSource -and -not $DebugMenu) { throw 'Native mesh source requires the hash-verified DebugMenu executable' }
+if ($NativeMeshSubmit -and (-not $MaterialChannels -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Native mesh submission requires RTX MaterialChannels' }
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
 if ($SceneAudit -and -not $DebugMenu) { throw 'Scene audit requires the hash-verified DebugMenu executable' }
 if ($SceneLights -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene lights require RTX and the hash-verified DebugMenu executable' }
@@ -170,6 +175,8 @@ $values = @{
     WINX_REMIX_SHADER_SEMANTICS=$(if ($ShaderSemantics) { Join-Path $run 'shader-semantics.jsonl' } else { $null })
     WINX_REMIX_MATERIAL_AUDIT=$(if ($MaterialAudit) { Join-Path $run 'materials.jsonl' } else { $null })
     WINX_REMIX_NATIVE_DRAW_AUDIT=$(if ($NativeDrawAudit) { Join-Path $run 'native-draws.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_MESH_SOURCE=$(if ($NativeMeshSource) { Join-Path $run 'native-mesh-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_MESH_SUBMIT=$(if ($NativeMeshSubmit) { '1' } else { '0' })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
@@ -200,6 +207,8 @@ try {
         sceneAudit=$SceneAudit.IsPresent
         materialAudit=$MaterialAudit.IsPresent
         nativeDrawAudit=$NativeDrawAudit.IsPresent
+        nativeMeshSource=$NativeMeshSource.IsPresent
+        nativeMeshSubmit=$NativeMeshSubmit.IsPresent
         materialChannels=$MaterialChannels.IsPresent
         shaderSemantics=$ShaderSemantics.IsPresent
         sceneLights=$SceneLights.IsPresent

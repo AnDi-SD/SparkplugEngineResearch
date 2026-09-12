@@ -5,6 +5,8 @@ param(
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
     [switch]$NativeDrawAudit,
+    [switch]$NativeMeshSource,
+    [switch]$NativeMeshSubmit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -33,6 +35,8 @@ if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($ShaderSemantics) { $options.ShaderSemantics=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
 if ($NativeDrawAudit) { $options.NativeDrawAudit=$true }
+if ($NativeMeshSource -or $NativeMeshSubmit) { $options.NativeMeshSource=$true }
+if ($NativeMeshSubmit) { $options.NativeMeshSubmit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

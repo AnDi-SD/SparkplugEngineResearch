@@ -199,9 +199,27 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   const auto vbSnapshot=surfaceBuffers.find(vb),ibSnapshot=surfaceBuffers.find(ib);
   if(vbSnapshot==surfaceBuffers.end() || ibSnapshot==surfaceBuffers.end() || !vbSnapshot->second.complete ||
      !ibSnapshot->second.complete || vbSnapshot->second.bytes.size()!=vd.Size || ibSnapshot->second.bytes.size()!=id.Size) return SurfaceSubmitFailure(__LINE__);
+  // One converter/backend for both sources. The native packet replaces raw
+  // bytes, range and world input only; declaration/material remain D3D inputs
+  // during this migration step. No native instance identity is inferred here.
+  native_mesh_source::Geometry nativeGeometry{};
+  bool nativeInput=native_mesh_source::Resolve(d,{type,base,minVertex,vertices,start,count},vb,ib,offset,stride,nativeGeometry);
+  if(nativeInput&&(!nativeGeometry.vertices->verified||!nativeGeometry.indices->verified)) {
+    const bool equal=native_mesh_source::EqualsUpload(*nativeGeometry.vertices,vbSnapshot->second.bytes)&&
+      native_mesh_source::EqualsUpload(*nativeGeometry.indices,ibSnapshot->second.bytes);
+    if(native_mesh_source::output&&_ftelli64(native_mesh_source::output)<16*1024*1024)
+      fprintf(native_mesh_source::output,"{\"event\":\"compare_upload\",\"frame\":%u,\"generation\":%llu,\"equal\":%s}\n",frameId,nativeGeometry.vertices->generation,equal?"true":"false");
+    if(equal){nativeGeometry.vertices->verified=true;nativeGeometry.indices->verified=true;}
+    else{nativeInput=false;++native_mesh_source::uploadMismatches;}
+  }
+  nativeInput=nativeInput&&native_mesh_source::submitEnabled;
+  const auto& vertexBytes=nativeInput?nativeGeometry.vertices->data:vbSnapshot->second.bytes;
+  const auto& indexBytes=nativeInput?nativeGeometry.indices->data:ibSnapshot->second.bytes;
+  if(nativeInput){const auto& range=nativeGeometry.range;type=range.type;base=range.base;minVertex=range.minimum;
+    vertices=range.vertices;start=range.start;count=range.count;stride=nativeGeometry.stride;}
   const UINT indexSize=id.Format==D3DFMT_INDEX16?2:4,indexCount=type==D3DPT_TRIANGLELIST?count*3:count+2;
   if(uint64_t(start+uint64_t(indexCount))*indexSize>id.Size) return SurfaceSubmitFailure(__LINE__);
-  const void* indexData=ibSnapshot->second.bytes.data()+start*indexSize;
+  const void* indexData=indexBytes.data()+start*indexSize;
   std::vector<uint32_t> indices(indexCount);
   bool valid=true;
   for(UINT i=0;i<indexCount;++i) {
@@ -212,7 +230,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     indices[i]=static_cast<uint32_t>(effective);
   }
   if(!valid) return SurfaceSubmitFailure(__LINE__);
-  const void* vertexData=vbSnapshot->second.bytes.data();
+  const void* vertexData=vertexBytes.data();
   std::vector<remixapi_HardcodedVertex> expanded;expanded.reserve(size_t(count)*3);
   for(UINT tri=0;tri<count;++tri) {
     UINT ids[3]={type==D3DPT_TRIANGLELIST?tri*3:tri,type==D3DPT_TRIANGLELIST?tri*3+1:tri+1,type==D3DPT_TRIANGLELIST?tri*3+2:tri+2};
@@ -267,6 +285,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   if(FAILED(d->GetTransform(D3DTS_WORLD,&world)) || FAILED(d->GetRenderState(D3DRS_ALPHATESTENABLE,&test)) ||
      FAILED(d->GetRenderState(D3DRS_ALPHAFUNC,&func)) || FAILED(d->GetRenderState(D3DRS_ALPHAREF,&ref)) ||
      FAILED(d->GetRenderState(D3DRS_COLORWRITEENABLE,&mask)) || func<1 || func>8) return SurfaceSubmitFailure(__LINE__);
+  if(nativeInput)world=nativeGeometry.world;
   remixapi_InstanceInfoBlendEXT blend{};blend.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;
   if(!surface_material::AlphaTest(test!=0,ref,func,blend))return SurfaceSubmitFailure(__LINE__);
   DWORD enabled=1,src=D3DBLEND_SRCALPHA,dst=D3DBLEND_INVSRCALPHA,op=D3DBLENDOP_ADD;
@@ -283,6 +302,14 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     const float value=world.m[c][r];if(!std::isfinite(value)) return SurfaceSubmitFailure(__LINE__);instance.transform.matrix[r][c]=value;
   }
   const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  if(submitted&&nativeInput) {
+    ++native_mesh_source::used;
+    // One sampled frame per F8 request, plus periodic frames. A 120-frame
+    // trace of every native instance otherwise exhausts the log during A/B.
+    if(native_mesh_source::output&&_ftelli64(native_mesh_source::output)<16*1024*1024&&(frameId%300==0||frameId+120==traceUntilFrame))
+      fprintf(native_mesh_source::output,"{\"event\":\"submit\",\"frame\":%u,\"draw\":%u,\"mesh\":%u,\"submission\":%llu,\"generation\":%llu,\"geometrySource\":\"%s\",\"worldSource\":\"native_renderer\",\"layoutSource\":\"d3d_declaration\",\"materialSource\":\"d3d_state\"}\n",
+        frameId,drawId,nativeGeometry.mesh,nativeGeometry.submission,nativeGeometry.vertices->generation,nativeGeometry.vertices->source);
+  }
   if(submitted&&channels&&surfaceRoleLog&&(frameId%300==0||frameId<traceUntilFrame)) {
     fprintf(surfaceRoleLog,"{\"event\":\"material_channels\",\"frame\":%u,\"draw\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"vertexAlpha\":%s,\"alpha\":%u}\n",
       frameId,drawId,plan.albedo.v[0],plan.albedo.v[1],plan.albedo.v[2],plan.emission.v[0],plan.emission.v[1],plan.emission.v[2],plan.vertexRGB?"true":"false",plan.vertexAlpha?"true":"false",plan.alpha);

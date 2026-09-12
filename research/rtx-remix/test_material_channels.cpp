@@ -3,13 +3,15 @@
 #define WINX_REMIX_TEST
 #include "winx_d3d9_probe.cpp"
 #include <cstdlib>
-static unsigned checks,apiDraws;
+static unsigned checks,apiDraws,nativeSourceChecks;
 static uintptr_t nextHandle=1;
 static std::vector<remixapi_HardcodedVertex> lastVertices;
 static std::wstring lastAlbedo,lastEmission;
 static std::map<remixapi_MaterialHandle,std::pair<std::wstring,std::wstring>> recordedMaterials;
 static std::map<remixapi_MeshHandle,remixapi_MaterialHandle> recordedMeshes;
+static std::map<remixapi_MeshHandle,std::vector<remixapi_HardcodedVertex>> recordedVertices;
 static remixapi_InstanceInfoBlendEXT lastBlend{};
+static remixapi_Transform lastTransform{};
 static bool rejectDraw;
 static void Check(bool ok,const char* message) {++checks;if(!ok){fprintf(stderr,"FAIL: %s\n",message);std::exit(1);}}
 static void Hr(HRESULT hr,const char* message) {Check(SUCCEEDED(hr),message);}
@@ -23,11 +25,12 @@ static remixapi_ErrorCode REMIXAPI_CALL Mesh(const remixapi_MeshInfo* info,remix
   Check(info->surfaces_count==1,"one complete surface per draw");const auto& s=info->surfaces_values[0];
   lastVertices.assign(s.vertices_values,s.vertices_values+s.vertices_count);
   Check(s.vertices_count==6&&s.indices_count==6,"strip expanded to two complete triangles");
-  *out=reinterpret_cast<remixapi_MeshHandle>(nextHandle++);recordedMeshes[*out]=s.material;return REMIXAPI_ERROR_CODE_SUCCESS;
+  *out=reinterpret_cast<remixapi_MeshHandle>(nextHandle++);recordedMeshes[*out]=s.material;recordedVertices[*out]=lastVertices;return REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL Instance(const remixapi_InstanceInfo* info) {
   ++apiDraws;Check(info->categoryFlags==0,"ordinary material is not a decal");
   lastBlend=*static_cast<const remixapi_InstanceInfoBlendEXT*>(info->pNext);
+  lastTransform=info->transform;lastVertices=recordedVertices.at(info->mesh);
   const auto& paths=recordedMaterials.at(recordedMeshes.at(info->mesh));lastAlbedo=paths.first;lastEmission=paths.second;
   return rejectDraw?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
 }
@@ -39,6 +42,151 @@ static std::vector<DWORD> Dds(const std::wstring& path) {
   fseek(file,0,SEEK_END);const auto length=ftell(file);rewind(file);Check(length>128&&length%4==0,"DDS payload size");
   std::vector<DWORD> words(size_t(length)/4);Check(fread(words.data(),4,words.size(),file)==words.size(),"complete DDS read");fclose(file);return words;
 }
+#if defined(_M_IX86)
+static void NativeRanges() {
+  namespace source=native_mesh_source;
+  source::Bytes partial{};partial.data.resize(16);partial.partial=true;
+  Check(!source::Covered(partial,0,1),"uncaptured native buffer has no covered draw bytes");
+  source::PutRange(partial,4,std::vector<uint8_t>{41,42,43,44});
+  Check(source::Covered(partial,4,4)&&source::Covered(partial,5,3),"partial native interval covers its exact byte range");
+  Check(!source::Covered(partial,3,2)&&!source::Covered(partial,7,2)&&!source::Covered(partial,16,1)&&
+    !source::Covered(partial,17,0)&&!source::Covered(partial,4,size_t(-1)),"partial coverage rejects gaps and overflowing bounds");
+  std::vector<uint8_t> uploaded(16,0xa5);memcpy(uploaded.data()+4,partial.data.data()+4,4);
+  Check(source::EqualsUpload(partial,uploaded),"upload comparison ignores bytes not captured from native inputs");
+  ++uploaded[5];Check(!source::EqualsUpload(partial,uploaded),"upload comparison detects a changed captured byte");--uploaded[5];
+  uploaded.pop_back();Check(!source::EqualsUpload(partial,uploaded),"upload comparison rejects a different buffer size");uploaded.push_back(0xa5);
+  source::PutRange(partial,10,std::vector<uint8_t>{51,52});
+  Check(!source::Covered(partial,4,8),"separated native ranges do not cover the gap between them");
+  source::PutRange(partial,8,std::vector<uint8_t>{49,50});
+  Check(source::Covered(partial,4,8)&&partial.ranges.size()==1,"adjacent native ranges merge into continuous coverage");
+  partial.verified=true;source::PutRange(partial,6,std::vector<uint8_t>{61,62,63,64});
+  Check(!partial.verified&&source::Covered(partial,4,8)&&partial.data[6]==61&&partial.data[9]==64,
+    "overlapping native input replaces bytes and requires upload reverification");
+  memcpy(uploaded.data()+4,partial.data.data()+4,8);Check(source::EqualsUpload(partial,uploaded),"merged captured ranges match uploaded bytes");
+  auto complete=partial;complete.partial=false;
+  Check(!source::EqualsUpload(complete,uploaded)&&source::EqualsUpload(complete,complete.data),"complete native captures compare every byte");
+}
+template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVertexBuffer9* vb,
+                                             IDirect3DIndexBuffer9* ib,const Draw& draw) {
+  // Synthetic ABI fixture for our adapter only. No game method, fixed-address
+  // memory or native hook is executed; original/debug qualification is separate.
+  namespace source=native_mesh_source;namespace abi=sparkplug::evidence::pc;
+  const auto initialChecks=checks;
+  NativeRanges();
+  Check(!source::enabled&&!source::active&&source::buffers.empty()&&!source::retainedBytes,"fresh native source fixture");
+  const bool oldSubmit=source::submitEnabled;const auto oldThread=source::ownerThread;
+  const auto oldMatched=source::matched,oldUsed=source::used,oldInvalidations=source::invalidations,oldMismatches=source::uploadMismatches;
+  const auto vertexBytes=surfaceBuffers.at(vb).bytes,indexBytes=surfaceBuffers.at(ib).bytes;
+  auto address=[](const void* p){return uint32_t(reinterpret_cast<uintptr_t>(p));};
+  std::vector<uint8_t> renderer(0xca80);
+  abi::spDXMeshObservedLayout mesh{};abi::spDXVertexBufferLayout nativeVB{};abi::spDXIndexBufferLayout nativeIB{};
+  abi::spDXSharedMeshDataObservedLayout shared{};abi::spDXMaterialObservedLayout material{};
+  abi::spRendererDrawContextObservedLayout state{};
+  nativeVB.base.vtableAddress=abi::spDXVertexBufferVTable;nativeVB.direct3DVertexBuffer=address(vb);nativeVB.byteSize=UINT(vertexBytes.size());
+  nativeIB.base.vtableAddress=abi::spDXIndexBufferVTable;nativeIB.direct3DIndexBuffer=address(ib);nativeIB.byteSize=UINT(indexBytes.size());
+  shared.base.vtableAddress=abi::spDXSharedMeshDataVTable;shared.vertexBuffer=address(&nativeVB);shared.indexBuffer=address(&nativeIB);
+  material.base.base.vtableAddress=abi::spDXMaterialPrimaryVTable;material.base.materialVTable=abi::spDXMaterialInterfaceVTable;material.base.passCount=1;
+  mesh.base.base.base.base.base.vtableAddress=abi::spDXMeshVTable;mesh.base.base.secondaryVTable=abi::spDXMeshInterfaceVTable;
+  mesh.base.base.vertexCount=4;mesh.base.base.primitiveCount=2;mesh.indexType=3;mesh.vertexStride=sizeof(Vertex);
+  mesh.vertexBuffer=address(&nativeVB);mesh.indexBuffer=address(&nativeIB);mesh.sharedMeshData=address(&shared);
+  IDirect3DVertexDeclaration9* declaration=nullptr;Hr(d->GetVertexDeclaration(&declaration),"native fixture declaration");
+  Check(declaration!=nullptr,"native fixture declaration exists");mesh.vertexDeclaration=address(declaration);declaration->Release();
+  state.device=address(d);state.vertexBuffer=mesh.vertexBuffer;state.indexBuffer=mesh.indexBuffer;
+  state.vertexDeclaration=mesh.vertexDeclaration;state.selectedMaterial=address(&material);
+  memcpy(renderer.data(),&abi::spPCRendererPrimaryVTable,4);
+  memcpy(renderer.data()+abi::spRendererDrawContextOffset,&state,sizeof(state));
+  D3DMATRIX oldWorld{},world{};Hr(d->GetTransform(D3DTS_WORLD,&oldWorld),"save native fixture world");
+  world=oldWorld;world._41=.25f;world._42=-.5f;world._43=.75f;
+  Hr(d->SetTransform(D3DTS_WORLD,&world),"native fixture translated world");memcpy(renderer.data()+0xca40,&world,sizeof(world));
+  source::Scope scope{nullptr,address(&mesh),address(renderer.data()),73};scope.value=mesh;scope.valid=true;
+  source::buffers.emplace(vb,source::Bytes{vertexBytes,19,address(&shared),address(&nativeVB)});
+  source::buffers.emplace(ib,source::Bytes{indexBytes,19,address(&shared),address(&nativeIB)});
+  source::retainedBytes=vertexBytes.size()+indexBytes.size();source::ownerThread=GetCurrentThreadId();
+  source::active=&scope;source::enabled=source::submitEnabled=true;
+  const source::DrawRange range{D3DPT_TRIANGLESTRIP,0,0,4,0,2};source::Geometry geometry{};
+  auto resolve=[&](){geometry={};return source::Resolve(d,range,vb,ib,0,sizeof(Vertex),geometry);};
+  Check(resolve(),"matching native mesh resolves against actual COM buffers");
+  Check(geometry.vertices==&source::buffers.at(vb)&&geometry.indices==&source::buffers.at(ib)&&
+    geometry.mesh==address(&mesh)&&geometry.renderer==address(renderer.data())&&geometry.submission==73&&
+    geometry.range.type==range.type&&geometry.range.base==0&&geometry.range.minimum==0&&geometry.range.vertices==4&&
+    geometry.range.start==0&&geometry.range.count==2&&geometry.stride==sizeof(Vertex)&&!memcmp(&geometry.world,&world,sizeof(world)),
+    "native packet preserves exact source identity, range and world");
+  auto submit=[&](bool native,float firstX,const char* message){
+    const auto beforeUsed=source::used,beforeApi=apiDraws,beforeSubmitted=materialChannelsSubmitted;draw();
+    Check(source::used==beforeUsed+unsigned(native)&&apiDraws==beforeApi+1&&materialChannelsSubmitted==beforeSubmitted+1,message);
+    Check(lastVertices.size()==6&&lastVertices[0].position[0]==firstX,"selected source bytes reach recorded API mesh");
+    Check(lastTransform.matrix[0][3]==world._41&&lastTransform.matrix[1][3]==world._42&&lastTransform.matrix[2][3]==world._43,
+      "selected source world reaches API instance");
+  };
+  float firstX=0;memcpy(&firstX,vertexBytes.data(),4);
+  submit(true,firstX,"matching native draw reaches API exactly once");
+  Check(source::buffers.at(vb).verified&&source::buffers.at(ib).verified,"native bytes verified against both original uploads");
+  auto& partialVB=source::buffers.at(vb);auto& partialIB=source::buffers.at(ib);
+  partialVB.partial=partialIB.partial=true;partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{0,indexBytes.size()}};
+  Check(resolve(),"fully covered partial buffers resolve for the draw");
+  partialVB.ranges={{0,sizeof(Vertex)},{2*sizeof(Vertex),vertexBytes.size()}};
+  Check(!resolve(),"a gap inside the declared vertex range rejects native submission");
+  source::PutRange(partialVB,sizeof(Vertex),std::vector<uint8_t>(vertexBytes.begin()+sizeof(Vertex),vertexBytes.begin()+2*sizeof(Vertex)));
+  Check(resolve(),"capturing the missing vertex interval restores native resolution");
+  partialIB.ranges={{0,2},{4,indexBytes.size()}};Check(!resolve(),"a missing index word rejects native submission");
+  source::PutRange(partialIB,2,std::vector<uint8_t>(indexBytes.begin()+2,indexBytes.begin()+4));
+  Check(resolve(),"capturing the missing index word restores native resolution");
+  scope.value.vertexBegin=1;scope.value.base.base.vertexCount=3;scope.value.base.base.primitiveCount=1;
+  partialVB.ranges={{sizeof(Vertex),vertexBytes.size()}};partialIB.ranges={{0,6}};
+  source::Geometry shifted{};
+  Check(source::Resolve(d,{D3DPT_TRIANGLESTRIP,1,0,3,0,1},vb,ib,0,sizeof(Vertex),shifted)&&shifted.range.base==1,
+    "nonzero vertex base checks coverage at base times stride");
+  partialVB.ranges={{0,3*sizeof(Vertex)}};
+  Check(!source::Resolve(d,{D3DPT_TRIANGLESTRIP,1,0,3,0,1},vb,ib,0,sizeof(Vertex),shifted),"vertex coverage at the wrong offset cannot qualify");
+  scope.value=mesh;scope.value.indexBegin=1;scope.value.base.base.primitiveCount=1;
+  partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{2,indexBytes.size()}};
+  Check(source::Resolve(d,{D3DPT_TRIANGLESTRIP,0,0,4,1,1},vb,ib,0,sizeof(Vertex),shifted)&&shifted.range.start==1,
+    "nonzero index start checks coverage in two-byte index elements");
+  partialIB.ranges={{0,6}};
+  Check(!source::Resolve(d,{D3DPT_TRIANGLESTRIP,0,0,4,1,1},vb,ib,0,sizeof(Vertex),shifted),"index coverage at the wrong offset cannot qualify");
+  scope.value=mesh;partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{0,indexBytes.size()}};
+  submit(true,firstX,"covered partial native buffers reach the common API converter");
+  partialVB.partial=partialIB.partial=false;partialVB.ranges.clear();partialIB.ranges.clear();
+  // Fault-inject only the adapter's audit snapshots after verification. Native
+  // captured bytes and actual COM buffers remain untouched. Distinct values
+  // prove which source the converter reads, including when mesh handles recur.
+  auto& auditVertices=surfaceBuffers.at(vb).bytes;auto& auditIndices=surfaceBuffers.at(ib).bytes;
+  for(unsigned i=0;i<4;++i){float x=0;memcpy(&x,auditVertices.data()+i*sizeof(Vertex),4);x+=8;memcpy(auditVertices.data()+i*sizeof(Vertex),&x,4);}
+  const WORD alternateIndices[]={1,0,3,2};memcpy(auditIndices.data(),alternateIndices,sizeof(alternateIndices));
+  float fallbackX=0;memcpy(&fallbackX,auditVertices.data()+sizeof(Vertex),4);
+  submit(true,firstX,"verified native source does not read altered audit snapshots");
+  ++scope.value.indexBegin;Check(!resolve(),"native range mismatch rejected");submit(false,fallbackX,"range mismatch retains D3D source");--scope.value.indexBegin;
+  ++source::buffers.at(vb).owner;Check(!resolve(),"native owner mismatch rejected");submit(false,fallbackX,"owner mismatch retains D3D source");--source::buffers.at(vb).owner;
+  ++source::buffers.at(ib).generation;Check(!resolve(),"mixed native buffer generations rejected");submit(false,fallbackX,"generation mismatch retains D3D source");--source::buffers.at(ib).generation;
+  D3DMATRIX otherWorld=world;otherWorld._41+=1;memcpy(renderer.data()+0xca40,&otherWorld,sizeof(otherWorld));
+  Check(!resolve(),"native world mismatch rejected");submit(false,fallbackX,"world mismatch retains D3D source");memcpy(renderer.data()+0xca40,&world,sizeof(world));
+  scope.value.componentWeightCount=4;Check(!resolve(),"skinned mesh remains outside static native cohort");submit(false,fallbackX,"skinned mesh retains D3D source");scope.value.componentWeightCount=0;
+  material.base.passCount=2;Check(!resolve(),"multipass mesh remains outside native cohort");submit(false,fallbackX,"multipass mesh retains D3D source");material.base.passCount=1;
+  source::buffers.at(vb).verified=source::buffers.at(ib).verified=false;
+  const auto mismatches=source::uploadMismatches;submit(false,fallbackX,"unverified different uploads retain D3D source");
+  Check(source::uploadMismatches==mismatches+1&&!source::buffers.at(vb).verified&&!source::buffers.at(ib).verified,"failed byte comparison never marks native data verified");
+  auditVertices=vertexBytes;auditIndices=indexBytes;submit(true,firstX,"exact source is reverified after audit fixture restoration");
+  void* locked=nullptr;
+  Hr(vb->Lock(0,0,&locked,D3DLOCK_READONLY),"native readonly VB lock");Hr(vb->Unlock(),"native readonly VB unlock");
+  Hr(ib->Lock(0,0,&locked,D3DLOCK_READONLY),"native readonly IB lock");Hr(ib->Unlock(),"native readonly IB unlock");
+  Check(resolve()&&source::buffers.at(vb).verified&&source::buffers.at(ib).verified,"readonly locks preserve native provenance");
+  submit(true,firstX,"readonly access preserves native submission");
+  Hr(vb->Lock(0,0,&locked,0),"native writable VB lock");
+  Check(!source::buffers.count(vb)&&source::buffers.count(ib)==1&&source::retainedBytes==indexBytes.size(),"writable VB lock invalidates native capture immediately");
+  memcpy(locked,vertexBytes.data(),vertexBytes.size());Hr(vb->Unlock(),"native writable VB unlock");
+  Check(!resolve(),"partial native buffer pair cannot resolve");submit(false,firstX,"written VB retains D3D upload source");
+  source::buffers.emplace(vb,source::Bytes{vertexBytes,19,address(&shared),address(&nativeVB)});source::retainedBytes+=vertexBytes.size();
+  Hr(ib->Lock(0,0,&locked,0),"native writable IB lock");
+  Check(!source::buffers.count(ib)&&source::buffers.count(vb)==1&&source::retainedBytes==vertexBytes.size(),"writable IB lock invalidates native capture immediately");
+  memcpy(locked,indexBytes.data(),indexBytes.size());Hr(ib->Unlock(),"native writable IB unlock");
+  Check(!resolve(),"written index pair cannot resolve");submit(false,firstX,"written IB retains D3D upload source");
+  source::Forget(vb);Check(source::buffers.empty()&&!source::retainedBytes,"native fixture releases all captured bytes");
+  source::active=nullptr;source::enabled=false;source::submitEnabled=oldSubmit;source::ownerThread=oldThread;
+  source::matched=oldMatched;source::used=oldUsed;source::invalidations=oldInvalidations;source::uploadMismatches=oldMismatches;
+  Hr(d->SetTransform(D3DTS_WORLD,&oldWorld),"restore world after native fixture");ClearSurfaceBases();
+  nativeSourceChecks=checks-initialChecks;
+}
+#endif
 int main() {
   frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;preserveUnlitColor=false;
   Check(GetFullPathNameW(L"assets",MAX_PATH,surfaceAssetDirectory,nullptr)!=0,"asset directory");
@@ -110,6 +258,9 @@ int main() {
   Check(lastEmission==unlitEmission,"unused ambient cannot alter unlit signal");
   SetPreserveUnlitColor(false);draw();Check(lastEmission.empty(),"unlit preservation can be disabled without restart");
   SetPreserveUnlitColor(true);draw();Check(lastEmission==unlitEmission,"unlit assets can be reused after restoring preservation");
+#if defined(_M_IX86)
+  NativeSource(d,vb,ib,draw);
+#endif
   D3DMATERIAL9 material{};material.Diffuse={.6f,.4f,.2f,.5f};material.Ambient={.5f,.25f,.125f,1};material.Emissive={.1f,.2f,.3f,1};
   Hr(d->SetRenderState(D3DRS_LIGHTING,TRUE),"lit material");Hr(d->SetRenderState(D3DRS_COLORVERTEX,FALSE),"constant material sources");
   Hr(d->SetMaterial(&material),"lit coefficients");Hr(d->SetRenderState(D3DRS_AMBIENT,0xff408020),"lit ambient");
@@ -129,5 +280,5 @@ int main() {
   Hr(d->SetStreamSource(0,nullptr,0,0),"unbind vertices");Hr(d->SetIndices(nullptr),"unbind indices");vb->Release();ib->Release();
   frameId=330;RetireSurfaceResources();Check(surfaceMeshes.empty()&&surfaceMaterials.empty()&&surfaceMeshBytes==0,"all API resources retired");
   d->Release();d3d->Release();DestroyWindow(hwnd);
-  printf("{\"status\":\"PASS\",\"checks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
+  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
 }

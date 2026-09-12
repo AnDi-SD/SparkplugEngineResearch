@@ -9,10 +9,14 @@ if (-not $installation) { throw 'MSVC x86 tools not found' }
 $environmentScript=Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
 $include=Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
 New-Item -ItemType Directory -Path $build | Out-Null
-$snapshot=Join-Path $build 'source'
+$snapshot=Join-Path $build 'source/research/rtx-remix'
 New-Item -ItemType Directory -Path $snapshot | Out-Null
 Get-ChildItem -LiteralPath $PSScriptRoot -File | Where-Object { $_.Extension -in '.h','.cpp' } | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $snapshot }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'third-party') -Destination $snapshot -Recurse
+$abiSnapshot=Join-Path $build 'source/Sparkplug/Analysis/PC'
+New-Item -ItemType Directory -Path $abiSnapshot -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkplugAbi.h') -Destination $abiSnapshot
+Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkBaseAbi.h') -Destination $abiSnapshot
 $source=Join-Path $snapshot 'test_material_channels.cpp'
 $commands=@"
 @echo off
