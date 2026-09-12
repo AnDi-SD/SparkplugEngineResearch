@@ -43,13 +43,14 @@ static void InitializeSurfaceRoles() {
 }
 static void ClearSurfaceBases() {opaqueSurfaceDraws.clear();++surfaceResourceEpoch;}
 static void EndSurfaceRoleFrame() {
+  RetireSurfaceResources();
   if(surfaceRoleLog && (frameId%300==0 || triggered)) {
-    fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s}\n",
-      frameId,surfaceBases,surfaceOverlays,surfaceStandalone,surfaceUnknown,keepAutoSurfaceRolesForComparison?"true":"false");
+    fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s,\"meshCache\":%zu,\"materialCache\":%zu,\"meshBytes\":%zu,\"bufferBytes\":%zu,\"meshCreates\":%u,\"meshDestroys\":%u,\"materialCreates\":%u,\"materialDestroys\":%u,\"resourceFailures\":%u}\n",
+      frameId,surfaceBases,surfaceOverlays,surfaceStandalone,surfaceUnknown,keepAutoSurfaceRolesForComparison?"true":"false",
+      surfaceMeshes.size(),surfaceMaterials.size(),surfaceMeshBytes,surfaceBufferBytes,surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures);
     fflush(surfaceRoleLog);
   }
   surfaceBases=surfaceOverlays=surfaceStandalone=surfaceUnknown=0;ClearSurfaceBases();
-  RetireSurfaceMeshes();
 }
 
 // Same first-use XXH3 mip identity as stock Remix, only for the verified

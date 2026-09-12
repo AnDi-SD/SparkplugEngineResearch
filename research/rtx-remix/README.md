@@ -301,14 +301,23 @@ scene-lights.jsonl, результаты generic RTX API-настроек — в
 вариантов с проверкой native камеры и возвратом явной baseline из JSON-плана.
 Схема и пример плана сохранены в [проверке Алфеи](../../docs/research/winx-remix-light-comparison-2026-09-12.md).
 
-## Upstream reference
+## GPU-стенд прямых материалов
 
-GPU-стенд прямых материалов: `Test-RemixMaterial.ps1 -Name УНИКАЛЬНОЕ-ИМЯ`
+`Test-RemixMaterial.ps1 -Name УНИКАЛЬНОЕ-ИМЯ`
 и тот же запуск с `-System`. Отдельная копия штатного runtime, известные
 полигоны, ограниченное время, 16 BMP и журнал. После закрытия:
 `python research/rtx-remix/analyze_remix_material.py --native ПАПКА --remix ПАПКА --output НОВЫЙ-JSON`.
 Проверяются видимость alpha-test и маршрут эмиссии; равенство окончательного
 освещения не заявляется. [Результат](../../docs/research/winx-remix-alpha-material-2026-09-12.md).
+
+`-Combiner` выбирает 25 случаев RGB/alpha вместо 16 alpha/emission случаев.
+Для сравнения используйте одинаковый режим на обоих backend. Проверяются
+SELECTARG1/2, MODULATE, RGB Force_Modulate2x, alpha ×2/×4/ADD и насыщение.
+`Test-SurfaceMaterial.ps1` проверяет 384 FFP пары с UV, `Test-SurfaceResources.ps1`
+— порядок освобождения, совместное владение и повтор после ошибок API.
+[Подробности и границы](../../docs/research/winx-remix-surface-combiner-2026-09-12.md).
+
+## Upstream reference
 
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,
 commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, reference ветка Remix 1.5.2;

@@ -30,10 +30,18 @@ static inline bool Decode(DWORD operation,DWORD first,DWORD second,Channel& outp
   case D3DTOP_SELECTARG1:output.operation=1;return Argument(first,output.first);
   case D3DTOP_SELECTARG2:output.operation=2;return Argument(second,output.second);
   case D3DTOP_MODULATE:output.operation=3;return Argument(first,output.first)&&Argument(second,output.second);
-  // Remix RGB MODULATE2X/4X intentionally omit the multiplier; ADD does not
-  // saturate RGB. Do not claim those as equivalent by enum conversion alone.
+  case D3DTOP_MODULATE2X:output.operation=7;return Argument(first,output.first)&&Argument(second,output.second);
+  // Force_Modulate2x preserves the factor and saturation; ordinary Remix
+  // Modulate2x/4x omit the factor. RGB ADD does not saturate and stays unsupported.
   default:return false;
   }
+}
+static inline bool DecodeAlpha(DWORD operation,DWORD first,DWORD second,Channel& output) {
+  if(operation==D3DTOP_MODULATE2X || operation==D3DTOP_MODULATE4X || operation==D3DTOP_ADD) {
+    output={operation==D3DTOP_MODULATE2X?4u:operation==D3DTOP_MODULATE4X?5u:6u,0,0};
+    return Argument(first,output.first)&&Argument(second,output.second);
+  }
+  return Decode(operation,first,second,output);
 }
 static inline bool Coordinates(const Contract& contract,const float input[2],float output[2]) {
   if(!std::isfinite(input[0]) || !std::isfinite(input[1])) return false;
@@ -58,7 +66,7 @@ static inline bool Read(IDirect3DDevice9* d,Contract& out) {
      FAILED(d->GetRenderState(D3DRS_LIGHTING,&lighting))||lighting||
      FAILED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))||specular||
      FAILED(d->GetRenderState(D3DRS_TEXTUREFACTOR,&out.factor))||out.coordinates>7||
-     !Decode(rgb,r1,r2,out.rgb)||!Decode(alpha,a1,a2,out.alpha)) return false;
+     !Decode(rgb,r1,r2,out.rgb)||!DecodeAlpha(alpha,a1,a2,out.alpha)) return false;
   if(out.transformFlags==D3DTTFF_DISABLE) return true;
   if(out.transformFlags!=D3DTTFF_COUNT2||FAILED(d->GetTransform(D3DTS_TEXTURE0,&out.transform))) return false;
   for(const auto& row:out.transform.m) for(float f:row) if(!std::isfinite(f)) return false;

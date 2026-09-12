@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,[switch]$System)
+param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,[switch]$System,[switch]$Combiner)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $run=Join-Path $root "local-data/rtx-remix/material-fixtures/$Name"
@@ -57,11 +57,16 @@ $previousConfig=$env:DXVK_RTX_CONFIG_FILE
 try {
   $env:DXVK_RTX_CONFIG_FILE=Join-Path $run 'rtx.conf'
   $arguments=@{FilePath=(Join-Path $run 'test_remix_material.exe');WorkingDirectory=$run;WindowStyle='Normal';PassThru=$true}
-  if ($System) { $arguments.ArgumentList='--system' }
+  $fixtureArguments=@()
+  if ($System) { $fixtureArguments+='--system' }
+  if ($Combiner) { $fixtureArguments+='--combiner' }
+  if ($fixtureArguments.Count) { $arguments.ArgumentList=$fixtureArguments }
   $process=Start-Process @arguments
   @{pid=$process.Id;system=$System.IsPresent;started=(Get-Date).ToString('o');sourceSha256=(Get-FileHash -LiteralPath $source).Hash;executableSha256=(Get-FileHash -LiteralPath $arguments.FilePath).Hash} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
   if (-not $process.WaitForExit(150000)) { $process.Kill();throw 'Owned fixture exceeded 150 seconds' }
   if ($process.ExitCode -ne 0) { throw "Fixture failed: $($process.ExitCode); see $run/fixture.jsonl" }
-  Get-Content -LiteralPath (Join-Path $run 'fixture.jsonl')
+  $records=@(Get-Content -LiteralPath (Join-Path $run 'fixture.jsonl') | ForEach-Object { $_ | ConvertFrom-Json })
+  if ($records[-1].event -ne 'complete' -or $records[-1].interrupted) { throw 'Fixture did not record a complete run' }
+  @{run=$run;pid=$process.Id;frames=$records[-1].frames;captures=@($records | Where-Object event -eq 'capture').Count;system=$System.IsPresent;combiner=$Combiner.IsPresent;status='complete'} | ConvertTo-Json -Compress
 } finally { $env:DXVK_RTX_CONFIG_FILE=$previousConfig }

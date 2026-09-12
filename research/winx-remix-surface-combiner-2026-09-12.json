@@ -1,0 +1,845 @@
+{
+  "schema": 1,
+  "block": "surface-combiner-v2",
+  "readiness": {
+    "overallWeighted": 44.25,
+    "overallRounded": 45,
+    "materials": 25
+  },
+  "integrity": {
+    "user.conf": true,
+    "winx.ini": true,
+    "saved": true,
+    "bridge": true,
+    "stockClient": true,
+    "stockServer": true,
+    "debugExe": true,
+    "installedExe": true,
+    "proxy": true,
+    "canonicalProxy": true
+  },
+  "resources": {
+    "frames": 57,
+    "last": {
+      "event": "frame",
+      "frame": 16800,
+      "bases": 1110,
+      "overlays": 127,
+      "standalone": 419,
+      "unknown": 0,
+      "comparisonDisabled": false,
+      "meshCache": 127,
+      "materialCache": 1,
+      "meshBytes": 2260116,
+      "bufferBytes": 4585148,
+      "meshCreates": 258,
+      "meshDestroys": 131,
+      "materialCreates": 3,
+      "materialDestroys": 2,
+      "resourceFailures": 0
+    },
+    "peaks": {
+      "meshCache": 129,
+      "materialCache": 2,
+      "meshBytes": 4623252,
+      "bufferBytes": 5428184,
+      "meshCreates": 258,
+      "meshDestroys": 131,
+      "materialCreates": 3,
+      "materialDestroys": 2,
+      "resourceFailures": 0
+    },
+    "surfaceErrors": [],
+    "alphaInputs": [
+      {
+        "native": [
+          1,
+          7,
+          0
+        ],
+        "api": 6,
+        "count": 2157
+      }
+    ]
+  },
+  "geometry": {
+    "events": {
+      "init_enabled": 1,
+      "expanded": 55,
+      "registry": 55,
+      "restored": 55
+    },
+    "pairsRemaining": 0,
+    "errors": []
+  },
+  "shaderCoverage": {
+    "unique": 16,
+    "used": 9,
+    "received": 16,
+    "translated": 16,
+    "usedReceived": 9,
+    "standaloneMatched": 7
+  },
+  "validation": {
+    "nativeRemixFrames": 50,
+    "nativeRemixChecks": 72,
+    "maxLinearChannelDelta": 0.5886103754042438,
+    "ffpPairs": 384,
+    "ffpChecks": 3472,
+    "ffpMaxChannelDelta": 0,
+    "surfaceResourceChecks": 44
+  },
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/alfea-load-state.json",
+      "bytes": 313,
+      "sha256": "4C57BE3FED7F48A9FDD1786D9E01CC9BA98659CA6D307A7BA40FAEEFE3A77823"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/alfea-state.json",
+      "bytes": 317836,
+      "sha256": "FD854EA8C67B9D78D6242A5309B7D4A344033459C17242526CCA79A75F53AC8E"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/alfea.png",
+      "bytes": 388316,
+      "sha256": "AA5D7EF8E829B421416DB60694A4D4904B619917C03B8E842C57BCA7415DF9C9"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/bridge-config-restored.json",
+      "bytes": 96,
+      "sha256": "590D8B62E2619F9518FC9ACE12F897A8AF9E8BD7CFF9DBC744C2015A4A5D874F"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/bridge-config-state.json",
+      "bytes": 124,
+      "sha256": "79B0B3C608395B800701ADB387F4284889D5A0CE715565AAB8DE45EDD60EC66F"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/bridge.conf",
+      "bytes": 339,
+      "sha256": "2E8174D21B357ADD83DFBC7A8A034D9CBEA8866059263C2A6357C9E516BCEEBE"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/domino-load-state.json",
+      "bytes": 312,
+      "sha256": "B76717D13B08BC972B2001A3E591B42312B87FF36A68F0C0E0FF1594062F414B"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/domino-state.json",
+      "bytes": 86486,
+      "sha256": "AA036F5CA07F25D3CC19009B7BBC6F94B2045D69A1584599507B7FE6CA2E2166"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/domino.png",
+      "bytes": 819110,
+      "sha256": "BDD4A0DB15ABD8E7F27D24568A82A7C2FC2A0D170263CA16BAA0719E2C267C51"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/gardenia-return-state.json",
+      "bytes": 18028,
+      "sha256": "D166158EDA24F4EDCB3598CAB53BF4B5FC6B6B8D47E2019854892A8DBECFF45F"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/gardenia-return.png",
+      "bytes": 1075055,
+      "sha256": "D8F9A598E2CC85024D5A530C83BD43FAAF984C55B0B869E4F528EEE63AC191AB"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/gardenia-state.json",
+      "bytes": 159357,
+      "sha256": "650F1C656CAD47147CFD9E8A839B2064B589E7DDFB8DFCB9A3EEE0CE14486D93"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/gardenia.png",
+      "bytes": 1055817,
+      "sha256": "392FB19034109562885A42723A309ED7E75255552F00BF5660222AFD5EF33E31"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/geometry-resource-analysis.json",
+      "bytes": 153,
+      "sha256": "FDE3BDD9840C180D9C592C12E1C5F0E86793FB7FC6A91263BB85D6FAAE0E39AB"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/integrity.json",
+      "bytes": 224,
+      "sha256": "A56684580D037A1B5776A4A368004A4BDAECB61D07B408B789FA9530C213E8F5"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/launch.json",
+      "bytes": 3693,
+      "sha256": "BDA2B1C9918775CC822C955DF4EEB6A0A7C3566BA95DF37C9DABE16850A8DC51"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/live.conf",
+      "bytes": 50,
+      "sha256": "CEF0C2BC6CFF6AD35CA7AD0F3FAFD7DC2C9293A77FE544AB068B00BC1958FB22"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/live.conf.jsonl",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/material-analysis.json",
+      "bytes": 5947,
+      "sha256": "2CE43792AC93254CBA057568229649A165454C655B1A8D1756FB5127B059320A"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/materials.jsonl",
+      "bytes": 5060289,
+      "sha256": "8A28DD80DC2E2F7761BB6FC6D41775DA22296AED77AF0035DF790CAB59EC6AF6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/return-cache-snapshot.json",
+      "bytes": 445,
+      "sha256": "0237E138D9B43D6219F72A967040D2A8EAD82BEE21F49AD1440D63CED886F24B"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/return-load-state.json",
+      "bytes": 301,
+      "sha256": "B3F949268BD0470B13C68B95143A5C48657EA1B3C8A2201A64EF7F449BE50B0B"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/rtx.conf",
+      "bytes": 673,
+      "sha256": "7AF17E58743A5E28AEB0A94010857A9F910737DAA0E6469A9167CEB2677EFFE2"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/scene-audit.jsonl",
+      "bytes": 1723723,
+      "sha256": "AF8D06E9C773FAAAD4AB9C8CDEC889B6CE6DD06000FC51A13BCCF8B9EEA84BE9"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/scene-geometry.jsonl",
+      "bytes": 18243,
+      "sha256": "66B32FFA4A0ABDFD4121026A30EA34D89CD9E350ED2D2035D00D4EF52F4F01DF"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/scene-lights.jsonl",
+      "bytes": 57908,
+      "sha256": "EC0449947F9DCAC95A3375D5BDE43F0056507A1B6408B49471AEEE7ED6BE78C0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/shader-analysis-stdout.json",
+      "bytes": 9644,
+      "sha256": "C2C48E76C92AFA87B073CDDA8BAA0348887D7A802F7EF9AAED8AB16E9127DCAE"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/shader-coverage.json",
+      "bytes": 16712,
+      "sha256": "1B8FBDBFB921EB6B08ECB5DA0E1BE5F36FB40867AE00B6C84862583566CDDB6C"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/start.png",
+      "bytes": 57534,
+      "sha256": "0537B4CD8CB803105F0586CECD66D0AA97E3E6B0D71C81C8C3B84C8DBAD47DA8"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/surface-resource-analysis.json",
+      "bytes": 864,
+      "sha256": "024A35A12576D210A4F9BD2621F257B03AC62165D1ABB72B2C897C2FC023BCE4"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/surface-roles.jsonl",
+      "bytes": 7039735,
+      "sha256": "261BBDC95E909AFCD5018502E14B8B9712783A6C08C6D4F4E4C3D0614EDBB866"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/shaders-client/audit.jsonl",
+      "bytes": 150630,
+      "sha256": "E09777945700A4044C4B3C00CDF5994DD8B77E60D2ADF89FC50429EDE58F57BA"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/surface-assets/99C5D770C3606971.dds",
+      "bytes": 21972,
+      "sha256": "D2A0650089A25D057C5F7CCDA869832B436335ADDBEBBD17AAC96647A69247C0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/surface-assets/FAC245110A8BD959.dds",
+      "bytes": 87508,
+      "sha256": "53BDDCC438F49ADA46D58D46CDCFCF46A95AE16B28F9F76F048671B2474B7015"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/00-rgb-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/01-rgb-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "9836AF7284778456E6E23F4BB707E4CDF34D7D3D0AEB121E368D04F6930B39C6"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/02-rgb-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "407657A9269E61B415CC0F5E3D9A56609CB51F96B48106DE7D26CF6690907D7C"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/03-rgb-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "FBE52014BB8FF34DB28C9F2D0483271711A045EAE86F2C78004B50424231B1E0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/04-rgb-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "D8A3460E9F8CF061F7F7A29CCCF4227F294D8939927F48F70F0D9E459C0B55BE"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/05-rgb-select-second-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/06-rgb-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "2AB02BAA9BE8ED0AB28BE25ADD0C44800522DC017C837E5B2281052A3FD47E6B"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/07-rgb-current.bmp",
+      "bytes": 2073654,
+      "sha256": "9836AF7284778456E6E23F4BB707E4CDF34D7D3D0AEB121E368D04F6930B39C6"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/08-rgb-current-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "407657A9269E61B415CC0F5E3D9A56609CB51F96B48106DE7D26CF6690907D7C"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/09-alpha-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/10-alpha-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/11-alpha-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/12-alpha-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/13-alpha-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/14-alpha-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/15-alpha-current.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/16-alpha-select-second-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/17-rgb-double-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "1CFC2B62F8B988D472AF1C4AB59DD625E55A956F4845FF9EE9356EA15AB90F1D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/18-rgb-double-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "2F14440687F84965C68B96A903897D058E907758B133BF873FACDC9ED69CF1B8"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/19-alpha-double-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/20-alpha-quadruple-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/21-alpha-add-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "71A0075E687612A7A74F576B02CDA4FC7B3C387FFE0471E309C436281F7A454E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/22-alpha-double-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/23-alpha-quadruple-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/24-alpha-add-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "58D8BF2523072F42824DC4473576582BE080060D9882EB7C004288BF7634FB87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/fixture.jsonl",
+      "bytes": 4914,
+      "sha256": "E6F992A2CAAA05D8926C0BC5F8A81ABBCA5E16DA4198CE59D86E17A8AC47A4FE"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/launch.json",
+      "bytes": 287,
+      "sha256": "8024CBF7439A80A7169E0E6420E8162C73397AAEC578CAD70D103E398BC9D8C3"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/rtx.conf",
+      "bytes": 369,
+      "sha256": "96A85F15ACE4AED4EBF075B96DAD95C29F8F3EEB35A6ABC571A5455F4B230F25"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/Test-RemixMaterial.ps1",
+      "bytes": 4098,
+      "sha256": "0F438E8731450DDA168C895B2535609CD9A4E14E19BD8FDA8175C71B8271BD8F"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/test_remix_material.cpp",
+      "bytes": 21338,
+      "sha256": "32ABD14FE43D167A6CF97D579B3AED58C0CA076C12F99C4AEB39412CA718C54B"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-native-v3/winx_surface_material.h",
+      "bytes": 4826,
+      "sha256": "2A6B44BE9F6FF1A83E9E8F166DAABDB1EF174DDC90921A11B99511BC7FAE0F24"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/00-rgb-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "D1AF7284C571F85B86A8278678B430DFDEF3C3AF168C9B2A13CBAAFFF2F10984"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/01-rgb-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "C8AFDF675F4C649B98ED60B483C014F7B67B5269B356C39C949A9D2783692773"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/02-rgb-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "61ABB2030A9CCD2C56E338E7C0B63E30C1032F829EFAE8BC7B5D74098DBF16D2"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/03-rgb-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "4F2702A97D1AA8A8BB9F4C380AE5021EB88433D44ECD360C52E5B8C712A457A1"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/04-rgb-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "BBC6215327ECF27AFB948E1FF276501926AACEDA91F56012AC05B1DBFD137C36"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/05-rgb-select-second-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "51FC2A13A5EFDD858152B8019FA5F1A2EC5C6DDF512D43EE07F29F7693791E03"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/06-rgb-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "4198C60A83F15FBBE27FA2B97891E3F6506B301AC465BEE4D5106AB995851C9D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/07-rgb-current.bmp",
+      "bytes": 2073654,
+      "sha256": "C437C481733B290FAFA6F4982B756C9830A56738EE3AB5E618705900A845DCB5"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/08-rgb-current-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "366F21D752422BA5B545B939CA901E630DD2B986838EBA637FBEBDC9A55D84A3"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/09-alpha-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "8A0152C5D05191D940157F5B8B7CC52C5E2480D71076D59EADB5F5484DBAC537"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/10-alpha-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "B0C75409F1BA5B7BCBB314C93C0FAEEE53C962F0031BDCA9C697ED24A5FFB515"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/11-alpha-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "0FDADDFA4D9479328824A78660A5F3A262DD079095350D0E80CE054EB7F275CC"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/12-alpha-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "A82FCABD2E0B2BA53B884592C690A69C07EFA1C821218108F56B6D8F6371626A"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/13-alpha-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "0FDADDFA4D9479328824A78660A5F3A262DD079095350D0E80CE054EB7F275CC"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/14-alpha-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "8139A45E735AD70346D0AECF07D7595F8EEB9300DC2548A76B6A326FFDE1F3BF"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/15-alpha-current.bmp",
+      "bytes": 2073654,
+      "sha256": "3DA5F5005DE28E06CAC5018EF215C51E0EC715C8A95B10ED074AC8E6730A4468"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/16-alpha-select-second-texture.bmp",
+      "bytes": 2073654,
+      "sha256": "5646533B4BEA0E1F89042F286068804AD3205F93025E07CB4E61A535CCAD41F1"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/17-rgb-double-texture-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "8FFE77DAB802162FCDADE277C8630F2C9EE247071D71BC456A557019CCCA07BF"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/18-rgb-double-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "37A672F64E7452E28FA597E2C1884E7C569B7C3DD7700C92E4867AFFA090315D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/19-alpha-double-texture-factor.bmp",
+      "bytes": 2073654,
+      "sha256": "2F81BEC6CC4A18B4EB70FE86E48072D50B52857E0418E125BEF947AEF5B63FC2"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/20-alpha-quadruple-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "A82FCABD2E0B2BA53B884592C690A69C07EFA1C821218108F56B6D8F6371626A"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/21-alpha-add-factor-vertex.bmp",
+      "bytes": 2073654,
+      "sha256": "2F81BEC6CC4A18B4EB70FE86E48072D50B52857E0418E125BEF947AEF5B63FC2"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/22-alpha-double-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "00E8E13DFB0E1933A721AD7C08FBFC633E6228DC531123E411C5E1C9CC574240"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/23-alpha-quadruple-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "03D0FA484FD1C81E1CED6FBCD62F23453C33A8307D7F4894E24D43BB4C4D8984"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/24-alpha-add-saturation.bmp",
+      "bytes": 2073654,
+      "sha256": "6904D42D6FC9078D3DC4EF3FB6456AAE5C222E8ACCFBDC8FB81D0485D28E279F"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/fixture-texture.dds",
+      "bytes": 192,
+      "sha256": "CFBF15ADA54304A97B91333CA3260632B84E9746222E2E2BE908E0E13734004C"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/fixture.jsonl",
+      "bytes": 6983,
+      "sha256": "1CFC510BF0D0607223E7FDAE90B676D87280CCD8A1D563EB8EF2836EBDF81D8B"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/launch.json",
+      "bytes": 289,
+      "sha256": "C13B9D224B24D6548B4E97C6ED18464884B9C98D26230FD7DD9903F8A9F8503D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/rtx.conf",
+      "bytes": 369,
+      "sha256": "96A85F15ACE4AED4EBF075B96DAD95C29F8F3EEB35A6ABC571A5455F4B230F25"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/Test-RemixMaterial.ps1",
+      "bytes": 4491,
+      "sha256": "2382A3E28BD0FC095920F4754CAB0FBE1EDBA13FF21C4AA294995EA580CD3F22"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/test_remix_material.cpp",
+      "bytes": 22353,
+      "sha256": "06E3C44FD61EB2375D9EB0F37128CEF862D9989B8971E28CA0A59B7779D7541C"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/winx_surface_material.h",
+      "bytes": 4826,
+      "sha256": "2A6B44BE9F6FF1A83E9E8F166DAABDB1EF174DDC90921A11B99511BC7FAE0F24"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/bridge.conf",
+      "bytes": 53,
+      "sha256": "C6E6C910B742022DB0D4D6BFF29E5EF01D5D93C0D81A4963E9C7A0559EDD72D6"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/plugInfo.json",
+      "bytes": 56,
+      "sha256": "C285A05D159154E3AE201FA383C61766BC57C58AAE6D5A70B7463B49E2DCBB2D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/plugins/plugInfo.json",
+      "bytes": 56,
+      "sha256": "C285A05D159154E3AE201FA383C61766BC57C58AAE6D5A70B7463B49E2DCBB2D"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdVolImaging/resources/plugInfo.json",
+      "bytes": 929,
+      "sha256": "1AB442359343D60229BD8D0E522C6D33FB1539E284A7C3D9277FD06CA33EB84A"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdVol/resources/plugInfo.json",
+      "bytes": 2520,
+      "sha256": "CBD6F5F030EEAE36EFC39AC1A58BB4AA699637AE2A14C77BF5022FFA6C8D636C"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdUI/resources/plugInfo.json",
+      "bytes": 1720,
+      "sha256": "52E826580CD712A67E0201601A9BA0B709312FA074F919A6B43D2DCB72230F19"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdSkelImaging/resources/plugInfo.json",
+      "bytes": 921,
+      "sha256": "2D2171DF66B3EECD1902BFDBB43B7FB782182EFCA3B20520D880BEB7C500C3FE"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdSkel/resources/plugInfo.json",
+      "bytes": 3522,
+      "sha256": "9FF536B8190E3E81680C9DAB141086D3AB0932B249376C135B46E17965696AF0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdShade/resources/plugInfo.json",
+      "bytes": 6039,
+      "sha256": "68A1D3BD5F701F0B191263B69773B6BE16A7A5587FDBDA246DCAD75AF52ED046"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdRiImaging/resources/plugInfo.json",
+      "bytes": 1290,
+      "sha256": "586D44138D8B111BD0E11CFCD1A647948418502D378330075FC66395707116D3"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdRi/resources/plugInfo.json",
+      "bytes": 2128,
+      "sha256": "280A140AA076649E22A1B384ABB58A736067224E7350A8565797A018C34F0742"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdRender/resources/plugInfo.json",
+      "bytes": 3203,
+      "sha256": "E526BEA1BD370E49A8CD404F704DCD6555C3AC4D96D8E7F4BBD5A96AEBE7C123"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdProcImaging/resources/plugInfo.json",
+      "bytes": 634,
+      "sha256": "74B30744A4C4B17201AA4975CFF72BF220DCFD4EDEF8E2583484E81BE489BE34"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdProc/resources/plugInfo.json",
+      "bytes": 914,
+      "sha256": "84BBE2AFB4204F0C6208033753492B0D25DFB8334321AD74104395CE81C552B5"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdPhysics/resources/plugInfo.json",
+      "bytes": 8039,
+      "sha256": "8E391029E131B2D0585424EBE916AD5C48FB94FF1C129825676EC42C572D54AA"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdMtlx/resources/plugInfo.json",
+      "bytes": 1182,
+      "sha256": "C060876A2F8C85EBB3EB34B961920CC1651EFA68F835675D64C50C9B9842C7D5"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdMedia/resources/plugInfo.json",
+      "bytes": 901,
+      "sha256": "FF759D83D8391F99ABE4581F37B0DFCBE916ABE710C70F590578FCE59669B2C8"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdLux/resources/plugInfo.json",
+      "bytes": 9577,
+      "sha256": "E9DFBC98BA83A50D4C164289D961574E8A110CB8F1CB245D0F30801573AD0FC5"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdImagingGL/resources/plugInfo.json",
+      "bytes": 575,
+      "sha256": "394B7A6BA7455FC85383C4B6E39F61B53E79280B10F69F4A9EF3F51DF3202E63"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdImaging/resources/plugInfo.json",
+      "bytes": 11521,
+      "sha256": "9A1686DD145F1467B99C61B2B0E256337371D6503B91AD55B6921DB39A741BB0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdHydra/resources/plugInfo.json",
+      "bytes": 1343,
+      "sha256": "AC9AA61E6AA411481465BE72B160B01C048BBE9F7025A336C7AEC00645861B5F"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usdGeom/resources/plugInfo.json",
+      "bytes": 15207,
+      "sha256": "BCEFD16905A7F9101F10F3F3201094F75D42128F43AE456B84CA7B8396191A1E"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/plugInfo.json",
+      "bytes": 5241,
+      "sha256": "0BDCBF6F25B80E8B44A0EA9294049C14AF00F9C545A507788FAE73398BB88848"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/api.h",
+      "bytes": 2149,
+      "sha256": "9B960DC8373844983EAF5BB45EEA7312FA6CF02AC2EB3A2D80985144E56C3C96"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/plugInfo.json",
+      "bytes": 372,
+      "sha256": "4A3704B9A0037EDD2FC916117ACA8E7230B7D685E361B1A6ADDD8740EEB19878"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/schemaClass.cpp",
+      "bytes": 12759,
+      "sha256": "EB65E89E4B5FAE527DA09324195FD68366A09A681D32EDF40F980469759EA8A2"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/schemaClass.h",
+      "bytes": 17337,
+      "sha256": "3945D3FAD8C3007D8BA93593049D72B6EE9878A3426BBE241DCAED1344F27C84"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/tokens.cpp",
+      "bytes": 1635,
+      "sha256": "78DA0801B8D852C45AD6D13695D63354B4DF8D000FCA3A7CFD9303F32E9764EE"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/tokens.h",
+      "bytes": 3346,
+      "sha256": "086DDE9D610B13627ABB9966C538D96349BB2949C0D732C8643CB9E25C8215E0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/wrapSchemaClass.cpp",
+      "bytes": 9728,
+      "sha256": "04C376AD50FDF134E984CECB5148D714623F52F2A2D6FE7692B1C2C9E90B21AE"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/usd/resources/codegenTemplates/wrapTokens.cpp",
+      "bytes": 2593,
+      "sha256": "F7EFA2ECAF791557775683FDACEDE5680C30F8E99ED20A95C59C799036A3E8ED"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/sdf/resources/plugInfo.json",
+      "bytes": 1145,
+      "sha256": "123DC19AA6F74D3C33182AF7614053D6E7E727155C72A65296764DBF120ED507"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/plugins/RemixParticleSystem/resources/plugInfo.json",
+      "bytes": 547,
+      "sha256": "02DC92D7D2CC52F1FAB28026B0D411BE02C50C169282676CB9E5212AAA87D25A"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/ndr/resources/plugInfo.json",
+      "bytes": 608,
+      "sha256": "3805C95BE132C0A8535D0220BBD6154F51F1482666B94E37534951E9355691BA"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hio/resources/plugInfo.json",
+      "bytes": 548,
+      "sha256": "DF757CBFC4393E7560678489D148620C387F678DFDC1BC3B12A58FE9563151B0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hgiGL/resources/plugInfo.json",
+      "bytes": 414,
+      "sha256": "1ACD45782624E8ED036C3950879119B17EAB5E07BCD547D40FAC406E031B0FE6"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hdx/resources/plugInfo.json",
+      "bytes": 312,
+      "sha256": "2D5C7FC738F1B278F3587FFBA47E34F79DE93CE978DA659285A175FD8288BF87"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hdSt/resources/plugInfo.json",
+      "bytes": 2341,
+      "sha256": "C2A66DDE94D34A833AD55B80AAF3279BEC1FB0FBBE7876AC0BA755159A007283"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hdSt/resources/textures/fallbackBlackDomeLight.png",
+      "bytes": 109,
+      "sha256": "16E067F64E1F157326AA23EC45DB2550F3C372B322B4075166173148E3047CD0"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hdGp/resources/plugInfo.json",
+      "bytes": 708,
+      "sha256": "1493D09ADB199C8437E631832DA38D9F6C216D89AF30DC350721620800A973C4"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/hd/resources/plugInfo.json",
+      "bytes": 249,
+      "sha256": "85C90CDDBA51C968D324CF7B7D05901143061C5D8B4D81AF959727D736212B72"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/glf/resources/plugInfo.json",
+      "bytes": 311,
+      "sha256": "BABFBBC25A3D64A333094F491DBF32B8115A78D0633CE9DB97C2A03C01B37F3A"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/2026-09-12-combiner-remix-v4/.trex/usd/ar/resources/plugInfo.json",
+      "bytes": 624,
+      "sha256": "A626025DA5F19E39C6C2E4F38DCD8B1DF753C936AA1E48CF20653E1C2F2174EA"
+    },
+    {
+      "path": "local-data/rtx-remix/material-fixtures/combiner-validation-v4.json",
+      "bytes": 58536,
+      "sha256": "7D2334A547211FBD0DC3A3296E6D0242C56E0367A515027515B58AB19F6D5838"
+    },
+    {
+      "path": "local-data/Winx Club/d3d9.dll",
+      "bytes": 386560,
+      "sha256": "85AD276CC58071BF543DDADB6EDDBEADFA1FA69FA15A0B8F82F9AA6200146E30"
+    },
+    {
+      "path": "local-data/Winx Club/d3d9.remix-original.dll",
+      "bytes": 863856,
+      "sha256": "A9D0846720E90D36D19AFB67E76A4D894EB349ECF13B847DE0CEDA4861669965"
+    },
+    {
+      "path": "local-data/Winx Club/.trex/d3d9.dll",
+      "bytes": 190838384,
+      "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+    },
+    {
+      "path": "local-data/rtx-remix/test-surface-resources/result.json",
+      "bytes": 104,
+      "sha256": "665A7AF2286247BFABFB76F8833AAEBA168270AE98C90E385B6B67C4FD471701"
+    },
+    {
+      "path": "local-data/rtx-remix/test-surface-material/result.json",
+      "bytes": 171,
+      "sha256": "884DDE67302E9A5B13FDD7530D32E30BCC6BD1290B2564F4ECA7E32ECACB79C4"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/runtime-logs/bridge32.log",
+      "bytes": 9286,
+      "sha256": "88243D20C126021798FB4E3504B92D7257E6EAEDC7D2124B28859A638E787E13"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/runtime-logs/bridge64.log",
+      "bytes": 2321,
+      "sha256": "B4900C4E62F9D72B2DF3CB01D266474AC28FFF6215DA6EB500358CB4F4797B2C"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-surface-combiner-game/runtime-logs/remix-dxvk.log",
+      "bytes": 19479,
+      "sha256": "CC88CF2386570ABBBBC4BA101330F35798B645F5614696D7C59B0FEF39A23B09"
+    }
+  ],
+  "runtimeLogErrors": [
+    {
+      "file": "remix-dxvk.log",
+      "line": "[17:41:51.387] err:   [41] common device objects were not disposed of."
+    }
+  ]
+}

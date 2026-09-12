@@ -2,10 +2,12 @@
 // resources. No asset IDs, game logic, texture recoloring or runtime patches.
 #include "winx_surface_material.h"
 static wchar_t surfaceAssetDirectory[MAX_PATH]{};
-struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; };
+struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; remixapi_MaterialHandle material; };
+struct SurfaceMaterialEntry { remixapi_MaterialHandle handle; unsigned frame; };
 static std::map<uint64_t,SurfaceMesh> surfaceMeshes;
-static std::map<uint64_t,remixapi_MaterialHandle> surfaceMaterials;
+static std::map<uint64_t,SurfaceMaterialEntry> surfaceMaterials;
 static size_t surfaceMeshBytes;
+static unsigned surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures;
 struct SurfaceBuffer { std::vector<uint8_t> bytes; bool complete=false; };
 struct SurfaceWrite { const void* data; UINT offset,size,total; DWORD flags; };
 static std::map<void*,SurfaceBuffer> surfaceBuffers;
@@ -32,13 +34,24 @@ static void CaptureSurfaceWrite(void* b) {
   if(w.offset==0 && w.size==w.total) snapshot.complete=true;
 }
 
-static void RetireSurfaceMeshes() {
-  if(surfaceMeshes.empty()) return;
-  auto api=GetRemixApi();if(!api) return;
+static void RetireSurfaceResources() {
+  if(frameId%30 || (surfaceMeshes.empty() && surfaceMaterials.empty())) return;
+  auto api=GetRemixApi();if(!api || !api->DestroyMesh || !api->DestroyMaterial) return;
   for(auto it=surfaceMeshes.begin();it!=surfaceMeshes.end();) {
     if(frameId-it->second.frame>300) {
-      api->DestroyMesh(it->second.handle);surfaceMeshBytes-=it->second.bytes;
+      if(api->DestroyMesh(it->second.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {++surfaceResourceFailures;++it;continue;}
+      ++surfaceMeshDestroys;surfaceMeshBytes-=it->second.bytes;
       it=surfaceMeshes.erase(it);
+    } else ++it;
+  }
+  // Failed mesh deletions retain their material reference. Never free an API
+  // material while any owned mesh can still use it, including expired retries.
+  std::set<remixapi_MaterialHandle> referenced;
+  for(const auto& item:surfaceMeshes)referenced.insert(item.second.material);
+  for(auto it=surfaceMaterials.begin();it!=surfaceMaterials.end();) {
+    if(frameId-it->second.frame>300 && !referenced.count(it->second.handle)) {
+      if(api->DestroyMaterial(it->second.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {++surfaceResourceFailures;++it;continue;}
+      ++surfaceMaterialDestroys;it=surfaceMaterials.erase(it);
     } else ++it;
   }
 }
@@ -49,7 +62,7 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
      FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag)) || u<1 || u>3 || v<1 || v>3 || mag<1 || mag>3) return nullptr;
   const uint64_t descriptor[]={textureHash,u,v,mag};
   const auto hash=XXH3_64bits(descriptor,sizeof(descriptor));
-  auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()) return found->second;
+  auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()) {found->second.frame=frameId;return found->second.handle;}
   if(surfaceMaterials.size()>=256 || !surfaceAssetDirectory[0]) return nullptr;
   using SaveTexture=HRESULT(WINAPI*)(LPCWSTR,int,IDirect3DBaseTexture9*,const PALETTEENTRY*);
   static auto save=[](){auto dll=LoadLibraryExW(L"d3dx9_43.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -70,7 +83,7 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   info.filterMode=mag==D3DTEXF_POINT?0:1;
   remixapi_MaterialHandle material=nullptr;
   if(GetRemixApi()->CreateMaterial(&info,&material)!=REMIXAPI_ERROR_CODE_SUCCESS || !material) return nullptr;
-  surfaceMaterials.emplace(hash,material);return material;
+  surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
 }
 
 static bool SurfaceSubmitFailure(unsigned line) {
@@ -165,7 +178,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     surface.indices_values=sequential.data();surface.indices_count=sequential.size();surface.material=material;
     remixapi_MeshInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;info.hash=hash;info.surfaces_values=&surface;info.surfaces_count=1;
     remixapi_MeshHandle mesh=nullptr;if(api->CreateMesh(&info,&mesh)!=REMIXAPI_ERROR_CODE_SUCCESS || !mesh) return SurfaceSubmitFailure(__LINE__);
-    found=surfaceMeshes.emplace(hash,SurfaceMesh{mesh,frameId,bytes}).first;surfaceMeshBytes+=bytes;
+    found=surfaceMeshes.emplace(hash,SurfaceMesh{mesh,frameId,bytes,material}).first;surfaceMeshBytes+=bytes;++surfaceMeshCreates;
   }
   found->second.frame=frameId;
   D3DMATRIX world{};DWORD test=0,func=0,ref=0,mask=0;

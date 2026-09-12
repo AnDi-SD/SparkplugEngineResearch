@@ -17,9 +17,14 @@ def read_run(path):
         raise ValueError(f'Fixture did not complete: {path}')
     if any(r.get('event') == 'error' for r in records):
         raise ValueError(f'Fixture reports an error: {path}')
+    layout = next(r for r in records if r.get('event') == 'layout')
+    mode = layout.get('mode', 'alpha')
+    expected_count = 16 if mode == 'alpha' else sum(r.get('event') == 'case' for r in records)
+    if mode not in ('alpha', 'combiner') or not 16 <= expected_count <= 40:
+        raise ValueError('Unexpected fixture mode or case count')
     captures = [r for r in records if r.get('event') == 'capture']
-    if len(captures) != 16:
-        raise ValueError(f'Expected 16 captures, got {len(captures)}: {path}')
+    if len(captures) != expected_count:
+        raise ValueError(f'Expected {expected_count} captures, got {len(captures)}: {path}')
     result = []
     for item in captures:
         file = path / item['file']
@@ -32,7 +37,8 @@ def read_run(path):
                      for y in (160, 380) for x in (192, 384, 576, 768)]
         result.append(dict(file=item['file'], frame=item['frame'], cells=cells,
                            sha256=hashlib.sha256(file.read_bytes()).hexdigest()))
-    return dict(path=str(path), captures=result, backend=next(r['backend'] for r in records if r.get('event') == 'layout'))
+    return dict(path=str(path), captures=result, backend=layout['backend'], mode=mode,
+                debugViews=[r['value'] for r in records if r.get('event') == 'config' and r['key'] == 'rtx.debugView.debugViewIdx'])
 
 
 def main():
@@ -46,7 +52,10 @@ def main():
     native, remix = read_run(args.native), read_run(args.remix)
     if native['backend'] != 'system' or remix['backend'] != 'stock-remix':
         raise ValueError('Backend mismatch')
+    if native['mode'] != remix['mode']:
+        raise ValueError('Fixture mode mismatch')
     checks = []
+    measurements = []
 
     def check(name, condition):
         checks.append(dict(name=name, passed=bool(condition)))
@@ -55,7 +64,24 @@ def main():
           len({c['sha256'] for c in remix['captures']}) >= 5)
     check('Native captures include changing alpha-test outcomes',
           len({c['sha256'] for c in native['captures']}) >= 2)
-    for index in range(8, 16):
+    if native['mode'] == 'combiner':
+        check('Compare post-combiner albedo view, not raw texture view', set(remix['debugViews']) == {'23'})
+        for index, (left, right) in enumerate(zip(native['captures'], remix['captures'])):
+            check(f'Case {index} identity matches', left['file'] == right['file'])
+            native_visible = max(left['cells'][7]) > 16
+            remix_visible = max(right['cells'][7]) > 2
+            check(f'Case {index} independent alpha visibility matches native', native_visible == remix_visible)
+            if native_visible:
+                # Pinned Remix color.slangh uses pow(c, 2.2). The API material
+                # has zero metallic, and its albedo debug output is linear.
+                # Native RGB and displayed linear RGB are both 8-bit values;
+                # allow two code values for their separate quantization steps.
+                expected = [255 * (value / 255) ** 2.2 for value in left['cells'][7]]
+                delta = max(abs(a-b) for a,b in zip(expected, right['cells'][7]))
+                measurements.append(dict(case=index, nativeRgb=left['cells'][7], expectedLinearRgb=expected,
+                                         remixLinearRgb=right['cells'][7], maxChannelDelta=delta))
+                check(f'Case {index} RGB matches native after documented gamma conversion', delta <= 2)
+    for index in (range(8, 16) if native['mode'] == 'alpha' else []):
         left, right = native['captures'][index], remix['captures'][index]
         check(f'Case {index} identity matches', left['file'] == right['file'])
         # Native clear is RGB(8,8,8); debug albedo background is zero. The
@@ -66,14 +92,15 @@ def main():
             check('Reproduce raw disabled NEVER mismatch in stock Remix', native_visible and not remix_visible)
         else:
             check(f'Case {index} translated alpha visibility matches native D3D9', native_visible == remix_visible)
-    check('Opaque API material exposes independent nonzero emission', max(remix['captures'][3]['cells'][7]) > 20)
-    check('Legacy D3DMATERIAL9 emissive did not become surface emission in this fixture',
-          max(remix['captures'][3]['cells'][2]) < 1)
-    check('Explicit API emission survives disabling the legacy emissive blend override',
-          max(abs(a-b) for a,b in zip(remix['captures'][3]['cells'][7], remix['captures'][6]['cells'][7])) < 1)
+    if native['mode'] == 'alpha':
+        check('Opaque API material exposes independent nonzero emission', max(remix['captures'][3]['cells'][7]) > 20)
+        check('Legacy D3DMATERIAL9 emissive did not become surface emission in this fixture',
+              max(remix['captures'][3]['cells'][2]) < 1)
+        check('Explicit API emission survives disabling the legacy emissive blend override',
+              max(abs(a-b) for a,b in zip(remix['captures'][3]['cells'][7], remix['captures'][6]['cells'][7])) < 1)
     report = dict(status='PASS' if all(c['passed'] for c in checks) else 'FAIL', checks=checks,
-                  native=native, remix=remix,
-                  scope='Alpha visibility and emission routing only; no final-lighting or game shader decomposition equivalence claim.')
+                  native=native, remix=remix, measurements=measurements,
+                  scope='Controlled single-stage RGB, alpha visibility and emission routing; no final-lighting or game shader decomposition equivalence claim.')
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(dict(status=report['status'], checks=len(checks), failed=[c['name'] for c in checks if not c['passed']])))

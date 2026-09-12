@@ -36,10 +36,12 @@ static std::vector<uint32_t> Render(const Vertex* vertices,IDirect3DPixelShader9
 }
 static std::string Equation(uint32_t op,uint32_t first,uint32_t second,bool alpha) {
   const char* regs[]={"c1","r0","v0","c0"};
-  Check(first<4 && second<4 && op>=1 && op<=3,"exported enum supported by independent shader interpreter");
+  Check(first<4 && second<4 && op>=1 && (op<=3 || (alpha && op<=6) || (!alpha && op==7)),"exported enum supported by independent shader interpreter");
   std::string mask=alpha?".w":".xyz";
   std::string sourceMask=alpha?".w":"";
   if(op==3) return "mul r1"+mask+", "+regs[first]+sourceMask+", "+regs[second]+sourceMask+"\n";
+  if(op==4 || op==5 || op==7) return "mul r1"+mask+", "+regs[first]+sourceMask+", "+regs[second]+sourceMask+"\nmul_sat r1"+mask+", r1"+sourceMask+", c2."+(op==5?"y":"x")+"\n";
+  if(op==6) return "add_sat r1"+mask+", "+regs[first]+sourceMask+", "+regs[second]+sourceMask+"\n";
   return "mov r1"+mask+", "+regs[op==1?first:second]+sourceMask+"\n";
 }
 int main() {
@@ -82,9 +84,10 @@ int main() {
     {1,-1,.5f,0x80336699,{.913f,.937f},{.781f,.813f}}};
   D3DMATRIX transform=identity;transform._11=.63f;transform._12=.07f;transform._21=-.13f;transform._22=.72f;
   transform._31=.17f;transform._32=.11f;transform._41=13;transform._42=17; // distinguish row 3 from row 4
-  const DWORD operations[]={D3DTOP_SELECTARG1,D3DTOP_SELECTARG2,D3DTOP_MODULATE};
+  const DWORD rgbOperations[]={D3DTOP_SELECTARG1,D3DTOP_SELECTARG2,D3DTOP_MODULATE,D3DTOP_MODULATE2X};
+  const DWORD alphaOperations[]={D3DTOP_SELECTARG1,D3DTOP_SELECTARG2,D3DTOP_MODULATE,D3DTOP_MODULATE2X,D3DTOP_MODULATE4X,D3DTOP_ADD};
   const DWORD args[][2]={{D3DTA_TEXTURE,D3DTA_DIFFUSE},{D3DTA_CURRENT,D3DTA_TEXTURE},{D3DTA_TEXTURE,D3DTA_TFACTOR},{D3DTA_TFACTOR,D3DTA_DIFFUSE}};
-  for(DWORD rgb:operations) for(DWORD alpha:operations) for(const auto& arg:args) for(unsigned variant=0;variant<4;++variant) {
+  for(DWORD rgb:rgbOperations) for(DWORD alpha:alphaOperations) for(const auto& arg:args) for(unsigned variant=0;variant<4;++variant) {
     Hr(device->SetPixelShader(nullptr),"reset shader");
     Hr(device->SetTextureStageState(0,D3DTSS_COLOROP,rgb),"RGB op");
     Hr(device->SetTextureStageState(0,D3DTSS_COLORARG1,arg[0]),"RGB arg1");
@@ -105,8 +108,8 @@ int main() {
     Buffer *code=nullptr,*errors=nullptr;auto hr=assemble(program.c_str(),static_cast<UINT>(program.size()),nullptr,nullptr,0,&code,&errors);
     if(errors){fprintf(stderr,"%s",static_cast<const char*>(errors->GetBufferPointer()));errors->Release();}Hr(hr,"assemble interpreter");
     IDirect3DPixelShader9* shader=nullptr;Hr(device->CreatePixelShader(static_cast<const DWORD*>(code->GetBufferPointer()),&shader),"create interpreter");code->Release();
-    float constants[8]={float((blend.tFactor>>16)&255)/255,float((blend.tFactor>>8)&255)/255,float(blend.tFactor&255)/255,float(blend.tFactor>>24)/255,1,1,1,1};
-    Hr(device->SetPixelShaderConstantF(0,constants,2),"factor constants");
+    float constants[12]={float((blend.tFactor>>16)&255)/255,float((blend.tFactor>>8)&255)/255,float(blend.tFactor&255)/255,float(blend.tFactor>>24)/255,1,1,1,1,2,4,0,0};
+    Hr(device->SetPixelShaderConstantF(0,constants,3),"factor constants");
     Vertex translated[4];memcpy(translated,vertices,sizeof(vertices));
     for(unsigned v=0;v<4;++v) Check(surface_material::Coordinates(contract,contract.coordinates?vertices[v].other:vertices[v].uv,translated[v].uv),"translate UV");
     Hr(device->SetTextureStageState(0,D3DTSS_TEXTURETRANSFORMFLAGS,D3DTTFF_DISABLE),"translated UV flags");
@@ -123,7 +126,9 @@ int main() {
   }
   surface_material::Channel channel;
   Check(surface_material::Decode(D3DTOP_SELECTARG1,D3DTA_TEXTURE,0xffffffff,channel),"unused arg ignored");
-  Check(!surface_material::Decode(D3DTOP_MODULATE2X,D3DTA_TEXTURE,D3DTA_DIFFUSE,channel),"non-equivalent RGB multiply rejected");
+  Check(surface_material::Decode(D3DTOP_MODULATE2X,D3DTA_TEXTURE,D3DTA_DIFFUSE,channel) && channel.operation==7,"RGB double modulation uses the explicit saturating operation");
+  Check(!surface_material::Decode(D3DTOP_MODULATE4X,D3DTA_TEXTURE,D3DTA_DIFFUSE,channel),"non-equivalent RGB quadruple multiply rejected");
+  Check(!surface_material::Decode(D3DTOP_ADD,D3DTA_TEXTURE,D3DTA_DIFFUSE,channel),"non-saturating RGB sum rejected");
   Check(!surface_material::Decode(D3DTOP_MODULATE,D3DTA_TEXTURE|D3DTA_COMPLEMENT,D3DTA_DIFFUSE,channel),"argument modifier rejected");
   Check(!surface_material::Decode(D3DTOP_MODULATE,D3DTA_TEXTURE,D3DTA_SPECULAR,channel),"second color channel rejected");
   surface_material::Contract contract;float input[]={.2f,.3f},output[2];
