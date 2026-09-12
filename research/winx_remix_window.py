@@ -11,6 +11,7 @@ from PIL import ImageGrab
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--pid", required=True, type=int)
 parser.add_argument("--key", choices=["escape", "enter", "up", "down", "left", "right", "space", "f1", "f8"])
+parser.add_argument("--trace", action="store_true", help="Press the adapter's F8 trace key immediately before the selected input")
 parser.add_argument("--hold", type=float, default=0.15)
 parser.add_argument("--key-count", type=int, default=1, help="Repeat the selected key up to 37 times")
 parser.add_argument("--key-gap", type=float, default=0.08, help="Release interval between repeated keys")
@@ -22,7 +23,12 @@ parser.add_argument("--capture-seconds", type=float, default=0,
 parser.add_argument("--client-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"),
                     help="Resize only the selected game window for presentation checks")
 parser.add_argument("--close", action="store_true")
+parser.add_argument("--click", nargs=2, type=int, metavar=("X", "Y"),
+                    help="Click inside the verified game client area")
+parser.add_argument("--wheel", type=int, default=0, help="Mouse wheel steps, bounded to -12..12")
 args = parser.parse_args()
+if not -12 <= args.wheel <= 12:
+    parser.error("wheel must be between -12 and 12")
 if not 0.001 <= args.hold <= 3:
     parser.error("hold must be between 0.001 and 3 seconds")
 if not 1 <= args.key_count <= 37 or not 0.02 <= args.key_gap <= 2 or (args.hold + args.key_gap) * args.key_count > 20:
@@ -56,6 +62,7 @@ finally:
 u.GetWindowThreadProcessId.argtypes = [w.HWND, c.POINTER(w.DWORD)]
 u.IsWindowVisible.argtypes = [w.HWND]
 u.GetWindowRect.argtypes = [w.HWND, c.POINTER(w.RECT)]
+u.GetClientRect.argtypes = [w.HWND, c.POINTER(w.RECT)]
 u.SetForegroundWindow.argtypes = [w.HWND]
 u.GetForegroundWindow.restype = w.HWND
 u.ShowWindow.argtypes = [w.HWND, c.c_int]
@@ -108,6 +115,39 @@ else:
         if not u.SetWindowPos(hwnd, None, 0, 0, width, height, 0x16):
             raise c.WinError(c.get_last_error())
         time.sleep(0.8)
+    if args.click or args.wheel:
+        client = w.RECT()
+        if not u.GetClientRect(hwnd, c.byref(client)):
+            raise c.WinError(c.get_last_error())
+        x, y = args.click if args.click else (client.right//2, client.bottom//2)
+        if not 0 <= x < client.right or not 0 <= y < client.bottom:
+            raise ValueError("Click must be within the selected game client")
+        point = w.POINT(x, y)
+        u.ClientToScreen.argtypes = [w.HWND, c.POINTER(w.POINT)]
+        if not u.ClientToScreen(hwnd, c.byref(point)):
+            raise c.WinError(c.get_last_error())
+        if u.GetForegroundWindow() != hwnd:
+            raise RuntimeError("Winx lost foreground before mouse input")
+        u.SetCursorPos(point.x, point.y)
+        time.sleep(0.1)
+        if args.click:
+            u.mouse_event(2, 0, 0, 0, 0)
+            try:
+                time.sleep(0.08)
+            finally:
+                u.mouse_event(4, 0, 0, 0, 0)
+        if args.wheel:
+            u.mouse_event(0x0800, 0, 0, args.wheel*120, 0)
+        time.sleep(0.3)
+    if args.trace:
+        if u.GetForegroundWindow() != hwnd:
+            raise RuntimeError("Winx lost foreground before trace input")
+        scan = u.MapVirtualKeyW(119, 0)
+        u.keybd_event(119, scan, 0, 0)
+        try:
+            time.sleep(0.08)
+        finally:
+            u.keybd_event(119, scan, 2, 0)
     if args.key:
         vk = {"escape":27, "enter":13, "up":38, "down":40, "left":37, "right":39, "space":32, "f1":112, "f8":119}[args.key]
         scan = u.MapVirtualKeyW(vk, 0)

@@ -8,8 +8,14 @@ static std::map<std::string,unsigned> opaqueSurfaceDraws;
 static std::map<IDirect3DBaseTexture9*,uint64_t> surfaceTextureHashes;
 static FILE* surfaceRoleLog;
 static unsigned surfaceBases, surfaceOverlays, surfaceStandalone, surfaceUnknown;
+#ifdef WINX_REMIX_TEST
+static remixapi_Interface* testRemixApi;
+#endif
 
 static remixapi_Interface* GetRemixApi() {
+#ifdef WINX_REMIX_TEST
+  return testRemixApi;
+#else
   static remixapi_Interface api{};static bool attempted=false;
   if(!attempted) {
     attempted=true;
@@ -23,6 +29,7 @@ static remixapi_Interface* GetRemixApi() {
     if(result!=REMIXAPI_ERROR_CODE_SUCCESS) api={};
   }
   return api.SetConfigVariable?&api:nullptr;
+#endif
 }
 
 #include "winx_surface_submit.h"

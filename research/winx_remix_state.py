@@ -123,7 +123,59 @@ class StateReader:
                     viewportHeightOverWidth=floats(0x234,1)[0]))
             except (OSError, ValueError):
                 pass
-        return dict(roots=roots, cameras=cameras)
+        engine = roots['engine']['address']
+        visibility = roots['visibilityManager']['address']
+        main = self.u32(engine + 0x1c) if engine else 0
+        override = self.u32(visibility + 0x38) if visibility else 0
+        return dict(roots=roots, cameras=cameras, mainCamera=main,
+                    visibilityOverride=override,
+                    lastSelectionCameraKnown=False)
+
+    def visibility_snapshot(self):
+        for attempt in range(1, 4):
+            result = self._visibility_snapshot_once()
+            result['readAttempts'] = attempt
+            if not result.get('available') or result['coherent']:
+                return result
+        return result
+
+    def _visibility_snapshot_once(self):
+        # Native CP13 layout. Read the game's output, not a replacement culler.
+        manager = self.u32(0x75e1b0)
+        if not manager:
+            return dict(available=False, reason='No visibility manager')
+        if self.u32(manager) != 0x6e8cdc:
+            raise RuntimeError('Unexpected visibility manager vtable')
+        header = self.read(manager, 0x54)
+        stamp = struct.unpack_from('<I', header, 0x14)[0]
+        begin, end, capacity = struct.unpack_from('<3I', header, 0x2c)
+        if not begin <= end <= capacity or (end-begin) % 4 or end-begin > 4096*4:
+            raise RuntimeError('Invalid bounded visible-support vector')
+        pointers = []
+        for address in range(begin, end, 4096):
+            data = self.read(address, min(4096, end-address))
+            pointers.extend(struct.unpack('<'+'I'*(len(data)//4), data))
+        supports = []
+        for pointer in pointers:
+            if not pointer:
+                continue  # Preserve null-slot count; do not invent an object.
+            try:
+                raw = self.read(pointer, 0x74)
+                sphere = list(struct.unpack_from('<4f', raw, 0x24))
+                if not all(math.isfinite(x) for x in sphere):
+                    raise ValueError('Non-finite world sphere')
+                supports.append(dict(address=pointer, vtable=struct.unpack_from('<I',raw)[0],
+                    worldSphere=sphere, stamp=struct.unpack_from('<I',raw,0x64)[0],
+                    completeObject=struct.unpack_from('<I',raw,0x70)[0]))
+            except (OSError, ValueError) as error:
+                supports.append(dict(address=pointer, readError=str(error)))
+        final_header = self.read(manager, 0x54)
+        # A stamp/vector change invalidates this asynchronous observation.
+        coherent = header[0x14:0x18] == final_header[0x14:0x18] and header[0x2c:0x40] == final_header[0x2c:0x40]
+        return dict(available=True, manager=manager, stamp=stamp, coherent=coherent,
+                    scope='asynchronous last selection; camera/pass unknown',
+                    sphereCulling=bool(header[0x3c]), overrideCamera=struct.unpack_from('<I',header,0x38)[0],
+                    count=len(pointers), nullSlots=pointers.count(0), supports=supports)
 
     def snapshot(self):
         flow = self.u32(0x755294)
@@ -164,6 +216,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=Path)
     parser.add_argument('--cameras', action='store_true')
     parser.add_argument('--player', action='store_true')
+    parser.add_argument('--visibility', action='store_true')
     args = parser.parse_args()
     reader = StateReader(args.pid)
     try:
@@ -172,6 +225,8 @@ if __name__ == '__main__':
             result['cameraAudit'] = reader.camera_snapshot()
         if args.player:
             result['player'] = reader.player_snapshot()
+        if args.visibility:
+            result['visibility'] = reader.visibility_snapshot()
         text = json.dumps(result, indent=2)
         if args.output:
             args.output.write_text(text + '\n', encoding='utf-8')

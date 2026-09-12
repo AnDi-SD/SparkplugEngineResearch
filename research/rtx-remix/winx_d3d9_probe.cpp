@@ -52,6 +52,8 @@ static FvfFromDeclaration fvfFromDeclaration;
 static wchar_t liveConfigPath[MAX_PATH]{};
 static void InitializeShaderAudit();
 static void InitializeSurfaceRoles();
+static void InitializeSceneAudit();
+static remixapi_Interface* GetRemixApi();
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -106,6 +108,7 @@ static void Initialize() {
     fflush(logFile);
   }
   InitializeSurfaceRoles();
+  InitializeSceneAudit();
 }
 
 template<class F> static F Proc(const char* name) {
@@ -134,6 +137,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 }
 
 #include "winx_shader_audit.h"
+#include "winx_scene_audit.h"
 
 static void RememberPrimaryTarget(IDirect3DDevice9* device) {
   IDirect3DSurface9* target=nullptr;
@@ -194,6 +198,7 @@ static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
 }
 
 static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE type, UINT count) {
+  PrepareSceneLights(device);
   AuditShaderDraw(device);
   std::lock_guard<std::recursive_mutex> lock(guard);
   ++drawId;
@@ -626,6 +631,10 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepSceneLights" && sceneLightsEnabled && (value=="True" || value=="False")) {
+      keepSceneLightsForComparison=value=="True";ResetSceneLights();continue;
+    }
+    if(sceneLightsEnabled && (key=="rtx.ignoreGameDirectionalLights" || key=="rtx.ignoreGamePointLights" || key=="rtx.ignoreGameSpotLights")) continue;
     if(key=="winx.keepAutoSurfaceRoles" && autoSurfaceRoles && (value=="True" || value=="False")) {
       keepAutoSurfaceRolesForComparison=value=="True";ClearSurfaceBases();continue;
     }
@@ -651,6 +660,7 @@ static void ApplyLiveConfig() {
 
 static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e) {
   ApplyLiveConfig();
+  EndSceneLightFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
   const auto state=presentations.find(d);
@@ -692,6 +702,7 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
+  EndSceneLightFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);
   EndSurfaceRoleFrame();
@@ -707,6 +718,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
+  ResetSceneLights();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
   LogPresentation("reset_request",p);
   ClearSurfaceBases();

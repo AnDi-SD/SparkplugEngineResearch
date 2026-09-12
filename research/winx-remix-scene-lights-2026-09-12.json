@@ -1,0 +1,225 @@
+{
+  "schema": "winx-remix-scene-lights-v1",
+  "date": "2026-09-12",
+  "status": "geometric light transport and lifetime implemented; full lighting incomplete",
+  "scope": "Own adapter for the hash-verified PC debug executable; no level or asset exceptions",
+  "userConstraint": "Do not launch Gardenia 2 again; validate general mechanisms on other levels",
+  "provenance": {
+    "gameValues": "Read original Scene/LightManager registry and updated spDXLight D3DLIGHT9 payload; game code unchanged",
+    "nativeEvidence": [
+      "docs/research/native-pc-renderer-lights.md",
+      "docs/research/native-pc-light-scene-world.md",
+      "docs/research/native-light-runtime-2026-09-11.md"
+    ],
+    "conversion": "Adapted NVIDIA LightUtils CPU subset with MIT notice; own platform policy, not recovered game logic",
+    "referenceCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+    "installedRuntime": "stock 1.5.2 remix-main+68edea01; not exact reference source commit",
+    "sceneScale": 1,
+    "gain": 10,
+    "sphereRadiusGameUnits": 4,
+    "distantDiameterRadians": 0.0349
+  },
+  "validation": {
+    "build": "MSVC x86 /W4; no compiler warnings",
+    "testOutput": "PASS 47 checks; creates=9 destroys=9; live handles=0",
+    "testScope": "Recording API and literal PC ABI buffers in our test process; not a GPU correctness test",
+    "syntax": "PowerShell parser: Start-Probe, Run-WinxRemix, Test-SceneLights; Python AST: state, window, camera analyzer",
+    "liveRun": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino",
+    "prototypeRun": "local-data/rtx-remix/runs/2026-09-12-scene-lights-alfea",
+    "liveSequence": [
+      "Domino 1: one light; resource reused during player movement",
+      "Same-process F1 transition: frame 7627 destroys old light; frame 7651 creates 20 Alfea lights",
+      "Alfea API -> legacy -> API releases and recreates 20 resources"
+    ],
+    "eventCounts": {
+      "init": 1,
+      "frame": 826,
+      "legacy_policy": 33,
+      "create": 41,
+      "parameters": 41,
+      "destroy": 21
+    },
+    "reportedLightApiFailures": 0,
+    "nativeVisibilityEntryUnpatched": "6aff64a100000000; captured in final-state.json",
+    "drawTrace": false,
+    "sceneAudit": false,
+    "bridgeConfigRestored": true,
+    "liveLogsFrozenAfterNormalWindowClose": true,
+    "visualResult": "Alfea remains very dark through both legacy and API light routes; raster reference is normally lit",
+    "sourceVsServerLimit": "x86 success reports queued API calls; server logs inspected for errors; no independent GPU lamp count"
+  },
+  "knownLimits": [
+    "Ambient type 3 must be handled together with per-object caches, material and vertex/shader data",
+    "Full geometry lifetime outside the view, deformations, material semantics and level regression remain open",
+    "Spot lights covered on test fixture only; not found in the selected live scenes",
+    "projectShadow lights and unsupported geometric parameters retain the legacy route for their entire type",
+    "Other EXE/ABI, sceneScale and extended real light animation not validated",
+    "Previously observed stock USD capture failure with API materials is not fixed; capture not triggered here",
+    "init.maxBytes currently reports the scene-audit 64 MiB cap in both logs; actual scene-light writes are capped at 16 MiB plus final bounded record",
+    "Latest launcher explicitly initializes ignoreGame light settings to False; live run used identical runtime defaults before this script-only change"
+  ],
+  "baselines": [
+    {
+      "path": "local-data/Winx Club/d3d9.dll",
+      "bytes": 336384,
+      "sha256": "2D1C95FF83F4320DCCDE6A46D369273E39F3641A77DD7649C89B17193474F4E6"
+    },
+    {
+      "path": "local-data/rtx-remix/build/d3d9.dll",
+      "bytes": 336384,
+      "sha256": "2D1C95FF83F4320DCCDE6A46D369273E39F3641A77DD7649C89B17193474F4E6"
+    },
+    {
+      "path": "local-data/Winx Club/d3d9.remix-original.dll",
+      "bytes": 863856,
+      "sha256": "A9D0846720E90D36D19AFB67E76A4D894EB349ECF13B847DE0CEDA4861669965"
+    },
+    {
+      "path": "local-data/Winx Club/.trex/d3d9.dll",
+      "bytes": 190838384,
+      "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+    },
+    {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "bytes": 22065152,
+      "sha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB"
+    },
+    {
+      "path": "local-data/Winx Club/WinxClub.exe",
+      "bytes": 22065152,
+      "sha256": "1B04DD9B082087141C840D6546B9B729FD1A3CD1BEBFABC1267035C2B30A4EC3"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/launch.json",
+      "bytes": 2851,
+      "sha256": "12D239D814915B6AD0AA040DA695D375948E507A90FE043C77C520D069058CF5"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/d3d9.dll",
+      "bytes": 336384,
+      "sha256": "2D1C95FF83F4320DCCDE6A46D369273E39F3641A77DD7649C89B17193474F4E6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/rtx.conf",
+      "bytes": 585,
+      "sha256": "41CC22E0FAB66743D4A0F4ABDB37761987456C0F9AA95A79369157730D118416"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/final-state.json",
+      "bytes": 10698,
+      "sha256": "1E4838CD7578E344121CA9E4099CEE792A08111F3875050189F9453656C21EE0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/scene-lights.jsonl",
+      "bytes": 145405,
+      "sha256": "A33703230DAC7287886432340A3988B50A9D08A48A7F05B2ABC28539D81A2862"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/bridge-config-restored.json",
+      "bytes": 96,
+      "sha256": "02B24A7042BA2EED10FF04A2280B075AD829965AF61159633AB66141218F9987"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/playing-move.png",
+      "bytes": 602442,
+      "sha256": "0C9B71CD43E68E904BD995FAED330F2092700EE462DB0EAF8FE911490D291630"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/alfea-after-transition.png",
+      "bytes": 473804,
+      "sha256": "94B13DA6A6772AE85F2C1F41D6CFE5EAA48B116C2A4BE5C8CBD1FCAA493FAA4C"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/alfea-api.png",
+      "bytes": 432756,
+      "sha256": "4B6EFB75BE820FE34FA494A53A4DBF76669C9E37643021D5DE4210E82445BE5B"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/alfea-legacy.png",
+      "bytes": 453678,
+      "sha256": "19BE380D073C0055B5AB0CD5B8F5973B3BADFA8B6E3114B549B0C76A4107732F"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/alfea-restored.png",
+      "bytes": 447551,
+      "sha256": "7E33CD595DAADAF09B486454DC2619BB2C9C58D1A23EA10DE53D13016260FA7F"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/workdir/rtx-remix/logs/bridge32.log",
+      "bytes": 21047,
+      "sha256": "69885A71162580CC18F23D9D8CA7C88D6EE096B1BC2E9433531D4FE65247A0EC"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/workdir/rtx-remix/logs/bridge64.log",
+      "bytes": 2321,
+      "sha256": "4F9CF06B88CAA5E9CA46BDCCE53C9ABB43B7ABEE9B4D2F2CB11C0544DB565F64"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-domino/workdir/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 17615,
+      "sha256": "3BB6E3122B5DB9C3A141FD4D934EED950F1F09EDFD5C64E6C6C51D01ABD31288"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-alfea/launch.json",
+      "bytes": 3072,
+      "sha256": "C16C8409610566DDEB695A187ECF55EC7F26984DFBC869C98EE146F3C2A8FC38"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-alfea/scene-lights.jsonl",
+      "bytes": 108778,
+      "sha256": "7B6F368F72759461501144DA244923FE80DE0B48C7C91B17E7196BA37B6AABA4"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-alfea/playing-on.png",
+      "bytes": 414042,
+      "sha256": "C63471CEEC6DB96D9BAF3ACFD73063470C24DD72696352631AF13B3A41EAADC6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-lights-alfea/raster-reference.png",
+      "bytes": 560494,
+      "sha256": "23819FEDB4CF1B6941AE622402D08C72CC3D88BDD72CA09F29F4EE28818F37CD"
+    },
+    {
+      "path": "research/rtx-remix/winx_scene_lights.h",
+      "bytes": 11805,
+      "sha256": "3D2E1F68C7C3FF7570CC1ECC7BECB8A0412F5D8A6F70752B11C079DD4AD39B41"
+    },
+    {
+      "path": "research/rtx-remix/winx_scene_audit.h",
+      "bytes": 11294,
+      "sha256": "01ECB310B1B588F613AC0C094CD74713573890D7BC2922D98B79F715D230F36D"
+    },
+    {
+      "path": "research/rtx-remix/test_scene_lights.cpp",
+      "bytes": 6262,
+      "sha256": "151D8A8235998AC9D9B64FB9FA511F30A4E9CE3489C16276F7751B6AB3380BF8"
+    },
+    {
+      "path": "research/rtx-remix/third-party/remix_light_conversion.h",
+      "bytes": 8194,
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/test-scene-lights/test_scene_lights.exe",
+      "bytes": 158720,
+      "sha256": "011CACCB8161C71A603ACE5D37D8715389576C4BA391D422860314CA2FDC260B"
+    },
+    {
+      "path": "local-data/rtx-remix/test-scene-lights/result.txt",
+      "bytes": 110,
+      "sha256": "E7ACA2A8435CB52DBEBCF70F7C76B5517B9E11F98EE43CD4A616C02DA555E0D6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-camera-contract-gardenia01/contract-analysis.json",
+      "bytes": 742,
+      "sha256": "D814163BF65DD0143042A7B44894886A6DFB889ACFFA3F155B8BF78A1A09DE21"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-scene-audit-gardenia01/contract-analysis.json",
+      "bytes": 888,
+      "sha256": "62EC22D3F7E9D404D017C14607458A1E514C4BF0E903704927DBD7BC21D03045"
+    }
+  ]
+}

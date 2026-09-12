@@ -18,6 +18,9 @@ param(
     [switch]$DebugMenu,
     [switch]$LiveConfig,
     [switch]$ShaderAudit,
+    [switch]$SceneAudit,
+    [switch]$SceneLights,
+    [ValidateRange(0,1000)][float]$LightGain = 10,
     [switch]$Windowed,
     [switch]$SurfaceRoles,
     [switch]$AutoSurfaceRoles,
@@ -26,6 +29,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
+if ($SceneAudit -and -not $DebugMenu) { throw 'Scene audit requires the hash-verified DebugMenu executable' }
+if ($SceneLights -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene lights require RTX and the hash-verified DebugMenu executable' }
 if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
 if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
 if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
@@ -53,6 +58,11 @@ foreach ($key in ($ConfigOverride.Keys | Sort-Object)) {
 if ($AutoSurfaceRoles) {
     # The adapter owns these categories per draw. No persistent texture lists.
     $text += "`r`nrtx.decalTextures = `r`nrtx.dynamicDecalTextures = `r`nrtx.singleOffsetDecalTextures = `r`nrtx.nonOffsetDecalTextures = `r`nrtx.useObsoleteHashOnTextureUpload = False`r`n"
+}
+if ($SceneLights) {
+    # This mode owns legacy/API routing. Begin on the legacy path until a
+    # complete validated native registry has been submitted successfully.
+    $text += "`r`nrtx.ignoreGameDirectionalLights = False`r`nrtx.ignoreGamePointLights = False`r`nrtx.ignoreGameSpotLights = False`r`n"
 }
 [IO.File]::WriteAllText($config,$text,[Text.UTF8Encoding]::new($false))
 Copy-Item -LiteralPath (Join-Path $game 'd3d9.dll') -Destination (Join-Path $run 'd3d9.dll')
@@ -97,7 +107,7 @@ if ($AutoSurfaceRoles) {
 if ($ShaderAudit) {
     New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
 }
-if ($LiveConfig -or $AutoSurfaceRoles) {
+if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
     if ($Backend -ne 'remix') { throw 'Live config requires the Remix backend' }
     $bridgeConfig = Join-Path $game '.trex/bridge.conf'
     $bridgeExisted = Test-Path -LiteralPath $bridgeConfig
@@ -142,6 +152,10 @@ $values = @{
     WINX_REMIX_SURFACE_ASSETS=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-assets' } else { $null })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
     WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
+    WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
+    WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
+    WINX_REMIX_LIGHT_GAIN=$LightGain.ToString([Globalization.CultureInfo]::InvariantCulture)
+    WINX_REMIX_LIGHT_AUDIT=$(if ($SceneLights) { Join-Path $run 'scene-lights.jsonl' } else { $null })
     DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
     DXVK_RTX_CONFIG_FILE=$config
 }
@@ -151,7 +165,7 @@ try {
         [Environment]::SetEnvironmentVariable($key,$values[$key],'Process')
     }
     $gameProcess=Start-Process -FilePath $executable -WorkingDirectory $workingDirectory -WindowStyle Normal -PassThru
-    if ($LiveConfig -or $AutoSurfaceRoles) {
+    if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
         $restoreScript = Join-Path $PSScriptRoot 'Restore-LiveConfig.ps1'
         Start-Process -FilePath powershell -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$restoreScript+'"'),'-Run',('"'+$run+'"'),'-GamePid',$gameProcess.Id) | Out-Null
     }
@@ -163,6 +177,9 @@ try {
         windowedOverride=$Windowed.IsPresent
         surfaceRolesSha256=$(if ($SurfaceRoles) { (Get-FileHash -LiteralPath $surfaceRoleSource).Hash } else { $null })
         autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
+        sceneAudit=$SceneAudit.IsPresent
+        sceneLights=$SceneLights.IsPresent
+        sceneLightGain=$LightGain
         bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
     Write-Output "PID=$($gameProcess.Id) Run=$run"

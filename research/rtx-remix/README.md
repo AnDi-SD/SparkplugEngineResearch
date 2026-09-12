@@ -161,6 +161,20 @@ INI и штатным `startLevel=N` (1–37, 41–49). Установленны
 проверенную цепочку profile → player → node. Нулевая позиция во время
 загрузки не означает готовность сцены. Телепорт этот инструмент не выполняет.
 
+`--visibility` читает последний результат отбора и проверяет согласованность
+чтения; его камера без синхронной записи неизвестна. `Start-Probe -SceneAudit
+-DebugMenu` отдельно включает bounded detour original visibility для диагностики.
+Обычные профили его не включают. [Контракт камеры](../../docs/research/winx-remix-camera-contract-2026-09-12.md).
+
+`Run-WinxRemix -Mode RTX -DebugMenu -SceneLights -StartLevel 4 -Windowed`
+включает общий экспериментальный профиль: AutoSurfaceRoles и источники из
+Scene/LightManager через API, без индивидуальных asset-категорий. Направленные,
+точечные и spot поддержаны; ambient/material lighting остаётся открытым.
+Режим света работает без SceneAudit/draw logs и не меняет инструкции EXE.
+В диагностическом LiveConfig `winx.keepSceneLights=True/False` переключает
+legacy/scene путь. [Результаты и ограничения](../../docs/research/winx-remix-scene-lights-2026-09-12.md).
+`Test-SceneLights.ps1` запускает47 проверок обвязки без игры/GPU.
+
 `Run-WinxRemix -Mode RTX -DebugMenu -StartLevel 2 -Windowed` открывает
 Гардинию 2 с отдельным `fullScreen=false`, не меняя установленный INI.
 Это запуск уровня, не возврат к произвольным координатам.
@@ -232,7 +246,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Restore-S
 ## Upstream
 
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,
-commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, соответствующий Remix 1.5.2.
+commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, reference ветка Remix 1.5.2;
+это не точный `remix-main+68edea01` установленного binary runtime.
 Его рабочее дерево чистое. Push URL отключён как защита от случайной отправки;
 это не файловый read-only ACL. Сборка всего Remix для этих исправлений
 не потребовалась.
