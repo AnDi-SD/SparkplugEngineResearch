@@ -1,0 +1,240 @@
+{
+  "date": "2026-09-12",
+  "run": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea",
+  "binaryVariant": "light-comparison",
+  "headBeforeChanges": "d5aab3f",
+  "tests": {
+    "recordingLightApiChecks": 109,
+    "created": 21,
+    "destroyed": 21,
+    "remaining": 0
+  },
+  "apiErrorCount": 0,
+  "artifacts": [
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\bridge-config-restored.json",
+      "size": 96,
+      "sha256": "B930EB446E588C023D4BC520BF4090A822341EB119FEAFC1D700078F32C6CADA"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\bridge-config-state.json",
+      "size": 124,
+      "sha256": "79B0B3C608395B800701ADB387F4284889D5A0CE715565AAB8DE45EDD60EC66F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\bridge.conf",
+      "size": 339,
+      "sha256": "2E8174D21B357ADD83DFBC7A8A034D9CBEA8866059263C2A6357C9E516BCEEBE"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\d3d9.dll",
+      "size": 372736,
+      "sha256": "FF631A5822215706873C99F6E95566BD22BAB41A0ED166EE16426D673D6E0ECD"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\albedo.png",
+      "size": 284714,
+      "sha256": "D68F4E142CE62D104E7EC9A553143103F7C63CB5D71B5903406F244194D94FA1"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\direct10.png",
+      "size": 17195,
+      "sha256": "871E26E5544B7551A879756912FBCC1738C121C090B1AFC64A9A00CFDFE2D4B5"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\direct1000.png",
+      "size": 17146,
+      "sha256": "D4F4269E2F39EF7CF9C9B8642B35357AEEBFFDA11C5840E2A866A62012B2FCCC"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\gain0.png",
+      "size": 100223,
+      "sha256": "46B7597CC11994AECFDA91F3EBBD16991B16EDDB5BC2DFC99A8E0F10FF7EB82F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\gain10-return.png",
+      "size": 391280,
+      "sha256": "D9E8CDF5A23B6C3EE5620448CB05C01097BF6B3122063CACC2000FD8429D4AF1"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\gain10.png",
+      "size": 343483,
+      "sha256": "2F7E69040BD82A3CCF49FE7683C5CC3948E1B53DF7B187C6E375B7D5F5748FC5"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\gain1000.png",
+      "size": 557964,
+      "sha256": "3D534F6730BFB7F435FC4F4027B126145B7E4B4BC31978A04E1B9D3FC082C3D5"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\image-statistics.json",
+      "size": 1323,
+      "sha256": "F3AAC967F853ECFB3504B17D7315DF86CDD57250902032246722B62D949831EB"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\normal.png",
+      "size": 105082,
+      "sha256": "ADCB5DEEB3295777F42439D4B283A99ACCD6479923DF653AC04D57AEAB708FB2"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\plan.json",
+      "size": 992,
+      "sha256": "812DEFF905A7A31DE455749009B517167371910E7680BAC4DAB89C843958A35F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-comparison\\result.json",
+      "size": 22630,
+      "sha256": "D19C9010B28B466230041EB47802AC47DB9CD6BD85157767B696B3BD0E9A59B7"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\gain-plan.json",
+      "size": 992,
+      "sha256": "812DEFF905A7A31DE455749009B517167371910E7680BAC4DAB89C843958A35F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\launch.json",
+      "size": 3037,
+      "sha256": "E0568EBFB6F44E3F4883081B86CBBDCE2927DDA49D7961AD85A0E1C26DCB12EA"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\live.conf",
+      "size": 238,
+      "sha256": "10CBB352952C2FFA69C277F1645FEE0CD1BA256B98AB9B3E6D21DC2AC7FB56A8"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\live.conf.jsonl",
+      "size": 1875,
+      "sha256": "543D39DE24BA632B46A67B94A979F79839E76F98222CEBDC72D852D5BB88038D"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\materials.jsonl",
+      "size": 2328669,
+      "sha256": "22EB64DA75C78FFD7D93CD9547561AA7616F0ACA86483E4BC5DE107903151286"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\playing-state.json",
+      "size": 206,
+      "sha256": "E8668EE0C4E2BF2302BAFB79A0484163C41BD6EEBFBDCDF0CB6E08E08E76B6F2"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\playing.png",
+      "size": 157479,
+      "sha256": "7EE1F508FA6FAABE762058DA573519C0E2CD184E6595AC992E7941F07164C0EC"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\ready-state.json",
+      "size": 197,
+      "sha256": "42AD4C15FAAC0B0C036EAFEF1A89A7B46BA55AB700A6BE468AC09849C3BC4A02"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\ready.png",
+      "size": 274081,
+      "sha256": "9552CC3A79EB394A8D5E37FA4FC85577CC28C455946CA19E315619FE857919CB"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\rtx.conf",
+      "size": 673,
+      "sha256": "7AF17E58743A5E28AEB0A94010857A9F910737DAA0E6469A9167CEB2677EFFE2"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\scene-lights.jsonl",
+      "size": 186492,
+      "sha256": "4439194B7F02B1973ECA31BA6CA64A92B63A434478DCE15AEEA1F56B3EDB61FC"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\base-return.png",
+      "size": 384422,
+      "sha256": "7BA03AF1418E9DCD916E2ABA74A84BAA0E1FD5B48B4E88103E49DBE6FA94FF38"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\base.png",
+      "size": 301348,
+      "sha256": "78F807E8FA240CB4A0CE98DE02F333689189A94EB3D4B662D481AD61262D7DC4"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\cull-secondary-high-gain.png",
+      "size": 530843,
+      "sha256": "4AE33B01986DFA64003F5F9B949D2BFA80ED4F79FAB05A555E200844872C13CD"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\cull-secondary.png",
+      "size": 305585,
+      "sha256": "A67285E8A7275374B0CC66A45C0608BE859DFB84B480C6A8984EDC2F59C2803A"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\image-statistics.json",
+      "size": 1119,
+      "sha256": "D6C8E40782DB2159A2148A7E2626CDF1A7E0082A5FE1269937438D99D621B2B1"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\no-alpha-high-gain.png",
+      "size": 531575,
+      "sha256": "9826B962ED85B3886C2413DE4A69580308FD1353BBD44C0E46AA8A753B306693"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\no-alpha-shadow.png",
+      "size": 311161,
+      "sha256": "1402D6C1A5A4D25C82481E290852355ABCF8C686137FE6A690AA3C5B1D5C5ED9"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\plan.json",
+      "size": 1153,
+      "sha256": "BDC83054A458C93831E8DF4ED1B9A89F4FF61D077DB98CBDE191F569E3C9420F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-comparison\\result.json",
+      "size": 18515,
+      "sha256": "BABFF3E1465E1EFA2CCBA004AA2A83E0E2FB1786A7D1A53F0BD1A1914B06E206"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\shadow-plan.json",
+      "size": 1153,
+      "sha256": "BDC83054A458C93831E8DF4ED1B9A89F4FF61D077DB98CBDE191F569E3C9420F"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\start-state.json",
+      "size": 206,
+      "sha256": "E8668EE0C4E2BF2302BAFB79A0484163C41BD6EEBFBDCDF0CB6E08E08E76B6F2"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\start.png",
+      "size": 591887,
+      "sha256": "A0A22B500655730E3A9BE83C8ACFD66443E78C146A6BC991C289DEE3131B53E3"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\surface-roles.jsonl",
+      "size": 2737676,
+      "sha256": "8D31341CD33B473B01ACC8D273DBD0816C9B4B01B96C70B6A9ABBF0F9C5799E2"
+    },
+    {
+      "path": "local-data\\rtx-remix\\runs\\2026-09-12-light-gain-alfea\\workdir\\user.conf",
+      "size": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data\\Winx Club\\.trex\\d3d9.dll",
+      "size": 190838384,
+      "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+    },
+    {
+      "path": "local-data\\Winx Club\\d3d9.dll",
+      "size": 372736,
+      "sha256": "FF631A5822215706873C99F6E95566BD22BAB41A0ED166EE16426D673D6E0ECD"
+    },
+    {
+      "path": "local-data\\Winx Club\\d3d9.remix-original.dll",
+      "size": 863856,
+      "sha256": "A9D0846720E90D36D19AFB67E76A4D894EB349ECF13B847DE0CEDA4861669965"
+    },
+    {
+      "path": "local-data\\Winx Club\\WinxClub.exe",
+      "size": 22065152,
+      "sha256": "1B04DD9B082087141C840D6546B9B729FD1A3CD1BEBFABC1267035C2B30A4EC3"
+    },
+    {
+      "path": "local-data\\Winx Club\\WinxClubDebug.exe",
+      "size": 22065152,
+      "sha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB"
+    }
+  ]
+}

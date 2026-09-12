@@ -281,6 +281,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-Mate
 
 [Результат и границы](../../docs/research/winx-remix-material-contract-2026-09-12.md).
 
+## Сравнение света без перезапуска
+
+Для запуска с `-SceneLights -LiveConfig` ключ `winx.sceneLightGain` в run/live.conf
+меняет диагностический gain 0..1000 (обычно 10). Его изменения записываются в
+scene-lights.jsonl, результаты generic RTX API-настроек — в live.conf.jsonl.
+`research/winx_remix_compare.py --run ... --plan ... --name ...` снимает до 16
+вариантов с проверкой native камеры и возвратом явной baseline из JSON-плана.
+Схема и пример плана сохранены в [проверке Алфеи](../../docs/research/winx-remix-light-comparison-2026-09-12.md).
+
 ## Upstream reference
 
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,

@@ -50,6 +50,7 @@ static std::map<void*, BufferLock> bufferLocks;
 using FvfFromDeclaration = HRESULT(WINAPI*)(const D3DVERTEXELEMENT9*, DWORD*);
 static FvfFromDeclaration fvfFromDeclaration;
 static wchar_t liveConfigPath[MAX_PATH]{};
+static FILE* liveConfigLog;
 static void InitializeShaderAudit();
 static void InitializeSurfaceRoles();
 static void InitializeSceneAudit();
@@ -72,6 +73,7 @@ static void Initialize() {
   backend = LoadLibraryW(path);
   InitializeShaderAudit();
   if(wcscmp(mode,L"system")!=0) GetEnvironmentVariableW(L"WINX_REMIX_LIVE_CONFIG",liveConfigPath,MAX_PATH);
+  if(liveConfigPath[0]) liveConfigLog=_wfsopen((std::wstring(liveConfigPath)+L".jsonl").c_str(),L"wb",_SH_DENYNO);
   wchar_t mipOption[8]{};
   explicitMipLevels=GetEnvironmentVariableW(L"WINX_REMIX_EXPLICIT_MIPS",mipOption,8) && wcscmp(mipOption,L"1")==0;
   wchar_t readbackOption[8]{};
@@ -635,6 +637,9 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.sceneLightGain" && sceneLightsEnabled) {
+      SetSceneLightGain(value.c_str());continue;
+    }
     if(key=="winx.keepSceneLights" && sceneLightsEnabled && (value=="True" || value=="False")) {
       keepSceneLightsForComparison=value=="True";ResetSceneLights();continue;
     }
@@ -659,6 +664,10 @@ static void ApplyLiveConfig() {
     const auto result=api->SetConfigVariable(key.c_str(),value.c_str());
     if(result==REMIXAPI_ERROR_CODE_SUCCESS) applied[key]=value;
     if(logFile) fprintf(logFile,"{\"event\":\"live_config\",\"frame\":%u,\"key\":\"%s\",\"value\":\"%s\",\"result\":%d}\n",frameId,key.c_str(),value.c_str(),result);
+    if(liveConfigLog && _ftelli64(liveConfigLog)<1024*1024) {
+      fprintf(liveConfigLog,"{\"event\":\"live_config\",\"frame\":%u,\"key\":\"%s\",\"value\":\"%s\",\"result\":%d}\n",frameId,key.c_str(),value.c_str(),result);
+      fflush(liveConfigLog);
+    }
   }
 }
 

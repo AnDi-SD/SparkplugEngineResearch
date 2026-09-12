@@ -2,12 +2,30 @@
 // it does not implement or override the game's culling rules. CP13/PC ABI only.
 // Installed during initial Direct3DCreate9, never injected into a running frame.
 #include <cstring>
+#include <cstdlib>
+#include <cerrno>
 
 static FILE* sceneAuditFile;
 static unsigned sceneAuditCalls;
 static bool sceneLightsEnabled, keepSceneLightsForComparison;
 static float sceneLightGain=10.0f;
 static FILE* sceneLightLog;
+
+// Diagnostic gain only: keep the original light values and stable ownership.
+// Conversion on the next scene frame updates existing API hashes normally.
+static bool SetSceneLightGain(const char* text) {
+  if(!text || !*text) return false;
+  char* end=nullptr;errno=0;
+  const float value=std::strtof(text,&end);
+  if(end==text || *end || errno==ERANGE || !std::isfinite(value) || value<0 || value>1000) return false;
+  if(value==sceneLightGain) return true;
+  const float previous=sceneLightGain;sceneLightGain=value;
+  if(sceneLightLog && _ftelli64(sceneLightLog)<16*1024*1024) {
+    fprintf(sceneLightLog,"{\"event\":\"light_gain\",\"frame\":%u,\"previous\":%.9g,\"value\":%.9g}\n",frameId,previous,value);
+    fflush(sceneLightLog);
+  }
+  return true;
+}
 
 #if defined(_M_IX86)
 namespace scene_audit {

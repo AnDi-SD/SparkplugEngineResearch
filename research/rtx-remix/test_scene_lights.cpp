@@ -86,5 +86,27 @@ int main() {
   Put(a.lights[0],0xc0,3);++frameId;SyncLights(a.address());Check(ownedLights.empty(),"ambient is explicit unsupported material input");
   Put(a.lights[0],0xc0,0);++frameId;SyncLights(a.address());ResetSceneLights();
   Check(handles.empty() && ownedLights.empty() && !ignoredLegacy[0],"device reset releases resources and policy");
+  Fixture gains;++frameId;SyncLights(gains.address());
+  const auto baseline=ownedLights;const unsigned gainCreates=created,gainDestroys=destroyed;
+  const char* invalid[]={"", "-1", "1001", "nan", "inf", "1e99", "1e-99", "10x", "10 20"};
+  for(auto value:invalid) Check(!SetSceneLightGain(value) && sceneLightGain==10,"invalid gain leaves state unchanged");
+  Check(!SetSceneLightGain(nullptr),"null gain rejected");
+  Check(SetSceneLightGain("1000"),"bounded maximum gain accepted");
+  ++frameId;SyncLights(gains.address());
+  Check(created==gainCreates+3 && destroyed==gainDestroys+3 && handles.size()==3,"gain updates replace all three client handles without leaks");
+  for(const auto& entry:baseline) {
+    const auto& now=ownedLights.at(entry.first);
+    Check(now.id==entry.second.id,"gain preserves stable API hash");
+    Check(std::abs(now.state.radiance.x/entry.second.state.radiance.x-100)<1e-3f,"gain scales directional point and spot radiance");
+    Check(memcmp(&now.state.position,&entry.second.state.position,sizeof(now.state.position))==0 &&
+      memcmp(&now.state.direction,&entry.second.state.direction,sizeof(now.state.direction))==0,"gain preserves spatial light parameters");
+  }
+  Check(SetSceneLightGain("0"),"zero gain accepted for matched camera comparison");
+  ++frameId;SyncLights(gains.address());
+  for(const auto& entry:ownedLights) Check(entry.second.state.radiance.x==0 && entry.second.state.radiance.y==0 && entry.second.state.radiance.z==0,"zero gain removes all radiance");
+  Check(SetSceneLightGain("1e1"),"default gain restored");
+  ++frameId;SyncLights(gains.address());
+  for(const auto& entry:baseline) Check(memcmp(&ownedLights.at(entry.first).state,&entry.second.state,sizeof(ConvertedLight))==0,"gain round trip restores original conversion exactly");
+  ResetSceneLights();Check(handles.empty(),"gain comparison releases resources");
   printf("PASS %u checks; creates=%u destroys=%u; live handles=%zu\n",checks,created,destroyed,handles.size());
 }
