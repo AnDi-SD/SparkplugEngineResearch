@@ -7,6 +7,8 @@ param(
     [switch]$NativeDrawAudit,
     [switch]$NativeMeshSource,
     [switch]$NativeMeshSubmit,
+    [switch]$NativeCameraSource,
+    [switch]$NativeCameraSubmit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -37,6 +39,8 @@ if ($MaterialAudit) { $options.MaterialAudit=$true }
 if ($NativeDrawAudit) { $options.NativeDrawAudit=$true }
 if ($NativeMeshSource -or $NativeMeshSubmit) { $options.NativeMeshSource=$true }
 if ($NativeMeshSubmit) { $options.NativeMeshSubmit=$true }
+if ($NativeCameraSource -or $NativeCameraSubmit) { $options.NativeCameraSource=$true }
+if ($NativeCameraSubmit) { $options.NativeCameraSubmit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

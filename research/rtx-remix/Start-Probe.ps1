@@ -23,6 +23,8 @@ param(
     [switch]$NativeDrawAudit,
     [switch]$NativeMeshSource,
     [switch]$NativeMeshSubmit,
+    [switch]$NativeCameraSource,
+    [switch]$NativeCameraSubmit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$SceneAudit,
@@ -43,6 +45,9 @@ if ($ShaderSemantics) { $ShaderAudit=$true; $MaterialAudit=$true }
 if ($NativeDrawAudit -and -not $DebugMenu) { throw 'Native draw audit requires the hash-verified DebugMenu executable' }
 if ($NativeDrawAudit) { $MaterialAudit=$true }
 if ($NativeMeshSubmit) { $NativeMeshSource=$true }
+if ($NativeCameraSubmit) { $NativeCameraSource=$true; $LiveConfig=$true }
+if ($NativeCameraSource -and -not $DebugMenu) { throw 'Native camera requires the hash-verified DebugMenu executable' }
+if ($NativeCameraSubmit -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Native camera submission requires RTX' }
 if ($NativeMeshSource -and -not $DebugMenu) { throw 'Native mesh source requires the hash-verified DebugMenu executable' }
 if ($NativeMeshSubmit -and (-not $MaterialChannels -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Native mesh submission requires RTX MaterialChannels' }
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
@@ -177,6 +182,8 @@ $values = @{
     WINX_REMIX_NATIVE_DRAW_AUDIT=$(if ($NativeDrawAudit) { Join-Path $run 'native-draws.jsonl' } else { $null })
     WINX_REMIX_NATIVE_MESH_SOURCE=$(if ($NativeMeshSource) { Join-Path $run 'native-mesh-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_MESH_SUBMIT=$(if ($NativeMeshSubmit) { '1' } else { '0' })
+    WINX_REMIX_NATIVE_CAMERA_SOURCE=$(if ($NativeCameraSource) { Join-Path $run 'native-camera-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_CAMERA_SUBMIT=$(if ($NativeCameraSubmit) { '1' } else { '0' })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
@@ -209,6 +216,11 @@ try {
         nativeDrawAudit=$NativeDrawAudit.IsPresent
         nativeMeshSource=$NativeMeshSource.IsPresent
         nativeMeshSubmit=$NativeMeshSubmit.IsPresent
+        nativeCameraSource=$NativeCameraSource.IsPresent
+        nativeCameraSubmit=$NativeCameraSubmit.IsPresent
+        remixClientSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game 'd3d9.remix-original.dll')).Hash } else { $null })
+        remixServerSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/NvRemixBridge.exe')).Hash } else { $null })
+        remixRendererSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/d3d9.dll')).Hash } else { $null })
         materialChannels=$MaterialChannels.IsPresent
         shaderSemantics=$ShaderSemantics.IsPresent
         sceneLights=$SceneLights.IsPresent

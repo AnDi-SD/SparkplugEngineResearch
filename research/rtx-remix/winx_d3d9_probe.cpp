@@ -58,6 +58,7 @@ static remixapi_Interface* GetRemixApi();
 namespace material_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
 namespace native_draw_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
 namespace native_mesh_source { static void Initialize(); static void EndFrame(); }
+namespace native_camera_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -119,6 +120,7 @@ static void Initialize() {
   // that entry. This reader installs no hook of its own.
   native_draw_audit::Initialize();
   native_mesh_source::Initialize();
+  native_camera_source::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -151,6 +153,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
 #include "winx_native_mesh_source.h"
+#include "winx_native_camera_source.h"
 #include "winx_shader_semantics.h"
 #include "winx_native_draw_audit.h"
 
@@ -213,6 +216,7 @@ static void Matrix(const char* name, const D3DMATRIX& matrix, HRESULT hr) {
 }
 
 static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE type, UINT count) {
+  if(count)native_camera_source::Prepare(device);
   PrepareSceneLights(device);
   AuditShaderDraw(device);
   std::lock_guard<std::recursive_mutex> lock(guard);
@@ -685,6 +689,14 @@ static void ApplyLiveConfig() {
     if(key=="winx.preserveUnlitColor"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
       SetPreserveUnlitColor(value=="True");continue;
     }
+    if(key=="winx.nativeCameraSubmit"&&native_camera_source::enabled&&(value=="True"||value=="False")) {
+      const bool submit=value=="True";
+      if(submit!=native_camera_source::submitEnabled&&native_camera_source::CanLog()) {
+        fprintf(native_camera_source::output,"{\"event\":\"source_switch\",\"frame\":%u,\"native\":%s}\n",frameId,submit?"true":"false");
+        fflush(native_camera_source::output);
+      }
+      native_camera_source::submitEnabled=submit;continue;
+    }
     if(autoSurfaceRoles && (key=="rtx.decalTextures" || key=="rtx.dynamicDecalTextures" || key=="rtx.singleOffsetDecalTextures" || key=="rtx.nonOffsetDecalTextures")) continue;
     if(key=="winx.keepLegacyProjectedShadows" && skipLegacyProjectedShadows && (value=="True" || value=="False")) {
       keepLegacyProjectedShadowsForComparison=value=="True";
@@ -714,6 +726,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   EndSceneLightFrame();
   native_draw_audit::EndFrame();
   native_mesh_source::EndFrame();
+  native_camera_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -728,6 +741,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
       frameId,drawId,a?a->left:0,a?a->top:0,a?a->right:0,a?a->bottom:0,b?b->left:0,b?b->top:0,b?b->right:0,b?b->bottom:0,a!=nullptr,b!=nullptr);
   }
   const HRESULT hr=Original<F>(d,17)(d,a,b,c,e);
+  if(FAILED(hr))native_camera_source::Reset();
   EndSurfaceRoleFrame();
   ShaderAuditSnapshot(triggered);
   shader_semantics::EndFrame();
@@ -797,9 +811,11 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   EndSceneLightFrame();
   native_draw_audit::EndFrame();
   native_mesh_source::EndFrame();
+  native_camera_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);
+  if(FAILED(hr))native_camera_source::Reset();
   EndSurfaceRoleFrame();
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(logFile) fflush(logFile);
@@ -813,6 +829,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
+  native_camera_source::Reset();
   ResetSceneLights();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
   LogPresentation("reset_request",p);
@@ -892,6 +909,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
   LogPresentation("create_device_request",p,window);
   const HRESULT hr=Original<F>(d,16)(d,adapter,type,window,flags,p,result);
   if(SUCCEEDED(hr) && result && *result) {
+    native_camera_source::Reset();
     RememberPrimaryTarget(*result);
     InstallShaderAudit(*result);
     RememberPresentation(*result,*p,window);

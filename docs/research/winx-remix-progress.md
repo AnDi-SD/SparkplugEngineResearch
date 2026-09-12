@@ -1,12 +1,17 @@
 # Готовность универсальной интеграции Winx Club с RTX Remix
 
 Текущая оценка на **13 сентября 2026: около 45%**.
-Текущий блок: [native-layout-v2](winx-remix-native-layout-2026-09-13.md).
+Текущий блок: [native-camera-v3](winx-remix-native-camera-submit-2026-09-13.md):
+9103 camera frames через API, main matrices из native apply, перед первым draw;
+Домино/Гардиния1/Алфея, движение, A/B и смены сцен. 165 adapter checks,
+866 bridge serializer checks. Stock renderer сохранён, client/server заменены
+с backups. Cut/history/device recovery и прочие роли камеры не закрыты.
+Предыдущий [native-layout-v2](winx-remix-native-layout-2026-09-13.md):
 Описание вершин поддержанных native meshes берётся из общего восстановленного
 emitter по флагам игры; actual D3D declaration проверяется на каждом draw.
 Алфея: 380 кадров по 871 instance, без upload/layout mismatch; 402 integration
 и 338 common checks. Camera bridge собран и проверен отдельным live helper,
-игровое подключение камеры — следующий шаг. Прежний [native-source-v5](winx-remix-native-mesh-source-2026-09-13.md):
+игровое подключение выполнено следующим блоком. Прежний [native-source-v5](winx-remix-native-mesh-source-2026-09-13.md):
 вершины и индексы поддержанных мешей берутся из CPU-входов движка до D3D;
 в проверенных кадрах Алфеи 871 native instance, Домино 446 за кадр.
 563 проверенных поколения, без несовпадений байтов. Material пока
@@ -27,12 +32,13 @@ unlit → emission сохраняется; проценты готовности
 данных и готовность direct-пути отмечать отдельно; новая архитектурная цель
 сама по себе не означает выполненную миграцию или прирост готовности.
 
-Первый частичный direct-путь уже проверен на двух уровнях: native geometry
-и world → существующие API-кэши. Этапы 1–2 остаются открытыми: нет прямой
-камеры, полного native material и instance/scene generation.
-[Контракт камеры](winx-remix-native-camera-contract-2026-09-12.md) подтвердил,
-что stock x86 client не предоставляет SetupCamera; отдельная доработка bridge
-проверяется до установки. Это не препятствие для законченного geometry-блока.
+Частичный direct-путь уже проверен в игре: native geometry, world и layout
+поступают в API-кэши, а основные матрицы камеры — в SetupCamera до первого draw.
+Этапы 1–2 остаются открытыми: полный native material, все роли камеры
+и instance/scene generation ещё не перенесены.
+[Контракт камеры](winx-remix-native-camera-contract-2026-09-12.md) выявил отсутствие
+SetupCamera в stock x86 client. Доработанная пара client/server установлена
+и проверена в игре со штатным renderer; исходные файлы сохранены для отката.
 
 ## Текущий срез
 
