@@ -21,6 +21,7 @@ param(
     [switch]$MaterialAudit,
     [switch]$SceneAudit,
     [switch]$SceneLights,
+    [switch]$SceneGeometry,
     [ValidateRange(0,1000)][float]$LightGain = 10,
     [switch]$Windowed,
     [switch]$SurfaceRoles,
@@ -32,6 +33,7 @@ $ErrorActionPreference = 'Stop'
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
 if ($SceneAudit -and -not $DebugMenu) { throw 'Scene audit requires the hash-verified DebugMenu executable' }
 if ($SceneLights -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene lights require RTX and the hash-verified DebugMenu executable' }
+if ($SceneGeometry -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene geometry requires RTX and the hash-verified DebugMenu executable' }
 if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
 if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
 if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
@@ -156,6 +158,8 @@ $values = @{
     WINX_REMIX_MATERIAL_AUDIT=$(if ($MaterialAudit) { Join-Path $run 'materials.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
+    WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
+    WINX_REMIX_GEOMETRY_AUDIT=$(if ($SceneGeometry) { Join-Path $run 'scene-geometry.jsonl' } else { $null })
     WINX_REMIX_LIGHT_GAIN=$LightGain.ToString([Globalization.CultureInfo]::InvariantCulture)
     WINX_REMIX_LIGHT_AUDIT=$(if ($SceneLights) { Join-Path $run 'scene-lights.jsonl' } else { $null })
     DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
@@ -182,6 +186,7 @@ try {
         sceneAudit=$SceneAudit.IsPresent
         materialAudit=$MaterialAudit.IsPresent
         sceneLights=$SceneLights.IsPresent
+        sceneGeometry=$SceneGeometry.IsPresent
         sceneLightGain=$LightGain
         bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8

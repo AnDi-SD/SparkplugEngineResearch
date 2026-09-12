@@ -6,11 +6,13 @@ param(
     [switch]$Windowed,
     [switch]$AutoSurfaceRoles,
     [switch]$SceneLights,
+    [switch]$SceneGeometry,
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
 if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires RTX mode' }
 if ($SceneLights -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneLights requires RTX and the verified DebugMenu build' }
+if ($SceneGeometry -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneGeometry requires RTX and the verified DebugMenu build' }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
 $build=Join-Path $root 'local-data/rtx-remix/build/d3d9.dll'
@@ -24,6 +26,7 @@ if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
 if ($SceneLights) { $options.SceneLights=$true }
+if ($SceneGeometry) { $options.SceneGeometry=$true }
 if ($StartLevel) { $options.StartLevel=$StartLevel }
 if ($Windowed) { $options.Windowed=$true }
 if ($Mode -eq 'Original') {
@@ -40,7 +43,7 @@ if ($Mode -eq 'Original') {
         $options.SkyLayers=$true
         $options.SkipLegacyProjectedShadows=$true
         $options.OpaqueAlphaTest=$true
-        if ($AutoSurfaceRoles -or $SceneLights) { $options.AutoSurfaceRoles=$true }
+        if ($AutoSurfaceRoles -or $SceneLights -or $SceneGeometry) { $options.AutoSurfaceRoles=$true }
         else { $options.SurfaceRoles=$true }
         # Visual tuning for original Winx vertex colors, not recovered game constants.
         $options.ConfigOverride=@{
@@ -51,7 +54,7 @@ if ($Mode -eq 'Original') {
             'rtx.localtonemap.shadows'='5'
         }
         # Historical comparison profile until stock USD capture supports API materials.
-        if (-not ($AutoSurfaceRoles -or $SceneLights)) { $options.ConfigOverride['rtx.decalTextures']='0xFAC245110A8BD959, 0x3323174FD6FAE171' }
+        if (-not ($AutoSurfaceRoles -or $SceneLights -or $SceneGeometry)) { $options.ConfigOverride['rtx.decalTextures']='0xFAC245110A8BD959, 0x3323174FD6FAE171' }
     }
 }
 & (Join-Path $PSScriptRoot 'Start-Probe.ps1') @options

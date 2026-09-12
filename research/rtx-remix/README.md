@@ -281,6 +281,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-Mate
 
 [Результат и границы](../../docs/research/winx-remix-material-contract-2026-09-12.md).
 
+## Общая геометрия за кадром
+
+`Run-WinxRemix.ps1 -Mode RTX -DebugMenu -SceneLights -SceneGeometry -StartLevel 1 -Windowed`
+включает общий проход текущих static/partition/обычных RenderNode. Исходная
+выборка временно расширяется только в основном SceneRender и возвращается
+до следующего native Select/вложенного вызова/выхода. Игра сама отправляет
+трансформации, материалы и шейдеры. Special supports остаются обычными.
+`Start-Probe -SceneGeometry -LiveConfig` позволяет сравнивать через
+`winx.keepSceneGeometry = True/False`; запись — scene-geometry.jsonl.
+[Результат, ограничения и тесты](../../docs/research/winx-remix-scene-geometry-2026-09-12.md).
+
 ## Сравнение света без перезапуска
 
 Для запуска с `-SceneLights -LiveConfig` ключ `winx.sceneLightGain` в run/live.conf

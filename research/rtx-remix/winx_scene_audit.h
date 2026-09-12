@@ -10,6 +10,8 @@ static unsigned sceneAuditCalls;
 static bool sceneLightsEnabled, keepSceneLightsForComparison;
 static float sceneLightGain=10.0f;
 static FILE* sceneLightLog;
+static bool sceneGeometryEnabled, keepSceneGeometryForComparison;
+static FILE* sceneGeometryLog;
 
 // Diagnostic gain only: keep the original light values and stable ownership.
 // Conversion on the next scene frame updates existing API hashes normally.
@@ -127,11 +129,20 @@ static void Lights(uintptr_t scene) {
 
 static void SyncLights(uintptr_t scene);
 
+} // namespace scene_audit
+#include "winx_scene_geometry.h"
+namespace scene_audit {
+
 static uintptr_t __fastcall Select(void* manager, void*, void* scene, void* camera) {
-  // No catches around the game, no replacement of its return value or output.
+  scene_geometry::BeforeSelect();
+  // Keep the original result; the optional extension runs after its audit.
   const uintptr_t result=originalSelect(manager,scene,camera);
   if(GetCurrentThreadId()!=ownerThread) return result;
   std::lock_guard<std::recursive_mutex> lock(guard);
+  struct ExtendAtExit {
+    void* manager;void* scene;void* camera;
+    ~ExtendAtExit() {scene_geometry::AfterSelect(reinterpret_cast<uintptr_t>(manager),reinterpret_cast<uintptr_t>(scene),reinterpret_cast<uintptr_t>(camera));}
+  } extend{manager,scene,camera};
   unsigned char header[0x54]{};
   if(!Read(reinterpret_cast<uintptr_t>(manager),header,sizeof(header)) || At(header,0)!=0x6e8cdc) return result;
   const auto input=reinterpret_cast<uintptr_t>(camera), overrideCamera=At(header,0x38);
@@ -209,18 +220,24 @@ static bool Install() {
 static void InitializeSceneAudit() {
   wchar_t path[MAX_PATH]{}, option[8]{}, gain[32]{};
   sceneLightsEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_LIGHTS",option,8) && wcscmp(option,L"1")==0;
+  sceneGeometryEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_GEOMETRY",option,8) && wcscmp(option,L"1")==0;
   if(GetEnvironmentVariableW(L"WINX_REMIX_LIGHT_GAIN",gain,32)) {
     const auto value=wcstod(gain,nullptr);
     if(std::isfinite(value) && value>=0 && value<=1000) sceneLightGain=static_cast<float>(value);
   }
   const DWORD length=GetEnvironmentVariableW(L"WINX_REMIX_SCENE_AUDIT",path,MAX_PATH);
-  if((!length || length>=MAX_PATH) && !sceneLightsEnabled) return;
+  if((!length || length>=MAX_PATH) && !sceneLightsEnabled && !sceneGeometryEnabled) return;
 #if defined(_M_IX86)
   if(length && length<MAX_PATH) sceneAuditFile=_wfsopen(path,L"wb",_SH_DENYNO);
   if(sceneLightsEnabled && GetEnvironmentVariableW(L"WINX_REMIX_LIGHT_AUDIT",path,MAX_PATH))
     sceneLightLog=_wfsopen(path,L"wb",_SH_DENYNO);
+  if(sceneGeometryEnabled && GetEnvironmentVariableW(L"WINX_REMIX_GEOMETRY_AUDIT",path,MAX_PATH))
+    sceneGeometryLog=_wfsopen(path,L"wb",_SH_DENYNO);
   const bool verified=scene_audit::VerifiedImage();
-  const bool installed=sceneAuditFile && verified && scene_audit::Install();
+  sceneGeometryEnabled=sceneGeometryEnabled && verified && scene_geometry::Install();
+  const bool installed=(sceneAuditFile || sceneGeometryEnabled) && verified && scene_audit::Install();
+  sceneGeometryEnabled=sceneGeometryEnabled && installed;
+  if(sceneGeometryLog) scene_geometry::Event(sceneGeometryEnabled?"init_enabled":"init_disabled",0,0,0);
   sceneLightsEnabled=sceneLightsEnabled && verified;
   for(auto output:{sceneAuditFile,sceneLightLog}) if(output) {
     fprintf(output,"{\"event\":\"init\",\"installed\":%s,\"sceneLights\":%s,\"pid\":%lu,\"thread\":%lu,\"entry\":4641392,\"maxBytes\":67108864}\n",installed?"true":"false",sceneLightsEnabled?"true":"false",GetCurrentProcessId(),GetCurrentThreadId());

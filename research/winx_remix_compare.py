@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 
 from winx_remix_state import ROOT, StateReader
 
@@ -30,6 +31,23 @@ def control(pid, capture=None, settle=0):
     result = subprocess.run(args, capture_output=True, text=True, timeout=40)
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip())
+    if not capture:
+        # The window helper's --settle is scoped to capture. Live config also
+        # needs rendering time when focusing/restoring without a screenshot.
+        time.sleep(settle)
+
+
+def stable_camera(reader):
+    previous, since = camera(reader), time.monotonic()
+    deadline = since + 15
+    while time.monotonic() < deadline:
+        time.sleep(.25)
+        current = camera(reader)
+        if current != previous:
+            previous, since = current, time.monotonic()
+        elif time.monotonic() - since >= 2:
+            return current
+    raise RuntimeError('Native camera did not remain identical for two seconds within the 15-second limit')
 
 
 def main():
@@ -58,7 +76,7 @@ def main():
         if not set(settings).issubset(baseline):
             parser.error('Every changed setting requires an explicit restore value in baseline')
         for key, value in settings.items():
-            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx.sceneLightGain)', key):
+            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx\.(?:sceneLightGain|keepSceneGeometry))', key):
                 parser.error('Unsupported live key')
             if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_., +()\-]{1,128}', value):
                 parser.error('Invalid live value')
@@ -81,7 +99,7 @@ def main():
     reader = StateReader(launch['pid'])
     try:
         control(launch['pid'], settle=2)
-        report['camera'] = reference = camera(reader)
+        report['camera'] = reference = stable_camera(reader)
         report['state'] = reader.snapshot()
         if report['state'].get('active') == 2:
             raise RuntimeError('Gardenia 2 is excluded from current testing')

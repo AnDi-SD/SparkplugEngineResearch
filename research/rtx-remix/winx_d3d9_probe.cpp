@@ -637,6 +637,13 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepSceneGeometry" && sceneGeometryEnabled && (value=="True" || value=="False")) {
+      const bool keep=value=="True";
+#if defined(_M_IX86)
+      if(keep!=keepSceneGeometryForComparison) scene_geometry::Event(keep?"comparison_original":"comparison_expanded",0,0,0);
+#endif
+      keepSceneGeometryForComparison=keep;continue;
+    }
     if(key=="winx.sceneLightGain" && sceneLightsEnabled) {
       SetSceneLightGain(value.c_str());continue;
     }
