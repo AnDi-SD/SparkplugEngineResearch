@@ -43,25 +43,39 @@ class Sweep:
         if done.returncode:
             raise RuntimeError(done.stderr.strip() or done.stdout.strip())
 
+    def set_debug_open(self, wanted):
+        # F1 can miss a short press during a slow Remix frame. Inspect native
+        # menu state after each bounded press before sending any menu action.
+        for _ in range(3):
+            state = self.reader.snapshot()
+            if bool(state.get('debugOpen')) == wanted:
+                return state
+            self.control('f1', hold=.8)
+        state = self.reader.snapshot()
+        if bool(state.get('debugOpen')) != wanted:
+            raise RuntimeError('Could not confirm debug menu open/closed state')
+        return state
+
     def select(self, level, restart=0):
         if restart > 3:
             raise RuntimeError('Gameplay repeatedly interrupted F1 selection')
         if not 1 <= level <= 37:
             raise ValueError('F1 directly supports only 1..37; use startup mode for challenges')
         state = self.reader.snapshot()
-        if state.get('active') in (64, 71):
+        if state.get('active') in (64, 70, 71):
             if state.get('debugOpen'):
-                self.control('f1', hold=.05)
-            for _ in range(8):
-                if self.reader.snapshot().get('active') not in (64, 71):
+                self.set_debug_open(False)
+            for _ in range(32):
+                if self.reader.snapshot().get('active') not in (64, 70, 71):
                     break
-                self.control('enter', hold=.05)
+                self.control('enter', hold=.08)
             state = self.reader.snapshot()
+            if state.get('active') in (64, 70, 71):
+                raise RuntimeError('Dialogue still owns input; refusing level navigation')
         if state.get('debugOpen') and len(state['menus']) != 2:
-            self.control('f1', hold=.05)
-            state = self.reader.snapshot()
+            state = self.set_debug_open(False)
         if not state.get('debugOpen'):
-            self.control('f1', hold=.05)
+            self.set_debug_open(True)
         for attempt in range(5):
             state = self.reader.snapshot()
             if len(state['menus']) == 2 and state['menus'][-1]['count'] == 37:
@@ -73,7 +87,7 @@ class Sweep:
             raise RuntimeError('Could not open level selector with single key press')
         for attempt in range(12):
             state = self.reader.snapshot()
-            if state.get('active') in (64, 71):
+            if state.get('active') in (64, 70, 71):
                 return self.select(level, restart + 1)
             if len(state['menus']) != 2 or state['menus'][-1]['count'] != 37:
                 raise RuntimeError('Level selector changed during navigation')
@@ -140,7 +154,7 @@ class Sweep:
             record['readySeconds'] = round(time.monotonic() - begin, 2)
             state = self.reader.snapshot()
             if state.get('debugOpen'):
-                self.control('f1', hold=.05)
+                self.set_debug_open(False)
             # State 71 is the tutorial dialog, visually verified in Gardenia02.
             # Preserve it, then acknowledge using its displayed Enter control.
             if self.reader.snapshot().get('active') == 71:

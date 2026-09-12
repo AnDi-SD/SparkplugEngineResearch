@@ -4,16 +4,25 @@
 #include "winx_material_channels.h"
 #include "winx_material_channel_assets.h"
 #include "winx_geometry_probe.h"
+#include <algorithm>
 static bool materialChannelsEnabled,keepMaterialChannelsForComparison;
 static bool preserveUnlitColor=true;
 static unsigned materialChannelsSubmitted,materialChannelsRejected;
 static wchar_t surfaceAssetDirectory[MAX_PATH]{};
-struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; remixapi_MaterialHandle material; };
-struct SurfaceMaterialEntry { remixapi_MaterialHandle handle; unsigned frame; };
+struct SurfaceMesh {
+  remixapi_MeshHandle handle;unsigned frame;size_t bytes;remixapi_MaterialHandle material;
+  unsigned failedPressureFrame=0;bool pressureFailed=false;
+};
+struct SurfaceMaterialEntry {
+  remixapi_MaterialHandle handle;unsigned frame;
+  unsigned failedPressureFrame=0;bool pressureFailed=false;
+};
 static std::map<uint64_t,SurfaceMesh> surfaceMeshes;
 static std::map<uint64_t,SurfaceMaterialEntry> surfaceMaterials;
 static size_t surfaceMeshBytes;
 static unsigned surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures;
+static unsigned surfacePressureRequests,surfacePressureMeshDestroys,surfacePressureMaterialDestroys,surfacePressureRejected;
+static constexpr size_t surfaceMeshLimit=512,surfaceMaterialLimit=256,surfaceMeshByteLimit=64*1024*1024;
 struct SurfaceBuffer { std::vector<uint8_t> bytes; bool complete=false; };
 struct SurfaceWrite { const void* data; UINT offset,size,total; DWORD flags; };
 static std::map<void*,SurfaceBuffer> surfaceBuffers;
@@ -93,6 +102,77 @@ static void RetireSurfaceResources(bool all=false) {
     } else ++it;
   }
 }
+// Own backend pressure policy. All candidates are previous-frame resources;
+// unsigned age ordering also works across frame-counter wrap. An API failure
+// preserves ownership and is attempted at most once per resource per frame by
+// this policy. TTL/forced retirement retains its independent retry behavior.
+static bool EnsureSurfaceResourceRoom(size_t meshes,size_t bytes,size_t materials,
+                                      remixapi_MaterialHandle protectedMaterial=nullptr) {
+  const auto room=[&]() {
+    return meshes<=surfaceMeshLimit&&materials<=surfaceMaterialLimit&&bytes<=surfaceMeshByteLimit&&
+      surfaceMeshes.size()<=surfaceMeshLimit-meshes&&surfaceMaterials.size()<=surfaceMaterialLimit-materials&&
+      surfaceMeshBytes<=surfaceMeshByteLimit-bytes;
+  };
+  if(room())return true;
+  ++surfacePressureRequests;
+  if(meshes>surfaceMeshLimit||materials>surfaceMaterialLimit||bytes>surfaceMeshByteLimit) {
+    ++surfacePressureRejected;return false;
+  }
+  auto api=GetRemixApi();
+  if(!api||!api->DestroyMesh||!api->DestroyMaterial) {++surfacePressureRejected;return false;}
+  const auto orphans=[&]() {
+    for(auto it=surfaceMaterials.begin();it!=surfaceMaterials.end();) {
+      auto& value=it->second;
+      if(value.frame==frameId||value.handle==protectedMaterial||
+         (value.pressureFailed&&value.failedPressureFrame==frameId)) {++it;continue;}
+      bool referenced=false;
+      for(const auto& mesh:surfaceMeshes)if(mesh.second.material==value.handle){referenced=true;break;}
+      if(referenced){++it;continue;}
+      if(api->DestroyMaterial(value.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {
+        value.pressureFailed=true;value.failedPressureFrame=frameId;++surfaceResourceFailures;++it;continue;
+      }
+      ++surfaceMaterialDestroys;++surfacePressureMaterialDestroys;it=surfaceMaterials.erase(it);
+      if(room())break;
+    }
+  };
+  orphans();
+  if(room())return true;
+  // Fixed scratch storage and one sorted traversal: no pressure-time heap
+  // allocation or unbounded retry loop. At most 512 mesh/256 material attempts.
+  struct Candidate {uint64_t key;unsigned age;};
+  Candidate candidates[surfaceMeshLimit]{};size_t count=0;
+  for(const auto& item:surfaceMeshes) {
+    const auto& value=item.second;
+    if(value.frame!=frameId&&!(value.pressureFailed&&value.failedPressureFrame==frameId)&&count<surfaceMeshLimit)
+      candidates[count++]={item.first,frameId-value.frame};
+  }
+  std::sort(candidates,candidates+count,[](const Candidate& a,const Candidate& b){
+    return a.age!=b.age?a.age>b.age:a.key<b.key;
+  });
+  for(size_t index=0;index<count&&!room();++index) {
+    auto it=surfaceMeshes.find(candidates[index].key);if(it==surfaceMeshes.end())continue;
+    auto& value=it->second;
+    if(surfaceMeshes.size()<=surfaceMeshLimit-meshes&&surfaceMeshBytes<=surfaceMeshByteLimit-bytes) {
+      // Only a material slot is missing. Evicting meshes cannot help if their
+      // material is protected, failed deletion, or has a current-frame user.
+      bool eligible=false;
+      for(const auto& entry:surfaceMaterials)if(entry.second.handle==value.material) {
+        const auto& material=entry.second;
+        eligible=material.frame!=frameId&&material.handle!=protectedMaterial&&
+          !(material.pressureFailed&&material.failedPressureFrame==frameId);break;
+      }
+      if(eligible)for(const auto& mesh:surfaceMeshes)
+        if(mesh.second.material==value.material&&mesh.second.frame==frameId){eligible=false;break;}
+      if(!eligible)continue;
+    }
+    if(api->DestroyMesh(value.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {
+      value.pressureFailed=true;value.failedPressureFrame=frameId;++surfaceResourceFailures;continue;
+    }
+    ++surfaceMeshDestroys;++surfacePressureMeshDestroys;surfaceMeshBytes-=value.bytes;surfaceMeshes.erase(it);
+    orphans();
+  }
+  const bool result=room();if(!result)++surfacePressureRejected;return result;
+}
 static void SetPreserveUnlitColor(bool value) {
   if(value==preserveUnlitColor)return;
   // A policy switch invalidates every material coefficient. Retire old meshes
@@ -108,7 +188,7 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   const uint64_t descriptor[]={textureHash,u,v,mag};
   const auto hash=XXH3_64bits(descriptor,sizeof(descriptor));
   auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()) {found->second.frame=frameId;return found->second.handle;}
-  if(surfaceMaterials.size()>=256 || !surfaceAssetDirectory[0]) return nullptr;
+  if(!surfaceAssetDirectory[0]) return nullptr;
   using SaveTexture=HRESULT(WINAPI*)(LPCWSTR,int,IDirect3DBaseTexture9*,const PALETTEENTRY*);
   static auto save=[](){auto dll=LoadLibraryExW(L"d3dx9_43.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);
     return dll?reinterpret_cast<SaveTexture>(GetProcAddress(dll,"D3DXSaveTextureToFileW")):nullptr;}();
@@ -127,6 +207,7 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   info.wrapModeU=static_cast<uint8_t>(u-1);info.wrapModeV=static_cast<uint8_t>(v-1);
   info.filterMode=mag==D3DTEXF_POINT?0:1;
   remixapi_MaterialHandle material=nullptr;
+  if(!EnsureSurfaceResourceRoom(0,0,1))return nullptr;
   if(GetRemixApi()->CreateMaterial(&info,&material)!=REMIXAPI_ERROR_CODE_SUCCESS || !material) return nullptr;
   surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
 }
@@ -142,7 +223,6 @@ static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64
   descriptor.append(reinterpret_cast<const char*>(&plan.emission),sizeof(plan.emission));
   const auto hash=XXH3_64bits(descriptor.data(),descriptor.size());
   auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()){found->second.frame=frameId;return found->second.handle;}
-  if(surfaceMaterials.size()>=256)return nullptr;
   wchar_t albedo[MAX_PATH]{},emission[MAX_PATH]{};
   swprintf_s(albedo,L"%s\\%016llX-albedo.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
   swprintf_s(emission,L"%s\\%016llX-emission.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
@@ -155,6 +235,7 @@ static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64
   info.albedoTexture=albedo;info.emissiveTexture=emissive?emission:nullptr;info.emissiveIntensity=emissive?1.f:0.f;
   info.wrapModeU=static_cast<uint8_t>(u-1);info.wrapModeV=static_cast<uint8_t>(v-1);info.filterMode=mag==D3DTEXF_POINT?0:1;
   remixapi_MaterialHandle material=nullptr;
+  if(!EnsureSurfaceResourceRoom(0,0,1))return nullptr;
   if(GetRemixApi()->CreateMaterial(&info,&material)!=REMIXAPI_ERROR_CODE_SUCCESS||!material)return nullptr;
   surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
 }
@@ -281,11 +362,11 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   auto found=surfaceMeshes.find(hash);
   if(found==surfaceMeshes.end()) {
     const size_t bytes=expanded.size()*(sizeof(expanded[0])+4);
-    if(surfaceMeshes.size()>=512 || surfaceMeshBytes+bytes>64*1024*1024) return SurfaceSubmitFailure(__LINE__);
     std::vector<uint32_t> sequential(expanded.size());for(size_t i=0;i<sequential.size();++i) sequential[i]=static_cast<uint32_t>(i);
     remixapi_MeshInfoSurfaceTriangles surface{};surface.vertices_values=expanded.data();surface.vertices_count=expanded.size();
     surface.indices_values=sequential.data();surface.indices_count=sequential.size();surface.material=material;
     remixapi_MeshInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;info.hash=hash;info.surfaces_values=&surface;info.surfaces_count=1;
+    if(!EnsureSurfaceResourceRoom(1,bytes,0,material))return SurfaceSubmitFailure(__LINE__);
     remixapi_MeshHandle mesh=nullptr;if(api->CreateMesh(&info,&mesh)!=REMIXAPI_ERROR_CODE_SUCCESS || !mesh) return SurfaceSubmitFailure(__LINE__);
     found=surfaceMeshes.emplace(hash,SurfaceMesh{mesh,frameId,bytes,material}).first;surfaceMeshBytes+=bytes;++surfaceMeshCreates;
   }

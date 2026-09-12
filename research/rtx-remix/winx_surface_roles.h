@@ -50,16 +50,19 @@ static void ClearSurfaceBases() {opaqueSurfaceDraws.clear();++surfaceResourceEpo
 static void EndSurfaceRoleFrame() {
   EndGeometryProbe();
   RetireSurfaceResources();
+  static unsigned lastPressureRequests;
   if(surfaceRoleLog&&frameId%300==0) {
     fprintf(surfaceRoleLog,"{\"event\":\"channel_counts\",\"frame\":%u,\"enabled\":%s,\"comparisonDisabled\":%s,\"submitted\":%u,\"rejected\":%u,\"assetBytes\":%zu}\n",
       frameId,materialChannelsEnabled?"true":"false",keepMaterialChannelsForComparison?"true":"false",materialChannelsSubmitted,materialChannelsRejected,material_channels::assetBytes);
   }
-  if(surfaceRoleLog && (frameId%300==0 || triggered)) {
-    fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s,\"meshCache\":%zu,\"materialCache\":%zu,\"meshBytes\":%zu,\"bufferBytes\":%zu,\"meshCreates\":%u,\"meshDestroys\":%u,\"materialCreates\":%u,\"materialDestroys\":%u,\"resourceFailures\":%u}\n",
+  if(surfaceRoleLog && (frameId%300==0 || triggered || surfacePressureRequests!=lastPressureRequests)) {
+    fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s,\"meshCache\":%zu,\"materialCache\":%zu,\"meshBytes\":%zu,\"bufferBytes\":%zu,\"meshCreates\":%u,\"meshDestroys\":%u,\"materialCreates\":%u,\"materialDestroys\":%u,\"resourceFailures\":%u,\"pressureRequests\":%u,\"pressureMeshDestroys\":%u,\"pressureMaterialDestroys\":%u,\"pressureRejected\":%u}\n",
       frameId,surfaceBases,surfaceOverlays,surfaceStandalone,surfaceUnknown,keepAutoSurfaceRolesForComparison?"true":"false",
-      surfaceMeshes.size(),surfaceMaterials.size(),surfaceMeshBytes,surfaceBufferBytes,surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures);
+      surfaceMeshes.size(),surfaceMaterials.size(),surfaceMeshBytes,surfaceBufferBytes,surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures,
+      surfacePressureRequests,surfacePressureMeshDestroys,surfacePressureMaterialDestroys,surfacePressureRejected);
     fflush(surfaceRoleLog);
   }
+  lastPressureRequests=surfacePressureRequests;
   surfaceBases=surfaceOverlays=surfaceStandalone=surfaceUnknown=0;ClearSurfaceBases();
 }
 
