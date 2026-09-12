@@ -55,22 +55,25 @@ static inline bool Coordinates(const Contract& contract,const float input[2],flo
   }
   return true;
 }
-static inline bool Read(IDirect3DDevice9* d,Contract& out) {
-  DWORD rgb=0,r1=0,r2=0,alpha=0,a1=0,a2=0,next=0,lighting=0,specular=0,result=0;
+static inline bool ReadTexture(IDirect3DDevice9* d,Contract& out) {
+  DWORD rgb=0,r1=0,r2=0,alpha=0,a1=0,a2=0,next=0,result=0;
   auto get=[&](D3DTEXTURESTAGESTATETYPE state,DWORD& value){return SUCCEEDED(d->GetTextureStageState(0,state,&value));};
   if(!get(D3DTSS_COLOROP,rgb)||!get(D3DTSS_COLORARG1,r1)||!get(D3DTSS_COLORARG2,r2)||
      !get(D3DTSS_ALPHAOP,alpha)||!get(D3DTSS_ALPHAARG1,a1)||!get(D3DTSS_ALPHAARG2,a2)||
      !get(D3DTSS_RESULTARG,result)||result!=D3DTA_CURRENT||
      !get(D3DTSS_TEXCOORDINDEX,out.coordinates)||!get(D3DTSS_TEXTURETRANSFORMFLAGS,out.transformFlags)||
      FAILED(d->GetTextureStageState(1,D3DTSS_COLOROP,&next))||next!=D3DTOP_DISABLE||
-     FAILED(d->GetRenderState(D3DRS_LIGHTING,&lighting))||lighting||
-     FAILED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))||specular||
      FAILED(d->GetRenderState(D3DRS_TEXTUREFACTOR,&out.factor))||out.coordinates>7||
      !Decode(rgb,r1,r2,out.rgb)||!DecodeAlpha(alpha,a1,a2,out.alpha)) return false;
   if(out.transformFlags==D3DTTFF_DISABLE) return true;
   if(out.transformFlags!=D3DTTFF_COUNT2||FAILED(d->GetTransform(D3DTS_TEXTURE0,&out.transform))) return false;
   for(const auto& row:out.transform.m) for(float f:row) if(!std::isfinite(f)) return false;
   return true;
+}
+static inline bool Read(IDirect3DDevice9* d,Contract& out) {
+  DWORD lighting=0,specular=0;
+  return SUCCEEDED(d->GetRenderState(D3DRS_LIGHTING,&lighting))&&!lighting&&
+    SUCCEEDED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))&&!specular&&ReadTexture(d,out);
 }
 static inline void Apply(const Contract& contract,remixapi_InstanceInfoBlendEXT& blend) {
   blend.textureColorOperation=contract.rgb.operation;

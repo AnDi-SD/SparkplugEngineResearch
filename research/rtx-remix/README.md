@@ -337,6 +337,20 @@ SELECTARG1/2, MODULATE, RGB Force_Modulate2x, alpha ×2/×4/ADD и насыще�
 — порядок освобождения, совместное владение и повтор после ошибок API.
 [Подробности и границы](../../docs/research/winx-remix-surface-combiner-2026-09-12.md).
 
+## Явные FFP-материалы
+
+`Run-WinxRemix.ps1 -Mode RTX -DebugMenu -SceneLights -SceneGeometry -MaterialChannels -LiveConfig -StartLevel 4 -Windowed`
+подключает новый путь. В `run/live.conf` ключ `winx.keepMaterialChannels = True`
+возвращает прежнюю отрисовку; `False` включает явные материалы снова.
+Режим сохраняет RGBA/UV обычного неосвещённого FFP и разделяет представимые
+коэффициенты lit FFP. Fixed.rfx ColorMode 4/5 и темноту он ещё не исправляет.
+
+`Test-RemixMaterial.ps1 -Name УНИКАЛЬНОЕ-ИМЯ -Channels` и тот же режим с `-System`
+проверяют 15 GPU-случаев. `Test-MaterialChannels.ps1 -Name УНИКАЛЬНОЕ-ИМЯ`
+проверяет полный production draw-путь, mip updates и fallback на настоящих
+system D3D9 объектах с recording API. Каждый запуск сохраняет свои исходники.
+[Результат, ограничения и установка](../../docs/research/winx-remix-material-channels-2026-09-12.md).
+
 ## Upstream reference
 
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,

@@ -20,7 +20,7 @@ def read_run(path):
     layout = next(r for r in records if r.get('event') == 'layout')
     mode = layout.get('mode', 'alpha')
     expected_count = 16 if mode == 'alpha' else sum(r.get('event') == 'case' for r in records)
-    if mode not in ('alpha', 'combiner') or not 16 <= expected_count <= 40:
+    if mode not in ('alpha', 'combiner', 'channels') or not (12 if mode=='channels' else 16) <= expected_count <= 40:
         raise ValueError('Unexpected fixture mode or case count')
     captures = [r for r in records if r.get('event') == 'capture']
     if len(captures) != expected_count:
@@ -64,8 +64,8 @@ def main():
           len({c['sha256'] for c in remix['captures']}) >= 5)
     check('Native captures include changing alpha-test outcomes',
           len({c['sha256'] for c in native['captures']}) >= 2)
-    if native['mode'] == 'combiner':
-        check('Compare post-combiner albedo view, not raw texture view', set(remix['debugViews']) == {'23'})
+    if native['mode'] in ('combiner','channels'):
+        check('Compare qualified post-combiner channel views', set(remix['debugViews']) == ({'23','30'} if native['mode']=='channels' else {'23'}))
         for index, (left, right) in enumerate(zip(native['captures'], remix['captures'])):
             check(f'Case {index} identity matches', left['file'] == right['file'])
             native_visible = max(left['cells'][7]) > 16
@@ -98,6 +98,13 @@ def main():
               max(remix['captures'][3]['cells'][2]) < 1)
         check('Explicit API emission survives disabling the legacy emissive blend override',
               max(abs(a-b) for a,b in zip(remix['captures'][3]['cells'][7], remix['captures'][6]['cells'][7])) < 1)
+    if native['mode']=='channels':
+        for backend in (native,remix):
+            cells=[capture['cells'][7] for capture in backend['captures']]
+            check(backend['backend']+' ambient leaves albedo unchanged',max(abs(a-b) for a,b in zip(cells[0],cells[2]))<1)
+            check(backend['backend']+' ambient changes emission',max(abs(a-b) for a,b in zip(cells[1],cells[3]))>1)
+            check(backend['backend']+' uniform vertex ambient leaves albedo unchanged',max(abs(a-b) for a,b in zip(cells[0],cells[6]))<1)
+            check(backend['backend']+' albedo returns after alpha and channel changes',max(abs(a-b) for a,b in zip(cells[0],cells[11]))<1)
     report = dict(status='PASS' if all(c['passed'] for c in checks) else 'FAIL', checks=checks,
                   native=native, remix=remix, measurements=measurements,
                   scope='Controlled single-stage RGB, alpha visibility and emission routing; no final-lighting or game shader decomposition equivalence claim.')

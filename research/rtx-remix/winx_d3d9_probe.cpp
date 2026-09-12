@@ -658,6 +658,9 @@ static void ApplyLiveConfig() {
     if(key=="winx.keepAutoSurfaceRoles" && autoSurfaceRoles && (value=="True" || value=="False")) {
       keepAutoSurfaceRolesForComparison=value=="True";ClearSurfaceBases();continue;
     }
+    if(key=="winx.keepMaterialChannels"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
+      keepMaterialChannelsForComparison=value=="True";continue;
+    }
     if(autoSurfaceRoles && (key=="rtx.decalTextures" || key=="rtx.dynamicDecalTextures" || key=="rtx.singleOffsetDecalTextures" || key=="rtx.nonOffsetDecalTextures")) continue;
     if(key=="winx.keepLegacyProjectedShadows" && skipLegacyProjectedShadows && (value=="True" || value=="False")) {
       keepLegacyProjectedShadowsForComparison=value=="True";
@@ -709,6 +712,36 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   if(triggered) { records=0; traceUntilFrame=frameId+120; }
   return hr;
 }
+static ULONG STDMETHODCALLTYPE ChannelTextureRelease(IDirect3DTexture9* texture) {
+  using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DTexture9*);
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  const auto refs=Original<F>(texture,2)(texture);
+  if(!refs)InvalidateSurfaceTexture(texture);return refs;
+}
+static HRESULT STDMETHODCALLTYPE ChannelTextureLock(IDirect3DTexture9* texture,UINT level,D3DLOCKED_RECT* rect,const RECT* region,DWORD flags) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,UINT,D3DLOCKED_RECT*,const RECT*,DWORD);
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  const auto hr=Original<F>(texture,19)(texture,level,rect,region,flags);
+  if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))InvalidateSurfaceTexture(texture);return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceLock(IDirect3DSurface9* surface,D3DLOCKED_RECT* rect,const RECT* region,DWORD flags) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,D3DLOCKED_RECT*,const RECT*,DWORD);
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  const auto hr=Original<F>(surface,13)(surface,rect,region,flags);
+  if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY)) {
+    IDirect3DTexture9* texture=nullptr;
+    if(SUCCEEDED(surface->GetContainer(__uuidof(IDirect3DTexture9),reinterpret_cast<void**>(&texture)))&&texture) {
+      InvalidateSurfaceTexture(texture);texture->Release();
+    }
+  }
+  return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelTextureSurface(IDirect3DTexture9* texture,UINT level,IDirect3DSurface9** result) {
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,UINT,IDirect3DSurface9**);
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  const auto hr=Original<F>(texture,18)(texture,level,result);
+  if(SUCCEEDED(hr)&&result&&*result)Patch(*result,13,reinterpret_cast<void*>(ChannelSurfaceLock));return hr;
+}
 static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,UINT,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DTexture9**,HANDLE*);
   UINT forwardedLevels=levels;
@@ -719,7 +752,14 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
     for(UINT size=width>height?width:height;size>1;size>>=1) ++forwardedLevels;
   }
   const HRESULT hr=Original<F>(d,23)(d,width,height,forwardedLevels,usage,format,pool,result,shared);
-  if(SUCCEEDED(hr) && result && *result) { submittedTextures.erase(*result); readTextures.erase(*result); surfaceTextureHashes.erase(*result); }
+  if(SUCCEEDED(hr) && result && *result) {
+    submittedTextures.erase(*result);readTextures.erase(*result);InvalidateSurfaceTexture(*result);
+    if(materialChannelsEnabled) {
+      Patch(*result,2,reinterpret_cast<void*>(ChannelTextureRelease));
+      Patch(*result,18,reinterpret_cast<void*>(ChannelTextureSurface));
+      Patch(*result,19,reinterpret_cast<void*>(ChannelTextureLock));
+    }
+  }
   if(logFile && textureRecords++<2048) {
     const bool ok=SUCCEEDED(hr) && result && *result;
     fprintf(logFile,"{\"event\":\"create_texture\",\"frame\":%u,\"width\":%u,\"height\":%u,\"levels\":%u,\"forwardedLevels\":%u,\"usage\":%lu,\"format\":%u,\"pool\":%u,\"hr\":%ld,\"actualLevels\":%u,\"texture\":%llu}\n",frameId,width,height,levels,forwardedLevels,usage,format,pool,hr,ok?(*result)->GetLevelCount():0,ok?static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(*result)):0);
@@ -779,6 +819,16 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   ResubmitTextures(d);
   ScopedSurfaceRole surfaceRole(d,t,base,min,num,start,count);
   if(surfaceRole.scopedDecal) return surfaceRole.complete(D3D_OK);
+  if(materialChannelsEnabled&&!keepMaterialChannelsForComparison&&!surfaceRole.key.empty()) {
+    material_channels::Input input;
+    if(material_channels::Read(d,input)) {
+      const auto hash=BoundChannelTextureHash(d);
+      if(hash&&SubmitSurfaceOverlay(d,t,base,min,num,start,count,hash,&input)) {
+        ++materialChannelsSubmitted;return surfaceRole.complete(D3D_OK);
+      }
+      ++materialChannelsRejected;
+    }
+  }
   ScopedFvf normalize(d);
   ScopedViewport viewport(d);
   ScopedSky sky(d);

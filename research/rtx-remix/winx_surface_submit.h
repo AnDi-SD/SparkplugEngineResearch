@@ -1,6 +1,10 @@
 // Own bounded translation of a recognized FFP overlay into explicit Remix API
-// resources. No asset IDs, game logic, texture recoloring or runtime patches.
+// resources, including separate FFP color coefficients. No asset IDs or game logic.
 #include "winx_surface_material.h"
+#include "winx_material_channels.h"
+#include "winx_material_channel_assets.h"
+static bool materialChannelsEnabled,keepMaterialChannelsForComparison;
+static unsigned materialChannelsSubmitted,materialChannelsRejected;
 static wchar_t surfaceAssetDirectory[MAX_PATH]{};
 struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; remixapi_MaterialHandle material; };
 struct SurfaceMaterialEntry { remixapi_MaterialHandle handle; unsigned frame; };
@@ -86,6 +90,34 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
 }
 
+static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan) {
+  DWORD u=0,v=0,mag=0,srgb=0;
+  if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u))||FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v))||
+     FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag))||FAILED(d->GetSamplerState(0,D3DSAMP_SRGBTEXTURE,&srgb))||srgb||
+     u<1||u>3||v<1||v>3||mag<1||mag>3||!surfaceAssetDirectory[0])return nullptr;
+  std::string descriptor="winx-independent-ffp-v1";
+  const uint64_t values[]={textureHash,u,v,mag};descriptor.append(reinterpret_cast<const char*>(values),sizeof(values));
+  descriptor.append(reinterpret_cast<const char*>(&plan.albedo),sizeof(plan.albedo));
+  descriptor.append(reinterpret_cast<const char*>(&plan.emission),sizeof(plan.emission));
+  const auto hash=XXH3_64bits(descriptor.data(),descriptor.size());
+  auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()){found->second.frame=frameId;return found->second.handle;}
+  if(surfaceMaterials.size()>=256)return nullptr;
+  wchar_t albedo[MAX_PATH]{},emission[MAX_PATH]{};
+  swprintf_s(albedo,L"%s\\%016llX-albedo.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
+  swprintf_s(emission,L"%s\\%016llX-emission.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
+  const bool emissive=!material_channels::Zero(plan.emission);
+  if(!material_channels::WriteTexture(d,albedo,plan.albedo)||
+     (emissive&&!material_channels::WriteTexture(d,emission,plan.emission)))return nullptr;
+  remixapi_MaterialInfoOpaqueEXT opaque{};opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
+  opaque.albedoConstant={1,1,1};opaque.opacityConstant=1;opaque.roughnessConstant=.5f;opaque.useDrawCallAlphaState=1;
+  remixapi_MaterialInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;info.pNext=&opaque;info.hash=hash;
+  info.albedoTexture=albedo;info.emissiveTexture=emissive?emission:nullptr;info.emissiveIntensity=emissive?1.f:0.f;
+  info.wrapModeU=static_cast<uint8_t>(u-1);info.wrapModeV=static_cast<uint8_t>(v-1);info.filterMode=mag==D3DTEXF_POINT?0:1;
+  remixapi_MaterialHandle material=nullptr;
+  if(GetRemixApi()->CreateMaterial(&info,&material)!=REMIXAPI_ERROR_CODE_SUCCESS||!material)return nullptr;
+  surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
+}
+
 static bool SurfaceSubmitFailure(unsigned line) {
   static std::set<unsigned> reported;
   if(surfaceRoleLog && reported.insert(line).second) {
@@ -95,12 +127,13 @@ static bool SurfaceSubmitFailure(unsigned line) {
 }
 
 static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT base,UINT minVertex,UINT vertices,
-                                 UINT start,UINT count,uint64_t textureHash) {
+                                 UINT start,UINT count,uint64_t textureHash,const material_channels::Input* channels=nullptr) {
   auto api=GetRemixApi();
   if(!api || !api->CreateMesh || !api->DrawInstance || !api->CreateMaterial || count>32768 || vertices>65536) return SurfaceSubmitFailure(__LINE__);
   surface_material::Contract contract;
   DWORD cull=0,separateAlpha=0,stencil=0;
-  if(!surface_material::Read(d,contract)||FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull))||
+  if(!(channels?surface_material::ReadTexture(d,contract):surface_material::Read(d,contract))||
+     (channels&&!material_channels::Texture(contract,contract))||FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull))||
      FAILED(d->GetRenderState(D3DRS_SEPARATEALPHABLENDENABLE,&separateAlpha))||separateAlpha||
      FAILED(d->GetRenderState(D3DRS_STENCILENABLE,&stencil))||stencil) return SurfaceSubmitFailure(__LINE__);
   IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* decl=nullptr;
@@ -118,7 +151,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==contract.coordinates && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
   }
   if(pos<0 || color<0 || uv<0 || UINT(pos+12)>stride || UINT(color+4)>stride || UINT(uv+8)>stride ||
-     (normal>=0 && UINT(normal+12)>stride)) return SurfaceSubmitFailure(__LINE__);
+     (channels&&normal<0)||(normal>=0 && UINT(normal+12)>stride)) return SurfaceSubmitFailure(__LINE__);
   D3DVERTEXBUFFER_DESC vd{};D3DINDEXBUFFER_DESC id{};
   if(FAILED(vb->GetDesc(&vd)) || FAILED(ib->GetDesc(&id)) ||
      (id.Format!=D3DFMT_INDEX16 && id.Format!=D3DFMT_INDEX32)) return SurfaceSubmitFailure(__LINE__);
@@ -167,7 +200,15 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     expanded.insert(expanded.end(),triangle,triangle+3);
   }
   if(!valid || expanded.empty()) return SurfaceSubmitFailure(__LINE__);
-  const auto material=SurfaceMaterial(d,textureHash);if(!material) return SurfaceSubmitFailure(__LINE__);
+  material_channels::Plan plan;
+  if(channels) {
+    bool uniform=true;const auto firstColor=expanded.front().color;
+    for(const auto& v:expanded)if((v.color&0xffffffu)!=(firstColor&0xffffffu)){uniform=false;break;}
+    if(!material_channels::Factor(*channels,uniform,firstColor,plan))return SurfaceSubmitFailure(__LINE__);
+    for(auto& v:expanded)v.color=material_channels::Vertex(v.color,plan);
+  }
+  const auto material=channels?SurfaceChannelMaterial(d,textureHash,plan):SurfaceMaterial(d,textureHash);
+  if(!material) return SurfaceSubmitFailure(__LINE__);
   const auto hash=XXH3_64bits_withSeed(expanded.data(),expanded.size()*sizeof(expanded[0]),reinterpret_cast<uintptr_t>(material));
   auto found=surfaceMeshes.find(hash);
   if(found==surfaceMeshes.end()) {
@@ -187,15 +228,24 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
      FAILED(d->GetRenderState(D3DRS_COLORWRITEENABLE,&mask)) || func<1 || func>8) return SurfaceSubmitFailure(__LINE__);
   remixapi_InstanceInfoBlendEXT blend{};blend.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;
   if(!surface_material::AlphaTest(test!=0,ref,func,blend))return SurfaceSubmitFailure(__LINE__);
-  blend.alphaBlendEnabled=1;blend.srcColorBlendFactor=6;blend.dstColorBlendFactor=7; // Vulkan SRC_ALPHA, ONE_MINUS_SRC_ALPHA
-  blend.srcAlphaBlendFactor=6;blend.dstAlphaBlendFactor=7;blend.writeMask=mask;
+  DWORD enabled=1,src=D3DBLEND_SRCALPHA,dst=D3DBLEND_INVSRCALPHA,op=D3DBLENDOP_ADD;
+  if(channels&&(FAILED(d->GetRenderState(D3DRS_ALPHABLENDENABLE,&enabled))||FAILED(d->GetRenderState(D3DRS_SRCBLEND,&src))||
+     FAILED(d->GetRenderState(D3DRS_DESTBLEND,&dst))||FAILED(d->GetRenderState(D3DRS_BLENDOP,&op))))return SurfaceSubmitFailure(__LINE__);
+  if(channels&&enabled&&(op!=D3DBLENDOP_ADD||
+     !((src==D3DBLEND_ONE&&dst==D3DBLEND_ZERO)||(src==D3DBLEND_SRCALPHA&&dst==D3DBLEND_INVSRCALPHA))))return SurfaceSubmitFailure(__LINE__);
+  blend.alphaBlendEnabled=enabled;blend.srcColorBlendFactor=src==D3DBLEND_ONE?1:6;blend.dstColorBlendFactor=dst==D3DBLEND_ZERO?0:7;
+  blend.srcAlphaBlendFactor=blend.srcColorBlendFactor;blend.dstAlphaBlendFactor=blend.dstColorBlendFactor;blend.writeMask=mask;
   surface_material::Apply(contract,blend);
   remixapi_InstanceInfo instance{};instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;instance.pNext=&blend;
-  instance.categoryFlags=REMIXAPI_INSTANCE_CATEGORY_BIT_DECAL_STATIC;instance.mesh=found->second.handle;instance.doubleSided=cull==D3DCULL_NONE;
+  instance.categoryFlags=channels?0:REMIXAPI_INSTANCE_CATEGORY_BIT_DECAL_STATIC;instance.mesh=found->second.handle;instance.doubleSided=cull==D3DCULL_NONE;
   for(unsigned r=0;r<3;++r) for(unsigned c=0;c<4;++c) {
     const float value=world.m[c][r];if(!std::isfinite(value)) return SurfaceSubmitFailure(__LINE__);instance.transform.matrix[r][c]=value;
   }
   const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  if(submitted&&channels&&surfaceRoleLog&&(frameId%300==0||frameId<traceUntilFrame)) {
+    fprintf(surfaceRoleLog,"{\"event\":\"material_channels\",\"frame\":%u,\"draw\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"vertexAlpha\":%s,\"alpha\":%u}\n",
+      frameId,drawId,plan.albedo.v[0],plan.albedo.v[1],plan.albedo.v[2],plan.emission.v[0],plan.emission.v[1],plan.emission.v[2],plan.vertexRGB?"true":"false",plan.vertexAlpha?"true":"false",plan.alpha);
+  }
   if(submitted && surfaceRoleLog && (frameId%300==0 || frameId<traceUntilFrame)) {
     fprintf(surfaceRoleLog,"{\"event\":\"submit_material\",\"frame\":%u,\"draw\":%u,\"rgb\":[%u,%u,%u],\"alpha\":[%u,%u,%u],\"factor\":%lu,\"uv\":%lu,\"transform\":%lu,\"nativeAlphaTest\":[%lu,%lu,%lu],\"apiAlphaCompare\":%u}\n",
       frameId,drawId,contract.rgb.operation,contract.rgb.first,contract.rgb.second,

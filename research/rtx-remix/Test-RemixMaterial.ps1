@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,[switch]$System,[switch]$Combiner)
+param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,[switch]$System,[switch]$Combiner,[switch]$Channels)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $run=Join-Path $root "local-data/rtx-remix/material-fixtures/$Name"
@@ -13,6 +13,8 @@ $source=Join-Path $PSScriptRoot 'test_remix_material.cpp'
 $include=Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
 Copy-Item -LiteralPath $source -Destination $run
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'winx_surface_material.h') -Destination $run
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'winx_material_channels.h') -Destination $run
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'winx_material_channel_assets.h') -Destination $run
 Copy-Item -LiteralPath $PSCommandPath -Destination $run
 $source=Join-Path $run 'test_remix_material.cpp'
 $commands=@"
@@ -60,6 +62,7 @@ try {
   $fixtureArguments=@()
   if ($System) { $fixtureArguments+='--system' }
   if ($Combiner) { $fixtureArguments+='--combiner' }
+  if ($Channels) { $fixtureArguments+='--channels' }
   if ($fixtureArguments.Count) { $arguments.ArgumentList=$fixtureArguments }
   $process=Start-Process @arguments
   @{pid=$process.Id;system=$System.IsPresent;started=(Get-Date).ToString('o');sourceSha256=(Get-FileHash -LiteralPath $source).Hash;executableSha256=(Get-FileHash -LiteralPath $arguments.FilePath).Hash} |

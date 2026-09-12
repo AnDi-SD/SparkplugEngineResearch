@@ -20,6 +20,7 @@ param(
     [switch]$ShaderAudit,
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
+    [switch]$MaterialChannels,
     [switch]$SceneAudit,
     [switch]$SceneLights,
     [switch]$SceneGeometry,
@@ -31,6 +32,7 @@ param(
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($MaterialChannels -and (-not $AutoSurfaceRoles -or -not $SceneLights)) { throw 'MaterialChannels requires AutoSurfaceRoles and SceneLights' }
 if ($ShaderSemantics -and -not $DebugMenu) { throw 'Shader semantics require the hash-verified DebugMenu executable' }
 if ($ShaderSemantics) { $ShaderAudit=$true; $MaterialAudit=$true }
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
@@ -154,6 +156,7 @@ $values = @{
     WINX_REMIX_SKIP_LEGACY_PROJECTED_SHADOWS=$(if ($SkipLegacyProjectedShadows) { '1' } else { '0' })
     WINX_REMIX_OPAQUE_ALPHA_TEST=$(if ($OpaqueAlphaTest) { '1' } else { '0' })
     WINX_REMIX_AUTO_SURFACE_ROLES=$(if ($AutoSurfaceRoles) { '1' } else { '0' })
+    WINX_REMIX_MATERIAL_CHANNELS=$(if ($MaterialChannels) { '1' } else { '0' })
     WINX_REMIX_SURFACE_AUDIT=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-roles.jsonl' } else { $null })
     WINX_REMIX_SURFACE_ASSETS=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-assets' } else { $null })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
@@ -189,6 +192,7 @@ try {
         autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
         sceneAudit=$SceneAudit.IsPresent
         materialAudit=$MaterialAudit.IsPresent
+        materialChannels=$MaterialChannels.IsPresent
         shaderSemantics=$ShaderSemantics.IsPresent
         sceneLights=$SceneLights.IsPresent
         sceneGeometry=$SceneGeometry.IsPresent

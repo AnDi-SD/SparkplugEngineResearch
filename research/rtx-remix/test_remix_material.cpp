@@ -9,9 +9,13 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
+#include <string>
+#include <algorithm>
 #define REMIX_ALLOW_X86
 #include <remix/remix_c.h>
 #include "winx_surface_material.h"
+#include "winx_material_channels.h"
+#include "winx_material_channel_assets.h"
 static FILE* journal;
 static IDirect3DDevice9* device;
 static HWND window;
@@ -83,10 +87,39 @@ static void RenderPanel(unsigned panel,DWORD color,bool lighting,bool additive,b
   Hr(device->SetRenderState(D3DRS_ZFUNC,writeDepth?D3DCMP_LESSEQUAL:D3DCMP_EQUAL),"depth compare");
   Hr(device->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,4,2,indices,D3DFMT_INDEX16,vertices[panel],sizeof(Vertex)),"panel draw");
 }
+static material_channels::Input ChannelInput(unsigned c) {
+  material_channels::Input input;input.material.Diffuse={.6f,.4f,.2f,.5f};input.material.Ambient={.5f,.25f,.125f,1};
+  input.material.Emissive={.1f,.2f,.3f,1};input.ambient=material_channels::Color(c==2||c==3?0xffc02080:0xff408020);
+  if(c==4||c==5||c==9) {input.diffuseSource=input.ambientSource=D3DMCS_COLOR1;input.material.Emissive={0,0,0,1};}
+  if(c==6||c==7)input.ambientSource=D3DMCS_COLOR1;
+  if(c>=12){input={};input.material.Diffuse={1,1,1,1};input.diffuseSource=D3DMCS_COLOR1;}
+  return input;
+}
+static void ChannelResources(unsigned c,const material_channels::Plan& plan,DWORD vertex,remixapi_MaterialHandle& apiMaterial,remixapi_MeshHandle& apiMesh) {
+  if(apiMesh)Api(api.DestroyMesh(apiMesh),"channel mesh retire");
+  if(apiMaterial)Api(api.DestroyMaterial(apiMaterial),"channel material retire");
+  wchar_t aName[64]{},eName[64]{},a[MAX_PATH]{},e[MAX_PATH]{};
+  swprintf_s(aName,L"channel-%u-albedo.dds",c);swprintf_s(eName,L"channel-%u-emission.dds",c);
+  if(!GetFullPathNameW(aName,MAX_PATH,a,nullptr)||!GetFullPathNameW(eName,MAX_PATH,e,nullptr)||
+     !material_channels::WriteTexture(device,a,plan.albedo)||!material_channels::WriteTexture(device,e,plan.emission))Fail("channel DDS",c);
+  remixapi_MaterialInfoOpaqueEXT opaque{};opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
+  opaque.albedoConstant={1,1,1};opaque.opacityConstant=1;opaque.roughnessConstant=.5f;opaque.useDrawCallAlphaState=1;
+  remixapi_MaterialInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;info.pNext=&opaque;
+  info.hash=0x5758434841000000ull+c;info.albedoTexture=a;info.emissiveTexture=e;info.emissiveIntensity=1;
+  Api(api.CreateMaterial(&info,&apiMaterial),"channel material");
+  remixapi_HardcodedVertex meshVertices[4]{};uint32_t meshIndices[]={0,1,2,2,1,3};
+  for(unsigned i=0;i<4;++i){memcpy(meshVertices[i].position,&vertices[7][i].x,12);meshVertices[i].normal[2]=-1;
+    meshVertices[i].color=material_channels::Vertex(vertex,plan);meshVertices[i].texcoord[0]=vertices[7][i].u;meshVertices[i].texcoord[1]=vertices[7][i].v;}
+  remixapi_MeshInfoSurfaceTriangles surface{};surface.vertices_values=meshVertices;surface.vertices_count=4;
+  surface.indices_values=meshIndices;surface.indices_count=6;surface.material=apiMaterial;
+  remixapi_MeshInfo mesh{};mesh.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;mesh.hash=0x575843484d000000ull+c;mesh.surfaces_values=&surface;mesh.surfaces_count=1;
+  Api(api.CreateMesh(&mesh,&apiMesh),"channel mesh");
+}
 int main(int argc,char** argv) {
   if(fopen_s(&journal,"fixture.jsonl","wb") || !journal)return 1;
-  bool system=false,combiner=false;
-  for(int i=1;i<argc;++i) {if(strcmp(argv[i],"--system")==0)system=true;else if(strcmp(argv[i],"--combiner")==0)combiner=true;else Fail("arguments",0);}
+  bool system=false,combiner=false,channels=false;
+  for(int i=1;i<argc;++i) {if(strcmp(argv[i],"--system")==0)system=true;else if(strcmp(argv[i],"--combiner")==0)combiner=true;else if(strcmp(argv[i],"--channels")==0)channels=true;else Fail("arguments",0);}
+  if(channels&&combiner)Fail("exclusive fixture modes",0);
   SetProcessDPIAware();
   WNDCLASSW wc{};wc.lpfnWndProc=WindowProc;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"WinxRemixMaterialFixture";
   if(!RegisterClassW(&wc))Fail("window class",GetLastError());
@@ -166,7 +199,7 @@ int main(int argc,char** argv) {
     remixapi_LightInfoDistantEXT distant{};distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;distant.direction={0,0,1};distant.angularDiameterDegrees=.53f;distant.volumetricRadianceScale=1;
     remixapi_LightInfo li{};li.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;li.pNext=&distant;li.hash=0x57584d46544c0001ull;li.radiance={2,2,2};Api(api.CreateLight(&li,&light),"API light");
   }
-  fprintf(journal,"{\"event\":\"layout\",\"backend\":\"%s\",\"mode\":\"%s\",\"width\":960,\"height\":540,\"panels\":[\"unlit vertex color\",\"unlit white\",\"FFP emissive no lights\",\"additive only\",\"coincident base plus additive\",\"base only\",\"coincident reverse order\",\"API test material\"]}\n",system?"system":"stock-remix",combiner?"combiner":"alpha");fflush(journal);
+  fprintf(journal,"{\"event\":\"layout\",\"backend\":\"%s\",\"mode\":\"%s\",\"width\":960,\"height\":540,\"panels\":[\"unlit vertex color\",\"unlit white\",\"FFP emissive no lights\",\"additive only\",\"coincident base plus additive\",\"base only\",\"coincident reverse order\",\"API test material\"]}\n",system?"system":"stock-remix",channels?"channels":combiner?"combiner":"alpha");fflush(journal);
   struct Case {const char* name;const char* debug;bool alphaEnabled=false;DWORD alphaFunction=D3DCMP_NEVER;bool translate=true;};
   std::vector<Case> cases={{"final","0"},{"albedo","23"},{"vertex-color","18"},{"emissive","30"},{"direct","100"},{"indirect","106"},{"emissive-translation-off","30"},{"final-translation-off","0"},
     {"raw-disabled-never","23",false,D3DCMP_NEVER,false},{"translated-disabled-never","23",false,D3DCMP_NEVER,true},
@@ -201,12 +234,40 @@ int main(int argc,char** argv) {
     {"alpha-quadruple-saturation",D3DTOP_SELECTARG1,D3DTA_TEXTURE,D3DTA_DIFFUSE,D3DTOP_MODULATE4X,D3DTA_TEXTURE,D3DTA_TEXTURE,true},
     {"alpha-add-saturation",D3DTOP_SELECTARG1,D3DTA_TEXTURE,D3DTA_DIFFUSE,D3DTOP_ADD,D3DTA_TEXTURE,D3DTA_DIFFUSE,true}};
   if(combiner){cases.clear();for(const auto& value:combinations)cases.push_back(Case{value.name,"23",true,D3DCMP_GREATER,true});}
+  if(channels) {
+    cases={{"constant-albedo","23"},{"constant-emission","30"},{"changed-ambient-albedo","23"},{"changed-ambient-emission","30"},
+      {"vertex-factor-albedo","23"},{"vertex-factor-emission","30"},{"uniform-ambient-albedo","23"},{"uniform-ambient-emission","30"},
+      {"material-alpha-reject","23",true,D3DCMP_GREATER},{"vertex-alpha-reject","23",true,D3DCMP_GREATER},{"material-alpha-pass","23",true,D3DCMP_GREATER},
+      {"constant-albedo-return","23"},{"unlit-authored-albedo","23"},
+      {"unlit-vertex-alpha-reject","23",true,D3DCMP_GREATER},{"unlit-vertex-alpha-pass","23",true,D3DCMP_GREATER}};
+    material_channels::Plan rejected;auto input=ChannelInput(6);
+    if(material_channels::Factor(input,false,0x40996633,rejected))Fail("nonfactorable varying ambient must retain original draw",0);
+    input=ChannelInput(0);input.material.Emissive={2,0,0,1};
+    if(material_channels::Factor(input,true,0x40996633,rejected))Fail("HDR UNORM refusal",0);
+  }
   const auto started=GetTickCount64();bool stopped=false;
   for(unsigned c=0;c<cases.size()&&!stopped;++c) {
-    const DWORD alphaReference=combiner?(combinations[c].checkSaturation?255:100):128;
+    const DWORD alphaReference=channels?(c==8?200:c==14?32:100):combiner?(combinations[c].checkSaturation?255:100):128;
     Focus();
+    const auto channelInput=ChannelInput(c);material_channels::Plan channelPlan;
+    constexpr DWORD channelVertex=0x40996633;
+    if(channels) {
+      Hr(device->SetRenderState(D3DRS_LIGHTING,c<12),"source lighting");
+      Hr(device->SetRenderState(D3DRS_COLORVERTEX,TRUE),"source vertex color");
+      Hr(device->SetMaterial(&channelInput.material),"source material");
+      Hr(device->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE,channelInput.diffuseSource),"source diffuse");
+      Hr(device->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE,channelInput.ambientSource),"source ambient");
+      Hr(device->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE,channelInput.emissiveSource),"source emission");
+      Hr(device->SetRenderState(D3DRS_AMBIENT,c==2||c==3?0xffc02080:0xff408020),"source ambient value");
+      material_channels::Input readInput;
+      if(!material_channels::Read(device,readInput))Fail("read original channel inputs",c);
+      if(!material_channels::Factor(readInput,c!=4&&c!=5&&c!=9,channelVertex,channelPlan))Fail("channel factor",c);
+      fprintf(journal,"{\"event\":\"channel_plan\",\"case\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"alpha\":%u}\n",c,
+        channelPlan.albedo.v[0],channelPlan.albedo.v[1],channelPlan.albedo.v[2],channelPlan.emission.v[0],channelPlan.emission.v[1],channelPlan.emission.v[2],channelPlan.vertexRGB?"true":"false",channelPlan.alpha);
+      if(!system)ChannelResources(c,channelPlan,channelVertex,apiMaterial,apiMesh);
+    }
     fprintf(journal,"{\"event\":\"case\",\"index\":%u,\"name\":\"%s\",\"alphaEnabled\":%s,\"alphaFunctionD3D9\":%lu,\"translated\":%s}\n",c,cases[c].name,cases[c].alphaEnabled?"true":"false",cases[c].alphaFunction,cases[c].translate?"true":"false");fflush(journal);
-    if(!system){Config("rtx.debugView.debugViewIdx",cases[c].debug);if(!combiner && c==6)Config("rtx.enableEmissiveBlendEmissiveOverride","False");}
+    if(!system){Config("rtx.debugView.debugViewIdx",cases[c].debug);if(!combiner&&!channels&&c==6)Config("rtx.enableEmissiveBlendEmissiveOverride","False");}
     const auto begin=GetTickCount64();unsigned caseFrames=0;
     do {
       MSG message{};while(PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){if(message.message==WM_QUIT)stopped=true;TranslateMessage(&message);DispatchMessageW(&message);}
@@ -228,7 +289,7 @@ int main(int argc,char** argv) {
         blend.alphaTestEnabled=cases[c].alphaEnabled;blend.alphaTestCompareOp=cases[c].alphaFunction-1;blend.alphaTestReferenceValue=128;
         if(cases[c].translate && !surface_material::AlphaTest(cases[c].alphaEnabled,alphaReference,cases[c].alphaFunction,blend))Fail("alpha contract",0);
         blend.textureColorOperation=3;blend.textureColorArg1Source=1;blend.textureColorArg2Source=2;
-        blend.textureAlphaOperation=1;blend.textureAlphaArg1Source=1;blend.tFactor=0xffffffff;
+        blend.textureAlphaOperation=channels?3:1;blend.textureAlphaArg1Source=1;blend.textureAlphaArg2Source=2;blend.tFactor=0xffffffff;
         if(combiner)surface_material::Apply(contract,blend);
         remixapi_InstanceInfo instance{};instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;instance.pNext=&blend;instance.mesh=apiMesh;
         instance.transform.matrix[0][0]=instance.transform.matrix[1][1]=instance.transform.matrix[2][2]=1;instance.doubleSided=1;
@@ -237,7 +298,21 @@ int main(int argc,char** argv) {
         Hr(device->SetRenderState(D3DRS_ALPHATESTENABLE,cases[c].alphaEnabled),"native alpha enable");
         Hr(device->SetRenderState(D3DRS_ALPHAFUNC,cases[c].alphaFunction),"native alpha comparison");
         Hr(device->SetRenderState(D3DRS_ALPHAREF,alphaReference),"native alpha reference");
-        RenderPanel(7,combiner?0x80996633:0xff996633,false,false);
+        if(channels) {
+          const bool emissiveView=c==1||c==3||c==5||c==7;
+          auto m=channelInput.material;if(!emissiveView)m.Emissive={0,0,0,0};
+          Hr(device->SetMaterial(&m),"channel native material");
+          Hr(device->SetRenderState(D3DRS_COLORVERTEX,TRUE),"channel native vertex colors");
+          Hr(device->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE,channelInput.diffuseSource),"channel diffuse source");
+          Hr(device->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE,channelInput.ambientSource),"channel ambient source");
+          Hr(device->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE,channelInput.emissiveSource),"channel emissive source");
+          Hr(device->SetRenderState(D3DRS_AMBIENT,emissiveView?(c==3?0xffc02080:0xff408020):0),"channel ambient");
+          D3DLIGHT9 nativeLight{};nativeLight.Type=D3DLIGHT_DIRECTIONAL;nativeLight.Diffuse={1,1,1,1};nativeLight.Direction={0,0,1};
+          Hr(device->SetLight(0,&nativeLight),"channel native light");Hr(device->LightEnable(0,!emissiveView),"channel light enabled");
+          Hr(device->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_MODULATE),"channel alpha");
+          Hr(device->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE),"channel alpha factor");
+        }
+        RenderPanel(7,channels?channelVertex:combiner?0x80996633:0xff996633,channels&&c<12,false);
         Hr(device->SetRenderState(D3DRS_ALPHATESTENABLE,FALSE),"native alpha restore");
       }
       if(combiner) {

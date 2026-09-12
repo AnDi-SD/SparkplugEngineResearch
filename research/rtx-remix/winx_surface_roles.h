@@ -6,6 +6,10 @@ static bool autoSurfaceRoles, keepAutoSurfaceRolesForComparison;
 static uint64_t surfaceResourceEpoch;
 static std::map<std::string,unsigned> opaqueSurfaceDraws;
 static std::map<IDirect3DBaseTexture9*,uint64_t> surfaceTextureHashes;
+static std::map<IDirect3DBaseTexture9*,uint64_t> surfaceChannelTextureHashes;
+static void InvalidateSurfaceTexture(IDirect3DBaseTexture9* texture) {
+  surfaceTextureHashes.erase(texture);surfaceChannelTextureHashes.erase(texture);
+}
 static FILE* surfaceRoleLog;
 static unsigned surfaceBases, surfaceOverlays, surfaceStandalone, surfaceUnknown;
 #ifdef WINX_REMIX_TEST
@@ -40,10 +44,15 @@ static void InitializeSurfaceRoles() {
   if(autoSurfaceRoles && GetEnvironmentVariableW(L"WINX_REMIX_SURFACE_AUDIT",path,MAX_PATH))
     surfaceRoleLog=_wfsopen(path,L"wb",_SH_DENYNO);
   if(autoSurfaceRoles) GetEnvironmentVariableW(L"WINX_REMIX_SURFACE_ASSETS",surfaceAssetDirectory,MAX_PATH);
+  materialChannelsEnabled=autoSurfaceRoles&&GetEnvironmentVariableW(L"WINX_REMIX_MATERIAL_CHANNELS",option,8)&&wcscmp(option,L"1")==0;
 }
 static void ClearSurfaceBases() {opaqueSurfaceDraws.clear();++surfaceResourceEpoch;}
 static void EndSurfaceRoleFrame() {
   RetireSurfaceResources();
+  if(surfaceRoleLog&&frameId%300==0) {
+    fprintf(surfaceRoleLog,"{\"event\":\"channel_counts\",\"frame\":%u,\"enabled\":%s,\"comparisonDisabled\":%s,\"submitted\":%u,\"rejected\":%u,\"assetBytes\":%zu}\n",
+      frameId,materialChannelsEnabled?"true":"false",keepMaterialChannelsForComparison?"true":"false",materialChannelsSubmitted,materialChannelsRejected,material_channels::assetBytes);
+  }
   if(surfaceRoleLog && (frameId%300==0 || triggered)) {
     fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s,\"meshCache\":%zu,\"materialCache\":%zu,\"meshBytes\":%zu,\"bufferBytes\":%zu,\"meshCreates\":%u,\"meshDestroys\":%u,\"materialCreates\":%u,\"materialDestroys\":%u,\"resourceFailures\":%u}\n",
       frameId,surfaceBases,surfaceOverlays,surfaceStandalone,surfaceUnknown,keepAutoSurfaceRolesForComparison?"true":"false",
@@ -77,6 +86,34 @@ static uint64_t BoundSurfaceTextureHash(IDirect3DDevice9* d) {
     if(hash) surfaceTextureHashes.emplace(base,hash);
   }
   base->Release();return hash;
+}
+
+// DDS materials identify all mip levels and their layout. The mip-0 identity
+// above remains the stock texture lookup contract for the older overlay path.
+static uint64_t BoundChannelTextureHash(IDirect3DDevice9* d) {
+  IDirect3DBaseTexture9* base=nullptr;
+  if(FAILED(d->GetTexture(0,&base))||!base)return 0;
+  struct Release {IDirect3DBaseTexture9* p;~Release(){p->Release();}} release{base};
+  const auto cached=surfaceChannelTextureHashes.find(base);
+  if(cached!=surfaceChannelTextureHashes.end())return cached->second;
+  if(base->GetType()!=D3DRTYPE_TEXTURE||surfaceChannelTextureHashes.size()>=4096)return 0;
+  auto texture=static_cast<IDirect3DTexture9*>(base);const auto levels=texture->GetLevelCount();D3DSURFACE_DESC top{};
+  if(!levels||levels>13||FAILED(texture->GetLevelDesc(0,&top))||top.Pool!=D3DPOOL_MANAGED||top.Usage||
+     !top.Width||!top.Height||top.Width>2048||top.Height>2048||
+     (top.Format!=D3DFMT_A8R8G8B8&&top.Format!=D3DFMT_X8R8G8B8))return 0;
+  XXH3_state_t state{};XXH3_64bits_reset(&state);
+  const UINT layout[]={top.Width,top.Height,UINT(top.Format),levels};XXH3_64bits_update(&state,layout,sizeof(layout));
+  for(UINT level=0;level<levels;++level) {
+    D3DSURFACE_DESC desc{};D3DLOCKED_RECT lock{};
+    if(FAILED(texture->GetLevelDesc(level,&desc))||desc.Width!=(std::max)(1u,top.Width>>level)||
+       desc.Height!=(std::max)(1u,top.Height>>level)||desc.Format!=top.Format||
+       FAILED(texture->LockRect(level,&lock,nullptr,D3DLOCK_READONLY)))return 0;
+    const bool valid=lock.pBits&&lock.Pitch>=INT(desc.Width*4);
+    if(valid)for(UINT row=0;row<desc.Height;++row)
+      XXH3_64bits_update(&state,static_cast<const uint8_t*>(lock.pBits)+size_t(row)*lock.Pitch,desc.Width*4);
+    if(FAILED(texture->UnlockRect(level))||!valid)return 0;
+  }
+  const auto hash=XXH3_64bits_digest(&state);if(hash)surfaceChannelTextureHashes.emplace(base,hash);return hash;
 }
 
 struct ScopedSurfaceRole {

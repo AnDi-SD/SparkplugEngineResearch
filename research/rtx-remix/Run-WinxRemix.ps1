@@ -4,6 +4,8 @@ param(
     [switch]$ShaderAudit,
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
+    [switch]$MaterialChannels,
+    [switch]$LiveConfig,
     [switch]$Windowed,
     [switch]$AutoSurfaceRoles,
     [switch]$SceneLights,
@@ -11,6 +13,7 @@ param(
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($MaterialChannels -and ($Mode -ne 'RTX' -or -not $SceneLights)) { throw 'MaterialChannels requires RTX and SceneLights' }
 if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires RTX mode' }
 if ($SceneLights -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneLights requires RTX and the verified DebugMenu build' }
 if ($SceneGeometry -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneGeometry requires RTX and the verified DebugMenu build' }
@@ -27,6 +30,8 @@ if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($ShaderSemantics) { $options.ShaderSemantics=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
+if ($MaterialChannels) { $options.MaterialChannels=$true }
+if ($LiveConfig) { $options.LiveConfig=$true }
 if ($SceneLights) { $options.SceneLights=$true }
 if ($SceneGeometry) { $options.SceneGeometry=$true }
 if ($StartLevel) { $options.StartLevel=$StartLevel }
