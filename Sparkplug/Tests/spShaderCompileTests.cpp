@@ -90,11 +90,61 @@ namespace
         std::ostringstream out;out<<'[';Quoted(out,mode);out<<",["<<key[0]<<','<<key[1]<<"],["<<requests.str()<<"],"<<states.str()<<",[";
         initial=true;for(const auto& event:context.events){if(!initial)out<<',';initial=false;out<<event;}out<<"]]";return out.str();
     }
+    // Own research transport. Source composition and key decoding stay in the
+    // shared recovered classes; the caller supplies the original RFX record.
+    void SourceBatch()
+    {
+        std::string code,decl,entry,target;unsigned count=0;
+        if(!(std::cin>>code>>decl>>entry>>target>>count)||count>512||
+            code.size()>65536||decl.size()>16384||entry.size()>256||target.size()>64)
+            throw std::runtime_error("bounded source batch input");
+        spPCEffectTemplate::ShaderForAnalysis record;
+        record.text={Decode(code),Decode(decl),Decode(entry),Decode(target)};
+        std::cout<<'[';
+        for(unsigned i=0;i<count;++i)
+        {
+            spPCShaderManager::KeyForAnalysis key{};
+            if(!(std::cin>>key[0]>>key[1]))throw std::runtime_error("source batch key input");
+            const auto input=spPCShaderManager::BuildSourceInputsForAnalysis(key);
+            const auto source=spPCEffectTemplate::BuildShaderSourceForAnalysis(record,input.insertion,input.header);
+            if(i)std::cout<<',';
+            std::cout<<"{\"key\":["<<key[0]<<','<<key[1]<<"],\"managerSelectsShader\":"<<((key[0]&15)?"true":"false")<<",\"source\":";
+            Quoted(std::cout,source);std::cout<<",\"entry\":";Quoted(std::cout,record.text[2]);
+            std::cout<<",\"target\":";Quoted(std::cout,record.text[3]);std::cout<<'}';
+        }
+        std::cout<<"]\n";
+    }
+    void SourceRecord()
+    {
+        std::string code,decl,entry,target,insertion,header;
+        if(!(std::cin>>code>>decl>>entry>>target>>insertion>>header)||code.size()>65536||
+            decl.size()>16384||insertion.size()>16384||header.size()>16384||entry.size()>256||target.size()>64)
+            throw std::runtime_error("bounded source record input");
+        spPCEffectTemplate::ShaderForAnalysis record;
+        record.text={Decode(code),Decode(decl),Decode(entry),Decode(target)};
+        Quoted(std::cout,spPCEffectTemplate::BuildShaderSourceForAnalysis(record,Decode(insertion),Decode(header)));
+        std::cout<<'\n';
+    }
+    void ParameterTypes()
+    {
+        unsigned count=0;if(!(std::cin>>count)||count>256)throw std::runtime_error("bounded parameter names");
+        std::cout<<'[';
+        for(unsigned i=0;i<count;++i)
+        {
+            std::string name;if(!(std::cin>>name)||name.size()>128)throw std::runtime_error("parameter name input");
+            name=Decode(name);if(i)std::cout<<',';std::cout<<"{\"name\":";Quoted(std::cout,name);
+            std::cout<<",\"type\":"<<spDXShader::LookupParameterTypeForAnalysis(name)<<'}';
+        }
+        std::cout<<"]\n";
+    }
 }
 int main(int argc,char** argv)
 {
     try
     {
+        if(argc==2&&std::string(argv[1])=="--source-batch"){SourceBatch();return 0;}
+        if(argc==2&&std::string(argv[1])=="--source-record"){SourceRecord();return 0;}
+        if(argc==2&&std::string(argv[1])=="--parameter-types"){ParameterTypes();return 0;}
         if(argc==3&&std::string(argv[1])=="--input"){std::cout<<Run(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--generation"){std::cout<<RunGeneration(argv[2])<<'\n';return 0;}
         spPCEffectTemplate::ShaderForAnalysis record;record.flags[2]=1;record.text[0]="A// INSERTION POINT B// INSERTION POINT";record.text[1]="D";

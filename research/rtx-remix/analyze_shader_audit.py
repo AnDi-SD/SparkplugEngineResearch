@@ -7,59 +7,19 @@ cover all game draws through the last snapshot, not an entire playthrough.
 from __future__ import annotations
 
 import argparse
-import ctypes as C
 import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 import xml.etree.ElementTree as ET
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pc_shader_sdk import D3dx
 
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-class D3dx:
-    """Call the installed Microsoft SDK library, without a D3D device."""
-    def __init__(self):
-        system = C.create_unicode_buffer(32768)
-        kernel = C.WinDLL('kernel32', use_last_error=True)
-        if not kernel.GetSystemDirectoryW(system, len(system)):
-            raise C.WinError(C.get_last_error())
-        self.dll = C.WinDLL(str(Path(system.value) / 'd3dx9_43.dll'))
-        self.dll.D3DXAssembleShader.argtypes = [C.c_void_p, C.c_uint, C.c_void_p, C.c_void_p, C.c_uint, C.POINTER(C.c_void_p), C.POINTER(C.c_void_p)]
-        self.dll.D3DXAssembleShader.restype = C.c_long
-        self.dll.D3DXDisassembleShader.argtypes = [C.c_void_p, C.c_int, C.c_char_p, C.POINTER(C.c_void_p)]
-        self.dll.D3DXDisassembleShader.restype = C.c_long
-
-    @staticmethod
-    def consume(pointer) -> bytes:
-        if not pointer.value:
-            return b''
-        table = C.cast(pointer, C.POINTER(C.POINTER(C.c_void_p))).contents
-        get_data = C.WINFUNCTYPE(C.c_void_p, C.c_void_p)(table[3])
-        get_size = C.WINFUNCTYPE(C.c_uint, C.c_void_p)(table[4])
-        release = C.WINFUNCTYPE(C.c_ulong, C.c_void_p)(table[2])
-        try:
-            return C.string_at(get_data(pointer), get_size(pointer))
-        finally:
-            release(pointer)
-
-    def assemble(self, source: bytes):
-        code, errors = C.c_void_p(), C.c_void_p()
-        data = C.create_string_buffer(source)
-        hr = self.dll.D3DXAssembleShader(data, len(source), None, None, 0, C.byref(code), C.byref(errors))
-        return hr, self.consume(code), self.consume(errors).decode('utf-8', errors='replace').rstrip('\0')
-
-    def disassemble(self, code: bytes):
-        result = C.c_void_p()
-        hr = self.dll.D3DXDisassembleShader(C.create_string_buffer(code), 0, None, C.byref(result))
-        text = self.consume(result).decode('utf-8', errors='replace').rstrip('\0')
-        if hr < 0:
-            raise RuntimeError(f'Disassembly failed: {hr}')
-        # Ignore compiler metadata comments, retain every executable instruction.
-        normalized = '\n'.join(s for line in text.splitlines() if (s := line.split('//', 1)[0].strip()))
-        return text, normalized
 
 
 def analyze(run: Path, game: Path):
