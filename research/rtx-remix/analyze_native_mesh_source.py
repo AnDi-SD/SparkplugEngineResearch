@@ -39,7 +39,7 @@ def analyze(run):
     path = run / 'native-mesh-source.jsonl'
     before = path.stat()
     kinds, errors, origins, native_frames = Counter(), Counter(), Counter(), Counter()
-    layouts, component_flags = Counter(), Counter()
+    layouts, component_flags, materials = Counter(), Counter(), Counter()
     switches, comparisons, meshes = [], {}, set()
     total_used = total_calls = 0
     max_buffers = max_bytes = 0
@@ -69,6 +69,7 @@ def analyze(run):
         elif kind == 'submit':
             origins[row['geometrySource']] += 1; meshes.add(row['mesh'])
             layouts[row['layoutSource']] += 1
+            materials[row.get('materialSource', 'unspecified')] += 1
             if 'componentFlags' in row:
                 component_flags[row['componentFlags']] += 1
         elif kind == 'source_switch':
@@ -86,9 +87,10 @@ def analyze(run):
                 nativeInstancesInRecordedFrames=total_used, meshCallsInRecordedFrames=total_calls,
                 nativeFrameHistogram=dict(sorted(native_frames.items())), sampledInstanceSources=dict(origins),
                 sampledLayoutSources=dict(layouts), sampledComponentFlags=dict(component_flags),
+                sampledMaterialSources=dict(materials),
                 distinctMeshAddressesInSampledInstances=len(meshes), maxBuffers=max_buffers, maxBytes=max_bytes,
                 switches=switches,
-                scope='Recorded frames only. Mesh calls include other passes/UI; no whole-scene percentage or object lifetime identity inferred. Layout sources are reported from sampled submits; material still uses D3D.')
+                scope='Recorded frames only. Mesh calls include other passes/UI; no whole-scene percentage or object lifetime identity inferred. Layout/material sources are reported from sampled submits; native material coverage is qualified by its separate source log.')
 
 
 if __name__ == '__main__':

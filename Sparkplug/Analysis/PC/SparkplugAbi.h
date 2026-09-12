@@ -2529,6 +2529,10 @@ namespace sparkplug::evidence::pc
     inline constexpr Address32 spMaterialTextureRegistration = 0x00760400;
     inline constexpr Address32 spMaterialTextureRegistrationInitializer = 0x006D3A90;
     inline constexpr Address32 spMaterialTextureFactoryProtectedEntry = 0x00467F30;
+    // Exact ordinary family: destructor 467CF0 writes this vtable; slot7
+    // getter467BE0 returns +34. Static identity requalified for the Remix source.
+    inline constexpr Address32 spMaterialTextureVTable = 0x006E8440;
+    inline constexpr Address32 spMaterialTextureGetTexture = 0x00467BE0;
     inline constexpr std::uint32_t spMaterialTextureStateCount = 9;
     inline constexpr std::uint32_t spMaterialRenderTargetTextureClassID = 0x535D1473;
     inline constexpr Address32 spMaterialRenderTargetTextureRegistration = 0x007626D0;

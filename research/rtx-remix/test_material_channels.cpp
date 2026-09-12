@@ -3,11 +3,14 @@
 #define WINX_REMIX_TEST
 #include "winx_d3d9_probe.cpp"
 #include <cstdlib>
-static unsigned checks,apiDraws,nativeSourceChecks;
+static unsigned checks,apiDraws,nativeSourceChecks,nativeMaterialChecks;
 static uintptr_t nextHandle=1;
 static std::vector<remixapi_HardcodedVertex> lastVertices;
 static std::wstring lastAlbedo,lastEmission;
 static std::map<remixapi_MaterialHandle,std::pair<std::wstring,std::wstring>> recordedMaterials;
+struct RecordedSampler {uint8_t u=0,v=0,filter=0;};
+static std::map<remixapi_MaterialHandle,RecordedSampler> recordedSamplers;
+static RecordedSampler lastSampler;
 static std::map<remixapi_MeshHandle,remixapi_MaterialHandle> recordedMeshes;
 static std::map<remixapi_MeshHandle,std::vector<remixapi_HardcodedVertex>> recordedVertices;
 static remixapi_InstanceInfoBlendEXT lastBlend{};
@@ -19,7 +22,8 @@ static remixapi_ErrorCode REMIXAPI_CALL Config(const char*,const char*) {return 
 static remixapi_ErrorCode REMIXAPI_CALL Material(const remixapi_MaterialInfo* info,remixapi_MaterialHandle* out) {
   lastAlbedo=info->albedoTexture?info->albedoTexture:L"";lastEmission=info->emissiveTexture?info->emissiveTexture:L"";
   Check(!lastAlbedo.empty(),"API material has an explicit albedo texture");
-  *out=reinterpret_cast<remixapi_MaterialHandle>(nextHandle++);recordedMaterials[*out]={lastAlbedo,lastEmission};return REMIXAPI_ERROR_CODE_SUCCESS;
+  *out=reinterpret_cast<remixapi_MaterialHandle>(nextHandle++);recordedMaterials[*out]={lastAlbedo,lastEmission};
+  recordedSamplers[*out]={info->wrapModeU,info->wrapModeV,info->filterMode};return REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL Mesh(const remixapi_MeshInfo* info,remixapi_MeshHandle* out) {
   Check(info->surfaces_count==1,"one complete surface per draw");const auto& s=info->surfaces_values[0];
@@ -32,6 +36,7 @@ static remixapi_ErrorCode REMIXAPI_CALL Instance(const remixapi_InstanceInfo* in
   lastBlend=*static_cast<const remixapi_InstanceInfoBlendEXT*>(info->pNext);
   lastTransform=info->transform;lastVertices=recordedVertices.at(info->mesh);
   const auto& paths=recordedMaterials.at(recordedMeshes.at(info->mesh));lastAlbedo=paths.first;lastEmission=paths.second;
+  lastSampler=recordedSamplers.at(recordedMeshes.at(info->mesh));
   return rejectDraw?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL DeleteMesh(remixapi_MeshHandle) {return REMIXAPI_ERROR_CODE_SUCCESS;}
@@ -43,6 +48,7 @@ static std::vector<DWORD> Dds(const std::wstring& path) {
   std::vector<DWORD> words(size_t(length)/4);Check(fread(words.data(),4,words.size(),file)==words.size(),"complete DDS read");fclose(file);return words;
 }
 #if defined(_M_IX86)
+#include "test_native_material.h"
 static void NativeRanges() {
   namespace source=native_mesh_source;
   source::Bytes partial{};partial.data.resize(16);partial.partial=true;
@@ -79,7 +85,7 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   const auto oldLayoutMismatches=source::layoutMismatches;const auto oldLayouts=source::layouts;
   const auto vertexBytes=surfaceBuffers.at(vb).bytes,indexBytes=surfaceBuffers.at(ib).bytes;
   auto address=[](const void* p){return uint32_t(reinterpret_cast<uintptr_t>(p));};
-  std::vector<uint8_t> renderer(0xca80);
+  std::vector<uint8_t> renderer(0xf368);
   abi::spDXMeshObservedLayout mesh{};abi::spDXVertexBufferLayout nativeVB{};abi::spDXIndexBufferLayout nativeIB{};
   abi::spDXSharedMeshDataObservedLayout shared{};abi::spDXMaterialObservedLayout material{};
   abi::spRendererDrawContextObservedLayout state{};
@@ -132,6 +138,7 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   float firstX=0;memcpy(&firstX,vertexBytes.data(),4);
   submit(true,firstX,"matching native draw reaches API exactly once");
   Check(source::buffers.at(vb).verified&&source::buffers.at(ib).verified,"native bytes verified against both original uploads");
+  NativeMaterial(d,renderer,material,state,geometry,scope,draw);
   auto& partialVB=source::buffers.at(vb);auto& partialIB=source::buffers.at(ib);
   partialVB.partial=partialIB.partial=true;partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{0,indexBytes.size()}};
   Check(resolve(),"fully covered partial buffers resolve for the draw");
@@ -203,10 +210,22 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   source::matched=oldMatched;source::used=oldUsed;source::invalidations=oldInvalidations;source::uploadMismatches=oldMismatches;
   source::layoutMismatches=oldLayoutMismatches;source::layouts=oldLayouts;
   Hr(d->SetTransform(D3DTS_WORLD,&oldWorld),"restore world after native fixture");ClearSurfaceBases();
-  nativeSourceChecks=checks-initialChecks;
+  nativeSourceChecks=checks-initialChecks-nativeMaterialChecks;
 }
 #endif
 int main() {
+  // The build wrapper is intentionally unchanged. Bound this owned system-D3D
+  // helper even if a driver/API call stalls; no PID-name based termination.
+  struct Watchdog {
+    HANDLE stop=CreateEventW(nullptr,TRUE,FALSE,nullptr),thread=nullptr;
+    static DWORD WINAPI Run(void* value) {
+      if(WaitForSingleObject(static_cast<HANDLE>(value),30000)==WAIT_TIMEOUT)
+        TerminateProcess(GetCurrentProcess(),0xE0524D01u);
+      return 0;
+    }
+    Watchdog(){Check(stop!=nullptr,"watchdog event");thread=CreateThread(nullptr,0,Run,stop,0,nullptr);Check(thread!=nullptr,"30-second owned-process watchdog");}
+    ~Watchdog(){SetEvent(stop);WaitForSingleObject(thread,1000);CloseHandle(thread);CloseHandle(stop);}
+  } watchdog;
   frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;preserveUnlitColor=false;
   Check(GetFullPathNameW(L"assets",MAX_PATH,surfaceAssetDirectory,nullptr)!=0,"asset directory");
   Check(CreateDirectoryW(surfaceAssetDirectory,nullptr)!=0,"fresh evidence directory");
@@ -299,5 +318,5 @@ int main() {
   Hr(d->SetStreamSource(0,nullptr,0,0),"unbind vertices");Hr(d->SetIndices(nullptr),"unbind indices");vb->Release();ib->Release();
   frameId=330;RetireSurfaceResources();Check(surfaceMeshes.empty()&&surfaceMaterials.empty()&&surfaceMeshBytes==0,"all API resources retired");
   d->Release();d3d->Release();DestroyWindow(hwnd);
-  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
+  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"nativeMaterialChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,nativeMaterialChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
 }

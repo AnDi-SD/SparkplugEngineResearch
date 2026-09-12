@@ -59,6 +59,7 @@ namespace material_audit { static void Initialize(); static void Draw(IDirect3DD
 namespace native_draw_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
 namespace native_mesh_source { static void Initialize(); static void EndFrame(); }
 namespace native_camera_source { static void Initialize(); static void EndFrame(); }
+namespace native_material_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -121,6 +122,7 @@ static void Initialize() {
   native_draw_audit::Initialize();
   native_mesh_source::Initialize();
   native_camera_source::Initialize();
+  native_material_source::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -689,6 +691,14 @@ static void ApplyLiveConfig() {
     if(key=="winx.preserveUnlitColor"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
       SetPreserveUnlitColor(value=="True");continue;
     }
+    if(key=="winx.nativeMaterialSubmit"&&native_material_source::enabled&&materialChannelsEnabled&&(value=="True"||value=="False")) {
+      const bool submit=value=="True";
+      if(submit!=native_material_source::submitEnabled&&native_material_source::output) {
+        fprintf(native_material_source::output,"{\"event\":\"source_switch\",\"frame\":%u,\"native\":%s}\n",frameId,submit?"true":"false");
+        fflush(native_material_source::output);
+      }
+      native_material_source::submitEnabled=submit;continue;
+    }
     if(key=="winx.nativeCameraSubmit"&&native_camera_source::enabled&&(value=="True"||value=="False")) {
       const bool submit=value=="True";
       if(submit!=native_camera_source::submitEnabled&&native_camera_source::CanLog()) {
@@ -727,6 +737,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_draw_audit::EndFrame();
   native_mesh_source::EndFrame();
   native_camera_source::EndFrame();
+  native_material_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -812,6 +823,7 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   native_draw_audit::EndFrame();
   native_mesh_source::EndFrame();
   native_camera_source::EndFrame();
+  native_material_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);

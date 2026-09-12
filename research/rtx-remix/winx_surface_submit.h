@@ -3,6 +3,7 @@
 #include "winx_surface_material.h"
 #include "winx_material_channels.h"
 #include "winx_material_channel_assets.h"
+#include "winx_native_material_source.h"
 #include "winx_geometry_probe.h"
 #include <algorithm>
 static bool materialChannelsEnabled,keepMaterialChannelsForComparison;
@@ -181,10 +182,12 @@ static void SetPreserveUnlitColor(bool value) {
   RetireSurfaceResources(true);preserveUnlitColor=value;
 }
 
-static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t textureHash) {
+static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t textureHash,const native_material_source::Sampler* nativeSampler=nullptr) {
   DWORD u=0,v=0,mag=0;
-  if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u)) || FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v)) ||
-     FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag)) || u<1 || u>3 || v<1 || v>3 || mag<1 || mag>3) return nullptr;
+  if(nativeSampler){u=nativeSampler->u;v=nativeSampler->v;mag=nativeSampler->mag;}
+  else if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u)) || FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v)) ||
+     FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag))) return nullptr;
+  if(u<1 || u>3 || v<1 || v>3 || mag<1 || mag>3)return nullptr;
   const uint64_t descriptor[]={textureHash,u,v,mag};
   const auto hash=XXH3_64bits(descriptor,sizeof(descriptor));
   auto found=surfaceMaterials.find(hash);if(found!=surfaceMaterials.end()) {found->second.frame=frameId;return found->second.handle;}
@@ -212,10 +215,13 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   surfaceMaterials.emplace(hash,SurfaceMaterialEntry{material,frameId});++surfaceMaterialCreates;return material;
 }
 
-static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan) {
+static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan,
+                                                       const native_material_source::Sampler* nativeSampler=nullptr) {
   DWORD u=0,v=0,mag=0,srgb=0;
-  if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u))||FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v))||
-     FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag))||FAILED(d->GetSamplerState(0,D3DSAMP_SRGBTEXTURE,&srgb))||srgb||
+  if(nativeSampler){u=nativeSampler->u;v=nativeSampler->v;mag=nativeSampler->mag;}
+  else if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u))||FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v))||
+     FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag)))return nullptr;
+  if(FAILED(d->GetSamplerState(0,D3DSAMP_SRGBTEXTURE,&srgb))||srgb||
      u<1||u>3||v<1||v>3||mag<1||mag>3||!surfaceAssetDirectory[0])return nullptr;
   std::string descriptor="winx-independent-ffp-v1";
   const uint64_t values[]={textureHash,u,v,mag};descriptor.append(reinterpret_cast<const char*>(values),sizeof(values));
@@ -253,8 +259,9 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   auto api=GetRemixApi();
   if(!api || !api->CreateMesh || !api->DrawInstance || !api->CreateMaterial || count>32768 || vertices>65536) return SurfaceSubmitFailure(__LINE__);
   surface_material::Contract contract;
+  surface_material::ObservedStage observedStage{};
   DWORD cull=0,separateAlpha=0,stencil=0;
-  if(!(channels?surface_material::ReadTexture(d,contract):surface_material::Read(d,contract))||
+  if(!(channels?surface_material::ReadTexture(d,contract,&observedStage):surface_material::Read(d,contract,&observedStage))||
      (channels&&!material_channels::Texture(contract,contract))||FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull))||
      FAILED(d->GetRenderState(D3DRS_SEPARATEALPHABLENDENABLE,&separateAlpha))||separateAlpha||
      FAILED(d->GetRenderState(D3DRS_STENCILENABLE,&stencil))||stencil) return SurfaceSubmitFailure(__LINE__);
@@ -271,8 +278,8 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   if(vbSnapshot==surfaceBuffers.end() || ibSnapshot==surfaceBuffers.end() || !vbSnapshot->second.complete ||
      !ibSnapshot->second.complete || vbSnapshot->second.bytes.size()!=vd.Size || ibSnapshot->second.bytes.size()!=id.Size) return SurfaceSubmitFailure(__LINE__);
   // One converter/backend for both sources. The native packet replaces raw
-  // bytes, range, world and recovered vertex layout. Material/render states
-  // remain D3D inputs. No durable native instance identity is inferred here.
+  // bytes, range, world and recovered vertex layout. A separately qualified
+  // native material snapshot can replace its supported inputs below.
   native_mesh_source::Geometry nativeGeometry{};
   bool nativeInput=native_mesh_source::Resolve(d,{type,base,minVertex,vertices,start,count},vb,ib,offset,stride,nativeGeometry);
   if(nativeInput&&(!nativeGeometry.vertices->verified||!nativeGeometry.indices->verified)) {
@@ -288,6 +295,10 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   if(nativeInput&&!native_mesh_source::EqualLayout(nativeGeometry,layout,n)) {
     nativeInput=false;++native_mesh_source::layoutMismatches;
   }
+  native_material_source::Packet nativeMaterial{};
+  const bool nativeMaterialMatched=nativeInput&&native_material_source::Resolve(d,nativeGeometry,contract,observedStage,channels,preserveUnlitColor,nativeMaterial);
+  const bool nativeMaterialInput=nativeMaterialMatched&&native_material_source::submitEnabled;
+  if(nativeMaterialInput){contract=nativeMaterial.contract;channels=&nativeMaterial.channels;}
   nativeInput=nativeInput&&native_mesh_source::submitEnabled;
   const auto& vertexBytes=nativeInput?nativeGeometry.vertices->data:vbSnapshot->second.bytes;
   const auto& indexBytes=nativeInput?nativeGeometry.indices->data:ibSnapshot->second.bytes;
@@ -356,7 +367,8 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     if(!material_channels::Factor(*channels,uniform,firstColor,plan))return SurfaceSubmitFailure(__LINE__);
     for(auto& v:expanded)v.color=material_channels::Vertex(v.color,plan);
   }
-  const auto material=channels?SurfaceChannelMaterial(d,textureHash,plan):SurfaceMaterial(d,textureHash);
+  const auto sampler=nativeMaterialInput?&nativeMaterial.sampler:nullptr;
+  const auto material=channels?SurfaceChannelMaterial(d,textureHash,plan,sampler):SurfaceMaterial(d,textureHash,sampler);
   if(!material) return SurfaceSubmitFailure(__LINE__);
   const auto hash=XXH3_64bits_withSeed(expanded.data(),expanded.size()*sizeof(expanded[0]),reinterpret_cast<uintptr_t>(material));
   auto found=surfaceMeshes.find(hash);
@@ -392,13 +404,15 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     const float value=world.m[c][r];if(!std::isfinite(value)) return SurfaceSubmitFailure(__LINE__);instance.transform.matrix[r][c]=value;
   }
   const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  if(submitted&&nativeMaterialInput)native_material_source::RecordUse(nativeGeometry,nativeMaterial);
   if(submitted&&nativeInput) {
     ++native_mesh_source::used;
     // One sampled frame per F8 request, plus periodic frames. A 120-frame
     // trace of every native instance otherwise exhausts the log during A/B.
     if(native_mesh_source::output&&_ftelli64(native_mesh_source::output)<16*1024*1024&&(frameId%300==0||frameId+120==traceUntilFrame))
-      fprintf(native_mesh_source::output,"{\"event\":\"submit\",\"frame\":%u,\"draw\":%u,\"mesh\":%u,\"submission\":%llu,\"generation\":%llu,\"geometrySource\":\"%s\",\"worldSource\":\"native_renderer\",\"layoutSource\":\"native_flags_shared_emitter\",\"componentFlags\":%u,\"materialSource\":\"d3d_state\"}\n",
-        frameId,drawId,nativeGeometry.mesh,nativeGeometry.submission,nativeGeometry.vertices->generation,nativeGeometry.vertices->source,nativeGeometry.componentFlags);
+      fprintf(native_mesh_source::output,"{\"event\":\"submit\",\"frame\":%u,\"draw\":%u,\"mesh\":%u,\"submission\":%llu,\"generation\":%llu,\"geometrySource\":\"%s\",\"worldSource\":\"native_renderer\",\"layoutSource\":\"native_flags_shared_emitter\",\"componentFlags\":%u,\"materialSource\":\"%s\"}\n",
+        frameId,drawId,nativeGeometry.mesh,nativeGeometry.submission,nativeGeometry.vertices->generation,nativeGeometry.vertices->source,nativeGeometry.componentFlags,
+        nativeMaterialInput?"native_std_layer_shared_mapping":"d3d_state");
   }
   if(submitted&&channels&&surfaceRoleLog&&(frameId%300==0||frameId<traceUntilFrame)) {
     fprintf(surfaceRoleLog,"{\"event\":\"material_channels\",\"frame\":%u,\"draw\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"vertexAlpha\":%s,\"alpha\":%u}\n",

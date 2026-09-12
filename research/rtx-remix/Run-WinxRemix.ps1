@@ -9,6 +9,8 @@ param(
     [switch]$NativeMeshSubmit,
     [switch]$NativeCameraSource,
     [switch]$NativeCameraSubmit,
+    [switch]$NativeMaterialSource,
+    [switch]$NativeMaterialSubmit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -41,6 +43,8 @@ if ($NativeMeshSource -or $NativeMeshSubmit) { $options.NativeMeshSource=$true }
 if ($NativeMeshSubmit) { $options.NativeMeshSubmit=$true }
 if ($NativeCameraSource -or $NativeCameraSubmit) { $options.NativeCameraSource=$true }
 if ($NativeCameraSubmit) { $options.NativeCameraSubmit=$true }
+if ($NativeMaterialSource -or $NativeMaterialSubmit) { $options.NativeMaterialSource=$true }
+if ($NativeMaterialSubmit) { $options.NativeMaterialSubmit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

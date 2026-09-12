@@ -19,6 +19,11 @@ struct Plan {
   bool vertexRGB=false,vertexAlpha=false;
   uint8_t alpha=255;
 };
+static inline Input UnlitInput(bool preserveUnlit) {
+  Input out{};out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;
+  if(preserveUnlit)out.emissiveSource=D3DMCS_COLOR1;
+  return out;
+}
 static inline bool Read(IDirect3DDevice9* d,Input& out,bool preserveUnlit=false) {
   DWORD lighting=0,specular=0,colorVertex=0,ambient=0;
   if(FAILED(d->GetRenderState(D3DRS_LIGHTING,&lighting))||
@@ -29,8 +34,7 @@ static inline bool Read(IDirect3DDevice9* d,Input& out,bool preserveUnlit=false)
     // retaining reflectance for new lighting. This is not baked-light removal
     // or evidence that the original surface illuminated its surroundings.
     // Unused material/ambient states never contribute to this term.
-    out={};out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;
-    if(preserveUnlit)out.emissiveSource=D3DMCS_COLOR1;
+    out=UnlitInput(preserveUnlit);
     return true;
   }
   if(

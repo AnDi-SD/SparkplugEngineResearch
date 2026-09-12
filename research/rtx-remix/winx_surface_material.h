@@ -7,6 +7,11 @@ struct Contract {
   DWORD factor=0xffffffff,coordinates=0,transformFlags=0;
   D3DMATRIX transform{};
 };
+// Transient observation of the stage states already read for the contract.
+// Kept separate from the material recipe and any native source claim.
+struct ObservedStage {
+  DWORD rgb=0,r1=0,r2=0,alpha=0,a1=0,a2=0,next=0,result=0;
+};
 static inline bool AlphaTest(bool enabled,DWORD reference,DWORD function,remixapi_InstanceInfoBlendEXT& blend) {
   // Stock Remix derives the effective test from compareOp even when the API
   // enabled flag is false. D3D9's disabled test must therefore be ALWAYS.
@@ -55,8 +60,11 @@ static inline bool Coordinates(const Contract& contract,const float input[2],flo
   }
   return true;
 }
-static inline bool ReadTexture(IDirect3DDevice9* d,Contract& out) {
-  DWORD rgb=0,r1=0,r2=0,alpha=0,a1=0,a2=0,next=0,result=0;
+static inline bool ReadTexture(IDirect3DDevice9* d,Contract& out,ObservedStage* observation=nullptr) {
+  ObservedStage values{};
+  auto& rgb=values.rgb;auto& r1=values.r1;auto& r2=values.r2;
+  auto& alpha=values.alpha;auto& a1=values.a1;auto& a2=values.a2;
+  auto& next=values.next;auto& result=values.result;
   auto get=[&](D3DTEXTURESTAGESTATETYPE state,DWORD& value){return SUCCEEDED(d->GetTextureStageState(0,state,&value));};
   if(!get(D3DTSS_COLOROP,rgb)||!get(D3DTSS_COLORARG1,r1)||!get(D3DTSS_COLORARG2,r2)||
      !get(D3DTSS_ALPHAOP,alpha)||!get(D3DTSS_ALPHAARG1,a1)||!get(D3DTSS_ALPHAARG2,a2)||
@@ -65,15 +73,16 @@ static inline bool ReadTexture(IDirect3DDevice9* d,Contract& out) {
      FAILED(d->GetTextureStageState(1,D3DTSS_COLOROP,&next))||next!=D3DTOP_DISABLE||
      FAILED(d->GetRenderState(D3DRS_TEXTUREFACTOR,&out.factor))||out.coordinates>7||
      !Decode(rgb,r1,r2,out.rgb)||!DecodeAlpha(alpha,a1,a2,out.alpha)) return false;
+  if(observation)*observation=values;
   if(out.transformFlags==D3DTTFF_DISABLE) return true;
   if(out.transformFlags!=D3DTTFF_COUNT2||FAILED(d->GetTransform(D3DTS_TEXTURE0,&out.transform))) return false;
   for(const auto& row:out.transform.m) for(float f:row) if(!std::isfinite(f)) return false;
   return true;
 }
-static inline bool Read(IDirect3DDevice9* d,Contract& out) {
+static inline bool Read(IDirect3DDevice9* d,Contract& out,ObservedStage* observation=nullptr) {
   DWORD lighting=0,specular=0;
   return SUCCEEDED(d->GetRenderState(D3DRS_LIGHTING,&lighting))&&!lighting&&
-    SUCCEEDED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))&&!specular&&ReadTexture(d,out);
+    SUCCEEDED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))&&!specular&&ReadTexture(d,out,observation);
 }
 static inline void Apply(const Contract& contract,remixapi_InstanceInfoBlendEXT& blend) {
   blend.textureColorOperation=contract.rgb.operation;

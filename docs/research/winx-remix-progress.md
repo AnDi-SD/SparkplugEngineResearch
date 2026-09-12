@@ -1,7 +1,16 @@
 # Готовность универсальной интеграции Winx Club с RTX Remix
 
 Текущая оценка на **13 сентября 2026: около 45%**.
-Текущий блок: [native-camera-v3](winx-remix-native-camera-submit-2026-09-13.md):
+Текущий блок: [native-material-v2](winx-remix-native-material-submit-2026-09-13.md):
+ordinary unlit material operations/UV/sampler берутся из native объектов через
+общий texture-state mapping. 541 integration checks; Алфея 871 и Домино 446
+native material instances/frame, A/B и движение, без material mismatches.
+В поздней фазе без зарегистрированной сцены остаются два instances и D3D camera
+fallback; эти кадры не засчитаны в охват мира. Временная эмиссия сохраняется.
+[Resource pressure](winx-remix-resource-pressure-2026-09-13.md): ограниченные
+API-кэши освобождают прежние ресурсы при смене сцен, защищая текущий кадр;
+9379 checks и Алфея ↔ Домино, без pressure rejection в живом прогоне.
+Предыдущий блок: [native-camera-v3](winx-remix-native-camera-submit-2026-09-13.md):
 9103 camera frames через API, main matrices из native apply, перед первым draw;
 Домино/Гардиния1/Алфея, движение, A/B и смены сцен. 165 adapter checks,
 866 bridge serializer checks. Stock renderer сохранён, client/server заменены
@@ -14,8 +23,8 @@ emitter по флагам игры; actual D3D declaration проверяетс�
 игровое подключение выполнено следующим блоком. Прежний [native-source-v5](winx-remix-native-mesh-source-2026-09-13.md):
 вершины и индексы поддержанных мешей берутся из CPU-входов движка до D3D;
 в проверенных кадрах Алфеи 871 native instance, Домино 446 за кадр.
-563 проверенных поколения, без несовпадений байтов. Material пока
-остаётся D3D-входом, независимый scene lifecycle не перенесён. Временный
+563 проверенных поколения, без несовпадений байтов. В этом раннем срезе material
+оставался D3D-входом; независимый scene lifecycle ещё не перенесён. Временный
 unlit → emission сохраняется; проценты готовности изображения не увеличены.
 Исходная база шкалы — commit `0ea82c5`; предыдущие оценки сохранены в истории.
 
@@ -34,7 +43,8 @@ unlit → emission сохраняется; проценты готовности
 
 Частичный direct-путь уже проверен в игре: native geometry, world и layout
 поступают в API-кэши, а основные матрицы камеры — в SetupCamera до первого draw.
-Этапы 1–2 остаются открытыми: полный native material, все роли камеры
+Ordinary unlit materials также используют native операции/UV/sampler.
+Этапы 1–2 остаются открытыми: остальные native material paths, все роли камеры
 и instance/scene generation ещё не перенесены.
 [Контракт камеры](winx-remix-native-camera-contract-2026-09-12.md) выявил отсутствие
 SetupCamera в stock x86 client. Доработанная пара client/server установлена
@@ -141,3 +151,7 @@ SetupCamera в stock x86 client. Доработанная пара client/server
 | 2026-09-12 | `native-draw-v3`, DLL `5BA41AD4…` | Исследование и диагностика: категории без изменения. | ≈45% (46,25%) | Общая ABI-разметка; 26 963 связанных draw, 24 203 scene draw с совпавшими material/VB, 767 проверенных shader keys. Original/RTX Алфея и RTX Домино, движение, 14/14 EXE regions. Временная эмиссия сохраняется; RT-составляющие, UV/нормали и специальный support открыты. |
 | 2026-09-12 | План прямой передачи сцены; DLL прежняя | Направление изменено по решению пользователя; категории и веса сохранены. | ≈45% (46,25%) | Семь этапов перехода на native scene → Remix API с D3D для запуска/UI/резерва. Ближайшая работа — общий контракт и первый прямой статический путь; реализация этапов планом не засчитывается. |
 | 2026-09-13 | `native-source-v5`, DLL `4F18F5F3…` | Частичный прямой источник геометрии; функциональные категории без изменения. | ≈45% (46,25%) | CPU inputs до D3D, native mesh range/world, проверка 563 поколений без несовпадений; Алфея/Домино, source A/B и движение. 381 integration +57 lifetime, 7/7 EXE regions. Камера/material/layout и независимый scene lifecycle остаются в работе. |
+| 2026-09-13 | `native-layout-v2`, DLL `A0FF0646…` | Native vertex layout через общий emitter; категории без изменения. | ≈45% (46,25%) | 402 integration и 338 common checks; 380 кадров Алфеи по 871 instance, без layout/upload mismatch. [Проверка](winx-remix-native-layout-2026-09-13.md). |
+| 2026-09-13 | `native-camera-v3`, DLL `A36537CD…` | Main camera через SetupCamera и собственную пару bridge; категории без изменения. | ≈45% (46,25%) | 9103 API camera frames, 165 adapter и 866 serializer checks; движение, A/B, смена сцен. [Проверка](winx-remix-native-camera-submit-2026-09-13.md). |
+| 2026-09-13 | `surface-pressure-v1`, DLL `031456AB…` | Освобождение API-кэшей под давлением; категории без изменения. | ≈45% (46,25%) | 9379 checks; Домино → Алфея → Домино, 102 pressure eviction без отказов. [Проверка](winx-remix-resource-pressure-2026-09-13.md). |
+| 2026-09-13 | `native-material-v2`, DLL `B5D7D817…` | Native ordinary unlit operations/UV/sampler; категории без изменения. | ≈45% (46,25%) | 541 integration checks; Алфея 871, Домино 446 native material instances/frame, A/B и движение. Late no-scene camera fallback отдельно от world coverage. [Проверка](winx-remix-native-material-submit-2026-09-13.md). |

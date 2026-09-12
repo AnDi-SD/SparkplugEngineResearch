@@ -68,7 +68,10 @@ class Sweep:
             for _ in range(32):
                 if self.reader.snapshot().get('active') not in (64, 70, 71):
                     break
-                self.control('enter', hold=.08)
+                # Dialogue acknowledgement is edge-triggered, and a short
+                # pulse can fall entirely between slow Remix frames. The level
+                # submenu keeps its separate single-frame Enter below.
+                self.control('enter', hold=.25)
             state = self.reader.snapshot()
             if state.get('active') in (64, 70, 71):
                 raise RuntimeError('Dialogue still owns input; refusing level navigation')
