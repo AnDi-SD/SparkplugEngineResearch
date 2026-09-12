@@ -103,6 +103,43 @@ else:
     u.SetForegroundWindow(hwnd)
     time.sleep(0.3)
     if u.GetForegroundWindow() != hwnd:
+        # A normal title-bar click can activate the verified window when Windows
+        # denies programmatic focus. Do not attach input queues or click through
+        # an overlapping application. Fullscreen windows have no such fallback.
+        class TitleBarInfo(c.Structure):
+            _fields_ = [('size', w.DWORD), ('rect', w.RECT), ('states', w.DWORD * 6)]
+        u.GetTitleBarInfo.argtypes = [w.HWND, c.POINTER(TitleBarInfo)]
+        u.GetWindowLongW.argtypes = [w.HWND, c.c_int]
+        u.SetWindowPos.argtypes = [w.HWND, w.HWND, c.c_int, c.c_int, c.c_int, c.c_int, w.UINT]
+        u.WindowFromPoint.argtypes = [w.POINT]
+        u.WindowFromPoint.restype = w.HWND
+        title = TitleBarInfo()
+        title.size = c.sizeof(title)
+        has_caption = u.GetWindowLongW(hwnd, -16) & 0x00c00000 == 0x00c00000
+        if has_caption and u.GetTitleBarInfo(hwnd, c.byref(title)) and not title.states[0] & 0x18000:
+            rect = title.rect
+            was_topmost = bool(u.GetWindowLongW(hwnd, -20) & 8)
+            if rect.right - rect.left >= 320 and rect.bottom > rect.top:
+                try:
+                    # Restore the original topmost flag even if validation fails.
+                    if not u.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x13):
+                        raise c.WinError(c.get_last_error())
+                    x, y = (2 * rect.left + rect.right) // 3, (rect.top + rect.bottom) // 2
+                    hit = u.WindowFromPoint(w.POINT(x, y))
+                    hit_pid = w.DWORD()
+                    u.GetWindowThreadProcessId(hit, c.byref(hit_pid))
+                    if hit == hwnd and hit_pid.value == args.pid:
+                        u.SetCursorPos(x, y)
+                        u.mouse_event(2, 0, 0, 0, 0)
+                        try:
+                            time.sleep(0.08)
+                        finally:
+                            u.mouse_event(4, 0, 0, 0, 0)
+                finally:
+                    if not was_topmost:
+                        u.SetWindowPos(hwnd, -2, 0, 0, 0, 0, 0x13)
+                time.sleep(0.3)
+    if u.GetForegroundWindow() != hwnd:
         raise RuntimeError("Winx did not gain foreground; refusing keyboard input/capture")
     if args.client_size:
         u.GetClientRect.argtypes = [w.HWND, c.POINTER(w.RECT)]

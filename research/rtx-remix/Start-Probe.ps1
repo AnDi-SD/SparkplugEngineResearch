@@ -18,6 +18,7 @@ param(
     [switch]$DebugMenu,
     [switch]$LiveConfig,
     [switch]$ShaderAudit,
+    [switch]$MaterialAudit,
     [switch]$SceneAudit,
     [switch]$SceneLights,
     [ValidateRange(0,1000)][float]$LightGain = 10,
@@ -152,6 +153,7 @@ $values = @{
     WINX_REMIX_SURFACE_ASSETS=$(if ($AutoSurfaceRoles) { Join-Path $run 'surface-assets' } else { $null })
     WINX_REMIX_LIVE_CONFIG=$(if ($LiveConfig) { Join-Path $run 'live.conf' } else { $null })
     WINX_REMIX_SHADER_AUDIT=$(if ($ShaderAudit) { Join-Path $run 'shaders-client' } else { $null })
+    WINX_REMIX_MATERIAL_AUDIT=$(if ($MaterialAudit) { Join-Path $run 'materials.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_LIGHT_GAIN=$LightGain.ToString([Globalization.CultureInfo]::InvariantCulture)
@@ -178,6 +180,7 @@ try {
         surfaceRolesSha256=$(if ($SurfaceRoles) { (Get-FileHash -LiteralPath $surfaceRoleSource).Hash } else { $null })
         autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
         sceneAudit=$SceneAudit.IsPresent
+        materialAudit=$MaterialAudit.IsPresent
         sceneLights=$SceneLights.IsPresent
         sceneLightGain=$LightGain
         bridgeConfigSha256=$bridgeConfigSha256

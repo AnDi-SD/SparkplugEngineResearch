@@ -243,7 +243,36 @@ powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Restore-S
 Для обычной игры без Remix достаточно режима `Original`, перестановка DLL
 для него не требуется.
 
-## Upstream
+## Материалы и ambient
+
+`Run-WinxRemix.ps1 -MaterialAudit` или `Start-Probe.ps1 -MaterialAudit` включает
+ограниченный `materials.jsonl`, независимо от DrawTrace/ShaderAudit/SceneLights.
+Чтение происходит перед собственными преобразованиями draw. Сохраняются
+RGBA diffuse/ambient/emissive/specular, источники цвета, флаги освещения,
+восемь texture stages и выбранные именованные цветовые константы текущего VS.
+Основной target, perspective/depth и наличие COLOR0/COLOR1/NORMAL/POSITIONT
+позволяют разделять проходы; они не доказывают идентичность native камеры.
+Материалы и shader constants этим режимом не изменяются.
+Точные байткоды новых VS сохраняются рядом как `materials.jsonl.shader-*.bin`;
+это позволяет независимо проверить таблицы и повторно использовать их дальше.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Run-WinxRemix.ps1 -Mode RTX -DebugMenu -SceneLights -MaterialAudit -StartLevel 4 -Windowed
+python research/rtx-remix/analyze_material_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА --verify-shaders
+powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-MaterialAudit.ps1
+```
+
+Выборка: каждый 300-й кадр, начальная/Reset/F8 область той же диагностики.
+Лимиты: 16 МиБ лога плюс последняя ограниченная запись, 1024 разных набора
+входных данных, 256 shader tables и 1 МиБ их байткода. Счётчики failures/rejected
+не позволяют принимать неполную выборку за полное покрытие. CTAB без известных
+цветовых входов не доказывает отсутствие освещения в программе.
+Тест сравнивает регистры 15 сохранённых игровых шейдеров с Microsoft D3DX
+и отдельно проверяет 12 граничных случаев. Требуется локальный shader-audit corpus.
+
+[Результат и границы](../../docs/research/winx-remix-material-contract-2026-09-12.md).
+
+## Upstream reference
 
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,
 commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, reference ветка Remix 1.5.2;
