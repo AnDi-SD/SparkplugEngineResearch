@@ -39,6 +39,7 @@ def analyze(run):
     path = run / 'native-mesh-source.jsonl'
     before = path.stat()
     kinds, errors, origins, native_frames = Counter(), Counter(), Counter(), Counter()
+    layouts, component_flags = Counter(), Counter()
     switches, comparisons, meshes = [], {}, set()
     total_used = total_calls = 0
     max_buffers = max_bytes = 0
@@ -57,7 +58,7 @@ def analyze(run):
             if first is None:
                 first = frame
             last = frame
-            errors.update({key: row.get(key, 0) for key in ('failures', 'limited', 'uploadMismatches')})
+            errors.update({key: row.get(key, 0) for key in ('failures', 'limited', 'uploadMismatches', 'layoutMismatches')})
             max_buffers = max(max_buffers, row['buffers']); max_bytes = max(max_bytes, row['bytes'])
             if row['used']:
                 native_frames[row['used']] += 1
@@ -67,6 +68,9 @@ def analyze(run):
             comparisons[generation] = comparisons.get(generation, True) and row['equal']
         elif kind == 'submit':
             origins[row['geometrySource']] += 1; meshes.add(row['mesh'])
+            layouts[row['layoutSource']] += 1
+            if 'componentFlags' in row:
+                component_flags[row['componentFlags']] += 1
         elif kind == 'source_switch':
             switches.append(row)
     after = path.stat()
@@ -81,9 +85,10 @@ def analyze(run):
                 comparedGenerations=len(comparisons), failedComparisons=sum(not v for v in comparisons.values()),
                 nativeInstancesInRecordedFrames=total_used, meshCallsInRecordedFrames=total_calls,
                 nativeFrameHistogram=dict(sorted(native_frames.items())), sampledInstanceSources=dict(origins),
+                sampledLayoutSources=dict(layouts), sampledComponentFlags=dict(component_flags),
                 distinctMeshAddressesInSampledInstances=len(meshes), maxBuffers=max_buffers, maxBytes=max_bytes,
                 switches=switches,
-                scope='Recorded frames only. Mesh calls include other passes/UI; no whole-scene percentage or object lifetime identity inferred. Layout/material still use D3D.')
+                scope='Recorded frames only. Mesh calls include other passes/UI; no whole-scene percentage or object lifetime identity inferred. Layout sources are reported from sampled submits; material still uses D3D.')
 
 
 if __name__ == '__main__':

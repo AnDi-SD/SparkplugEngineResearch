@@ -1,0 +1,1272 @@
+{
+  "status": "Built; cross-architecture serializer, isolated live IPC/moving-camera Present, and terminal transport-fault cleanup validated; NOT installed in game",
+  "provenance": "Own universal bridge transport extension, not reconstructed game logic; MIT upstream patch",
+  "baseRevision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "stockBinaryRevision": "68edea01 (not present in local shallow reference)",
+  "bridgeVersion": "remix-main-camera-v1+b81a7b56",
+  "patchSha256": "6D945B5F466CDF028A365A1AE5343F24391B22701287EE6E97166544EF22F49D",
+  "patchAppliesToReadOnlyReference": true,
+  "referenceWorktreeClean": true,
+  "existingCommandIdsPreserved": 372,
+  "cameraCommandId": 371,
+  "wire": {
+    "bytes": 140,
+    "fields": "uint32 byteSize, uint32 sType, uint32 cameraType, view32bits[16], projection32bits[16]",
+    "pNext": "No extensions; client rejects non-null and decoder reconstructs null",
+    "validation": "Exact outer/inner size, camera sType, known type, finite float32; output untouched on rejection"
+  },
+  "result": "Client waits for mandatory UID-matched server response using existing ack timeout. Normal API errors are consumed and returned. A transport wait failure after send logs UID/result then unconditionally terminates the host process with 0xE052CA01; no fallback or recovery. SUCCESS is the real renderer API return, not proof GPU consumed the exact queued camera.",
+  "build": {
+    "msvc": "19.51.36257",
+    "sdk": "10.0.26100.0",
+    "meson": "1.9.2",
+    "ninja": "1.13.0",
+    "platforms": [
+      "x86",
+      "x64"
+    ],
+    "workers": 1,
+    "configuration": "release",
+    "detoursRevision": "ea6c4ae7f3f1b1772b8a7cda4199230b932f5a50"
+  },
+  "patchedFiles": [
+    {
+      "path": "bridge/meson.build",
+      "sha256": "B2BAE2167484D283ACBC6D95DE0C512FFC4AC996FAC6DF76434C435AA86DAF90",
+      "lfSha256": "860485139633390DDC9E4EA9B858EB78197A22EBE29FC33D94F9FABE1C3105F0"
+    },
+    {
+      "path": "bridge/src/client/remix_api.cpp",
+      "sha256": "3E9820A741665DD6E207B2F0D0217E2C19F553A627CE32801FE49177C2D6FE30",
+      "lfSha256": "86F1E6303815CA05684B728A70DE832719FA97490EEA621A6E8821EF7FB7F257"
+    },
+    {
+      "path": "bridge/src/meson.build",
+      "sha256": "BE68383032D6C329BDAAEC4C9069AC070237BE823153CBD669C5ED383B5F07C4",
+      "lfSha256": "101B0EB0AC42C359444BF1890FF9EADC653B4042B82721A827194EEEE4DC48D4"
+    },
+    {
+      "path": "bridge/src/server/main.cpp",
+      "sha256": "D2D0D8959E70D3ED74C53E7CD7E5556295E415687349EE2D82C6794472CF299A",
+      "lfSha256": "F3C1E5BE36723F6897DCBD0123A7B8A8F0442B974495D264979AF98C2EB7A2B8"
+    },
+    {
+      "path": "bridge/src/util/util_commands.h",
+      "sha256": "45E16920EEA6DC0E06ED72CE0D3D43D592EBF781A45168FC187A6D885C16CFFD",
+      "lfSha256": "D8E14472A335A7DE833BFA74892EFA641FB3D6D4769520458FD6D2C49385D17D"
+    },
+    {
+      "path": "bridge/src/util/util_remixapi.cpp",
+      "sha256": "6BCB3EA3874A0C6CF838265E5DE6533F6C41A340DD83F96316230E41A5C596D0",
+      "lfSha256": "B531D812FB9201B62E88953D93B6DB873853D442D64F95DA08F471FF122FF5CB"
+    },
+    {
+      "path": "bridge/src/util/util_remixapi.h",
+      "sha256": "3AF35A69F6E55D76E44CC450C9C10263D37734D3FDC6B623777EFD242AF43750",
+      "lfSha256": "8E5575455F8686957BCA8CDDCDCDD5E6A076BFC96A9F1EED25DCA9E44FC8CE9F"
+    },
+    {
+      "path": "bridge/test/rtx/unit/meson.build",
+      "sha256": "CFF570A9CB5B067BB60FA7C0BD155E66A4D4E99A94EEA23E53E4FBA5E46139AA",
+      "lfSha256": "0816723DF44EB2F19F0124E3ADCB500089081851BAD9CA14726F28F04D6A87E5"
+    },
+    {
+      "path": "bridge/test/rtx/unit/test_remix_api_camera.cpp",
+      "sha256": "2AE951BBB7B19F452E8073E0244AE7EA4B4240B055E484C6AFB17DC6582A17FC",
+      "lfSha256": "2AE951BBB7B19F452E8073E0244AE7EA4B4240B055E484C6AFB17DC6582A17FC"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x86/src/client/d3d9.dll",
+      "bytes": 868864,
+      "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x64/src/server/NvRemixBridge.exe",
+      "bytes": 1111040,
+      "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x86/test/rtx/unit/test_remix_api_camera_x86.exe",
+      "bytes": 231424,
+      "sha256": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x64/test/rtx/unit/test_remix_api_camera_x64.exe",
+      "bytes": 288256,
+      "sha256": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/client-initializer-static.json",
+      "bytes": 20762,
+      "sha256": "87F4A8CEEAA6D210F2479AE13A5662B6448EF31C43E01D86C4FB75E4261D7D93"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/result.json",
+      "bytes": 2224,
+      "sha256": "8C6323E8C627754F5451512F0F982529E51FFF23992C96517CD68098D526ED71"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x64-write.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x64-write.out.txt",
+      "bytes": 54,
+      "sha256": "C40D6965730B95CB08C8049280AA68798837B9062A5042C30485ECA86EF244F3"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x86-read.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x86-read.out.txt",
+      "bytes": 54,
+      "sha256": "B393BC62DB68E8345E121E8B8A72AC60F5FA3F6F59B5F7A6970A7F095103ED42"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64.bin",
+      "bytes": 428,
+      "sha256": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x64-read.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x64-read.out.txt",
+      "bytes": 54,
+      "sha256": "A779FFA415F76955EAAC5304DF48B31E9B04F9AB68110FC58CEAC0F4659694C3"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x86-write.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x86-write.out.txt",
+      "bytes": 54,
+      "sha256": "00DB16708BAC06C23C0A8C82E086FFBE2F7FE23292CBEB3883A7C11536289CEE"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86.bin",
+      "bytes": 428,
+      "sha256": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/result.json",
+      "bytes": 3198,
+      "sha256": "02080A9EA46873415417DF3EB7FF461C107A2255806B754CD6D107DA414C26DF"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/launch.json",
+      "bytes": 1583,
+      "sha256": "284C97BEAD2D4A65573B60ACA270C5D751430823C5120A20BAB781C94C6E629F"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/helper.jsonl",
+      "bytes": 4565,
+      "sha256": "58C12F65A5DAD9E4F59257D4A41FCB4576E4596441CA138050BB6E48A5A65F1B"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/prepared.json",
+      "bytes": 1847,
+      "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/bridge32.log",
+      "bytes": 11493,
+      "sha256": "D111ADDA79D9618B298725B8BF7203D02D3917E3774C630AAAB75985E81F3EC7"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/bridge64.log",
+      "bytes": 4463,
+      "sha256": "2164F2A1DF94B20F80F972033E0EACE2AF6D9FEBC111B3B914366890365E2E38"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 15079,
+      "sha256": "4CDA443EBAE6ED535ECBF056ED8DD77D3BD7215B2FA4B18248224D0837B43013"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/result.json",
+      "bytes": 6020,
+      "sha256": "F07F0559C87A6C389AFA845F8CC4A830989DA9879D34D406559DDF9240CBD73F"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/launch.json",
+      "bytes": 1574,
+      "sha256": "ADEE83A0FBC552C24E7F0A2AA3C5605EC523DAF5564C5CBAF3F95042C34DE5C9"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/helper.jsonl",
+      "bytes": 910,
+      "sha256": "E751A3260C966251E34FBBE15339E6A1AB2E9EAEA659BFB9FA92EB6A08AA6DAD"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/prepared.json",
+      "bytes": 1847,
+      "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/bridge32.log",
+      "bytes": 4245,
+      "sha256": "8A56ADE0EDA01FF5AF24ED1294FC968BDD45C39D72631F819ED55E9915C78724"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/bridge64.log",
+      "bytes": 5843,
+      "sha256": "0601D0C6CF617017C12180901A6839B1DA01588CF2D9E7AD871E46735F623310"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 13581,
+      "sha256": "2C9173AA9FDA677343334A78D04BB23AF50AB79D802A987D9A972345B45FBD99"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/result.json",
+      "bytes": 6028,
+      "sha256": "392964FD80EC47185E5DCE259C088F673E3C5C2590267AECB59018AC489B22AB"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/launch.json",
+      "bytes": 1609,
+      "sha256": "3D6C19B505023C28B99C93E07B7C49E3903AA12E148C5A13D01CB8B3FFC62763"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/helper.jsonl",
+      "bytes": 910,
+      "sha256": "07CDE3BE4B5A2E6B4C8FAE3F1D3BA0B1637ADE568CFEF3B7A2C382E9A7B15F05"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/prepared.json",
+      "bytes": 1847,
+      "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/bridge32.log",
+      "bytes": 4245,
+      "sha256": "97205BB16E9AB243667970ACB0D909F7C1C9AC523AFD75C807DABF37F8595FAC"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/bridge64.log",
+      "bytes": 5843,
+      "sha256": "78849353B2095C39203FBA9948AF137047EFB67BBEC70717229AB9C44C0CF92D"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 13581,
+      "sha256": "95C4BB6DF613090088298EFCE3AB33185FEB1F7350582FF2AC480E7A4F013F27"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/result.json",
+      "bytes": 2070,
+      "sha256": "A1BD42F5B6B67A37FE941A0C8A35F2EF68CA7369B521209976EF29218F0E1B80"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/launch.json",
+      "bytes": 1610,
+      "sha256": "A2DFB21D898ED3EF7228DED182345AF26B0FB42FEF5CF18C5BCCB4D68645DC80"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/helper.jsonl",
+      "bytes": 925,
+      "sha256": "7BB8863102C4197CA0915D5B30650D57042E1ECBEC4C96F3B678408515E25831"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/prepared.json",
+      "bytes": 1847,
+      "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/rtx-remix/logs/bridge32.log",
+      "bytes": 5454,
+      "sha256": "C0E0CB6E718191C8DF2FDF7605E84A992633A148EC6E25830CF259562633DBB5"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/rtx-remix/logs/bridge64.log",
+      "bytes": 4601,
+      "sha256": "ABC998E430D5E0DC701781AB921E00C08709137363C2C7A2EFACB59B58E4D81A"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v3/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 13653,
+      "sha256": "F2A83590A9818EAEC3AD09020118A58CB4A1DE7DF2F9EF95A2872631358A2178"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/result.json",
+      "bytes": 1821,
+      "sha256": "6FBA6249C8E2316F8AC28C3589C4D7DDBF69789EFB11AC57A4F279D728CD7A28"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/launch.json",
+      "bytes": 1610,
+      "sha256": "5BDE96CA669BDC6B94128FA944D2FCF3706E94E2AF052D3BF98F5896C6C4AEF1"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/helper.jsonl",
+      "bytes": 358,
+      "sha256": "9B735CEC235CC68805CB0DB5DAD4572DB7BF435831F7D6751C923E9391529D0D"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/prepared.json",
+      "bytes": 1847,
+      "sha256": "B6C7559931B3506C21C524E5FFC2360B1983380A7190B0697D87068BCB477D1F"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/rtx-remix/logs/bridge32.log",
+      "bytes": 4414,
+      "sha256": "033BE7D3AE85A1469248B0D3878014616649D0E581665BD227F945BCDAB97F11"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/rtx-remix/logs/bridge64.log",
+      "bytes": 3790,
+      "sha256": "11FEE254420A3C09AFEABAF3CBB55A82CBFBD2F0DFB09FDC955635FB2A339AF5"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/fault-v4/rtx-remix/logs/remix-dxvk.log",
+      "bytes": 4305,
+      "sha256": "19C541041649461BB10B1434526E1448C5DE3E623AB91EDACF02D34F7F4089F6"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-live/closed-evidence-v1.json",
+      "bytes": 8327,
+      "sha256": "E7C397FA388787A836C8D2CCA4A1BE4B2889734C79D28017172A5EAE4BD56DF5"
+    }
+  ],
+  "tests": {
+    "scope": "Production CameraInfo serializer/validator, x86 and x64; no game, GPU, or live IPC; 214+219+214+219=866 checks in the final run",
+    "wireBytes": 140,
+    "fileBytes": 428,
+    "identicalWire": true,
+    "wireFileHash": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2",
+    "results": [
+      {
+        "operation": "write",
+        "platform": "x86",
+        "inputPlatform": "x86",
+        "exitCode": 0,
+        "executableHash": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B",
+        "stdout": "PASS 214 camera checks, pointerBytes=4 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "read",
+        "platform": "x64",
+        "inputPlatform": "x86",
+        "exitCode": 0,
+        "executableHash": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15",
+        "stdout": "PASS 219 camera checks, pointerBytes=8 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "write",
+        "platform": "x64",
+        "inputPlatform": "x64",
+        "exitCode": 0,
+        "executableHash": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15",
+        "stdout": "PASS 214 camera checks, pointerBytes=8 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "read",
+        "platform": "x86",
+        "inputPlatform": "x64",
+        "exitCode": 0,
+        "executableHash": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B",
+        "stdout": "PASS 219 camera checks, pointerBytes=4 wireBytes=140\r\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "live": {
+    "positive-v2": {
+      "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\positive-v2",
+      "mode": "positive",
+      "limitSeconds": 30,
+      "jobCommitLimit": 4294967296,
+      "helperHash": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+      "preparedFiles": [
+        {
+          "path": "live_camera.exe",
+          "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+          "bytes": 134144
+        },
+        {
+          "path": "live_camera.cpp",
+          "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+          "bytes": 8639
+        },
+        {
+          "path": "d3d9.dll",
+          "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+          "bytes": 868864
+        },
+        {
+          "path": ".trex/NvRemixBridge.exe",
+          "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+          "bytes": 1111040
+        },
+        {
+          "path": ".trex/d3d9.dll",
+          "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+          "bytes": 190838384
+        },
+        {
+          "path": ".trex/bridge.conf",
+          "sha256": "672B48C04C3A880A6FCE5F28356112A911A9DFB79D0DEE85DDC5BD0286A222BE",
+          "bytes": 234
+        },
+        {
+          "path": "rtx.conf",
+          "sha256": "FBD8A1F3D7FA7F6D6B33AB6FFA86E75DAE52762B48CE55EEEAC77B54BB72E8C6",
+          "bytes": 121
+        }
+      ],
+      "pid": 9796,
+      "verifiedImage": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\positive-v2\\live_camera.exe",
+      "jobAssignedBeforeResume": true,
+      "exitCode": 0,
+      "elapsedSeconds": 22.40395119999448,
+      "jobBeforeCleanup": [
+        {
+          "pid": 9916,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 6772,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 12140,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 19440,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 7284,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 22944,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 15236,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 13172,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 22392,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 19936,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        }
+      ],
+      "expectedExitCode": 0,
+      "helperRecords": 49,
+      "complete": {
+        "event": "complete",
+        "frames": 20,
+        "elapsedMs": 22297,
+        "cameraMeanMs": 0.04959,
+        "cameraP95Ms": 0.1059,
+        "cameraMaxMs": 0.2014
+      },
+      "passed": true,
+      "peakJobCommitBytes": 2762874880,
+      "jobAfterCleanup": []
+    },
+    "fault-v1": {
+      "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v1",
+      "mode": "fault",
+      "limitSeconds": 30,
+      "jobCommitLimit": 4294967296,
+      "helperHash": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+      "preparedFiles": [
+        {
+          "path": "live_camera.exe",
+          "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+          "bytes": 134144
+        },
+        {
+          "path": "live_camera.cpp",
+          "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+          "bytes": 8639
+        },
+        {
+          "path": "d3d9.dll",
+          "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+          "bytes": 868864
+        },
+        {
+          "path": ".trex/NvRemixBridge.exe",
+          "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+          "bytes": 1111040
+        },
+        {
+          "path": ".trex/d3d9.dll",
+          "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+          "bytes": 190838384
+        },
+        {
+          "path": ".trex/bridge.conf",
+          "sha256": "672B48C04C3A880A6FCE5F28356112A911A9DFB79D0DEE85DDC5BD0286A222BE",
+          "bytes": 234
+        },
+        {
+          "path": "rtx.conf",
+          "sha256": "FBD8A1F3D7FA7F6D6B33AB6FFA86E75DAE52762B48CE55EEEAC77B54BB72E8C6",
+          "bytes": 121
+        }
+      ],
+      "pid": 3132,
+      "verifiedImage": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v1\\live_camera.exe",
+      "jobAssignedBeforeResume": true,
+      "suspendedOwnedServer": {
+        "pid": 14024,
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v1\\.trex\\NvRemixBridge.exe",
+        "threads": [
+          9440,
+          19120,
+          5056,
+          3728,
+          5820,
+          4300,
+          14748,
+          4276,
+          17988,
+          10808,
+          19692,
+          840,
+          16120,
+          14832,
+          22156,
+          12656,
+          14348,
+          21044,
+          16092,
+          8736,
+          2188,
+          5160,
+          404,
+          19628,
+          7660,
+          23264,
+          12540,
+          15148,
+          20084,
+          3884,
+          8364,
+          20464,
+          8080,
+          23700,
+          10208,
+          6432,
+          24356,
+          16356,
+          6556,
+          19816,
+          9748,
+          2492,
+          23024,
+          3096,
+          2240,
+          12136,
+          2752,
+          9584,
+          18992,
+          20528,
+          5064,
+          18780,
+          11544,
+          2772,
+          22840,
+          12628
+        ]
+      },
+      "exitCode": 3763522049,
+      "elapsedSeconds": 12.163759499999287,
+      "jobBeforeCleanup": [
+        {
+          "pid": 14024,
+          "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v1\\.trex\\NvRemixBridge.exe"
+        },
+        {
+          "pid": 23848,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 2400,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 20212,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 21120,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 16724,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 20228,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 21928,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 17492,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 16408,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 13588,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 8432,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 13384,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 452,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 7284,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 19960,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 15504,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 11824,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 19440,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 6772,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 22392,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 3776,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 15852,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 20896,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 4144,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        }
+      ],
+      "expectedExitCode": 3763522049,
+      "error": "[Errno 13] Permission denied: 'X:\\\\VSProjects\\\\SparkplugEngineResearch\\\\local-data\\\\rtx-remix\\\\direct-camera-live\\\\fault-v1\\\\helper.jsonl'",
+      "passed": false,
+      "peakJobCommitBytes": 2079432704,
+      "jobAfterCleanup": []
+    },
+    "fault-v2": {
+      "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v2",
+      "mode": "fault",
+      "limitSeconds": 30,
+      "jobCommitLimit": 4294967296,
+      "helperHash": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+      "preparedFiles": [
+        {
+          "path": "live_camera.exe",
+          "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+          "bytes": 134144
+        },
+        {
+          "path": "live_camera.cpp",
+          "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+          "bytes": 8639
+        },
+        {
+          "path": "d3d9.dll",
+          "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+          "bytes": 868864
+        },
+        {
+          "path": ".trex/NvRemixBridge.exe",
+          "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+          "bytes": 1111040
+        },
+        {
+          "path": ".trex/d3d9.dll",
+          "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+          "bytes": 190838384
+        },
+        {
+          "path": ".trex/bridge.conf",
+          "sha256": "672B48C04C3A880A6FCE5F28356112A911A9DFB79D0DEE85DDC5BD0286A222BE",
+          "bytes": 234
+        },
+        {
+          "path": "rtx.conf",
+          "sha256": "FBD8A1F3D7FA7F6D6B33AB6FFA86E75DAE52762B48CE55EEEAC77B54BB72E8C6",
+          "bytes": 121
+        }
+      ],
+      "expectedExitCode": 3763522049,
+      "pid": 5820,
+      "verifiedImage": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v2\\live_camera.exe",
+      "jobAssignedBeforeResume": true,
+      "suspendedOwnedServer": {
+        "pid": 24000,
+        "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v2\\.trex\\NvRemixBridge.exe",
+        "threads": [
+          8484,
+          20192,
+          21084,
+          17492,
+          3884,
+          23728,
+          3652,
+          19256,
+          3852,
+          20132,
+          21388,
+          19236,
+          17724,
+          11900,
+          5596,
+          18904,
+          14368,
+          7544,
+          23604,
+          17820,
+          14780,
+          19132,
+          11932,
+          12960,
+          9748,
+          19816,
+          6556,
+          21380,
+          12628,
+          2876,
+          15836,
+          20884,
+          19224,
+          23044,
+          19788,
+          20116,
+          16352,
+          19088,
+          7316,
+          7892,
+          8188,
+          14196,
+          2400,
+          8448,
+          24056,
+          2752,
+          12136,
+          9532,
+          2992,
+          5068,
+          8556,
+          20708,
+          6352,
+          4772,
+          21252,
+          18244
+        ]
+      },
+      "exitCode": 3763522049,
+      "elapsedSeconds": 11.489281000001938,
+      "jobBeforeCleanup": [
+        {
+          "pid": 24000,
+          "path": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v2\\.trex\\NvRemixBridge.exe"
+        },
+        {
+          "pid": 10704,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 20440,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 12888,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 12368,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 19724,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 9988,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 17336,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 9040,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 19600,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 14784,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 16796,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 21324,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 22300,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 6316,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 2436,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 14364,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 22440,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 16164,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 6912,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 21116,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 10932,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 7740,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        },
+        {
+          "pid": 18668,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 11812,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        }
+      ],
+      "peakJobCommitBytes": 2068307968,
+      "jobAfterCleanup": [],
+      "error": "[Errno 13] Permission denied: 'X:\\\\VSProjects\\\\SparkplugEngineResearch\\\\local-data\\\\rtx-remix\\\\direct-camera-live\\\\fault-v2\\\\helper.jsonl'",
+      "passed": false
+    },
+    "fault-v3": {
+      "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v3",
+      "mode": "fault",
+      "limitSeconds": 30,
+      "jobCommitLimit": 4294967296,
+      "helperHash": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+      "preparedFiles": [
+        {
+          "path": "live_camera.exe",
+          "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+          "bytes": 134144
+        },
+        {
+          "path": "live_camera.cpp",
+          "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+          "bytes": 8639
+        },
+        {
+          "path": "d3d9.dll",
+          "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+          "bytes": 868864
+        },
+        {
+          "path": ".trex/NvRemixBridge.exe",
+          "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+          "bytes": 1111040
+        },
+        {
+          "path": ".trex/d3d9.dll",
+          "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+          "bytes": 190838384
+        },
+        {
+          "path": ".trex/bridge.conf",
+          "sha256": "672B48C04C3A880A6FCE5F28356112A911A9DFB79D0DEE85DDC5BD0286A222BE",
+          "bytes": 234
+        },
+        {
+          "path": "rtx.conf",
+          "sha256": "FBD8A1F3D7FA7F6D6B33AB6FFA86E75DAE52762B48CE55EEEAC77B54BB72E8C6",
+          "bytes": 121
+        }
+      ],
+      "expectedExitCode": 3763522049,
+      "pid": 18192,
+      "verifiedImage": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v3\\live_camera.exe",
+      "jobAssignedBeforeResume": true,
+      "exitCode": 1,
+      "elapsedSeconds": 24.780907899999875,
+      "jobBeforeCleanup": [
+        {
+          "pid": 17116,
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvmdi.inf_amd64_d9379a506a4c3691\\nvngx_update.exe"
+        },
+        {
+          "pid": 21060,
+          "path": "C:\\Windows\\System32\\conhost.exe"
+        }
+      ],
+      "peakJobCommitBytes": 1747255296,
+      "jobAfterCleanup": [],
+      "helperRecords": 8,
+      "complete": null,
+      "passed": false
+    },
+    "fault-v4": {
+      "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v4",
+      "mode": "fault",
+      "limitSeconds": 30,
+      "jobCommitLimit": 4294967296,
+      "helperHash": "210B9C82C4D55566CB124E05707CE0A79EDC0460AD568526B95A599B9892D2F8",
+      "preparedFiles": [
+        {
+          "path": "live_camera.exe",
+          "sha256": "210B9C82C4D55566CB124E05707CE0A79EDC0460AD568526B95A599B9892D2F8",
+          "bytes": 134144
+        },
+        {
+          "path": "live_camera.cpp",
+          "sha256": "9416490AC639BDA8E2CDACB8723E13C7C86506E7EF64F7CD4E96EE9216582505",
+          "bytes": 8788
+        },
+        {
+          "path": "d3d9.dll",
+          "sha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+          "bytes": 868864
+        },
+        {
+          "path": ".trex/NvRemixBridge.exe",
+          "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+          "bytes": 1111040
+        },
+        {
+          "path": ".trex/d3d9.dll",
+          "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+          "bytes": 190838384
+        },
+        {
+          "path": ".trex/bridge.conf",
+          "sha256": "672B48C04C3A880A6FCE5F28356112A911A9DFB79D0DEE85DDC5BD0286A222BE",
+          "bytes": 234
+        },
+        {
+          "path": "rtx.conf",
+          "sha256": "FBD8A1F3D7FA7F6D6B33AB6FFA86E75DAE52762B48CE55EEEAC77B54BB72E8C6",
+          "bytes": 121
+        }
+      ],
+      "expectedExitCode": 3763522049,
+      "pid": 19732,
+      "verifiedImage": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\direct-camera-live\\fault-v4\\live_camera.exe",
+      "jobAssignedBeforeResume": true,
+      "exitCode": 1,
+      "elapsedSeconds": 16.057810800004518,
+      "jobBeforeCleanup": [],
+      "peakJobCommitBytes": 48750592,
+      "jobAfterCleanup": [],
+      "helperRecords": 4,
+      "complete": null,
+      "passed": false
+    }
+  },
+  "liveNativeValidation": {
+    "status": "Saved native positive and two terminal-negative runs verified after cleanup; original failed wrapper reports preserved",
+    "launchesPerformed": 0,
+    "cases": [
+      {
+        "run": "positive-v2",
+        "nativeVerified": true,
+        "originalWrapperPassed": true,
+        "originalWrapperError": null,
+        "exitCode": 0,
+        "elapsedSeconds": 22.40395119999448,
+        "evidence": [
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/result.json",
+            "sha256": "02080A9EA46873415417DF3EB7FF461C107A2255806B754CD6D107DA414C26DF",
+            "bytes": 3198
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/launch.json",
+            "sha256": "284C97BEAD2D4A65573B60ACA270C5D751430823C5120A20BAB781C94C6E629F",
+            "bytes": 1583
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/helper.jsonl",
+            "sha256": "58C12F65A5DAD9E4F59257D4A41FCB4576E4596441CA138050BB6E48A5A65F1B",
+            "bytes": 4565
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/prepared.json",
+            "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27",
+            "bytes": 1847
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/live_camera.cpp",
+            "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+            "bytes": 8639
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/live_camera.exe",
+            "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+            "bytes": 134144
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/bridge32.log",
+            "sha256": "D111ADDA79D9618B298725B8BF7203D02D3917E3774C630AAAB75985E81F3EC7",
+            "bytes": 11493
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/bridge64.log",
+            "sha256": "2164F2A1DF94B20F80F972033E0EACE2AF6D9FEBC111B3B914366890365E2E38",
+            "bytes": 4463
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/positive-v2/rtx-remix/logs/remix-dxvk.log",
+            "sha256": "4CDA443EBAE6ED535ECBF056ED8DD77D3BD7215B2FA4B18248224D0837B43013",
+            "bytes": 15079
+          }
+        ],
+        "complete": {
+          "event": "complete",
+          "frames": 20,
+          "elapsedMs": 22297,
+          "cameraMeanMs": 0.04959,
+          "cameraP95Ms": 0.1059,
+          "cameraMaxMs": 0.2014
+        }
+      },
+      {
+        "run": "fault-v1",
+        "nativeVerified": true,
+        "originalWrapperPassed": false,
+        "originalWrapperError": "[Errno 13] Permission denied: 'X:\\\\VSProjects\\\\SparkplugEngineResearch\\\\local-data\\\\rtx-remix\\\\direct-camera-live\\\\fault-v1\\\\helper.jsonl'",
+        "exitCode": 3763522049,
+        "elapsedSeconds": 12.163759499999287,
+        "evidence": [
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/result.json",
+            "sha256": "F07F0559C87A6C389AFA845F8CC4A830989DA9879D34D406559DDF9240CBD73F",
+            "bytes": 6020
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/launch.json",
+            "sha256": "ADEE83A0FBC552C24E7F0A2AA3C5605EC523DAF5564C5CBAF3F95042C34DE5C9",
+            "bytes": 1574
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/helper.jsonl",
+            "sha256": "E751A3260C966251E34FBBE15339E6A1AB2E9EAEA659BFB9FA92EB6A08AA6DAD",
+            "bytes": 910
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/prepared.json",
+            "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27",
+            "bytes": 1847
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/live_camera.cpp",
+            "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+            "bytes": 8639
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/live_camera.exe",
+            "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+            "bytes": 134144
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/bridge32.log",
+            "sha256": "8A56ADE0EDA01FF5AF24ED1294FC968BDD45C39D72631F819ED55E9915C78724",
+            "bytes": 4245
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/bridge64.log",
+            "sha256": "0601D0C6CF617017C12180901A6839B1DA01588CF2D9E7AD871E46735F623310",
+            "bytes": 5843
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v1/rtx-remix/logs/remix-dxvk.log",
+            "sha256": "2C9173AA9FDA677343334A78D04BB23AF50AB79D802A987D9A972345B45FBD99",
+            "bytes": 13581
+          }
+        ],
+        "fatalUid": 10,
+        "transportResult": 1,
+        "scope": "Terminal response-loss proof after CreateDevice; renderer server suspended by verified owned thread handles; source helper retained in run directory"
+      },
+      {
+        "run": "fault-v2",
+        "nativeVerified": true,
+        "originalWrapperPassed": false,
+        "originalWrapperError": "[Errno 13] Permission denied: 'X:\\\\VSProjects\\\\SparkplugEngineResearch\\\\local-data\\\\rtx-remix\\\\direct-camera-live\\\\fault-v2\\\\helper.jsonl'",
+        "exitCode": 3763522049,
+        "elapsedSeconds": 11.489281000001938,
+        "evidence": [
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/result.json",
+            "sha256": "392964FD80EC47185E5DCE259C088F673E3C5C2590267AECB59018AC489B22AB",
+            "bytes": 6028
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/launch.json",
+            "sha256": "3D6C19B505023C28B99C93E07B7C49E3903AA12E148C5A13D01CB8B3FFC62763",
+            "bytes": 1609
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/helper.jsonl",
+            "sha256": "07CDE3BE4B5A2E6B4C8FAE3F1D3BA0B1637ADE568CFEF3B7A2C382E9A7B15F05",
+            "bytes": 910
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/prepared.json",
+            "sha256": "7F15DF2873901FA7E8099A80D1A33B642C905F9C93AE4C86AE4EE5E4CD6B0C27",
+            "bytes": 1847
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/live_camera.cpp",
+            "sha256": "A4D19662B798F78A7D846137153F9D55815CE6D0B65DD09663B994C2D3AB1B37",
+            "bytes": 8639
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/live_camera.exe",
+            "sha256": "31CA4470E5D28759E416BD618AEFAF1015FBC0A46C7E7CEC2D702D5FE5C6557C",
+            "bytes": 134144
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/bridge32.log",
+            "sha256": "97205BB16E9AB243667970ACB0D909F7C1C9AC523AFD75C807DABF37F8595FAC",
+            "bytes": 4245
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/bridge64.log",
+            "sha256": "78849353B2095C39203FBA9948AF137047EFB67BBEC70717229AB9C44C0CF92D",
+            "bytes": 5843
+          },
+          {
+            "path": "local-data/rtx-remix/direct-camera-live/fault-v2/rtx-remix/logs/remix-dxvk.log",
+            "sha256": "95C4BB6DF613090088298EFCE3AB33185FEB1F7350582FF2AC480E7A4F013F27",
+            "bytes": 13581
+          }
+        ],
+        "fatalUid": 10,
+        "transportResult": 1,
+        "scope": "Terminal response-loss proof after CreateDevice; renderer server suspended by verified owned thread handles; source helper retained in run directory"
+      }
+    ],
+    "limitations": [
+      "No renderer matrix readback or pixel-motion verification",
+      "Latest reproducer moves fault gate before device and adds bounded trace-read retry; that variant did not reach fault injection in fault-v4 because cold server startup exceeded timeout"
+    ]
+  },
+  "testHarness": [
+    {
+      "path": "research/rtx-remix/direct-camera-bridge/live_camera.cpp",
+      "bytes": 8788,
+      "sha256": "9416490AC639BDA8E2CDACB8723E13C7C86506E7EF64F7CD4E96EE9216582505"
+    },
+    {
+      "path": "research/rtx-remix/direct-camera-bridge/Prepare-Live.ps1",
+      "bytes": 3289,
+      "sha256": "CFEB22F5CBC6DF329B587465F054F5BAC74A297FF9303D81D6620AAA00ED3596"
+    },
+    {
+      "path": "research/rtx-remix/direct-camera-bridge/Run-Live.py",
+      "bytes": 10293,
+      "sha256": "88F5FE10E26ABA9DB41073FD28C519195EADEF7BBACF70A2B4D7239F8E35F710"
+    },
+    {
+      "path": "research/rtx-remix/direct-camera-bridge/Test-LiveEvidence.py",
+      "bytes": 3926,
+      "sha256": "097F252671D494965F019CCA684C7DF61041033F5316B802EE72E1A13813F3E7"
+    }
+  ],
+  "historicalEvidence": [
+    "history/initial-camera-v1.patch",
+    "history/initial-build-manifest.json",
+    "positive-v1: 1 GiB commit cap failure; later measured peak 2.76 GB",
+    "fault-v1 and fault-v2: correct native terminal exit; original wrapper failed reading trace before Windows released its handle, saved native evidence independently verified after cleanup",
+    "fault-v3: cold CreateDevice startup exceeded client timeout; fault-v4: cold bridge startup exceeded handshake timeout; neither reached fault injection; original failed reports preserved"
+  ],
+  "notVerified": [
+    "Exact renderer-accepted matrix values or GPU pixel motion readback; helper orders API camera before first draw but does not instrument renderer update",
+    "Game native camera selection, main/UI/offscreen interaction, cuts/history and level/device lifecycle",
+    "Full compatibility of reference-based rebuilt bridge with stock68edea01 renderer beyond the isolated tested calls; matching stock source commit is unavailable"
+  ]
+}

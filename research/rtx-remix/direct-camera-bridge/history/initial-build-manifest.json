@@ -1,0 +1,212 @@
+{
+  "status": "Built and cross-architecture serializer validated; NOT installed and live IPC/GPU/game not yet validated",
+  "provenance": "Own universal bridge transport extension, not reconstructed game logic; MIT upstream patch",
+  "baseRevision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "stockBinaryRevision": "68edea01 (not present in local shallow reference)",
+  "bridgeVersion": "remix-main-camera-v1+b81a7b56",
+  "patchSha256": "9FEC7364BA55A70D4172B0D405A1E718BCFB4C71DBA975DEAB165F4AD1AD08D5",
+  "patchAppliesToReadOnlyReference": true,
+  "referenceWorktreeClean": true,
+  "existingCommandIdsPreserved": 372,
+  "cameraCommandId": 371,
+  "wire": {
+    "bytes": 140,
+    "fields": "uint32 byteSize, uint32 sType, uint32 cameraType, view32bits[16], projection32bits[16]",
+    "pNext": "No extensions; client rejects non-null and decoder reconstructs null",
+    "validation": "Exact outer/inner size, camera sType, known type, finite float32; output untouched on rejection"
+  },
+  "result": "Client waits for mandatory UID-matched server response using existing ack timeout. SUCCESS is the real renderer API return, not proof GPU consumed queued camera. Timeout is failure and does not permit assuming a camera was not queued.",
+  "build": {
+    "msvc": "19.51.36257",
+    "sdk": "10.0.26100.0",
+    "meson": "1.9.2",
+    "ninja": "1.13.0",
+    "platforms": [
+      "x86",
+      "x64"
+    ],
+    "workers": 1,
+    "configuration": "release",
+    "detoursRevision": "ea6c4ae7f3f1b1772b8a7cda4199230b932f5a50"
+  },
+  "patchedFiles": [
+    {
+      "path": "bridge/meson.build",
+      "sha256": "B2BAE2167484D283ACBC6D95DE0C512FFC4AC996FAC6DF76434C435AA86DAF90",
+      "lfSha256": "860485139633390DDC9E4EA9B858EB78197A22EBE29FC33D94F9FABE1C3105F0"
+    },
+    {
+      "path": "bridge/src/client/remix_api.cpp",
+      "sha256": "25DC4E9A89F839EA7BFFD1BC7BE9A3D899319570B65B52FF5640E1140142C81E",
+      "lfSha256": "FB2DBDEE73BEC86D064F181AA5827C76F72AF751B13DF2B40A81D61287BD12F0"
+    },
+    {
+      "path": "bridge/src/meson.build",
+      "sha256": "BE68383032D6C329BDAAEC4C9069AC070237BE823153CBD669C5ED383B5F07C4",
+      "lfSha256": "101B0EB0AC42C359444BF1890FF9EADC653B4042B82721A827194EEEE4DC48D4"
+    },
+    {
+      "path": "bridge/src/server/main.cpp",
+      "sha256": "D2D0D8959E70D3ED74C53E7CD7E5556295E415687349EE2D82C6794472CF299A",
+      "lfSha256": "F3C1E5BE36723F6897DCBD0123A7B8A8F0442B974495D264979AF98C2EB7A2B8"
+    },
+    {
+      "path": "bridge/src/util/util_commands.h",
+      "sha256": "45E16920EEA6DC0E06ED72CE0D3D43D592EBF781A45168FC187A6D885C16CFFD",
+      "lfSha256": "D8E14472A335A7DE833BFA74892EFA641FB3D6D4769520458FD6D2C49385D17D"
+    },
+    {
+      "path": "bridge/src/util/util_remixapi.cpp",
+      "sha256": "6BCB3EA3874A0C6CF838265E5DE6533F6C41A340DD83F96316230E41A5C596D0",
+      "lfSha256": "B531D812FB9201B62E88953D93B6DB873853D442D64F95DA08F471FF122FF5CB"
+    },
+    {
+      "path": "bridge/src/util/util_remixapi.h",
+      "sha256": "3AF35A69F6E55D76E44CC450C9C10263D37734D3FDC6B623777EFD242AF43750",
+      "lfSha256": "8E5575455F8686957BCA8CDDCDCDD5E6A076BFC96A9F1EED25DCA9E44FC8CE9F"
+    },
+    {
+      "path": "bridge/test/rtx/unit/meson.build",
+      "sha256": "CFF570A9CB5B067BB60FA7C0BD155E66A4D4E99A94EEA23E53E4FBA5E46139AA",
+      "lfSha256": "0816723DF44EB2F19F0124E3ADCB500089081851BAD9CA14726F28F04D6A87E5"
+    },
+    {
+      "path": "bridge/test/rtx/unit/test_remix_api_camera.cpp",
+      "sha256": "2AE951BBB7B19F452E8073E0244AE7EA4B4240B055E484C6AFB17DC6582A17FC",
+      "lfSha256": "2AE951BBB7B19F452E8073E0244AE7EA4B4240B055E484C6AFB17DC6582A17FC"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x86/src/client/d3d9.dll",
+      "bytes": 868864,
+      "sha256": "710C9F243455172AB34022793B1D7426DBD5DF4968D2A330805B0D917BE2E5D1"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x64/src/server/NvRemixBridge.exe",
+      "bytes": 1111040,
+      "sha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x86/test/rtx/unit/test_remix_api_camera_x86.exe",
+      "bytes": 231424,
+      "sha256": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-build/x64/test/rtx/unit/test_remix_api_camera_x64.exe",
+      "bytes": 288256,
+      "sha256": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/client-initializer-static.json",
+      "bytes": 20762,
+      "sha256": "87F4A8CEEAA6D210F2479AE13A5662B6448EF31C43E01D86C4FB75E4261D7D93"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/result.json",
+      "bytes": 2224,
+      "sha256": "8C6323E8C627754F5451512F0F982529E51FFF23992C96517CD68098D526ED71"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x64-write.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x64-write.out.txt",
+      "bytes": 54,
+      "sha256": "C40D6965730B95CB08C8049280AA68798837B9062A5042C30485ECA86EF244F3"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x86-read.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64-x86-read.out.txt",
+      "bytes": 54,
+      "sha256": "B393BC62DB68E8345E121E8B8A72AC60F5FA3F6F59B5F7A6970A7F095103ED42"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x64.bin",
+      "bytes": 428,
+      "sha256": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x64-read.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x64-read.out.txt",
+      "bytes": 54,
+      "sha256": "A779FFA415F76955EAAC5304DF48B31E9B04F9AB68110FC58CEAC0F4659694C3"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x86-write.err.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86-x86-write.out.txt",
+      "bytes": 54,
+      "sha256": "00DB16708BAC06C23C0A8C82E086FFBE2F7FE23292CBEB3883A7C11536289CEE"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-tests/cross-arch-v3/x86.bin",
+      "bytes": 428,
+      "sha256": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2"
+    }
+  ],
+  "tests": {
+    "scope": "Production CameraInfo serializer/validator, x86 and x64; no game, GPU, or live IPC; 214+219+214+219=866 checks in the final run",
+    "wireBytes": 140,
+    "fileBytes": 428,
+    "identicalWire": true,
+    "wireFileHash": "9DF72EB1378A4E79EED00859B983DE037596444DFC4517D570D40CC6BF815AC2",
+    "results": [
+      {
+        "operation": "write",
+        "platform": "x86",
+        "inputPlatform": "x86",
+        "exitCode": 0,
+        "executableHash": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B",
+        "stdout": "PASS 214 camera checks, pointerBytes=4 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "read",
+        "platform": "x64",
+        "inputPlatform": "x86",
+        "exitCode": 0,
+        "executableHash": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15",
+        "stdout": "PASS 219 camera checks, pointerBytes=8 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "write",
+        "platform": "x64",
+        "inputPlatform": "x64",
+        "exitCode": 0,
+        "executableHash": "AA5D094714836C8972EF445676F69E04A79C81C313C61F8F9A5B4E4B18E86F15",
+        "stdout": "PASS 214 camera checks, pointerBytes=8 wireBytes=140\r\n",
+        "stderr": ""
+      },
+      {
+        "operation": "read",
+        "platform": "x86",
+        "inputPlatform": "x64",
+        "exitCode": 0,
+        "executableHash": "4C40AAA68DB0D0E8DCE877746E0B24C8D33A297732373DE28AC349558BCE315B",
+        "stdout": "PASS 219 camera checks, pointerBytes=4 wireBytes=140\r\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "notVerified": [
+    "Live IPC round trip and server errors",
+    "Remix device registration and accepted camera updates",
+    "GPU output, first-camera ordering, camera cuts/history, UI and game lifecycle",
+    "Compatibility of reference-based rebuilt bridge with stock68edea01 renderer beyond declared API interface"
+  ]
+}

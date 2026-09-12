@@ -1,11 +1,16 @@
 # Готовность универсальной интеграции Winx Club с RTX Remix
 
 Текущая оценка на **13 сентября 2026: около 45%**.
-Текущий блок: [native-source-v5](winx-remix-native-mesh-source-2026-09-13.md):
+Текущий блок: [native-layout-v2](winx-remix-native-layout-2026-09-13.md).
+Описание вершин поддержанных native meshes берётся из общего восстановленного
+emitter по флагам игры; actual D3D declaration проверяется на каждом draw.
+Алфея: 380 кадров по 871 instance, без upload/layout mismatch; 402 integration
+и 338 common checks. Camera bridge собран и проверен отдельным live helper,
+игровое подключение камеры — следующий шаг. Прежний [native-source-v5](winx-remix-native-mesh-source-2026-09-13.md):
 вершины и индексы поддержанных мешей берутся из CPU-входов движка до D3D;
 в проверенных кадрах Алфеи 871 native instance, Домино 446 за кадр.
-563 проверенных поколения, без несовпадений байтов. Layout/material пока
-остаются D3D-входами, независимый scene lifecycle не перенесён. Временный
+563 проверенных поколения, без несовпадений байтов. Material пока
+остаётся D3D-входом, независимый scene lifecycle не перенесён. Временный
 unlit → emission сохраняется; проценты готовности изображения не увеличены.
 Исходная база шкалы — commit `0ea82c5`; предыдущие оценки сохранены в истории.
 
@@ -24,7 +29,7 @@ unlit → emission сохраняется; проценты готовности
 
 Первый частичный direct-путь уже проверен на двух уровнях: native geometry
 и world → существующие API-кэши. Этапы 1–2 остаются открытыми: нет прямой
-камеры, полного native material/layout и instance/scene generation.
+камеры, полного native material и instance/scene generation.
 [Контракт камеры](winx-remix-native-camera-contract-2026-09-12.md) подтвердил,
 что stock x86 client не предоставляет SetupCamera; отдельная доработка bridge
 проверяется до установки. Это не препятствие для законченного geometry-блока.

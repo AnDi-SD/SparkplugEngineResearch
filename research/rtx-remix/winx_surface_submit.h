@@ -183,16 +183,6 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   UINT offset=0,stride=0,n=MAXD3DDECLLENGTH+1;D3DVERTEXELEMENT9 layout[MAXD3DDECLLENGTH+1]{};
   if(FAILED(d->GetStreamSource(0,&vb,&offset,&stride)) || !vb || !stride || FAILED(d->GetIndices(&ib)) || !ib ||
      FAILED(d->GetVertexDeclaration(&decl)) || !decl || FAILED(decl->GetDeclaration(layout,&n))) return SurfaceSubmitFailure(__LINE__);
-  int pos=-1,normal=-1,color=-1,uv=-1;
-  for(UINT i=0;i<n && layout[i].Stream!=0xff;++i) {
-    const auto& e=layout[i];if(e.Stream || e.Method!=D3DDECLMETHOD_DEFAULT) return SurfaceSubmitFailure(__LINE__);
-    if(e.Usage==D3DDECLUSAGE_POSITION && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) pos=e.Offset;
-    if(e.Usage==D3DDECLUSAGE_NORMAL && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) normal=e.Offset;
-    if(e.Usage==D3DDECLUSAGE_COLOR && e.UsageIndex==0 && e.Type==D3DDECLTYPE_D3DCOLOR) color=e.Offset;
-    if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==contract.coordinates && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
-  }
-  if(pos<0 || color<0 || uv<0 || UINT(pos+12)>stride || UINT(color+4)>stride || UINT(uv+8)>stride ||
-     (channels&&normal<0)||(normal>=0 && UINT(normal+12)>stride)) return SurfaceSubmitFailure(__LINE__);
   D3DVERTEXBUFFER_DESC vd{};D3DINDEXBUFFER_DESC id{};
   if(FAILED(vb->GetDesc(&vd)) || FAILED(ib->GetDesc(&id)) ||
      (id.Format!=D3DFMT_INDEX16 && id.Format!=D3DFMT_INDEX32)) return SurfaceSubmitFailure(__LINE__);
@@ -200,8 +190,8 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   if(vbSnapshot==surfaceBuffers.end() || ibSnapshot==surfaceBuffers.end() || !vbSnapshot->second.complete ||
      !ibSnapshot->second.complete || vbSnapshot->second.bytes.size()!=vd.Size || ibSnapshot->second.bytes.size()!=id.Size) return SurfaceSubmitFailure(__LINE__);
   // One converter/backend for both sources. The native packet replaces raw
-  // bytes, range and world input only; declaration/material remain D3D inputs
-  // during this migration step. No native instance identity is inferred here.
+  // bytes, range, world and recovered vertex layout. Material/render states
+  // remain D3D inputs. No durable native instance identity is inferred here.
   native_mesh_source::Geometry nativeGeometry{};
   bool nativeInput=native_mesh_source::Resolve(d,{type,base,minVertex,vertices,start,count},vb,ib,offset,stride,nativeGeometry);
   if(nativeInput&&(!nativeGeometry.vertices->verified||!nativeGeometry.indices->verified)) {
@@ -212,11 +202,30 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     if(equal){nativeGeometry.vertices->verified=true;nativeGeometry.indices->verified=true;}
     else{nativeInput=false;++native_mesh_source::uploadMismatches;}
   }
+  // The native declaration cache can be reinitialized without changing its
+  // flags key. Preserve that original behavior by comparing on every draw.
+  if(nativeInput&&!native_mesh_source::EqualLayout(nativeGeometry,layout,n)) {
+    nativeInput=false;++native_mesh_source::layoutMismatches;
+  }
   nativeInput=nativeInput&&native_mesh_source::submitEnabled;
   const auto& vertexBytes=nativeInput?nativeGeometry.vertices->data:vbSnapshot->second.bytes;
   const auto& indexBytes=nativeInput?nativeGeometry.indices->data:ibSnapshot->second.bytes;
   if(nativeInput){const auto& range=nativeGeometry.range;type=range.type;base=range.base;minVertex=range.minimum;
     vertices=range.vertices;start=range.start;count=range.count;stride=nativeGeometry.stride;}
+  if(nativeInput) {
+    n=UINT(nativeGeometry.layout->size());
+    memcpy(layout,nativeGeometry.layout->data(),size_t(n)*sizeof(layout[0]));
+  }
+  int pos=-1,normal=-1,color=-1,uv=-1;
+  for(UINT i=0;i<n && layout[i].Stream!=0xff;++i) {
+    const auto& e=layout[i];if(e.Stream || e.Method!=D3DDECLMETHOD_DEFAULT) return SurfaceSubmitFailure(__LINE__);
+    if(e.Usage==D3DDECLUSAGE_POSITION && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) pos=e.Offset;
+    if(e.Usage==D3DDECLUSAGE_NORMAL && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) normal=e.Offset;
+    if(e.Usage==D3DDECLUSAGE_COLOR && e.UsageIndex==0 && e.Type==D3DDECLTYPE_D3DCOLOR) color=e.Offset;
+    if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==contract.coordinates && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
+  }
+  if(pos<0 || color<0 || uv<0 || UINT(pos+12)>stride || UINT(color+4)>stride || UINT(uv+8)>stride ||
+     (channels&&normal<0)||(normal>=0 && UINT(normal+12)>stride)) return SurfaceSubmitFailure(__LINE__);
   const UINT indexSize=id.Format==D3DFMT_INDEX16?2:4,indexCount=type==D3DPT_TRIANGLELIST?count*3:count+2;
   if(uint64_t(start+uint64_t(indexCount))*indexSize>id.Size) return SurfaceSubmitFailure(__LINE__);
   const void* indexData=indexBytes.data()+start*indexSize;
@@ -307,8 +316,8 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     // One sampled frame per F8 request, plus periodic frames. A 120-frame
     // trace of every native instance otherwise exhausts the log during A/B.
     if(native_mesh_source::output&&_ftelli64(native_mesh_source::output)<16*1024*1024&&(frameId%300==0||frameId+120==traceUntilFrame))
-      fprintf(native_mesh_source::output,"{\"event\":\"submit\",\"frame\":%u,\"draw\":%u,\"mesh\":%u,\"submission\":%llu,\"generation\":%llu,\"geometrySource\":\"%s\",\"worldSource\":\"native_renderer\",\"layoutSource\":\"d3d_declaration\",\"materialSource\":\"d3d_state\"}\n",
-        frameId,drawId,nativeGeometry.mesh,nativeGeometry.submission,nativeGeometry.vertices->generation,nativeGeometry.vertices->source);
+      fprintf(native_mesh_source::output,"{\"event\":\"submit\",\"frame\":%u,\"draw\":%u,\"mesh\":%u,\"submission\":%llu,\"generation\":%llu,\"geometrySource\":\"%s\",\"worldSource\":\"native_renderer\",\"layoutSource\":\"native_flags_shared_emitter\",\"componentFlags\":%u,\"materialSource\":\"d3d_state\"}\n",
+        frameId,drawId,nativeGeometry.mesh,nativeGeometry.submission,nativeGeometry.vertices->generation,nativeGeometry.vertices->source,nativeGeometry.componentFlags);
   }
   if(submitted&&channels&&surfaceRoleLog&&(frameId%300==0||frameId<traceUntilFrame)) {
     fprintf(surfaceRoleLog,"{\"event\":\"material_channels\",\"frame\":%u,\"draw\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"vertexAlpha\":%s,\"alpha\":%u}\n",

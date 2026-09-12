@@ -76,6 +76,7 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   Check(!source::enabled&&!source::active&&source::buffers.empty()&&!source::retainedBytes,"fresh native source fixture");
   const bool oldSubmit=source::submitEnabled;const auto oldThread=source::ownerThread;
   const auto oldMatched=source::matched,oldUsed=source::used,oldInvalidations=source::invalidations,oldMismatches=source::uploadMismatches;
+  const auto oldLayoutMismatches=source::layoutMismatches;const auto oldLayouts=source::layouts;
   const auto vertexBytes=surfaceBuffers.at(vb).bytes,indexBytes=surfaceBuffers.at(ib).bytes;
   auto address=[](const void* p){return uint32_t(reinterpret_cast<uintptr_t>(p));};
   std::vector<uint8_t> renderer(0xca80);
@@ -88,6 +89,7 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   material.base.base.vtableAddress=abi::spDXMaterialPrimaryVTable;material.base.materialVTable=abi::spDXMaterialInterfaceVTable;material.base.passCount=1;
   mesh.base.base.base.base.base.vtableAddress=abi::spDXMeshVTable;mesh.base.base.secondaryVTable=abi::spDXMeshInterfaceVTable;
   mesh.base.base.vertexCount=4;mesh.base.base.primitiveCount=2;mesh.indexType=3;mesh.vertexStride=sizeof(Vertex);
+  mesh.base.base.vertexComponentFlags=0x940; // Native position/normal/color/UV layout of Vertex.
   mesh.vertexBuffer=address(&nativeVB);mesh.indexBuffer=address(&nativeIB);mesh.sharedMeshData=address(&shared);
   IDirect3DVertexDeclaration9* declaration=nullptr;Hr(d->GetVertexDeclaration(&declaration),"native fixture declaration");
   Check(declaration!=nullptr,"native fixture declaration exists");mesh.vertexDeclaration=address(declaration);declaration->Release();
@@ -106,6 +108,15 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   const source::DrawRange range{D3DPT_TRIANGLESTRIP,0,0,4,0,2};source::Geometry geometry{};
   auto resolve=[&](){geometry={};return source::Resolve(d,range,vb,ib,0,sizeof(Vertex),geometry);};
   Check(resolve(),"matching native mesh resolves against actual COM buffers");
+  D3DVERTEXELEMENT9 observedLayout[MAXD3DDECLLENGTH+1]{};UINT observedCount=MAXD3DDECLLENGTH+1;
+  Hr(d->GetVertexDeclaration(&declaration),"read native fixture layout");
+  Hr(declaration->GetDeclaration(observedLayout,&observedCount),"capture actual D3D layout");declaration->Release();
+  Check(geometry.componentFlags==0x940&&geometry.layout&&source::EqualLayout(geometry,observedLayout,observedCount),
+    "shared native emitter matches the actual bound declaration");
+  Check(!source::EqualLayout(geometry,observedLayout,observedCount-1),"truncated declaration cannot qualify");
+  ++observedLayout[0].Offset;
+  Check(!source::EqualLayout(geometry,observedLayout,observedCount),"changed declaration under the same flags key cannot qualify");
+  --observedLayout[0].Offset;
   Check(geometry.vertices==&source::buffers.at(vb)&&geometry.indices==&source::buffers.at(ib)&&
     geometry.mesh==address(&mesh)&&geometry.renderer==address(renderer.data())&&geometry.submission==73&&
     geometry.range.type==range.type&&geometry.range.base==0&&geometry.range.minimum==0&&geometry.range.vertices==4&&
@@ -155,6 +166,13 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   const WORD alternateIndices[]={1,0,3,2};memcpy(auditIndices.data(),alternateIndices,sizeof(alternateIndices));
   float fallbackX=0;memcpy(&fallbackX,auditVertices.data()+sizeof(Vertex),4);
   submit(true,firstX,"verified native source does not read altered audit snapshots");
+  const auto beforeLayoutMismatches=source::layoutMismatches;
+  scope.value.base.base.vertexComponentFlags=0x840;
+  Check(resolve()&&!source::EqualLayout(geometry,observedLayout,observedCount),"different native flags expose declaration mismatch");
+  submit(false,fallbackX,"mismatching native declaration retains the D3D source");
+  Check(source::layoutMismatches==beforeLayoutMismatches+1,"native declaration mismatch is counted");
+  scope.value.base.base.vertexComponentFlags=0x940;
+  submit(true,firstX,"matching native declaration resumes after mismatch");
   ++scope.value.indexBegin;Check(!resolve(),"native range mismatch rejected");submit(false,fallbackX,"range mismatch retains D3D source");--scope.value.indexBegin;
   ++source::buffers.at(vb).owner;Check(!resolve(),"native owner mismatch rejected");submit(false,fallbackX,"owner mismatch retains D3D source");--source::buffers.at(vb).owner;
   ++source::buffers.at(ib).generation;Check(!resolve(),"mixed native buffer generations rejected");submit(false,fallbackX,"generation mismatch retains D3D source");--source::buffers.at(ib).generation;
@@ -183,6 +201,7 @@ template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVerte
   source::Forget(vb);Check(source::buffers.empty()&&!source::retainedBytes,"native fixture releases all captured bytes");
   source::active=nullptr;source::enabled=false;source::submitEnabled=oldSubmit;source::ownerThread=oldThread;
   source::matched=oldMatched;source::used=oldUsed;source::invalidations=oldInvalidations;source::uploadMismatches=oldMismatches;
+  source::layoutMismatches=oldLayoutMismatches;source::layouts=oldLayouts;
   Hr(d->SetTransform(D3DTS_WORLD,&oldWorld),"restore world after native fixture");ClearSurfaceBases();
   nativeSourceChecks=checks-initialChecks;
 }

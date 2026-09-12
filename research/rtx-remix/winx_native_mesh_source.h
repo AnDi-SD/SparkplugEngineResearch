@@ -4,6 +4,7 @@
 #pragma once
 #include <algorithm>
 #include "../../Sparkplug/Analysis/PC/SparkplugAbi.h"
+#include "../../Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h"
 namespace native_mesh_source {
 namespace abi = sparkplug::evidence::pc;
 struct DrawRange { D3DPRIMITIVETYPE type; INT base; UINT minimum,vertices,start,count; };
@@ -41,13 +42,30 @@ struct Geometry {
   const Bytes* vertices=nullptr; const Bytes* indices=nullptr;
   uint32_t mesh=0,renderer=0,stride=0; uint64_t submission=0;
   DrawRange range{}; D3DMATRIX world{};
+  const std::vector<sparkplug::reconstruction::spPCVertexElementForAnalysis>* layout=nullptr;
+  uint32_t componentFlags=0;
 };
 static FILE* output;
 static bool enabled,submitEnabled;
 static size_t retainedBytes;
 static uint64_t nextGeneration,nextSubmission;
-static unsigned captures,invalidations,failures,limited,submissions,matched,used,uploadMismatches;
+static unsigned captures,invalidations,failures,limited,submissions,matched,used,uploadMismatches,layoutMismatches;
 static std::map<void*,Bytes> buffers;
+using VertexElements=std::vector<sparkplug::reconstruction::spPCVertexElementForAnalysis>;
+static std::map<uint32_t,VertexElements> layouts;
+static const VertexElements* Layout(uint32_t flags) {
+  const auto found=layouts.find(flags);if(found!=layouts.end())return &found->second;
+  if(layouts.size()>=256){++limited;return nullptr;}
+  VertexElements elements;uint32_t allocationBytes=0;
+  if(!sparkplug::reconstruction::BuildPCVertexDeclarationElementsForAnalysis(flags,elements,allocationBytes))return nullptr;
+  try {return &layouts.emplace(flags,std::move(elements)).first->second;}
+  catch(const std::bad_alloc&){++failures;return nullptr;}
+}
+static bool EqualLayout(const Geometry& geometry,const D3DVERTEXELEMENT9* observed,UINT count) {
+  static_assert(sizeof(sparkplug::reconstruction::spPCVertexElementForAnalysis)==sizeof(D3DVERTEXELEMENT9));
+  return geometry.layout&&geometry.layout->size()==count&&
+    !memcmp(geometry.layout->data(),observed,size_t(count)*sizeof(D3DVERTEXELEMENT9));
+}
 static void Forget(void* object) {
   std::lock_guard<std::recursive_mutex> lock(guard);
   const auto it=buffers.find(object);if(it==buffers.end())return;
@@ -211,6 +229,8 @@ static bool Resolve(IDirect3DDevice9* device,const DrawRange& draw,void* boundVB
      memcmp(&world,&boundWorld,sizeof(world)))return false;
   geometry={&v->second,&i->second,scope.mesh,scope.renderer,stride,scope.sequence,
     {primitive,INT(mesh.vertexBegin),0,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount},world};
+  geometry.componentFlags=mesh.base.base.vertexComponentFlags;
+  geometry.layout=Layout(geometry.componentFlags);if(!geometry.layout)return false;
   ++matched;return true;
 }
 static bool InstallSharedHook() {
@@ -281,10 +301,10 @@ static void Initialize() {
 static void EndFrame() {
   std::lock_guard<std::recursive_mutex> lock(guard);
   if(!output||_ftelli64(output)>=16*1024*1024)return;
-  if(captures||invalidations||failures||limited||used||frameId%300==0) {
-    fprintf(output,"{\"event\":\"frame\",\"frame\":%u,\"captures\":%u,\"invalidations\":%u,\"failures\":%u,\"limited\":%u,\"meshCalls\":%u,\"matched\":%u,\"used\":%u,\"uploadMismatches\":%u,\"buffers\":%zu,\"bytes\":%zu}\n",
-      frameId,captures,invalidations,failures,limited,submissions,matched,used,uploadMismatches,buffers.size(),retainedBytes);fflush(output);
+  if(captures||invalidations||failures||limited||used||uploadMismatches||layoutMismatches||frameId%300==0) {
+    fprintf(output,"{\"event\":\"frame\",\"frame\":%u,\"captures\":%u,\"invalidations\":%u,\"failures\":%u,\"limited\":%u,\"meshCalls\":%u,\"matched\":%u,\"used\":%u,\"uploadMismatches\":%u,\"layoutMismatches\":%u,\"layouts\":%zu,\"buffers\":%zu,\"bytes\":%zu}\n",
+      frameId,captures,invalidations,failures,limited,submissions,matched,used,uploadMismatches,layoutMismatches,layouts.size(),buffers.size(),retainedBytes);fflush(output);
   }
-  captures=invalidations=failures=limited=submissions=matched=used=uploadMismatches=0;
+  captures=invalidations=failures=limited=submissions=matched=used=uploadMismatches=layoutMismatches=0;
 }
 } // namespace native_mesh_source

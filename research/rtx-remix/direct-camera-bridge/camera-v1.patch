@@ -1,0 +1,404 @@
+diff --git a/bridge/meson.build b/bridge/meson.build
+index bcdc9aa..7d72f5e 100644
+--- a/bridge/meson.build
++++ b/bridge/meson.build
+@@ -22,7 +22,7 @@
+ 
+ project(
+   'bridge', ['c', 'cpp'],
+-  version : 'remix-main',
++  version : 'remix-main-camera-v1',
+   meson_version : '>= 0.58',
+   default_options : ['werror=true', 'b_vscrt=static_from_buildtype', 'cpp_std=vc++17']
+ )
+diff --git a/bridge/src/client/remix_api.cpp b/bridge/src/client/remix_api.cpp
+index 2fd6eb3..745ceeb 100644
+--- a/bridge/src/client/remix_api.cpp
++++ b/bridge/src/client/remix_api.cpp
+@@ -24,6 +24,7 @@
+ #include "util_bridgecommand.h"
+ #include "util_devicecommand.h"
+ #include "util_remixapi.h"
++#include <cstdlib>
+ 
+ using namespace remixapi::util;
+ 
+@@ -387,6 +388,39 @@ remixapi_ErrorCode REMIXAPI_CALL remixapi_SetConfigVariable(const char* var, con
+   return REMIXAPI_ERROR_CODE_SUCCESS;
+ }
+ 
++// Local camera extension. Return the server's actual API result: enqueuing
++// alone does not establish that its Remix device accepted the camera.
++remixapi_ErrorCode REMIXAPI_CALL remixapi_SetupCamera(const remixapi_CameraInfo* info) {
++  ASSERT_REMIXAPI_PFN_TYPE(remixapi_SetupCamera);
++  if (!isSupportedCameraInfo(info)) return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++  if (!g_bInterfaceInitialized || !gbBridgeRunning) return REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
++  serialize::CameraInfo serialized(*info);
++  if (serialized.size() != CameraInfoWireSize) return REMIXAPI_ERROR_CODE_INCOMPATIBLE_VERSION;
++  uint8_t payload[CameraInfoWireSize]{};
++  serialized.serialize(payload);
++  UID currentUID = 0;
++  {
++    ClientMessage command(Commands::RemixApi_SetupCamera);
++    currentUID = command.get_uid();
++    command.send_data(sizeof(payload), payload);
++  }
++  const auto transport = DeviceBridge::waitForCommand(Commands::Bridge_Response,
++    GlobalOptions::getAckTimeout(), nullptr, true, currentUID);
++  if (transport != Result::Success) {
++    // A delayed reply can remain at the head of the shared response queue.
++    // Returning to arbitrary D3D work is unsafe: merely disabling camera API
++    // does not make subsequent synchronous D3D waits consume that old UID.
++    Logger::err("[RemixApi_SetupCamera] Fatal transport failure; UID=" + std::to_string(currentUID) +
++      " result=" + std::to_string(static_cast<unsigned>(transport)) + "; terminating client, no recovery.");
++    gbBridgeRunning = false;
++    TerminateProcess(GetCurrentProcess(), 0xE052CA01u);
++    std::abort(); // Never continue if the terminal OS call unexpectedly fails.
++  }
++  const auto result = static_cast<remixapi_ErrorCode>(DeviceBridge::get_data());
++  DeviceBridge::pop_front();
++  return result;
++}
++
+ remixapi_ErrorCode REMIXAPI_CALL remixapi_dxvk_CreateD3D9(
+   remixapi_Bool       editorModeEnabled,
+   IDirect3D9Ex**      out_pD3D9) {
+@@ -442,7 +476,7 @@ extern "C" {
+       interf.DestroyMaterial = remixapi_DestroyMaterial;
+       interf.CreateMesh = remixapi_CreateMesh;
+       interf.DestroyMesh = remixapi_DestroyMesh;
+-      // interf.SetupCamera = remixapi_SetupCamera;
++      interf.SetupCamera = remixapi_SetupCamera;
+       interf.DrawInstance = remixapi_DrawInstance;
+       interf.CreateLight = remixapi_CreateLight;
+       interf.DestroyLight = remixapi_DestroyLight;
+diff --git a/bridge/src/meson.build b/bridge/src/meson.build
+index 42f4eb4..18369cf 100644
+--- a/bridge/src/meson.build
++++ b/bridge/src/meson.build
+@@ -23,12 +23,10 @@
+ subdir('tracy')
+ subdir('util')
+ 
+-if not enable_tests
+-	if cpu_family == 'x86'
+-		subdir('client')
+-		subdir('server')
+-		subdir('launcher')
+-	elif cpu_family == 'x86_64'
+-		subdir('server')
+-	endif
++if cpu_family == 'x86'
++	subdir('client')
++	subdir('server')
++	subdir('launcher')
++elif cpu_family == 'x86_64'
++	subdir('server')
+ endif
+diff --git a/bridge/src/server/main.cpp b/bridge/src/server/main.cpp
+index bf87d32..4d4ad4a 100644
+--- a/bridge/src/server/main.cpp
++++ b/bridge/src/server/main.cpp
+@@ -3149,6 +3149,28 @@ void ProcessDeviceCommandQueue() {
+         break;
+       }
+ 
++      case RemixApi_SetupCamera:
++      {
++        // Consume one complete data item even when invalid; never interpret a
++        // client pointer or leave a malformed camera blob in the command queue.
++        void* payload = nullptr;
++        const auto payloadSize = DeviceBridge::get_data(&payload);
++        remixapi_CameraInfo camera{};
++        auto result = REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++        if (decodeCameraInfoPayload(payload, payloadSize, camera)) {
++          result = remixapi::g_remix_initialized && remixapi::g_remix.SetupCamera
++            ? remixapi::g_remix.SetupCamera(&camera)
++            : REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
++        }
++        if (result != REMIXAPI_ERROR_CODE_SUCCESS) {
++          Logger::err("[RemixApi_SetupCamera] Server result: " + std::to_string(result));
++        }
++        // Mandatory response, independent of sendAllServerResponses.
++        ServerMessage response(Commands::Bridge_Response, currentUID);
++        response.send_data(static_cast<uint32_t>(result));
++        break;
++      }
++
+       case RemixApi_CreateD3D9:
+       {
+         Logger::err("[RemixApi_CreateD3D9] Not yet supported. Device used by Remix API defaults to "
+@@ -3563,4 +3585,4 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
+     ServerMessage { Commands::Bridge_Ack };
+   }
+   return 0;
+-}
+\ No newline at end of file
++}
+diff --git a/bridge/src/util/util_commands.h b/bridge/src/util/util_commands.h
+index e38f874..3b2472c 100644
+--- a/bridge/src/util/util_commands.h
++++ b/bridge/src/util/util_commands.h
+@@ -443,6 +443,9 @@ namespace Commands {
+     IDirect3DQuery9_GetDataSize,
+     IDirect3DQuery9_Issue,
+     IDirect3DQuery9_GetData,
++
++    // Local universal extension: append to preserve all existing command IDs.
++    RemixApi_SetupCamera,
+   };
+ 
+   // Maybe this will be useful...  
+@@ -470,6 +473,7 @@ namespace Commands {
+     case Bridge_Terminate: return "Terminate";
+     case Bridge_Invalid: return "Invalid";
+     case Bridge_Syn: return "Syn";
++    case RemixApi_SetupCamera: return "RemixApi_SetupCamera";
+     case Bridge_Ack: return "Ack";
+     case Bridge_Continue: return "Continue";
+     case Bridge_Any: return "Any";
+diff --git a/bridge/src/util/util_remixapi.cpp b/bridge/src/util/util_remixapi.cpp
+index e4d0a39..500903a 100644
+--- a/bridge/src/util/util_remixapi.cpp
++++ b/bridge/src/util/util_remixapi.cpp
+@@ -27,11 +27,37 @@
+ #include <type_traits>
+ #include <typeinfo>
+ #include <assert.h>
++#include <cmath>
+ 
+ using namespace remixapi::util::serialize;
+ 
+ namespace remixapi {
+ namespace util {
++bool isSupportedCameraInfo(const remixapi_CameraInfo* info) {
++  if (!info || info->sType != REMIXAPI_STRUCT_TYPE_CAMERA_INFO || info->pNext ||
++      (info->type != REMIXAPI_CAMERA_TYPE_WORLD && info->type != REMIXAPI_CAMERA_TYPE_SKY &&
++       info->type != REMIXAPI_CAMERA_TYPE_VIEW_MODEL)) return false;
++  for (unsigned row = 0; row < 4; ++row) {
++    for (unsigned col = 0; col < 4; ++col) {
++      if (!std::isfinite(info->view[row][col]) || !std::isfinite(info->projection[row][col])) return false;
++    }
++  }
++  return true;
++}
++
++bool decodeCameraInfoPayload(const void* data, uint32_t size, remixapi_CameraInfo& output) {
++  // Check the entire envelope before the existing unbounded POD serializer.
++  if (!data || size != CameraInfoWireSize) return false;
++  uint32_t declaredSize = 0;
++  memcpy(&declaredSize, data, sizeof(declaredSize));
++  if (declaredSize != CameraInfoWireSize) return false;
++  serialize::CameraInfo decoded(const_cast<void*>(data));
++  decoded.deserialize();
++  if (!isSupportedCameraInfo(&decoded)) return false;
++  output = decoded;
++  return true;
++}
++
+ #ifdef REMIX_BRIDGE_SERVER
+ MaterialHandle::HandleMapT MaterialHandle::s_handleMap;
+ MeshHandle::HandleMapT MeshHandle::s_handleMap;
+@@ -65,6 +91,24 @@ static inline void deserialize_const_p_for_each(void*& pDeserialize, const T*& d
+ 
+ namespace bridge_util {
+ 
++// Local camera transport uses the same serializer as the other Remix commands.
++// These fixed arrays are serialized as 64 bytes each, without pointer/padding.
++static_assert(sizeof(remixapi_StructType) == 4 && sizeof(remixapi_CameraType) == 4);
++static_assert(sizeof(remixapi_CameraInfo::view) == 64 && sizeof(remixapi_CameraInfo::projection) == 64);
++#define CameraInfoVars sType, type, view, projection
++uint32_t CameraInfo::_calcSize() const {
++  return fold_helper::calcSize(CameraInfoVars);
++}
++void CameraInfo::_serialize(void*& pSerialize) const {
++  fold_helper::serialize(pSerialize, CameraInfoVars);
++}
++void CameraInfo::_deserialize(void*& pDeserialize) {
++  pNext = nullptr;
++  fold_helper::deserialize(pDeserialize, CameraInfoVars);
++}
++void CameraInfo::_dtor() {}
++#undef CameraInfoVars
++
+ // Types that should de-/serialize out of the box, because
+ // they only contain a single member which should be aligned
+ // with the start of the struct
+@@ -998,4 +1042,4 @@ void LightInfoUSD::_dtor() {
+   if (pFocus) delete pFocus;
+ }
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/bridge/src/util/util_remixapi.h b/bridge/src/util/util_remixapi.h
+index 242cb2b..321f487 100644
+--- a/bridge/src/util/util_remixapi.h
++++ b/bridge/src/util/util_remixapi.h
+@@ -35,6 +35,12 @@ namespace remixapi {
+ 
+ namespace util {
+ 
++// Local bridge extension. Pointer-free wire contract: size, sType, type,
++// then the exact 32 float32 matrix words. No pNext extensions yet.
++inline constexpr uint32_t CameraInfoWireSize = 3 * sizeof(uint32_t) + 32 * sizeof(float);
++bool isSupportedCameraInfo(const remixapi_CameraInfo* info);
++bool decodeCameraInfoPayload(const void* data, uint32_t size, remixapi_CameraInfo& output);
++
+ template<typename T>
+ struct Handle {
+   using RemixApiHandleT = T;
+@@ -134,6 +140,8 @@ template<> constexpr auto ToRemixApiStructEnum< remixapi_CameraInfoParameterized
+ namespace serialize {
+ // Type declaration
+ 
++using CameraInfo = bridge_util::Serializable<remixapi_CameraInfo,true>;
++
+ // MaterialInfo
+ using MaterialInfo = bridge_util::Serializable<remixapi_MaterialInfo,false>;
+ using MaterialInfoOpaque = bridge_util::Serializable<remixapi_MaterialInfoOpaqueEXT,false>;
+diff --git a/bridge/test/rtx/unit/meson.build b/bridge/test/rtx/unit/meson.build
+index 31682fd..3a0be6f 100644
+--- a/bridge/test/rtx/unit/meson.build
++++ b/bridge/test/rtx/unit/meson.build
+@@ -53,3 +53,10 @@ test('remix_api__' + variant,
+ endif
+ alias_target('unit_tests', tests)
+ 
++# Local production camera serializer/validator, invoked cross-architecture by
++# the repository wrapper. The executable also runs malformed input checks.
++executable('test_remix_api_camera_' + name_suff, files('test_remix_api_camera.cpp'),
++    include_directories : [util_include_path, public_include_path],
++    dependencies : util_dep,
++    win_subsystem : 'console')
++
+diff --git a/bridge/test/rtx/unit/test_remix_api_camera.cpp b/bridge/test/rtx/unit/test_remix_api_camera.cpp
+new file mode 100644
+index 0000000..441364e
+--- /dev/null
++++ b/bridge/test/rtx/unit/test_remix_api_camera.cpp
+@@ -0,0 +1,124 @@
++// Local contract tests for the production CameraInfo serializer and validator.
++// Runs without a device or bridge process; cross-architecture files use the
++// exact payload consumed by RemixApi_SetupCamera, not a test-only encoder.
++#include "util_remixapi.h"
++#include <array>
++#include <fstream>
++#include <iostream>
++#include <limits>
++
++using namespace remixapi::util;
++static unsigned checks;
++static bool check(bool value, const char* name) {
++  ++checks;
++  if (!value) std::cerr << "FAIL " << name << '\n';
++  return value;
++}
++
++static remixapi_CameraInfo fixture(unsigned index) {
++  remixapi_CameraInfo camera{};
++  camera.sType = REMIXAPI_STRUCT_TYPE_CAMERA_INFO;
++  camera.type = static_cast<remixapi_CameraType>(index);
++  for (unsigned row = 0; row < 4; ++row) {
++    for (unsigned col = 0; col < 4; ++col) {
++      camera.view[row][col] = float(index * 64 + row * 4 + col) * -0.125f;
++      camera.projection[row][col] = float(index * 64 + row * 4 + col + 3) * 0.0625f;
++    }
++  }
++  const uint32_t minusZero = 0x80000000, subnormal = 1;
++  memcpy(&camera.view[0][0], &minusZero, 4);
++  memcpy(&camera.projection[3][3], &subnormal, 4);
++  return camera;
++}
++
++using Payload = std::array<uint8_t, CameraInfoWireSize>;
++static Payload encode(const remixapi_CameraInfo& camera) {
++  serialize::CameraInfo serializable(camera);
++  Payload bytes{};
++  serializable.serialize(bytes.data());
++  return bytes;
++}
++static bool same(const remixapi_CameraInfo& a, const remixapi_CameraInfo& b) {
++  return a.sType == b.sType && a.type == b.type && !a.pNext && !b.pNext &&
++    !memcmp(a.view, b.view, sizeof(a.view)) && !memcmp(a.projection, b.projection, sizeof(a.projection));
++}
++
++static bool localChecks() {
++  bool passed = true;
++  for (unsigned index = 0; index < 3; ++index) {
++    const auto expected = fixture(index);
++    serialize::CameraInfo serializable(expected);
++    passed &= check(serializable.size() == CameraInfoWireSize && serializable.calcSize() == CameraInfoWireSize, "fixed wire size");
++    std::array<uint8_t, CameraInfoWireSize + 32> guarded;
++    guarded.fill(0xcd);
++    serializable.serialize(guarded.data() + 16);
++    for (unsigned i = 0; i < 16; ++i) passed &= check(guarded[i] == 0xcd && guarded[16 + CameraInfoWireSize + i] == 0xcd, "encode guard");
++    remixapi_CameraInfo decoded{};
++    passed &= check(decodeCameraInfoPayload(guarded.data() + 16, CameraInfoWireSize, decoded) && same(decoded, expected), "round trip exact matrix bits");
++    std::array<uint8_t, CameraInfoWireSize + 1> unaligned;
++    memcpy(unaligned.data() + 1, guarded.data() + 16, CameraInfoWireSize);
++    passed &= check(decodeCameraInfoPayload(unaligned.data() + 1, CameraInfoWireSize, decoded) && same(decoded, expected), "unaligned wire input");
++  }
++  const auto expected = fixture(0);
++  const auto payload = encode(expected);
++  remixapi_CameraInfo output = fixture(2);
++  const auto unchanged = output;
++  for (uint32_t size = 0; size < CameraInfoWireSize; ++size) {
++    passed &= check(!decodeCameraInfoPayload(payload.data(), size, output) && same(output, unchanged), "truncated input rejected without mutation");
++  }
++  passed &= check(!decodeCameraInfoPayload(nullptr, CameraInfoWireSize, output), "null wire input");
++  passed &= check(!decodeCameraInfoPayload(payload.data(), CameraInfoWireSize + 1, output), "oversized wire envelope");
++  for (unsigned word : {0u, 1u, 2u}) {
++    auto corrupt = payload;
++    const uint32_t invalid = 0xffffffff;
++    memcpy(corrupt.data() + word * 4, &invalid, 4);
++    passed &= check(!decodeCameraInfoPayload(corrupt.data(), CameraInfoWireSize, output) && same(output, unchanged), "invalid size sType or camera type");
++    passed &= check(decodeCameraInfoPayload(payload.data(), CameraInfoWireSize, output) && same(output, expected), "valid next item after rejection");
++    output = unchanged;
++  }
++  passed &= check(!isSupportedCameraInfo(nullptr), "null camera input");
++  auto invalid = expected;
++  invalid.pNext = reinterpret_cast<void*>(static_cast<uintptr_t>(0x12345678));
++  passed &= check(!isSupportedCameraInfo(&invalid), "unsupported pNext rejected before send");
++  // The actual serializer never sends a process-local pNext, even if used alone.
++  passed &= check(encode(invalid) == payload, "pNext is omitted from wire");
++  for (uint32_t bad : {0x7fc00001u, 0x7f800000u, 0xff800000u}) {
++    invalid = expected;
++    memcpy(&invalid.view[2][1], &bad, 4);
++    passed &= check(!isSupportedCameraInfo(&invalid), "nonfinite client matrix rejected");
++    const auto bytes = encode(invalid);
++    passed &= check(!decodeCameraInfoPayload(bytes.data(), bytes.size(), output), "nonfinite server matrix rejected");
++  }
++  return passed;
++}
++
++int main(int argc, char** argv) {
++  if (argc != 3 || (strcmp(argv[1], "--write") && strcmp(argv[1], "--read"))) return 2;
++  if (!localChecks()) return 1;
++  constexpr uint32_t magic = 0x314d4143, tail = 0xdeadbeef;
++  if (!strcmp(argv[1], "--write")) {
++    std::ofstream stream(argv[2], std::ios::binary);
++    stream.write(reinterpret_cast<const char*>(&magic), sizeof(magic));
++    for (unsigned index = 0; index < 3; ++index) {
++      const auto payload = encode(fixture(index));
++      stream.write(reinterpret_cast<const char*>(payload.data()), payload.size());
++    }
++    stream.write(reinterpret_cast<const char*>(&tail), sizeof(tail));
++    if (!stream) return 1;
++  } else {
++    std::ifstream stream(argv[2], std::ios::binary);
++    uint32_t got = 0;
++    stream.read(reinterpret_cast<char*>(&got), sizeof(got));
++    if (!check(got == magic, "file envelope")) return 1;
++    for (unsigned index = 0; index < 3; ++index) {
++      Payload payload{};
++      stream.read(reinterpret_cast<char*>(payload.data()), payload.size());
++      remixapi_CameraInfo decoded{};
++      if (!check(bool(stream) && decodeCameraInfoPayload(payload.data(), payload.size(), decoded) && same(decoded, fixture(index)), "cross architecture exact camera")) return 1;
++    }
++    stream.read(reinterpret_cast<char*>(&got), sizeof(got));
++    if (!check(bool(stream) && got == tail && stream.peek() == EOF, "following item boundary and exact file end")) return 1;
++  }
++  std::cout << "PASS " << checks << " camera checks, pointerBytes=" << sizeof(void*) << " wireBytes=" << CameraInfoWireSize << '\n';
++  return 0;
++}

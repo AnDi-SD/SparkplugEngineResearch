@@ -17,6 +17,9 @@ $abiSnapshot=Join-Path $build 'source/Sparkplug/Analysis/PC'
 New-Item -ItemType Directory -Path $abiSnapshot -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkplugAbi.h') -Destination $abiSnapshot
 Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkBaseAbi.h') -Destination $abiSnapshot
+$layoutSnapshot=Join-Path $build 'source/Sparkplug/Code/SparkplugPC'
+New-Item -ItemType Directory -Path $layoutSnapshot -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h') -Destination $layoutSnapshot
 $source=Join-Path $snapshot 'test_material_channels.cpp'
 $commands=@"
 @echo off

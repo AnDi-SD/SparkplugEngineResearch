@@ -1,17 +1,10 @@
 #pragma once
 // Inferred path; original spPCVertexDeclaration ID66353288 is PC-only.
 #include "../SparkplugDX/spDXVertexDeclaration.h"
-#include <vector>
+#include "spPCVertexDeclarationElements.h"
 
 namespace sparkplug::reconstruction
 {
-    struct spPCVertexElementForAnalysis final
-    {
-        std::uint16_t stream=0,offset=0;
-        std::uint8_t type=0,method=0,usage=0,usageIndex=0;
-    };
-    static_assert(sizeof(spPCVertexElementForAnalysis)==8);
-
     class spPCVertexDeclaration final : public spDXVertexDeclaration
     {
     public:
