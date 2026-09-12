@@ -303,6 +303,13 @@ scene-lights.jsonl, результаты generic RTX API-настроек — в
 
 ## Upstream reference
 
+GPU-стенд прямых материалов: `Test-RemixMaterial.ps1 -Name УНИКАЛЬНОЕ-ИМЯ`
+и тот же запуск с `-System`. Отдельная копия штатного runtime, известные
+полигоны, ограниченное время, 16 BMP и журнал. После закрытия:
+`python research/rtx-remix/analyze_remix_material.py --native ПАПКА --remix ПАПКА --output НОВЫЙ-JSON`.
+Проверяются видимость alpha-test и маршрут эмиссии; равенство окончательного
+освещения не заявляется. [Результат](../../docs/research/winx-remix-alpha-material-2026-09-12.md).
+
 Reference checkout: `local-data/rtx-remix/upstream/dxvk-remix`,
 commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, reference ветка Remix 1.5.2;
 это не точный `remix-main+68edea01` установленного binary runtime.

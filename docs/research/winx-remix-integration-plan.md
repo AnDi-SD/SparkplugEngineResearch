@@ -44,6 +44,12 @@
 
 ## Подтверждённые опоры и ограничения
 
+- [Alpha-test и прямые материалы на GPU](winx-remix-alpha-material-2026-09-12.md):
+  отключённый тест нормализуется в ALWAYS; включённый сохранён. API albedo и
+  эмиссия доступны раздельно, но legacy emissive и совпадающий additive pass
+  не обеспечили нужный общий перенос. Следующий шаг — GPU-проверка RGB combiner
+  и контракт разделения исходных ColorMode 4/5.
+
 - [Общий проход геометрии](winx-remix-scene-geometry-2026-09-12.md): основной
   SceneRender получает текущую static/partition/RenderNode геометрию за кадром
   из реестра владения. Игра сама передаёт matrices/materials/shaders. Проверены

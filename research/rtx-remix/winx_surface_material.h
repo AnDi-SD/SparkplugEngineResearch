@@ -7,7 +7,16 @@ struct Contract {
   DWORD factor=0xffffffff,coordinates=0,transformFlags=0;
   D3DMATRIX transform{};
 };
-static bool Argument(DWORD input,uint32_t& output) {
+static inline bool AlphaTest(bool enabled,DWORD reference,DWORD function,remixapi_InstanceInfoBlendEXT& blend) {
+  // Stock Remix derives the effective test from compareOp even when the API
+  // enabled flag is false. D3D9's disabled test must therefore be ALWAYS.
+  if(enabled && (function<D3DCMP_NEVER || function>D3DCMP_ALWAYS))return false;
+  blend.alphaTestEnabled=enabled;
+  blend.alphaTestCompareOp=enabled?function-1:7;
+  blend.alphaTestReferenceValue=enabled?static_cast<uint8_t>(reference):0;
+  return true;
+}
+static inline bool Argument(DWORD input,uint32_t& output) {
   switch(input) {
   case D3DTA_TEXTURE:output=1;return true;
   case D3DTA_DIFFUSE:case D3DTA_CURRENT:output=2;return true; // stage zero only, unlit FFP
@@ -15,7 +24,7 @@ static bool Argument(DWORD input,uint32_t& output) {
   default:return false; // Includes complement/alpha replicate, TEMP and specular.
   }
 }
-static bool Decode(DWORD operation,DWORD first,DWORD second,Channel& output) {
+static inline bool Decode(DWORD operation,DWORD first,DWORD second,Channel& output) {
   output={};
   switch(operation) {
   case D3DTOP_SELECTARG1:output.operation=1;return Argument(first,output.first);
@@ -26,7 +35,7 @@ static bool Decode(DWORD operation,DWORD first,DWORD second,Channel& output) {
   default:return false;
   }
 }
-static bool Coordinates(const Contract& contract,const float input[2],float output[2]) {
+static inline bool Coordinates(const Contract& contract,const float input[2],float output[2]) {
   if(!std::isfinite(input[0]) || !std::isfinite(input[1])) return false;
   if(contract.transformFlags==D3DTTFF_DISABLE) {output[0]=input[0];output[1]=input[1];return true;}
   if(contract.transformFlags!=D3DTTFF_COUNT2) return false;
@@ -38,7 +47,7 @@ static bool Coordinates(const Contract& contract,const float input[2],float outp
   }
   return true;
 }
-static bool Read(IDirect3DDevice9* d,Contract& out) {
+static inline bool Read(IDirect3DDevice9* d,Contract& out) {
   DWORD rgb=0,r1=0,r2=0,alpha=0,a1=0,a2=0,next=0,lighting=0,specular=0,result=0;
   auto get=[&](D3DTEXTURESTAGESTATETYPE state,DWORD& value){return SUCCEEDED(d->GetTextureStageState(0,state,&value));};
   if(!get(D3DTSS_COLOROP,rgb)||!get(D3DTSS_COLORARG1,r1)||!get(D3DTSS_COLORARG2,r2)||
@@ -55,7 +64,7 @@ static bool Read(IDirect3DDevice9* d,Contract& out) {
   for(const auto& row:out.transform.m) for(float f:row) if(!std::isfinite(f)) return false;
   return true;
 }
-static void Apply(const Contract& contract,remixapi_InstanceInfoBlendEXT& blend) {
+static inline void Apply(const Contract& contract,remixapi_InstanceInfoBlendEXT& blend) {
   blend.textureColorOperation=contract.rgb.operation;
   blend.textureColorArg1Source=contract.rgb.first;blend.textureColorArg2Source=contract.rgb.second;
   blend.textureAlphaOperation=contract.alpha.operation;

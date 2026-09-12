@@ -173,7 +173,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
      FAILED(d->GetRenderState(D3DRS_ALPHAFUNC,&func)) || FAILED(d->GetRenderState(D3DRS_ALPHAREF,&ref)) ||
      FAILED(d->GetRenderState(D3DRS_COLORWRITEENABLE,&mask)) || func<1 || func>8) return SurfaceSubmitFailure(__LINE__);
   remixapi_InstanceInfoBlendEXT blend{};blend.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;
-  blend.alphaTestEnabled=test!=0;blend.alphaTestReferenceValue=static_cast<uint8_t>(ref);blend.alphaTestCompareOp=func-1;
+  if(!surface_material::AlphaTest(test!=0,ref,func,blend))return SurfaceSubmitFailure(__LINE__);
   blend.alphaBlendEnabled=1;blend.srcColorBlendFactor=6;blend.dstColorBlendFactor=7; // Vulkan SRC_ALPHA, ONE_MINUS_SRC_ALPHA
   blend.srcAlphaBlendFactor=6;blend.dstAlphaBlendFactor=7;blend.writeMask=mask;
   surface_material::Apply(contract,blend);
@@ -184,9 +184,10 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   }
   const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
   if(submitted && surfaceRoleLog && (frameId%300==0 || frameId<traceUntilFrame)) {
-    fprintf(surfaceRoleLog,"{\"event\":\"submit_material\",\"frame\":%u,\"draw\":%u,\"rgb\":[%u,%u,%u],\"alpha\":[%u,%u,%u],\"factor\":%lu,\"uv\":%lu,\"transform\":%lu}\n",
+    fprintf(surfaceRoleLog,"{\"event\":\"submit_material\",\"frame\":%u,\"draw\":%u,\"rgb\":[%u,%u,%u],\"alpha\":[%u,%u,%u],\"factor\":%lu,\"uv\":%lu,\"transform\":%lu,\"nativeAlphaTest\":[%lu,%lu,%lu],\"apiAlphaCompare\":%u}\n",
       frameId,drawId,contract.rgb.operation,contract.rgb.first,contract.rgb.second,
-      contract.alpha.operation,contract.alpha.first,contract.alpha.second,contract.factor,contract.coordinates,contract.transformFlags);
+      contract.alpha.operation,contract.alpha.first,contract.alpha.second,contract.factor,contract.coordinates,contract.transformFlags,
+      test,func,ref,blend.alphaTestCompareOp);
   }
   return submitted;
 }
