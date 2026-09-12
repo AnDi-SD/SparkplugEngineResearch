@@ -1,5 +1,6 @@
 // Own bounded translation of a recognized FFP overlay into explicit Remix API
 // resources. No asset IDs, game logic, texture recoloring or runtime patches.
+#include "winx_surface_material.h"
 static wchar_t surfaceAssetDirectory[MAX_PATH]{};
 struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; };
 static std::map<uint64_t,SurfaceMesh> surfaceMeshes;
@@ -84,18 +85,11 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
                                  UINT start,UINT count,uint64_t textureHash) {
   auto api=GetRemixApi();
   if(!api || !api->CreateMesh || !api->DrawInstance || !api->CreateMaterial || count>32768 || vertices>65536) return SurfaceSubmitFailure(__LINE__);
-  DWORD colorOp=0,color1=0,color2=0,alphaOp=0,alpha1=0,alpha2=0,texcoord=0,transform=0,nextOp=0,lighting=0,cull=0;
-  if(FAILED(d->GetTextureStageState(0,D3DTSS_COLOROP,&colorOp)) || FAILED(d->GetTextureStageState(0,D3DTSS_COLORARG1,&color1)) ||
-     FAILED(d->GetTextureStageState(0,D3DTSS_COLORARG2,&color2)) || FAILED(d->GetTextureStageState(0,D3DTSS_ALPHAOP,&alphaOp)) ||
-     FAILED(d->GetTextureStageState(0,D3DTSS_ALPHAARG1,&alpha1)) || FAILED(d->GetTextureStageState(0,D3DTSS_ALPHAARG2,&alpha2)) ||
-     FAILED(d->GetTextureStageState(0,D3DTSS_TEXCOORDINDEX,&texcoord)) || FAILED(d->GetTextureStageState(0,D3DTSS_TEXTURETRANSFORMFLAGS,&transform)) ||
-     FAILED(d->GetTextureStageState(1,D3DTSS_COLOROP,&nextOp)) || FAILED(d->GetRenderState(D3DRS_LIGHTING,&lighting)) ||
-     FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull))) return SurfaceSubmitFailure(__LINE__);
-  // Exact supported equation: texture * vertex RGBA, one UV set, no texgen.
-  // On texture stage zero CURRENT starts with the diffuse vertex color.
-  if(colorOp!=D3DTOP_MODULATE || color1!=D3DTA_TEXTURE || (color2!=D3DTA_DIFFUSE && color2!=D3DTA_CURRENT) ||
-     alphaOp!=D3DTOP_MODULATE || alpha1!=D3DTA_TEXTURE || (alpha2!=D3DTA_DIFFUSE && alpha2!=D3DTA_CURRENT) ||
-     texcoord>7 || transform!=D3DTTFF_DISABLE || nextOp!=D3DTOP_DISABLE || lighting) return SurfaceSubmitFailure(__LINE__);
+  surface_material::Contract contract;
+  DWORD cull=0,separateAlpha=0,stencil=0;
+  if(!surface_material::Read(d,contract)||FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull))||
+     FAILED(d->GetRenderState(D3DRS_SEPARATEALPHABLENDENABLE,&separateAlpha))||separateAlpha||
+     FAILED(d->GetRenderState(D3DRS_STENCILENABLE,&stencil))||stencil) return SurfaceSubmitFailure(__LINE__);
   IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* decl=nullptr;
   struct Release { IDirect3DVertexBuffer9*& v;IDirect3DIndexBuffer9*& i;IDirect3DVertexDeclaration9*& d;
     ~Release(){if(v)v->Release();if(i)i->Release();if(d)d->Release();} } release{vb,ib,decl};
@@ -108,7 +102,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     if(e.Usage==D3DDECLUSAGE_POSITION && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) pos=e.Offset;
     if(e.Usage==D3DDECLUSAGE_NORMAL && e.UsageIndex==0 && e.Type==D3DDECLTYPE_FLOAT3) normal=e.Offset;
     if(e.Usage==D3DDECLUSAGE_COLOR && e.UsageIndex==0 && e.Type==D3DDECLTYPE_D3DCOLOR) color=e.Offset;
-    if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==texcoord && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
+    if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==contract.coordinates && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
   }
   if(pos<0 || color<0 || uv<0 || UINT(pos+12)>stride || UINT(color+4)>stride || UINT(uv+8)>stride ||
      (normal>=0 && UINT(normal+12)>stride)) return SurfaceSubmitFailure(__LINE__);
@@ -140,7 +134,9 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     remixapi_HardcodedVertex triangle[3]{};
     for(UINT j=0;j<3;++j) {
       auto src=static_cast<const uint8_t*>(vertexData)+offset+size_t(indices[ids[j]])*stride;
-      memcpy(triangle[j].position,src+pos,12);memcpy(triangle[j].texcoord,src+uv,8);memcpy(&triangle[j].color,src+color,4);
+      memcpy(triangle[j].position,src+pos,12);memcpy(&triangle[j].color,src+color,4);
+      float originalUv[2];memcpy(originalUv,src+uv,8);
+      if(!surface_material::Coordinates(contract,originalUv,triangle[j].texcoord)) valid=false;
       if(normal>=0) memcpy(triangle[j].normal,src+normal,12);
       for(float f:triangle[j].position) if(!std::isfinite(f)) valid=false;
       for(float f:triangle[j].texcoord) if(!std::isfinite(f)) valid=false;
@@ -180,13 +176,17 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   blend.alphaTestEnabled=test!=0;blend.alphaTestReferenceValue=static_cast<uint8_t>(ref);blend.alphaTestCompareOp=func-1;
   blend.alphaBlendEnabled=1;blend.srcColorBlendFactor=6;blend.dstColorBlendFactor=7; // Vulkan SRC_ALPHA, ONE_MINUS_SRC_ALPHA
   blend.srcAlphaBlendFactor=6;blend.dstAlphaBlendFactor=7;blend.writeMask=mask;
-  blend.textureColorOperation=3;blend.textureAlphaOperation=3; // Modulate
-  blend.textureColorArg1Source=blend.textureAlphaArg1Source=1; // Texture
-  blend.textureColorArg2Source=blend.textureAlphaArg2Source=2; // VertexColor0
+  surface_material::Apply(contract,blend);
   remixapi_InstanceInfo instance{};instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;instance.pNext=&blend;
   instance.categoryFlags=REMIXAPI_INSTANCE_CATEGORY_BIT_DECAL_STATIC;instance.mesh=found->second.handle;instance.doubleSided=cull==D3DCULL_NONE;
   for(unsigned r=0;r<3;++r) for(unsigned c=0;c<4;++c) {
     const float value=world.m[c][r];if(!std::isfinite(value)) return SurfaceSubmitFailure(__LINE__);instance.transform.matrix[r][c]=value;
   }
-  return api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  if(submitted && surfaceRoleLog && (frameId%300==0 || frameId<traceUntilFrame)) {
+    fprintf(surfaceRoleLog,"{\"event\":\"submit_material\",\"frame\":%u,\"draw\":%u,\"rgb\":[%u,%u,%u],\"alpha\":[%u,%u,%u],\"factor\":%lu,\"uv\":%lu,\"transform\":%lu}\n",
+      frameId,drawId,contract.rgb.operation,contract.rgb.first,contract.rgb.second,
+      contract.alpha.operation,contract.alpha.first,contract.alpha.second,contract.factor,contract.coordinates,contract.transformFlags);
+  }
+  return submitted;
 }

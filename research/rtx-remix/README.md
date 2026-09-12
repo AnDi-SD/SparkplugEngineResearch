@@ -115,6 +115,15 @@ directional света10, localtonemap exposure1 и shadows5. Это наш ху
 
 ## Сборка и диагностика
 
+Общий контракт материалов для `-AutoSurfaceRoles` расширен: отдельные RGB/alpha
+SELECTARG1/SELECTARG2/MODULATE, texture factor, выбранные UV и аффинный COUNT2.
+Это передача FFP-наложений с выключенным освещением; albedo/ambient/emissive
+ещё требуют раздельного переноса. [Проверки и границы](../../docs/research/winx-remix-surface-material-2026-09-12.md).
+`powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-SurfaceMaterial.ps1`
+проверяет RGBA и UV на скрытом system D3D9 render target; нужен доступ к GPU.
+В `surface-roles.jsonl` событие `submit_material` показывает реально переданные
+операции, texture factor, UV index и transform flags на sampled frames.
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Build-Probe.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Start-Probe.ps1 -Name fresh-test -ExplicitMipLevels -ResubmitTextures -Raytracing -OrthographicUi -FitWindow -ViewportScale -MenuBackground -SkyLayers

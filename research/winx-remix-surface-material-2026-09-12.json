@@ -1,0 +1,554 @@
+{
+  "schema": 1,
+  "date": "2026-09-12",
+  "scope": "Own shared FFP material/UV adapter for recognized overlays; no reconstructed game logic or asset exceptions",
+  "baseCommit": "3b841c8",
+  "referenceCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "installedAdapter": {
+    "path": "local-data/Winx Club/d3d9.dll",
+    "sha256": "420F9DB77D0A1E1CFA322071CD59F8D1DDB63DF228AE5B5ABC62E91E93D3E49C",
+    "bytes": 368640
+  },
+  "nativeGraphicsTest": {
+    "checks": 1310,
+    "nativeRenderPairs": 144,
+    "maxChannelDelta": 0,
+    "status": "PASS",
+    "oracle": "system D3D9 FFP vs exported descriptor interpreter; no Remix GPU equivalence claim"
+  },
+  "testArtifacts": [
+    {
+      "path": "local-data/rtx-remix/test-surface-material/result.json",
+      "sha256": "3B3B92C95AD63811A2017323B5372E7B2D7CA8C0C4531A7695366AAE7357A07C",
+      "bytes": 171
+    },
+    {
+      "path": "local-data/rtx-remix/test-surface-material/test_surface_material.exe",
+      "sha256": "3C1D0B73ABCCFE66AA8382AA54E1480661B55F48580C511BAE267635F209C579",
+      "bytes": 132096
+    }
+  ],
+  "unchangedOriginals": [
+    {
+      "path": "local-data/Winx Club/d3d9.remix-original.dll",
+      "sha256": "A9D0846720E90D36D19AFB67E76A4D894EB349ECF13B847DE0CEDA4861669965",
+      "bytes": 863856
+    },
+    {
+      "path": "local-data/Winx Club/.trex/d3d9.dll",
+      "sha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+      "bytes": 190838384
+    },
+    {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "sha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+      "bytes": 22065152
+    },
+    {
+      "path": "local-data/Winx Club/WinxClub.exe",
+      "sha256": "1B04DD9B082087141C840D6546B9B729FD1A3CD1BEBFABC1267035C2B30A4EC3",
+      "bytes": 22065152
+    }
+  ],
+  "runs": [
+    {
+      "run": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea",
+      "surfaceSampledFrames": 112,
+      "surfaceLastFrame": {
+        "event": "frame",
+        "frame": 33300,
+        "bases": 97,
+        "overlays": 2,
+        "standalone": 9,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "sampledUnknown": 0,
+      "submitUnsupported": [],
+      "submittedContracts": [
+        {
+          "rgb": [
+            3,
+            1,
+            2
+          ],
+          "alpha": [
+            3,
+            1,
+            2
+          ],
+          "uv": 0,
+          "transform": 0,
+          "sampledSubmissions": 690
+        },
+        {
+          "rgb": [
+            3,
+            1,
+            2
+          ],
+          "alpha": [
+            3,
+            1,
+            2
+          ],
+          "uv": 1,
+          "transform": 0,
+          "sampledSubmissions": 42
+        }
+      ],
+      "lightApiFailures": 0,
+      "materialAudit": {
+        "sampledFrames": 111,
+        "sampledDraws": 30282,
+        "uniqueInputs": 68,
+        "uniqueShaders": 5,
+        "failures": 0,
+        "rejected": 0,
+        "shaderVerification": [
+          {
+            "id": 1,
+            "sha256": "2903c7012092f5437de28fce2de5af51b74f068a913af948a95f647c5ce29a7a",
+            "sdkColorRegisters": [
+              [
+                "AmbientCol",
+                55
+              ],
+              [
+                "MatDiffuse",
+                56
+              ]
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": 2,
+            "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27",
+            "sdkColorRegisters": [
+              [
+                "MatDiffuse",
+                52
+              ]
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": 3,
+            "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098",
+            "sdkColorRegisters": [
+              [
+                "AmbientCol",
+                62
+              ],
+              [
+                "MatDiffuse",
+                63
+              ]
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": 4,
+            "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6",
+            "sdkColorRegisters": [],
+            "status": "PASS"
+          },
+          {
+            "id": 5,
+            "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525",
+            "sdkColorRegisters": [
+              [
+                "AmbientCol",
+                59
+              ],
+              [
+                "MatDiffuse",
+                60
+              ]
+            ],
+            "status": "PASS"
+          }
+        ]
+      },
+      "shutdownSuccessful": true,
+      "uptimeSeconds": 437,
+      "installedConfigurationUnchanged": {
+        "winx.ini": true,
+        "user.conf": true
+      },
+      "savesUnchanged": true,
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/d3d9.dll",
+          "sha256": "5B93928B76996568FCECE5C42509630A2970ECC8A11DC93C3E9501D2721EEBE0",
+          "bytes": 368640
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/launch.json",
+          "sha256": "DB54CC17A3C9F307FE446C350790DA729847373F5B2B8F96981C5893586458A7",
+          "bytes": 3079
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/rtx.conf",
+          "sha256": "7AF17E58743A5E28AEB0A94010857A9F910737DAA0E6469A9167CEB2677EFFE2",
+          "bytes": 673
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/surface-roles.jsonl",
+          "sha256": "D5045232A5645599616FA012CD8DB548ADB9151C61A2753E7AC5EEAFBAB83BA5",
+          "bytes": 2849827
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/scene-lights.jsonl",
+          "sha256": "B4AFD480B2843854ABA1904A7BDC03704F75A068EA7CEEAC747398F7363D447B",
+          "bytes": 99347
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/materials.jsonl",
+          "sha256": "2DA7283AD04C1623245DDE30E2FC3CF71E34DFDF6412DF0B540DC5DE36D5DA0F",
+          "bytes": 2600077
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/material-analysis.json",
+          "sha256": "30D543B9DFA53E0910386EF37F1F482E27418103D85AE3751203BE668B2D5C2F",
+          "bytes": 5336
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/bridge-config-restored.json",
+          "sha256": "28E83EDC63D96795411A482BBB3284059CB0EFC165AEBC240ECD425972A39E32",
+          "bytes": 96
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/workdir/rtx-remix/logs/bridge32.log",
+          "sha256": "26B1022891F3EE33CD3235C42C07CC13AD555AF4E5BB236B00B8BE81E0A91934",
+          "bytes": 10118
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/workdir/rtx-remix/logs/bridge64.log",
+          "sha256": "8D2FD7EC90E71D80176A0C496BDAA6805C35470C47CB0D0CF43222F41C361146",
+          "bytes": 2321
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/workdir/rtx-remix/logs/remix-dxvk.log",
+          "sha256": "22887D76062C311E114B070E86F41FCD81C4D11504DE4EA461C932A3297A903F",
+          "bytes": 18361
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/after-load.png",
+          "sha256": "05EB3C6AE78BC8D317AC7A5BBBB9110262CE94FE5857A44D365034E1C6E84F9A",
+          "bytes": 1111236
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/alfea-after-dialogue.png",
+          "sha256": "EC739928EC505CD50A0DF5BC3BAF2AEAAF1C8E4629BE576133AD4D68DD2AD0A9",
+          "bytes": 387747
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/alfea-playing.png",
+          "sha256": "8D4A94AE82BD24B2B9711A8A8B02709DC2A96F57D71994816BFE2B21BBE83965",
+          "bytes": 185519
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/debug-menu.png",
+          "sha256": "3992FE6EE44ED4004DD945CE3E08A33E12C0E5B61F7F7D4E5464A8DA60B90A0A",
+          "bytes": 312572
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-confirmed-selection.png",
+          "sha256": "ABF93561BE4D46C56989AC28544E465063337169CCE3C9F07956B299B43B42AF",
+          "bytes": 1022781
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-moved.png",
+          "sha256": "A900F5D67A85D37C55EA0E1CFDA7D9B91666020E2AC184773A5D7359FA9E68A0",
+          "bytes": 704056
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-playing.png",
+          "sha256": "4C8F3962D739E6D74D49126DE639EE3F218872DBF01CF2587C6345B3DCFD9EF7",
+          "bytes": 814854
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-selection.png",
+          "sha256": "16095A305F8DB379CC8F7030C411C3F850350DCFFEC62A6146DC58EEE2551734",
+          "bytes": 41440
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-start.png",
+          "sha256": "B99B7AC0A07745ADE5E64F07A981D91A23038F13C57F9E13B90C42E94C20D285",
+          "bytes": 756078
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/gardenia01-playing.png",
+          "sha256": "A924530D51EFA47447D12C3AB33FBFFB0571275013774646106427EBB8BB0A56",
+          "bytes": 1011835
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/selector-open.png",
+          "sha256": "9569B52AB775F8FE4024680629061E5B81994028B83F2365B2EC8B1FA7E31CA6",
+          "bytes": 982244
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/start.png",
+          "sha256": "E8FB3240559135630982DF9B1BE68E80E3B120BDDEF5C32EBFCEB0323EE06A05",
+          "bytes": 56991
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/after-load-state.json",
+          "sha256": "833BAEDAF92DA054C7F666C023DE68E5EC53BB57430744E04BB9DD92D93A4B45",
+          "bytes": 301
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/alfea-playing-state.json",
+          "sha256": "D2586DFD718D497AE1A92EDABEFDE94B50A3DE042313C310A7A3675B06096DEB",
+          "bytes": 10702
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/alfea-state.json",
+          "sha256": "2A4CBB82E43D0F77DF43D74844DB887C69BAEC8E76E8331D10CB5962B690D0E1",
+          "bytes": 10701
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/bridge-config-state.json",
+          "sha256": "79B0B3C608395B800701ADB387F4284889D5A0CE715565AAB8DE45EDD60EC66F",
+          "bytes": 124
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/debug-state.json",
+          "sha256": "22031485BB50F858307F765269C3FC1DEDE311EE5762741849F9CD2C63C942A4",
+          "bytes": 313
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-moved-state.json",
+          "sha256": "41714971BA7FBE77DEDE80EF6C2AEA4FC43B5E8DF03187E99CB04E625A881E77",
+          "bytes": 10684
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-playing-state.json",
+          "sha256": "8303B5CDC243811EE078008C4B691BE35F5C3124108D69ABCC9FCAAAB73FC337",
+          "bytes": 183
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-state.json",
+          "sha256": "61EC0A58856C23FCEEB27F0AB3215102D1106DB81F19B29DC82BDD8B9B2516E9",
+          "bytes": 196
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/gardenia01-state.json",
+          "sha256": "561D671F31DCE4EFDD89208F0FF50463CF9422AA5FE87BB208C6CDE88C275B58",
+          "bytes": 10681
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/selector-open-state.json",
+          "sha256": "833BAEDAF92DA054C7F666C023DE68E5EC53BB57430744E04BB9DD92D93A4B45",
+          "bytes": 301
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-confirmed-selection.json",
+          "sha256": "5550AAD201971CB08FD29C9D41F261C07470CB0AD6668CE972250AF6816B0859",
+          "bytes": 413
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-alfea/domino-selection.json",
+          "sha256": "A4FECE42854B14F340D11DC3C50395B922EE24C5C3F995A6B45C8BD5CBD5F50D",
+          "bytes": 301
+        }
+      ]
+    },
+    {
+      "run": "local-data/rtx-remix/runs/2026-09-12-surface-material-final",
+      "surfaceSampledFrames": 30,
+      "surfaceLastFrame": {
+        "event": "frame",
+        "frame": 8700,
+        "bases": 286,
+        "overlays": 32,
+        "standalone": 102,
+        "unknown": 0,
+        "comparisonDisabled": false
+      },
+      "sampledUnknown": 0,
+      "submitUnsupported": [],
+      "submittedContracts": [
+        {
+          "rgb": [
+            3,
+            1,
+            2
+          ],
+          "alpha": [
+            3,
+            1,
+            2
+          ],
+          "uv": 0,
+          "transform": 0,
+          "sampledSubmissions": 896
+        }
+      ],
+      "lightApiFailures": 0,
+      "materialAudit": {
+        "sampledFrames": 29,
+        "sampledDraws": 17013,
+        "uniqueInputs": 30,
+        "uniqueShaders": 4,
+        "failures": 0,
+        "rejected": 0,
+        "shaderVerification": [
+          {
+            "id": 1,
+            "sha256": "82799d52eb18c99fb860d663c8ab4241e1f1114b8a641fca148f452f2a35c098",
+            "sdkColorRegisters": [
+              [
+                "AmbientCol",
+                62
+              ],
+              [
+                "MatDiffuse",
+                63
+              ]
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": 2,
+            "sha256": "2d1664b7d107e8781e2f82a8ac2ed7088e5224e3fe72080aa0b0cb8e02340525",
+            "sdkColorRegisters": [
+              [
+                "AmbientCol",
+                59
+              ],
+              [
+                "MatDiffuse",
+                60
+              ]
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": 3,
+            "sha256": "c2565bdd914b86d6e67aa8f6af0069bc4568224bbbea5da11a6c65b83e7431a6",
+            "sdkColorRegisters": [],
+            "status": "PASS"
+          },
+          {
+            "id": 4,
+            "sha256": "017efd2413f4c4889770df2e71aead77b96fc5ffa089e3f97b9ea02d4f228b27",
+            "sdkColorRegisters": [
+              [
+                "MatDiffuse",
+                52
+              ]
+            ],
+            "status": "PASS"
+          }
+        ]
+      },
+      "shutdownSuccessful": true,
+      "uptimeSeconds": 203,
+      "installedConfigurationUnchanged": {
+        "winx.ini": true,
+        "user.conf": true
+      },
+      "savesUnchanged": true,
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/d3d9.dll",
+          "sha256": "420F9DB77D0A1E1CFA322071CD59F8D1DDB63DF228AE5B5ABC62E91E93D3E49C",
+          "bytes": 368640
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/launch.json",
+          "sha256": "81D0902241A2EDFD14768ECF130FB7DE724E2D67EC22156FEE5F34C708446FD5",
+          "bytes": 2966
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/rtx.conf",
+          "sha256": "7AF17E58743A5E28AEB0A94010857A9F910737DAA0E6469A9167CEB2677EFFE2",
+          "bytes": 673
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/surface-roles.jsonl",
+          "sha256": "800E5CC26CF7416C3E99FDEA8DBB13C561A4A69792CAB75152B348BD5C959328",
+          "bytes": 1649770
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/scene-lights.jsonl",
+          "sha256": "53302223858539EB19A1BEEEF44E5353B64F03640D13868E939D0E426154E22D",
+          "bytes": 24384
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/materials.jsonl",
+          "sha256": "2FE542BB8922C4A629B7A920A49F4A5FF8E9EE78231CBF3E18175A8AFE1B831C",
+          "bytes": 1439027
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/material-analysis.json",
+          "sha256": "8795EF7A9001B24B58A516B29854A0C33F943CC9A5006201758F783D05C38699",
+          "bytes": 3827
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/bridge-config-restored.json",
+          "sha256": "0F7AC7980EEB9EEE15191433BC0C24CE8ABB8B594D185CD4F23231CB86BF8C18",
+          "bytes": 96
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/workdir/rtx-remix/logs/bridge32.log",
+          "sha256": "22D800008D6279373DF02D54B4B32D18F47FF40E92BA79F12069194ABB79E9DD",
+          "bytes": 4456
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/workdir/rtx-remix/logs/bridge64.log",
+          "sha256": "0252530AD140868EC869A5E5BAA37AEAAFCE4E91BE9D395B966FB5B9C109B5C8",
+          "bytes": 2321
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/workdir/rtx-remix/logs/remix-dxvk.log",
+          "sha256": "5C956697343EE6BAB999F2CCCFB9B5D7F6684860F958049C981B1C116FE14086",
+          "bytes": 17049
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/playing.png",
+          "sha256": "61EEAA8545D99458EC01DAE980B039B9DCFB220FCC380E31BA33D36DB106727A",
+          "bytes": 1103219
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/start.png",
+          "sha256": "2C4272D91E458441543012B8929616AC5F2CF9C470B5CC170274F3483231FA80",
+          "bytes": 1099678
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/bridge-config-state.json",
+          "sha256": "79B0B3C608395B800701ADB387F4284889D5A0CE715565AAB8DE45EDD60EC66F",
+          "bytes": 124
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/playing-state.json",
+          "sha256": "06EF1AF20853DA229B4FE2B15B4C0787FB34A46E8CF8A15E29F6AC91D51F3BC9",
+          "bytes": 10705
+        },
+        {
+          "path": "local-data/rtx-remix/runs/2026-09-12-surface-material-final/ready-state.json",
+          "sha256": "7E91F4D45F9F06AA91935E918BC6342810FDEE99177AC8EC9B3C9671756BBC88",
+          "bytes": 194
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No new game-level SELECT/TFactor/COUNT2 case observed; native GPU test covers them",
+    "Native FFP comparison is not a Remix GPU output comparison",
+    "Ambient and independent emissive transfer remain unimplemented",
+    "Alfea remains dark",
+    "Existing stock USD capture crash with API materials remains unresolved; no capture attempted",
+    "No Gardenia 2 launch",
+    "Live first transition loaded Gardenia 1 due to a long Enter; only later verified selection loaded Domino"
+  ],
+  "progress": {
+    "materialsBefore": 15,
+    "materialsAfter": 20,
+    "weightedBefore": 38.5,
+    "weightedAfter": 39.5,
+    "roundedOverall": 40
+  }
+}

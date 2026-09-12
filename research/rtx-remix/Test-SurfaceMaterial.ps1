@@ -1,0 +1,28 @@
+param()
+$ErrorActionPreference='Stop'
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$build=Join-Path $root 'local-data/rtx-remix/test-surface-material'
+$vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+$installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+if (-not $installation) { throw 'MSVC x86 tools not found' }
+$environmentScript=Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
+$source=Join-Path $PSScriptRoot 'test_surface_material.cpp'
+$include=Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
+New-Item -ItemType Directory -Path $build -Force | Out-Null
+$commands=@"
+@echo off
+call "$environmentScript" x86
+if errorlevel 1 exit /b %errorlevel%
+cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$source" /Fe:test_surface_material.exe /link user32.lib
+if errorlevel 1 exit /b %errorlevel%
+test_surface_material.exe > result.json
+exit /b %errorlevel%
+"@
+$commandFile=Join-Path $build 'test.cmd'
+[IO.File]::WriteAllText($commandFile,$commands,[Text.Encoding]::ASCII)
+Push-Location $build
+try {
+    & $env:ComSpec /d /c $commandFile
+    if ($LASTEXITCODE -ne 0) { throw "Surface material tests failed: $LASTEXITCODE" }
+    Get-Content -LiteralPath (Join-Path $build 'result.json')
+} finally { Pop-Location }
