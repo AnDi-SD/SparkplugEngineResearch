@@ -898,6 +898,68 @@ namespace sparkplug::evidence::pc
         spDXRendererLayout base;
     };
 
+    // Read-only overlays for the already proven CP33/43/50/64 draw boundary.
+    // These name consumed fields without changing the complete renderer layout
+    // above or claiming that padding is reconstructed renderer behavior.
+    inline constexpr Address32 spRendererSingletonAddress = 0x0075DB68;
+    inline constexpr std::uint32_t spRendererDrawContextOffset = 0xC178;
+    struct spRendererDrawContextObservedLayout final
+    {
+        float ambientRGBA[4];                 // C178: SubmitLights output
+        std::uint8_t materialOverride;        // C188
+        std::uint8_t paddingC189[3];
+        Address32 selectedMaterial;           // C18C: borrowed
+        Address32 selectedLightCache;         // C190: borrowed, not owner identity
+        std::uint32_t renderableColorARGB;    // C194
+        std::uint8_t opaqueC198[0x2C];
+        std::uint8_t materialState;            // C1C4: override-table gate
+        std::uint8_t opaqueC1C5[0x6A3];
+        std::uint32_t renderStates[12];        // C868: effective raw engine states
+        std::uint32_t textureStates[72];       // C898: eight groups of nine
+        Address32 blendPalette;               // C9B8: borrowed matrix storage
+        std::uint32_t activeBoneCount;         // C9BC: scoped by Skin::Render
+        Address32 defaultMaterial;            // C9C0
+        std::uint8_t opaqueC9C4[0x24];
+        Address32 device;                     // C9E8: IDirect3DDevice9*
+        std::uint8_t opaqueC9EC[0x10];
+        Address32 vertexDeclaration;          // C9FC: native declaration object
+        std::uint32_t opaqueCA00;
+        Address32 indexBuffer;                // CA04: native DX buffer object
+        Address32 vertexBuffer;               // CA08: native DX buffer object
+    };
+    static_assert(sizeof(spRendererDrawContextObservedLayout) == 0x894);
+    static_assert(offsetof(spRendererDrawContextObservedLayout, selectedMaterial) +
+        spRendererDrawContextOffset == offsetof(spRendererLayout, currentMaterial));
+    static_assert(offsetof(spRendererDrawContextObservedLayout, renderStates) +
+        spRendererDrawContextOffset == offsetof(spRendererLayout, renderStateCache));
+    static_assert(offsetof(spRendererDrawContextObservedLayout, blendPalette) +
+        spRendererDrawContextOffset == 0xC9B8);
+    static_assert(offsetof(spRendererDrawContextObservedLayout, device) +
+        spRendererDrawContextOffset == 0xC9E8);
+    static_assert(offsetof(spRendererDrawContextObservedLayout, vertexBuffer) +
+        spRendererDrawContextOffset == 0xCA08);
+
+    inline constexpr std::uint32_t spDXRendererMaterialCacheOffset = 0xE47C;
+    struct spDXRendererMaterialCacheObservedLayout final
+    {
+        Address32 installedMaterial;          // E47C, distinct from selected C18C
+        std::uint8_t opaqueE480[0x24];
+        // 4BE180 copies pre-controller material+78; 4BDB10 then transforms
+        // this copy for the effective mode. It is NOT current source colors.
+        float diffuseRGBA[4];                 // E4A4
+        float ambientRGBA[4];                 // E4B4
+        float specularRGBA[4];                // E4C4
+        float emissiveRGBA[4];                // E4D4
+        std::uint32_t specularPowerBits;       // E4E4
+        std::uint32_t diffuseSource;           // E4E8: raw engine 10/11/12
+        std::uint32_t ambientSource;           // E4EC
+    };
+    static_assert(sizeof(spDXRendererMaterialCacheObservedLayout) == 0x74);
+    static_assert(offsetof(spDXRendererMaterialCacheObservedLayout, diffuseRGBA) +
+        spDXRendererMaterialCacheOffset == 0xE4A4);
+    static_assert(offsetof(spDXRendererMaterialCacheObservedLayout, ambientSource) +
+        spDXRendererMaterialCacheOffset == 0xE4EC);
+
     // Every field in these target prefixes is referenced by native methods.
     // Protected PC factories prevent a direct sizeof claim for the DX common
     // leaves; names therefore retain the ObservedPrefix qualification.

@@ -56,6 +56,7 @@ static void InitializeSurfaceRoles();
 static void InitializeSceneAudit();
 static remixapi_Interface* GetRemixApi();
 namespace material_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
+namespace native_draw_audit { static void Initialize(); static void Draw(IDirect3DDevice9*,const char*); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -113,6 +114,9 @@ static void Initialize() {
   }
   InitializeSurfaceRoles();
   shader_semantics::Initialize();
+  // Verify pristine scene-entry bytes before the optional scene observer hooks
+  // that entry. This reader installs no hook of its own.
+  native_draw_audit::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -145,6 +149,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
 #include "winx_shader_semantics.h"
+#include "winx_native_draw_audit.h"
 
 static void RememberPrimaryTarget(IDirect3DDevice9* device) {
   IDirect3DSurface9* target=nullptr;
@@ -211,6 +216,7 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
   ++drawId;
   shader_semantics::Draw(device);
   material_audit::Draw(device,call);
+  native_draw_audit::Draw(device,call);
   if (!logFile || records >= 65536 || !(frameId < 2 || frameId % 300 == 0 || triggered || frameId<traceUntilFrame)) return;
   ++records;
   D3DMATRIX world{}, view{}, projection{};
@@ -691,6 +697,7 @@ static void ApplyLiveConfig() {
 static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e) {
   ApplyLiveConfig();
   EndSceneLightFrame();
+  native_draw_audit::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -772,6 +779,7 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
 }
 static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
   EndSceneLightFrame();
+  native_draw_audit::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);

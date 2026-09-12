@@ -4,6 +4,7 @@ param(
     [switch]$ShaderAudit,
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
+    [switch]$NativeDrawAudit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -31,6 +32,7 @@ if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($ShaderSemantics) { $options.ShaderSemantics=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
+if ($NativeDrawAudit) { $options.NativeDrawAudit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }
