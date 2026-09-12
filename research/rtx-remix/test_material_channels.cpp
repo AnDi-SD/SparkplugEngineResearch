@@ -7,6 +7,8 @@ static unsigned checks,apiDraws;
 static uintptr_t nextHandle=1;
 static std::vector<remixapi_HardcodedVertex> lastVertices;
 static std::wstring lastAlbedo,lastEmission;
+static std::map<remixapi_MaterialHandle,std::pair<std::wstring,std::wstring>> recordedMaterials;
+static std::map<remixapi_MeshHandle,remixapi_MaterialHandle> recordedMeshes;
 static remixapi_InstanceInfoBlendEXT lastBlend{};
 static bool rejectDraw;
 static void Check(bool ok,const char* message) {++checks;if(!ok){fprintf(stderr,"FAIL: %s\n",message);std::exit(1);}}
@@ -15,17 +17,18 @@ static remixapi_ErrorCode REMIXAPI_CALL Config(const char*,const char*) {return 
 static remixapi_ErrorCode REMIXAPI_CALL Material(const remixapi_MaterialInfo* info,remixapi_MaterialHandle* out) {
   lastAlbedo=info->albedoTexture?info->albedoTexture:L"";lastEmission=info->emissiveTexture?info->emissiveTexture:L"";
   Check(!lastAlbedo.empty(),"API material has an explicit albedo texture");
-  *out=reinterpret_cast<remixapi_MaterialHandle>(nextHandle++);return REMIXAPI_ERROR_CODE_SUCCESS;
+  *out=reinterpret_cast<remixapi_MaterialHandle>(nextHandle++);recordedMaterials[*out]={lastAlbedo,lastEmission};return REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL Mesh(const remixapi_MeshInfo* info,remixapi_MeshHandle* out) {
   Check(info->surfaces_count==1,"one complete surface per draw");const auto& s=info->surfaces_values[0];
   lastVertices.assign(s.vertices_values,s.vertices_values+s.vertices_count);
   Check(s.vertices_count==6&&s.indices_count==6,"strip expanded to two complete triangles");
-  *out=reinterpret_cast<remixapi_MeshHandle>(nextHandle++);return REMIXAPI_ERROR_CODE_SUCCESS;
+  *out=reinterpret_cast<remixapi_MeshHandle>(nextHandle++);recordedMeshes[*out]=s.material;return REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL Instance(const remixapi_InstanceInfo* info) {
   ++apiDraws;Check(info->categoryFlags==0,"ordinary material is not a decal");
   lastBlend=*static_cast<const remixapi_InstanceInfoBlendEXT*>(info->pNext);
+  const auto& paths=recordedMaterials.at(recordedMeshes.at(info->mesh));lastAlbedo=paths.first;lastEmission=paths.second;
   return rejectDraw?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
 }
 static remixapi_ErrorCode REMIXAPI_CALL DeleteMesh(remixapi_MeshHandle) {return REMIXAPI_ERROR_CODE_SUCCESS;}
@@ -37,7 +40,7 @@ static std::vector<DWORD> Dds(const std::wstring& path) {
   std::vector<DWORD> words(size_t(length)/4);Check(fread(words.data(),4,words.size(),file)==words.size(),"complete DDS read");fclose(file);return words;
 }
 int main() {
-  frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;
+  frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;preserveUnlitColor=false;
   Check(GetFullPathNameW(L"assets",MAX_PATH,surfaceAssetDirectory,nullptr)!=0,"asset directory");
   Check(CreateDirectoryW(surfaceAssetDirectory,nullptr)!=0,"fresh evidence directory");
   remixapi_Interface recording{};recording.SetConfigVariable=Config;recording.CreateMaterial=Material;recording.CreateMesh=Mesh;
@@ -97,6 +100,16 @@ int main() {
   rejectDraw=true;draw();Check(materialChannelsSubmitted==submitted&&materialChannelsRejected==1,"API draw failure falls back to completed D3D9 draw");rejectDraw=false;
   Hr(d->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_ADD),"unsupported combiner");draw();Check(materialChannelsSubmitted==submitted,"unsupported combiner retains original draw");
   Hr(d->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE),"restore combiner");draw();Check(materialChannelsSubmitted==submitted+1,"API path returns after fallback");
+  const auto reflectancePixels=Dds(lastAlbedo);
+  SetPreserveUnlitColor(true);Check(surfaceMeshes.empty()&&surfaceMaterials.empty(),"policy switch retires old resources before drawing");draw();
+  Check(!lastEmission.empty()&&Dds(lastAlbedo)==reflectancePixels,"preserving unlit signal adds emission without changing reflectance");
+  const auto unlitEmission=lastEmission;dds=Dds(lastEmission);
+  Check(dds[32]==0x8080c040&&dds[48]==0x12345678&&dds[52]==0x90abcdef,"original unlit texels and all mips reach emission");
+  for(unsigned i=0;i<6;++i)Check(lastVertices[i].color==vertices[order[i]].color,"unlit emission shares original interpolated RGBA");
+  Hr(d->SetRenderState(D3DRS_AMBIENT,0xff12ef45),"unused ambient");draw();
+  Check(lastEmission==unlitEmission,"unused ambient cannot alter unlit signal");
+  SetPreserveUnlitColor(false);draw();Check(lastEmission.empty(),"unlit preservation can be disabled without restart");
+  SetPreserveUnlitColor(true);draw();Check(lastEmission==unlitEmission,"unlit assets can be reused after restoring preservation");
   D3DMATERIAL9 material{};material.Diffuse={.6f,.4f,.2f,.5f};material.Ambient={.5f,.25f,.125f,1};material.Emissive={.1f,.2f,.3f,1};
   Hr(d->SetRenderState(D3DRS_LIGHTING,TRUE),"lit material");Hr(d->SetRenderState(D3DRS_COLORVERTEX,FALSE),"constant material sources");
   Hr(d->SetMaterial(&material),"lit coefficients");Hr(d->SetRenderState(D3DRS_AMBIENT,0xff408020),"lit ambient");

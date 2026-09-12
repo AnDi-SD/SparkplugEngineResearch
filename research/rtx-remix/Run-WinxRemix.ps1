@@ -5,6 +5,7 @@ param(
     [switch]$ShaderSemantics,
     [switch]$MaterialAudit,
     [switch]$MaterialChannels,
+    [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
     [switch]$Windowed,
     [switch]$AutoSurfaceRoles,
@@ -31,6 +32,7 @@ if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($ShaderSemantics) { $options.ShaderSemantics=$true }
 if ($MaterialAudit) { $options.MaterialAudit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
+if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }
 if ($SceneLights) { $options.SceneLights=$true }
 if ($SceneGeometry) { $options.SceneGeometry=$true }

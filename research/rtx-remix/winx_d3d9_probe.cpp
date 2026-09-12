@@ -661,6 +661,9 @@ static void ApplyLiveConfig() {
     if(key=="winx.keepMaterialChannels"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
       keepMaterialChannelsForComparison=value=="True";continue;
     }
+    if(key=="winx.preserveUnlitColor"&&materialChannelsEnabled&&(value=="True"||value=="False")) {
+      SetPreserveUnlitColor(value=="True");continue;
+    }
     if(autoSurfaceRoles && (key=="rtx.decalTextures" || key=="rtx.dynamicDecalTextures" || key=="rtx.singleOffsetDecalTextures" || key=="rtx.nonOffsetDecalTextures")) continue;
     if(key=="winx.keepLegacyProjectedShadows" && skipLegacyProjectedShadows && (value=="True" || value=="False")) {
       keepLegacyProjectedShadowsForComparison=value=="True";
@@ -818,10 +821,11 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   ScopedOpaqueAlphaTest alphaTest(d);
   ResubmitTextures(d);
   ScopedSurfaceRole surfaceRole(d,t,base,min,num,start,count);
+  if(!surfaceRole.key.empty())RecordFfpGeometry(d,t,base,min,num,start,count);
   if(surfaceRole.scopedDecal) return surfaceRole.complete(D3D_OK);
   if(materialChannelsEnabled&&!keepMaterialChannelsForComparison&&!surfaceRole.key.empty()) {
     material_channels::Input input;
-    if(material_channels::Read(d,input)) {
+    if(material_channels::Read(d,input,preserveUnlitColor)) {
       const auto hash=BoundChannelTextureHash(d);
       if(hash&&SubmitSurfaceOverlay(d,t,base,min,num,start,count,hash,&input)) {
         ++materialChannelsSubmitted;return surfaceRole.complete(D3D_OK);

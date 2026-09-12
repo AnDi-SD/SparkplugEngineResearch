@@ -56,6 +56,8 @@ def main():
         raise ValueError('Fixture mode mismatch')
     checks = []
     measurements = []
+    if len(native['captures']) != len(remix['captures']):
+        raise ValueError('Native and Remix case counts differ')
 
     def check(name, condition):
         checks.append(dict(name=name, passed=bool(condition)))
@@ -105,6 +107,13 @@ def main():
             check(backend['backend']+' ambient changes emission',max(abs(a-b) for a,b in zip(cells[1],cells[3]))>1)
             check(backend['backend']+' uniform vertex ambient leaves albedo unchanged',max(abs(a-b) for a,b in zip(cells[0],cells[6]))<1)
             check(backend['backend']+' albedo returns after alpha and channel changes',max(abs(a-b) for a,b in zip(cells[0],cells[11]))<1)
+            if len(cells)>=18:
+                check(backend['backend']+' preserved unlit emission equals original visible signal',
+                      max(abs(a-b) for a,b in zip(cells[12],cells[15]))<1)
+                check(backend['backend']+' preserved emission keeps alpha rejection',
+                      max(abs(a-b) for a,b in zip(cells[13],cells[16]))<1)
+                check(backend['backend']+' preserved emission keeps alpha acceptance',
+                      max(abs(a-b) for a,b in zip(cells[14],cells[17]))<1)
     report = dict(status='PASS' if all(c['passed'] for c in checks) else 'FAIL', checks=checks,
                   native=native, remix=remix, measurements=measurements,
                   scope='Controlled single-stage RGB, alpha visibility and emission routing; no final-lighting or game shader decomposition equivalence claim.')

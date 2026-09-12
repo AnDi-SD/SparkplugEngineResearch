@@ -239,7 +239,9 @@ int main(int argc,char** argv) {
       {"vertex-factor-albedo","23"},{"vertex-factor-emission","30"},{"uniform-ambient-albedo","23"},{"uniform-ambient-emission","30"},
       {"material-alpha-reject","23",true,D3DCMP_GREATER},{"vertex-alpha-reject","23",true,D3DCMP_GREATER},{"material-alpha-pass","23",true,D3DCMP_GREATER},
       {"constant-albedo-return","23"},{"unlit-authored-albedo","23"},
-      {"unlit-vertex-alpha-reject","23",true,D3DCMP_GREATER},{"unlit-vertex-alpha-pass","23",true,D3DCMP_GREATER}};
+      {"unlit-vertex-alpha-reject","23",true,D3DCMP_GREATER},{"unlit-vertex-alpha-pass","23",true,D3DCMP_GREATER},
+      {"unlit-preserved-emission","30"},{"unlit-emission-alpha-reject","30",true,D3DCMP_GREATER},
+      {"unlit-emission-alpha-pass","30",true,D3DCMP_GREATER}};
     material_channels::Plan rejected;auto input=ChannelInput(6);
     if(material_channels::Factor(input,false,0x40996633,rejected))Fail("nonfactorable varying ambient must retain original draw",0);
     input=ChannelInput(0);input.material.Emissive={2,0,0,1};
@@ -247,7 +249,7 @@ int main(int argc,char** argv) {
   }
   const auto started=GetTickCount64();bool stopped=false;
   for(unsigned c=0;c<cases.size()&&!stopped;++c) {
-    const DWORD alphaReference=channels?(c==8?200:c==14?32:100):combiner?(combinations[c].checkSaturation?255:100):128;
+    const DWORD alphaReference=channels?(c==8?200:(c==14||c==17)?32:100):combiner?(combinations[c].checkSaturation?255:100):128;
     Focus();
     const auto channelInput=ChannelInput(c);material_channels::Plan channelPlan;
     constexpr DWORD channelVertex=0x40996633;
@@ -260,7 +262,7 @@ int main(int argc,char** argv) {
       Hr(device->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE,channelInput.emissiveSource),"source emission");
       Hr(device->SetRenderState(D3DRS_AMBIENT,c==2||c==3?0xffc02080:0xff408020),"source ambient value");
       material_channels::Input readInput;
-      if(!material_channels::Read(device,readInput))Fail("read original channel inputs",c);
+      if(!material_channels::Read(device,readInput,c>=15))Fail("read original channel inputs",c);
       if(!material_channels::Factor(readInput,c!=4&&c!=5&&c!=9,channelVertex,channelPlan))Fail("channel factor",c);
       fprintf(journal,"{\"event\":\"channel_plan\",\"case\":%u,\"albedo\":[%.9g,%.9g,%.9g],\"emission\":[%.9g,%.9g,%.9g],\"vertexRGB\":%s,\"alpha\":%u}\n",c,
         channelPlan.albedo.v[0],channelPlan.albedo.v[1],channelPlan.albedo.v[2],channelPlan.emission.v[0],channelPlan.emission.v[1],channelPlan.emission.v[2],channelPlan.vertexRGB?"true":"false",channelPlan.alpha);

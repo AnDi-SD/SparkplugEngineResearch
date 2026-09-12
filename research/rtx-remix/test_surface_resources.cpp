@@ -55,5 +55,13 @@ int main() {
   Check(modelMeshes.empty() && modelMaterials.empty() && surfaceMeshBytes==0,"no API resources or tracked bytes remain");
   Check(surfaceMeshDestroys==5 && surfaceMaterialDestroys==7,"successful deletion counters exclude failed attempts");
   RetireSurfaceResources();Check(surfaceMeshDestroys==5 && surfaceMaterialDestroys==7,"empty retirement does not delete twice");
+  frameId=361;material=Material(8,frameId);Mesh(8,material,frameId);rejectMesh=true;
+  SetPreserveUnlitColor(false);
+  Check(surfaceMeshes.size()==1&&surfaceMaterials.size()==1&&surfaceResourceFailures==3,"forced policy retirement preserves failed mesh dependencies");
+  rejectMesh=false;frameId=390;RetireSurfaceResources();
+  Check(surfaceMeshes.empty()&&surfaceMaterials.empty(),"forced retirement failure remains eligible for the next retry");
+  frameId=391;material=Material(9,frameId);Mesh(9,material,frameId);SetPreserveUnlitColor(true);
+  Check(surfaceMeshes.empty()&&surfaceMaterials.empty()&&surfaceMeshBytes==0,"policy switch retires young resources immediately between periodic sweeps");
+  Check(modelMeshes.empty()&&modelMaterials.empty(),"forced retirements leave no backend references");
   printf("{\"checks\":%u,\"meshDestroys\":%u,\"materialDestroys\":%u,\"injectedFailures\":%u,\"remaining\":0,\"status\":\"PASS\"}\n",checks,surfaceMeshDestroys,surfaceMaterialDestroys,surfaceResourceFailures);
 }

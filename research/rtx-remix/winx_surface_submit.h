@@ -3,7 +3,9 @@
 #include "winx_surface_material.h"
 #include "winx_material_channels.h"
 #include "winx_material_channel_assets.h"
+#include "winx_geometry_probe.h"
 static bool materialChannelsEnabled,keepMaterialChannelsForComparison;
+static bool preserveUnlitColor=true;
 static unsigned materialChannelsSubmitted,materialChannelsRejected;
 static wchar_t surfaceAssetDirectory[MAX_PATH]{};
 struct SurfaceMesh { remixapi_MeshHandle handle; unsigned frame; size_t bytes; remixapi_MaterialHandle material; };
@@ -38,10 +40,41 @@ static void CaptureSurfaceWrite(void* b) {
   if(w.offset==0 && w.size==w.total) snapshot.complete=true;
 }
 
-static void RetireSurfaceResources() {
-  if(frameId%30 || (surfaceMeshes.empty() && surfaceMaterials.empty())) return;
+// Observation also covers FFP positions rejected by the material UV/normal
+// contract. These draws still reach stock Remix and can occlude its lights.
+static void RecordFfpGeometry(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT base,UINT minVertex,UINT vertices,UINT start,UINT count) {
+  if(!GeometryProbeRequested())return;
+  IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* decl=nullptr;
+  struct Release {IDirect3DVertexBuffer9*& v;IDirect3DIndexBuffer9*& i;IDirect3DVertexDeclaration9*& d;~Release(){if(v)v->Release();if(i)i->Release();if(d)d->Release();}} release{vb,ib,decl};
+  UINT offset=0,stride=0,n=MAXD3DDECLLENGTH+1;D3DVERTEXELEMENT9 layout[MAXD3DDECLLENGTH+1]{};
+  D3DINDEXBUFFER_DESC id{};D3DMATRIX world{};DWORD cull=0;
+  if(count>32768||vertices>65536||FAILED(d->GetStreamSource(0,&vb,&offset,&stride))||!vb||!stride||
+     FAILED(d->GetIndices(&ib))||!ib||FAILED(ib->GetDesc(&id))||(id.Format!=D3DFMT_INDEX16&&id.Format!=D3DFMT_INDEX32)||
+     FAILED(d->GetVertexDeclaration(&decl))||!decl||FAILED(decl->GetDeclaration(layout,&n))||
+     FAILED(d->GetTransform(D3DTS_WORLD,&world))||FAILED(d->GetRenderState(D3DRS_CULLMODE,&cull)))return;
+  int position=-1;for(UINT i=0;i<n&&layout[i].Stream!=0xff;++i){const auto& e=layout[i];if(e.Stream)return;
+    if(e.Usage==D3DDECLUSAGE_POSITION&&e.UsageIndex==0&&e.Type==D3DDECLTYPE_FLOAT3)position=e.Offset;}
+  if(position<0||UINT(position+12)>stride)return;
+  const auto v=surfaceBuffers.find(vb),ind=surfaceBuffers.find(ib);
+  if(v==surfaceBuffers.end()||ind==surfaceBuffers.end()||!v->second.complete||!ind->second.complete)return;
+  const UINT indexSize=id.Format==D3DFMT_INDEX16?2:4,indexCount=type==D3DPT_TRIANGLELIST?count*3:count+2;
+  if((uint64_t(start)+indexCount)*indexSize>ind->second.bytes.size())return;
+  std::vector<remixapi_HardcodedVertex> expanded;expanded.reserve(size_t(count)*3);
+  for(UINT tri=0;tri<count;++tri)for(UINT j=0;j<3;++j){
+    const UINT corner=type==D3DPT_TRIANGLESTRIP&&(tri&1)&&j<2?1-j:j;
+    const UINT index=start+(type==D3DPT_TRIANGLELIST?tri*3:tri)+corner;
+    uint32_t value=0;memcpy(&value,ind->second.bytes.data()+size_t(index)*indexSize,indexSize);
+    const auto effective=int64_t(base)+value;
+    if(value<minVertex||uint64_t(value)>=uint64_t(minVertex)+vertices||effective<0||uint64_t(offset)+(uint64_t(effective)+1)*stride>v->second.bytes.size())return;
+    remixapi_HardcodedVertex vertex{};memcpy(vertex.position,v->second.bytes.data()+offset+size_t(effective)*stride+position,12);expanded.push_back(vertex);}
+  const auto hash=XXH3_64bits(expanded.data(),expanded.size()*sizeof(expanded[0]));RecordGeometryProbe(expanded,world,hash,cull);
+}
+
+static void RetireSurfaceResources(bool all=false) {
+  if((!all&&frameId%30) || (surfaceMeshes.empty() && surfaceMaterials.empty())) return;
   auto api=GetRemixApi();if(!api || !api->DestroyMesh || !api->DestroyMaterial) return;
   for(auto it=surfaceMeshes.begin();it!=surfaceMeshes.end();) {
+    if(all)it->second.frame=frameId-301u;
     if(frameId-it->second.frame>300) {
       if(api->DestroyMesh(it->second.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {++surfaceResourceFailures;++it;continue;}
       ++surfaceMeshDestroys;surfaceMeshBytes-=it->second.bytes;
@@ -53,11 +86,19 @@ static void RetireSurfaceResources() {
   std::set<remixapi_MaterialHandle> referenced;
   for(const auto& item:surfaceMeshes)referenced.insert(item.second.material);
   for(auto it=surfaceMaterials.begin();it!=surfaceMaterials.end();) {
+    if(all)it->second.frame=frameId-301u;
     if(frameId-it->second.frame>300 && !referenced.count(it->second.handle)) {
       if(api->DestroyMaterial(it->second.handle)!=REMIXAPI_ERROR_CODE_SUCCESS) {++surfaceResourceFailures;++it;continue;}
       ++surfaceMaterialDestroys;it=surfaceMaterials.erase(it);
     } else ++it;
   }
+}
+static void SetPreserveUnlitColor(bool value) {
+  if(value==preserveUnlitColor)return;
+  // A policy switch invalidates every material coefficient. Retire old meshes
+  // before their materials so the two variants cannot exhaust the bounded
+  // cache and force a partially translated scene during live comparison.
+  RetireSurfaceResources(true);preserveUnlitColor=value;
 }
 
 static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t textureHash) {

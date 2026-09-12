@@ -19,14 +19,19 @@ struct Plan {
   bool vertexRGB=false,vertexAlpha=false;
   uint8_t alpha=255;
 };
-static inline bool Read(IDirect3DDevice9* d,Input& out) {
+static inline bool Read(IDirect3DDevice9* d,Input& out,bool preserveUnlit=false) {
   DWORD lighting=0,specular=0,colorVertex=0,ambient=0;
   if(FAILED(d->GetRenderState(D3DRS_LIGHTING,&lighting))||
      FAILED(d->GetRenderState(D3DRS_SPECULARENABLE,&specular))||specular)return false;
   if(!lighting) {
-    // Original FFP passes COLOR0 unchanged. Own RT policy uses that authored
-    // color as reflectance; do not infer ambient/emission from unused states.
-    out={};out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;return true;
+    // Original FFP passes COLOR0 unchanged, independently of scene lights.
+    // Own hybrid RT policy can preserve this visible term as emission while
+    // retaining reflectance for new lighting. This is not baked-light removal
+    // or evidence that the original surface illuminated its surroundings.
+    // Unused material/ambient states never contribute to this term.
+    out={};out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;
+    if(preserveUnlit)out.emissiveSource=D3DMCS_COLOR1;
+    return true;
   }
   if(
      FAILED(d->GetRenderState(D3DRS_COLORVERTEX,&colorVertex))||

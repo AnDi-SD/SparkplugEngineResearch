@@ -48,6 +48,7 @@ static void InitializeSurfaceRoles() {
 }
 static void ClearSurfaceBases() {opaqueSurfaceDraws.clear();++surfaceResourceEpoch;}
 static void EndSurfaceRoleFrame() {
+  EndGeometryProbe();
   RetireSurfaceResources();
   if(surfaceRoleLog&&frameId%300==0) {
     fprintf(surfaceRoleLog,"{\"event\":\"channel_counts\",\"frame\":%u,\"enabled\":%s,\"comparisonDisabled\":%s,\"submitted\":%u,\"rejected\":%u,\"assetBytes\":%zu}\n",
