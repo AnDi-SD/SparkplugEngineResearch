@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-12",
+  "status": "Confirmed point fixed with two metadata-only surface roles; reversible live comparison passed",
+  "level": {
+    "name": "Gardenia02",
+    "startLevel": 2
+  },
+  "playerWorldPosition": [
+    576.5562744140625,
+    717.1798706054688,
+    -1499.41259765625
+  ],
+  "windowReproductionPlayerWorldPosition": [
+    576.2609252929688,
+    717.1798706054688,
+    -1499.4124755859375
+  ],
+  "windowReproductionDistance": 0.2953491463200999,
+  "debugExeSha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+  "shimSha256": "AAA0A6E90D6D737FDE863A3532914BB90FAC177970173F8C6E1B5E8C4FE7E091",
+  "readOnlyPlayerChain": {
+    "profileGlobal": "0x765AD4",
+    "profileVtable": "0x6F5A44",
+    "playerOffset": "0x2B4",
+    "playerVtable": "0x710F80",
+    "nodeOffset": "0x24",
+    "nodeVtable": "0x6DC4F4",
+    "nodeLocalPositionOffset": "0x20",
+    "nodeWorldPositionOffset": "0x74"
+  },
+  "camera": {
+    "address": 70445484,
+    "vtable": 7270880,
+    "worldPosition": [
+      -275.68450927734375,
+      1176.358154296875,
+      -1499.41162109375
+    ],
+    "view": [
+      7.549790126404332e-08,
+      0.3420201241970062,
+      0.9396926164627075,
+      0.0,
+      -3.915558029448773e-16,
+      0.9396926164627075,
+      -0.3420201241970062,
+      0.0,
+      -1.0,
+      2.582180158583469e-08,
+      7.094482157299353e-08,
+      0.0,
+      -1499.41162109375,
+      -1011.1253662109375,
+      661.39697265625,
+      1.0
+    ],
+    "projection": [
+      1.7320507764816284,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.309401035308838,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0002000331878662,
+      1.0,
+      0.0,
+      0.0,
+      -5.00100040435791,
+      0.0
+    ],
+    "forward": [
+      0.9396926164627075,
+      -0.3420201241970062,
+      7.094482157299353e-08
+    ],
+    "near": 5.0,
+    "far": 25000.0,
+    "viewAngle": 1.0471975803375244,
+    "pixelAspect": 1.0,
+    "frustum": [
+      [
+        0.9396926164627075,
+        -0.3420201241970062,
+        7.094482157299353e-08,
+        -656.39697265625
+      ],
+      [
+        -0.9396926164627075,
+        0.3420201241970062,
+        -7.094482157299353e-08,
+        -24338.6015625
+      ],
+      [
+        0.46984636783599854,
+        -0.1710100620985031,
+        -0.8660253882408142,
+        967.830078125
+      ],
+      [
+        0.46984627842903137,
+        -0.1710100769996643,
+        0.8660253882408142,
+        -1629.2269287109375
+      ],
+      [
+        0.059536825865507126,
+        -0.9982261061668396,
+        4.4949057809162696e-09,
+        -1190.684814453125
+      ],
+      [
+        0.6872552037239075,
+        0.7264160513877869,
+        5.1886324570205034e-08,
+        665.0597534179688
+      ]
+    ],
+    "viewport": [
+      0,
+      0,
+      1024,
+      768,
+      1017370378,
+      1065353216
+    ],
+    "viewportActive": 1,
+    "alternateProjection": 0,
+    "viewportHeightOverWidth": 0.75
+  },
+  "teleportImplemented": false,
+  "reproductionLimit": "StartLevel 2 starts the level, not this waypoint. The user walked back to the saved location. The earlier window-run match was after positioning, not proof of automatic checkpoint restoration.",
+  "evidence": [
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-user-repro/user-defect-position.json",
+      "sha256": "44118726daf0619f05f6c5125552649d1e1cd8678e260b996d52cc1f6a8aae02"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-window-repro/start-state.json",
+      "sha256": "8db360bc6182eb4db89c16288d39692ecdde7dfbbd2593a02ffe66b37931a6ac"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-window-repro/pixel-hits.json",
+      "sha256": "4ec854e00f4db32abc39d0f09e746bad8bb28932eb6d680ec1f67af3e83d579d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-window-repro/workdir/rtx-remix/captures/gardenia02_point.usda",
+      "sha256": "1c299bbf930297b61b0c6ce2d97753355d780c989b5ea6bd2ac5fa279219db88"
+    },
+    {
+      "path": "research/rtx-remix/surface-roles/mod.usda",
+      "sha256": "096aad93a4ed548a7f5edf9b79d3229b01ce1703c28df9f074733cfe6ed08436"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/fixed-point-state.json",
+      "sha256": "01fe4efbb2007609f5fcfc85a3ab3e0f9262470777522fad3a927a716312b248"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/without-roles.png",
+      "sha256": "5d06f78ac269050b737b63c74fcae45fb5c41c84d314b47fd0a46bfa22abe588"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/roles-restored.png",
+      "sha256": "59715149a0c660e53b3dbd54266eaa2607dce44e2387d437dd77f07438bb5d1d"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/comparison.json",
+      "sha256": "9235d7032cb5e2095d0866c5b58ab17bca018ce1c74fff56b90fb45f588f75e0"
+    }
+  ],
+  "finalComparison": {
+    "playerUnchanged": true,
+    "playerPosition": [
+      580.7003784179688,
+      717.1798706054688,
+      -1499.4119873046875
+    ],
+    "cameraEqual": {
+      "view": false,
+      "projection": true,
+      "worldPosition": false,
+      "frustum": false,
+      "near": true,
+      "far": true
+    },
+    "cameraKeys": [
+      "address",
+      "vtable",
+      "worldPosition",
+      "view",
+      "projection",
+      "forward",
+      "near",
+      "far",
+      "viewAngle",
+      "pixelAspect",
+      "frustum",
+      "viewport",
+      "viewportActive",
+      "alternateProjection",
+      "viewportHeightOverWidth"
+    ],
+    "cameraMaxAbsDelta": {
+      "view": 0.0040283203125,
+      "projection": 0.0,
+      "worldPosition": 0.0042724609375,
+      "forward": 0.0
+    },
+    "cameraPositionSeparation": 0.0042724609375
+  },
+  "surfaceRoles": [
+    {
+      "mesh": "A572E833699D8C0C",
+      "decal": true,
+      "reason": "Alpha-blended rock overlay over opaque grass, same geometry and transform"
+    },
+    {
+      "mesh": "E75B321C979EE3E9",
+      "decal": false,
+      "reason": "Standalone grass surface with vertex-alpha edge; no opaque base"
+    }
+  ],
+  "limits": [
+    "Only these two known mesh hashes are overridden; general draw-role inference remains open",
+    "Directional lighting and game culling outside this case are not resolved",
+    "Earlier fullscreen runtime-error cascade remains undiagnosed",
+    "Reference upstream checkout is not the exact installed runtime commit"
+  ],
+  "protected": [
+    {
+      "path": "local-data/Winx Club/WinxClub.exe",
+      "expected": "1b04dd9b082087141c840d6546b9b729fd1a3cd1bebfabc1267035c2b30a4ec3",
+      "actual": "1b04dd9b082087141c840d6546b9b729fd1a3cd1bebfabc1267035c2b30a4ec3",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "expected": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb",
+      "actual": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/d3d9.remix-original.dll",
+      "expected": "a9d0846720e90d36d19afb67e76a4d894eb349ecf13b847de0ceda4861669965",
+      "actual": "a9d0846720e90d36d19afb67e76a4d894eb349ecf13b847de0ceda4861669965",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/.trex/d3d9.dll",
+      "expected": "f7c310821aa98bcdfdec120330b0a89457b7c5eba58d21464af32639611c809f",
+      "actual": "f7c310821aa98bcdfdec120330b0a89457b7c5eba58d21464af32639611c809f",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BallisticPFX.vsh",
+      "expected": "a356b9316b0ef55f03165e0b63e21105fdbc66a3f3c2a5bb1c056cbca82069ae",
+      "actual": "a356b9316b0ef55f03165e0b63e21105fdbc66a3f3c2a5bb1c056cbca82069ae",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BasicShader.vsh",
+      "expected": "be62f85210ba1efc611febb581b6c4b6c85a4410c6240f514d6db3af5265de7d",
+      "actual": "be62f85210ba1efc611febb581b6c4b6c85a4410c6240f514d6db3af5265de7d",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Blur.psh",
+      "expected": "e49f44d36238f2b7899f82d6886ae51d27ed3325358cf21cf2b5bf8246e51096",
+      "actual": "e49f44d36238f2b7899f82d6886ae51d27ed3325358cf21cf2b5bf8246e51096",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Blur.vsh",
+      "expected": "6a4ebbeb9d76e57ad0494cc76a1e01eea2b2e41450a5fd727812c3c57aac12ca",
+      "actual": "6a4ebbeb9d76e57ad0494cc76a1e01eea2b2e41450a5fd727812c3c57aac12ca",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/BlurLuminance.psh",
+      "expected": "a2b9b6bebe62a2e9824d646ca4c7a3ebb6c5b198e7bde6684deee07d0f8d8aaf",
+      "actual": "a2b9b6bebe62a2e9824d646ca4c7a3ebb6c5b198e7bde6684deee07d0f8d8aaf",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Bumpmap.rfx",
+      "expected": "1deacdcd1c7692edcd5451ccd50b2b771af047ea80bb3b4fddf42750a510e245",
+      "actual": "1deacdcd1c7692edcd5451ccd50b2b771af047ea80bb3b4fddf42750a510e245",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Fixed.rfx",
+      "expected": "ac6785428ba851dea88e3a6cddc03fdf620fa06d82063db83176598140803db1",
+      "actual": "ac6785428ba851dea88e3a6cddc03fdf620fa06d82063db83176598140803db1",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/Luminance.psh",
+      "expected": "882e5be6cbf5e212745c7923f81220e0c326b9b2d33e9c87920deb7f533f0d1c",
+      "actual": "882e5be6cbf5e212745c7923f81220e0c326b9b2d33e9c87920deb7f533f0d1c",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/Shaders/ShadowVolumePoint.vsh",
+      "expected": "4d643c8af6315abe43a12eabf3ea03618b14c3caba5beeb3b338837dc1c73012",
+      "actual": "4d643c8af6315abe43a12eabf3ea03618b14c3caba5beeb3b338837dc1c73012",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/winx.ini",
+      "baseline": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/winx.ini.before",
+      "unchanged": true
+    },
+    {
+      "path": "local-data/Winx Club/user.conf",
+      "baseline": "local-data/rtx-remix/runs/2026-09-12-gardenia02-surface-roles/user.conf.before",
+      "unchanged": true
+    }
+  ],
+  "validation": {
+    "pythonAst": "passed",
+    "livePlayerRead": "passed",
+    "surfaceRoleLiveToggle": "passed",
+    "playerUnchanged": true,
+    "powershellParser": "passed",
+    "gitDiffCheck": "passed",
+    "evidenceHashes": "passed"
+  },
+  "installedMetadata": {
+    "path": "local-data/Winx Club/rtx-remix/mods/winx-surface-roles/mod.usda",
+    "sha256": "096aad93a4ed548a7f5edf9b79d3229b01ce1703c28df9f074733cfe6ed08436"
+  }
+}

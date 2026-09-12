@@ -1,4 +1,10 @@
-param([ValidateSet('RTX','Raster','Original')][string]$Mode='RTX', [switch]$DebugMenu, [switch]$ShaderAudit)
+param(
+    [ValidateSet('RTX','Raster','Original')][string]$Mode='RTX',
+    [switch]$DebugMenu,
+    [switch]$ShaderAudit,
+    [switch]$Windowed,
+    [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
+)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
@@ -11,6 +17,8 @@ $name="play-$($Mode.ToLowerInvariant())-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff'
 $options=@{ Name=$name; NoDrawTrace=$true }
 if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
+if ($StartLevel) { $options.StartLevel=$StartLevel }
+if ($Windowed) { $options.Windowed=$true }
 if ($Mode -eq 'Original') {
     $options.Backend='system'
 } else {
@@ -25,6 +33,7 @@ if ($Mode -eq 'Original') {
         $options.SkyLayers=$true
         $options.SkipLegacyProjectedShadows=$true
         $options.OpaqueAlphaTest=$true
+        $options.SurfaceRoles=$true
         # Visual tuning for original Winx vertex colors, not recovered game constants.
         $options.ConfigOverride=@{
             # Gardenia terrain overlays are coplanar with their opaque base.

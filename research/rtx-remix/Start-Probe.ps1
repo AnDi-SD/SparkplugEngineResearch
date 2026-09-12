@@ -18,12 +18,16 @@ param(
     [switch]$DebugMenu,
     [switch]$LiveConfig,
     [switch]$ShaderAudit,
+    [switch]$Windowed,
+    [switch]$SurfaceRoles,
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel = 0,
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
 if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
 if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
+if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game = Join-Path $root 'local-data/Winx Club'
 if (Get-Process WinxClub,WinxClubDebug,NvRemixBridge -ErrorAction SilentlyContinue) { throw 'Close the previous game/bridge before starting another run' }
@@ -58,9 +62,19 @@ if ($StartLevel) {
     $ini = [IO.File]::ReadAllText((Join-Path $game 'winx.ini'))
     $ini = [regex]::Replace($ini, '(?im)^\s*(startLevel|showCinematics)\s*=.*$', '')
     $ini += "`r`nshowCinematics=false`r`nstartLevel=$StartLevel`r`n"
+    if ($Windowed) {
+        $ini = [regex]::Replace($ini, '(?im)^\s*fullScreen\s*=.*$', '')
+        $ini += "fullScreen=false`r`n"
+    }
     [IO.File]::WriteAllText((Join-Path $workingDirectory 'winx.ini'), $ini, [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath (Join-Path $game 'Shaders') -Destination (Join-Path $workingDirectory 'Shaders') -Recurse
     Copy-Item -LiteralPath (Join-Path $game 'user.conf') -Destination (Join-Path $workingDirectory 'user.conf')
+}
+if ($SurfaceRoles) {
+    $surfaceRoleSource = Join-Path $PSScriptRoot 'surface-roles/mod.usda'
+    $surfaceRoleDirectory = Join-Path $workingDirectory 'rtx-remix/mods/winx-surface-roles'
+    New-Item -ItemType Directory -Force -Path $surfaceRoleDirectory | Out-Null
+    Copy-Item -LiteralPath $surfaceRoleSource -Destination (Join-Path $surfaceRoleDirectory 'mod.usda')
 }
 if ($ShaderAudit) {
     New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
@@ -125,6 +139,8 @@ try {
         proxySha256=(Get-FileHash -LiteralPath (Join-Path $run 'd3d9.dll')).Hash
         executable=$executable; executableSha256=(Get-FileHash -LiteralPath $executable).Hash
         workingDirectory=$workingDirectory; startLevel=$StartLevel
+        windowedOverride=$Windowed.IsPresent
+        surfaceRolesSha256=$(if ($SurfaceRoles) { (Get-FileHash -LiteralPath $surfaceRoleSource).Hash } else { $null })
         bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
     Write-Output "PID=$($gameProcess.Id) Run=$run"

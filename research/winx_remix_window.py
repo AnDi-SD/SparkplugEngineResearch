@@ -59,6 +59,8 @@ u.GetWindowRect.argtypes = [w.HWND, c.POINTER(w.RECT)]
 u.SetForegroundWindow.argtypes = [w.HWND]
 u.GetForegroundWindow.restype = w.HWND
 u.ShowWindow.argtypes = [w.HWND, c.c_int]
+u.ShowWindowAsync.argtypes = [w.HWND, c.c_int]
+u.IsIconic.argtypes = [w.HWND]
 u.PostMessageW.argtypes = [w.HWND, w.UINT, w.WPARAM, w.LPARAM]
 windows = []
 callback_type = c.WINFUNCTYPE(w.BOOL, w.HWND, w.LPARAM)
@@ -87,7 +89,10 @@ if args.close:
     for _, owned_window in windows:
         u.PostMessageW(owned_window, 0x10, 0, 0)
 else:
-    u.ShowWindow(hwnd, 9)
+    # A synchronous restore can block on the game's fullscreen window thread.
+    # Leave an already visible, non-minimized window alone.
+    if u.IsIconic(hwnd):
+        u.ShowWindowAsync(hwnd, 9)
     u.SetForegroundWindow(hwnd)
     time.sleep(0.3)
     if u.GetForegroundWindow() != hwnd:

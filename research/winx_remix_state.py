@@ -9,6 +9,7 @@ import ctypes as c
 from ctypes import wintypes as w
 import hashlib
 import json
+import math
 from pathlib import Path
 import struct
 
@@ -56,6 +57,31 @@ class StateReader:
 
     def u32(self, address):
         return struct.unpack('<I', self.read(address, 4))[0]
+
+    def player_snapshot(self):
+        # PC chain exercised by probe_ai_activation_fields.py, and checked in
+        # the live Gardenia02 debug process. Do not mistake a camera for Bloom.
+        profile = self.u32(0x765ad4)
+        if not profile:
+            return dict(available=False, reason='Player profile not created')
+        if self.u32(profile) != 0x6f5a44:
+            raise RuntimeError('Unexpected player profile vtable')
+        player = self.u32(profile + 0x2b4)
+        if not player:
+            return dict(available=False, reason='No active player')
+        if self.u32(player) != 0x710f80:
+            raise RuntimeError('Unexpected player vtable')
+        node = self.u32(player + 0x24)
+        if not node or self.u32(node) != 0x6dc4f4:
+            raise RuntimeError('Unexpected player node vtable')
+        raw = self.read(node, 0xb8)
+        world = list(struct.unpack_from('<3f', raw, 0x74))
+        local = list(struct.unpack_from('<3f', raw, 0x20))
+        if not all(math.isfinite(x) for x in world + local):
+            raise RuntimeError('Non-finite player position')
+        return dict(available=True, profile=profile, player=player, node=node,
+                    parent=struct.unpack_from('<I', raw, 0x2c)[0],
+                    worldPosition=world, localPosition=local, nodePrefixHex=raw.hex())
 
     def camera_snapshot(self):
         # Observed PC layouts documented in native-class-sp-camera.md and
@@ -137,12 +163,15 @@ if __name__ == '__main__':
     parser.add_argument('--pid', type=int, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--cameras', action='store_true')
+    parser.add_argument('--player', action='store_true')
     args = parser.parse_args()
     reader = StateReader(args.pid)
     try:
         result = reader.snapshot()
         if args.cameras:
             result['cameraAudit'] = reader.camera_snapshot()
+        if args.player:
+            result['player'] = reader.player_snapshot()
         text = json.dumps(result, indent=2)
         if args.output:
             args.output.write_text(text + '\n', encoding='utf-8')
