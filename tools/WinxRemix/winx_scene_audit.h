@@ -11,6 +11,7 @@ static bool sceneLightsEnabled, keepSceneLightsForComparison;
 static float sceneLightGain=10.0f;
 static FILE* sceneLightLog;
 static bool sceneGeometryEnabled, keepSceneGeometryForComparison;
+static bool sceneGeometryObserveOnly;
 static FILE* sceneGeometryLog;
 
 // Diagnostic gain only: keep the original light values and stable ownership.
@@ -221,6 +222,7 @@ static void InitializeSceneAudit() {
   wchar_t path[MAX_PATH]{}, option[8]{}, gain[32]{};
   sceneLightsEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_LIGHTS",option,8) && wcscmp(option,L"1")==0;
   sceneGeometryEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_GEOMETRY",option,8) && wcscmp(option,L"1")==0;
+  sceneGeometryObserveOnly=GetEnvironmentVariableW(L"WINX_REMIX_SCENE_OBSERVE_ONLY",option,8) && wcscmp(option,L"1")==0;
   if(GetEnvironmentVariableW(L"WINX_REMIX_LIGHT_GAIN",gain,32)) {
     const auto value=wcstod(gain,nullptr);
     if(std::isfinite(value) && value>=0 && value<=1000) sceneLightGain=static_cast<float>(value);

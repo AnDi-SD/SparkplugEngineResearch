@@ -179,7 +179,7 @@ struct Scope {
     manager=0;marks.clear();
   }
   void Extend(uint32_t selectedManager,uint32_t selectedScene,uint32_t selectedCamera) {
-    if(attempted || parent || !sceneGeometryEnabled || keepSceneGeometryForComparison ||
+    if(attempted || parent || !sceneGeometryEnabled || sceneGeometryObserveOnly || keepSceneGeometryForComparison ||
        scene!=selectedScene || camera!=selectedCamera) return;
     attempted=true;
     const auto engine=Word(0x755274);

@@ -55,6 +55,10 @@ struct Observation {
   unsigned wordsDifferent=0;
   double absoluteError=0,relativeError=0;
   bool withinTolerance=true;
+  // Owned snapshot for the separately qualified Fixed.rfx packet path. The
+  // general palette observer still accepts up to256 bones; no truncation is used.
+  std::array<math::Matrix4,16> fixedPalette{};
+  bool fixedPaletteAvailable=false;
 };
 template<class T> static bool Finite(const T& values){for(float value:values)if(!std::isfinite(value))return false;return true;}
 static bool Observe(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_t returnAddress,Observation& out) {
@@ -141,6 +145,10 @@ static bool Observe(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_
   }
   if(scene_geometry::Word(native_owner_source::rendererPointerAddress)!=renderer||
      scene_geometry::Word(renderer)!=abi::spPCRendererPrimaryVTable||!Current(scope,owner))return Reject(Changed);
+  if(skin.boneCount<=value.fixedPalette.size()){
+    for(unsigned i=0;i<skin.boneCount;++i)value.fixedPalette[i]=inputs[i].palette;
+    value.fixedPaletteAvailable=true;
+  }
   out=value;return true;
 }
 static void Capture(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_t returnAddress) {

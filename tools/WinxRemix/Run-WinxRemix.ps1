@@ -13,6 +13,7 @@ param(
     [switch]$NativeMaterialSubmit,
     [switch]$NativeOwnerSource,
     [switch]$NativeSkinSource,
+    [switch]$NativeSkinPackets,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -32,6 +33,7 @@ param(
 $ErrorActionPreference='Stop'
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
+if ($NativeSkinPackets) { $NativeSkinSource=$true }
 if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true }
@@ -40,7 +42,7 @@ if ($NativeOwnerSource) { $SceneGeometry=$true }
 if ($MaterialChannels -and ($Mode -ne 'RTX' -or -not $SceneLights)) { throw 'MaterialChannels requires RTX and SceneLights' }
 if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires RTX mode' }
 if ($SceneLights -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneLights requires RTX and the verified DebugMenu build' }
-if ($SceneGeometry -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneGeometry requires RTX and the verified DebugMenu build' }
+if ($SceneGeometry -and (-not $DebugMenu -or ($Mode -ne 'RTX' -and -not ($NativeSkinPackets -and $Mode -eq 'Original')))) { throw 'SceneGeometry requires verified DebugMenu and RTX, or Original Skin packet capture' }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $game=Join-Path $root 'local-data/Winx Club'
 $build=Join-Path $root 'local-data/rtx-remix/build/d3d9.dll'
@@ -63,6 +65,7 @@ if ($NativeMaterialSource -or $NativeMaterialSubmit) { $options.NativeMaterialSo
 if ($NativeMaterialSubmit) { $options.NativeMaterialSubmit=$true }
 if ($NativeOwnerSource) { $options.NativeOwnerSource=$true }
 if ($NativeSkinSource) { $options.NativeSkinSource=$true }
+if ($NativeSkinPackets) { $options.NativeSkinPackets=$true }
 if ($NativeUpdateSource) { $options.NativeUpdateSource=$true }
 if ($IndependentSceneSource) { $options.IndependentSceneSource=$true }
 if ($IndependentSceneSubmit) { $options.IndependentSceneSubmit=$true }

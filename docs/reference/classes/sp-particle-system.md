@@ -40,7 +40,12 @@ Viewer показывает inherited renderable, все ranges/flags, конк�
 render node. Изменение оставлено read-only до реализации coordinated ownership и
 валидации зависимых material/render-node данных.
 
-Binary layout всех семи regions закрыт; открыты simulation equations и
-взаимодействие lifetime/emission/ranges/flags. Они проверяются одиночными
-fixed-size изменениями по
-`smo-runtime-validation-plan.md`.
+Binary layout всех семи regions известен. Общие исходники поддерживают
+[чтение параметров и начальное заполнение пула](../../engine/effects/particle-parameters.md).
+Отдельно восстановлены ограниченные контракты
+[CPU update и выбора обновления менеджером](../../engine/effects/particle-cpu-update.md),
+[накопителя испускания](../../engine/effects/particle-emission-budget.md),
+[обеих ветвей CPU draw](../../engine/effects/ballistic-cpu-draw.md)
+и [ballistic shader](../../engine/effects/ballistic-shader.md).
+Полное переиспускание при update, modifier callbacks и объединение стадий
+в работающий игровой runtime остаются открытыми.

@@ -1,6 +1,7 @@
 // Own sampled API-admission audit. It reads raw source/upload data; no skin
 // deformation, producer, COM call, game write or Remix submission is performed.
 #pragma once
+#include "winx_skin_packet_capture.h"
 namespace native_skin_vertex_source {
 static FILE* output;
 static bool enabled;
@@ -82,6 +83,18 @@ static void Capture(const native_skin_source::Observation& skin) {
     if(!Inspect(pair.vertices->data,pair.indices->data,transport.elements,transport.elementCount,
        mesh.vertexStride,mesh.vertexBegin,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount,
        mesh.indexType,mesh.componentWeightCount,skin.boneCount,summary))throw 5;
+    winx_remix::skin_packet::Packet ownedPacket;bool packetReady=false;
+    const bool packetWanted=skin_packet_capture::Wanted(skin,pair.vertices->generation);
+    if(packetWanted){
+      winx_remix::skin_packet::Error packetError=winx_remix::skin_packet::Error::Palette;
+      if(skin.fixedPaletteAvailable){
+        // Layout bytes were already compared to the shared emitter above.
+        packetReady=winx_remix::skin_packet::Build(pair.vertices->data,pair.indices->data,layout->data(),layout->size(),
+          mesh.vertexStride,mesh.vertexBegin,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount,
+          mesh.indexType,mesh.componentWeightCount,skin.fixedPalette.data(),skin.boneCount,ownedPacket,&packetError);
+      }
+      if(!packetReady)skin_packet_capture::Rejected(skin,100+unsigned(packetError));
+    }
     abi::spDXMeshObservedLayout final{};source::ResourcePair finalPair{};uint32_t finalDeclaration[7]{},finalDevice=0;
     if(!source::Read(skin.mesh,final)||memcmp(&mesh,&final,sizeof(mesh))||
        !source::ReadResourceHeaders(mesh,finalPair)||memcmp(&pair.vb,&finalPair.vb,sizeof(pair.vb))||
@@ -90,7 +103,18 @@ static void Capture(const native_skin_source::Observation& skin) {
        !source::Read(skin.renderer+0xc9e8,finalDevice)||device!=finalDevice||
        !native_transport_source::Current(borrow,transport)||native_skin_source::active!=scope||
        scope->sequence!=skin.modelCall||scope->frame!=frameId||scope->mutation!=scene_geometry::MutationSerial())throw 6;
+    if(packetReady){
+      uint32_t paletteHeader[2]{};
+      if(!source::Read(skin.renderer+0xc9b8,paletteHeader)||paletteHeader[0]!=skin.palette||paletteHeader[1]!=skin.boneCount)throw 6;
+      for(unsigned b=0;b<skin.boneCount;++b){native_skin_source::math::Matrix4 current{};
+        if(!source::Read(skin.palette+b*64,current)||current!=skin.fixedPalette[b])throw 6;
+      }
+    }
     generation=pair.vertices->generation;accepted=true;
+    if(packetReady){
+      try {skin_packet_capture::Save(skin,generation,ownedPacket);}
+      catch(...){skin_packet_capture::Rejected(skin,203);skin_packet_capture::stopped=true;}
+    }
   }catch(int reason){rejection=reason;}catch(...){rejection=7;}
   if(accepted)++matched;else ++rejected;
   fprintf(output,"{\"event\":\"sample\",\"frame\":%u,\"skin\":%u,\"mesh\":%u,\"scene\":%u,\"modelCall\":%llu,\"submission\":%llu,\"accepted\":%s,\"rejection\":%d,\"generation\":%llu,\"vertices\":%u,\"influences\":%u,\"boneCount\":%u,\"maxIndex\":%u,\"negativeWeightVertices\":%u,\"nonUnitSumVertices\":%u,\"maxSumError\":%.17g,\"minWeight\":%.9g,\"maxWeight\":%.9g}\n",
@@ -103,7 +127,8 @@ static void Capture(const native_skin_source::Observation& skin) {
 }
 static void Initialize(){wchar_t path[MAX_PATH]{};const auto length=GetEnvironmentVariableW(L"WINX_REMIX_NATIVE_SKIN_VERTICES",path,MAX_PATH);
   if(!length||length>=MAX_PATH||!native_skin_source::enabled)return;output=_wfsopen(path,L"wb",_SH_DENYNO);enabled=output!=nullptr;
-  if(output){fprintf(output,"{\"event\":\"init\",\"schema\":1,\"pid\":%lu,\"enabled\":true,\"maxLogBytes\":16777216,\"scope\":\"sampled qualified Skin calls; exact CPU-source/upload and shared-layout comparison; no weighted API submission; unit-sum tolerance1e-5\"}\n",GetCurrentProcessId());fflush(output);}}
+  if(output){fprintf(output,"{\"event\":\"init\",\"schema\":1,\"pid\":%lu,\"enabled\":true,\"maxLogBytes\":16777216,\"scope\":\"sampled qualified Skin calls; exact CPU-source/upload and shared-layout comparison; no weighted API submission; unit-sum tolerance1e-5\"}\n",GetCurrentProcessId());fflush(output);}
+  skin_packet_capture::Initialize();}
 static void EndFrame(){if(output&&_ftelli64(output)<16*1024*1024&&(attempts||frameId%300==0)){
   fprintf(output,"{\"event\":\"frame\",\"frame\":%u,\"attempts\":%u,\"matched\":%u,\"rejected\":%u}\n",frameId,attempts,matched,rejected);fflush(output);}
   attempts=matched=rejected=0;}

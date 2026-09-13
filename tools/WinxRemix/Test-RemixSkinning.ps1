@@ -1,6 +1,9 @@
 param(
   [Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,
   [ValidateRange(1,4)][int]$MaximumBones=2,
+  [ValidateSet(1,24)][int]$Subdivisions=1,
+  [ValidateRange(256,1024)][int]$MaximumWorkingSetMiB=1024,
+  [switch]$HalfResolution,
   [switch]$BuildOnly,[switch]$RunBuilt,
   [string]$ClientDll,[string]$ServerExecutable,
   [ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$ClientSha256,
@@ -44,6 +47,7 @@ exit /b %errorlevel%
 if($BuildOnly){Write-Output "Built isolated skin fixture: $run";return}
 $build=Get-Content -LiteralPath (Join-Path $run 'build.json') -Raw | ConvertFrom-Json
 foreach($file in $build.hashes){if((Get-FileHash -LiteralPath (Join-Path $run $file.path)).Hash -ne $file.sha256){throw "Frozen fixture changed: $($file.path)"}}
+if($HalfResolution -and -not (Get-Content -LiteralPath (Join-Path $run 'test_remix_skinning.cpp') -Raw).Contains('--half-resolution')){throw 'This frozen fixture predates HalfResolution; build a fresh run'}
 if(-not $ClientDll -or -not $ServerExecutable -or -not $ClientSha256 -or -not $ServerSha256){throw 'Explicit paired skin-wire binaries and reviewed SHA256 values are required'}
 if((Get-FileHash -LiteralPath $ClientDll).Hash -ne $ClientSha256 -or (Get-FileHash -LiteralPath $ServerExecutable).Hash -ne $ServerSha256){throw 'Paired bridge hash mismatch'}
 if(Get-Process WinxClub,WinxClubDebug,NvRemixBridge,test_remix_material,test_remix_skinning -ErrorAction SilentlyContinue){throw 'Another game or fixture is running'}
@@ -63,7 +67,7 @@ if($RendererDirectory -and (Get-FileHash -LiteralPath (Join-Path $server 'd3d9.d
 $runtimeHashes=@(Get-ChildItem -LiteralPath $server -File -Recurse | ForEach-Object {
   @{path=$_.FullName.Substring($server.Length+1);sha256=(Get-FileHash -LiteralPath $_.FullName).Hash}
 })
-[IO.File]::WriteAllText((Join-Path $server 'bridge.conf'),"clientChannelMemSize = 192MB`r`nexposeRemixApi = True`r`n",[Text.Encoding]::ASCII)
+[IO.File]::WriteAllText((Join-Path $server 'bridge.conf'),"clientChannelMemSize = 32MB`r`nexposeRemixApi = True`r`n",[Text.Encoding]::ASCII)
 $config=@'
 rtx.enableRaytracing = True
 rtx.useVertexCapture = True
@@ -76,24 +80,64 @@ rtx.upscalerType = 0
 rtx.resolutionScale = 1
 rtx.forceCameraJitter = False
 rtx.enableRayReconstruction = False
+rtx.initializer.asyncShaderPrewarming = False
+rtx.graphicsPreset = 4
+rtx.integrateIndirectMode = 0
 '@
+if($HalfResolution){$config=$config.Replace('rtx.upscalerType = 0','rtx.upscalerType = 2').Replace('rtx.resolutionScale = 1','rtx.resolutionScale = 0.5')}
 [IO.File]::WriteAllText((Join-Path $run 'rtx.conf'),$config,[Text.Encoding]::ASCII)
-$priorConfig=$env:DXVK_RTX_CONFIG_FILE;$priorAudit=$env:REMIX_BRIDGE_INSTANCE_AUDIT
+[IO.File]::WriteAllText((Join-Path $run 'dxvk.conf'),"dxvk.numCompilerThreads = 1`r`n",[Text.Encoding]::ASCII)
+$priorConfig=$env:DXVK_RTX_CONFIG_FILE;$priorAudit=$env:REMIX_BRIDGE_INSTANCE_AUDIT;$priorDxvkConfig=$env:DXVK_CONFIG_FILE
 try{
   $env:DXVK_RTX_CONFIG_FILE=Join-Path $run 'rtx.conf';$env:REMIX_BRIDGE_INSTANCE_AUDIT=Join-Path $run 'server-instance-audit.jsonl'
-  $process=Start-Process -FilePath (Join-Path $run 'test_remix_skinning.exe') -ArgumentList @('--max-bones',"$MaximumBones") -WorkingDirectory $run -WindowStyle Hidden -PassThru
-  @{schema=1;pid=$process.Id;started=(Get-Date).ToString('o');maximumBonesPerVertex=$MaximumBones;clientSha256=$ClientSha256;serverSha256=$ServerSha256;
-    rendererSha256=(Get-FileHash -LiteralPath (Join-Path $server 'd3d9.dll')).Hash;rendererDirectory=$runtime;runtimeHashes=$runtimeHashes;gameAssetsUsed=$false;nativeGameCodeExecuted=$false} |
+  $env:DXVK_CONFIG_FILE=Join-Path $run 'dxvk.conf'
+  $arguments=@('--max-bones',"$MaximumBones",'--subdivisions',"$Subdivisions")
+  if($HalfResolution){$arguments+=@('--half-resolution','1')}
+  $process=Start-Process -FilePath (Join-Path $run 'test_remix_skinning.exe') -ArgumentList $arguments -WorkingDirectory $run -WindowStyle Hidden -PassThru
+  @{schema=1;pid=$process.Id;started=(Get-Date).ToString('o');maximumBonesPerVertex=$MaximumBones;subdivisions=$Subdivisions;clientSha256=$ClientSha256;serverSha256=$ServerSha256;
+    rendererSha256=(Get-FileHash -LiteralPath (Join-Path $server 'd3d9.dll')).Hash;rendererDirectory=$runtime;runtimeHashes=$runtimeHashes;
+    maximumWorkingSetMiB=$MaximumWorkingSetMiB;compilerThreads=1;shaderPrewarming=$false;clientChannelMiB=32;graphicsPreset=4;indirectMode=0;
+    halfResolution=[bool]$HalfResolution;upscalerType=$(if($HalfResolution){2}else{0});resolutionScale=$(if($HalfResolution){0.5}else{1});
+    gameAssetsUsed=$false;nativeGameCodeExecuted=$false} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
   Write-Output "Skin fixture launched PID $($process.Id): $run"
-  # The shell can yield while this process wait runs. Outer process bound keeps
-  # failures reviewable; no other process is ever killed by this wrapper.
-  $timeout=-not $process.WaitForExit(150000)
-  if($timeout){Stop-Process -InputObject $process -Force;$process.WaitForExit()}
+  # Sample our shell, client and server from this unique fixture directory.
+  # A bounded failure gets a new run; no unrelated game/server is stopped.
+  $timer=[Diagnostics.Stopwatch]::StartNew();$peak=0L;$peakPrivate=0L;$memoryExceeded=$false;$timeout=$false
+  $memory=@();$ownedServers=@();$serverPath=Join-Path $server 'NvRemixBridge.exe'
+  while(-not $process.WaitForExit(100)){
+    $process.Refresh()
+    if($process.HasExited){break}
+    $ownedServers=@(Get-Process NvRemixBridge -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq $serverPath -and $_.StartTime -ge $process.StartTime})
+    $shellProcess=Get-Process -Id $PID
+    $workingSet=[long]$process.WorkingSet64+$shellProcess.WorkingSet64
+    $private=[long]$process.PrivateMemorySize64+$shellProcess.PrivateMemorySize64
+    foreach($child in $ownedServers){$child.Refresh();if(-not $child.HasExited){$workingSet+=$child.WorkingSet64;$private+=$child.PrivateMemorySize64}}
+    $peak=[Math]::Max($peak,$workingSet)
+    $peakPrivate=[Math]::Max($peakPrivate,$private)
+    $memory+=@{elapsedSeconds=[Math]::Round($timer.Elapsed.TotalSeconds,3);workingSetBytes=$workingSet;privateBytes=$private;serverPids=@($ownedServers | ForEach-Object {$_.Id})}
+    $memoryExceeded=[Math]::Max($workingSet,$private) -gt ([long]$MaximumWorkingSetMiB*1MB)
+    $timeout=$timer.Elapsed.TotalSeconds -ge 150
+    if($memoryExceeded -or $timeout){
+      if($memoryExceeded){
+        Stop-Process -InputObject $process -Force;$process.WaitForExit()
+        foreach($child in $ownedServers){if(-not $child.HasExited -and $child.Path -eq $serverPath){Stop-Process -InputObject $child -Force;$child.WaitForExit()}}
+        break
+      }
+      [void]$process.CloseMainWindow()
+      if(-not $process.WaitForExit(3000)){Stop-Process -InputObject $process -Force;$process.WaitForExit()}
+      foreach($child in $ownedServers){
+        if(-not $child.WaitForExit(5000) -and $child.Path -eq $serverPath){Stop-Process -InputObject $child -Force}
+      }
+      break
+    }
+  }
+  @{peakWorkingSetBytes=$peak;peakPrivateBytes=$peakPrivate;includesShell=$true;sampleMilliseconds=100;maximumWorkingSetMiB=$MaximumWorkingSetMiB;exceeded=$memoryExceeded;samples=$memory} |
+    ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'memory.json') -Encoding UTF8
   $exit=$process.ExitCode
-  @{pid=$process.Id;exited=(Get-Date).ToString('o');exitCode=$exit;timeout=$timeout} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'exit.json') -Encoding UTF8
-  if($timeout -or $exit -ne 0){throw 'Skin fixture failed; output is preserved'}
+  @{pid=$process.Id;exited=(Get-Date).ToString('o');exitCode=$exit;timeout=$timeout;memoryExceeded=$memoryExceeded} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'exit.json') -Encoding UTF8
+  if($timeout -or $memoryExceeded -or $exit -ne 0){throw 'Skin fixture failed or exceeded its bound; output is preserved'}
   $rows=@(Get-Content -LiteralPath (Join-Path $run 'fixture.jsonl') | ForEach-Object {$_ | ConvertFrom-Json})
   if($rows[-1].event -ne 'complete'){throw 'Missing complete fixture event'}
   $rows[-1] | ConvertTo-Json -Compress
-}finally{$env:DXVK_RTX_CONFIG_FILE=$priorConfig;$env:REMIX_BRIDGE_INSTANCE_AUDIT=$priorAudit}
+}finally{$env:DXVK_RTX_CONFIG_FILE=$priorConfig;$env:REMIX_BRIDGE_INSTANCE_AUDIT=$priorAudit;$env:DXVK_CONFIG_FILE=$priorDxvkConfig}

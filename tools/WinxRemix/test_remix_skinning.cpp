@@ -11,32 +11,52 @@ static remixapi_Transform Bone(float angle,float x,float y) {
   t.matrix[0][0]=c;t.matrix[0][1]=-s;t.matrix[0][3]=x;
   t.matrix[1][0]=s;t.matrix[1][1]=c;t.matrix[1][3]=y;t.matrix[2][2]=1;return t;
 }
-static std::array<remixapi_HardcodedVertex,3> Triangle() {
-  std::array<remixapi_HardcodedVertex,3> result{};
+using SkinVertices=std::vector<remixapi_HardcodedVertex>;
+static SkinVertices Triangle(unsigned subdivisions,std::vector<uint32_t>& indices,
+    std::vector<std::array<float,3>>& barycentric) {
+  SkinVertices result;
   const float p[3][3]={{-.65f,.55f,5},{.65f,.55f,5},{0,-.65f,5}};
-  for(unsigned v=0;v<3;++v){memcpy(result[v].position,p[v],12);result[v].normal[2]=-1;result[v].color=0xffffffff;}
+  auto append=[&](const std::array<float,3>& weights){remixapi_HardcodedVertex vertex{};
+    for(unsigned c=0;c<3;++c)for(unsigned i=0;i<3;++i)vertex.position[c]+=weights[i]*p[i][c];
+    // Exact z keeps the two simultaneous instances separated by288 pixels.
+    vertex.position[2]=5;vertex.normal[2]=-1;vertex.color=0xffffffff;
+    result.push_back(vertex);barycentric.push_back(weights);};
+  if(subdivisions==1){for(unsigned v=0;v<3;++v){std::array<float,3> weights{};weights[v]=1;append(weights);}indices={0,1,2};}
+  else{
+    auto index=[&](unsigned i,unsigned j){return i*(subdivisions+1)-i*(i-1)/2+j;};
+    for(unsigned i=0;i<=subdivisions;++i)for(unsigned j=0;j<=subdivisions-i;++j){
+      const float b=float(i)/subdivisions,c=float(j)/subdivisions;append({1-b-c,b,c});}
+    for(unsigned i=0;i<subdivisions;++i)for(unsigned j=0;j<subdivisions-i;++j){
+      indices.insert(indices.end(),{index(i,j),index(i+1,j),index(i,j+1)});
+      if(i+j+1<subdivisions)indices.insert(indices.end(),{index(i+1,j),index(i+1,j+1),index(i,j+1)});}
+  }
   return result;
 }
-static void Weights(unsigned count,std::vector<float>& weights,std::vector<uint32_t>& bones) {
+static void Weights(unsigned count,const std::vector<std::array<float,3>>& barycentric,
+    std::vector<float>& weights,std::vector<uint32_t>& bones) {
   const float values[3][4]={{.15f,.25f,.35f,.25f},{.65f,.20f,.10f,.05f},{.30f,.10f,.20f,.40f}};
-  for(unsigned v=0;v<3;++v){float sum=0;for(unsigned b=0;b<count;++b){
-    const float w=b+1==count?1-sum:values[v][b];sum+=w;weights.push_back(w);bones.push_back((v+b)%4);}}
+  for(unsigned v=0;v<barycentric.size();++v){float sum=0;for(unsigned b=0;b<count;++b){
+    float authored=0;for(unsigned corner=0;corner<3;++corner)authored+=barycentric[v][corner]*values[corner][b];
+    const float w=b+1==count?1-sum:authored;sum+=w;weights.push_back(w);
+    // The small fixture preserves its established varying-index control. The
+    // large continuous mesh uses one palette-index tuple across its vertices.
+    bones.push_back(barycentric.size()==3?(v+b)%4:b);}}
 }
-static remixapi_MeshHandle Mesh(const std::array<remixapi_HardcodedVertex,3>& verts,
+static remixapi_MeshHandle Mesh(const SkinVertices& verts,const std::vector<uint32_t>& indices,
     remixapi_MaterialHandle material,uint64_t hash,unsigned count,
     const std::vector<float>& weights,const std::vector<uint32_t>& bones) {
-  const uint32_t indices[3]={0,1,2};remixapi_MeshInfoSurfaceTriangles surface{};
-  surface.vertices_values=verts.data();surface.vertices_count=3;surface.indices_values=indices;surface.indices_count=3;surface.material=material;
+  remixapi_MeshInfoSurfaceTriangles surface{};
+  surface.vertices_values=verts.data();surface.vertices_count=verts.size();surface.indices_values=indices.data();surface.indices_count=indices.size();surface.material=material;
   if(count){surface.skinning_hasvalue=1;surface.skinning_value.bonesPerVertex=count;
     surface.skinning_value.blendWeights_values=weights.data();surface.skinning_value.blendWeights_count=uint32_t(weights.size());
     surface.skinning_value.blendIndices_values=bones.data();surface.skinning_value.blendIndices_count=uint32_t(bones.size());}
   remixapi_MeshInfo mesh{};mesh.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;mesh.hash=hash;mesh.surfaces_values=&surface;mesh.surfaces_count=1;
   remixapi_MeshHandle handle=nullptr;Api(api.CreateMesh(&mesh,&handle),"create fixture mesh");if(!handle)Fail("null mesh handle",0);return handle;
 }
-static std::array<remixapi_HardcodedVertex,3> Baked(const std::array<remixapi_HardcodedVertex,3>& input,unsigned count,
+static SkinVertices Baked(const SkinVertices& input,unsigned count,
     const std::vector<float>& weights,const std::vector<uint32_t>& bones,const std::array<remixapi_Transform,4>& palette) {
   auto result=input;
-  for(unsigned v=0;v<3;++v)for(unsigned row=0;row<3;++row){float value=0;
+  for(unsigned v=0;v<input.size();++v)for(unsigned row=0;row<3;++row){float value=0;
     for(unsigned b=0;b<count;++b){const auto& m=palette[bones[v*count+b]].matrix[row];
       value+=weights[v*count+b]*(m[0]*input[v].position[0]+m[1]*input[v].position[1]+m[2]*input[v].position[2]+m[3]);}
     result[v].position[row]=value;}
@@ -50,8 +70,14 @@ static void End(){Hr(device->EndScene(),"end");Hr(device->Present(nullptr,nullpt
 
 int main(int argc,char** argv) {
   if(fopen_s(&journal,"fixture.jsonl","wb")||!journal)return 1;
-  unsigned maximum=2;if(argc==3&&strcmp(argv[1],"--max-bones")==0)maximum=unsigned(std::atoi(argv[2]));
-  else if(argc!=1)Fail("arguments",0);if(maximum<1||maximum>4)Fail("bones range",maximum);
+  unsigned maximum=2,subdivisions=1,halfResolution=0;
+  for(int i=1;i<argc;i+=2){if(i+1>=argc)Fail("arguments",0);
+    if(strcmp(argv[i],"--max-bones")==0)maximum=unsigned(std::atoi(argv[i+1]));
+    else if(strcmp(argv[i],"--subdivisions")==0)subdivisions=unsigned(std::atoi(argv[i+1]));
+    else if(strcmp(argv[i],"--half-resolution")==0)halfResolution=unsigned(std::atoi(argv[i+1]));else Fail("arguments",0);}
+  if(maximum<1||maximum>4)Fail("bones range",maximum);
+  if(subdivisions!=1&&subdivisions!=24)Fail("subdivision range",subdivisions);
+  if(halfResolution>1)Fail("resolution profile",halfResolution);
   SetProcessDPIAware();WNDCLASSW wc{};wc.lpfnWndProc=WindowProc;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"WinxRemixSkinningFixture";
   if(!RegisterClassW(&wc))Fail("register window",GetLastError());RECT size{0,0,960,540};AdjustWindowRect(&size,WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,FALSE);
   window=CreateWindowW(wc.lpszClassName,L"Remix skinning contract fixture",WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,40,40,size.right-size.left,size.bottom-size.top,nullptr,nullptr,wc.hInstance,nullptr);
@@ -79,23 +105,26 @@ int main(int argc,char** argv) {
   vertices[0][2]={-3.3f,-.5f,5,0,0,-1,0xffffffff,0,1};vertices[0][3]={-2.7f,-.5f,5,0,0,-1,0xffffffff,1,1};
   for(unsigned i=0;i<60;++i){Begin();End();}
   Config("rtx.debugView.debugViewIdx","23");Config("rtx.vertexColorIsBakedLighting","False");
-  Config("rtx.upscalerType","0");Config("rtx.resolutionScale","1");
+  Config("rtx.upscalerType",halfResolution?"2":"0");Config("rtx.resolutionScale",halfResolution?"0.5":"1");
   Config("rtx.forceCameraJitter","False");Config("rtx.enableRayReconstruction","False");
   remixapi_MaterialInfoOpaqueEXT opaque{};opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;opaque.albedoConstant={1,1,1};opaque.opacityConstant=1;opaque.roughnessConstant=1;opaque.useDrawCallAlphaState=1;
   remixapi_MaterialInfo material{};material.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;material.pNext=&opaque;material.hash=0x5758534b494e0001ull;
   remixapi_MaterialHandle materialHandle=nullptr;Api(api.CreateMaterial(&material,&materialHandle),"material");if(!materialHandle)Fail("null material",0);
   remixapi_CameraInfo camera{};camera.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO;camera.type=REMIXAPI_CAMERA_TYPE_WORLD;memcpy(camera.view,&identity,64);memcpy(camera.projection,&projection,64);
-  fprintf(journal,"{\"event\":\"contract\",\"maximumBonesPerVertex\":%u,\"vertices\":3,\"paletteCount\":4,\"paired\":true,\"referenceWorldTranslation\":[-1.5,-0.2,0],\"worldTranslation\":[1.5,-0.2,0],\"pixelSeparation\":288,\"view\":\"identity\",\"projection\":[1,1.77777778,1.001001,1,-0.1001001],\"debugView\":23}\n",maximum);fflush(journal);
-  const auto start=GetTickCount64();const auto input=Triangle();unsigned captures=0;
-  for(unsigned count=1;count<=maximum;++count){std::vector<float> weights;std::vector<uint32_t> bones;Weights(count,weights,bones);
-    auto skin=Mesh(input,materialHandle,0x5758534b4d000000ull+count,count,weights,bones);
+  std::vector<uint32_t> triangleIndices;std::vector<std::array<float,3>> barycentric;
+  const auto input=Triangle(subdivisions,triangleIndices,barycentric);
+  fprintf(journal,"{\"event\":\"contract\",\"maximumBonesPerVertex\":%u,\"vertices\":%zu,\"subdivisions\":%u,\"paletteCount\":4,\"paired\":true,\"referenceWorldTranslation\":[-1.5,-0.2,0],\"worldTranslation\":[1.5,-0.2,0],\"pixelSeparation\":288,\"view\":\"identity\",\"projection\":[1,1.77777778,1.001001,1,-0.1001001],\"debugView\":23}\n",maximum,input.size(),subdivisions);fflush(journal);
+  fprintf(journal,"{\"event\":\"mesh_topology\",\"indices\":[");for(size_t i=0;i<triangleIndices.size();++i)fprintf(journal,"%s%u",i?",":"",triangleIndices[i]);fprintf(journal,"]}\n");fflush(journal);
+  const auto start=GetTickCount64();unsigned captures=0;
+  for(unsigned count=1;count<=maximum;++count){std::vector<float> weights;std::vector<uint32_t> bones;Weights(count,barycentric,weights,bones);
+    auto skin=Mesh(input,triangleIndices,materialHandle,0x5758534b4d000000ull+count,count,weights,bones);
     fprintf(journal,"{\"event\":\"mesh_input\",\"bonesPerVertex\":%u,\"weights\":[",count);
     for(size_t i=0;i<weights.size();++i)fprintf(journal,"%s%.9g",i?",":"",weights[i]);fprintf(journal,"],\"indices\":[");for(size_t i=0;i<bones.size();++i)fprintf(journal,"%s%u",i?",":"",bones[i]);fprintf(journal,"]}\n");fflush(journal);
     for(unsigned pose=0;pose<2;++pose){const float sign=pose?-1.0f:1.0f;
       const std::array<remixapi_Transform,4> palette={Bone(.3f*sign,.4f*sign,.1f),Bone(-.25f*sign,-.45f*sign,.25f),Bone(.1f*sign,.15f,-.35f*sign),Bone(-.4f*sign,-.2f,.1f*sign)};
-      auto baked=Baked(input,count,weights,bones,palette);auto reference=Mesh(baked,materialHandle,0x5758534b52000000ull+count*16+pose,0,weights,bones);
+      auto baked=Baked(input,count,weights,bones,palette);auto reference=Mesh(baked,triangleIndices,materialHandle,0x5758534b52000000ull+count*16+pose,0,weights,bones);
       fprintf(journal,"{\"event\":\"pose_input\",\"bonesPerVertex\":%u,\"pose\":%u,\"expectedPositions\":[",count,pose);
-      for(unsigned v=0;v<3;++v)fprintf(journal,"%s[%.9g,%.9g,%.9g]",v?",":"",baked[v].position[0],baked[v].position[1],baked[v].position[2]);fprintf(journal,"]}\n");fflush(journal);
+      for(unsigned v=0;v<baked.size();++v)fprintf(journal,"%s[%.9g,%.9g,%.9g]",v?",":"",baked[v].position[0],baked[v].position[1],baked[v].position[2]);fprintf(journal,"]}\n");fflush(journal);
       for(unsigned mode=0;mode<3;++mode){Focus();const auto begin=GetTickCount64();unsigned frames=0;
         do {if(GetTickCount64()-start>120000)Fail("120 second bound",0);Begin();Api(api.SetupCamera(&camera),"camera");
           remixapi_InstanceInfoBlendEXT blend{};blend.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;blend.writeMask=15;blend.alphaTestCompareOp=7;

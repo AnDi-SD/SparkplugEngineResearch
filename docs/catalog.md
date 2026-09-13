@@ -35,6 +35,7 @@
 - [PC Skin: actual light world to shader constants](engine/animation/skin-light-constants.md).
 - [PC Skin: complete light submission in decoded draw](engine/animation/skin-lights-render.md).
 - [PC Skin: palette -> mesh -> shader constants -> draw](engine/animation/skin-render.md).
+- [PC Skin: деформация вершин в Fixed.rfx](engine/animation/skin-deformation.md).
 - [PC Skin: сохранённый граф read → render](engine/animation/skin-loaded-render.md).
 - [PC unchanged SMO light through complete lit Skin draw](engine/animation/skin-decoded-light.md).
 - [PC прочитанный Skin → generating shader miss → draw](engine/animation/skin-generated-render.md).
@@ -57,12 +58,16 @@
 ## Движок / Свет, частицы и эффекты
 
 - [LightController, ColorFuncEval и ссылки LightEntity](engine/effects/light-runtime.md).
+- [PC BallisticPFX: CPU-геометрия и отправка](engine/effects/ballistic-cpu-draw.md).
+- [PC BallisticPFX: движение, размер точки и цвет](engine/effects/ballistic-shader.md).
 - [PC decoded Fog → renderer identity/device cache](engine/effects/renderer-fog.md).
 - [PC decoded light: complete no-scene virtual world callback](engine/effects/light-world.md).
 - [PC decoded light: whole Scene attachment and world cache refresh](engine/effects/light-scene-world.md).
 - [PC looping Particle Init: остановленная граница bg_particles](engine/effects/particle-loop-init-frontier.md).
 - [PC particle looping Init: directed counts 127/128/129](engine/effects/particle-loop-init-counts.md).
 - [PC ParticleSystem: генератор случайных чисел и области эмиссии](engine/effects/particle-sampling.md).
+- [PC ParticleSystem: накопитель испускания](engine/effects/particle-emission-budget.md).
+- [PC ParticleSystem: обновление существующих записей](engine/effects/particle-cpu-update.md).
 - [PC ParticleSystem: параметры, writer и первая целая сцена](engine/effects/particle-parameters.md).
 - [PC real light graph: index, save references and fresh native load](engine/effects/light-graph-roundtrip.md).
 - [PC renderer light submission](engine/effects/renderer-lights.md).

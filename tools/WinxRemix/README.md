@@ -26,3 +26,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Build-Probe.
 `-AutoSurfaceRoles` включает экспериментальную передачу совпадающих проходов через Remix API. **USD capture в этом режиме пока отключён от рабочего сценария: известен access violation в x64 Remix.** Скриншоты и диагностика адаптера имеют отдельный путь. Полная совместимость сцен, освещения и skin ещё не заявлена.
 
 [Профили запуска, параметры и ограничения](docs/guide.md) · [Устройство адаптера](docs/development.md) · [Внешние компоненты](third-party/README.md).
+
+[Захват и replay пакетов Skin](docs/skin-packets.md) описывает общий входной
+контракт для переноса анимации и границу между наблюдением и submit.

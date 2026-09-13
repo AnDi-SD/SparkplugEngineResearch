@@ -12,7 +12,7 @@ $include=Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/includ
 $dependencies=@(
     'Sparkplug/Analysis/PC/SparkplugAbi.h',
     'Sparkplug/Analysis/PC/SparkBaseAbi.h',
-    'Sparkplug/Analysis/PC/spNodeTransformMath.h',
+    'Sparkplug/Analysis/PC/spNodeTransformMath.h','Sparkplug/Analysis/PC/spFixedShaderSkinning.h',
     'Sparkplug/Analysis/PC/spRenderNodeMath.h',
     'Sparkplug/Analysis/PC/spColorMath.h',
     'Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h',

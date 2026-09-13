@@ -12,7 +12,7 @@ $commands=@"
 @echo off
 call "$vcvars" x64
 if errorlevel 1 exit /b %errorlevel%
-cl /nologo /std:c++17 /EHsc /MT /O2 /arch:AVX2 /DNOMINMAX /DWIN32_LEAN_AND_MEAN /I"$build/source/include" /I"$build/source/test-platform" /I"$build/source/src/dxvk/shaders" "$build/test_skin_strides.cpp" /Fe:test_skin_strides.exe /link user32.lib
+cl /nologo /std:c++17 /EHsc /MT /O2 /arch:AVX2 /DNOMINMAX /DWIN32_LEAN_AND_MEAN /I"$build/source" /I"$build/source/include" /I"$build/source/test-platform" /I"$build/source/src/dxvk/shaders" "$build/test_skin_strides.cpp" /Fe:test_skin_strides.exe /link user32.lib
 exit /b %errorlevel%
 "@
 [IO.File]::WriteAllText((Join-Path $build 'build.cmd'),$commands,[Text.Encoding]::ASCII)

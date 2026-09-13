@@ -29,6 +29,7 @@
 - [PC Skin: actual light world to shader constants](skin-light-constants.md).
 - [PC Skin: complete light submission in decoded draw](skin-lights-render.md).
 - [PC Skin: palette -> mesh -> shader constants -> draw](skin-render.md).
+- [PC Skin: деформация вершин в Fixed.rfx](skin-deformation.md).
 - [PC Skin: сохранённый граф read → render](skin-loaded-render.md).
 - [PC unchanged SMO light through complete lit Skin draw](skin-decoded-light.md).
 - [PC прочитанный Skin → generating shader miss → draw](skin-generated-render.md).

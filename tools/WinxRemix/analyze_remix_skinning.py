@@ -1,7 +1,7 @@
 """Compare authored API skin silhouettes with baked-reference A/B/A captures.
 
-The small triangle proves the stock rendered API path, not GPU compute skinning:
-the renderer is allowed to run the same skin shader on its CPU small-mesh path.
+The small triangle permits CPU skinning. The subdivided mesh exceeds the pinned
+renderer's CPU threshold; branch attribution still depends on that source/binary.
 """
 import argparse
 import hashlib
@@ -43,15 +43,28 @@ def compare(a, b):
 def analyze(run):
     launch = json.loads((run / 'launch.json').read_text(encoding='utf-8-sig'))
     exit_info = json.loads((run / 'exit.json').read_text(encoding='utf-8-sig'))
-    if exit_info['timeout'] or exit_info['exitCode'] != 0 or exit_info['pid'] != launch['pid']:
+    if exit_info['timeout'] or exit_info.get('memoryExceeded', False) or exit_info['exitCode'] != 0 or exit_info['pid'] != launch['pid']:
         raise ValueError('Fixture did not record a clean process exit')
     rows = [json.loads(line) for line in (run / 'fixture.jsonl').read_text().splitlines()]
     if not rows or rows[-1]['event'] != 'complete' or any(r['event'] == 'error' for r in rows):
         raise ValueError('Fixture journal is incomplete or contains API errors')
     maximum = launch['maximumBonesPerVertex']
     contract = next(r for r in rows if r['event'] == 'contract')
+    half_resolution = bool(launch.get('halfResolution', False))
+    configuration = {r['key']: r['value'] for r in rows if r['event'] == 'config'}
+    if half_resolution and (configuration.get('rtx.upscalerType') != '2' or configuration.get('rtx.resolutionScale') != '0.5'):
+        raise ValueError('Half-resolution run did not preserve the declared NIS profile')
     if contract.get('paired') is not True or contract.get('pixelSeparation') != 288:
         raise ValueError('Requires simultaneous-reference fixture; preserve earlier temporal-only verdicts')
+    vertex_count = contract['vertices']
+    subdivisions = contract.get('subdivisions', 1)
+    if launch.get('subdivisions', 1) != subdivisions:
+        raise ValueError('Launched and observed topology differ')
+    if subdivisions not in (1, 24) or vertex_count != (subdivisions + 1) * (subdivisions + 2) // 2:
+        raise ValueError('Unexpected fixture geometry size')
+    indices = next((r['indices'] for r in rows if r['event'] == 'mesh_topology'), [0, 1, 2])
+    if len(indices) != subdivisions * subdivisions * 3 or any(type(i) is not int or i < 0 or i >= vertex_count for i in indices):
+        raise ValueError('Unexpected fixture topology')
     captured = [r['file'] for r in rows if r['event'] == 'capture']
     expected_names = [f'b{b}-p{p}-{mode}.bmp' for b in range(1, maximum + 1)
                       for p in range(2) for mode in ('reference', 'skin', 'reference-return')]
@@ -67,7 +80,11 @@ def analyze(run):
             expected = Image.new('L', (960, 540))
             points = [(480 + (x + 1.5) * 480 / z, 270 - (y - .2) * 480 / z)
                       for x, y, z in poses[bones, pose]['expectedPositions']]
-            ImageDraw.Draw(expected).polygon(points, fill=255)
+            if len(points) != vertex_count:
+                raise ValueError('Missing authored reference vertices')
+            painter = ImageDraw.Draw(expected)
+            for face in range(0, len(indices), 3):
+                painter.polygon([points[i] for i in indices[face:face+3]], fill=255)
             stability = compare(reference, returned)
             deformation = compare(reference, skin)
             projection = compare(reference, expected)
@@ -91,8 +108,10 @@ def analyze(run):
     success = all(r['status'] == 'PASS' for r in results) and all(p['distinct'] for p in pose_changes)
     files = ['launch.json', 'exit.json', 'build.json', 'fixture.jsonl', *expected_names]
     return dict(schema=1, status='PASS' if success else 'FAIL', run=str(run), results=results,
+                vertices=vertex_count, subdivisions=subdivisions,
+                halfResolution=half_resolution,
                 poseChanges=pose_changes,
-                scope='Authored 3-vertex triangles, normalized varying weights, four rigid bones, two palettes and independent world translation. Each screenshot contains a simultaneous reference offset by288 exact pixels. Temporal jitter is reported separately. Rendered stock API path only: small-mesh CPU skinning is possible. No game skin/material coverage or GPU compute branch is claimed.',
+                scope=f'Authored {vertex_count}-vertex mesh, normalized varying weights, four rigid bones, two palettes and independent world translation. Each screenshot contains a simultaneous reference offset by288 exact pixels. Temporal jitter is reported separately. The small mesh permits CPU skinning; 325 vertices exceed the pinned renderer threshold256. This threshold inference is not GPU command tracing. No game skin/material coverage is claimed.',
                 thresholds=dict(simultaneousControl=.98, expectedProjection=.90, simultaneousSkinReference=.97, minimumPixels=100),
                 hashes={name: digest(run / name) for name in files})
 

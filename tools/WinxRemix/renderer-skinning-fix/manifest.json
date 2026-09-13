@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
   "patch": {
-    "path": "tools/WinxRemix/renderer-skinning-fix/skin-strides-v1.patch",
-    "bytes": 1033,
-    "sha256": "773898B7FC8CD3AA5DB81AA8F247A2E1E539965DEC70DE155CC270A394CC5F6B"
+    "path": "tools/WinxRemix/renderer-skinning-fix/skin-strides-v2.patch",
+    "bytes": 823,
+    "sha256": "1AFA0439380C0B58FD3806D33DABEAB31132C792BB83773C4D0D0B5ABBC99F15"
   }
 }

@@ -1,5 +1,6 @@
 param(
     [Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,
+    [string]$GameDirectory='local-data/Winx Club',
     [ValidateSet('system','remix')][string]$Backend = 'remix',
     [switch]$Raytracing,
     [switch]$NormalizeFVF,
@@ -29,6 +30,7 @@ param(
     [switch]$NativeMaterialSubmit,
     [switch]$NativeOwnerSource,
     [switch]$NativeSkinSource,
+    [switch]$NativeSkinPackets,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -51,6 +53,7 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
+if ($NativeSkinPackets) { $NativeSkinSource=$true; $ShaderSemantics=$true }
 if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true; $MaterialChannels=$true }
@@ -65,7 +68,8 @@ if ($NativeUpdateSource) { $NativeCameraSource=$true }
 if ($NativeMaterialSubmit) { $NativeMaterialSource=$true; $LiveConfig=$true }
 if ($NativeMaterialSource) { $NativeMeshSource=$true }
 if ($NativeOwnerSource) { $NativeMeshSource=$true; $SceneGeometry=$true }
-if ($NativeOwnerSource -and ($Backend -ne 'remix' -or -not $Raytracing -or -not $DebugMenu)) { throw 'Native owner source requires RTX and the verified DebugMenu build' }
+$skinPacketSystemCapture=$NativeSkinPackets -and $Backend -eq 'system' -and -not $Raytracing
+if ($NativeOwnerSource -and (-not $DebugMenu -or (-not $skinPacketSystemCapture -and ($Backend -ne 'remix' -or -not $Raytracing)))) { throw 'Native owner source requires verified DebugMenu and RTX, or system Skin packet capture' }
 if ($NativeMaterialSource -and (-not $MaterialChannels -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Native material source requires RTX MaterialChannels' }
 if ($NativeMeshSubmit) { $NativeMeshSource=$true }
 if ($NativeCameraSubmit) { $NativeCameraSource=$true; $LiveConfig=$true }
@@ -76,13 +80,14 @@ if ($NativeMeshSubmit -and (-not $MaterialChannels -or $Backend -ne 'remix' -or 
 if ($Windowed -and -not $StartLevel) { throw 'Windowed override requires an isolated StartLevel run' }
 if ($SceneAudit -and -not $DebugMenu) { throw 'Scene audit requires the hash-verified DebugMenu executable' }
 if ($SceneLights -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene lights require RTX and the hash-verified DebugMenu executable' }
-if ($SceneGeometry -and (-not $DebugMenu -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Scene geometry requires RTX and the hash-verified DebugMenu executable' }
+if ($SceneGeometry -and (-not $DebugMenu -or (-not $skinPacketSystemCapture -and ($Backend -ne 'remix' -or -not $Raytracing)))) { throw 'Scene geometry requires verified DebugMenu and RTX, or system Skin packet capture' }
 if ($SkipLegacyProjectedShadows -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Legacy shadow filtering requires the RTX mode' }
 if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Opaque alpha normalization requires the RTX mode' }
 if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
 if ($AutoSurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing -or $SurfaceRoles -or -not $OpaqueAlphaTest)) { throw 'Automatic surface roles require RTX and OpaqueAlphaTest, without legacy SurfaceRoles' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$game = Join-Path $root 'local-data/Winx Club'
+$game = [IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($GameDirectory)) { $GameDirectory } else { Join-Path $root $GameDirectory }))
+if (-not $game.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Game directory must be inside this workspace' }
 if (Get-Process WinxClub,WinxClubDebug,NvRemixBridge -ErrorAction SilentlyContinue) { throw 'Close the previous game/bridge before starting another run' }
 $executable = Join-Path $game $(if ($DebugMenu) { 'WinxClubDebug.exe' } else { 'WinxClub.exe' })
 if ($DebugMenu -and (Get-FileHash -LiteralPath $executable).Hash -ne 'C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB') {
@@ -91,6 +96,7 @@ if ($DebugMenu -and (Get-FileHash -LiteralPath $executable).Hash -ne 'C27EA9DB42
 $run = Join-Path $root "local-data/rtx-remix/runs/$Name"
 if (Test-Path -LiteralPath $run) { throw 'Choose a fresh run name to preserve evidence' }
 New-Item -ItemType Directory -Path $run | Out-Null
+if ($NativeSkinPackets) { New-Item -ItemType Directory -Path (Join-Path $run 'skin-packets') | Out-Null }
 if ($AutoSurfaceRoles) { New-Item -ItemType Directory -Path (Join-Path $run 'surface-assets') | Out-Null }
 $config = Join-Path $run 'rtx.conf'
 $text = [IO.File]::ReadAllText((Join-Path $game 'rtx.conf'))
@@ -212,17 +218,19 @@ $values = @{
     WINX_REMIX_NATIVE_OWNER_SOURCE=$(if ($NativeOwnerSource) { Join-Path $run 'native-owner-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_SOURCE=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_VERTICES=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-vertices.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_SKIN_PACKETS=$(if ($NativeSkinPackets) { Join-Path $run 'skin-packets' } else { $null })
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
     WINX_REMIX_SELECTED_SCENE_SUBMIT=$(if ($SelectedSceneSubmit) { Join-Path $run 'selected-scene-submit.jsonl' } else { $null })
     REMIX_BRIDGE_INSTANCE_AUDIT=$(if ($BridgeInstanceAudit) { Join-Path $run 'renderer-instance-audit.jsonl' } else { $null })
-    WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource -or $NativeSkinPackets) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_NATIVE_LIGHT_SOURCE=$(if ($NativeLightSource) { Join-Path $run 'native-light-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_LIGHT_SUBMIT=$(if ($NativeLightSubmit) { '1' } else { '0' })
     WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
+    WINX_REMIX_SCENE_OBSERVE_ONLY=$(if ($skinPacketSystemCapture) { '1' } else { '0' })
     WINX_REMIX_GEOMETRY_AUDIT=$(if ($SceneGeometry) { Join-Path $run 'scene-geometry.jsonl' } else { $null })
     WINX_REMIX_LIGHT_GAIN=$LightGain.ToString([Globalization.CultureInfo]::InvariantCulture)
     WINX_REMIX_LIGHT_AUDIT=$(if ($SceneLights) { Join-Path $run 'scene-lights.jsonl' } else { $null })
@@ -258,6 +266,8 @@ try {
         nativeMaterialSubmit=$NativeMaterialSubmit.IsPresent
         nativeOwnerSource=$NativeOwnerSource.IsPresent
         nativeSkinSource=$NativeSkinSource.IsPresent
+        nativeSkinPackets=$NativeSkinPackets.IsPresent
+        sceneObserveOnly=$skinPacketSystemCapture
         nativeUpdateSource=$NativeUpdateSource.IsPresent
         independentSceneSource=$IndependentSceneSource.IsPresent
         independentSceneSubmit=$IndependentSceneSubmit.IsPresent

@@ -100,9 +100,10 @@ static void Draw(IDirect3DDevice9* device) {
   unsigned shader=unknownShader;
   if(!Verify(vs,shader)){++failures;return;}
   ++linked;
-  fprintf(output,"{\"event\":\"draw\",\"frame\":%u,\"draw\":%u,\"shader\":%u,\"key\":[%u,%u],\"selection\":%llu,\"manager\":%u,\"object\":%u,\"bytecodeEqual\":true}\n",
+  const auto skin=native_skin_source::active;const auto mesh=native_mesh_source::active;
+  fprintf(output,"{\"event\":\"draw\",\"frame\":%u,\"draw\":%u,\"shader\":%u,\"key\":[%u,%u],\"selection\":%llu,\"manager\":%u,\"object\":%u,\"bytecodeEqual\":true,\"skinCall\":%llu,\"meshSubmission\":%llu,\"nativeSkin\":%u,\"nativeMesh\":%u}\n",
     frameId,drawId,shader,current.mask,current.lights,current.sequence,
-    static_cast<unsigned>(current.manager),static_cast<unsigned>(current.object));
+    static_cast<unsigned>(current.manager),static_cast<unsigned>(current.object),skin?skin->sequence:0,mesh?mesh->sequence:0,skin?skin->skin:0,mesh?mesh->mesh:0);
 #else
   (void)device;
 #endif

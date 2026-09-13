@@ -87,6 +87,11 @@
       "category": "engine/animation"
     },
     {
+      "path": "docs/engine/animation/skin-deformation.md",
+      "title": "PC Skin: деформация вершин в Fixed.rfx",
+      "category": "engine/animation"
+    },
+    {
       "path": "docs/engine/animation/skin-fog-render.md",
       "title": "PC Skin-owned Fog/material/bone → SAN/scene/mesh draw",
       "category": "engine/animation"
@@ -207,6 +212,16 @@
       "category": "engine/effects"
     },
     {
+      "path": "docs/engine/effects/ballistic-cpu-draw.md",
+      "title": "PC BallisticPFX: CPU-геометрия и отправка",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/ballistic-shader.md",
+      "title": "PC BallisticPFX: движение, размер точки и цвет",
+      "category": "engine/effects"
+    },
+    {
       "path": "docs/engine/effects/light-corpus.md",
       "title": "Точность преобразования ориентации света на PC",
       "category": "engine/effects"
@@ -229,6 +244,16 @@
     {
       "path": "docs/engine/effects/light-world.md",
       "title": "PC decoded light: complete no-scene virtual world callback",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-cpu-update.md",
+      "title": "PC ParticleSystem: обновление существующих записей",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-emission-budget.md",
+      "title": "PC ParticleSystem: накопитель испускания",
       "category": "engine/effects"
     },
     {

@@ -68,6 +68,8 @@ namespace native_update_source { static void Initialize(); static void EndFrame(
 namespace native_transport_source { static void Initialize(); static void EndFrame(); }
 namespace independent_scene_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
+namespace skin_packet_capture { static void AuditDevice(IDirect3DDevice9*,const char*); }
+static bool systemBackend;
 
 static void Initialize() {
   wchar_t path[MAX_PATH]{}, mode[32]{}, output[MAX_PATH]{};
@@ -76,6 +78,7 @@ static void Initialize() {
   if (!slash) return;
   *(slash + 1) = 0;
   GetEnvironmentVariableW(L"WINX_REMIX_BACKEND", mode, 32);
+  systemBackend=wcscmp(mode,L"system")==0;
   if (wcscmp(mode, L"system") == 0) {
     GetSystemDirectoryW(path, MAX_PATH);
     wcscat_s(path, L"\\d3d9.dll");
@@ -241,6 +244,7 @@ static void Observe(IDirect3DDevice9* device, const char* call, D3DPRIMITIVETYPE
   AuditShaderDraw(device);
   std::lock_guard<std::recursive_mutex> lock(guard);
   ++drawId;
+  if(frameId%300==0&&drawId==1)skin_packet_capture::AuditDevice(device,"draw");
   shader_semantics::Draw(device);
   material_audit::Draw(device,call);
   native_draw_audit::Draw(device,call);
@@ -598,6 +602,7 @@ static void ResubmitTextures(IDirect3DDevice9* device) {
 #include "winx_surface_roles.h"
 #include "winx_material_audit.h"
 
+static bool CaptureSurfaceInputs(){return autoSurfaceRoles||skin_packet_capture::Enabled();}
 template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCall(Buffer* b,UINT offset,UINT size,void** data,DWORD flags) {
   std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
@@ -605,7 +610,7 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
   if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))native_mesh_source::Forget(b);
   if(autoSurfaceRoles && SUCCEEDED(hr) && !(flags&D3DLOCK_READONLY)) ClearSurfaceBases();
   Desc desc{}; b->GetDesc(&desc);
-  if(autoSurfaceRoles && SUCCEEDED(hr) && data && *data && !(flags&D3DLOCK_READONLY) && offset<=desc.Size) {
+  if(CaptureSurfaceInputs() && SUCCEEDED(hr) && data && *data && !(flags&D3DLOCK_READONLY) && offset<=desc.Size) {
     const UINT length=size?size:desc.Size-offset;
     surfaceWrites[b]={*data,offset,length,desc.Size,flags};
   }
@@ -621,7 +626,7 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
 }
 template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer* b) {
   std::lock_guard<std::recursive_mutex> lock(guard);
-  if(autoSurfaceRoles) CaptureSurfaceWrite(b);
+  if(CaptureSurfaceInputs()) CaptureSurfaceWrite(b);
   auto found=bufferLocks.find(b);
   if(found!=bufferLocks.end()) {
     const auto& info=found->second;
@@ -633,28 +638,43 @@ template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer*
   }
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*);
   const HRESULT hr=Original<F>(b,12)(b);
-  if(autoSurfaceRoles && FAILED(hr)) ForgetSurfaceBuffer(b);
+  if(CaptureSurfaceInputs() && FAILED(hr)) ForgetSurfaceBuffer(b);
   return hr;
 }
 template<class Buffer> static ULONG STDMETHODCALLTYPE SurfaceBufferRelease(Buffer* b) {
   std::lock_guard<std::recursive_mutex> lock(guard);
   using F=ULONG(STDMETHODCALLTYPE*)(Buffer*);const ULONG refs=Original<F>(b,2)(b);
-  if(!refs && autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(b);}
+  if(!refs && autoSurfaceRoles) ClearSurfaceBases();
+  if(!refs && CaptureSurfaceInputs()) ForgetSurfaceBuffer(b);
   if(!refs)native_mesh_source::Forget(b);
   if(!refs)native_transport_source::Forget(b);
   return refs;
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9*);
+static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9*,REFIID,void**);
+static void PrepareTransportDevice(IDirect3DDevice9* device) {
+  // System CreateDevice may return through a Windows compatibility wrapper
+  // which installs QueryInterface/Release/Reset after our callback. Install at
+  // the first resource boundary, preserving that completed chain as Original.
+  // A later replacement still fails TransportDeviceHooked; never overwrite it.
+  if(systemBackend&&native_transport_source::enabled){
+    Patch(device,0,reinterpret_cast<void*>(TextureDeviceQuery));
+    Patch(device,2,reinterpret_cast<void*>(DeviceRelease));
+    Patch(device,16,reinterpret_cast<void*>(Reset));
+  }
+}
 static bool TransportDeviceHooked(IDirect3DDevice9* device) {
   const auto table=*reinterpret_cast<void***>(device);
   return table[2]==reinterpret_cast<void*>(DeviceRelease)&&table[16]==reinterpret_cast<void*>(Reset);
 }
 static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD usage,DWORD fvf,D3DPOOL pool,IDirect3DVertexBuffer9** result,HANDLE* shared) {
   std::lock_guard<std::recursive_mutex> lock(guard);
+  PrepareTransportDevice(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,DWORD,D3DPOOL,IDirect3DVertexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,26)(d,size,usage,fvf,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(skin_packet_capture::Enabled())ForgetSurfaceBuffer(*result);
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>));
@@ -673,9 +693,11 @@ static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD us
 }
 static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DIndexBuffer9** result,HANDLE* shared) {
   std::lock_guard<std::recursive_mutex> lock(guard);
+  PrepareTransportDevice(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DIndexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,27)(d,size,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(skin_packet_capture::Enabled())ForgetSurfaceBuffer(*result);
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>));
@@ -702,6 +724,7 @@ static ULONG STDMETHODCALLTYPE DeclarationRelease(IDirect3DVertexDeclaration9* d
 static HRESULT STDMETHODCALLTYPE CreateDeclaration(IDirect3DDevice9* device,const D3DVERTEXELEMENT9* elements,
                                                     IDirect3DVertexDeclaration9** result) {
   std::lock_guard<std::recursive_mutex> lock(guard);
+  PrepareTransportDevice(device);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const D3DVERTEXELEMENT9*,IDirect3DVertexDeclaration9**);
   const auto hr=Original<F>(device,86)(device,elements,result);
   if(SUCCEEDED(hr)&&result&&*result&&native_transport_source::enabled) {
@@ -1025,6 +1048,7 @@ static HRESULT STDMETHODCALLTYPE TextureAdditionalSwap(IDirect3DDevice9* device,
 }
 static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
 static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
+  PrepareTransportDevice(d);
   std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,UINT,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DTexture9**,HANDLE*);
   UINT forwardedLevels=levels;
@@ -1123,6 +1147,7 @@ static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS
   if(logFile) { fprintf(logFile,"{\"event\":\"reset\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;
 }
+#include "winx_skin_packet_draw.h"
 static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT start,UINT count) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawPrimitive",t,count);
@@ -1159,7 +1184,9 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
   ScopedSky sky(d);
   PrepareUi(d);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,INT,UINT,UINT,UINT,UINT);
-  return surfaceRole.complete(AuditShaderDrawResult(Original<F>(d,82)(d,t,base,min,num,start,count)));
+  const auto result=Original<F>(d,82)(d,t,base,min,num,start,count);
+  skin_packet_capture::DrawResult(d,{t,base,min,num,start,count},result);
+  return surfaceRole.complete(AuditShaderDrawResult(result));
 }
 static HRESULT STDMETHODCALLTYPE DrawUP(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT count,const void* data,UINT stride) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
@@ -1189,6 +1216,27 @@ static bool CameraDrawsTracked(IDirect3DDevice9* device) {
   return table[81]==reinterpret_cast<void*>(Draw)&&table[82]==reinterpret_cast<void*>(DrawIndexed)&&
     table[83]==reinterpret_cast<void*>(DrawUP)&&table[84]==reinterpret_cast<void*>(DrawIndexedUP);
 }
+namespace skin_packet_capture {
+static void AuditDevice(IDirect3DDevice9* device,const char* phase){
+  static unsigned reports=0;if(!Enabled()||!journal||!device||reports>=8)return;++reports;
+  const auto table=*reinterpret_cast<void***>(device);const auto renderer=scene_geometry::Word(native_owner_source::rendererPointerAddress);
+  fprintf(journal,"{\"event\":\"device_hooks\",\"phase\":\"%s\",\"frame\":%u,\"device\":%llu,\"nativeDevice\":%u,\"table\":%llu,\"transportEnabled\":%s,\"slots\":[",phase,frameId,
+    static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(device)),renderer?scene_geometry::Word(renderer+0xc9e8):0,
+    static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(table)),native_transport_source::enabled?"true":"false");
+  struct Hook{unsigned slot;void* expected;};
+  const Hook hooks[]={{0,reinterpret_cast<void*>(TextureDeviceQuery)},{2,reinterpret_cast<void*>(DeviceRelease)},{16,reinterpret_cast<void*>(Reset)},
+    {26,reinterpret_cast<void*>(CreateVB)},{27,reinterpret_cast<void*>(CreateIB)},
+    {86,reinterpret_cast<void*>(CreateDeclaration)},{82,reinterpret_cast<void*>(DrawIndexed)},{91,reinterpret_cast<void*>(AuditCreateShader<IDirect3DVertexShader9,91>)}};
+  bool first=true;for(const auto& hook:hooks){const auto found=originals.find(table);const bool hasOriginal=found!=originals.end()&&found->second.count(hook.slot);
+    fprintf(journal,"%s[%u,%llu,%s,%s,%llu]",first?"":",",hook.slot,static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(table[hook.slot])),table[hook.slot]==hook.expected?"true":"false",hasOriginal?"true":"false",
+      hasOriginal?static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(found->second.at(hook.slot))):0);first=false;}
+  HMODULE owner=nullptr;wchar_t ownerPath[MAX_PATH]{};
+  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,reinterpret_cast<LPCWSTR>(table[2]),&owner);
+  if(owner)GetModuleFileNameW(owner,ownerPath,MAX_PATH);const wchar_t* filename=wcsrchr(ownerPath,L'\\');filename=filename?filename+1:ownerPath;
+  fprintf(journal,"],\"releaseModule\":\"%ls\",\"releaseOffset\":%llu}\n",filename,
+    static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(table[2])-reinterpret_cast<uintptr_t>(owner)));fflush(journal);
+}
+}
 static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVTYPE type,HWND window,DWORD flags,D3DPRESENT_PARAMETERS* p,IDirect3DDevice9** result) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
   LogPresentation("create_device_request",p,window);
@@ -1204,11 +1252,13 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
       IDirect3DSwapChain9* swap=nullptr;
       if(SUCCEEDED((*result)->GetSwapChain(0,&swap)) && swap) swap->Release();
     }
-    Patch(*result,16,reinterpret_cast<void*>(Reset)); Patch(*result,17,reinterpret_cast<void*>(Present));
+    if(!systemBackend||!native_transport_source::enabled)Patch(*result,16,reinterpret_cast<void*>(Reset));
+    Patch(*result,17,reinterpret_cast<void*>(Present));
     Patch(*result,26,reinterpret_cast<void*>(CreateVB)); Patch(*result,27,reinterpret_cast<void*>(CreateIB));
     if(native_transport_source::enabled) {
-      Patch(*result,86,reinterpret_cast<void*>(CreateDeclaration));Patch(*result,2,reinterpret_cast<void*>(DeviceRelease));
-      Patch(*result,0,reinterpret_cast<void*>(TextureDeviceQuery));
+      Patch(*result,86,reinterpret_cast<void*>(CreateDeclaration));
+      if(!systemBackend)Patch(*result,2,reinterpret_cast<void*>(DeviceRelease));
+      if(!systemBackend)Patch(*result,0,reinterpret_cast<void*>(TextureDeviceQuery));
       Patch(*result,13,reinterpret_cast<void*>(TextureAdditionalSwap));Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
       Patch(*result,33,reinterpret_cast<void*>(TextureFrontBuffer));Patch(*result,64,reinterpret_cast<void*>(ChannelGetTexture));
       IDirect3DSwapChain9* swap=nullptr;
@@ -1223,6 +1273,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     if(independent_scene_source::selectedSubmitEnabled)
       d3d9_state_witness::Install(*result,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
         reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>));
+    skin_packet_capture::AuditDevice(*result,"create");
   }
   if(logFile) { fprintf(logFile,"{\"event\":\"create_device\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;

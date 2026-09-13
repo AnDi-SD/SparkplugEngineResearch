@@ -7,12 +7,16 @@
 ## Статьи
 
 - [LightController, ColorFuncEval и ссылки LightEntity](light-runtime.md).
+- [PC BallisticPFX: CPU-геометрия и отправка](ballistic-cpu-draw.md).
+- [PC BallisticPFX: движение, размер точки и цвет](ballistic-shader.md).
 - [PC decoded Fog → renderer identity/device cache](renderer-fog.md).
 - [PC decoded light: complete no-scene virtual world callback](light-world.md).
 - [PC decoded light: whole Scene attachment and world cache refresh](light-scene-world.md).
 - [PC looping Particle Init: остановленная граница bg_particles](particle-loop-init-frontier.md).
 - [PC particle looping Init: directed counts 127/128/129](particle-loop-init-counts.md).
 - [PC ParticleSystem: генератор случайных чисел и области эмиссии](particle-sampling.md).
+- [PC ParticleSystem: накопитель испускания](particle-emission-budget.md).
+- [PC ParticleSystem: обновление существующих записей](particle-cpu-update.md).
 - [PC ParticleSystem: параметры, writer и первая целая сцена](particle-parameters.md).
 - [PC real light graph: index, save references and fresh native load](light-graph-roundtrip.md).
 - [PC renderer light submission](renderer-lights.md).

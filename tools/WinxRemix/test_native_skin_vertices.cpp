@@ -4,6 +4,7 @@
 #include "test_native_skin_source.cpp"
 #undef main
 #include "winx_native_skin_vertex_source.h"
+#include <fstream>
 namespace skin_vertex_test {
 namespace audit=native_skin_vertex_source;
 namespace source=native_mesh_source;
@@ -14,18 +15,19 @@ static unsigned parserChecks=0,integrationChecks=0;
 static float NaN(){return (std::numeric_limits<float>::quiet_NaN)();}
 struct Data {
   unsigned influences,flags,stride=0,base=2,count=4,start=2,primitives=1,type=2,palette=4;
-  unsigned weight=0,bone=0;
+  unsigned weight=0,bone=0,normal=0;
   std::vector<D3DVERTEXELEMENT9> elements;
   std::vector<uint8_t> vertices,indices;
-  explicit Data(unsigned b,bool uv=false):influences(b),flags(0x20|(b==1?2:b==2?4:8)|(uv?0x800:0)){
+  explicit Data(unsigned b,bool uv=false,bool normals=false):influences(b),flags(0x20|(b==1?2:b==2?4:8)|(uv?0x800:0)|(normals?0x40:0)){
     std::vector<sparkplug::reconstruction::spPCVertexElementForAnalysis> emitted;uint32_t allocation=0;
     Check(sparkplug::reconstruction::BuildPCVertexDeclarationElementsForAnalysis(flags,emitted,allocation),"actual shared PC emitter");
     elements.resize(emitted.size());memcpy(elements.data(),emitted.data(),emitted.size()*sizeof(elements[0]));
     for(const auto& e:elements){if(e.Stream==0xff)break;
       const unsigned bytes=e.Type<=3?(e.Type+1)*4:4;stride=(std::max)(stride,unsigned(e.Offset)+bytes);
-      if(e.Usage==D3DDECLUSAGE_BLENDWEIGHT)weight=e.Offset;if(e.Usage==D3DDECLUSAGE_BLENDINDICES)bone=e.Offset;}
+      if(e.Usage==D3DDECLUSAGE_BLENDWEIGHT)weight=e.Offset;if(e.Usage==D3DDECLUSAGE_BLENDINDICES)bone=e.Offset;if(e.Usage==D3DDECLUSAGE_NORMAL)normal=e.Offset;}
     vertices.resize((base+count)*stride,0);indices.resize((start+3)*2,0xff);
     for(unsigned v=0;v<count;++v){Float(v,0,float(v));Float(v,4,float(v+1));Float(v,8,5);
+      if(normals)Float(v,normal+8,1);
       for(unsigned j=0;j<influences;++j){Float(v,weight+j*4,1.f/influences);Float(v,bone+j*4,float(j));}}
     Index(0,0);Index(1,1);Index(2,2);
     Float(3,0,NaN()); // Unreferenced native vertices are not submitted.
@@ -93,7 +95,7 @@ struct Integrated {
   skin_test::Fixture f;Data data{4,true};abi::spDXVertexBufferLayout vb{};abi::spDXIndexBufferLayout ib{};
   uint32_t deviceSlot=0xdead1100,vertexSlot=0xdead2200,indexSlot=0xdead3300,declSlot=0xdead4400,declaration[7]{};
   IDirect3DDevice9* Device(){return reinterpret_cast<IDirect3DDevice9*>(&deviceSlot);}
-  Integrated(){
+  explicit Integrated(bool normals=false):data(4,true,normals){
     frameId=300;f.hookSlot=Ptr(reinterpret_cast<void*>(&native_skin_source::SkinDraw));
     native_skin_source::enabled=true;native_skin_source::ownerThread=GetCurrentThreadId();
     source::enabled=true;source::ownerThread=GetCurrentThreadId();transport::enabled=true;
@@ -146,7 +148,34 @@ static void Integration(){const auto before=skin_test::checks;Integrated x;
   audit::output=savedOutput;Check(audit::attempts==attempts,"missing diagnostic output causes no reads or credit");
   integrationChecks=skin_test::checks-before;
 }
+static std::vector<uint8_t> ReadPacket(const wchar_t* name){std::ifstream stream(name,std::ios::binary|std::ios::ate);
+  Check(bool(stream),"recorded packet exists");const auto size=stream.tellg();Check(size>0&&size<8*1024*1024,"recorded packet bound");
+  std::vector<uint8_t> bytes(size_t(size),0);stream.seekg(0);Check(bool(stream.read(reinterpret_cast<char*>(bytes.data()),size)),"recorded packet read completes");return bytes;}
+static void PacketCapture(){
+  namespace capture=skin_packet_capture;namespace packets=winx_remix::skin_packet;
+  Integrated x(true);wchar_t path[MAX_PATH]{};Check(GetFullPathNameW(L"packets-fixture",MAX_PATH,path,nullptr)>0,"owned packet directory path");
+  Check(CreateDirectoryW(path,nullptr)!=FALSE,"fresh packet fixture directory");
+  SetEnvironmentVariableW(L"WINX_REMIX_NATIVE_SKIN_PACKETS",path);capture::Initialize();SetEnvironmentVariableW(L"WINX_REMIX_NATIVE_SKIN_PACKETS",nullptr);
+  Check(capture::Enabled()&&capture::journal&&CaptureSurfaceInputs()&&!autoSurfaceRoles,"system packet capture enables buffer snapshots without surface submission");
+  struct Close{~Close(){if(capture::journal)fclose(capture::journal);capture::journal=nullptr;capture::directory[0]=0;capture::samples.clear();capture::saved.clear();capture::files=capture::attempts=capture::rejections=0;capture::writtenBytes=0;capture::stopped=false;}} close;
+  scene_geometry::Scope scene(Ptr(x.f.scene),Ptr(x.f.camera));native_skin_source::Scope skin(Ptr(&x.f.skin),Ptr(x.f.camera),x.f.Support());
+  const auto mutation=scene_geometry::MutationSerial();sceneGeometryObserveOnly=true;scene.Extend(0,scene.scene,scene.camera);sceneGeometryObserveOnly=false;
+  Check(!scene.attempted&&!scene.manager&&scene.marks.empty()&&scene_geometry::MutationSerial()==mutation,"observe-only scope does not extend selection or alter marks");
+  native_skin_source::Observation observed{};Check(native_skin_source::Observe(Ptr(&x.f.mesh),Ptr(x.f.renderer),701,0x46a367,observed)&&observed.fixedPaletteAvailable,"Fixed palette snapshot captured by original observer contract");
+  Check(observed.fixedPalette[0]==x.f.palette[0],"owned palette retains original16float matrix");
+  audit::Capture(observed);Check(capture::files==1&&!testRemixApi,"qualified source capture writes one packet without API submission");
+  const auto bytes=ReadPacket(L"packets-fixture/packet-0001.skp");packets::Packet p;Check(packets::Decode(bytes,p)&&p.vertices.size()==3&&p.palette.size()==4,"production capture wire decoded by common reader");
+  std::vector<packets::pc::FixedSkinDeformationForAnalysis> deformed;Check(packets::Deform(p,deformed)&&deformed[0].position==packets::pc::FixedSkinVector({11,23,51,1}),"captured packet reaches shared Fixed deformation with native matrix order");
+  x.f.palette[0][12]+=1;const auto rejected=audit::rejected;audit::Capture(observed);x.f.palette[0][12]-=1;
+  Check(audit::rejected==rejected+1&&capture::files==1,"palette changed since observer prevents file publication");
+  audit::Capture(observed);audit::Capture(observed);audit::Capture(observed);
+  Check(capture::files==3&&capture::samples.size()==1,"bounded three samples per current native identity");
+  const auto remembered=capture::writtenBytes;capture::files=64;
+  Check(!capture::Save(observed,999,p)&&capture::stopped&&capture::writtenBytes==remembered,"file cap checked before another publication");
+  capture::stopped=false;capture::files=3;capture::attempts=0;
+  Check(!capture::Save(observed,999,p)&&capture::stopped&&ReadPacket(L"packets-fixture/packet-0001.skp")==bytes,"exclusive file creation preserves earlier evidence on collision");
 }
-int main(){try{skin_test::Watchdog watchdog;skin_vertex_test::Parser();skin_vertex_test::Integration();
+}
+int main(){try{skin_test::Watchdog watchdog;skin_vertex_test::Parser();skin_vertex_test::Integration();skin_vertex_test::PacketCapture();
   printf("{\"status\":\"PASS\",\"checks\":%u,\"parserChecks\":%u,\"integrationChecks\":%u,\"gpu\":false,\"nativeCode\":false,\"realCOM\":false}\n",skin_test::checks,skin_vertex_test::parserChecks,skin_vertex_test::integrationChecks);return 0;
 }catch(const std::exception& e){fprintf(stderr,"FAIL %s\n",e.what());return 1;}}
