@@ -1,0 +1,53 @@
+param([string]$OutputDirectory = 'local-data/rtx-remix/build', [ValidateSet('x86','x64')][string]$Platform = 'x86',
+      [string]$SourceDirectory)
+$ErrorActionPreference = 'Stop'
+$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$dependencyInclude = & (Join-Path $PSScriptRoot 'Prepare-Dependencies.ps1') -Offline
+$build = [IO.Path]::GetFullPath((Join-Path $root $OutputDirectory))
+if (-not $build.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Build output must be inside the repository'
+}
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+$installation = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+if (-not $installation) { throw 'MSVC x86 tools not found' }
+$environmentScript = Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
+New-Item -ItemType Directory -Path $build -Force | Out-Null
+$sourceRoot=$PSScriptRoot
+if ($SourceDirectory) {
+    # Compile the exact source snapshot already used by the CPU/GPU fixture.
+    $sourceRoot=[IO.Path]::GetFullPath((Join-Path $root $SourceDirectory))
+    if (-not $sourceRoot.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Source snapshot must be inside the repository'
+    }
+}
+$source = Join-Path $sourceRoot 'winx_d3d9_probe.cpp'
+if (-not (Test-Path -LiteralPath $source)) { throw 'Probe source is missing' }
+$remixInclude = Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
+if (-not (Test-Path -LiteralPath (Join-Path $remixInclude 'remix/remix_c.h'))) { throw 'The read-only Remix reference headers are required' }
+$exports = Join-Path $PSScriptRoot 'winx_d3d9_probe.def'
+if ($Platform -eq 'x64') {
+    # x64 uses undecorated C exports; Regex replacement must preserve function names.
+    $exportText = [IO.File]::ReadAllText($exports) -replace '=_([A-Za-z0-9]+)@[0-9]+','=$1'
+    $exports = Join-Path $build 'probe-x64.def'
+    [IO.File]::WriteAllText($exports,$exportText,[Text.Encoding]::ASCII)
+}
+$commands = @"
+@echo off
+call "$environmentScript" $Platform
+if errorlevel 1 exit /b %errorlevel%
+cl /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$remixInclude" /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
+exit /b %errorlevel%
+"@
+$commandFile = Join-Path $build 'build-probe.cmd'
+[IO.File]::WriteAllText($commandFile, $commands, [Text.Encoding]::ASCII)
+Push-Location $build
+try {
+    & $env:ComSpec /d /c $commandFile
+    if ($LASTEXITCODE -ne 0) { throw "Probe compilation failed: $LASTEXITCODE" }
+} finally { Pop-Location }
+Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll') -Algorithm SHA256
+@{schema=1;platform=$Platform;sourceDirectory=$sourceRoot;
+  sourceSha256=(Get-FileHash -LiteralPath $source).Hash;
+  exportsSha256=(Get-FileHash -LiteralPath $exports).Hash;
+  dllSha256=(Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll')).Hash} |
+    ConvertTo-Json | Set-Content -LiteralPath (Join-Path $build 'build-manifest.json') -Encoding UTF8

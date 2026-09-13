@@ -65,6 +65,7 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 | [`tools/SmoLVLcreator`](tools/SmoLVLcreator) | Модульный редактор SMO-уровней: сцена, размещения, коллизии, импорт, экспорт и сохранение |
 | [`tools/WinxHairPatcher`](tools/WinxHairPatcher) | Патчер `WinxClub.exe` для управления внешними волосами Bloom в игре и меню костюмов |
 | [`tools/SanToVmd`](tools/SanToVmd/README.md) | Python-конвертер SAN → VMD: SMO, SAN и PMD в `input`, готовые анимации в `output` |
+| [`tools/WinxRemix`](tools/WinxRemix/README.md) | Наш адаптер Winx Club → RTX Remix, тесты и патчи; оригинальные исходники Remix подключаются извне |
 | [`Sparkplug`](Sparkplug/README.md) | Evidence-first реконструкция исходного дерева движка по подтверждённым путям и именам |
 | [`docs`](docs/README.md) | Проверяемые сведения о движке, форматах и различиях платформ |
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |

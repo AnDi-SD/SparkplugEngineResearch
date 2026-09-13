@@ -10,3 +10,5 @@
 /tools/SanToVmd/tests/*.py -text whitespace=trailing-space,space-before-tab,cr-at-eol
 # The native viewing bridge is also pinned by exact source hashes.
 /tools/SparkplugViewer.Native/** -text whitespace=trailing-space,space-before-tab,cr-at-eol
+# Remix adapter snapshots and patches retain their exact source bytes after relocation.
+/tools/WinxRemix/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

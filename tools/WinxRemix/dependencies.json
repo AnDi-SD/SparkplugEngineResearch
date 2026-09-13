@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "remix": {
+    "repository": "https://github.com/NVIDIAGameWorks/dxvk-remix.git",
+    "revision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+    "lightSource": "src/dxvk/rtx_render/rtx_light_utils.cpp",
+    "inputsLfSha256": {
+      "src/dxvk/rtx_render/rtx_light_utils.cpp": "7e18b60b5464a7522737c63a605904aa431be34de0f1208a003ae8c25cf23745",
+      "src/dxvk/rtx_render/rtx_lights.h": "3ad241417d123e1ff0bd25a4d8d1bb272fe76aeeda6b3115b0abf9940fb62b26",
+      "public/include/remix/remix_c.h": "e623e4956a76894eeef02361334c7c0458d4ec8bf49f729ec9038c36128bbf47"
+    }
+  },
+  "xxhash": {
+    "repository": "https://github.com/Cyan4973/xxHash",
+    "version": "v0.8.3",
+    "url": "https://raw.githubusercontent.com/Cyan4973/xxHash/v0.8.3/xxhash.h",
+    "sha256": "17973c0dc49d9854ca26caa191f0e12f7a424b68858d9a78de3860d959d85e4b"
+  },
+  "generatedLightLfSha256": "1a4a5df1061786a50d3f67428fd695ba19a10b0ed2f54b775178d508367d0c30"
+}
