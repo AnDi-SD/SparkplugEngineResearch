@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-09-13T06:55:51.537408+00:00",
+  "upstreamCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "upstreamDiff": "",
+  "submodules": [
+    " 952f776f6573aafbb62ea717d871cd1d6816c387 include/vulkan (952f776)",
+    " ea6c4ae7f3f1b1772b8a7cda4199230b932f5a50 submodules/Detours (ea6c4ae)",
+    " b133945fcf635b7fe9042b532761dacb02802b54 submodules/nrc (b133945)",
+    " d08488fcc82eef313b0464db37d2955709691e94 submodules/nvapi (d08488f)",
+    " 5041cfada111f01b6e1bf0321c8d6bf9ebb32de3 submodules/rtxcr (5041cfa)",
+    " d4a60c649e8d10192e85f9230a4548716a882b3c submodules/rtxdi (d4a60c6)",
+    " 677aeb1ebe8fe1250ab98180bcdc8e5fda4a7628 submodules/xess (677aeb1)"
+  ],
+  "firstCompile": "USD schema dependency failed after own PYTHONUSERBASE relocation; interrupted while remaining work was pending",
+  "retry": {
+    "state": "running_at_checkpoint",
+    "logPrefixBytes": 5036,
+    "logPrefixOnly": true,
+    "wrapperPid": 3852,
+    "ninjaPid": 10808,
+    "control": "Compile only with2 workers; no installation or GPU launch; session81786"
+  },
+  "rendererStridePatchAppliedToBuild": false,
+  "weightedGameApiEnabled": false,
+  "rendererGpuComparisonCompleted": false,
+  "installed": {
+    "adapter": "6CCBE15208923494CCF9F4FBA63A8B4E99D3FCC1A29D868BE3B279F64A2DB5BA",
+    "client": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+    "server": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+    "renderer": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+    "verification": "Read back by root at09:50 MSK; this manifest does not reinstall files"
+  },
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/fetch-deps.ps1",
+      "bytes": 681,
+      "sha256": "CECBBB8425CFE83E7D9EA30C1885EB4FAA3B3D3DC1A9656B65F4FD19EB0F1A98"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/fetch-deps.log",
+      "bytes": 25398,
+      "sha256": "69B78ADBFBB0F1EFDEE73AD6B6E9C9840CD882F04633C38FFBACD61E4DF9A42B"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/build.ps1",
+      "bytes": 2172,
+      "sha256": "96EFD76AAE9E2A4E6FA2754E3B1E6AE3047056F61A60CE9E85A71B64D05DB62C"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/source/packman-external.xml",
+      "bytes": 2255,
+      "sha256": "6026460529C452F6D201B21881FD3304D70DE7A186DED7A8FB9D90F68A2E18F8"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/source/meson.build",
+      "bytes": 33188,
+      "sha256": "AF56D4CE46A5BAA70E9C92910281DD0C2420796C3903E8919EFCBCFF04E60473"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/source/src/dxvk/rtx_render/rtx_remix_api.cpp",
+      "bytes": 75089,
+      "sha256": "7596974C635FCA923EB42BFAE6D32E0BBA855C52935C298FC3AA0C5E34DF4743"
+    },
+    {
+      "path": "research/rtx-remix/Test-RemixSkinning.ps1",
+      "bytes": 7538,
+      "sha256": "5243252F8585201709D4E1C481FBD5FA15D7F530453FD88F5FB73E1A667866B4"
+    },
+    {
+      "path": "research/rtx-remix/renderer-skinning-fix/skin-strides-v1.patch",
+      "bytes": 1033,
+      "sha256": "773898B7FC8CD3AA5DB81AA8F247A2E1E539965DEC70DE155CC270A394CC5F6B"
+    },
+    {
+      "path": "research/rtx-remix/renderer-skinning-fix/manifest.json",
+      "bytes": 2997,
+      "sha256": "605B69797E933872F2F11EBEEB934661F427DDDFAAD207CFFE22B6ACFB23A082"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/configure-baseline-v1.cmd",
+      "bytes": 297,
+      "sha256": "BCD2D74D035781DBBF9789E7522F7723DE0F64A4F1CADFEDA2EF7AC566E1E3ED"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/configure-baseline-v1.json",
+      "bytes": 366,
+      "sha256": "DE1723AE3BE3916E513FE510A39FD80D46EE665C329EF119633BBCFFC4DAECC3"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/configure-baseline-v1.log",
+      "bytes": 13366,
+      "sha256": "6A11F8D34F0CD991A3ED7294F51B04AF481199C14FFF5714AA7F960E8A30AAC4"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/compile-baseline-v1.cmd",
+      "bytes": 232,
+      "sha256": "BF437FEAF5989231EB10FD77DAE6BF6504CCA6B8EF86A3ECE64112EEE11258F6"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/compile-baseline-v1.log",
+      "bytes": 12118,
+      "sha256": "7FDE6B47DEB78E93EA89826130E5877FF88653FE8BDF45B9BE8FA5DE89279807"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/compile-baseline-v2.cmd",
+      "bytes": 232,
+      "sha256": "04B27339361F5818C77059E2CC78C433EC48EFFD4650B6A60DA4C1083A1665BA"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/python-user-repair-v1/import-after-removal.json",
+      "bytes": 1786,
+      "sha256": "7CE749AA40B5AC3DDACF7BDEDFE374C98A08E830BEE10AD016666687AF85570A"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/python-user-repair-v1/import-workspace-v1.json",
+      "bytes": 1786,
+      "sha256": "7CE749AA40B5AC3DDACF7BDEDFE374C98A08E830BEE10AD016666687AF85570A"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/python-user-repair-v1/manifest-before.json",
+      "bytes": 40400,
+      "sha256": "ED12749BF904961A3C59999B44F2B6B81610B111FB66549DAAFB780CF45C1B1C"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/python-user-repair-v1/manifest-final.json",
+      "bytes": 27454,
+      "sha256": "3F7B86A0EDCB57A50FDA3E6FDBC8AD7C7A78B0C2125D0C0A7F2554E9E9C6C5FB"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/python-user-repair-v1/removal-result.json",
+      "bytes": 10881,
+      "sha256": "96EF2A5D704C5D3960899B9D71ECB7988A001DBB30170DC75AFF33576C69C2FB"
+    },
+    {
+      "path": "local-data/rtx-remix/renderer-skinning-build/compile-baseline-v2-at-checkpoint.log",
+      "bytes": 5036,
+      "sha256": "7574619BADF6FFCE4A672199A8D1C78A4B71765C385ACC0EE7DD4FA4D5C55631"
+    }
+  ]
+}
