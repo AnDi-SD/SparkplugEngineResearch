@@ -1,7 +1,20 @@
 # Готовность универсальной интеграции Winx Club с RTX Remix
 
 Текущая оценка на **13 сентября 2026: около 45%**.
-Текущий проверенный блок: [первый самостоятельный consumer](winx-remix-independent-submit-checkpoint-2026-09-13.md).
+Текущий проверенный блок: [selected submit и серверный аудит](winx-remix-selected-submit-checkpoint-2026-09-13.md).
+Один ранний native packet используют внеэкранные supports и исходно выбранные
+Models. Последние подаются на подтверждённом indexed draw; игровые producers
+продолжают выполняться. В Алфее ordinary cohort распределяется как
+725 direct + 35 selected + 6 прежних подач, в Домино — 158 + 282 + 0.
+Пять переключений каждого уровня сохранили native камеру и состав подач.
+Алфея → Домино → Алфея завершилась; сервер подтвердил 4 071 940 успешных
+возвратов renderer API без ошибок и невалидных mesh handles. Это приём API,
+не доказательство GPU completion. Фаза UI без основной native камеры,
+отказы квалификации и неразмеченный остаток клиентских счётчиков сохранены
+в отчёте. Физическое освещение и остальные материалы не завершены,
+поэтому функциональные категории и общие ≈45% пока не изменились.
+
+Предыдущий проверенный блок: [первый самостоятельный consumer](winx-remix-independent-submit-checkpoint-2026-09-13.md).
 Полные поддержанные supports вне исходной видимости получают geometry,
 world, material и texture из текущего native packet до Prepare и уходят
 в клиентский API без нашего дополнительного D3D-обхода. В закрытом прогоне
@@ -20,9 +33,9 @@ instances идут рано, 41 ordinary instance остаётся на преж
 [1136 CPU checks](winx-remix-independent-submit-contract-2026-09-13.md)
 и [проверками backend](winx-remix-resource-ownership-2026-09-13.md).
 
-Следующая граница — счётчик реальных вызовов на стороне renderer API
+Следующая на том срезе граница — счётчик реальных вызовов на стороне renderer API
 и использование того же раннего пакета у конечного draw исходно выбранного
-Model. Эти новые изменения ещё не входят в закрытый игровой checkpoint.
+Model. Эти изменения теперь проверены в текущем selected checkpoint выше.
 Функциональные проценты пока сохраняются: уменьшилась зависимость от D3D,
 но физическое освещение, остальные материалы и динамика не завершены.
 
@@ -77,8 +90,9 @@ unlit → emission сохраняется; проценты готовности
 Ordinary unlit materials также используют native операции/UV/sampler.
 Подтверждена связь успешной API-подачи с текущими владельцами сцены; borrowed
 identity ограничена операцией, кэш последнего видимого объекта не используется.
-Этапы 1–2 остаются открытыми: остальные native material paths, все роли камеры
-и instance/scene generation ещё не перенесены.
+Первый ограниченный результат этапов 1–2 выполнен для подтверждённой ordinary
+single-pass группы. Полная миграция сцены остаётся открытой: остальные native
+material paths, все роли камеры и полный instance/scene lifecycle не перенесены.
 [Контракт камеры](winx-remix-native-camera-contract-2026-09-12.md) выявил отсутствие
 SetupCamera в stock x86 client. Доработанная пара client/server установлена
 и проверена в игре со штатным renderer; исходные файлы сохранены для отката.
@@ -189,3 +203,4 @@ SetupCamera в stock x86 client. Доработанная пара client/server
 | 2026-09-13 | `surface-pressure-v1`, DLL `031456AB…` | Освобождение API-кэшей под давлением; категории без изменения. | ≈45% (46,25%) | 9379 checks; Домино → Алфея → Домино, 102 pressure eviction без отказов. [Проверка](winx-remix-resource-pressure-2026-09-13.md). |
 | 2026-09-13 | `native-material-v2`, DLL `B5D7D817…` | Native ordinary unlit operations/UV/sampler; категории без изменения. | ≈45% (46,25%) | 541 integration checks; Алфея 871, Домино 446 native material instances/frame, A/B и движение. Late no-scene camera fallback отдельно от world coverage. [Проверка](winx-remix-native-material-submit-2026-09-13.md). |
 | 2026-09-13 | `native-owner-v6`, DLL `7C17983E…` | Owner provenance текущей native submission; категории без изменения. | ≈45% (46,25%) | 142 owner / 61 registry checks; Домино 446 и Алфея 871 на 3664 мировых кадрах, 1 787 994 owner uses. Движение, смена сцены и известные retirement hooks; независимые packets и полный lifetime ещё в работе. [Проверка](winx-remix-native-owner-submit-2026-09-13.md). |
+| 2026-09-13 | selected-submit-v1, DLL 1D6E585E…, server audit D7FEE509… | Ранний native packet для исходно выбранных Models и приём на renderer API; категории без изменения. | ≈45% (46,25%) | 1544 selected / 1132 direct CPU; Алфея → Домино → Алфея, два полных A/B по 5 кадров; 4 071 940 renderer API successes, errors0. UI gap и границы GPU/источников указаны отдельно. [Проверка](winx-remix-selected-submit-checkpoint-2026-09-13.md). |
