@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "name": "UZHS bloom jeans (expected good)",
+      "asset": "../../../../local-data/bloom_jeans_from_uzhs.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "UZHS bloom jeans (expected crash)",
+      "asset": "../../../../local-data/bloom_jeans_from_uzhs_crash.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom jeans",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_jeans.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom ball",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_ball.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom ballroom",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_ballroom.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom bike",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_bike.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom business",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_business.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom crystal",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_crystal.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom goth",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_goth.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    },
+    {
+      "name": "pristine bloom hippie",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_hippie.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "includeBloomCheckpoints": true
+    }
+  ]
+}

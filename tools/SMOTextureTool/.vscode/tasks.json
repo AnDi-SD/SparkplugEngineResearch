@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "SMOTextureTool.slnx"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "run",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "SMOTextureTool/SMOTextureTool.csproj"],
+      "dependsOn": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test SMO format",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "SMOTextureTool.FormatTests/SMOTextureTool.FormatTests.csproj"],
+      "dependsOn": "build",
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

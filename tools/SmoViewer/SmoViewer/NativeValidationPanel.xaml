@@ -1,0 +1,293 @@
+<UserControl x:Class="SmoViewer.NativeValidationPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Loaded="NativeValidationPanel_Loaded"
+             Unloaded="NativeValidationPanel_Unloaded">
+    <Grid ClipToBounds="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Margin="0,0,0,8"
+                   Foreground="#F0F2F6"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Text="Игра" />
+
+        <ScrollViewer x:Name="ValidationMenuScrollViewer"
+                      Grid.Row="1"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,4,0">
+            <Border Padding="9"
+                    Background="#20242D"
+                    BorderBrush="#343946"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                <StackPanel>
+                    <TextBlock Foreground="#F0F2F6"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Text="1. Патчи" />
+                    <TextBlock Margin="0,3,0,0"
+                               Foreground="#8F99AA"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="Отдельные инструменты для изменения игрового EXE." />
+                    <Button x:Name="LaunchHairPatcherButton"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,8,0,0"
+                            Padding="9,6"
+                            Click="LaunchHairPatcherButton_Click"
+                            Content="Отключить волосы Блум"
+                            ToolTip="Открыть Winx Hair Patcher для настройки внешних волос в игре и меню костюмов" />
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,9,0,0"
+                    Padding="9"
+                    Background="#20242D"
+                    BorderBrush="#343946"
+                    BorderThickness="1"
+                    CornerRadius="4">
+            <StackPanel>
+                <TextBlock Foreground="#F0F2F6"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="2. Проверка модели в игре" />
+                <TextBlock Margin="0,3,0,0"
+                           Foreground="#8F99AA"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Text="Запуск модели через нативный загрузчик WinxClub.exe." />
+
+            <Expander Margin="0,9,0,0"
+                      IsExpanded="False"
+                      Foreground="#D8DCE4"
+                      Header="Настройка запуска">
+                <StackPanel Margin="0,6,4,7">
+                    <TextBlock Foreground="#9FA8B8" Text="WinxClub.exe" />
+                    <TextBox x:Name="GamePathBox"
+                             Margin="0,3,0,5"
+                             Padding="5,3"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             ToolTip="Найденный автоматически или выбранный вручную executable" />
+                    <WrapPanel>
+                        <Button x:Name="FindGameButton"
+                                Margin="0,0,6,5"
+                                Padding="7,3"
+                                Click="FindGameButton_Click"
+                                Content="Найти снова" />
+                        <Button x:Name="ChooseGameButton"
+                                Margin="0,0,0,5"
+                                Padding="7,3"
+                                Click="ChooseGameButton_Click"
+                                Content="Выбрать…" />
+                    </WrapPanel>
+                    <TextBlock x:Name="GameProfileText"
+                               Margin="0,0,0,7"
+                               Foreground="#9FA8B8"
+                               TextWrapping="Wrap"
+                               Text="Игра ещё не найдена." />
+
+                    <TextBlock Foreground="#9FA8B8" Text="Проверяемая модель" />
+                    <TextBlock x:Name="ModelPathText"
+                               Margin="0,3,0,7"
+                               Foreground="#E5E8EE"
+                               TextWrapping="Wrap"
+                               Text="Сначала откройте SMO." />
+                    <TextBlock Foreground="#9FA8B8"
+                               Text="Original path · метаданные модели" />
+                    <TextBox x:Name="OriginalLogicalPathBox"
+                             Margin="0,3,0,7"
+                             Padding="5,3"
+                             IsReadOnly="True"
+                             Text="—"
+                             TextWrapping="Wrap"
+                             ToolTip="Исходный игровой путь модели; в быстрой проверке он не является trigger path." />
+
+                    <TextBlock Margin="0,0,0,4"
+                               Foreground="#9FA8B8"
+                               Text="Режим проверки" />
+                    <RadioButton x:Name="FastModeRadio"
+                                 Foreground="#E5E8EE"
+                                 FontWeight="SemiBold"
+                                 GroupName="ValidationMode"
+                                 IsChecked="True"
+                                 Checked="ValidationMode_Changed"
+                                 Content="Быстрая проверка · рекомендуется" />
+                    <TextBlock Margin="20,3,0,7"
+                               Foreground="#8F99AA"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="Модель подменяет ранний служебный ресурс Menus\mousecursor.smo. Проверяются нативный загрузчик, FFPS, геометрия, текстуры и создание сцены; поведение в конкретном уровне, скрипты и анимации не проверяются." />
+                    <TextBlock Margin="20,0,0,7"
+                               Foreground="#B8C3D3"
+                               FontFamily="Consolas"
+                               FontSize="11"
+                               Text="Trigger: Menus\mousecursor.smo" />
+
+                    <RadioButton x:Name="ContextModeRadio"
+                                 Foreground="#E5E8EE"
+                                 FontWeight="SemiBold"
+                                 GroupName="ValidationMode"
+                                 Checked="ValidationMode_Changed"
+                                 Content="Контекстная проверка" />
+                    <TextBlock Margin="20,3,0,5"
+                               Foreground="#8F99AA"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="Игра загружает выбранный уровень и должна сама запросить исходный путь модели. Этот режим медленнее, зато сохраняет игровой контекст." />
+
+                    <StackPanel x:Name="ContextModeSettingsPanel"
+                                Margin="20,0,0,2"
+                                Visibility="Collapsed">
+                        <TextBlock Foreground="#9FA8B8" Text="Исходный путь модели в Media" />
+                        <TextBox x:Name="TargetAssetBox"
+                                 Margin="0,3,0,5"
+                                 Padding="5,3"
+                                 TextChanged="TargetAssetBox_TextChanged"
+                                 LostFocus="SettingsControl_LostFocus"
+                                 ToolTip="Например: Characters\Troll\Troll.smo. Символы подчёркивания и обратная косая черта допустимы." />
+                        <TextBlock x:Name="TargetAssetHintText"
+                                   Foreground="#7F8999"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Text="Например Characters\Troll\Troll.smo. Если выбранный уровень не использует этот путь, результатом будет «ресурс не запрошен»." />
+
+                        <WrapPanel Margin="0,7,0,0">
+                            <TextBlock Margin="0,4,6,0"
+                                       Foreground="#9FA8B8"
+                                       Text="startLevel:" />
+                            <TextBox x:Name="StartLevelBox"
+                                     Width="48"
+                                     Padding="5,3"
+                                     Text="2"
+                                     TextChanged="StartLevelBox_TextChanged"
+                                     LostFocus="SettingsControl_LostFocus"
+                                     ToolTip="0 или номер встроенного уровня от 1 до 50" />
+                        </WrapPanel>
+                        <TextBlock x:Name="StartLevelHintText"
+                                   Margin="0,4,0,0"
+                                   Foreground="#7F8999"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Text="0–50; уровень 2 (Gardenia02) подходит для Bloom." />
+                    </StackPanel>
+
+                    <Border Margin="0,7,0,0"
+                            Padding="6"
+                            Background="#202732"
+                            BorderBrush="#394555"
+                            BorderThickness="1"
+                            CornerRadius="3">
+                        <TextBlock Foreground="#AEB8C8"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Text="Игра запускается в окне с изолированным временным winx.ini. Файлы установки, реестр и пользовательский winx.ini не изменяются." />
+                    </Border>
+
+                    <WrapPanel Margin="0,7,0,0">
+                        <TextBlock Margin="0,4,5,0" Foreground="#9FA8B8" Text="Таймаут:" />
+                        <ComboBox x:Name="TimeoutSelector"
+                                  Width="88"
+                                  SelectedIndex="2"
+                                  SelectionChanged="TimeoutSelector_SelectionChanged">
+                            <ComboBoxItem Content="30 с" Tag="30" />
+                            <ComboBoxItem Content="60 с" Tag="60" />
+                            <ComboBoxItem Content="120 с" Tag="120" />
+                            <ComboBoxItem Content="300 с" Tag="300" />
+                        </ComboBox>
+                    </WrapPanel>
+                    <CheckBox x:Name="FirstChanceExceptionsCheck"
+                              Margin="0,6,0,0"
+                              Foreground="#C9D0DC"
+                              IsChecked="True"
+                              Content="Записывать first-chance exceptions" />
+                </StackPanel>
+            </Expander>
+
+            <WrapPanel Margin="0,2,0,7">
+                <Button x:Name="StartValidationButton"
+                        Margin="0,0,6,0"
+                        Padding="8,4"
+                        IsEnabled="False"
+                        Click="StartValidationButton_Click"
+                        Content="Проверить" />
+                <Button x:Name="StopValidationButton"
+                        Padding="8,4"
+                        IsEnabled="False"
+                        Click="StopValidationButton_Click"
+                        Content="Остановить" />
+            </WrapPanel>
+
+            <Border x:Name="ValidationResultBorder"
+                    Margin="0,0,0,8"
+                    Padding="11,9"
+                    Background="#242832"
+                    BorderBrush="#343946"
+                    BorderThickness="2"
+                    CornerRadius="5"
+                    AutomationProperties.LiveSetting="Assertive"
+                    AutomationProperties.Name="Результат нативной проверки"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="ValidationResultTitleText"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="#E5E8EE"
+                               TextWrapping="Wrap" />
+                    <TextBlock x:Name="ValidationResultLocationText"
+                               Margin="0,5,0,0"
+                               FontSize="13"
+                               Foreground="#F0F2F6"
+                               TextWrapping="Wrap" />
+                    <TextBlock x:Name="ValidationResultMetaText"
+                               Margin="0,5,0,0"
+                               FontSize="11"
+                               Foreground="#AEB8C8"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <ProgressBar x:Name="ValidationProgress"
+                         Height="8"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="0" />
+            <TextBlock x:Name="ValidationStatusText"
+                       Margin="0,6,0,7"
+                       Foreground="#D8DCE4"
+                       TextWrapping="Wrap"
+                       Text="Ожидание запуска." />
+
+            <TextBlock Margin="0,5,0,4"
+                       Foreground="#9FA8B8"
+                       FontWeight="SemiBold"
+                       Text="Ход нативной загрузки" />
+
+            <ListBox x:Name="ValidationEventsList"
+                     Height="190"
+                     Background="#171A20"
+                     BorderBrush="#343946"
+                     Foreground="#D8DCE4"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+            <Button x:Name="OpenValidationLogButton"
+                    Margin="0,7,0,0"
+                    Padding="7,4"
+                    IsEnabled="False"
+                    Click="OpenValidationLogButton_Click"
+                    Content="Открыть полный лог" />
+            </StackPanel>
+            </Border>
+        </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
