@@ -1,0 +1,360 @@
+--- a/bridge/src/server/main.cpp
++++ b/bridge/src/server/main.cpp
+@@ -24,6 +24,7 @@
+ #include "version.h"
+ #include "module_processing.h"
+ #include "remix_api.h"
++#include "instance_audit.h"
+ 
+ #include "util_bridge_assert.h"
+ #include "util_circularbuffer.h"
+@@ -271,7 +272,10 @@
+   return anyLeaked;
+ }
+ 
++static bridge_instance_audit::Audit instanceAudit;
++
+ void ProcessDeviceCommandQueue() {
++  instanceAudit.Initialize();
+   // Loop until the client sends terminate instruction
+   bool done = false;
+   while (!done && DeviceBridge::waitForCommand() == Result::Success) {
+@@ -300,6 +304,7 @@
+         ZoneName(commandStr.c_str(), commandStr.size());
+       }
+       PULL_U(currentUID);
++      instanceAudit.Command(currentUID);
+ #if defined(_DEBUG) || defined(DEBUGOPT)
+       if (GlobalOptions::getLogServerCommands()) {
+         Logger::info("Device Processing: " + toString(rpcHeader.command) + " UID: " + std::to_string(currentUID));
+@@ -332,7 +337,8 @@
+           gpD3DDevices[pHandle] = pD3DDevice;
+           if(GlobalOptions::getExposeRemixApi()) {
+             remixapi::g_device = pD3DDevice;
+-            remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            const auto registrationResult = remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            instanceAudit.Registered(pHandle,reinterpret_cast<uintptr_t>(pD3DDevice),registrationResult);
+           }
+         }
+ 
+@@ -367,7 +373,8 @@
+           gpD3DDevices[pHandle] = (IDirect3DDevice9Ex*) pD3DDevice;
+           if(GlobalOptions::getExposeRemixApi()) {
+             remixapi::g_device = (IDirect3DDevice9Ex*) pD3DDevice;
+-            remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            const auto registrationResult = remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            instanceAudit.Registered(pHandle,reinterpret_cast<uintptr_t>(pD3DDevice),registrationResult);
+           }
+         }
+ 
+@@ -466,6 +473,7 @@
+         const auto hresult = pD3DDevice->GetSwapChain(0, &pSwapChain);
+         if (SUCCEEDED(hresult)) {
+           gpD3DSwapChains[pClientSwapchain] = pSwapChain;
++          instanceAudit.LinkImplicit(reinterpret_cast<uintptr_t>(pD3DDevice),pClientSwapchain,reinterpret_cast<uintptr_t>(pSwapChain));
+         }
+         break;
+       }
+@@ -501,6 +509,7 @@
+       case IDirect3DDevice9Ex_Destroy:
+       {
+         GET_RES(pD3DDevice, gpD3DDevices);
++        instanceAudit.DestroyDevice(reinterpret_cast<uintptr_t>(pD3DDevice));
+         safeDestroy(pD3DDevice, pD3DDeviceHandle);
+         gpD3DDevices.erase(pD3DDeviceHandle);
+         break;
+@@ -651,12 +660,14 @@
+           done = true;
+         }
+ 
++        instanceAudit.ResetBegin(reinterpret_cast<uintptr_t>(pD3DDevice));
+         //Release implicit swapchain
+         IDirect3DSwapChain9* pSwapChain = nullptr;
+         pD3DDevice->GetSwapChain(0, &pSwapChain);
+         pSwapChain->Release();
+ 
+         const auto hresult = pD3DDevice->Reset(&PresentationParameters);
++        instanceAudit.ResetResult(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+         break;
+@@ -676,12 +687,14 @@
+           done = true;
+         }
+ 
++        instanceAudit.ResetBegin(reinterpret_cast<uintptr_t>(pD3DDevice));
+         //Release implicit swapchain
+         IDirect3DSwapChain9* pSwapChain = nullptr;
+         pD3DDevice->GetSwapChain(0, &pSwapChain);
+         pSwapChain->Release();
+ 
+         const auto hresult = ((IDirect3DDevice9Ex*) pD3DDevice)->ResetEx(&PresentationParameters, pFullscreenDisplayMode);
++        instanceAudit.ResetResult(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+         break;
+@@ -702,6 +715,7 @@
+         HWND hwnd = TRUNCATE_HANDLE(HWND, hDestWindowOverride);
+ 
+         const auto hresult = pD3DDevice->Present(pSourceRect, pDestRect, hwnd, pDirtyRegion);
++        instanceAudit.PresentDevice(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         if (!SUCCEEDED(hresult)) {
+           std::stringstream ss;
+           ss << "Present() failed! Check all logs for reported errors.";
+@@ -1308,6 +1322,7 @@
+         PULL(D3DPRIMITIVETYPE, PrimitiveType);
+         PULL_U(StartVertex);
+         PULL_U(PrimitiveCount);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),1,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawPrimitive(IN PrimitiveType, IN StartVertex, IN PrimitiveCount);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1322,6 +1337,7 @@
+         PULL_U(NumVertices);
+         PULL_U(startIndex);
+         PULL_U(primCount);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),2,primCount);
+         const auto hresult = pD3DDevice->DrawIndexedPrimitive(IN Type, IN BaseVertexIndex, IN MinVertexIndex, IN NumVertices, IN startIndex, IN primCount);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1335,6 +1351,7 @@
+         void* pVertexStreamZeroData = nullptr;
+         DeviceBridge::get_data(&pVertexStreamZeroData);
+         PULL_U(VertexStreamZeroStride);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),3,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawPrimitiveUP(IN PrimitiveType, IN PrimitiveCount, IN pVertexStreamZeroData, IN VertexStreamZeroStride);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1355,6 +1372,7 @@
+         void* pVertexStreamZeroData = nullptr;
+         DeviceBridge::get_data(&pVertexStreamZeroData);
+ 
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),4,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawIndexedPrimitiveUP(IN PrimitiveType, IN MinVertexIndex, IN NumVertices, IN PrimitiveCount, IN pIndexData, IN IndexDataFormat, IN pVertexStreamZeroData, IN VertexStreamZeroStride);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1731,6 +1749,7 @@
+       {
+         GET_HND(pHandle);
+         const auto& pSwapChain = gpD3DSwapChains[pHandle];
++        instanceAudit.DestroySwap(reinterpret_cast<uintptr_t>(pSwapChain));
+         safeDestroy(pSwapChain, pHandle);
+         gpD3DSwapChains.erase(pHandle);
+         break;
+@@ -1752,6 +1771,7 @@
+         HWND hwnd = TRUNCATE_HANDLE(HWND, hDestWindowOverride);
+ 
+         const auto hresult = pSwapChain->Present(pSourceRect, pDestRect, hwnd, pDirtyRegion, dwFlags);
++        instanceAudit.PresentSwap(reinterpret_cast<uintptr_t>(pSwapChain),hresult);
+ 
+         if (!SUCCEEDED(hresult)) {
+           std::stringstream ss;
+@@ -2948,7 +2968,8 @@
+         deserializeFromQueue(instInfo);
+         
+         MeshHandle meshHandle(instInfo.mesh);
+-        if(meshHandle.isValid()) {
++        const bool meshValid = meshHandle.isValid();
++        if(meshValid) {
+           instInfo.mesh = meshHandle;
+         } else {
+           Logger::err("[RemixApi_DrawInstance] Invalid mesh handle!" );
+@@ -3002,7 +3023,9 @@
+           bInstExtExists = remixapi::pullBool();
+         }
+ 
+-        if(remixapi::g_remix.DrawInstance(&instInfo) != REMIXAPI_ERROR_CODE_SUCCESS) {
++        const auto instanceResult = remixapi::g_remix.DrawInstance(&instInfo);
++        instanceAudit.Instance(instanceResult,meshValid);
++        if(instanceResult != REMIXAPI_ERROR_CODE_SUCCESS) {
+           Logger::err("[RemixApi_DrawInstance] Remix API call failed!");
+         }
+ 
+@@ -3227,6 +3250,7 @@
+ #endif
+   }
+ 
++  instanceAudit.QueueExit(done);
+   // Check if we exited the command processing loop unexpectedly while the bridge is still enabled
+   if (!done && gbBridgeRunning) {
+     Logger::debug("The device command processing loop was exited unexpectedly, either due to timing out or some other command queue issue.");
+--- /dev/null
++++ b/bridge/src/server/instance_audit.h
+@@ -0,0 +1,177 @@
++// Own optional server audit. Observes renderer API returns and queue order;
++// SUCCESS means renderer EmitCs acceptance, never GPU completion.
++#pragma once
++#include <windows.h>
++#include <cstdint>
++#include <cstdio>
++#include <cwchar>
++
++namespace bridge_instance_audit {
++struct Counts {
++  uint64_t calls=0,success=0,errors=0,earlyCalls=0,earlySuccess=0,earlyErrors=0,invalidMeshes=0;
++};
++struct Interval {
++  Counts api{};
++  uint64_t draws=0,zeroDraws=0,foreignDraws=0,foreignPresents=0;
++  uint64_t firstDrawSequence=0,firstApiSequence=0,lastApiSequence=0;
++  uint32_t firstDrawUid=0,firstDrawKind=0,firstDrawCount=0,firstApiUid=0,lastApiUid=0;
++  int32_t firstError=0;
++  bool orderKnown=true;
++};
++class Audit {
++public:
++  static constexpr uint64_t byteLimit=16ull*1024*1024;
++  Audit()=default;
++  Audit(const Audit&)=delete;
++  Audit& operator=(const Audit&)=delete;
++  ~Audit(){Close();}
++  bool Enabled() const{return file_!=INVALID_HANDLE_VALUE;}
++  DWORD IoError() const{return ioError_;}
++  bool Capped() const{return capped_;}
++  uint64_t BytesWritten() const{return bytes_;}
++  uint64_t Epoch() const{return epoch_;}
++  uint64_t PresentIndex() const{return presentIndex_;}
++  uint64_t Sequence() const{return sequence_;}
++  const Interval& Current() const{return frame_;}
++  const Counts& Totals() const{return totals_;}
++  void Initialize() {
++    wchar_t path[4096]{};
++    const auto size=GetEnvironmentVariableW(L"REMIX_BRIDGE_INSTANCE_AUDIT",path,4096);
++    if(size&&size<4096)Open(path);
++  }
++  bool Open(const wchar_t* path) {
++    if(Enabled()||!Absolute(path))return false;
++    // CREATE_NEW prevents two servers or a repeated run overwriting evidence.
++    file_=CreateFileW(path,GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
++    if(!Enabled()){ioError_=GetLastError();return false;}
++    char init[512]{};const int length=std::snprintf(init,sizeof(init),
++      "{\"event\":\"init\",\"schema\":1,\"pid\":%lu,\"scope\":\"registered_renderer_api_device\",\"resultMeaning\":\"renderer_api_return_after_EmitCs_not_GPU_completion\",\"frameMeaning\":\"bridge_interval_closed_by_device_or_linked_implicit_swapchain_Present\",\"firstDrawIncludesZeroAndFailure\":true,\"maxBytes\":16777216}\n",GetCurrentProcessId());
++    if(length<0||static_cast<size_t>(length)>=sizeof(init)){ioError_=ERROR_INSUFFICIENT_BUFFER;Close();return false;}
++    return Write(init,static_cast<size_t>(length));
++  }
++  void Command(uint32_t uid){if(Enabled()){uid_=uid;++sequence_;}}
++  void Registered(uint32_t handle,uintptr_t device,int32_t result) {
++    if(!Enabled())return;
++    if(device_||frame_.api.calls||frame_.draws||frame_.foreignDraws||frame_.foreignPresents)
++      Finish(device_?"device_replaced":"registration_boundary",false,0);
++    ++epoch_;device_=device;deviceHandle_=handle;swap_=0;swapHandle_=0;registered_=device&&result==0;
++    frame_={};
++    char line[320]{};const int length=std::snprintf(line,sizeof(line),
++      "{\"event\":\"register\",\"deviceEpoch\":%llu,\"device\":%u,\"commandSequence\":%llu,\"uid\":%u,\"result\":%d}\n",
++      static_cast<unsigned long long>(epoch_),handle,static_cast<unsigned long long>(sequence_),uid_,result);
++    Emit(line,length,sizeof(line));
++  }
++  void LinkImplicit(uintptr_t device,uint32_t handle,uintptr_t swap) {
++    if(!Enabled()||device!=device_||!swap)return;
++    if(swap_&&swap_!=swap){Finish("implicit_swapchain_replaced",false,0);++epoch_;}
++    swap_=swap;swapHandle_=handle;
++  }
++  void BeforeDraw(uintptr_t device,uint32_t kind,uint32_t count) {
++    if(!Enabled())return;
++    if(!device_||device!=device_){++frame_.foreignDraws;frame_.orderKnown=false;return;}
++    if(!frame_.draws){frame_.firstDrawSequence=sequence_;frame_.firstDrawUid=uid_;frame_.firstDrawKind=kind;frame_.firstDrawCount=count;}
++    ++frame_.draws;if(!count)++frame_.zeroDraws;
++  }
++  void Instance(int32_t result,bool meshValid) {
++    if(!Enabled())return;
++    const bool early=frame_.draws==0;
++    const auto add=[&](Counts& c){++c.calls;if(result==0)++c.success;else ++c.errors;
++      if(early){++c.earlyCalls;if(result==0)++c.earlySuccess;else ++c.earlyErrors;}
++      if(!meshValid)++c.invalidMeshes;};
++    add(frame_.api);add(totals_);
++    if(!frame_.firstApiSequence){frame_.firstApiSequence=sequence_;frame_.firstApiUid=uid_;}
++    frame_.lastApiSequence=sequence_;frame_.lastApiUid=uid_;
++    if(result&&frame_.api.errors==1)frame_.firstError=result;
++    if(!registered_)frame_.orderKnown=false;
++  }
++  void PresentDevice(uintptr_t device,int32_t result) {
++    if(!Enabled())return;
++    if(device_&&device==device_){Finish("device_present",true,result);++presentIndex_;}
++    else {++frame_.foreignPresents;frame_.orderKnown=false;}
++  }
++  void PresentSwap(uintptr_t swap,int32_t result) {
++    if(!Enabled())return;
++    if(swap_&&swap==swap_){Finish("implicit_swapchain_present",true,result);++presentIndex_;}
++    else {++frame_.foreignPresents;frame_.orderKnown=false;}
++  }
++  void ResetBegin(uintptr_t device) {
++    if(!Enabled()||!device_||device!=device_)return;
++    Finish("reset_begin",false,0);++epoch_;
++  }
++  void ResetResult(uintptr_t device,int32_t result) {
++    if(Enabled()&&device==device_&&result<0)frame_.orderKnown=false;
++  }
++  void DestroyDevice(uintptr_t device) {
++    if(!Enabled()||!device_||device!=device_)return;
++    Finish("device_destroy",false,0);++epoch_;device_=swap_=0;deviceHandle_=swapHandle_=0;registered_=false;
++  }
++  void DestroySwap(uintptr_t swap) {
++    if(!Enabled()||!swap_||swap!=swap_)return;
++    Finish("implicit_swapchain_destroy",false,0);++epoch_;swap_=0;swapHandle_=0;
++  }
++  void QueueExit(bool normal) {
++    if(Enabled())Finish(normal?"queue_exit_normal":"queue_exit_unexpected",false,0);
++    Close();
++  }
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++  void SetByteLimitForTest(uint64_t value){limit_=value;}
++  void FailNextWriteForTest(){failNextWrite_=true;}
++#endif
++private:
++  HANDLE file_=INVALID_HANDLE_VALUE;
++  uintptr_t device_=0,swap_=0;
++  uint32_t deviceHandle_=0,swapHandle_=0,uid_=0;
++  uint64_t sequence_=0,epoch_=0,interval_=0,presentIndex_=0,bytes_=0,limit_=byteLimit;
++  bool registered_=false,capped_=false;
++  DWORD ioError_=0;
++  Interval frame_{};Counts totals_{};
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++  bool failNextWrite_=false;
++#endif
++  static bool Absolute(const wchar_t* p) {
++    if(!p||!p[0]||!p[1]||!p[2])return false;
++    const bool letter=(p[0]>=L'A'&&p[0]<=L'Z')||(p[0]>=L'a'&&p[0]<=L'z');
++    return (letter&&p[1]==L':'&&(p[2]==L'\\'||p[2]==L'/'))||
++      (p[0]==L'\\'&&p[1]==L'\\'&&p[2]!=L'.'&&p[2]!=L'?');
++  }
++  void Close(){if(Enabled()){CloseHandle(file_);file_=INVALID_HANDLE_VALUE;}}
++  bool Write(const char* text,size_t length) {
++    if(!Enabled())return false;
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++    if(failNextWrite_){failNextWrite_=false;ioError_=ERROR_WRITE_FAULT;Close();return false;}
++#endif
++    DWORD written=0;
++    if(length>MAXDWORD||!WriteFile(file_,text,static_cast<DWORD>(length),&written,nullptr)||written!=length) {
++      ioError_=GetLastError();if(!ioError_)ioError_=ERROR_WRITE_FAULT;Close();return false;
++    }
++    bytes_+=written;return true;
++  }
++  void Emit(const char* text,int length,size_t capacity) {
++    if(!Enabled())return;
++    if(length<0||static_cast<size_t>(length)>=capacity){ioError_=ERROR_INSUFFICIENT_BUFFER;Close();return;}
++    constexpr uint64_t reserve=128;
++    if(limit_<reserve||bytes_+static_cast<uint64_t>(length)>limit_-reserve) {
++      capped_=true;
++      const char cap[]="{\"event\":\"cap\",\"truncated\":true,\"furtherAuditDisabled\":true}\n";
++      if(bytes_+sizeof(cap)-1<=limit_)Write(cap,sizeof(cap)-1);
++      Close();return;
++    }
++    Write(text,static_cast<size_t>(length));
++  }
++  void Finish(const char* reason,bool present,int32_t result) {
++    if(!Enabled())return;
++    char line[2304]{};
++    const auto& c=frame_.api;
++    const bool qualified=present&&registered_&&frame_.orderKnown&&result>=0;
++    const int length=std::snprintf(line,sizeof(line),
++      "{\"event\":\"interval\",\"boundary\":\"%s\",\"complete\":%s,\"qualifiedOrder\":%s,\"deviceEpoch\":%llu,\"interval\":%llu,\"presentIndex\":%llu,\"device\":%u,\"implicitSwapchain\":%u,\"endSequence\":%llu,\"endUid\":%u,\"presentResult\":%d,\"firstDrawSequence\":%llu,\"firstDrawUid\":%u,\"firstDrawKind\":%u,\"firstDrawPrimitiveCount\":%u,\"ordinaryDrawCommands\":%llu,\"zeroDrawCommands\":%llu,\"foreignDrawCommands\":%llu,\"foreignPresents\":%llu,\"firstApiSequence\":%llu,\"lastApiSequence\":%llu,\"firstApiUid\":%u,\"lastApiUid\":%u,\"apiCalls\":%llu,\"rendererApiSuccess\":%llu,\"rendererApiErrors\":%llu,\"earlyCalls\":%llu,\"earlySuccess\":%llu,\"earlyErrors\":%llu,\"invalidMeshHandles\":%llu,\"firstRendererError\":%d,\"totalCalls\":%llu,\"totalSuccess\":%llu,\"totalErrors\":%llu,\"totalEarlyCalls\":%llu,\"totalEarlySuccess\":%llu,\"totalEarlyErrors\":%llu,\"totalInvalidMeshHandles\":%llu}\n",
++      reason,present?"true":"false",qualified?"true":"false",epoch_,interval_,presentIndex_,deviceHandle_,swapHandle_,sequence_,uid_,result,
++      frame_.firstDrawSequence,frame_.firstDrawUid,frame_.firstDrawKind,frame_.firstDrawCount,frame_.draws,frame_.zeroDraws,
++      frame_.foreignDraws,frame_.foreignPresents,frame_.firstApiSequence,frame_.lastApiSequence,frame_.firstApiUid,frame_.lastApiUid,
++      c.calls,c.success,c.errors,c.earlyCalls,c.earlySuccess,c.earlyErrors,c.invalidMeshes,frame_.firstError,
++      totals_.calls,totals_.success,totals_.errors,totals_.earlyCalls,totals_.earlySuccess,totals_.earlyErrors,totals_.invalidMeshes);
++    Emit(line,length,sizeof(line));
++    ++interval_;frame_={};
++  }
++};
++} // namespace bridge_instance_audit
