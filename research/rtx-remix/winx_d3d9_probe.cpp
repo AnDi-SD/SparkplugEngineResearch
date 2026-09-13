@@ -60,6 +60,7 @@ namespace native_draw_audit { static void Initialize(); static void Draw(IDirect
 namespace native_mesh_source { static void Initialize(); static void EndFrame(); }
 namespace native_camera_source { static void Initialize(); static void EndFrame(); }
 namespace native_material_source { static void Initialize(); static void EndFrame(); }
+namespace native_owner_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -123,6 +124,7 @@ static void Initialize() {
   native_mesh_source::Initialize();
   native_camera_source::Initialize();
   native_material_source::Initialize();
+  native_owner_source::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -738,6 +740,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_mesh_source::EndFrame();
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
+  native_owner_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -824,6 +827,7 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   native_mesh_source::EndFrame();
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
+  native_owner_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);

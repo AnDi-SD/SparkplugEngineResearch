@@ -98,7 +98,10 @@ class Sweep:
             print(json.dumps(dict(navigate=level, attempt=attempt, selected=state['menus'][-1]['selected'], active=state.get('active'))), flush=True)
             if delta == 0:
                 return state
-            self.control('down' if delta > 0 else 'up', count=abs(delta))
+            # Debug selection polls held arrows. In fast UI/death screens an
+            # .08-second hold crosses many rows; .001 misses most input polls.
+            # Use a shorter pulse and confirm the actual index before activation.
+            self.control('down' if delta > 0 else 'up', hold=.01, count=abs(delta))
         raise RuntimeError('Could not confirm requested level selection')
 
     def shader_snapshot(self):

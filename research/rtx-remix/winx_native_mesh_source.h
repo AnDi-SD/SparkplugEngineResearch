@@ -5,6 +5,10 @@
 #include <algorithm>
 #include "../../Sparkplug/Analysis/PC/SparkplugAbi.h"
 #include "../../Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h"
+#include "winx_native_owner_source.h"
+#if defined(_M_IX86)
+#include <intrin.h>
+#endif
 namespace native_mesh_source {
 namespace abi = sparkplug::evidence::pc;
 struct DrawRange { D3DPRIMITIVETYPE type; INT base; UINT minimum,vertices,start,count; };
@@ -44,6 +48,7 @@ struct Geometry {
   DrawRange range{}; D3DMATRIX world{};
   const std::vector<sparkplug::reconstruction::spPCVertexElementForAnalysis>* layout=nullptr;
   uint32_t componentFlags=0;
+  native_owner_source::Packet owner{};
 };
 static FILE* output;
 static bool enabled,submitEnabled;
@@ -90,6 +95,7 @@ struct Scope {
   uint32_t mesh,renderer; uint64_t sequence;
   abi::spDXMeshObservedLayout value{};
   bool valid=false;
+  native_owner_source::Packet owner{};
 };
 static thread_local Scope* active;
 using NativeSubmit=uint32_t(__thiscall*)(void*,uint32_t);
@@ -98,14 +104,22 @@ using NativeMeshInitialize=uint32_t(__thiscall*)(void*,uint32_t,uint32_t,uint32_
 static NativeSubmit originalSubmit;
 static NativeSharedInitialize originalSharedInitialize;
 static NativeMeshInitialize originalMeshInitialize;
+static uint32_t SubmitAndRestore(Scope* scope,void* rendererInterface,uint32_t mesh) {
+  uint32_t result=0;
+  __try {result=originalSubmit(rendererInterface,mesh);}
+  __finally {active=scope->parent;}
+  return result;
+}
 static uint32_t __fastcall Submit(void* rendererInterface,void*,uint32_t mesh) {
+  const auto returnAddress=reinterpret_cast<uintptr_t>(_ReturnAddress());
   if(GetCurrentThreadId()!=ownerThread)return originalSubmit(rendererInterface,mesh);
   Scope scope{active,mesh,uint32_t(reinterpret_cast<uintptr_t>(rendererInterface)-0x18),++nextSubmission};
   scope.valid=scene_geometry::Word(scope.renderer)==abi::spPCRendererPrimaryVTable && Read(mesh,scope.value) &&
     scene_geometry::Word(mesh)==abi::spDXMeshVTable && scope.value.base.base.secondaryVTable==abi::spDXMeshInterfaceVTable;
+  if(scope.valid)native_owner_source::Capture(mesh,scope.renderer,scope.sequence,returnAddress,scope.owner);
   struct Restore {Scope* previous;~Restore(){active=previous;}} restore{active};
   active=&scope;++submissions;
-  return originalSubmit(rendererInterface,mesh);
+  return SubmitAndRestore(&scope,rendererInterface,mesh);
 }
 static uint32_t __fastcall SharedInitialize(void* object,void*,uint32_t indexSize,uint32_t vertexSize,
                                           uint32_t indexData,uint32_t vertexData) {
@@ -230,6 +244,7 @@ static bool Resolve(IDirect3DDevice9* device,const DrawRange& draw,void* boundVB
   geometry={&v->second,&i->second,scope.mesh,scope.renderer,stride,scope.sequence,
     {primitive,INT(mesh.vertexBegin),0,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount},world};
   geometry.componentFlags=mesh.base.base.vertexComponentFlags;
+  geometry.owner=scope.owner;
   geometry.layout=Layout(geometry.componentFlags);if(!geometry.layout)return false;
   ++matched;return true;
 }

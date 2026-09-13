@@ -1,0 +1,1091 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "kind": "native-owner-operation-submit-checkpoint",
+  "generatedAt": "2026-09-13T03:06:34.096506+03:00",
+  "scope": "Own adapter ownership audit joined to successful existing native API submission; preserves original producer work, queued Model calls and D3D visibility extension. Not persistent direct scene export.",
+  "run": {
+    "directory": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177",
+    "pid": 19812,
+    "closed": true,
+    "launch": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/launch.json",
+      "bytes": 5600,
+      "sha256": "a6d7b6e6d3cd253ed89f353dd9a043fd8fa56f94be4022e00c3375cb5aa4b435"
+    },
+    "adapter": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/d3d9.dll",
+      "bytes": 468992,
+      "sha256": "7c17983e51b83117ef68e23473981f348ff22790af53a11922db4f97bcf77ce4"
+    },
+    "x86Build": {
+      "path": "local-data/rtx-remix/build-native-owner-v6/d3d9.dll",
+      "bytes": 468992,
+      "sha256": "7c17983e51b83117ef68e23473981f348ff22790af53a11922db4f97bcf77ce4"
+    },
+    "x86Command": {
+      "path": "local-data/rtx-remix/build-native-owner-v6/build-probe.cmd",
+      "bytes": 514,
+      "sha256": "b56d388409a5dd26cb354f68a0bad525e62f0322c9f8e6dda5222d016f81041e"
+    },
+    "x64EarlierPartialCompileOnly": {
+      "path": "local-data/rtx-remix/build-native-owner-v3-x64/d3d9.dll",
+      "bytes": 449024,
+      "sha256": "1476019dff358fd4c349edb6f2b6a32276529502c1de3fe1837f5f594a51de1f"
+    },
+    "x64Scope": "Earlier owner-v3 compile only; not final RenderNode state, and native hooks are x86 only.",
+    "componentsAtLaunch": {
+      "proxySha256": "7C17983E51B83117EF68E23473981F348FF22790AF53A11922DB4F97BCF77CE4",
+      "bridgeConfigSha256": "2E8174D21B357ADD83DFBC7A8A034D9CBEA8866059263C2A6357C9E516BCEEBE",
+      "executableSha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+      "remixClientSha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+      "remixServerSha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+      "surfaceRolesSha256": null,
+      "remixRendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+    },
+    "currentGameExecutable": {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "bytes": 22065152,
+      "sha256": "c27ea9db4228781a12a90ae808807d4af1397a7e40dd8f5fff28f3c87cc62cdb"
+    },
+    "analyzers": {
+      "owner": {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/native-owner-analysis.json",
+          "bytes": 513059,
+          "sha256": "5d314697948c5164155b50ea415319ea809bfa323ce333b493796f68df4ebb1a"
+        },
+        "summary": {
+          "schema": 1,
+          "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-024846-177",
+          "pidExited": true,
+          "proxySha256": "7C17983E51B83117EF68E23473981F348FF22790AF53A11922DB4F97BCF77CE4",
+          "sourceLogSha256": "e343602c23cd664b5a5bbc98a1b04fcc599cefbec1b9fcc114f27544cbd9c12a",
+          "bytes": 12030206,
+          "logLimitReached": false,
+          "frameRange": [
+            0,
+            31997
+          ],
+          "events": {
+            "init": 1,
+            "frame": 31635,
+            "retire": 3495,
+            "submit": 5777
+          },
+          "totals": {
+            "supportCalls": 1522985,
+            "queueSupportCalls": 1508337,
+            "modelCalls": 2389662,
+            "modelWithoutMesh": 155142,
+            "modelFailures": 0,
+            "captures": 1932785,
+            "qualified": 1787994,
+            "used": 1787994,
+            "sceneRetirements": 0,
+            "nodeRetirements": 0,
+            "renderNodeRetirements": 1970
+          },
+          "rejected": {
+            "no_scope": 69253,
+            "callsite": 0,
+            "scene": 298433,
+            "registry": 0,
+            "support": 3302,
+            "model": 0,
+            "mesh": 0,
+            "world": 0,
+            "retired": 0
+          },
+          "ownerFrameHistogram": {
+            "0": 27971,
+            "446": 3302,
+            "871": 362
+          },
+          "sampledSubmits": 5777,
+          "sampledContexts": {
+            "outside_support_scope": 5777
+          },
+          "sampledSceneAddresses": [
+            70185932
+          ],
+          "sampledOwnerKinds": {
+            "2": 5047,
+            "0": 730
+          },
+          "retirementEventCounts": {
+            "render_node": 3474,
+            "partition_node": 18,
+            "scene": 3
+          },
+          "sampledRootAddresses": [
+            70186436,
+            410865148
+          ],
+          "sampledMutationSerials": [
+            656,
+            1971
+          ],
+          "sampledSceneScopes": 12,
+          "sampledRepeatedModelMembership": 4890,
+          "sampledRepeatedOwnerRegistrations": 158,
+          "sampledModelSelectedMaterialDifferences": 0,
+          "sampledRepeatedNativeSubmissions": 0,
+          "scope": "Exact static/partition and inherited RenderNode ownership at original Model own mesh callsite, joined to successful existing native API submits. Operation serials and borrowed addresses are not durable instance identities. Snapshot mutation serial observes known Scene/PartitionNode/RenderNode retirement only; arbitrary graph changes and persistent offscreen submission remain open. Models without mesh counts calls without a qualified native mesh entry, not a decoded skip reason. Retirement events after last Present are counted separately from frame counters."
+        }
+      },
+      "material": {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/native-material-analysis.json",
+          "bytes": 1543,
+          "sha256": "db39a09ab07410443ecafeee6768b74abd079bd10649ee64bf092394b28aa4a8"
+        },
+        "summary": {
+          "schema": 1,
+          "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-024846-177",
+          "pidExited": true,
+          "proxySha256": "7C17983E51B83117EF68E23473981F348FF22790AF53A11922DB4F97BCF77CE4",
+          "sourceLogSha256": "db179129630a05c57f4025fe8348caa4e47c9cb8b22c973582079e7239cdd385",
+          "bytes": 5594527,
+          "logLimitReached": false,
+          "frameRange": [
+            0,
+            31997
+          ],
+          "events": {
+            "init": 1,
+            "frame": 31629,
+            "submit": 5963
+          },
+          "totals": {
+            "attempts": 1908718,
+            "matched": 1908718,
+            "used": 1843920,
+            "mismatches": 0
+          },
+          "rejected": {
+            "scope": 0,
+            "mode": 0,
+            "material": 0,
+            "pass": 0,
+            "layer": 0,
+            "texture": 0,
+            "override": 0,
+            "coordinates": 0,
+            "arguments": 0,
+            "mapping": 0,
+            "device": 0
+          },
+          "nativeFrameHistogram": {
+            "0": 2,
+            "446": 3302,
+            "2": 27963,
+            "871": 362
+          },
+          "sampledNativeOperations": {
+            "3/3": 5963
+          },
+          "sampledNativeSamplers": {
+            "1,1,2,2,2": 5963
+          },
+          "sampledSources": {
+            "native_std_layer_shared_mapping": 5963
+          },
+          "sampledDistinctMaterialAddresses": 1043,
+          "sampledDistinctTextureAddresses": 50,
+          "switches": [],
+          "scope": "Recorded ordinary single StdLayer mode2 UV0 untransformed draws only. Native operations/sampler use shared mapping; unlit coefficients use existing adapter policy. Arguments, render/blend states, resource bytes and identity validation retain D3D. Addresses are observations, not durable instance identities or whole-scene coverage."
+        }
+      },
+      "geometry": {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/native-mesh_source-analysis.json",
+          "bytes": 1534,
+          "sha256": "3b37a8730ed11e24d189408a6f93b49cbd15de126336405546159f3b9dd9b13b"
+        },
+        "summary": {
+          "schema": 1,
+          "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-024846-177",
+          "proxySha256": "7C17983E51B83117EF68E23473981F348FF22790AF53A11922DB4F97BCF77CE4",
+          "pidExited": true,
+          "sourceLogSha256": "3a9b78854c26ea27c9390bbfa421425c3889a53597507fd2eca49a54ed3943c0",
+          "bytes": 8725939,
+          "logLimitReached": false,
+          "frameRange": [
+            0,
+            31997
+          ],
+          "events": {
+            "init": 1,
+            "capture_range": 2306,
+            "frame": 31651,
+            "compare_upload": 743,
+            "submit": 5963
+          },
+          "observedErrors": {
+            "failures": 0,
+            "limited": 0,
+            "uploadMismatches": 0,
+            "layoutMismatches": 0
+          },
+          "comparedGenerations": 743,
+          "failedComparisons": 0,
+          "nativeInstancesInRecordedFrames": 1843920,
+          "meshCallsInRecordedFrames": 2303767,
+          "nativeFrameHistogram": {
+            "2": 27963,
+            "446": 3302,
+            "871": 362
+          },
+          "sampledInstanceSources": {
+            "native_mesh_cpu_input": 5963
+          },
+          "sampledLayoutSources": {
+            "native_flags_shared_emitter": 5963
+          },
+          "sampledComponentFlags": {
+            "2368": 5963
+          },
+          "sampledMaterialSources": {
+            "native_std_layer_shared_mapping": 5963
+          },
+          "distinctMeshAddressesInSampledInstances": 564,
+          "maxBuffers": 1918,
+          "maxBytes": 3725162,
+          "switches": [],
+          "scope": "Recorded frames only. Mesh calls include other passes/UI; no whole-scene percentage or object lifetime identity inferred. Layout/material sources are reported from sampled submits; native material coverage is qualified by its separate source log."
+        }
+      },
+      "camera": {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/native-camera-analysis.json",
+          "bytes": 11820,
+          "sha256": "6e4bcf5bcb068ed3d9de91a05faf6f3da93d85ee963bd4e9e26f0b6d82c1a807"
+        },
+        "summary": {
+          "schema": 1,
+          "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-024846-177",
+          "pidExited": true,
+          "proxySha256": "7C17983E51B83117EF68E23473981F348FF22790AF53A11922DB4F97BCF77CE4",
+          "components": {
+            "remixClientSha256": "79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11",
+            "remixServerSha256": "C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927",
+            "remixRendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+          },
+          "sourceLogSha256": "5560732d3568dd1d7984b01db237f524c85caf795f62927a476cfb3f42723328",
+          "bytes": 6010958,
+          "logLimitReached": false,
+          "frameRange": [
+            0,
+            31997
+          ],
+          "events": {
+            "init": 1,
+            "frame": 31956,
+            "camera": 12,
+            "first_window_missed": 93
+          },
+          "totals": {
+            "applies": 7652,
+            "foreignApplies": 63891,
+            "rejected": 0,
+            "matched": 3668,
+            "submitted": 3668,
+            "failures": 0,
+            "stateMismatches": 0,
+            "lateUpdates": 0,
+            "missedFirstDraws": 27963
+          },
+          "matchedFrames": 3668,
+          "submittedFrames": 3668,
+          "framesWithMultipleSubmissions": 0,
+          "sampledBeforeDrawHistogram": {
+            "1": 12
+          },
+          "sampledApplyAfterDrawHistogram": {
+            "0": 12
+          },
+          "sampledMissedReasons": {
+            "missing_current_native_apply": 93
+          },
+          "deviceEpochFrames": {
+            "1": 31956
+          },
+          "switches": [],
+          "scope": "Recorded adapter frames and sampled camera packets only. API success is the renderer API return through the bridge; GPU camera values/cut history are not directly instrumented. v1 observer lateUpdates did not compare after observation; v2+ uses selected snapshot."
+        }
+      }
+    },
+    "world": {
+      "Domino": {
+        "instancesPerFrame": 446,
+        "frames": 3302,
+        "firstFrame": {
+          "event": "frame",
+          "frame": 342,
+          "supportCalls": 250,
+          "queueSupportCalls": 250,
+          "modelCalls": 467,
+          "modelWithoutMesh": 9,
+          "modelFailures": 0,
+          "captures": 457,
+          "qualified": 446,
+          "used": 446,
+          "sceneRetirements": 0,
+          "nodeRetirements": 0,
+          "renderNodeRetirements": 1,
+          "rejected": [
+            12,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "lastFrame": 3646,
+        "ownerEqualsNativeMaterialAndGeometryOnEveryRecordedWorldFrame": true
+      },
+      "Alfea": {
+        "instancesPerFrame": 871,
+        "frames": 362,
+        "firstFrame": {
+          "event": "frame",
+          "frame": 31633,
+          "supportCalls": 1043,
+          "queueSupportCalls": 1043,
+          "modelCalls": 1243,
+          "modelWithoutMesh": 94,
+          "modelFailures": 0,
+          "captures": 1149,
+          "qualified": 871,
+          "used": 871,
+          "sceneRetirements": 0,
+          "nodeRetirements": 0,
+          "renderNodeRetirements": 0,
+          "rejected": [
+            24,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "lastFrame": 31997,
+        "ownerEqualsNativeMaterialAndGeometryOnEveryRecordedWorldFrame": true
+      }
+    },
+    "lastRecordedFrame": 31997,
+    "retirementEvents": {
+      "render_node": 3474,
+      "partition_node": 18,
+      "scene": 3
+    },
+    "postLastPresentRetirementEvents": {
+      "render_node": 1504,
+      "partition_node": 18,
+      "scene": 3
+    },
+    "postLastPresentFrame": 31998,
+    "motion": {
+      "states": [
+        {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/domino-owner-ready-state.json",
+          "bytes": 11427,
+          "sha256": "6ce5172f39dd8c85cbf11536b86f7cbfa8df425db525b907f0bedacd7fc25d33"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/domino-owner-moved-state.json",
+          "bytes": 11417,
+          "sha256": "1b71358b8633eeeccb2bffe700c33d45be6fb0cbddf0b9535a4840af703bf742"
+        }
+      ],
+      "activeBefore": 4,
+      "activeAfter": 4,
+      "playerBefore": [
+        -1693.677490234375,
+        -0.0540924072265625,
+        738.6420288085938
+      ],
+      "playerAfter": [
+        -893.31591796875,
+        -268.70391845703125,
+        738.6420288085938
+      ],
+      "positionChanged": true,
+      "viewChanged": true,
+      "projectionEqual": true,
+      "image": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/domino-owner-moved.png",
+        "bytes": 686692,
+        "sha256": "c8ec90430e5934294d061d070cc7fbca8cdb89c621ff717cf34d5f33eb03c5b7"
+      },
+      "visualReview": "Root inspected moved.png; player moved near cliff/water. Limited motion check, not level completion."
+    },
+    "excludedTutorialPair": {
+      "states": [
+        {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/domino-owner-before-state.json",
+          "bytes": 11438,
+          "sha256": "c7c5675005fcf94bb72378821b9ffb50ccd4ffa1d227013813808990c409aec4"
+        },
+        {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/domino-owner-motion-state.json",
+          "bytes": 11438,
+          "sha256": "5d52c743b83503dba0134381cd0264edaa7257404adc0b5468c89c5294a097c1"
+        }
+      ],
+      "activeBefore": 71,
+      "activeAfter": 71,
+      "playerBefore": [
+        -1693.677490234375,
+        -0.0540924072265625,
+        738.6420288085938
+      ],
+      "playerAfter": [
+        -1693.677490234375,
+        -0.0540924072265625,
+        738.6420288085938
+      ],
+      "positionChanged": false,
+      "viewChanged": false,
+      "projectionEqual": true,
+      "acceptedAsMotionEvidence": false
+    },
+    "sweep": [
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/levels/27-Alfea01_01/result.json",
+          "bytes": 340,
+          "sha256": "ed62eba7dd8f8aa6a9a56beb4f512e5d3ca8302972b03dbbc463ec7e29e175bc"
+        },
+        "status": "test_interrupted",
+        "error": "Could not confirm requested level selection",
+        "selection": null,
+        "readySeconds": null,
+        "idleState": null,
+        "movedState": null
+      },
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/levels/27-Alfea01_01-attempt-2/result.json",
+          "bytes": 350,
+          "sha256": "b1af9ac8e78cfc84e72a7ad758d9c2a6fa8ec97362daa3dc68bafc87bed227c8"
+        },
+        "status": "test_interrupted",
+        "error": "Could not confirm requested level selection",
+        "selection": null,
+        "readySeconds": null,
+        "idleState": null,
+        "movedState": null
+      },
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/levels/27-Alfea01_01-attempt-3/result.json",
+          "bytes": 4806,
+          "sha256": "5e16d9d659f975edbbc620972e3061cf0d19b2ba440f7f861be6ee04e8e80bf1"
+        },
+        "status": "loaded_and_presenting",
+        "error": null,
+        "selection": {
+          "pid": 19812,
+          "controller": 70242220,
+          "current": 56,
+          "pending": 0,
+          "stack": 2,
+          "active": 56,
+          "stateStack": [
+            54,
+            53,
+            56
+          ],
+          "menus": [
+            {
+              "address": 413027820,
+              "selected": 0,
+              "count": 19,
+              "entries": 410190916
+            },
+            {
+              "address": 413028780,
+              "selected": 26,
+              "count": 37,
+              "entries": 410866988
+            }
+          ],
+          "debugOpen": true
+        },
+        "readySeconds": 10.02,
+        "idleState": {
+          "pid": 19812,
+          "controller": 70242220,
+          "current": 70,
+          "pending": 0,
+          "stack": 2,
+          "active": 70,
+          "stateStack": [
+            54,
+            27,
+            70
+          ],
+          "menus": [],
+          "debugOpen": false
+        },
+        "movedState": {
+          "pid": 19812,
+          "controller": 70242220,
+          "current": 70,
+          "pending": 0,
+          "stack": 2,
+          "active": 70,
+          "stateStack": [
+            54,
+            27,
+            70
+          ],
+          "menus": [],
+          "debugOpen": false
+        }
+      }
+    ],
+    "sweepTimingObservation": "Root observed .08 second arrows overshoot, .001 miss; third .01 reaches exact selection26. Failed attempts preserved. Timing reason is operator observation, not inferred from result JSON.",
+    "alfeaImage": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/levels/27-Alfea01_01-attempt-3/idle.png",
+      "bytes": 643459,
+      "sha256": "a390f65e1c49c06e56776a8cb9346c4a74f9b819b4b3de6012a32b71f2d3f70e"
+    },
+    "alfeaMotionClaim": false,
+    "alfeaVisualReview": "Root inspected idle.png. Idle and moved state70 dialogue are not movement evidence.",
+    "gameStateLog": {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/workdir/GameStateLog.txt",
+      "bytes": 1475,
+      "sha256": "8430934c890eb5993c3b3d1d66a8c1598339697dde1058e7907a94b6d07c5f1c"
+    },
+    "nonWorldPhase": {
+      "frames": [
+        3647,
+        31609
+      ],
+      "count": 27963,
+      "nativeInstancesPerFrame": 2,
+      "ownerUses": 0,
+      "mainCameraApplies": 0,
+      "cameraMissingCurrentApplyWindows": 27963,
+      "lightFrameSamples": 467,
+      "lightSampleCounts": {
+        "0/0": 467
+      },
+      "scope": "Game-state log confirms transition from level4 through53/64 to game-over56 before Alfea. Raw frame phase is excluded from world coverage; exact mapping of every raw frame to UI state is not established."
+    },
+    "rendererLogs": [
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/workdir/rtx-remix/logs/bridge32.log",
+          "bytes": 114994,
+          "sha256": "ac4130e71dcf1dbe0d81c54b6b66a27295ad526cac4faafaff39d6497352b890"
+        },
+        "errors": [],
+        "cleanupSuccessful": true,
+        "warningCount": 1727,
+        "directInputWarningCodes": {
+          "200": 634,
+          "208": 1092,
+          "205": 1
+        },
+        "opacityMicromapBudgetMessagePresent": false
+      },
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/workdir/rtx-remix/logs/bridge64.log",
+          "bytes": 2331,
+          "sha256": "50ae5cd4e95ba465dba8d551cd6f78df03f86229c15a9ab03cca426da108dad0"
+        },
+        "errors": [],
+        "cleanupSuccessful": true,
+        "warningCount": 0,
+        "directInputWarningCodes": {},
+        "opacityMicromapBudgetMessagePresent": false
+      },
+      {
+        "artifact": {
+          "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/workdir/rtx-remix/logs/remix-dxvk.log",
+          "bytes": 17353,
+          "sha256": "95d58ce93af1543dc23c607dfa610e47917ab76192edbe55b2bdd3bd9bd07efe"
+        },
+        "errors": [
+          "[02:57:48.762] err:   [41] common device objects were not disposed of."
+        ],
+        "cleanupSuccessful": false,
+        "warningCount": 5,
+        "directInputWarningCodes": {},
+        "opacityMicromapBudgetMessagePresent": false
+      }
+    ]
+  },
+  "tests": {
+    "ownerCPU": {
+      "evidence": {
+        "path": "local-data/rtx-remix/native-owner-tests/owner-v5/evidence.json",
+        "bytes": 6084,
+        "sha256": "f338436b01bde3dbf5571e7a1c3ade1fd817e325a9f60e9556cc966b6307e93a"
+      },
+      "result": {
+        "status": "PASS",
+        "checks": 142,
+        "gpu": false,
+        "nativeGameCodeExecuted": false
+      },
+      "exe": {
+        "path": "local-data/rtx-remix/native-owner-tests/owner-v5/test_native_owner.exe",
+        "bytes": 186880,
+        "sha256": "8848aa601baabca4762515484b8baab7a7b489c1360614026e10946ecda1254a"
+      },
+      "buildLog": {
+        "path": "local-data/rtx-remix/native-owner-tests/owner-v5/build.log",
+        "bytes": 642,
+        "sha256": "e41a0bcea7d1d968e12a151928cbeb20aba9f87d0166d5a03140684dc4a8461b"
+      },
+      "scope": "142 checks = unchanged114 + RenderNode28; owned literal ABI data, own DWORD slots, no game code or GPU; hook install/trampolines are not executed"
+    },
+    "registryCPU": {
+      "checks": 61,
+      "status": "PASS",
+      "artifacts": [
+        {
+          "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/registry-test/test.cmd",
+          "bytes": 492,
+          "sha256": "404614682efff62f2a01d84fd4cc01410b894ce584015363914d1140d8d365c7"
+        },
+        {
+          "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/registry-test/test_scene_geometry.exe",
+          "bytes": 169984,
+          "sha256": "983db69e3f7d341cded42e1c6316d439921dac705a9609e285d6ed8857631dd4"
+        },
+        {
+          "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/registry-test/rendernode-occurrences-20260913-build-run.txt",
+          "bytes": 796,
+          "sha256": "f863e67c36d8efcb6da1058402b376884592caa98642daf28bc540fd0b176871"
+        }
+      ],
+      "source": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/owner-source/research/rtx-remix/test_scene_geometry.cpp",
+        "bytes": 15402,
+        "sha256": "fbd5819ee4a6b53e4202ad15ceab3bc170f12f38d8d931e5fa8c6afe4794d765"
+      },
+      "scope": "Existing build/run log and executable preserved; source copied from owner-v5 snapshot and equal to current. No new test execution or claim of a build-time registry source hash."
+    },
+    "materialIntegration": {
+      "result": {
+        "status": "PASS",
+        "checks": 541,
+        "nativeSourceChecks": 171,
+        "nativeMaterialChecks": 137,
+        "submitted": 35,
+        "rejected": 5,
+        "meshCreates": 10,
+        "materialCreates": 9,
+        "assetBytes": 2332
+      },
+      "artifact": {
+        "path": "local-data/rtx-remix/material-channel-tests/native-owner-v1/result.json",
+        "bytes": 167,
+        "sha256": "ed2b0905a0fb75fa1a916411b208fe824a2e88bc427ad7951ef1b00315a6ae99"
+      },
+      "exe": {
+        "path": "local-data/rtx-remix/material-channel-tests/native-owner-v1/test_material_channels.exe",
+        "bytes": 479232,
+        "sha256": "96882a38f7190cc235f593302ca8d601341c9f85824e26440969c33e35fdd357"
+      },
+      "command": {
+        "path": "local-data/rtx-remix/material-channel-tests/native-owner-v1/test.cmd",
+        "bytes": 582,
+        "sha256": "70d0d3fd9c74ad93158a928da02eaac69ea4de5f13b3592235c6795b6374440c"
+      },
+      "sourceInventory": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/material-test-source-inventory.json",
+        "bytes": 8653,
+        "sha256": "d26af335ea1d991b3b66deb21475911d6c249110fd2c0b133f82590661cd2b78"
+      },
+      "scope": "Earlier native-owner-v1 system D3D9 plus recording API test; 541/171/137, before inherited RenderNode extension; not a new final RenderNode GPU test"
+    }
+  },
+  "sourceInventory": {
+    "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/source-inventory.json",
+    "bytes": 18489,
+    "sha256": "70385e953f40a821e339426eac19ab9344e1e16e8959cf2207c9a3e6f9d1d412"
+  },
+  "sourceFiles": 36,
+  "sourceScope": "Executed owner-v5 frozen snapshot retained with all36 files. Every file equals current workspace at collection; runtime DLL identity is independently fixed by launch/install/build hashes. This does not make the previous material GPU fixture a final RenderNode test.",
+  "runInventory": {
+    "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/run-inventory.json",
+    "bytes": 53515,
+    "sha256": "3b1f07787acbeddde80e249ac47cdeb040eab999d4ab211ee9dd0bf1a811077c"
+  },
+  "configs": [
+    {
+      "nativePath": "user.conf",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-before/user.conf",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-after/user.conf",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "equal": true
+    },
+    {
+      "nativePath": "winx.ini",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-before/winx.ini",
+        "bytes": 106,
+        "sha256": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-after/winx.ini",
+        "bytes": 106,
+        "sha256": "bc7d3270ee607a061ac774b02f4b90b8f5587f5f62689c168425a60c27d485e0"
+      },
+      "equal": true
+    },
+    {
+      "nativePath": ".trex/bridge.conf",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-before/.trex/bridge.conf",
+        "bytes": 314,
+        "sha256": "5ac96fb3198f3e8ff7bcb16030cd199e14acc55defc71916fd9f547370cb5e35"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-after/.trex/bridge.conf",
+        "bytes": 314,
+        "sha256": "5ac96fb3198f3e8ff7bcb16030cd199e14acc55defc71916fd9f547370cb5e35"
+      },
+      "equal": true
+    }
+  ],
+  "effectiveRuntimeConfigs": [
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/rtx.conf",
+      "bytes": 673,
+      "sha256": "7af17e58743a5e28aeb0a94010857a9f910737daa0e6469a9167ceb2677effe2"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/bridge.conf",
+      "bytes": 339,
+      "sha256": "2e8174d21b357add83dfbc7a8a034d9cbea8866059263c2a6357c9e516bceebe"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/live.conf",
+      "bytes": 50,
+      "sha256": "cef0c2bc6cff6ad35ca7ad0f3fafd7dc2c9293a77fe544ab068b00bc1958fb22"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/launch.json",
+      "bytes": 5600,
+      "sha256": "a6d7b6e6d3cd253ed89f353dd9a043fd8fa56f94be4022e00c3375cb5aa4b435"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/workdir/user.conf",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/runtime-effective/workdir/winx.ini",
+      "bytes": 125,
+      "sha256": "1624fd941bcd40e1c2d91f9373d519954044676f9f55a19a96d173d659f4fc0c"
+    }
+  ],
+  "saves": [
+    {
+      "name": "Saved00.wxs",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-before/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-after/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "e6404ec5e5ae11e82ccddcc72106d7b3ae9e6f2d363c956f3abaa383e87bee15"
+      },
+      "equal": true
+    },
+    {
+      "name": "Saved01.wxs",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-before/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-after/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321a1136d05eac8704b60f5268d99d81f56b3fd4fa123222caeff393256dcf"
+      },
+      "equal": true
+    },
+    {
+      "name": "Settings00.wxs",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-before/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-after/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182a3b6b840f805d1a57acdfc6134d1568bad0577b189c42b3fc23bc23d65"
+      },
+      "equal": true
+    },
+    {
+      "name": "Settings01.wxs",
+      "before": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-before/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/saves-after/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "a2e0125fe3fe87176bf436f522b2b8676edae6561fcaab0285d5a82c294d0f01"
+      },
+      "equal": true
+    }
+  ],
+  "automaticRestore": {
+    "path": "local-data/rtx-remix/runs/play-rtx-20260913-024846-177/bridge-config-restored.json",
+    "bytes": 96,
+    "sha256": "c7b668d95fba87d15bf3036079b1949851e00503df8bca33795780425641cbc1"
+  },
+  "restoreRepeated": false,
+  "backups": [
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/install-v6/adapter-before.dll",
+      "bytes": 468480,
+      "sha256": "5c06bdbffec36ab51df65f14d25c009e4f8c5ff1adbb54712005f9f247246369"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/install-v6/canonical-before.dll",
+      "bytes": 468480,
+      "sha256": "5c06bdbffec36ab51df65f14d25c009e4f8c5ff1adbb54712005f9f247246369"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/install-v6/installation.json",
+      "bytes": 350,
+      "sha256": "ae477b1f5e05a150f88da22facffe33190fdd9246f8c8abfda467b76a0ee0247"
+    }
+  ],
+  "historicalRuns": [
+    {
+      "run": "local-data/rtx-remix/runs/play-rtx-20260913-023352-886",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023352-886/launch.json",
+        "bytes": 5600,
+        "sha256": "a42f503dbed18d4f9e6a26fd1361673a02c7804c0d01422533cee25a2b5409a0"
+      },
+      "adapter": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023352-886/d3d9.dll",
+        "bytes": 467968,
+        "sha256": "944e1fe0285ee023fe615d21f98fa2e538cea39f881ef3a31efaa0d65fb8027d"
+      },
+      "image": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023352-886/domino-owner-initial.png",
+        "bytes": 56630,
+        "sha256": "47bac8676270d488de5890eec6f7d23be195fe9dbd26405999df1cff27817c7f"
+      },
+      "ownerLogExists": false,
+      "status": "setup_failure_closed_on_splash",
+      "cause": "Owner Initialize followed scene audit hook installation, so VerifiedImage saw already patched46D270 and disabled observer. Root moved owner initialization earlier and added explicit init-disabled diagnostics in v5; no crash claim."
+    },
+    {
+      "run": "local-data/rtx-remix/runs/play-rtx-20260913-023650-451",
+      "launch": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023650-451/launch.json",
+        "bytes": 5598,
+        "sha256": "cdab1c163feccf2b564e13edfb58a1899e301e54fd8067d468af06cf062584aa"
+      },
+      "analyzer": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023650-451/native-owner-analysis.json",
+        "bytes": 5011,
+        "sha256": "cc2330921556c25e4b5f657eba47b3f4027ee7815f9b48aea0aa68a1e6dd9510"
+      },
+      "rawLog": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-023650-451/native-owner-source.jsonl",
+        "bytes": 1431195,
+        "sha256": "66eec789b02d4d4435c5b33054ecac3c76a3d1fc22405b63c11265aff45e9244"
+      },
+      "summary": {
+        "schema": 1,
+        "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-023650-451",
+        "pidExited": true,
+        "proxySha256": "5C06BDBFFEC36AB51DF65F14D25C009E4F8C5FF1ADBB54712005F9F247246369",
+        "sourceLogSha256": "66eec789b02d4d4435c5b33054ecac3c76a3d1fc22405b63c11265aff45e9244",
+        "bytes": 1431195,
+        "logLimitReached": false,
+        "frameRange": [
+          0,
+          2881
+        ],
+        "events": {
+          "init": 1,
+          "frame": 2443,
+          "submit": 1460,
+          "retire": 21
+        },
+        "totals": {
+          "supportCalls": 538896,
+          "queueSupportCalls": 538896,
+          "modelCalls": 1685598,
+          "modelWithoutMesh": 88827,
+          "modelFailures": 0,
+          "captures": 653344,
+          "qualified": 477420,
+          "used": 477420,
+          "sceneRetirements": 0,
+          "nodeRetirements": 0
+        },
+        "rejected": {
+          "no_scope": 45648,
+          "callsite": 0,
+          "scene": 23249,
+          "registry": 0,
+          "support": 920178,
+          "model": 0,
+          "mesh": 0,
+          "world": 0,
+          "retired": 0
+        },
+        "ownerFrameHistogram": {
+          "0": 1789,
+          "730": 654
+        },
+        "sampledSubmits": 1460,
+        "sampledContexts": {
+          "outside_support_scope": 1460
+        },
+        "sampledSceneAddresses": [
+          66778060
+        ],
+        "sampledRootAddresses": [
+          410739524
+        ],
+        "sampledMutationSerials": [
+          1
+        ],
+        "sampledSceneScopes": 2,
+        "sampledRepeatedModelMembership": 0,
+        "sampledRepeatedOwnerRegistrations": 294,
+        "sampledModelSelectedMaterialDifferences": 0,
+        "sampledRepeatedNativeSubmissions": 0,
+        "scope": "Exact static/partition ownership at original Model own mesh callsite, joined to successful existing native API submits. Operation serials and borrowed addresses are not durable instance identities. Snapshot mutation serial observes known Scene/PartitionNode retirement only; arbitrary graph changes and persistent offscreen submission remain open. Models without mesh counts calls without a qualified native mesh entry, not a decoded skip reason."
+      },
+      "retirementEvents": {
+        "partition_node": 18,
+        "scene": 3
+      },
+      "scope": "Static/partition only: Alfea730 for654 frames, Domino0 because inherited RenderNode unsupported. All1460 sampled submits outside support scope;294 repeated owner registrations. No historical files rewritten."
+    }
+  ],
+  "scripts": [
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/Start-Probe.ps1",
+      "bytes": 16857,
+      "sha256": "b1753396faf731b94790788162daa0b8c4b89b731137a24b76f3df3425311134"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/Run-WinxRemix.ps1",
+      "bytes": 4406,
+      "sha256": "7f767023d853fb5f0d7bb8708ae537a029932a48e9a939da3b6f86a88c157c63"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/Restore-LiveConfig.ps1",
+      "bytes": 1216,
+      "sha256": "21ca2a32dd0b737b742b4e3e553efcd20e1f69e68a5b61edee66f472fca0be95"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/Test-NativeOwner.ps1",
+      "bytes": 4173,
+      "sha256": "cd27df739039031836b73bd09a76953ec29852366d4d2e0f37254ca4e88aac0c"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/Test-MaterialChannels.ps1",
+      "bytes": 2787,
+      "sha256": "f459ea02244769f86dcf1d5d98c2dcacf3288b155c9c4d24bd64867f1df4648e"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/analyze_native_owner.py",
+      "bytes": 5260,
+      "sha256": "969d77c3e568b34c3764d244a74b1df853dbf5de271b57590176326368375071"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/analyze_native_material.py",
+      "bytes": 3879,
+      "sha256": "170b9f0cfe850f39f5c22e5266f29c40986c88de7dbbf487afa2415f417fc2fa"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/analyze_native_mesh_source.py",
+      "bytes": 4986,
+      "sha256": "93f45994a18fd09c88e2000f809c670fc6f7363e4ed67e9b300b37628967dad8"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/analyze_native_camera.py",
+      "bytes": 3942,
+      "sha256": "1fe5d09b1ddcf8f110862d60f8319f2ea3e22db58aa970867bfdff15aaf34842"
+    },
+    {
+      "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/scripts/winx_remix_sweep.py",
+      "bytes": 10680,
+      "sha256": "9e0d356faddd7392568d4f40a530c76cbc4335000d2fed928b0a6762d71da4b5"
+    }
+  ],
+  "scriptSnapshotScope": "Copied at checkpoint preparation; not a claim of launch-time script hashes.",
+  "contracts": [
+    {
+      "path": "docs/research/winx-remix-owner-hook-contract-2026-09-13.md",
+      "bytes": 20842,
+      "sha256": "b90c6fd60a9f0a9c4a025f6e5b3c3c54e6838051ad12aa8516eb9bcd63b76a6b"
+    },
+    {
+      "path": "research/winx-remix-owner-hook-contract-2026-09-13.json",
+      "bytes": 88331,
+      "sha256": "88e45bd9e31a380b3985d430c082b56adde634b78840d6945d616d23333bc36c"
+    },
+    {
+      "path": "docs/research/winx-remix-rendernode-owner-contract-2026-09-13.md",
+      "bytes": 8112,
+      "sha256": "4687403d7da2dee8453fe841222c582ad4f2a67e160e2ff1459d5f8199c97332"
+    },
+    {
+      "path": "docs/research/winx-remix-direct-scene-plan-2026-09-12.md",
+      "bytes": 23065,
+      "sha256": "568469edd91276a8a61e830ac89287cad5f16262fa875a2ddb045bffd1345ac3"
+    }
+  ],
+  "limitations": [
+    "Counters cover recorded already supported native geometry/material submissions, not every level object or the whole game.",
+    "World owner logs retain no_scope69253, scene298433, support3302 conservative rejections; zero mismatch categories do not mean zero fallback.",
+    "Enabled checked after enqueue is an adapter restriction: original queue flush may submit without repeating this check.",
+    "Object pointers, primary words, operation serials and registry ordinals are not durable identities; repeated Models remain distinct actual calls.",
+    "Retirement covers known common Scene/PartitionNode/RenderNode boundaries; removal, reset/transfer, graph mutation, address reuse and all derived destruction paths remain open.",
+    "D3D visibility extension, original prepare, queue flush, Model pre/post and material updates continue; no callbacks are replayed and no additional owner-driven API submission exists.",
+    "CPU fixtures do not execute original code or entry trampolines; earlier GPU integration is not a final RenderNode-specific GPU fixture.",
+    "No independent GPU camera/history inspection, full level playthrough, all-level test, device recovery or physical lighting completion.",
+    "Renderer still reports41 undisposed common device objects;1727 DirectInput warnings and sampler/interface/UV warnings are preserved. This run has no OMM budget exhaustion message; absence is not a fix claim."
+  ],
+  "nextBlock": "Confirm ordinary static/inherited RenderNode producer update boundaries and complete registration/removal/reset lifetime events, then qualify a fresh native owner submission boundary before reducing visibility extension. No last-visible cache.",
+  "collector": {
+    "path": "local-data/rtx-remix/native-owner-tests/closed-report-v1/collect_evidence.py",
+    "bytes": 18819,
+    "sha256": "5b5661c992f4b1b56362f29ae10ab7a1fc971eb78fdd949efd45a3e4e87b465a"
+  }
+}

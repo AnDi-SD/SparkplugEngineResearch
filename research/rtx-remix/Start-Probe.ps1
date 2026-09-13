@@ -27,6 +27,7 @@ param(
     [switch]$NativeCameraSubmit,
     [switch]$NativeMaterialSource,
     [switch]$NativeMaterialSubmit,
+    [switch]$NativeOwnerSource,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$SceneAudit,
@@ -48,6 +49,8 @@ if ($NativeDrawAudit -and -not $DebugMenu) { throw 'Native draw audit requires t
 if ($NativeDrawAudit) { $MaterialAudit=$true }
 if ($NativeMaterialSubmit) { $NativeMaterialSource=$true; $LiveConfig=$true }
 if ($NativeMaterialSource) { $NativeMeshSource=$true }
+if ($NativeOwnerSource) { $NativeMeshSource=$true; $SceneGeometry=$true }
+if ($NativeOwnerSource -and ($Backend -ne 'remix' -or -not $Raytracing -or -not $DebugMenu)) { throw 'Native owner source requires RTX and the verified DebugMenu build' }
 if ($NativeMaterialSource -and (-not $MaterialChannels -or $Backend -ne 'remix' -or -not $Raytracing)) { throw 'Native material source requires RTX MaterialChannels' }
 if ($NativeMeshSubmit) { $NativeMeshSource=$true }
 if ($NativeCameraSubmit) { $NativeCameraSource=$true; $LiveConfig=$true }
@@ -191,6 +194,7 @@ $values = @{
     WINX_REMIX_NATIVE_CAMERA_SUBMIT=$(if ($NativeCameraSubmit) { '1' } else { '0' })
     WINX_REMIX_NATIVE_MATERIAL_SOURCE=$(if ($NativeMaterialSource) { Join-Path $run 'native-material-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_MATERIAL_SUBMIT=$(if ($NativeMaterialSubmit) { '1' } else { '0' })
+    WINX_REMIX_NATIVE_OWNER_SOURCE=$(if ($NativeOwnerSource) { Join-Path $run 'native-owner-source.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
@@ -227,6 +231,7 @@ try {
         nativeCameraSubmit=$NativeCameraSubmit.IsPresent
         nativeMaterialSource=$NativeMaterialSource.IsPresent
         nativeMaterialSubmit=$NativeMaterialSubmit.IsPresent
+        nativeOwnerSource=$NativeOwnerSource.IsPresent
         remixClientSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game 'd3d9.remix-original.dll')).Hash } else { $null })
         remixServerSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/NvRemixBridge.exe')).Hash } else { $null })
         remixRendererSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/d3d9.dll')).Hash } else { $null })

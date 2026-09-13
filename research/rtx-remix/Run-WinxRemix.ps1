@@ -11,6 +11,7 @@ param(
     [switch]$NativeCameraSubmit,
     [switch]$NativeMaterialSource,
     [switch]$NativeMaterialSubmit,
+    [switch]$NativeOwnerSource,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -21,6 +22,7 @@ param(
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($NativeOwnerSource) { $SceneGeometry=$true }
 if ($MaterialChannels -and ($Mode -ne 'RTX' -or -not $SceneLights)) { throw 'MaterialChannels requires RTX and SceneLights' }
 if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires RTX mode' }
 if ($SceneLights -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneLights requires RTX and the verified DebugMenu build' }
@@ -45,6 +47,7 @@ if ($NativeCameraSource -or $NativeCameraSubmit) { $options.NativeCameraSource=$
 if ($NativeCameraSubmit) { $options.NativeCameraSubmit=$true }
 if ($NativeMaterialSource -or $NativeMaterialSubmit) { $options.NativeMaterialSource=$true }
 if ($NativeMaterialSubmit) { $options.NativeMaterialSubmit=$true }
+if ($NativeOwnerSource) { $options.NativeOwnerSource=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

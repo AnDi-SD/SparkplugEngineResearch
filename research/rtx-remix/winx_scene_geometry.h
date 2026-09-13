@@ -17,7 +17,40 @@ static bool Read(uintptr_t address,void* data,size_t size) {
   return true;
 }
 static uint32_t Word(uintptr_t address) {uint32_t value=0;Read(address,&value,4);return value;}
-struct Registry { bool valid=false; unsigned nodes=0,dynamic=0,unsupportedDynamic=0; std::vector<uint32_t> supports; };
+// Adapter metadata. Retirement can arrive on another thread, so 64-bit reads
+// must also be atomic on x86. This does not identify native object lifetimes.
+__declspec(align(8)) static volatile LONG64 registryMutationSerial=1;
+static uint64_t MutationSerial() {
+  return static_cast<uint64_t>(InterlockedCompareExchange64(&registryMutationSerial,0,0));
+}
+static uint64_t AdvanceMutationSerial() {
+  return static_cast<uint64_t>(InterlockedIncrement64(&registryMutationSerial));
+}
+enum class OccurrenceSource:uint32_t {RenderNodeVector=0x20,StaticVector=0x30,PartitionPayload=0x78};
+struct SupportOccurrence {
+  uint32_t node,object,support;
+  OccurrenceSource source;
+  uint32_t ordinal;
+};
+constexpr unsigned occurrenceLimit=limit*16;
+struct Registry {
+  bool valid=false,occurrencesComplete=true;
+  uint32_t scene=0,system=0,root=0;
+  uint64_t mutationSerial=0;
+  unsigned nodes=0,dynamic=0,unsupportedDynamic=0;
+  // Existing visibility input remains sorted/unique. Occurrences describe
+  // physical static/render-node vector slots and payloads, including repeats.
+  std::vector<uint32_t> supports;
+  std::vector<SupportOccurrence> occurrences;
+  void Occurrence(uint32_t node,uint32_t object,uint32_t support,OccurrenceSource source,uint32_t ordinal) {
+    if(!occurrencesComplete)return;
+    if(occurrences.size()>=occurrenceLimit) {occurrencesComplete=false;return;}
+    // Optional provenance must not prevent the pre-existing visibility walk
+    // from completing if its additional allocation cannot be satisfied.
+    try {occurrences.push_back({node,object,support,source,ordinal});}
+    catch(const std::bad_alloc&) {occurrencesComplete=false;}
+  }
+};
 
 static bool Vector(uintptr_t object,unsigned offset,std::vector<uint32_t>& result) {
   uint32_t fields[3]{};
@@ -37,8 +70,9 @@ static bool Support(uint32_t object,uint32_t scene,bool partition,uint32_t& adju
   adjusted=object+offset;return true;
 }
 static Registry ReadRegistry(uint32_t scene) {
-  Registry output;
-  const auto system=Word(scene+0x38),root=system?Word(system+0x1d4):0;
+  Registry output;output.scene=scene;output.mutationSerial=MutationSerial();
+  output.system=Word(scene+0x38);output.root=output.system?Word(output.system+0x1d4):0;
+  const auto root=output.root;
   if(!root) return output;
   std::vector<uint32_t> pending{root};std::set<uint32_t> visited,supports,zones,dynamic,unsupported;
   while(!pending.empty()) {
@@ -50,21 +84,28 @@ static Registry ReadRegistry(uint32_t scene) {
     const auto table=At(raw,0);
     if(table!=0x6dcb08 && table!=0x6e4420 && table!=0x6eba30) return output;
     const auto payload=At(raw,0x78);uint32_t support=0;
-    if(payload) {if(!Support(payload,scene,true,support)) return output;supports.insert(support);}
+    if(payload) {
+      if(!Support(payload,scene,true,support)) return output;supports.insert(support);
+      output.Occurrence(node,payload,support,OccurrenceSource::PartitionPayload,0);
+    }
     std::vector<uint32_t> values;
     if(!Vector(node,0x30,values)) return output;
-    for(auto value:values) if(value) {
+    for(unsigned ordinal=0;ordinal<values.size();++ordinal) if(const auto value=values[ordinal]) {
       if(!Support(value,scene,false,support)) return output;supports.insert(support);
+      output.Occurrence(node,value,support,OccurrenceSource::StaticVector,ordinal);
     }
     if(!Vector(node,0x20,values)) return output;
-    for(auto value:values) if(value && !dynamic.count(value) && !unsupported.count(value)) {
-      unsigned char renderNode[0x130]{};
-      if(!Read(value,renderNode,sizeof(renderNode)) || At(renderNode,0x3c)!=scene || At(renderNode,0x124)!=value) return output;
-      // The inherited support's exact native draw still checks Enabled and
-      // receives forceVisible=1 from original partition SceneRender. Derived
-      // custom supports with different methods stay on original path.
-      if(At(renderNode,0xb4)!=0x6dcadc) {unsupported.insert(value);continue;}
-      dynamic.insert(value);supports.insert(value+0xb4);
+    for(unsigned ordinal=0;ordinal<values.size();++ordinal) if(const auto value=values[ordinal]) {
+      if(!dynamic.count(value) && !unsupported.count(value)) {
+        unsigned char renderNode[0x130]{};
+        if(!Read(value,renderNode,sizeof(renderNode)) || At(renderNode,0x3c)!=scene || At(renderNode,0x124)!=value) return output;
+        // The inherited support's exact native draw still checks Enabled and
+        // receives forceVisible=1 from original partition SceneRender. Derived
+        // custom supports with different methods stay on original path.
+        if(At(renderNode,0xb4)!=0x6dcadc) {unsupported.insert(value);continue;}
+        dynamic.insert(value);supports.insert(value+0xb4);
+      }
+      if(dynamic.count(value))output.Occurrence(node,value,value+0xb4,OccurrenceSource::RenderNodeVector,ordinal);
     }
     if(supports.size()>limit) return output;
     const auto count=At(raw,0x5c),children=At(raw,0x58);
@@ -81,7 +122,8 @@ static Registry ReadRegistry(uint32_t scene) {
   }
   output.nodes=static_cast<unsigned>(visited.size());
   output.dynamic=static_cast<unsigned>(dynamic.size());output.unsupportedDynamic=static_cast<unsigned>(unsupported.size());
-  output.supports.assign(supports.begin(),supports.end());output.valid=true;return output;
+  output.supports.assign(supports.begin(),supports.end());
+  output.valid=output.mutationSerial==MutationSerial();return output;
 }
 
 static void Event(const char* event,uint32_t scene,unsigned original,unsigned added,unsigned nodes=0,unsigned elapsedMs=0) {
@@ -92,7 +134,10 @@ static void Event(const char* event,uint32_t scene,unsigned original,unsigned ad
 }
 struct Scope;
 static thread_local Scope* active;
+__declspec(align(8)) static volatile LONG64 nextScopeSerial=0;
 struct Scope {
+  // Unique adapter operation identity, not a durable native object generation.
+  const uint64_t serial=static_cast<uint64_t>(InterlockedIncrement64(&nextScopeSerial));
   Scope* parent=active;
   uint32_t scene,camera,manager=0,original[3]{},replacement[3]{};
   unsigned stamp=0;bool attempted=false;
@@ -100,7 +145,21 @@ struct Scope {
   std::vector<uint32_t> expanded;
   std::vector<std::pair<uint32_t,uint32_t>> marks;
   Scope(uint32_t s,uint32_t c):scene(s),camera(c) {if(parent)parent->Restore();active=this;}
+  Scope(const Scope&)=delete;
+  Scope& operator=(const Scope&)=delete;
   ~Scope() {Restore();active=parent;}
+  // The returned reference and all addresses in it expire with this scope.
+  // Failed reads are also cached; mutation does not silently refresh a snapshot
+  // already consumed by an owner join. Consumers must check mutationSerial and
+  // the current native scene/system/root before attaching borrowed provenance.
+  const Registry& RegistrySnapshot() {
+    if(!registryRead) {
+      registryRead=true;
+      try {registrySnapshot=ReadRegistry(scene);}
+      catch(const std::bad_alloc&) {Event("allocation_rejected",scene,0,0);}
+    }
+    return registrySnapshot;
+  }
   void Restore() {
     if(!manager) return;
     uint32_t now[3]{};
@@ -121,11 +180,12 @@ struct Scope {
        Word(selectedManager)!=0x6e8cdc || Word(selectedManager+0x38)) return;
     unsigned char cameraRaw[0x238]{};
     if(!Read(camera,cameraRaw,sizeof(cameraRaw)) || cameraRaw[0x231] || At(cameraRaw,0x138)!=0x3f800000 || At(cameraRaw,0x148)!=0) return;
-    started=GetTickCount64();const auto registry=ReadRegistry(scene);
-    if(!registry.valid) {if(frameId%300==0)Event("registry_rejected",scene,0,0);return;}
+    started=GetTickCount64();const auto& registry=RegistrySnapshot();
+    if(!registry.valid || registry.mutationSerial!=MutationSerial()) {if(frameId%300==0)Event("registry_rejected",scene,0,0);return;}
     ExtendSelection(selectedManager,registry);
   }
   void ExtendSelection(uint32_t selectedManager,const Registry& registry) {
+    if(!registry.valid || registry.mutationSerial!=MutationSerial())return;
     if(!Vector(selectedManager,0x28,expanded)) {Event("selection_rejected",scene,0,0);return;}
     const unsigned before=static_cast<unsigned>(expanded.size());
     std::set<uint32_t> present(expanded.begin(),expanded.end());
@@ -148,6 +208,9 @@ struct Scope {
       fprintf(sceneGeometryLog,"{\"event\":\"registry\",\"frame\":%u,\"scene\":%u,\"supported\":%u,\"dynamic\":%u,\"unsupportedDynamic\":%u}\n",
         frameId,scene,static_cast<unsigned>(registry.supports.size()),registry.dynamic,registry.unsupportedDynamic);
   }
+private:
+  bool registryRead=false;
+  Registry registrySnapshot;
 };
 static void BeforeSelect() {if(active)active->Restore();}
 static void AfterSelect(uint32_t manager,uint32_t scene,uint32_t camera) {

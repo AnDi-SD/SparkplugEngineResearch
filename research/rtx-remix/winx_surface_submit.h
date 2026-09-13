@@ -404,6 +404,11 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
     const float value=world.m[c][r];if(!std::isfinite(value)) return SurfaceSubmitFailure(__LINE__);instance.transform.matrix[r][c]=value;
   }
   const bool submitted=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;
+  if(submitted&&nativeInput&&native_owner_source::Qualify(nativeGeometry.owner,nativeGeometry.mesh,nativeGeometry.renderer,
+      nativeGeometry.submission,nativeGeometry.world)) {
+    nativeGeometry.owner.geometryGeneration=nativeGeometry.vertices->generation;
+    native_owner_source::RecordUse(nativeGeometry.owner,nativeMaterialInput);
+  }
   if(submitted&&nativeMaterialInput)native_material_source::RecordUse(nativeGeometry,nativeMaterial);
   if(submitted&&nativeInput) {
     ++native_mesh_source::used;
