@@ -1,77 +1,9 @@
 {
-  "schema": 1,
-  "status": "CPU_PASS_PENDING_RENDERER_BUILD_AND_PAIRED_GPU",
+  "schemaVersion": 1,
   "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
-  "result": {
-    "status": "PASS",
-    "checks": 104,
-    "fixedVertices": 18,
-    "stockWrongVertices": 10,
-    "weightOnlyWrongIndexVertices": 4,
-    "actualCommonSkinningHeader": true,
-    "rendererBinaryBuilt": false,
-    "gpu": false
-  },
   "patch": {
-    "path": "research/rtx-remix/renderer-skinning-fix/skin-strides-v1.patch",
+    "path": "tools/WinxRemix/renderer-skinning-fix/skin-strides-v1.patch",
     "bytes": 1033,
     "sha256": "773898B7FC8CD3AA5DB81AA8F247A2E1E539965DEC70DE155CC270A394CC5F6B"
-  },
-  "originalSource": {
-    "path": "local-data/rtx-remix/upstream/dxvk-remix/src/dxvk/rtx_render/rtx_remix_api.cpp",
-    "bytes": 75089,
-    "sha256": "7596974C635FCA923EB42BFAE6D32E0BBA855C52935C298FC3AA0C5E34DF4743"
-  },
-  "patchedSource": {
-    "path": "local-data/rtx-remix/renderer-skinning-fix-tests/strides-v3/patched/src/dxvk/rtx_render/rtx_remix_api.cpp",
-    "bytes": 75179,
-    "sha256": "A60A238842F68952AAC3D8B04353E5E7894446551D34709C1FC6E6C0F6E9EF04"
-  },
-  "outOfTreePatchApplyIdentical": true,
-  "cpuExe": {
-    "path": "local-data/rtx-remix/renderer-skinning-fix-tests/strides-v3/test_skin_strides.exe",
-    "bytes": 179200,
-    "sha256": "C47485A4248CAF80C7DE30D6B06F509056DA0DE67A7F85B9EFD5077A26F1B96C"
-  },
-  "previousFailures": [
-    {
-      "name": "strides-v1",
-      "phase": "source preparation",
-      "status": "FAIL",
-      "reason": "ValueError substring not found: CRLF-sensitive boundary before assert(sizeInBytes_indices); no compiler/test execution",
-      "evidence": "Partial original source snapshot retained; error originally in tool output, no separate stderr file"
-    },
-    {
-      "name": "strides-v2",
-      "phase": "link",
-      "status": "FAIL",
-      "reason": "LNK2019 dxvk::Logger::err; unchanged CPU renderer headers require logging sink",
-      "evidence": "strides-v2/build.log and frozen test source retained"
-    }
-  ],
-  "boundary": {
-    "rendererBinaryBuilt": false,
-    "gpuExecuted": false,
-    "gameExecuted": false,
-    "downloadPerformed": false,
-    "upstreamModified": false,
-    "pairedOracleChanged": false,
-    "testPlatformSeams": [
-      "VkTransformMatrixKHR POD solely for unused constructor declaration; no Vulkan API",
-      "Logger::err sink throws on any production math diagnostic"
-    ],
-    "knownUnfixedContracts": [
-      "implicit remainder ignores stored last weight",
-      "nonpositive weights skipped without position renormalization",
-      "counts and pointers V*B require preflight",
-      "packed bone indices must be integral0..255 and below actual palette count<=256"
-    ]
-  },
-  "evidence": {
-    "path": "local-data/rtx-remix/renderer-skinning-fix-tests/checkpoint-v1/evidence.json",
-    "bytes": 85903,
-    "sha256": "0A9F9B8059CEF4A933EC57BB319004D8CFE0C6E5AC5AA97FB1B874DD55F6A97B"
-  },
-  "artifactCount": 351,
-  "unchangedSourceFilesVerified": 7
+  }
 }

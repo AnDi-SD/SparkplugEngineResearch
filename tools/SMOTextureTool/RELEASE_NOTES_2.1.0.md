@@ -3,7 +3,7 @@
 > Историческое уточнение от 2026-08-27: `0x32E3`/`0x43E3` оказались field
 > header/size signatures, а `+0x3C` — последним байтом `mipHeight`, не отдельным
 > marker. Практическая граница BGRA `+0x3D` была найдена верно. Актуальный разбор:
-> [`spTextureData`](../../docs/research/smo-class-sp-texture-data.md).
+> [`spTextureData`](../../docs/reference/classes/sp-texture-data.md).
 
 Версия 2.1.0 исправляет точную причину повреждения обычных текстурных блоков
 `0x32E3`/`0x43E3`. Байт `+0x3C` теперь проверяется и сохраняется как обязательный

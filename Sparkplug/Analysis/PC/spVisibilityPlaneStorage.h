@@ -3,7 +3,7 @@
 // Analytical helper namespace, NOT an original recovered class/template name.
 // PC46B720 logical resize,46ADC0 all-enabled,45EA00 vector destruction.
 // Does not implement unresolved45E870 assignment or46C0F0 outer-stack preparation.
-// Evidence: docs/research/native-pc-visibility-plane-storage.md.
+// Contract: docs/engine/visibility/visibility-plane-storage.md.
 #include <array>
 #include <algorithm>
 #include <cstdint>

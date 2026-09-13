@@ -92,7 +92,7 @@ internal static class SmoAnimationRegression
         Reject(Build(2, [], []), "Unsafe empty cubic accepted.");
         Reject(Build(3, [0], [1]), "Missing scalar axes accepted.");
         // Original PC 43DB90/479290 accepts equal times. Recorded by
-        // research/probe_viewer_san_equal_times.py, Viewer audit V-02.
+        // docs/engine/animation/animation-keys.md; equal-time channel regression.
         foreach (var repeated in new (float[] Times, float[] ExpectedX)[] {
             ([0, 0], [0, 0, 0, 0, 0]),
             ([0, 0, 1], [0, 3, 3.75f, 6, 6]),

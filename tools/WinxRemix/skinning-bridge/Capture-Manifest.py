@@ -1,5 +1,6 @@
 """Capture the reviewed local bridge patch and closed CPU/build evidence only."""
 from pathlib import Path
+from datetime import datetime, timezone
 import argparse
 import difflib
 import hashlib
@@ -11,6 +12,10 @@ PACKAGE = Path(__file__).resolve().parent
 WORK = ROOT / 'local-data/rtx-remix/direct-camera-bridge-work'
 REFERENCE = ROOT / 'local-data/rtx-remix/upstream/dxvk-remix'
 EVIDENCE = ROOT / 'local-data/rtx-remix/skinning-bridge'
+OUTPUT_DIR = ROOT / '.private/evidence/tool-builds/WinxRemix/skinning-bridge'
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT = OUTPUT_DIR / ('capture-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.json')
+
 BASE = 'b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4'
 
 
@@ -121,8 +126,8 @@ def main():
         'packageFiles': package_files,
         'artifacts': artifacts,
     }
-    (PACKAGE / 'manifest.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
-    print(json.dumps({'manifestSha256': sha(PACKAGE / 'manifest.json'),
+    (OUTPUT).write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps({'manifestSha256': sha(OUTPUT),
                       'artifacts': len(artifacts), 'fullPatchSha256': sha(full_path)}))
 
 

@@ -24,7 +24,7 @@ if ($LASTEXITCODE -ne 0) {
 foreach ($entry in $manifest.patchedFiles) {
     $path = Join-Path $work $entry.path
     # Git's Windows checkout may use CRLF; compare the explicit canonical LF
-    # source digest, while the manifest separately preserves build-input bytes.
+    # source digest; detailed build-input provenance is stored privately.
     $bytes = [Text.Encoding]::UTF8.GetBytes([IO.File]::ReadAllText($path).Replace("`r`n","`n"))
     $sha = [Security.Cryptography.SHA256]::Create()
     try { $hash = [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','') } finally { $sha.Dispose() }

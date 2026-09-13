@@ -4,7 +4,7 @@ SAN использует FFPS-контейнер и на PC хранит `spAnim
 Наблюдаемый основной payload состоит из duration и именованных PRS tracks:
 
 | Field | Содержимое |
-|---:|---|
+| ---: | --- |
 | `0` | duration, `float32` |
 | `2` | position curve |
 | `3` | rotation curve |
@@ -16,12 +16,6 @@ Curve начинается со служебного `UInt32=1` и `keyCount`, �
 track сопоставляются с именами `spNode` регистрозависимо. Missing target не
 делает ресурс невалидным; duplicate node names получают all-target binding.
 
-Decoder: [`SmoAnimationDecoder.cs`](../../tools/SmoViewer/SmoViewer.Core/SmoAnimationDecoder.cs).
-Статистика и игровые probes: [`alfea-unknown-resources.md`](../research/alfea-unknown-resources.md)
-и [`smo-runtime-results.md`](../research/smo-runtime-results.md).
+Это основной PC-путь PRS. Существуют дополнительные поля и ветви, не сведённые к этой таблице; полное PS2-воспроизведение не описано.
 
-Нативный reader/writer поддерживает также поля `5..12` и control field `64`.
-Их редкие варианты и полный error rollback ещё не перенесены, поэтому текущий
-decoder является строгим для наблюдаемого основного PC-подмножества, но не
-полной заменой `spAnimationSerializer`. Нативная карточка:
-[`native-class-sp-animation.md`](../research/native-class-sp-animation.md).
+[Контейнер FFPS](smo.md) · [Анимационные классы](../engine/animation/README.md).

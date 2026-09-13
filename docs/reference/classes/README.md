@@ -1,0 +1,160 @@
+# Карточки классов
+
+Подробные описания известных частей классов. Все зарегистрированные имена, включая типы без отдельной карточки, находятся в [общем каталоге](../classes.md).
+
+<!-- catalog:start -->
+
+## Статьи
+
+- [spActor](sp-actor.md).
+- [spAnimation / spAnimationSerializer](sp-animation.md).
+- [spAnimationManager](sp-animation-manager.md).
+- [spAnimTexController](sp-anim-tex-controller.md).
+- [spAnimTexControllerSerializer](sp-anim-tex-controller-serializer.md).
+- [spApp](sp-app.md).
+- [spAsyncFileStreamManager](sp-async-file-stream-manager.md).
+- [spBaseObject / spNamedObject](sp-base-object.md).
+- [spBoxBV](sp-box-bv.md).
+- [spBoxBVSerializer](sp-box-bv-serializer.md).
+- [spBSPNode](sp-bsp-node.md).
+- [spCamera](sp-camera.md).
+- [spCameraDataSerializer](sp-camera-data-serializer.md).
+- [spCameraSerializer](sp-camera-serializer.md).
+- [spCollisionInfo](sp-collision-info.md).
+- [spColorFuncEvalSerializer](sp-color-func-eval-serializer.md).
+- [spController / spSubController](sp-controller.md).
+- [spCrossPlatform](sp-cross-platform.md).
+- [spDataBlockSerializer](sp-data-block-serializer.md).
+- [spDebugManager](sp-debug-manager.md).
+- [spDXCombinedVB](sp-dx-combined-vb.md).
+- [spDXIndexBuffer / spDXVertexBuffer](sp-dx-buffers.md).
+- [spDXInputManager](sp-dx-input-manager.md).
+- [spDXLight](sp-dx-light.md).
+- [spDXMaterialDataSerializer](sp-dx-material-data-serializer.md).
+- [spDXMesh](sp-dx-mesh.md).
+- [spDXMeshCombiner](sp-dx-mesh-combiner.md).
+- [spDXMeshData](sp-dx-mesh-data.md).
+- [spDXMeshDataSerializer](sp-dx-mesh-data-serializer.md).
+- [spDXMeshSerializer](sp-dx-mesh-serializer.md).
+- [spDXSharedMeshData](sp-dx-shared-mesh-data.md).
+- [spDXTextureDataSerializer](sp-dx-texture-data-serializer.md).
+- [spDXVertexDeclaration / spPCVertexDeclaration](sp-vertex-declaration.md).
+- [spEngineCore](sp-engine-core.md).
+- [spEngineCore / wxEngineCore](wx-engine-core.md).
+- [spEntityManager](sp-entity-manager.md).
+- [spError](sp-error.md).
+- [spErrorManager](sp-error-manager.md).
+- [spFileStream](sp-file-stream.md).
+- [spFog](sp-fog.md).
+- [spFogSerializer](sp-fog-serializer.md).
+- [spFont](sp-font.md).
+- [spFontManager](sp-font-manager.md).
+- [spFunctionEvalSerializer](sp-function-eval-serializer.md).
+- [spGameLevel](sp-game-level.md).
+- [spGameLevelSerializer](sp-game-level-serializer.md).
+- [spIndexBuffer](sp-index-buffer.md).
+- [spInputManager](sp-input-manager.md).
+- [spLensFlare](sp-lens-flare.md).
+- [spLight](sp-light.md).
+- [spLightControllerSerializer](sp-light-controller-serializer.md).
+- [spLightData](sp-light-data.md).
+- [spLightDataSerializer](sp-light-data-serializer.md).
+- [spLightManager](sp-light-manager.md).
+- [spLightSerializer](sp-light-serializer.md).
+- [spMatColorControllerSerializer](sp-mat-color-controller-serializer.md).
+- [spMaterial / spMaterialData](sp-material-runtime.md).
+- [spMaterialColorController](sp-material-color-controller.md).
+- [spMaterialData](sp-material-data.md).
+- [spMaterialDataSerializer](sp-material-data-serializer.md).
+- [spMaterialPassLayer / spMaterialTextureLayer / spStdLayer](sp-material-layers.md).
+- [spMaterialSerializer](sp-material-serializer.md).
+- [spMaterialTexture](sp-material-render-target-texture.md).
+- [spMemoryStream](sp-memory-stream.md).
+- [spMesh](sp-mesh.md).
+- [spMeshBV](sp-mesh-bv.md).
+- [spMeshData](sp-mesh-data.md).
+- [spMeshDataSerializer](sp-mesh-data-serializer.md).
+- [spMeshNavigationSet](sp-mesh-navigation-set.md).
+- [spModel](sp-model.md).
+- [spModelSerializer](sp-model-serializer.md).
+- [spNavigationGraph](sp-navigation-graph.md).
+- [spNavigationPortal](sp-navigation-portal.md).
+- [spNode](sp-node.md).
+- [spNodeController](sp-node-controller.md).
+- [spNodeSerializer](sp-node-serializer.md).
+- [spOBBBV](sp-obbbv.md).
+- [spOBBBVSerializer](sp-obb-bv-serializer.md).
+- [spOcclusionVolume](sp-occlusion-volume.md).
+- [spOctreeNode](sp-octree-node.md).
+- [spParser](sp-parser.md).
+- [spParticleSystem](sp-particle-system.md).
+- [spPartitionNode](sp-partition-node.md).
+- [spPartitionRenderable](sp-partition-renderable.md).
+- [spPartitionSystem](sp-partition-system.md).
+- [spPCApp](sp-pc-app.md).
+- [spPCAsyncFileStreamManager](sp-pc-async-file-stream-manager.md).
+- [spPCEffectTemplate / spPCRFXFileLoader](sp-pc-effect-template.md).
+- [spPCErrorManager](sp-pc-error-manager.md).
+- [spPCFileStream](sp-pc-file-stream.md).
+- [spPCFontManager](sp-pc-font-manager.md).
+- [spPCKManager](sp-pck-manager.md).
+- [spPlatformSpecificMeshData](sp-platform-specific-mesh-data.md).
+- [spPS2App](sp-ps2-app.md).
+- [spPS2AsyncFileStreamManager](sp-ps2-async-file-stream-manager.md).
+- [spPS2ErrorManager](sp-ps2-error-manager.md).
+- [spPS2FileStream](sp-ps2-file-stream.md).
+- [spPS2FontManager](sp-ps2-font-manager.md).
+- [spPS2Helper](sp-ps2-helper.md).
+- [spPS2InputManager](sp-ps2-input-manager.md).
+- [spPS2IOPModuleManager](sp-ps2-iop-module-manager.md).
+- [spPS2Material](sp-ps2-material.md).
+- [spPS2MaterialDataSerializer](sp-ps2-material-data-serializer.md).
+- [spPS2Mesh](sp-ps2-mesh.md).
+- [spPS2MeshData](sp-ps2-mesh-data.md).
+- [spPS2MeshDataSerializer](sp-ps2-mesh-data-serializer.md).
+- [spPS2TextureDataSerializer](sp-ps2-texture-data-serializer.md).
+- [spRenderable](sp-renderable.md).
+- [spRenderableSerializer](sp-renderable-serializer.md).
+- [spRenderer](sp-renderer.md).
+- [spRenderMesh](sp-render-mesh.md).
+- [spRenderNode](sp-render-node.md).
+- [spRenderNodeSerializer](sp-render-node-serializer.md).
+- [spRenderTarget](sp-render-target.md).
+- [spResource](sp-resource.md).
+- [spResourceFATSerializer](sp-resource-fat-serializer.md).
+- [spResourceManager](sp-resource-manager.md).
+- [spSceneGraphOptimizer](sp-scene-graph-optimizer.md).
+- [spSerializer](sp-serializer.md).
+- [spSerializerHook](sp-serializer-hook.md).
+- [spSerializerManager](sp-serializer-manager.md).
+- [spSkin / spSkinSerializer](sp-skin.md).
+- [spSkyBox](sp-sky-box.md).
+- [spSphereBV](sp-sphere-bv.md).
+- [spSphereBVSerializer](sp-sphere-bv-serializer.md).
+- [spStaticRenderObject](sp-static-render-object.md).
+- [spStream](sp-stream.md).
+- [spSubscriptionManager](sp-subscription-manager.md).
+- [spTaskTimer](sp-task-timer.md).
+- [spTemplateInstance](sp-template-instance.md).
+- [spTemplateManager](sp-template-manager.md).
+- [spTemplateObject](sp-template-object.md).
+- [spTemplateSerializer](sp-template-serializer.md).
+- [spTextNode](sp-text-node.md).
+- [spTextRenderable](sp-text-renderable.md).
+- [spTexture](sp-texture.md).
+- [spTextureBuffer](sp-texture-buffer.md).
+- [spTextureData](sp-texture-data.md).
+- [spTextureDataSerializer](sp-texture-data-serializer.md).
+- [spTransformTrackEval](sp-transform-track-eval.md).
+- [spTransFunctionEvalSerializer](sp-trans-function-eval-serializer.md).
+- [spUVController](sp-uv-controller.md).
+- [spUVControllerSerializer](sp-uv-controller-serializer.md).
+- [spVertexBuffer](sp-vertex-buffer.md).
+- [spZone](sp-zone.md).
+- [spZonePortal](sp-zone-portal.md).
+- [spZonePortalNode](sp-zone-portal-node.md).
+- [wxGameFlowState](wx-game-flow-state.md).
+- [wxPCApp](wx-pc-app.md).
+- [wxPS2App](wx-ps2-app.md).
+
+<!-- catalog:end -->

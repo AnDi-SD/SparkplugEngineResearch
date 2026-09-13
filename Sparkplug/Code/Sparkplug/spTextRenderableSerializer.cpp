@@ -74,7 +74,7 @@ namespace sparkplug::reconstruction
         observation.renderable = {};
         observation.text.clear();
         // PC41A640 factory capture: text/font null, colorFFFFFFFF, wrap/alignment0.
-        // See docs/research/tool-text-original-defaults-2026-09-10.md.
+        // See docs/engine/ui/text-defaults.md.
         observation.textWasNull = true;
         observation.textHadTrailingNull = false;
         observation.textByteCount = 0;

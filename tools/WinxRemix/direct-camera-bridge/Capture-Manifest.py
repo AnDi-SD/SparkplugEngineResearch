@@ -1,5 +1,6 @@
 """Capture an existing, built camera bridge. Does not build or install it."""
 from pathlib import Path
+from datetime import datetime, timezone
 import hashlib
 import json
 import re
@@ -9,6 +10,10 @@ ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 WORK = ROOT / 'local-data/rtx-remix/direct-camera-bridge-work'
 REFERENCE = ROOT / 'local-data/rtx-remix/upstream/dxvk-remix'
+OUTPUT_DIR = ROOT / '.private/evidence/tool-builds/WinxRemix/direct-camera-bridge'
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT = OUTPUT_DIR / ('capture-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.json')
+
 BASE = 'b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4'
 def sha(data):
     return hashlib.sha256(data).hexdigest().upper()
@@ -87,5 +92,5 @@ result['artifacts'].append(file_entry(closed_path))
 result['testHarness'] = [file_entry(HERE / name) for name in ['live_camera.cpp','Prepare-Live.ps1','Run-Live.py','Test-LiveEvidence.py']]
 result['historicalEvidence'] = ['history/initial-camera-v1.patch', 'history/initial-build-manifest.json', 'positive-v1: 1 GiB commit cap failure; later measured peak 2.76 GB', 'fault-v1 and fault-v2: correct native terminal exit; original wrapper failed reading trace before Windows released its handle, saved native evidence independently verified after cleanup', 'fault-v3: cold CreateDevice startup exceeded client timeout; fault-v4: cold bridge startup exceeded handshake timeout; neither reached fault injection; original failed reports preserved']
 result['notVerified'] = ['Exact renderer-accepted matrix values or GPU pixel motion readback; helper orders API camera before first draw but does not instrument renderer update', 'Game native camera selection, main/UI/offscreen interaction, cuts/history and level/device lifecycle', 'Full compatibility of reference-based rebuilt bridge with stock68edea01 renderer beyond the isolated tested calls; matching stock source commit is unavailable']
-(HERE / 'manifest.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-print(json.dumps({'manifest': str(HERE / 'manifest.json'), 'patchFiles': len(names), 'preservedCommands': len(old), 'cameraCommandId': new['RemixApi_SetupCamera'], 'artifacts': len(result['artifacts'])}, indent=2))
+(OUTPUT).write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print(json.dumps({'manifest': str(OUTPUT), 'patchFiles': len(names), 'preservedCommands': len(old), 'cameraCommandId': new['RemixApi_SetupCamera'], 'artifacts': len(result['artifacts'])}, indent=2))

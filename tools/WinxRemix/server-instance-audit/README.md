@@ -1,8 +1,6 @@
-# Server instance audit — 13 September 2026
+# Server instance audit
 
-This is our optional bridge diagnostic, not recovered game logic. The x64 server is built and CPU-tested. It has not been installed or run against the game or GPU as part of this checkpoint. The stock renderer and x86 client protocol are unchanged.
-
-`instance-audit-v1.patch` adds only `bridge/src/server/instance_audit.h` and hooks in `bridge/src/server/main.cpp`. Apply it **after** `../direct-camera-bridge/camera-v1.patch` to base `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`. The previous camera-patched `main.cpp` and server are preserved. `manifest.json` contains hashes, build provenance, evidence paths and limitations. The incremental patch passed `git apply --check`, then application and content comparison in a fresh scratch tree; it was not applied to the read-only upstream reference.
+Optional diagnostics in our Remix bridge. Apply `instance-audit-v1.patch` after the camera patch on the base revision in [manifest.json](manifest.json).
 
 ## What is counted
 
@@ -28,16 +26,5 @@ Set `REMIX_BRIDGE_INSTANCE_AUDIT` in the launcher environment to a **fresh absol
 
 With no usable environment path, audit is disabled. File size is bounded to 16 MiB; the writer reserves room for a `cap` marker, then stops auditing. Formatting, open, short-write or write errors disable the audit without altering bridge return values or transport state. A truncated/I/O-failed file cannot be called a complete run. Output is buffered by Windows normally; there is no per-instance write or flush, only interval/registration records. This bounds file growth, not storage latency.
 
-## Validation and reproduction
 
-- `Test-InstanceAudit.ps1 -Name <fresh-name>` builds a standalone x64 MSVC fixture and runs only our counter/writer code, with an outer 30-second limit. It creates no D3D device and executes no game/native renderer code. `cpu-v1` passed 38 checks; real JSONL interval sums conserve 16 calls, 13 successes and 3 errors across 14 intervals. Coverage includes all four draws, zero draws, both Present paths, failures, UID reuse, foreign identity, registration boundaries, reset/destruction/exit, CREATE_NEW, cap and injected I/O failure. The cap test uses 2048 bytes through the same writer algorithm; production remains 16 MiB.
-- `Build-ServerAudit.ps1 -Name <fresh-name>` snapshots changed sources and the previous executable, then builds only `src/server/NvRemixBridge.exe`, x64 release, one worker, in the existing configured build tree. It checks source stability and the unchanged x86 client, and copies the output to its fresh evidence directory. Meson 1.9.2 and Ninja 1.13.0 come from existing workspace packages; MSVC/SDK match the camera bridge build. It neither installs nor executes the server.
-- `server-v1` is a preserved failed build: Ninja's generated Meson command lacked workspace PYTHONPATH. `server-v2` passed after the wrapper supplied those existing packages. No dependency download or global installation was needed.
-
-`analyze_instance_audit.py <closed-run-directory> --output <fresh-summary.json>` reads `launch.json` and `renderer-instance-audit.jsonl`. It requires both the launch PID and server init PID to have exited, rejects a running reused PID, bounds the read to 16 MiB, and rechecks file identity/size/mtime and both PIDs after parsing. It verifies cumulative conservation against every emitted interval, contiguous interval and Present counters, nondecreasing command/epoch order, API subsets and first/last FIFO bounds. Histograms and totals separate qualified complete, unqualified complete and incomplete intervals. Cap, normal/unexpected queue exit and missing terminal records remain distinct; conservation covers only emitted records. Output uses exclusive creation and cannot overwrite prior evidence.
-
-For explicit CPU evidence, `--launch <cpu-v1/process.json> --log <cpu-v1/sequence.jsonl>` selects the closed fixture metadata/log without bypassing PID checks. `test_analyze_instance_audit.py <cpu-v1-directory> <fresh-evidence-directory>` passed 43 checks in `analyzer-v2`, including actual 16/13/3 conservation, 14 intervals, both PID gates, an immutable-file final fence, cap/I/O-tail/normal-exit logs and corrupted counters/order/flags. Its source snapshot and CLI result are preserved. `analyzer-v1` is an earlier successful 43-check run; v2 additionally tightened first API/draw ordering against the most recent registration record and snapshots its source. These tests create no GPU workloads and do not run the bridge.
-
-Built server: `local-data/rtx-remix/server-instance-audit/server-v2/NvRemixBridge.exe`, SHA-256 `D7FEE509F46B63F2202E563E30C519FA18D47373E044563213C7AAC4DB6437DC`. Previous server: `C9D3E807CA36BFF6D3437D4DA3B8BB68DEED0EBEDDECC2E32B6E9D5547FD1927`. Unchanged x86 client: `79E88A694D233112605E7AB0F4F258F1FF536AD8471F67623C412DDAD6564F11`.
-
-The stock binary revision differs from our locally available source base, as recorded by the camera package; rebuilding does not by itself prove stock compatibility. The existing camera patch's terminal transport-fault policy remains unchanged. This checkpoint adds no claim about game lighting, camera visual correctness, accepted instance totals in earlier game runs, or final GPU submission. Those require a later closed run using this exact server.
+Build and CPU-test scripts are stored beside the patch. Installation remains an explicit operation against the selected local runtime.

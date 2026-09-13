@@ -1,0 +1,1990 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "path": "docs/README.md",
+      "title": "База знаний Sparkplug и Winx Club",
+      "category": "start"
+    },
+    {
+      "path": "docs/engine/README.md",
+      "title": "Движок Sparkplug",
+      "category": "engine"
+    },
+    {
+      "path": "docs/engine/animation/README.md",
+      "title": "Анимация и скелеты",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/actor-binding.md",
+      "title": "PC actor: discovery, input insertion и запуск",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/actor-control-pipeline.md",
+      "title": "PC actor: full-capacity Start и fade-stop до реального Tick",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/actor-controls.md",
+      "title": "PC actor: capacity, queries и fade-stop",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/actor-owned-runtime.md",
+      "title": "PC actor: перенос owned runtime и сквозная проверка",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/actor-playback.md",
+      "title": "PC `spActor`: playback, события и граница менеджера",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/animation-keys.md",
+      "title": "PC SAN: payload → descriptors → preparation → sampling",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/animation-lifecycle.md",
+      "title": "PC `spAnimation`, `spTrack`, `spAnimTrack`: object lifetime",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/animation-runtime.md",
+      "title": "PC animation runtime: SAN → node → skin palette",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/function-eval.md",
+      "title": "PC FunctionEval: scalar runtime and shared codec (checkpoint21)",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/gui-controller-binding.md",
+      "title": "GUIObject: поиск GUICollision и история состояния контроллеров",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/movie-controller-runtime.md",
+      "title": "MovieTextureController и конкретные VideoStream",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-alpha-flush.md",
+      "title": "PC alpha flush → actual RenderNode → owning decoded Skin refusal",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-decoded-light-generated-boundary.md",
+      "title": "Decoded light first-generation bounded candidate",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-decoded-light.md",
+      "title": "PC unchanged SMO light through complete lit Skin draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-fog-render.md",
+      "title": "PC Skin-owned Fog/material/bone → SAN/scene/mesh draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-generated-render.md",
+      "title": "PC прочитанный Skin → generating shader miss → draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-light-constants.md",
+      "title": "PC Skin: actual light world to shader constants",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-lights-render.md",
+      "title": "PC Skin: complete light submission in decoded draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-loaded-render.md",
+      "title": "PC Skin: сохранённый граф read → render",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-queued-generated-boundary.md",
+      "title": "PC queued Skin first-generation: bounded failure record",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-queued-mesh-render.md",
+      "title": "PC: queued Skin draw and mesh bounds",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-render.md",
+      "title": "PC Skin: palette -> mesh -> shader constants -> draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-san-generated-render.md",
+      "title": "PC real SAN → retained Skin → first shader generation",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-san-render.md",
+      "title": "PC SAN actor → прочитанная кость → Skin palette/draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-scene-generated-render.md",
+      "title": "PC SAN → scene world → Skin shader generation/draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-scene-mesh-render.md",
+      "title": "PC real SAN/scene world + decoded mesh → Skin draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/animation/skin-selected-light.md",
+      "title": "PC actual selected light cache through complete Skin draw",
+      "category": "engine/animation"
+    },
+    {
+      "path": "docs/engine/architecture/README.md",
+      "title": "Архитектура и жизненный цикл",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/engine-core-remainder.md",
+      "title": "Общие классы движка: дополнительный проход",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/engine-frame.md",
+      "title": "Порядок обновления PC-кадра",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/engine-platform-remainder.md",
+      "title": "Платформенные классы движка: PC и PS2, 10 сентября 2026",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/input-cached-state.md",
+      "title": "Keyboard/Mouse: исходные состояния и различия PC/PS2",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/network-family.md",
+      "title": "Сеть PC: объекты и формат пакета",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/overview.md",
+      "title": "Архитектура Sparkplug",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/scene-manager-world-source.md",
+      "title": "PC spSceneManager: borrowed list и world caller",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/scene-special-managers.md",
+      "title": "PC scene: SkyBox, Projection и LensFlare managers",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/architecture/timer-family.md",
+      "title": "Таймеры PC и PS2: идентичность, состояния и границы часов",
+      "category": "engine/architecture"
+    },
+    {
+      "path": "docs/engine/effects/README.md",
+      "title": "Свет, частицы и эффекты",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/light-corpus.md",
+      "title": "Точность преобразования ориентации света на PC",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/light-graph-roundtrip.md",
+      "title": "PC real light graph: index, save references and fresh native load",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/light-runtime.md",
+      "title": "LightController, ColorFuncEval и ссылки LightEntity",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/light-scene-world.md",
+      "title": "PC decoded light: whole Scene attachment and world cache refresh",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/light-world.md",
+      "title": "PC decoded light: complete no-scene virtual world callback",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-loop-init-counts.md",
+      "title": "PC particle looping Init: directed counts 127/128/129",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-loop-init-frontier.md",
+      "title": "PC looping Particle Init: остановленная граница bg_particles",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-parameters.md",
+      "title": "PC ParticleSystem: параметры, writer и первая целая сцена",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/particle-sampling.md",
+      "title": "PC ParticleSystem: генератор случайных чисел и области эмиссии",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/renderer-fog.md",
+      "title": "PC decoded Fog → renderer identity/device cache",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/effects/renderer-lights.md",
+      "title": "PC renderer light submission",
+      "category": "engine/effects"
+    },
+    {
+      "path": "docs/engine/geometry/README.md",
+      "title": "Геометрия и буферы",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/geometry/mesh-base-writer.md",
+      "title": "PC общий MeshData writer",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/geometry/mesh-graph-writer.md",
+      "title": "PC MeshData: indexing и generic reference writer",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/geometry/mesh-writer-roundtrip.md",
+      "title": "PC: экспорт MeshData из исходников принимает original reader",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/geometry/mesh-writer.md",
+      "title": "PC DXMeshData: полная запись CPU-геометрии",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/geometry/vertex-color-contract.md",
+      "title": "Цвет вершин до draw: PC/PS2 layout и PC materialization",
+      "category": "engine/geometry"
+    },
+    {
+      "path": "docs/engine/materials/README.md",
+      "title": "Материалы и шейдеры",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/dx-materialization.md",
+      "title": "PC: DX metadata, buffer materialization и declaration",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-color-graph.md",
+      "title": "PC Material → ColorController → frame gate",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-color-ps2-constructor.md",
+      "title": "MaterialColorController: PS2 constructor и граница PC",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-color.md",
+      "title": "PC material color,",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-controllers.md",
+      "title": "PC material controllers and texture tracks — checkpoint 20",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-install.md",
+      "title": "PC material installation and state batch",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-lighting.md",
+      "title": "PC material lighting and color sources",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-pass-binding.md",
+      "title": "PC material pass update and texture binding",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-pass-states.md",
+      "title": "PC complete pass texture-state batch",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-scalar.md",
+      "title": "PC material: exact ABI, scalar codec and pass ownership",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-standard-graph.md",
+      "title": "PC standard material graph and DX runtime identity",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/material-state-map.md",
+      "title": "PC material-state translation",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/rfx-constants.md",
+      "title": "PC RFX constants and pass persistence",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/rfx-file.md",
+      "title": "PC RFX: файл, regex, ID, имя и создание template",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/rfx-pipeline.md",
+      "title": "RFX: от файла к shader",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/rfx-variables.md",
+      "title": "PC RFX variable producer and ownership",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-compile.md",
+      "title": "PC template source and compiler-output consumer",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-constants.md",
+      "title": "PC vertex shader and constant parameters/41",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-contract.md",
+      "title": "PC shader resources: исходник, программа и численный результат",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-generation.md",
+      "title": "Whole PC shader-manager generating miss",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-layer.md",
+      "title": "PC spDXShaderLayer",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-manager-key.md",
+      "title": "PC shader manager and renderer key",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-parameter-append.md",
+      "title": "PC shader parameter production boundary",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-template-frontier.md",
+      "title": "PC shader template frontier and scope v2 correction",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/skin-material-mesh-render.md",
+      "title": "PC decoded material + SAN/scene/mesh → Skin draw",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/skin-material-protocol.md",
+      "title": "PC full Skin material state protocol",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/skin-owned-material-render.md",
+      "title": "PC Skin-owned material + SAN/scene/mesh → draw",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/objects/README.md",
+      "title": "Объекты, владение и уведомления",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/objects/audio-bank-ownership.md",
+      "title": "AudioBank: удаление, владение и восстановление default bank",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/objects/audio-cached-parameters.md",
+      "title": "Audio: cached параметры менеджера и состояние голоса",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/objects/gamepad-cached-state.md",
+      "title": "GamePad: состояния, диапазоны и нормализация PC/PS2",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/objects/orientation-basis.md",
+      "title": "Оригинальный helper ориентации и полная активация Kiko на PC",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/objects/subscription-order-correction.md",
+      "title": "`spSubscriptionManager`: исправление по оригиналам PC и PS2",
+      "category": "engine/objects"
+    },
+    {
+      "path": "docs/engine/physics/README.md",
+      "title": "Физика и коллизии",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/collision-tools-core.md",
+      "title": "CollisionInfo и OBB: используемая инструментами часть PC",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/mesh-bv-tools-core.md",
+      "title": "MeshBV и данные граней для общих ядер tools",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/overview.md",
+      "title": "Физика и коллизии Sparkplug",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/physics-family.md",
+      "title": "Физические объекты и BoundingVolume: PC и PS2",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/platforms/README.md",
+      "title": "Платформенные реализации",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/color-functions.md",
+      "title": "PC ColorFuncEval,",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/dx-shared-payload.md",
+      "title": "PC shared DX payload: writer, cursor и failure boundary",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/pc-and-ps2.md",
+      "title": "PC и PS2",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/ps2-pc-rng-transactions.md",
+      "title": "PS2 RNG: полная начальная подготовка и перестроение",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/ps2-remainder.md",
+      "title": "Оставшиеся общие классы PS2 и контроллеры, 10 сентября 2026",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/san-file-roundtrip.md",
+      "title": "PC SAN: полный source-файл принимается оригинальным reader",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/san-reader.md",
+      "title": "PC SAN: полный reader объекта `spAnimation`",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/san-writer.md",
+      "title": "PC SAN: запись анимации и вложенные блоки",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/platforms/uv-functions.md",
+      "title": "PC material UV → TransFunctionEval → FunctionEval",
+      "category": "engine/platforms"
+    },
+    {
+      "path": "docs/engine/rendering/README.md",
+      "title": "Отрисовка",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/model-render-world.md",
+      "title": "PC: модель, render-узел и точные правила копирования",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/projection-family.md",
+      "title": "Проекции: геометрия, FX и разные интерфейсы PC/PS2",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-cached-draw.md",
+      "title": "PC cached automatic weighted draw",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-draw.md",
+      "title": "PC preselected-shader draw and shader stacks",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-generated-draw.md",
+      "title": "PC automatic draw: создание шейдера и повторное использование",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-matrices.md",
+      "title": "PC renderer matrix cache",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-matrix-inputs.md",
+      "title": "PC renderer matrix setters/raw getters",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-present-clear.md",
+      "title": "PC Clear / Present boundary",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-protocol.md",
+      "title": "PC Renderable callbacks и очереди renderer",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-scene.md",
+      "title": "PC scene boundaries and real material payload",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-submit.md",
+      "title": "PC complete geometry submission",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-weighted-submit.md",
+      "title": "PC complete cached weighted submission",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/scene-render-runtime.md",
+      "title": "PC: целый SceneRender, Shadow manager и DX state cache",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/uv-renderer.md",
+      "title": "PC material UV → renderer matrix submission",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/resources/README.md",
+      "title": "Ресурсы и сериализация",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/fog-serialization.md",
+      "title": "PC Fog codec, Model relationship and lifetime",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/full-loader.md",
+      "title": "PC: внешний materializer и переносимый full-file loader",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/light-serialization.md",
+      "title": "PC Light and LightData complete scalar codecs",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/node-serialization.md",
+      "title": "PC Node serialization: fields → relationships → owned tree",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/pipeline.md",
+      "title": "Загрузка ресурсов и объектный граф",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/read-reference.md",
+      "title": "PC: чтение ссылок, inline materialization и кэш",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/save-reference.md",
+      "title": "PC save: индексация объектов и запись ссылок",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/scene-serialization.md",
+      "title": "PC RenderNode → Renderable/Model serialization",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/serializer-expansion.md",
+      "title": "Дополнение независимого учёта сериализаторов PC/PS2",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/skin-serialization.md",
+      "title": "PC Skin: фабрика и полный поток сериализатора",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/smo-san-loader.md",
+      "title": "PC: общий загрузчик SMO/SAN, FAT и фабрика классов",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/spatial-serializer-clone-fix.md",
+      "title": "Восстановление Clone восьми пространственных сериализаторов",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/whole-light-scene.md",
+      "title": "PC: целый общий SMO с runtime DXLight и DXMesh",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/whole-skin-scene.md",
+      "title": "PC: whole Skin scene и точность Node transform",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/whole-textured-scene.md",
+      "title": "PC: whole loading.smo с текстурой и общей геометрией",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/resources/whole-uv-scene.md",
+      "title": "PC: целый gem.smo, две текстуры и UV-контроллер",
+      "category": "engine/resources"
+    },
+    {
+      "path": "docs/engine/scene/README.md",
+      "title": "Сцена и преобразования",
+      "category": "engine/scene"
+    },
+    {
+      "path": "docs/engine/scene/node-world.md",
+      "title": "PC spNode: world-update и защищённые переходы",
+      "category": "engine/scene"
+    },
+    {
+      "path": "docs/engine/scene/overview.md",
+      "title": "Узлы и мировые преобразования",
+      "category": "engine/scene"
+    },
+    {
+      "path": "docs/engine/scene/render-node-runtime.md",
+      "title": "PC render-узел: сцена, world cache и граница отрисовки",
+      "category": "engine/scene"
+    },
+    {
+      "path": "docs/engine/scene/scene-world.md",
+      "title": "PC сцена: регистрация, дерево узлов и кадр анимации",
+      "category": "engine/scene"
+    },
+    {
+      "path": "docs/engine/textures/README.md",
+      "title": "Текстуры",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/material-texture-links.md",
+      "title": "PC material → texture: common reference graph (checkpoint 19)",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/palette-lifetime.md",
+      "title": "PC palette, texture ownership and runtime failure contracts",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/skin-texture-generated-render.md",
+      "title": "PC decoded texture + whole first shader generation",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/skin-texture-render.md",
+      "title": "PC decoded texture → material → whole SAN/scene/mesh/Fog/Skin draw",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-codec-boundaries.md",
+      "title": "PC texture: source/local codec, DX header и границы upload",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-compressed-blocks.md",
+      "title": "PC DXT block decode и original missing-mip путь",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-compressed-mips.md",
+      "title": "compressed mip generation и exact block encoding",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-cross-upload.md",
+      "title": "PC: общие raw pixels → DXTexture",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-external-source.md",
+      "title": "внешний источник TextureData",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-missing-mips.md",
+      "title": "PC: недостающие mip-уровни raw TextureData",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-native-source.md",
+      "title": "PC native texture data: shared source wrapper and reconstructed reader",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-native-writer.md",
+      "title": "PC TextureData native writer and shared section core",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-runtime-mips.md",
+      "title": "PC texture: runtime flat codec, native mip copy и настоящий registry key",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/textures/texture-state-map.md",
+      "title": "PC texture/sampler state mapping",
+      "category": "engine/textures"
+    },
+    {
+      "path": "docs/engine/ui/README.md",
+      "title": "Текст и интерфейс",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/gui-focus-handoff.md",
+      "title": "GUIManager: порядок смены фокуса",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/gui-message-routes.md",
+      "title": "GUI: сообщения Widget, Button, EditBox и wxButton",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/layer-clone-context.md",
+      "title": "Уточнение Clone слоёв и контекста CloneManager, 10 сентября 2026",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/parser-file-text.md",
+      "title": "PC file -> owned text: общий helper RFX",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/projection-context-followup.md",
+      "title": "Уточнение оставшегося объекта при проверке Projection",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/ui/text-defaults.md",
+      "title": "Начальное состояние текста на PC",
+      "category": "engine/ui"
+    },
+    {
+      "path": "docs/engine/visibility/README.md",
+      "title": "Видимость и пространственные структуры",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/bsp-runtime.md",
+      "title": "PC `spBSPNode`: lifetime, queries и выбор Zone",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/occlusion-runtime.md",
+      "title": "PC `spOcclusionVolume`: геометрия и потребитель в Scene",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/octree-runtime.md",
+      "title": "PC `spOctreeNode`: исходные запросы и частичный source",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/partition-runtime.md",
+      "title": "PC: partition graph и статические render supports",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/polygon-clipping.md",
+      "title": "PC polygon clipping: unnamed value helper и точные пограничные правила",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/spatial-consumers.md",
+      "title": "PC BSP/Octree: static и occlusion consumers",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/visibility-plane-storage.md",
+      "title": "PC: массивы плоскостей видимости и общий блокер копирования",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/visibility-runtime.md",
+      "title": "PC: SceneInit, partition transfer и spVisibilityManager",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/engine/visibility/zone-portal-runtime.md",
+      "title": "PC `spZonePortal` / `spZonePortalNode`: геометрия и обход зон",
+      "category": "engine/visibility"
+    },
+    {
+      "path": "docs/formats/README.md",
+      "title": "Форматы ресурсов",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/game-resources.md",
+      "title": "Игровые ресурсы помимо SMO",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/pck.md",
+      "title": "Контейнер PCK",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/san.md",
+      "title": "SAN (`spAnimation` в FFPS)",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/smo-field-mutation.md",
+      "title": "SMO field mutation subsystem",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/smo-objects.md",
+      "title": "Типы объектов SMO",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/smo-textures.md",
+      "title": "Текстуры внутри SMO",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/smo.md",
+      "title": "Формат SMO / FFPS",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/stx.md",
+      "title": "Формат STX",
+      "category": "formats"
+    },
+    {
+      "path": "docs/game/README.md",
+      "title": "Игра Winx Club",
+      "category": "game"
+    },
+    {
+      "path": "docs/game/ai/README.md",
+      "title": "Искусственный интеллект",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-action-command-protocol.md",
+      "title": "AIAction: завершение команд, входные параметры и выбор состояния",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-action-entry-fields.md",
+      "title": "AIAction: поля входа и общая выбранная цель",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-action-family.md",
+      "title": "`wxAIAction`: общий контракт и 35 производных действий",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-action-modified-copy.md",
+      "title": "AIAction: Copy изменённых полей",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-activation-fields.md",
+      "title": "Активация IceWormHoles и начальные связи Kiko",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-attack-entry.md",
+      "title": "AIAction: начальные поля девяти атак",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-behavior-family.md",
+      "title": "Семейство wxBaseAIBehavior: конструкция и выбор действий",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-combat-handshakes.md",
+      "title": "AIAction: подтверждение команды состоянием персонажа",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-command-reset.md",
+      "title": "AIAction: настоящий virtual reset объекта команд",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-exit-cleanup.md",
+      "title": "Выход из двадцати AI-состояний",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-perception-control.md",
+      "title": "AIAction: поиск цели и запрос другого действия",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-random-entry.md",
+      "title": "AIAction: случайные параметры Minotaur и Mosquito",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ai-registry-entry.md",
+      "title": "AIAction: входы через реестр и сообщения владельцу",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/assets/README.md",
+      "title": "Игровые ресурсы",
+      "category": "game/assets"
+    },
+    {
+      "path": "docs/game/assets/alfea-unknown-resources.md",
+      "title": "Неизвестные классы Алфеи и привязка анимаций",
+      "category": "game/assets"
+    },
+    {
+      "path": "docs/game/assets/resource-loading.md",
+      "title": "Поиск игровых ресурсов на PC",
+      "category": "game/assets"
+    },
+    {
+      "path": "docs/game/characters/README.md",
+      "title": "Персонажи и действия",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/bloom-hair-system.md",
+      "title": "Система внешних волос Bloom",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-animation-events.md",
+      "title": "События анимации: завершение,текущее состояние и звук",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-animation-playback.md",
+      "title": "wxAnimationController и spActor: команды и подготовка запуска",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-animation-requests.md",
+      "title": "CharacterState: формирование ключей и запросы анимации",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-animation-selection.md",
+      "title": "wxAnimationManager: поиск по packed key и индексированной таблице",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-machine-family.md",
+      "title": "CharacterStateMachine: создание и раскладка 36 классов",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-machine-protocol.md",
+      "title": "Общий протокол CharacterStateMachine: переходы, стек, события",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-state-data-events.md",
+      "title": "CharacterState: управляющие записи и события анимации",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-state-family.md",
+      "title": "CharacterState: 97 классов PC и PS2",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/character-state-permissions.md",
+      "title": "CharacterState: разрешения и режимы переходов PC/PS2",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/projectile-families.md",
+      "title": "Снаряды и менеджеры: два семейства PC/PS2",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/entities/README.md",
+      "title": "Игровые объекты",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/collectible-proximity.md",
+      "title": "CollectibleGem: flags и проверка близости",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-aggregate-copy.md",
+      "title": "Entity: строки, векторы и блок параметров при Copy",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-bound-node-copy.md",
+      "title": "Привязка Node: Barrel и назначение Copy у MoveCtrl",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-direct-family.md",
+      "title": "wxEntity и прямые связи регистрации: создание, копирование, раскладка",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-manager-insertion-removal.md",
+      "title": "wxEntityManager: добавление и удаление указателей",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-manager-tables.md",
+      "title": "wxEntityManager: таблицы, размеры и выбор группы",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-modified-copy.md",
+      "title": "Entity: копирование изменённых полей 24 подклассов",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-reference-flags.md",
+      "title": "Entity: ссылки, общие флаги и переход между менеджерами",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/entity-runtime-predicates.md",
+      "title": "Entity: собственные predicates персонажа, анимации и расстояния",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/game-remainder.md",
+      "title": "Оставшиеся игровые классы: независимый проход PC и PS2",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/knut-node-entry.md",
+      "title": "Knut: полный вход, поиск Node и cached эффекты",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/flow/README.md",
+      "title": "Состояния игры и меню",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/display-camera.md",
+      "title": "Разрешение экрана, камеры и GUI в Winx Club PC",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/game-flow-family-construction.md",
+      "title": "Семейство `wxGameFlowState`: PC lifecycle и PS2 construction",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/game-flow-navigation-remap.md",
+      "title": "Game flow: навигация HUD и переназначение ресурсов PC/PS2",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/game-flow-small-hooks.md",
+      "title": "DebugMenu, DialogWindow и LoadSave: короткие active hooks",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/gui-object-family.md",
+      "title": "Семейство GUIObject: конструкция, состояния и сообщения",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/winx-debug-runtime-inventory.md",
+      "title": "Debug menu и маршруты runtime-проверки Winx Club",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/triggers/README.md",
+      "title": "Триггеры и взаимодействия",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/generic-trigger-family.md",
+      "title": "Триггеры: 43 класса и общая управляющая логика",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/trigger-action-gates.md",
+      "title": "DispelTrigger и ChestTrigger: условия действия",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/trigger-distance-predicates.md",
+      "title": "Триггеры: реальные потребители геометрического helper",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/trigger-entry-exit.md",
+      "title": "Вход и выход триггеров: настоящие HUD-зависимости",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/trigger-interaction-gates.md",
+      "title": "PivotingDoor, PushButton, SnowPile: выбор взаимодействия",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/trigger-tick-gates.md",
+      "title": "Tick: пауза и переходы четырёх триггеров",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/game/triggers/yeti-node-enable.md",
+      "title": "Yeti: полное начало атаки и рекурсивное отключение Node",
+      "category": "game/triggers"
+    },
+    {
+      "path": "docs/reference/README.md",
+      "title": "Справочник",
+      "category": "reference"
+    },
+    {
+      "path": "docs/reference/classes.md",
+      "title": "Каталог классов",
+      "category": "reference"
+    },
+    {
+      "path": "docs/reference/classes/README.md",
+      "title": "Карточки классов",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-actor.md",
+      "title": "spActor",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-anim-tex-controller-serializer.md",
+      "title": "spAnimTexControllerSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-anim-tex-controller.md",
+      "title": "spAnimTexController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-animation-manager.md",
+      "title": "spAnimationManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-animation.md",
+      "title": "spAnimation / spAnimationSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-app.md",
+      "title": "spApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-async-file-stream-manager.md",
+      "title": "spAsyncFileStreamManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-base-object.md",
+      "title": "spBaseObject / spNamedObject",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-box-bv-serializer.md",
+      "title": "spBoxBVSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-box-bv.md",
+      "title": "spBoxBV",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-bsp-node.md",
+      "title": "spBSPNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-camera-data-serializer.md",
+      "title": "spCameraDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-camera-serializer.md",
+      "title": "spCameraSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-camera.md",
+      "title": "spCamera",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-collision-info.md",
+      "title": "spCollisionInfo",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-color-func-eval-serializer.md",
+      "title": "spColorFuncEvalSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-controller.md",
+      "title": "spController / spSubController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-cross-platform.md",
+      "title": "spCrossPlatform",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-data-block-serializer.md",
+      "title": "spDataBlockSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-debug-manager.md",
+      "title": "spDebugManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-buffers.md",
+      "title": "spDXIndexBuffer / spDXVertexBuffer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-combined-vb.md",
+      "title": "spDXCombinedVB",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-input-manager.md",
+      "title": "spDXInputManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-light.md",
+      "title": "spDXLight",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-material-data-serializer.md",
+      "title": "spDXMaterialDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-mesh-combiner.md",
+      "title": "spDXMeshCombiner",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-mesh-data-serializer.md",
+      "title": "spDXMeshDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-mesh-data.md",
+      "title": "spDXMeshData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-mesh-serializer.md",
+      "title": "spDXMeshSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-mesh.md",
+      "title": "spDXMesh",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-shared-mesh-data.md",
+      "title": "spDXSharedMeshData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-texture-data-serializer.md",
+      "title": "spDXTextureDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-engine-core.md",
+      "title": "spEngineCore",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-entity-manager.md",
+      "title": "spEntityManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-error-manager.md",
+      "title": "spErrorManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-error.md",
+      "title": "spError",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-file-stream.md",
+      "title": "spFileStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-fog-serializer.md",
+      "title": "spFogSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-fog.md",
+      "title": "spFog",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-font-manager.md",
+      "title": "spFontManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-font.md",
+      "title": "spFont",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-function-eval-serializer.md",
+      "title": "spFunctionEvalSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-game-level-serializer.md",
+      "title": "spGameLevelSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-game-level.md",
+      "title": "spGameLevel",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-index-buffer.md",
+      "title": "spIndexBuffer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-input-manager.md",
+      "title": "spInputManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-lens-flare.md",
+      "title": "spLensFlare",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-controller-serializer.md",
+      "title": "spLightControllerSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-data-serializer.md",
+      "title": "spLightDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-data.md",
+      "title": "spLightData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-manager.md",
+      "title": "spLightManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-serializer.md",
+      "title": "spLightSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light.md",
+      "title": "spLight",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mat-color-controller-serializer.md",
+      "title": "spMatColorControllerSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-color-controller.md",
+      "title": "spMaterialColorController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-data-serializer.md",
+      "title": "spMaterialDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-data.md",
+      "title": "spMaterialData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-layers.md",
+      "title": "spMaterialPassLayer / spMaterialTextureLayer / spStdLayer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-render-target-texture.md",
+      "title": "spMaterialTexture",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-runtime.md",
+      "title": "spMaterial / spMaterialData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-material-serializer.md",
+      "title": "spMaterialSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-memory-stream.md",
+      "title": "spMemoryStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mesh-bv.md",
+      "title": "spMeshBV",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mesh-data-serializer.md",
+      "title": "spMeshDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mesh-data.md",
+      "title": "spMeshData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mesh-navigation-set.md",
+      "title": "spMeshNavigationSet",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-mesh.md",
+      "title": "spMesh",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-model-serializer.md",
+      "title": "spModelSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-model.md",
+      "title": "spModel",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-navigation-graph.md",
+      "title": "spNavigationGraph",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-navigation-portal.md",
+      "title": "spNavigationPortal",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-node-controller.md",
+      "title": "spNodeController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-node-serializer.md",
+      "title": "spNodeSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-node.md",
+      "title": "spNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-obb-bv-serializer.md",
+      "title": "spOBBBVSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-obbbv.md",
+      "title": "spOBBBV",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-occlusion-volume.md",
+      "title": "spOcclusionVolume",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-octree-node.md",
+      "title": "spOctreeNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-parser.md",
+      "title": "spParser",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-particle-system.md",
+      "title": "spParticleSystem",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-partition-node.md",
+      "title": "spPartitionNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-partition-renderable.md",
+      "title": "spPartitionRenderable",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-partition-system.md",
+      "title": "spPartitionSystem",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-app.md",
+      "title": "spPCApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-async-file-stream-manager.md",
+      "title": "spPCAsyncFileStreamManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-effect-template.md",
+      "title": "spPCEffectTemplate / spPCRFXFileLoader",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-error-manager.md",
+      "title": "spPCErrorManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-file-stream.md",
+      "title": "spPCFileStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-font-manager.md",
+      "title": "spPCFontManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pck-manager.md",
+      "title": "spPCKManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-platform-specific-mesh-data.md",
+      "title": "spPlatformSpecificMeshData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-app.md",
+      "title": "spPS2App",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-async-file-stream-manager.md",
+      "title": "spPS2AsyncFileStreamManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-error-manager.md",
+      "title": "spPS2ErrorManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-file-stream.md",
+      "title": "spPS2FileStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-font-manager.md",
+      "title": "spPS2FontManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-helper.md",
+      "title": "spPS2Helper",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-input-manager.md",
+      "title": "spPS2InputManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-iop-module-manager.md",
+      "title": "spPS2IOPModuleManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-material-data-serializer.md",
+      "title": "spPS2MaterialDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-material.md",
+      "title": "spPS2Material",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-mesh-data-serializer.md",
+      "title": "spPS2MeshDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-mesh-data.md",
+      "title": "spPS2MeshData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-mesh.md",
+      "title": "spPS2Mesh",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-texture-data-serializer.md",
+      "title": "spPS2TextureDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-render-mesh.md",
+      "title": "spRenderMesh",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-render-node-serializer.md",
+      "title": "spRenderNodeSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-render-node.md",
+      "title": "spRenderNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-render-target.md",
+      "title": "spRenderTarget",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-renderable-serializer.md",
+      "title": "spRenderableSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-renderable.md",
+      "title": "spRenderable",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-renderer.md",
+      "title": "spRenderer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-resource-fat-serializer.md",
+      "title": "spResourceFATSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-resource-manager.md",
+      "title": "spResourceManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-resource.md",
+      "title": "spResource",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-scene-graph-optimizer.md",
+      "title": "spSceneGraphOptimizer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-serializer-hook.md",
+      "title": "spSerializerHook",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-serializer-manager.md",
+      "title": "spSerializerManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-serializer.md",
+      "title": "spSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-skin.md",
+      "title": "spSkin / spSkinSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-sky-box.md",
+      "title": "spSkyBox",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-sphere-bv-serializer.md",
+      "title": "spSphereBVSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-sphere-bv.md",
+      "title": "spSphereBV",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-static-render-object.md",
+      "title": "spStaticRenderObject",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-stream.md",
+      "title": "spStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-subscription-manager.md",
+      "title": "spSubscriptionManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-task-timer.md",
+      "title": "spTaskTimer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-template-instance.md",
+      "title": "spTemplateInstance",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-template-manager.md",
+      "title": "spTemplateManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-template-object.md",
+      "title": "spTemplateObject",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-template-serializer.md",
+      "title": "spTemplateSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-text-node.md",
+      "title": "spTextNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-text-renderable.md",
+      "title": "spTextRenderable",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-texture-buffer.md",
+      "title": "spTextureBuffer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-texture-data-serializer.md",
+      "title": "spTextureDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-texture-data.md",
+      "title": "spTextureData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-texture.md",
+      "title": "spTexture",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-trans-function-eval-serializer.md",
+      "title": "spTransFunctionEvalSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-transform-track-eval.md",
+      "title": "spTransformTrackEval",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-uv-controller-serializer.md",
+      "title": "spUVControllerSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-uv-controller.md",
+      "title": "spUVController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-vertex-buffer.md",
+      "title": "spVertexBuffer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-vertex-declaration.md",
+      "title": "spDXVertexDeclaration / spPCVertexDeclaration",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-zone-portal-node.md",
+      "title": "spZonePortalNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-zone-portal.md",
+      "title": "spZonePortal",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-zone.md",
+      "title": "spZone",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-engine-core.md",
+      "title": "spEngineCore / wxEngineCore",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-game-flow-state.md",
+      "title": "wxGameFlowState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-pc-app.md",
+      "title": "wxPCApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ps2-app.md",
+      "title": "wxPS2App",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/engine-classes.md",
+      "title": "Классы движка",
+      "category": "reference"
+    },
+    {
+      "path": "docs/reference/game-classes.md",
+      "title": "Классы игры",
+      "category": "reference"
+    }
+  ]
+}
