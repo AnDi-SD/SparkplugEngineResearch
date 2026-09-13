@@ -1,5 +1,6 @@
 #include "Analysis/PC/spSkinRenderContext.h"
 #include "Analysis/PC/spRenderNodeContext.h"
+#include "Analysis/PC/spNodeTransformMath.h"
 #include "Code/Sparkplug/spSkin.h"
 #include "Code/Sparkplug/spNode.h"
 #include "Code/Sparkplug/spStdLayer.h"
@@ -483,7 +484,27 @@ namespace
 }
 int main(int argc,char** argv)
 {
-    try{if(argc==3&&std::string(argv[1])=="--case"){std::cout<<Run(argv[2])<<'\n';return 0;}
+    try{
+        if(argc==2&&std::string(argv[1])=="--palette-math")
+        {
+            unsigned count=0;Check(bool(std::cin>>count)&&count>0&&count<=256,"bounded palette specimen count");
+            std::cout<<'[';
+            for(unsigned item=0;item<count;++item)
+            {
+                spSkin::Matrix4 left{},right{};
+                for(auto* matrix:{&left,&right})for(auto& value:*matrix)
+                {std::uint32_t bits=0;Check(bool(std::cin>>bits),"palette input bits");std::memcpy(&value,&bits,4);}
+                const auto actual=spSkin::ComposePaletteMatrixForAnalysis(left,right);
+                const auto shared=sparkplug::evidence::pc::node_math::Multiply4ForAnalysis(left,right);
+                if(item)std::cout<<',';std::cout<<"{\"skin\":[";
+                for(unsigned i=0;i<16;++i){if(i)std::cout<<',';std::cout<<Bits(actual[i]);}
+                std::cout<<"],\"shared\":[";
+                for(unsigned i=0;i<16;++i){if(i)std::cout<<',';std::cout<<Bits(shared[i]);}
+                std::cout<<"]}";
+            }
+            std::cout<<"]\n";return 0;
+        }
+        if(argc==3&&std::string(argv[1])=="--case"){std::cout<<Run(argv[2])<<'\n';return 0;}
         if(argc==3&&std::string(argv[1])=="--mesh-bounds")
         {
             std::string indexInput,vertexInput;std::cin>>indexInput>>vertexInput;

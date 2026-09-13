@@ -4,6 +4,7 @@
 #include "spMaterialPassLayer.h"
 #include "spFog.h"
 #include "Analysis/PC/spSkinRenderContext.h"
+#include "Analysis/PC/spNodeTransformMath.h"
 #include "../SparkplugDX/spDXMesh.h"
 #include "../SparkplugDX/spDXMaterial.h"
 
@@ -196,20 +197,10 @@ namespace sparkplug::reconstruction
     spSkin::Matrix4 spSkin::ComposePaletteMatrixForAnalysis(
         const Matrix4& inverseBind, const Matrix4& boneWorld) noexcept
     {
-        Matrix4 result{};
-        // Exact flattened index mapping. Float arithmetic is behavioral, not
-        // a bit-for-bit emulation of each original x87 accumulation order.
-        for (std::size_t row = 0; row < 4; ++row)
-        {
-            for (std::size_t column = 0; column < 4; ++column)
-            {
-                for (std::size_t inner = 0; inner < 4; ++inner)
-                {
-                    result[4 * row + column] +=
-                        inverseBind[4 * row + inner] * boneWorld[4 * inner + column];
-                }
-            }
-        }
-        return result;
+        // Original Skin calls the same PC426B00 as UV/TransFunction. The old
+        // float accumulation rounded every product/add, differing in171 cells
+        // of32 fractional affine specimens. Use the common recovered addition
+        // order/wider products; finite behavioral math, not arbitrary x87 proof.
+        return sparkplug::evidence::pc::node_math::Multiply4ForAnalysis(inverseBind,boneWorld);
     }
 }
