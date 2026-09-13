@@ -1,0 +1,943 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "status": "CLOSED_SAMPLED_VERTEX_INPUTS_PASS_NO_WEIGHTED_GEOMETRY",
+  "run": "play-rtx-20260913-084907-707",
+  "pid": 19572,
+  "serverPid": 22256,
+  "processesExited": true,
+  "started": "2026-09-13T08:49:08.9614126+03:00",
+  "clientCleanup": "2026-09-13T08:58:18.807+03:00",
+  "serverCleanup": "2026-09-13T08:58:15.620+03:00",
+  "watcherRestored": {
+    "restored": "2026-09-13T08:58:20.1085426+03:00",
+    "originallyExisted": true
+  },
+  "gameRunIsAB": false,
+  "identity": {
+    "proxySha256": "6CCBE15208923494CCF9F4FBA63A8B4E99D3FCC1A29D868BE3B279F64A2DB5BA",
+    "executableSha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+    "remixClientSha256": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+    "remixServerSha256": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+    "remixRendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+  },
+  "sourceSnapshot": "local-data/rtx-remix/native-skin-vertex-tests/vertices-v1/source",
+  "verifiedInstallSourceHashes": 42,
+  "verifiedCpuArtifacts": 75,
+  "vertices": {
+    "schema": 1,
+    "status": "PASS",
+    "init": {
+      "event": "init",
+      "schema": 1,
+      "pid": 19572,
+      "enabled": true,
+      "maxLogBytes": 16777216,
+      "scope": "sampled qualified Skin calls; exact CPU-source/upload and shared-layout comparison; no weighted API submission; unit-sum tolerance1e-5"
+    },
+    "events": {
+      "init": 1,
+      "frame": 13,
+      "sample": 179
+    },
+    "frameRange": [
+      0,
+      3600
+    ],
+    "totals": {
+      "attempts": 179,
+      "matched": 179,
+      "rejected": 0
+    },
+    "sampledTotals": {
+      "attempts": 179,
+      "matched": 179,
+      "rejected": 0
+    },
+    "rejections": {
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0
+    },
+    "frameHistogram": [
+      {
+        "attempts": 0,
+        "matched": 0,
+        "rejected": 0,
+        "frames": 1
+      },
+      {
+        "attempts": 11,
+        "matched": 11,
+        "rejected": 0,
+        "frames": 3
+      },
+      {
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0,
+        "frames": 7
+      },
+      {
+        "attempts": 31,
+        "matched": 31,
+        "rejected": 0,
+        "frames": 2
+      }
+    ],
+    "acceptedSampleDiagnostics": {
+      "vertices": 104512,
+      "negativeWeightVertices": 0,
+      "nonUnitSumVertices": 0,
+      "minWeight": 0,
+      "maxWeight": 1,
+      "maxSumError": 8.940696716308594e-08
+    },
+    "sampledCohorts": [
+      {
+        "influences": 4,
+        "boneCount": 16,
+        "samples": 179
+      }
+    ],
+    "failureSamples": 0,
+    "failureHistory": [],
+    "failureHistoryTruncated": false,
+    "incompleteSampleSuffix": null,
+    "sampledSequenceEnd": {
+      "modelCall": 74535,
+      "submission": 1399669
+    },
+    "scope": "Only sampled already-qualified Skin calls. Completed frame totals equal emitted sample records; all-sample diagnostics may include the explicitly incomplete suffix. Vertices are unique referenced vertices per sample, repeatedly counted across samples. Negative weights and nonunit sums are diagnostics, not validation failures or evidence of bad native arithmetic. Accepted means CPU source/upload/layout and operation fences passed, not skin deformation, renderer admission, GPU completion, all Skins or durable native lifetime coverage.",
+    "bytes": 62145,
+    "logLimitReached": false,
+    "logCapMarker": false,
+    "run": "local-data\\rtx-remix\\runs\\play-rtx-20260913-084907-707",
+    "pidExited": true,
+    "immutableRead": true,
+    "proxySha256": "6CCBE15208923494CCF9F4FBA63A8B4E99D3FCC1A29D868BE3B279F64A2DB5BA",
+    "sourceLogSha256": "C85B512D0688E7D3DC8F92F9BF66CC393893B2255B507EAFD2BD6924E3910D39",
+    "launchSha256": "B445E643A6279810742E6E2810442835D1032D083437A43FBB09567E6D0C196D"
+  },
+  "palette": {
+    "status": "PASS",
+    "totals": {
+      "calls": 78559,
+      "callFailures": 656,
+      "withoutMesh": 656,
+      "attempts": 77903,
+      "matched": 53445,
+      "mismatches": 0,
+      "bones": 855120,
+      "bitDifferences": 0
+    },
+    "rejected": {
+      "scope": 0,
+      "callsite": 0,
+      "scene": 24458,
+      "registry": 0,
+      "support": 0,
+      "skin": 0,
+      "mesh": 0,
+      "palette": 0,
+      "bone": 0,
+      "nonfinite": 0,
+      "changed": 0
+    },
+    "maxAbsoluteError": 0,
+    "maxRelativeError": 0,
+    "frameRange": [
+      0,
+      3703
+    ],
+    "logLimitReached": false,
+    "incompleteSampleSuffix": null
+  },
+  "light": {
+    "status": "PASS",
+    "totals": {
+      "attempts": 35132,
+      "matched": 35132,
+      "used": 35132,
+      "mismatches": 0,
+      "dirty": 0,
+      "invalid": 0
+    },
+    "strictViolations": [],
+    "logLimitReached": false
+  },
+  "server": {
+    "status": "VALID_RECORDED_PREFIX",
+    "totals": {
+      "apiCalls": 2309580,
+      "rendererApiSuccess": 2309580,
+      "rendererApiErrors": 0,
+      "earlyCalls": 1195443,
+      "earlySuccess": 1195443,
+      "earlyErrors": 0,
+      "invalidMeshHandles": 0,
+      "ordinaryDrawCommands": 751654,
+      "zeroDrawCommands": 0,
+      "foreignDrawCommands": 0,
+      "foreignPresents": 0
+    },
+    "termination": "queue_exit_normal",
+    "capReached": false
+  },
+  "samplePaletteJoins": 179,
+  "frameJoins": [
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 0,
+        "attempts": 0,
+        "matched": 0,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 0,
+        "calls": 0,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 0,
+        "matched": 0,
+        "mismatches": 0,
+        "bones": 0,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 300,
+        "attempts": 11,
+        "matched": 11,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 300,
+        "calls": 18,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 18,
+        "matched": 11,
+        "mismatches": 0,
+        "bones": 176,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 600,
+        "attempts": 11,
+        "matched": 11,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 600,
+        "calls": 18,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 18,
+        "matched": 11,
+        "mismatches": 0,
+        "bones": 176,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 900,
+        "attempts": 11,
+        "matched": 11,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 900,
+        "calls": 18,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 18,
+        "matched": 11,
+        "mismatches": 0,
+        "bones": 176,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 1200,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 1200,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 1500,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 1500,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 1800,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 1800,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 2100,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 2100,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 2400,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 2400,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 2700,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 2700,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 3000,
+        "attempts": 12,
+        "matched": 12,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 3000,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 3300,
+        "attempts": 31,
+        "matched": 31,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 3300,
+        "calls": 39,
+        "callFailures": 1,
+        "withoutMesh": 1,
+        "attempts": 38,
+        "matched": 31,
+        "mismatches": 0,
+        "bones": 496,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "vertex": {
+        "event": "frame",
+        "frame": 3600,
+        "attempts": 31,
+        "matched": 31,
+        "rejected": 0
+      },
+      "palette": {
+        "event": "frame",
+        "frame": 3600,
+        "calls": 39,
+        "callFailures": 1,
+        "withoutMesh": 1,
+        "attempts": 38,
+        "matched": 31,
+        "mismatches": 0,
+        "bones": 496,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "level": 4,
+      "status": "loaded_and_presenting",
+      "readySeconds": 20.07,
+      "framesAdvanced": 59,
+      "representativeFrame": 1378,
+      "palette": {
+        "event": "frame",
+        "frame": 1378,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "started": "2026-09-13T08:52:14.278745+03:00",
+      "finished": "2026-09-13T08:53:15.010963+03:00"
+    },
+    {
+      "level": 27,
+      "status": "loaded_and_presenting",
+      "readySeconds": 10.01,
+      "framesAdvanced": 24,
+      "representativeFrame": 3115,
+      "palette": {
+        "event": "frame",
+        "frame": 3115,
+        "calls": 39,
+        "callFailures": 1,
+        "withoutMesh": 1,
+        "attempts": 38,
+        "matched": 31,
+        "mismatches": 0,
+        "bones": 496,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "started": "2026-09-13T08:55:52.071078+03:00",
+      "finished": "2026-09-13T08:56:34.983471+03:00"
+    }
+  ],
+  "restoration": [
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/winx.ini.before",
+        "bytes": 106,
+        "sha256": "BC7D3270EE607A061AC774B02F4B90B8F5587F5F62689C168425A60C27D485E0"
+      },
+      "after": {
+        "path": "local-data/Winx Club/winx.ini",
+        "bytes": 106,
+        "sha256": "BC7D3270EE607A061AC774B02F4B90B8F5587F5F62689C168425A60C27D485E0"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/user.conf.before",
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "after": {
+        "path": "local-data/Winx Club/user.conf",
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/bridge.conf.before",
+        "bytes": 314,
+        "sha256": "5AC96FB3198F3E8FF7BCB16030CD199E14ACC55DEFC71916FD9F547370CB5E35"
+      },
+      "after": {
+        "path": "local-data/Winx Club/.trex/bridge.conf",
+        "bytes": 314,
+        "sha256": "5AC96FB3198F3E8FF7BCB16030CD199E14ACC55DEFC71916FD9F547370CB5E35"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/saves-before/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "E6404EC5E5AE11E82CCDDCC72106D7B3AE9E6F2D363C956F3ABAA383E87BEE15"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "E6404EC5E5AE11E82CCDDCC72106D7B3AE9E6F2D363C956F3ABAA383E87BEE15"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/saves-before/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321A1136D05EAC8704B60F5268D99D81F56B3FD4FA123222CAEFF393256DCF"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321A1136D05EAC8704B60F5268D99D81F56B3FD4FA123222CAEFF393256DCF"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/saves-before/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182A3B6B840F805D1A57ACDFC6134D1568BAD0577B189C42B3FC23BC23D65"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182A3B6B840F805D1A57ACDFC6134D1568BAD0577B189C42B3FC23BC23D65"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/saves-before/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "A2E0125FE3FE87176BF436F522B2B8676EDAE6561FCAAB0285D5A82C294D0F01"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "A2E0125FE3FE87176BF436F522B2B8676EDAE6561FCAAB0285D5A82C294D0F01"
+      },
+      "equal": true
+    }
+  ],
+  "cpu": {
+    "status": "PASS",
+    "checks": 122,
+    "parserChecks": 89,
+    "integrationChecks": 31,
+    "gpu": false,
+    "nativeCode": false,
+    "realCOM": false
+  },
+  "analyzerTests": {
+    "status": "PASS",
+    "tests": 9,
+    "checks": 95,
+    "failures": 0,
+    "errors": 0
+  },
+  "standaloneRegressions": {
+    "surface": {
+      "checks": 9379,
+      "meshDestroys": 2579,
+      "materialDestroys": 1304,
+      "injectedFailures": 773,
+      "pressureRequests": 23,
+      "pressureMeshDestroys": 10,
+      "pressureMaterialDestroys": 7,
+      "pressureRejected": 13,
+      "remaining": 0,
+      "status": "PASS"
+    },
+    "cameraV1": {
+      "schema": 1,
+      "utc": "2026-09-13T05:55:14.2605789Z",
+      "pid": 3884,
+      "completed": true,
+      "exitCode": 1,
+      "durationSeconds": 3.2844685,
+      "exeSha256": "432D17D802485A2D129416D000AD5EB06B46C81848F98D69EF2465CF01D872DF",
+      "gameEvidence": false
+    },
+    "cameraV2": {
+      "schema": 1,
+      "utc": "2026-09-13T05:59:35.9517342Z",
+      "pid": 15508,
+      "completed": true,
+      "exitCode": 0,
+      "durationSeconds": 2.0504998,
+      "exeSha256": "80378DCA1D88B11F70F646F1D46AC6D64CAD3B4D8ECBF78B32753326A00226BC",
+      "gameEvidence": false
+    },
+    "cameraV2Checks": {
+      "status": "PASS",
+      "checks": 165,
+      "cameraCalls": 12,
+      "device": "system-d3d9-hal",
+      "source": "synthetic-native-ABI",
+      "bridge": false,
+      "gameEvidence": false
+    },
+    "materialV2": {
+      "status": "PASS",
+      "checks": 697,
+      "nativeSourceChecks": 171,
+      "nativeMaterialChecks": 137,
+      "nativeTransportChecks": 53,
+      "nativeTextureChecks": 83,
+      "submitted": 35,
+      "rejected": 5,
+      "meshCreates": 10,
+      "materialCreates": 9,
+      "assetBytes": 2968
+    }
+  },
+  "analyzer": {
+    "path": "research/rtx-remix/analyze_native_skin_vertices.py",
+    "bytes": 10669,
+    "sha256": "8BA0FF4B815C373D95A7C48EA6435F472B49211D2C867536E9FD38B9DB2C2A21"
+  },
+  "test": {
+    "path": "research/rtx-remix/test_analyze_native_skin_vertices.py",
+    "bytes": 17007,
+    "sha256": "97D0E35DB1D70F94A9C3A45D66FDD304FBA05CE76029E95A913039CEF3BF580D"
+  },
+  "closedHelpers": {
+    "path": "research/rtx-remix/analyze_native_skin_source.py",
+    "bytes": 14462,
+    "sha256": "FD2A34887C46A0649C72D68E47E599416F69C63CCEF542A0BD19209B51ACF437"
+  },
+  "evidence": {
+    "path": "local-data/rtx-remix/native-skin-vertex-tests/game-checkpoint-v1/evidence.json",
+    "bytes": 58829,
+    "sha256": "C4B06660738742849B4CDBF8225441C2D65775A2FB328AF95B7EDD285CD0CBA1"
+  },
+  "closed": {
+    "path": "local-data/rtx-remix/native-skin-vertex-tests/game-checkpoint-v1/closed.json",
+    "bytes": 115067,
+    "sha256": "2C5ABE1645303D4841824BB71FFBC47FDB4ABD915BE5D6FC9C076B1B34AA556A"
+  },
+  "artifacts": 254,
+  "related": [
+    "research/winx-remix-native-skin-source-checkpoint-2026-09-13.json",
+    "research/winx-remix-native-weighted-vertex-source-2026-09-13.json",
+    "research/winx-remix-skin-api-paired-checkpoint-2026-09-13.json"
+  ],
+  "limits": [
+    "This is the sampled already-qualified palette cohort, not all Skin calls or all frames; 11/12/31 samples across three scene phases retain separate counts.",
+    "104512 referenced vertices sums repeated samples, not unique game vertices. Negative/nonunit values are diagnostics, not automatic invalidity.",
+    "Min/max/sum do not establish all authored values or normal/tangent deformation. Exact source/upload/layout matches are operation-scoped, not durable native lifetime proof.",
+    "179 palette joins compare exact (frame, modelCall, submission), scene, Skin, mesh, boneCount and withinTolerance; no frames outside sampling are inferred.",
+    "53445 palette matches coexist with 24458 scene rejects and 656 AL-false/withoutMesh calls. No claim of complete Skin coverage.",
+    "No weighted API submit or GPU skin deformation was enabled. The stock B2-B4 error is a separate prior GPU blocker.",
+    "Mesh server SUCCESS is renderer API return/EmitCs, not GPU completion or lighting API acknowledgement. This game run contains no A/B.",
+    "Camera165 and Material697 were later system D3D9 plus recording API regressions, not the actual game or Remix bridge. Initial sandbox HAL failures and their original artifacts remain; fixed wrappers do not change the installed DLL.",
+    "Current later renderer/native code edits are excluded from frozen vertices-v1/install-v1 proof."
+  ]
+}
