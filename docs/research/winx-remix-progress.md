@@ -1,12 +1,37 @@
 # Готовность универсальной интеграции Winx Club с RTX Remix
 
 Текущая оценка на **13 сентября 2026: около 45%**.
-Текущий блок: [native-owner-v6](winx-remix-native-owner-submit-2026-09-13.md):
+Текущий проверенный блок: [первый самостоятельный consumer](winx-remix-independent-submit-checkpoint-2026-09-13.md).
+Полные поддержанные supports вне исходной видимости получают geometry,
+world, material и texture из текущего native packet до Prepare и уходят
+в клиентский API без нашего дополнительного D3D-обхода. В закрытом прогоне
+Алфея → Домино → Алфея проверены A/B и движение. В устойчивой Алфее 725
+instances идут рано, 41 ordinary instance остаётся на прежнем пути;
+в одном положении Домино — 438 и 2. Это доли объявленной ordinary-группы,
+не процент всей геометрии игры. Исходные игровые producers сохранены.
+
+За 28 555 записанных кадров — 10 356 612 успешных клиентских DrawInstance,
+без клиентских ошибок подачи и неожиданных native draws. SUCCESS здесь
+означает x86 enqueue без server ACK; приём renderer API и GPU completion
+из этого счётчика не следуют. Observer достиг лимита на frame 21588;
+2 601 857 world/material/resource matches не распространяются на позднюю
+обратную Алфею. 137 texture differences и 922 draw rejections сохранены.
+Ранняя камера, владение ресурсами и отказ без повторной подачи покрыты
+[1136 CPU checks](winx-remix-independent-submit-contract-2026-09-13.md)
+и [проверками backend](winx-remix-resource-ownership-2026-09-13.md).
+
+Следующая граница — счётчик реальных вызовов на стороне renderer API
+и использование того же раннего пакета у конечного draw исходно выбранного
+Model. Эти новые изменения ещё не входят в закрытый игровой checkpoint.
+Функциональные проценты пока сохраняются: уменьшилась зависимость от D3D,
+но физическое освещение, остальные материалы и динамика не завершены.
+
+Предыдущий блок: [native-owner-v6](winx-remix-native-owner-submit-2026-09-13.md):
 все 446 / 871 поддержанных native instances в мировых кадрах Домино / Алфеи
 связаны с текущими scene/root, support, Model и world. 142 owner и 61 registry
 checks; 1 787 994 подтверждённых uses. Это provenance одной операции, ещё
 не самостоятельная подача невидимых объектов и не постоянный object lifetime.
-Следующий шаг — свежий packet до render-time producers с world-update witness.
+Следующий на тот момент шаг — свежий packet до render-time producers с world-update witness.
 Предыдущий блок: [native-material-v2](winx-remix-native-material-submit-2026-09-13.md):
 ordinary unlit material operations/UV/sampler берутся из native объектов через
 общий texture-state mapping. 541 integration checks; Алфея 871 и Домино 446
