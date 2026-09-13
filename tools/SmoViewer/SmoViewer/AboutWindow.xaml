@@ -1,0 +1,204 @@
+<Window x:Class="SmoViewer.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="О программе — SmoViewer"
+        Width="640"
+        Height="690"
+        MinWidth="520"
+        MinHeight="500"
+        MaxWidth="760"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
+        Background="#17191F">
+    <Window.Resources>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,9" />
+            <Setter Property="Foreground" Value="#F0F2F6" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="SecondaryText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AEB6C5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="21" />
+        </Style>
+        <Style x:Key="VersionName" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AEB6C5" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="VersionValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F0F2F6" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Padding="28,23,28,21"
+                Background="#242832"
+                BorderBrush="#343946"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="56"
+                        Height="56"
+                        Margin="0,0,17,0"
+                        Background="#3B82B9"
+                        CornerRadius="12">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FontSize="31"
+                               FontWeight="Bold"
+                               Text="S" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Foreground="#F7F8FA"
+                               FontSize="27"
+                               FontWeight="SemiBold"
+                               Text="SmoViewer" />
+                    <TextBlock Margin="0,3,0,0"
+                               Foreground="#AEB6C5"
+                               FontSize="13"
+                               Text="Просмотр, исследование и подготовка моделей SMO" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1"
+                      Padding="28,23,28,18"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitle}" Text="Состав сборки" />
+                <Border Padding="16,12"
+                        Background="#20242C"
+                        BorderBrush="#343946"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Style="{StaticResource VersionName}" Text="SmoViewer" />
+                        <TextBlock x:Name="ViewerVersionText" Grid.Row="0" Grid.Column="1" Style="{StaticResource VersionValue}" />
+                        <TextBlock Grid.Row="1" Margin="0,9,0,0" Style="{StaticResource VersionName}" Text="SmoExporter" />
+                        <TextBlock x:Name="ExporterVersionText" Grid.Row="1" Grid.Column="1" Margin="20,9,0,0" Style="{StaticResource VersionValue}" />
+                        <TextBlock Grid.Row="2" Margin="0,9,0,0" Style="{StaticResource VersionName}" Text="SmoImporter" />
+                        <TextBlock x:Name="ImporterVersionText" Grid.Row="2" Grid.Column="1" Margin="20,9,0,0" Style="{StaticResource VersionValue}" />
+                        <Border Grid.Row="3" Grid.ColumnSpan="2" Margin="0,12,0,10" BorderBrush="#343946" BorderThickness="0,1,0,0" />
+                        <TextBlock Grid.Row="3" Margin="0,22,0,0" Style="{StaticResource VersionName}" Text="Дата сборки" />
+                        <TextBlock x:Name="BuildDateText" Grid.Row="3" Grid.Column="1" Margin="20,22,0,0" Style="{StaticResource VersionValue}" />
+                    </Grid>
+                </Border>
+
+                <TextBlock Margin="0,24,0,9" Style="{StaticResource SectionTitle}" Text="О проекте" />
+                <TextBlock Style="{StaticResource SecondaryText}"
+                           Text="SmoViewer помогает просматривать и исследовать модели SMO: геометрию, материалы, скелеты, служебные объекты и анимации. В комплект входят отдельные инструменты экспорта и обратного импорта для полноценной работы с игровыми ресурсами." />
+
+                <TextBlock Margin="0,24,0,9" Style="{StaticResource SectionTitle}" Text="Создатель проекта" />
+                <TextBlock Foreground="#F0F2F6"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Text="AnDi~SD aka @andisd" />
+                <TextBlock Margin="0,6,0,0"
+                           Style="{StaticResource SecondaryText}"
+                           Text="Автор SmoViewer и исследовательского проекта SparkplugEngineResearch." />
+                <StackPanel Margin="0,8,0,0">
+                    <TextBlock Margin="0,0,0,5">
+                        <Hyperlink NavigateUri="https://github.com/AnDi-SD/SmoViewer"
+                                   Foreground="#65B5E8"
+                                   RequestNavigate="CommunityLink_RequestNavigate">SmoViewer — основной репозиторий</Hyperlink>
+                    </TextBlock>
+                    <TextBlock>
+                        <Hyperlink NavigateUri="https://github.com/AnDi-SD/SparkplugEngineResearch"
+                                   Foreground="#65B5E8"
+                                   RequestNavigate="CommunityLink_RequestNavigate">SparkplugEngineResearch — исследовательский репозиторий</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+
+                <TextBlock Margin="0,24,0,9" Style="{StaticResource SectionTitle}" Text="Благодарности" />
+                <TextBlock Foreground="#DCE1E9" FontWeight="SemiBold" Text="Тестирование" />
+                <TextBlock Margin="0,6,0,0"
+                           Style="{StaticResource SecondaryText}"
+                           Text="Sumthini aka @SionFane&#10;Butermix aka @Butermix&#10;DarkExp aka @expdark&#10;Ty-Ty aka @UUSTYTSTY" />
+
+                <TextBlock Margin="0,18,0,0"
+                           Foreground="#DCE1E9"
+                           FontWeight="SemiBold"
+                           Text="Исследование STX" />
+                <TextBlock Margin="0,6,0,0"
+                           Style="{StaticResource SecondaryText}"
+                           Text="Спасибо kotwys, автору независимого плагина STX для GIMP, за предоставленные исследование и исходный код, а также разрешение изучать их и использовать полезные выводы при развитии инструментов проекта." />
+                <TextBlock Margin="0,7,0,0">
+                    <Hyperlink NavigateUri="https://github.com/kotwys/stx-gimp-plugin"
+                               Foreground="#65B5E8"
+                               RequestNavigate="CommunityLink_RequestNavigate">kotwys/stx-gimp-plugin</Hyperlink>
+                </TextBlock>
+
+                <TextBlock Margin="0,18,0,0" Foreground="#DCE1E9" FontWeight="SemiBold" Text="Сообщество" />
+                <TextBlock Margin="0,6,0,0"
+                           Style="{StaticResource SecondaryText}"
+                           Text="Отдельное спасибо сообществу D:\Games\Winx за помощь, обсуждение проекта и многолетнюю любовь к игре." />
+                <StackPanel Margin="0,7,0,0" Orientation="Horizontal">
+                    <TextBlock Foreground="#AEB6C5" Text="Telegram: " />
+                    <TextBlock>
+                        <Hyperlink NavigateUri="https://t.me/dgameswinxTG"
+                                   Foreground="#65B5E8"
+                                   RequestNavigate="CommunityLink_RequestNavigate">@dgameswinxTG</Hyperlink>
+                    </TextBlock>
+                    <TextBlock Margin="18,0,0,0" Foreground="#AEB6C5" Text="VK: " />
+                    <TextBlock>
+                        <Hyperlink NavigateUri="https://vk.ru/dgameswinx"
+                                   Foreground="#65B5E8"
+                                   RequestNavigate="CommunityLink_RequestNavigate">vk.ru/dgameswinx</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+
+                <Border Margin="0,23,0,0"
+                        Padding="15,12"
+                        Background="#202B34"
+                        BorderBrush="#38566C"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <TextBlock Foreground="#D8E7F1"
+                               TextWrapping="Wrap"
+                               LineHeight="21"
+                               Text="И, конечно, спасибо всем, кто ждёт новые версии, делится обратной связью и поддерживает развитие проекта. Именно ваш интерес помогает ему становиться лучше." />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Padding="18,12"
+                Background="#20242C"
+                BorderBrush="#343946"
+                BorderThickness="0,1,0,0">
+            <Button Width="104"
+                    Padding="14,6"
+                    HorizontalAlignment="Right"
+                    IsDefault="True"
+                    IsCancel="True"
+                    Content="Закрыть" />
+        </Border>
+    </Grid>
+</Window>

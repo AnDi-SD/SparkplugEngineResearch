@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
+    <InformationalVersion>2.1.0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>SMO Texture Tool</Product>
+    <Authors>AnDi-SD</Authors>
+    <Copyright>Copyright © 2026 AnDi-SD</Copyright>
+    <RepositoryUrl>https://github.com/AnDi-SD/SMOTextureTool</RepositoryUrl>
+  </PropertyGroup>
+</Project>
