@@ -3,7 +3,7 @@
 #define WINX_REMIX_TEST
 #include "winx_d3d9_probe.cpp"
 #include <cstdlib>
-static unsigned checks,apiDraws,nativeSourceChecks,nativeMaterialChecks;
+static unsigned checks,apiDraws,nativeSourceChecks,nativeMaterialChecks,nativeTransportChecks,nativeTextureChecks;
 static uintptr_t nextHandle=1;
 static std::vector<remixapi_HardcodedVertex> lastVertices;
 static std::wstring lastAlbedo,lastEmission;
@@ -49,6 +49,174 @@ static std::vector<DWORD> Dds(const std::wstring& path) {
 }
 #if defined(_M_IX86)
 #include "test_native_material.h"
+static void NativeTexture(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS parameters) {
+  namespace transport=native_transport_source;
+  const auto initialChecks=checks,beforeDraws=apiDraws,beforeSubmits=materialChannelsSubmitted;
+  IDirect3DTexture9* a=nullptr;IDirect3DTexture9* b=nullptr;
+  Hr(device->CreateTexture(4,4,3,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&a,nullptr),"texture witness actual managed A Create");
+  Hr(device->CreateTexture(4,4,1,0,D3DFMT_X8R8G8B8,D3DPOOL_MANAGED,&b,nullptr),"texture witness actual managed X Create");
+  auto borrow=[&](IDirect3DTexture9* texture,transport::TextureWitness& value){std::unique_lock<std::recursive_mutex> lock(guard);
+    return transport::BorrowTexture(lock,device,texture,value);};
+  auto current=[&](const transport::TextureWitness& value){std::unique_lock<std::recursive_mutex> lock(guard);return transport::CurrentTexture(lock,value);};
+  auto initialize=[&](IDirect3DTexture9* texture,UINT levels,DWORD value){for(UINT level=0;level<levels;++level){D3DLOCKED_RECT rect{};
+    Hr(texture->LockRect(level,&rect,nullptr,0),"initialize actual managed texture");
+    for(UINT y=0;y<(4u>>level);++y)for(UINT x=0;x<(4u>>level);++x)
+      reinterpret_cast<DWORD*>(static_cast<uint8_t*>(rect.pBits)+size_t(y)*rect.Pitch)[x]=value+level;
+    Hr(texture->UnlockRect(level),"finish actual managed texture initialization");}};
+  initialize(a,3,0x80402010);initialize(b,1,0xff204060);
+  transport::TextureWitness original{};Check(borrow(a,original)&&current(original)&&original.texture==a&&original.device==device&&
+    original.width==4&&original.height==4&&original.levels==3&&original.format==D3DFMT_A8R8G8B8,"actual managed texture yields exact unbound witness");
+  auto binding=[&](IDirect3DBaseTexture9* expected){IDirect3DBaseTexture9* observed=nullptr;Hr(device->GetTexture(0,&observed),"inspect unchanged texture binding");
+    Check(observed==expected,"direct source does not change stage0 binding");if(observed)observed->Release();};
+  const auto path=[&](const wchar_t* name){return std::wstring(surfaceAssetDirectory)+L"\\"+name;};
+  const auto baselinePath=path(L"transport-bound.dds"),nullPath=path(L"transport-null.dds"),otherPath=path(L"transport-other.dds");
+  Hr(device->SetTexture(0,a),"bind baseline texture A");const auto boundHash=BoundChannelTextureHash(device);
+  Check(boundHash!=0&&material_channels::WriteTexture(device,baselinePath.c_str(),{1,1,1}),"bound source creates baseline DDS");
+  const auto baseline=Dds(baselinePath);
+  for(auto other:{static_cast<IDirect3DTexture9*>(nullptr),b}) {
+    Hr(device->SetTexture(0,other),"select null or different texture B");
+    std::unique_lock<std::recursive_mutex> lock(guard);transport::TextureWitness witness{};
+    Check(transport::BorrowTexture(lock,device,a,witness),"unbound A borrowed from lifecycle records");
+    Check(ChannelTextureHash(witness.texture)==boundHash,"direct A hash equals bound A hash with unrelated binding");
+    const auto output=other?otherPath:nullPath;
+    Check(material_channels::WriteTextureSource(witness.texture,output.c_str(),{1,1,1}),"direct A writer consumes qualified source pointer");
+    Check(transport::CurrentTexture(lock,witness),"all readonly hash/DDS calls preserve texture content witness");
+    binding(other);Check(Dds(output)==baseline,"direct unbound DDS bytes equal bound baseline");
+  }
+  Hr(device->SetTexture(0,nullptr),"restore unbound textures before writer tests");
+  D3DLOCKED_RECT rect{};Hr(a->LockRect(1,&rect,nullptr,D3DLOCK_READONLY),"actual readonly texture mip Lock");
+  Hr(a->UnlockRect(1),"actual readonly texture mip Unlock");Check(current(original),"readonly texture Lock preserves original content generation");
+  Hr(a->LockRect(1,&rect,nullptr,D3DLOCK_NO_DIRTY_UPDATE),"actual writable NO_DIRTY_UPDATE mip Lock");
+  transport::TextureWitness rejected{};Check(!borrow(a,rejected)&&!current(original)&&!surfaceChannelTextureHashes.count(a),"writable mip blocks borrow and invalidates cached hash");
+  *static_cast<DWORD*>(rect.pBits)=0xaabbccdd;Hr(a->UnlockRect(1),"actual writable mip Unlock");
+  transport::TextureWitness afterWrite{};Check(borrow(a,afterWrite)&&afterWrite.generation==original.generation&&afterWrite.contentGeneration>original.contentGeneration,
+    "successful Unlock exposes new content in same creation lifetime");
+  Check(ChannelTextureHash(a)!=boundHash,"lower mip write changes full-content hash");
+  IDirect3DSurface9* surface=nullptr;Hr(a->GetSurfaceLevel(2,&surface),"actual A mip surface exposure");
+  Hr(surface->LockRect(&rect,nullptr,D3DLOCK_READONLY),"readonly surface Lock");Hr(surface->UnlockRect(),"readonly surface Unlock");
+  Check(current(afterWrite),"readonly surface alias preserves content witness");
+  Hr(surface->LockRect(&rect,nullptr,0),"writable surface Lock");Check(!borrow(a,rejected)&&!surfaceChannelTextureHashes.count(a),"surface writer blocks owner texture borrow and invalidates hash");
+  *static_cast<DWORD*>(rect.pBits)=0x77665544;Hr(surface->UnlockRect(),"writable surface Unlock");
+  Check(borrow(a,afterWrite),"surface Unlock restores current owner borrow");surface->Release();
+  Check(current(afterWrite),"closed level surface Release preserves owning texture lifetime");
+  IDirect3DSurface9* dcSurface=nullptr;Hr(b->GetSurfaceLevel(0,&dcSurface),"actual X8R8G8B8 DC surface");
+  transport::TextureWitness beforeDC{};Check(borrow(b,beforeDC),"texture witness before actual GetDC");
+  HDC dc=nullptr;Hr(dcSurface->GetDC(&dc),"actual managed surface GetDC");Check(dc!=nullptr&&!borrow(b,rejected)&&!current(beforeDC),"open DC blocks texture borrow");
+  auto gdi=LoadLibraryExW(L"gdi32.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);Check(gdi!=nullptr,"system GDI for owned surface DC write");
+  auto pixel=reinterpret_cast<BOOL(WINAPI*)(HDC,int,int,COLORREF)>(GetProcAddress(gdi,"SetPixelV"));Check(pixel&&pixel(dc,0,0,RGB(12,34,56)),"actual GDI writes owned texture surface");
+  Hr(dcSurface->ReleaseDC(dc),"actual managed surface ReleaseDC");FreeLibrary(gdi);
+  transport::TextureWitness afterDC{};Check(borrow(b,afterDC)&&afterDC.contentGeneration>beforeDC.contentGeneration,"ReleaseDC exposes new texture content");dcSurface->Release();
+  Hr(b->LockRect(0,&rect,nullptr,D3DLOCK_READONLY),"read DC result through owned texture");
+  Check((*static_cast<DWORD*>(rect.pBits)&0xffffffu)==0x0c2238u,"GDI DC pixel reaches managed texture storage");Hr(b->UnlockRect(0),"finish DC result read");
+  IUnknown* identity=nullptr;Hr(a->QueryInterface(__uuidof(IUnknown),reinterpret_cast<void**>(&identity)),"actual texture IUnknown query");
+  Check(identity==reinterpret_cast<IUnknown*>(a),"system texture canonical interface is same hooked pointer");identity->Release();Check(current(afterWrite),"ordinary same-pointer QueryInterface preserves witness");
+  // The copy path is conservatively retired even if D3D rejects these tiny
+  // dimensions. This checks real hook dispatch without capturing the desktop.
+  Hr(a->GetSurfaceLevel(0,&surface),"surface for conservative front-buffer invalidation");
+  device->GetFrontBufferData(0,surface);Check(!borrow(a,rejected),"device GetFrontBufferData retires destination before forwarding");surface->Release();
+  IDirect3DSwapChain9* swap=nullptr;Hr(device->GetSwapChain(0,&swap),"actual swapchain writer interface");
+  Hr(b->GetSurfaceLevel(0,&surface),"surface for swapchain destination invalidation");
+  swap->GetFrontBufferData(surface);Check(!borrow(b,rejected),"swapchain GetFrontBufferData also retires destination");surface->Release();swap->Release();
+  a->Release();b->Release();
+  IDirect3DTexture9* resetTexture=nullptr;Hr(device->CreateTexture(4,4,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&resetTexture,nullptr),"fresh texture before Reset");
+  transport::TextureWitness beforeReset{};Check(borrow(resetTexture,beforeReset),"new texture registered before Reset");
+  Hr(device->Reset(&parameters),"actual Reset with caller-owned managed texture");
+  Check(!borrow(resetTexture,rejected)&&!current(beforeReset),"successful Reset cannot revive managed texture witness");resetTexture->Release();
+  IDirect3DTexture9* finalTexture=nullptr;Hr(device->CreateTexture(4,4,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&finalTexture,nullptr),"fresh post-reset texture Create");
+  transport::TextureWitness finalWitness{};Check(borrow(finalTexture,finalWitness)&&finalWitness.generation>beforeReset.generation,"post-reset Create establishes new texture lifetime");
+  Check(finalTexture->Release()==0&&!current(finalWitness),"actual texture final Release retains no registry reference and invalidates token");
+  Check(apiDraws==beforeDraws&&materialChannelsSubmitted==beforeSubmits,"texture boundary fixture does not submit API geometry");
+  nativeTextureChecks=checks-initialChecks;
+}
+static void NativeTransport(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS parameters) {
+  // Actual system-D3D Create/Release/Reset hooks on resources owned solely by
+  // this fixture. No native producers and no bridge. The registry retains no
+  // COM refs; deliberately retained managed refs below belong to this caller.
+  namespace transport=native_transport_source;
+  const auto initialChecks=checks,beforeDraws=apiDraws,beforeSubmits=materialChannelsSubmitted;
+  Check(TransportDeviceHooked(device),"real device has both transport lifetime hooks");
+  struct Resources {IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* declaration=nullptr;};
+  const D3DVERTEXELEMENT9 elements[]={{0,0,D3DDECLTYPE_FLOAT3,0,D3DDECLUSAGE_POSITION,0},
+    {0,12,D3DDECLTYPE_FLOAT2,0,D3DDECLUSAGE_TEXCOORD,0},{0xff,0,D3DDECLTYPE_UNUSED,0,0,0}};
+  auto create=[&](Resources& resources) {
+    Hr(device->CreateVertexBuffer(3*20,0,0,D3DPOOL_MANAGED,&resources.vb,nullptr),"transport actual VB Create");
+    Hr(device->CreateIndexBuffer(3*2,0,D3DFMT_INDEX16,D3DPOOL_MANAGED,&resources.ib,nullptr),"transport actual IB Create");
+    Hr(device->CreateVertexDeclaration(elements,&resources.declaration),"transport explicit declaration Create");
+    Check((*reinterpret_cast<void***>(resources.vb))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>)&&
+      (*reinterpret_cast<void***>(resources.vb))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>)&&
+      (*reinterpret_cast<void***>(resources.vb))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>),"real VB Release/Lock/Unlock hook gates installed");
+    Check((*reinterpret_cast<void***>(resources.ib))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>)&&
+      (*reinterpret_cast<void***>(resources.ib))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>)&&
+      (*reinterpret_cast<void***>(resources.ib))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>),"real IB Release/Lock/Unlock hook gates installed");
+  };
+  auto witness=[&](const Resources& resources,native_mesh_source::TransportWitness& value) {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    return transport::Witness(borrow,device,resources.vb,resources.ib,resources.declaration,value);
+  };
+  auto current=[&](const native_mesh_source::TransportWitness& value) {
+    std::unique_lock<std::recursive_mutex> borrow(guard);return transport::Current(borrow,value);
+  };
+  auto release=[&](Resources& resources) {
+    void* vertex=resources.vb;void* index=resources.ib;void* declaration=resources.declaration;
+    Check(resources.vb->Release()==0,"unbound fixture VB final Release has no registry reference");resources.vb=nullptr;
+    Check(resources.ib->Release()==0,"unbound fixture IB final Release has no registry reference");resources.ib=nullptr;
+    const auto declarationRefs=resources.declaration->Release();resources.declaration=nullptr;
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(!transport::records.count(vertex)&&!transport::records.count(index),"actual final buffer Release erases both lifecycle records");
+    Check(declarationRefs!=0||!transport::records.count(declaration),"observed final declaration Release erases lifecycle record");
+  };
+  Resources first{};create(first);native_mesh_source::TransportWitness initial{};
+  Check(witness(first,initial)&&current(initial),"fresh real Creates grant current transport witness");
+  Check(initial.device==device&&initial.vertexBuffer==first.vb&&initial.indexBuffer==first.ib&&initial.declaration==first.declaration&&
+    initial.vertexBytes==60&&initial.indexBytes==6&&initial.indexFormat==D3DFMT_INDEX16,"actual Create result identities, device and ranges recorded");
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(initial.elementCount==3&&!memcmp(initial.elements,elements,sizeof(elements)),"explicit actual declaration matches copied registry elements");
+    native_mesh_source::TransportWitness invalid{};
+    Check(!transport::Witness(borrow,device,first.ib,first.vb,first.declaration,invalid)&&!invalid.valid,"real wrong-kind triple cannot qualify");
+    Check(!transport::Witness(borrow,nullptr,first.vb,first.ib,first.declaration,invalid)&&!invalid.valid,"real objects cannot qualify for wrong device");
+  }
+  // D3D may intern declarations. Observe what this device returns; never
+  // equate a new Create observation serial with a new physical COM object.
+  IDirect3DVertexDeclaration9* repeated=nullptr;
+  Hr(device->CreateVertexDeclaration(elements,&repeated),"repeat actual declaration Create");
+  Resources repeatedKeys=first;repeatedKeys.declaration=repeated;native_mesh_source::TransportWitness repeatedWitness{};
+  Check(witness(repeatedKeys,repeatedWitness)&&current(repeatedWitness)&&repeatedWitness.declarationGeneration>initial.declarationGeneration,
+    "repeat Create grants a newer observation generation");
+  Check(current(initial)==(repeated!=first.declaration),"interned Create invalidates only the replaced observation token");
+  const bool interned=repeated==first.declaration;void* repeatedIdentity=repeated;
+  const auto repeatedRefs=repeated->Release();repeated=nullptr;
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(repeatedRefs!=0||!transport::records.count(repeatedIdentity),"repeat declaration final Release retires when actual refcount reaches zero");
+  }
+  Check(!interned||(repeatedRefs!=0&&current(repeatedWitness)),"nonfinal Release of interned declaration preserves current generation");
+  native_mesh_source::TransportWitness beforeRelease{};Check(witness(first,beforeRelease),"first owned resources still have current records");
+  release(first);Check(!current(beforeRelease),"actual final resource releases invalidate retained witness");
+
+  Resources retained{};create(retained);native_mesh_source::TransportWitness beforeReset{};
+  Check(witness(retained,beforeReset),"managed caller-owned resources registered before Reset");
+  unsigned resetsBefore=0;{std::unique_lock<std::recursive_mutex> borrow(guard);resetsBefore=transport::resets;}
+  // Unbound managed resources can survive Reset. Registry identity does not:
+  // clear conservatively even though this caller still owns valid COM refs.
+  Hr(device->Reset(&parameters),"actual successful device Reset with caller-owned managed buffers");
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(transport::resets==resetsBefore+1&&!transport::resetting.count(device),"actual Reset executes Begin/End registry fence");
+    Check(!transport::records.count(retained.vb)&&!transport::records.count(retained.ib)&&!transport::records.count(retained.declaration),
+      "Reset retires every pre-reset record despite surviving caller COM references");
+  }
+  Check(!current(beforeReset),"pre-reset witness remains rejected after successful Reset");
+  native_mesh_source::TransportWitness rejected{};Check(!witness(retained,rejected)&&!rejected.valid,"surviving managed objects are not silently requalified");
+  Resources fresh{};create(fresh);native_mesh_source::TransportWitness afterReset{};
+  Check(witness(fresh,afterReset)&&current(afterReset)&&afterReset.vertexGeneration>beforeReset.vertexGeneration&&
+    afterReset.indexGeneration>beforeReset.indexGeneration&&afterReset.declarationGeneration>beforeReset.declarationGeneration,
+    "new actual Creates restore qualification with new observation generations");
+  // No buffers/declarations were bound or submitted by this fixture.
+  release(retained);release(fresh);Check(!current(afterReset),"post-reset final Release again retires witness");
+  Check(apiDraws==beforeDraws&&materialChannelsSubmitted==beforeSubmits,"transport lifecycle fixture issues no API geometry or material draws");
+  nativeTransportChecks+=checks-initialChecks;
+}
 static void NativeRanges() {
   namespace source=native_mesh_source;
   source::Bytes partial{};partial.data.resize(16);partial.partial=true;
@@ -227,6 +395,8 @@ int main() {
     ~Watchdog(){SetEvent(stop);WaitForSingleObject(thread,1000);CloseHandle(thread);CloseHandle(stop);}
   } watchdog;
   frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;preserveUnlitColor=false;
+  Check(!native_transport_source::enabled&&native_transport_source::records.empty(),"fresh transport registry before device creation");
+  native_transport_source::enabled=true;++nativeTransportChecks;
   Check(GetFullPathNameW(L"assets",MAX_PATH,surfaceAssetDirectory,nullptr)!=0,"asset directory");
   Check(CreateDirectoryW(surfaceAssetDirectory,nullptr)!=0,"fresh evidence directory");
   remixapi_Interface recording{};recording.SetConfigVariable=Config;recording.CreateMaterial=Material;recording.CreateMesh=Mesh;
@@ -239,6 +409,10 @@ int main() {
   D3DPRESENT_PARAMETERS pp{};pp.Windowed=TRUE;pp.SwapEffect=D3DSWAPEFFECT_DISCARD;pp.hDeviceWindow=hwnd;
   pp.BackBufferWidth=64;pp.BackBufferHeight=64;pp.BackBufferFormat=D3DFMT_X8R8G8B8;pp.EnableAutoDepthStencil=TRUE;pp.AutoDepthStencilFormat=D3DFMT_D24S8;
   IDirect3DDevice9* d=nullptr;Hr(d3d->CreateDevice(0,D3DDEVTYPE_HAL,hwnd,D3DCREATE_SOFTWARE_VERTEXPROCESSING,&pp,&d),"real device with production hooks");
+#if defined(_M_IX86)
+  NativeTransport(d,pp);
+  NativeTexture(d,pp);
+#endif
   D3DMATRIX identity{},projection{};identity._11=identity._22=identity._33=identity._44=1;
   projection._11=projection._22=projection._33=projection._34=1;projection._43=-.1f;
   Hr(d->SetTransform(D3DTS_WORLD,&identity),"world");Hr(d->SetTransform(D3DTS_VIEW,&identity),"view");Hr(d->SetTransform(D3DTS_PROJECTION,&projection),"projection");
@@ -265,6 +439,30 @@ int main() {
   Hr(d->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_MODULATE),"alpha operation");Hr(d->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE),"alpha texture");
   Hr(d->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE),"alpha diffuse");Hr(d->SetTextureStageState(1,D3DTSS_COLOROP,D3DTOP_DISABLE),"single stage");
   Hr(d->SetSamplerState(0,D3DSAMP_MAGFILTER,D3DTEXF_POINT),"point sampler");
+  {
+    const auto previousOpaque=opaqueAlphaTest,previousComparison=keepTrivialAlphaTestForComparison;
+    const D3DRENDERSTATETYPE states[]={D3DRS_ALPHATESTENABLE,D3DRS_ALPHAFUNC,D3DRS_ALPHAREF,D3DRS_ALPHABLENDENABLE};
+    DWORD saved[4]{};for(unsigned i=0;i<4;++i)Hr(d->GetRenderState(states[i],&saved[i]),"save alpha provenance state");
+    opaqueAlphaTest=true;keepTrivialAlphaTestForComparison=false;
+    Hr(d->SetRenderState(D3DRS_ALPHATESTENABLE,TRUE),"enable trivial alpha input");
+    Hr(d->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL),"native alpha input");
+    Hr(d->SetRenderState(D3DRS_ALPHAREF,0),"trivial reference");
+    Hr(d->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE),"opaque provenance draw");
+    {
+      ScopedOpaqueAlphaTest adjustment(d);DWORD actual=0,input=0;
+      Hr(d->GetRenderState(D3DRS_ALPHAFUNC,&actual),"read adjusted device alpha");
+      Check(adjustment.changed&&actual==D3DCMP_ALWAYS,"real device normalization retains its established result");
+      Check(adjustment.RecoverInput(d,D3DRS_ALPHAFUNC,actual,input)&&input==D3DCMP_GREATEREQUAL,
+        "same live scope recovers actual native input for independent comparison");
+      Check(!adjustment.RecoverInput(nullptr,D3DRS_ALPHAFUNC,actual,input),"foreign device gets no adjustment provenance");
+      Check(!adjustment.RecoverInput(d,D3DRS_ZFUNC,actual,input),"unrelated device state gets no alpha provenance");
+      Check(!adjustment.RecoverInput(d,D3DRS_ALPHAFUNC,D3DCMP_LESS,input),"unexpected current state cannot be reinterpreted");
+    }
+    DWORD restored=0;Hr(d->GetRenderState(D3DRS_ALPHAFUNC,&restored),"alpha restored after scope");
+    Check(restored==D3DCMP_GREATEREQUAL,"comparison provenance does not change restoration");
+    for(unsigned i=0;i<4;++i)Hr(d->SetRenderState(states[i],saved[i]),"restore alpha provenance state");
+    opaqueAlphaTest=previousOpaque;keepTrivialAlphaTestForComparison=previousComparison;
+  }
   auto draw=[&](){ClearSurfaceBases();Hr(d->BeginScene(),"begin");Hr(d->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP,0,0,4,0,2),"production draw");Hr(d->EndScene(),"end");};
   draw();Check(materialChannelsSubmitted==1&&apiDraws==1,"production draw reaches API");
   Check(lastEmission.empty(),"unlit input creates no inferred emission");Check(!lastBlend.alphaBlendEnabled&&lastBlend.alphaTestCompareOp==7,"disabled alpha and stale blend state preserved");
@@ -316,7 +514,14 @@ int main() {
   draw();Check(materialChannelsSubmitted==litSubmitted,"unrepresentable independent vertex ambient retains original draw");
   Hr(d->SetTexture(0,nullptr),"unbind texture");Check(texture->Release()==0,"texture final release");Check(surfaceChannelTextureHashes.empty(),"released texture identity removed");
   Hr(d->SetStreamSource(0,nullptr,0,0),"unbind vertices");Hr(d->SetIndices(nullptr),"unbind indices");vb->Release();ib->Release();
+  {std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(!native_transport_source::records.count(vb)&&!native_transport_source::records.count(ib),"main integration final buffer releases retire live transport records");++nativeTransportChecks;}
   frameId=330;RetireSurfaceResources();Check(surfaceMeshes.empty()&&surfaceMaterials.empty()&&surfaceMeshBytes==0,"all API resources retired");
-  d->Release();d3d->Release();DestroyWindow(hwnd);
-  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"nativeMaterialChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,nativeMaterialChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
+  const auto deviceReferences=d->Release();
+  {std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(deviceReferences==0,"transport registry retains no extra device reference");++nativeTransportChecks;
+    bool hasDeviceRecord=false;for(const auto& entry:native_transport_source::records)if(entry.second.device==d)hasDeviceRecord=true;
+    Check(!hasDeviceRecord,"final real device Release leaves no live transport record");++nativeTransportChecks;}
+  native_transport_source::enabled=false;d3d->Release();DestroyWindow(hwnd);
+  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"nativeMaterialChecks\":%u,\"nativeTransportChecks\":%u,\"nativeTextureChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,nativeMaterialChecks,nativeTransportChecks,nativeTextureChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
 }

@@ -61,6 +61,9 @@ namespace native_mesh_source { static void Initialize(); static void EndFrame();
 namespace native_camera_source { static void Initialize(); static void EndFrame(); }
 namespace native_material_source { static void Initialize(); static void EndFrame(); }
 namespace native_owner_source { static void Initialize(); static void EndFrame(); }
+namespace native_update_source { static void Initialize(); static void EndFrame(); }
+namespace native_transport_source { static void Initialize(); static void EndFrame(); }
+namespace independent_scene_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 
 static void Initialize() {
@@ -125,6 +128,9 @@ static void Initialize() {
   native_camera_source::Initialize();
   native_material_source::Initialize();
   native_owner_source::Initialize();
+  native_update_source::Initialize();
+  native_transport_source::Initialize();
+  independent_scene_source::Initialize();
   InitializeSceneAudit();
   material_audit::Initialize();
 }
@@ -157,7 +163,10 @@ static void Patch(void* object, unsigned slot, void* function) {
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
 #include "winx_native_mesh_source.h"
+#include "winx_native_transport_source.h"
+static bool CameraDrawsTracked(IDirect3DDevice9* device);
 #include "winx_native_camera_source.h"
+#include "winx_native_update_source.h"
 #include "winx_shader_semantics.h"
 #include "winx_native_draw_audit.h"
 
@@ -453,18 +462,23 @@ static bool SkipLegacyProjectedShadow(IDirect3DDevice9* d,D3DPRIMITIVETYPE type)
 // that identity explicitly for opaque world passes: Remix otherwise carries
 // their vertex alpha into ray visibility, exposing sky through terrain blends.
 // Leave the game's cached state intact and restore the device immediately.
+static bool TrivialOpaqueAlphaTest(DWORD enabled,DWORD function,DWORD reference,
+                                  DWORD blend,DWORD source,DWORD destination,DWORD operation) {
+  return enabled&&function==D3DCMP_GREATEREQUAL&&!reference&&
+    (!blend||(source==D3DBLEND_ONE&&destination==D3DBLEND_ZERO&&operation==D3DBLENDOP_ADD));
+}
 struct ScopedOpaqueAlphaTest {
-  IDirect3DDevice9* device; bool changed=false;
+  IDirect3DDevice9* device; bool changed=false; DWORD originalFunction=D3DCMP_GREATEREQUAL;
   explicit ScopedOpaqueAlphaTest(IDirect3DDevice9* d):device(d) {
     if(!opaqueAlphaTest || keepTrivialAlphaTestForComparison || uiStarted.count(d)) return;
     DWORD enabled=0,func=0,ref=1,blend=0,src=0,dst=0,op=0;
-    if(FAILED(d->GetRenderState(D3DRS_ALPHATESTENABLE,&enabled)) || !enabled ||
-       FAILED(d->GetRenderState(D3DRS_ALPHAFUNC,&func)) || func!=D3DCMP_GREATEREQUAL ||
-       FAILED(d->GetRenderState(D3DRS_ALPHAREF,&ref)) || ref!=0 ||
+    if(FAILED(d->GetRenderState(D3DRS_ALPHATESTENABLE,&enabled)) ||
+       FAILED(d->GetRenderState(D3DRS_ALPHAFUNC,&func)) ||
+       FAILED(d->GetRenderState(D3DRS_ALPHAREF,&ref)) ||
        FAILED(d->GetRenderState(D3DRS_ALPHABLENDENABLE,&blend))) return;
-    if(blend && (FAILED(d->GetRenderState(D3DRS_SRCBLEND,&src)) || src!=D3DBLEND_ONE ||
-       FAILED(d->GetRenderState(D3DRS_DESTBLEND,&dst)) || dst!=D3DBLEND_ZERO ||
-       FAILED(d->GetRenderState(D3DRS_BLENDOP,&op)) || op!=D3DBLENDOP_ADD)) return;
+    if(blend && (FAILED(d->GetRenderState(D3DRS_SRCBLEND,&src)) ||
+       FAILED(d->GetRenderState(D3DRS_DESTBLEND,&dst)) || FAILED(d->GetRenderState(D3DRS_BLENDOP,&op)))) return;
+    if(!TrivialOpaqueAlphaTest(enabled,func,ref,blend,src,dst,op))return;
     D3DMATRIX projection{};
     if(FAILED(d->GetTransform(D3DTS_PROJECTION,&projection)) || projection._34!=1.f || projection._44!=0.f) return;
     IDirect3DVertexShader9* vs=nullptr;IDirect3DPixelShader9* ps=nullptr;
@@ -475,11 +489,17 @@ struct ScopedOpaqueAlphaTest {
     const auto known=primaryTargets.find(d);
     const bool primary=target && known!=primaryTargets.end() && target==known->second;
     if(target) target->Release();if(!primary) return;
-    changed=SUCCEEDED(d->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_ALWAYS));
+    originalFunction=func;changed=SUCCEEDED(d->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_ALWAYS));
     if(changed && logFile && (frameId<traceUntilFrame || frameId%300==0))
       fprintf(logFile,"{\"event\":\"opaque_alpha_test\",\"frame\":%u,\"draw\":%u}\n",frameId,drawId);
   }
   ~ScopedOpaqueAlphaTest() {if(changed) device->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL);}
+  // Own comparison provenance for this live draw scope only. The current
+  // device state is still ALWAYS; native input is the saved pre-adapter value.
+  bool RecoverInput(IDirect3DDevice9* d,D3DRENDERSTATETYPE state,DWORD current,DWORD& input) const {
+    if(!changed||device!=d||state!=D3DRS_ALPHAFUNC||current!=D3DCMP_ALWAYS)return false;
+    input=originalFunction;return true;
+  }
 };
 
 // Trigger Remix's UI boundary with a zero-area primitive. Real UI draws retain
@@ -572,9 +592,9 @@ static void ResubmitTextures(IDirect3DDevice9* device) {
 #include "winx_material_audit.h"
 
 template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCall(Buffer* b,UINT offset,UINT size,void** data,DWORD flags) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
   const HRESULT hr=Original<F>(b,11)(b,offset,size,data,flags);
-  std::lock_guard<std::recursive_mutex> lock(guard);
   if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))native_mesh_source::Forget(b);
   if(autoSurfaceRoles && SUCCEEDED(hr) && !(flags&D3DLOCK_READONLY)) ClearSurfaceBases();
   Desc desc{}; b->GetDesc(&desc);
@@ -614,9 +634,17 @@ template<class Buffer> static ULONG STDMETHODCALLTYPE SurfaceBufferRelease(Buffe
   using F=ULONG(STDMETHODCALLTYPE*)(Buffer*);const ULONG refs=Original<F>(b,2)(b);
   if(!refs && autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(b);}
   if(!refs)native_mesh_source::Forget(b);
+  if(!refs)native_transport_source::Forget(b);
   return refs;
 }
+static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
+static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9*);
+static bool TransportDeviceHooked(IDirect3DDevice9* device) {
+  const auto table=*reinterpret_cast<void***>(device);
+  return table[2]==reinterpret_cast<void*>(DeviceRelease)&&table[16]==reinterpret_cast<void*>(Reset);
+}
 static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD usage,DWORD fvf,D3DPOOL pool,IDirect3DVertexBuffer9** result,HANDLE* shared) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,DWORD,D3DPOOL,IDirect3DVertexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,26)(d,size,usage,fvf,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
@@ -624,10 +652,20 @@ static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD us
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>));
+    if(native_transport_source::enabled) {
+      D3DVERTEXBUFFER_DESC desc{};
+      // A successful Create result still owns its initial reference here.
+      if(TransportDeviceHooked(d)&&(*reinterpret_cast<void***>(*result))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>)&&
+         (*reinterpret_cast<void***>(*result))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>)&&
+         (*reinterpret_cast<void***>(*result))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>)&&
+         SUCCEEDED((*result)->GetDesc(&desc)))native_transport_source::Remember(d,*result,native_transport_source::Kind::Vertex,desc.Size,desc.Format);
+      else {native_transport_source::Forget(*result);++native_transport_source::rejected;}
+    }
   }
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DIndexBuffer9** result,HANDLE* shared) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DIndexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,27)(d,size,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
@@ -635,8 +673,47 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     Patch(*result,11,reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>));
     Patch(*result,12,reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>));
+    if(native_transport_source::enabled) {
+      D3DINDEXBUFFER_DESC desc{};
+      if(TransportDeviceHooked(d)&&(*reinterpret_cast<void***>(*result))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>)&&
+         (*reinterpret_cast<void***>(*result))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>)&&
+         (*reinterpret_cast<void***>(*result))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>)&&
+         SUCCEEDED((*result)->GetDesc(&desc)))native_transport_source::Remember(d,*result,native_transport_source::Kind::Index,desc.Size,desc.Format);
+      else {native_transport_source::Forget(*result);++native_transport_source::rejected;}
+    }
   }
   return hr;
+}
+
+static ULONG STDMETHODCALLTYPE DeclarationRelease(IDirect3DVertexDeclaration9* declaration) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DVertexDeclaration9*);
+  const auto references=Original<F>(declaration,2)(declaration);
+  if(!references)native_transport_source::Forget(declaration);
+  return references;
+}
+static HRESULT STDMETHODCALLTYPE CreateDeclaration(IDirect3DDevice9* device,const D3DVERTEXELEMENT9* elements,
+                                                    IDirect3DVertexDeclaration9** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const D3DVERTEXELEMENT9*,IDirect3DVertexDeclaration9**);
+  const auto hr=Original<F>(device,86)(device,elements,result);
+  if(SUCCEEDED(hr)&&result&&*result&&native_transport_source::enabled) {
+    Patch(*result,2,reinterpret_cast<void*>(DeclarationRelease));
+    D3DVERTEXELEMENT9 actual[MAXD3DDECLLENGTH+1]{};UINT count=MAXD3DDECLLENGTH+1;
+    // Call only the owned result before returning it to the game. Subsequent
+    // readers use this copy, never a raw native declaration method pointer.
+    if(TransportDeviceHooked(device)&&(*reinterpret_cast<void***>(*result))[2]==reinterpret_cast<void*>(DeclarationRelease)&&
+       SUCCEEDED((*result)->GetDeclaration(actual,&count))&&count&&count<=MAXD3DDECLLENGTH+1)
+      native_transport_source::Remember(device,*result,native_transport_source::Kind::Declaration,0,D3DFMT_UNKNOWN,actual,count);
+    else {native_transport_source::Forget(*result);++native_transport_source::rejected;}
+  }
+  return hr;
+}
+static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9* device) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
+  using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DDevice9*);const auto references=Original<F>(device,2)(device);
+  if(!references)native_transport_source::RetireDevice(device);
+  return references;
 }
 
 // Optional diagnostic control through the stock public Remix API. The file is
@@ -662,6 +739,9 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepIndependentScene"&&independent_scene_source::submitEnabled&&(value=="True"||value=="False")) {
+      independent_scene_source::keepForComparison=value=="True";continue;
+    }
     if(key=="winx.keepSceneGeometry" && sceneGeometryEnabled && (value=="True" || value=="False")) {
       const bool keep=value=="True";
 #if defined(_M_IX86)
@@ -741,6 +821,9 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
   native_owner_source::EndFrame();
+  native_update_source::EndFrame();
+  native_transport_source::EndFrame();
+  independent_scene_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
   RECT source{},destination{};
@@ -770,33 +853,160 @@ static ULONG STDMETHODCALLTYPE ChannelTextureRelease(IDirect3DTexture9* texture)
   using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DTexture9*);
   std::lock_guard<std::recursive_mutex> lock(guard);
   const auto refs=Original<F>(texture,2)(texture);
-  if(!refs)InvalidateSurfaceTexture(texture);return refs;
+  if(!refs){InvalidateSurfaceTexture(texture);native_transport_source::ForgetTexture(texture);}return refs;
+}
+static void* OwnedCanonicalIdentity(void* object) {
+  // object is an owned successful API result or a currently executing receiver.
+  // Call original QI to avoid recursion through our alias-escape observer.
+  using F=HRESULT(STDMETHODCALLTYPE*)(void*,REFIID,void**);
+  const auto table=*reinterpret_cast<void***>(object);const auto found=originals.find(table);
+  auto query=reinterpret_cast<F>(found!=originals.end()&&found->second.count(0)?found->second.at(0):table[0]);
+  IUnknown* identity=nullptr;const auto hr=query(object,__uuidof(IUnknown),reinterpret_cast<void**>(&identity));
+  if(FAILED(hr)||!identity)return nullptr;void* result=identity;identity->Release();return result;
+}
+static void BlockTextureAlias(IDirect3DTexture9* texture) {
+  InvalidateSurfaceTexture(texture);const auto found=native_transport_source::textures.find(texture);
+  if(found!=native_transport_source::textures.end())native_transport_source::BlockTextureDevice(found->second.value.device);
+}
+static bool TextureIID(REFIID iid) {
+  return iid==__uuidof(IUnknown)||iid==__uuidof(IDirect3DResource9)||iid==__uuidof(IDirect3DBaseTexture9)||iid==__uuidof(IDirect3DTexture9);
+}
+static HRESULT STDMETHODCALLTYPE ChannelTextureQuery(IDirect3DTexture9* texture,REFIID iid,void** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,REFIID,void**);
+  const auto hr=Original<F>(texture,0)(texture,iid,result);
+  if(SUCCEEDED(hr)&&result&&*result&&(!TextureIID(iid)||*result!=texture))BlockTextureAlias(texture);return hr;
 }
 static HRESULT STDMETHODCALLTYPE ChannelTextureLock(IDirect3DTexture9* texture,UINT level,D3DLOCKED_RECT* rect,const RECT* region,DWORD flags) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,UINT,D3DLOCKED_RECT*,const RECT*,DWORD);
   std::lock_guard<std::recursive_mutex> lock(guard);
   const auto hr=Original<F>(texture,19)(texture,level,rect,region,flags);
+  native_transport_source::TextureLockResult(texture,level,flags,hr);
   if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))InvalidateSurfaceTexture(texture);return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelTextureUnlock(IDirect3DTexture9* texture,UINT level) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,UINT);
+  const auto hr=Original<F>(texture,20)(texture,level);native_transport_source::TextureUnlockResult(texture,level,hr);return hr;
+}
+static void STDMETHODCALLTYPE ChannelTextureGenerateMips(IDirect3DTexture9* texture) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=void(STDMETHODCALLTYPE*)(IDirect3DTexture9*);
+  InvalidateSurfaceTexture(texture);native_transport_source::ForgetTexture(texture);Original<F>(texture,16)(texture);
+}
+static void InvalidateOwnedSurfaceTexture(IDirect3DSurface9* surface) {
+  // Known owner is only a hash-cache key here; no raw COM method is called.
+  if(auto texture=native_transport_source::SurfaceTexture(surface)){InvalidateSurfaceTexture(texture);return;}
+  IDirect3DTexture9* texture=nullptr;
+  if(SUCCEEDED(surface->GetContainer(__uuidof(IDirect3DTexture9),reinterpret_cast<void**>(&texture)))&&texture) {
+    InvalidateSurfaceTexture(texture);texture->Release();
+  }
+}
+static ULONG STDMETHODCALLTYPE ChannelSurfaceRelease(IDirect3DSurface9* surface) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DSurface9*);
+  const auto texture=native_transport_source::SurfaceTexture(surface);const auto refs=Original<F>(surface,2)(surface);
+  if(!refs){if(texture)InvalidateSurfaceTexture(texture);native_transport_source::ForgetTextureSurface(surface);}return refs;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceQuery(IDirect3DSurface9* surface,REFIID iid,void** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,REFIID,void**);
+  const auto texture=native_transport_source::SurfaceTexture(surface);const auto hr=Original<F>(surface,0)(surface,iid,result);
+  if(texture&&SUCCEEDED(hr)&&result&&*result&&(*result!=surface||
+    (iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DResource9)&&iid!=__uuidof(IDirect3DSurface9))))BlockTextureAlias(texture);return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceContainer(IDirect3DSurface9* surface,REFIID iid,void** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,REFIID,void**);
+  const auto texture=native_transport_source::SurfaceTexture(surface);const auto hr=Original<F>(surface,11)(surface,iid,result);
+  if(texture&&SUCCEEDED(hr)&&result&&*result&&(!TextureIID(iid)||*result!=texture))BlockTextureAlias(texture);return hr;
 }
 static HRESULT STDMETHODCALLTYPE ChannelSurfaceLock(IDirect3DSurface9* surface,D3DLOCKED_RECT* rect,const RECT* region,DWORD flags) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,D3DLOCKED_RECT*,const RECT*,DWORD);
   std::lock_guard<std::recursive_mutex> lock(guard);
   const auto hr=Original<F>(surface,13)(surface,rect,region,flags);
-  if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY)) {
-    IDirect3DTexture9* texture=nullptr;
-    if(SUCCEEDED(surface->GetContainer(__uuidof(IDirect3DTexture9),reinterpret_cast<void**>(&texture)))&&texture) {
-      InvalidateSurfaceTexture(texture);texture->Release();
-    }
-  }
+  native_transport_source::SurfaceLockResult(surface,flags,hr);
+  if(SUCCEEDED(hr)&&!(flags&D3DLOCK_READONLY))InvalidateOwnedSurfaceTexture(surface);
   return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceUnlock(IDirect3DSurface9* surface) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*);
+  const auto hr=Original<F>(surface,14)(surface);native_transport_source::SurfaceUnlockResult(surface,hr);return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceDC(IDirect3DSurface9* surface,HDC* dc) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,HDC*);
+  const auto hr=Original<F>(surface,15)(surface,dc);native_transport_source::SurfaceDCResult(surface,SUCCEEDED(hr)&&dc?*dc:nullptr,hr);
+  if(SUCCEEDED(hr))InvalidateOwnedSurfaceTexture(surface);return hr;
+}
+static HRESULT STDMETHODCALLTYPE ChannelSurfaceReleaseDC(IDirect3DSurface9* surface,HDC dc) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSurface9*,HDC);
+  const auto hr=Original<F>(surface,16)(surface,dc);native_transport_source::SurfaceReleaseDCResult(surface,dc,hr);return hr;
 }
 static HRESULT STDMETHODCALLTYPE ChannelTextureSurface(IDirect3DTexture9* texture,UINT level,IDirect3DSurface9** result) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DTexture9*,UINT,IDirect3DSurface9**);
   std::lock_guard<std::recursive_mutex> lock(guard);
   const auto hr=Original<F>(texture,18)(texture,level,result);
-  if(SUCCEEDED(hr)&&result&&*result)Patch(*result,13,reinterpret_cast<void*>(ChannelSurfaceLock));return hr;
+  if(SUCCEEDED(hr)&&result&&*result) {
+    Patch(*result,13,reinterpret_cast<void*>(ChannelSurfaceLock));
+    if(native_transport_source::enabled) {
+      Patch(*result,0,reinterpret_cast<void*>(ChannelSurfaceQuery));Patch(*result,2,reinterpret_cast<void*>(ChannelSurfaceRelease));
+      Patch(*result,11,reinterpret_cast<void*>(ChannelSurfaceContainer));Patch(*result,14,reinterpret_cast<void*>(ChannelSurfaceUnlock));
+      Patch(*result,15,reinterpret_cast<void*>(ChannelSurfaceDC));Patch(*result,16,reinterpret_cast<void*>(ChannelSurfaceReleaseDC));
+      const auto table=*reinterpret_cast<void***>(*result);void* identity=OwnedCanonicalIdentity(*result);
+      if(table[0]!=reinterpret_cast<void*>(ChannelSurfaceQuery)||table[2]!=reinterpret_cast<void*>(ChannelSurfaceRelease)||
+         table[11]!=reinterpret_cast<void*>(ChannelSurfaceContainer)||table[13]!=reinterpret_cast<void*>(ChannelSurfaceLock)||
+         table[14]!=reinterpret_cast<void*>(ChannelSurfaceUnlock)||table[15]!=reinterpret_cast<void*>(ChannelSurfaceDC)||
+         table[16]!=reinterpret_cast<void*>(ChannelSurfaceReleaseDC)||!identity)BlockTextureAlias(texture);
+      else native_transport_source::RememberSurface(texture,*result,identity,level);
+    }
+  }return hr;
 }
+static HRESULT STDMETHODCALLTYPE ChannelGetTexture(IDirect3DDevice9* device,DWORD stage,IDirect3DBaseTexture9** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,DWORD,IDirect3DBaseTexture9**);
+  const auto hr=Original<F>(device,64)(device,stage,result);
+  if(native_transport_source::enabled&&SUCCEEDED(hr)&&result&&*result) {
+    const auto identity=OwnedCanonicalIdentity(*result);
+    if(!identity)native_transport_source::BlockTextureDevice(device);
+    else if(auto texture=native_transport_source::TextureByIdentity(identity))
+      if(texture!=*result)BlockTextureAlias(texture);
+  }return hr;
+}
+static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9* device,REFIID iid,void** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,REFIID,void**);
+  const auto hr=Original<F>(device,0)(device,iid,result);
+  if(SUCCEEDED(hr)&&result&&*result&&(*result!=device||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DDevice9))))
+    native_transport_source::BlockTextureDevice(device);
+  return hr;
+}
+static void RetireFrontBufferDestination(IDirect3DSurface9* surface) {
+  if(auto texture=native_transport_source::SurfaceTexture(surface)) {
+    InvalidateSurfaceTexture(texture);native_transport_source::ForgetTexture(texture);
+  }
+}
+static HRESULT STDMETHODCALLTYPE TextureFrontBuffer(IDirect3DDevice9* device,UINT swap,IDirect3DSurface9* destination) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,IDirect3DSurface9*);
+  RetireFrontBufferDestination(destination);return Original<F>(device,33)(device,swap,destination);
+}
+static HRESULT STDMETHODCALLTYPE TextureSwapFrontBuffer(IDirect3DSwapChain9* swap,IDirect3DSurface9* destination) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,IDirect3DSurface9*);
+  RetireFrontBufferDestination(destination);return Original<F>(swap,4)(swap,destination);
+}
+static HRESULT STDMETHODCALLTYPE TextureSwapQuery(IDirect3DSwapChain9* swap,REFIID iid,void** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,REFIID,void**);
+  const auto hr=Original<F>(swap,0)(swap,iid,result);
+  if(SUCCEEDED(hr)&&result&&*result&&(*result!=swap||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DSwapChain9)))) {
+    IDirect3DDevice9* device=nullptr;
+    if(SUCCEEDED(swap->GetDevice(&device))&&device){native_transport_source::BlockTextureDevice(device);device->Release();}
+    else {native_transport_source::textureCoverage=false;native_transport_source::textures.clear();native_transport_source::textureSurfaces.clear();}
+  }return hr;
+}
+static bool PatchTextureSwap(IDirect3DSwapChain9* swap) {
+  Patch(swap,0,reinterpret_cast<void*>(TextureSwapQuery));Patch(swap,4,reinterpret_cast<void*>(TextureSwapFrontBuffer));
+  const auto table=*reinterpret_cast<void***>(swap);
+  return table[0]==reinterpret_cast<void*>(TextureSwapQuery)&&table[4]==reinterpret_cast<void*>(TextureSwapFrontBuffer);
+}
+static HRESULT STDMETHODCALLTYPE TextureAdditionalSwap(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS* parameters,IDirect3DSwapChain9** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*,IDirect3DSwapChain9**);
+  const auto hr=Original<F>(device,13)(device,parameters,result);
+  if(SUCCEEDED(hr)&&result&&*result&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(device);return hr;
+}
+static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
 static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,UINT,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DTexture9**,HANDLE*);
   UINT forwardedLevels=levels;
   // D3D9 halves each dimension with truncation down to 1. The 1.5.2 bridge
@@ -808,10 +1018,30 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
   const HRESULT hr=Original<F>(d,23)(d,width,height,forwardedLevels,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
     submittedTextures.erase(*result);readTextures.erase(*result);InvalidateSurfaceTexture(*result);
-    if(materialChannelsEnabled) {
+    if(materialChannelsEnabled||native_transport_source::enabled) {
       Patch(*result,2,reinterpret_cast<void*>(ChannelTextureRelease));
       Patch(*result,18,reinterpret_cast<void*>(ChannelTextureSurface));
       Patch(*result,19,reinterpret_cast<void*>(ChannelTextureLock));
+    }
+    if(native_transport_source::enabled) {
+      native_transport_source::ForgetTexture(*result);
+      Patch(*result,0,reinterpret_cast<void*>(ChannelTextureQuery));Patch(*result,20,reinterpret_cast<void*>(ChannelTextureUnlock));
+      Patch(*result,16,reinterpret_cast<void*>(ChannelTextureGenerateMips));
+      const auto table=*reinterpret_cast<void***>(*result),deviceTable=*reinterpret_cast<void***>(d);
+      const bool hooked=TransportDeviceHooked(d)&&deviceTable[0]==reinterpret_cast<void*>(TextureDeviceQuery)&&
+        deviceTable[13]==reinterpret_cast<void*>(TextureAdditionalSwap)&&
+        deviceTable[14]==reinterpret_cast<void*>(GetSwapChain)&&deviceTable[33]==reinterpret_cast<void*>(TextureFrontBuffer)&&
+        deviceTable[64]==reinterpret_cast<void*>(ChannelGetTexture)&&table[0]==reinterpret_cast<void*>(ChannelTextureQuery)&&
+        table[2]==reinterpret_cast<void*>(ChannelTextureRelease)&&table[16]==reinterpret_cast<void*>(ChannelTextureGenerateMips)&&
+        table[18]==reinterpret_cast<void*>(ChannelTextureSurface)&&table[19]==reinterpret_cast<void*>(ChannelTextureLock)&&
+        table[20]==reinterpret_cast<void*>(ChannelTextureUnlock);
+      if(!hooked)native_transport_source::BlockTextureDevice(d);
+      else if(usage==0&&pool==D3DPOOL_MANAGED&&(format==D3DFMT_A8R8G8B8||format==D3DFMT_X8R8G8B8)) {
+        const UINT count=(*result)->GetLevelCount();D3DSURFACE_DESC layout[32]{};bool complete=count>0&&count<=32;
+        for(UINT level=0;complete&&level<count;++level)complete=SUCCEEDED((*result)->GetLevelDesc(level,&layout[level]));
+        if(complete)native_transport_source::RememberTexture(d,*result,OwnedCanonicalIdentity(*result),layout,count);
+        else ++native_transport_source::textureRejects;
+      }
     }
   }
   if(logFile && textureRecords++<2048) {
@@ -828,6 +1058,9 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
   native_owner_source::EndFrame();
+  native_update_source::EndFrame();
+  native_transport_source::EndFrame();
+  independent_scene_source::EndFrame();
   material_audit::EndFrame();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DSwapChain9*,const RECT*,const RECT*,HWND,const RGNDATA*,DWORD);
   const HRESULT hr=Original<F>(d,3)(d,a,b,c,e,flags);
@@ -839,12 +1072,17 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDirect3DSwapChain9** result) {
+  std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
   const HRESULT hr=Original<F>(d,14)(d,index,result);
-  if(SUCCEEDED(hr) && result && *result) Patch(*result,3,reinterpret_cast<void*>(SwapPresent));
+  if(SUCCEEDED(hr) && result && *result) {
+    if(sizeof(void*)==8)Patch(*result,3,reinterpret_cast<void*>(SwapPresent));
+    if(native_transport_source::enabled&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(d);
+  }
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
+  {std::lock_guard<std::recursive_mutex> lock(guard);native_transport_source::BeginReset(d);}
   native_camera_source::Reset();
   ResetSceneLights();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
@@ -858,6 +1096,7 @@ static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS
     RememberPresentation(d,*p,creation.hFocusWindow);
   }
   std::lock_guard<std::recursive_mutex> lock(guard);
+  native_transport_source::EndReset(d);
   if(logFile) { fprintf(logFile,"{\"event\":\"reset\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;
 }
@@ -875,6 +1114,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawIndexedPrimitive",t,count);
+  if(independent_scene_source::SkipDirectDraw(d,{t,base,min,num,start,count}))return D3D_OK;
   if(SkipLegacyProjectedShadow(d,t)) return D3D_OK;
   ScopedOpaqueAlphaTest alphaTest(d);
   ResubmitTextures(d);
@@ -885,7 +1125,7 @@ static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYP
     material_channels::Input input;
     if(material_channels::Read(d,input,preserveUnlitColor)) {
       const auto hash=BoundChannelTextureHash(d);
-      if(hash&&SubmitSurfaceOverlay(d,t,base,min,num,start,count,hash,&input)) {
+      if(hash&&SubmitSurfaceOverlay(d,t,base,min,num,start,count,hash,&input,&alphaTest)) {
         ++materialChannelsSubmitted;return surfaceRole.complete(D3D_OK);
       }
       ++materialChannelsRejected;
@@ -920,6 +1160,12 @@ static HRESULT STDMETHODCALLTYPE DrawIndexedUP(IDirect3DDevice9* d,D3DPRIMITIVET
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRIMITIVETYPE,UINT,UINT,UINT,const void*,D3DFORMAT,const void*,UINT);
   return AuditShaderDrawResult(Original<F>(d,84)(d,t,min,num,count,indices,format,data,stride));
 }
+static bool CameraDrawsTracked(IDirect3DDevice9* device) {
+  if(!device)return false;
+  const auto table=*reinterpret_cast<void***>(device);
+  return table[81]==reinterpret_cast<void*>(Draw)&&table[82]==reinterpret_cast<void*>(DrawIndexed)&&
+    table[83]==reinterpret_cast<void*>(DrawUP)&&table[84]==reinterpret_cast<void*>(DrawIndexedUP);
+}
 static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVTYPE type,HWND window,DWORD flags,D3DPRESENT_PARAMETERS* p,IDirect3DDevice9** result) {
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3D9*,UINT,D3DDEVTYPE,HWND,DWORD,D3DPRESENT_PARAMETERS*,IDirect3DDevice9**);
   LogPresentation("create_device_request",p,window);
@@ -937,6 +1183,16 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     }
     Patch(*result,16,reinterpret_cast<void*>(Reset)); Patch(*result,17,reinterpret_cast<void*>(Present));
     Patch(*result,26,reinterpret_cast<void*>(CreateVB)); Patch(*result,27,reinterpret_cast<void*>(CreateIB));
+    if(native_transport_source::enabled) {
+      Patch(*result,86,reinterpret_cast<void*>(CreateDeclaration));Patch(*result,2,reinterpret_cast<void*>(DeviceRelease));
+      Patch(*result,0,reinterpret_cast<void*>(TextureDeviceQuery));
+      Patch(*result,13,reinterpret_cast<void*>(TextureAdditionalSwap));Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
+      Patch(*result,33,reinterpret_cast<void*>(TextureFrontBuffer));Patch(*result,64,reinterpret_cast<void*>(ChannelGetTexture));
+      IDirect3DSwapChain9* swap=nullptr;
+      if(SUCCEEDED((*result)->GetSwapChain(0,&swap))&&swap) {
+        if(!PatchTextureSwap(swap))native_transport_source::BlockTextureDevice(*result);swap->Release();
+      }else native_transport_source::BlockTextureDevice(*result);
+    }
     Patch(*result,23,reinterpret_cast<void*>(CreateTexture));
     Patch(*result,51,reinterpret_cast<void*>(SetLight));
     Patch(*result,81,reinterpret_cast<void*>(Draw)); Patch(*result,82,reinterpret_cast<void*>(DrawIndexed));

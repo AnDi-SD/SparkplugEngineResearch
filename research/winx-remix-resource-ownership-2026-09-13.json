@@ -1,0 +1,626 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "checkpoint": "own common Remix resource ownership after allocation/API failure",
+  "status": "CPU_PASS_SYSTEM_D3D9_RECORDING_API_PASS_NO_RUNTIME_GAME_PROOF",
+  "historicalPressureCheckpoint": [
+    {
+      "path": "docs/research/winx-remix-resource-pressure-2026-09-13.md",
+      "sha256": "67F255027172D0A042AA549B42DE57FF145D50AC7609A04629CE28D3D476239E",
+      "bytes": 10123
+    },
+    {
+      "path": "research/winx-remix-resource-pressure-2026-09-13.json",
+      "sha256": "E97FB532947F35DD9959B731E23ED415E36F4E9971FF14063E56B7662821F249",
+      "bytes": 28224
+    }
+  ],
+  "provenance": {
+    "kind": "own adapter/backend; not recovered Sparkplug/Winx behavior",
+    "nativeLogicChanged": false,
+    "gameExecutableExecuted": false,
+    "gpuExecuted": true,
+    "installedGameOrRuntimeChangedByThisTask": false,
+    "sourceImplementation": [
+      {
+        "path": "research/rtx-remix/winx_surface_submit.h",
+        "sha256": "725E1C0CD2080D1C5D8080608F38E7B26F11995EE6DA041F420C3FA2544781C5",
+        "bytes": 34300
+      },
+      {
+        "path": "research/rtx-remix/test_resource_ownership.cpp",
+        "sha256": "5D78CB7F2DE659817A89E35284C306C0A273308A2537A33AA0057F29BF0A1843",
+        "bytes": 17407
+      },
+      {
+        "path": "research/rtx-remix/Test-ResourceOwnership.ps1",
+        "sha256": "B6B5695C2431FFFDFCE29A335B3EEACC5BDA53DDDA8E16916FF6E14E7AAB33D7",
+        "bytes": 5001
+      }
+    ],
+    "frozenHeaderSha256": "725E1C0CD2080D1C5D8080608F38E7B26F11995EE6DA041F420C3FA2544781C5",
+    "fullFrozenSourceInventory": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/verification.json",
+    "verifiedSourceHashCount": 52,
+    "gpuExecutor": "root agent; checkpoint author only inspected immutable results/snapshot"
+  },
+  "contract": {
+    "ownership": [
+      "Preallocate pending material/mesh cache node before API Create; mesh sequential indices allocate before Create too.",
+      "Pending handle is null and usable=false. Any observed nonnull Create output is assigned to that owner even on failure or std::bad_alloc.",
+      "Return handle only after SUCCESS, same retirement serial and same frame. Failed/invalid output gets immediate Destroy; failed Destroy retains unusable quarantine, bytes and material dependency for retry.",
+      "Cache emplace/index allocation failure returns null before API Create. Repeated usable keys reuse one owner; pending/quarantine keys reject.",
+      "surface*Creates count observed nonnull handles, including failed API outputs; successful-destruction counters exclude failed Destroy attempts."
+    ],
+    "reentry": [
+      "Existing recursive guard serializes own cache operations. Nested resource creation/pressure rejects while one operation is busy.",
+      "No cache iterator/reference crosses COM/API calls; deletion copies descriptor then refinds by key and handle.",
+      "Retirement invalidates serial/ownership epoch even for empty caches. Busy operation records pending retirement; bounded outer drain releases mesh dependencies before materials.",
+      "A repeatedly failing, reentrant retirement can remain pending. Next creation drains once and rejects if still pending; no cached handle escapes pending retirement."
+    ],
+    "pressure": {
+      "meshLimit": 512,
+      "materialLimit": 256,
+      "meshByteLimit": 67108864,
+      "ttlFrames": 300,
+      "sweepEveryFrames": 30,
+      "scratch": "fixed POD arrays; no scratch heap allocation",
+      "currentFrameProtected": true,
+      "incomingMaterialProtected": true,
+      "failedPressureRetry": "at most one attempt per resource per frame; existing periodic/forced retirement is a separate path"
+    },
+    "fences": {
+      "SurfaceResourceEpoch": "monotonic adapter cache mutation/retirement epoch, guarded by recursive mutex; independent of existing surface-role epoch and native object generation",
+      "SurfaceMeshCurrent": "no API/no allocation; reject null, busy, pending retirement, unusable/missing mesh, optional material mismatch, missing/unusable owned material; not a durable handle lease"
+    },
+    "overlayBadAlloc": "SubmitSurfaceOverlay preserves submitted bool: bad_alloc before successful DrawInstance returns false; after successful DrawInstance returns true so caller cannot duplicate the D3D draw. The latter path is source-reviewed, not exercised by this CPU fixture.",
+    "apiContractBoundary": "A failing Destroy is assumed not to have destroyed the handle, as in the existing backend. GPU/server behavior after a transport fault is outside this fixture."
+  },
+  "validation": {
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-ResourceOwnership.ps1 -Name <fresh-name>",
+    "architecture": "MSVC x86 /std:c++17 /EHsc /MT /O2 /W4",
+    "eachRunBoundSeconds": 30,
+    "results": [
+      {
+        "exeSha256": "E40659E5A0354F89E59E57E4FA261F15BCC2EC5B204FBD78533E83567AE7B89E",
+        "result": {
+          "status": "PASS",
+          "checks": 302,
+          "materialCreates": 23,
+          "meshCreates": 10,
+          "materialDeleteAttempts": 26,
+          "meshDeleteAttempts": 10,
+          "reentryRejected": 9,
+          "remaining": 0,
+          "gpu": false,
+          "nativeCode": false
+        },
+        "test": "test_resource_ownership"
+      },
+      {
+        "exeSha256": "A7D9F474D144799E9A07E4FAD2A2EE573AC9175E081F852FF2DFDB84BACC458E",
+        "result": {
+          "checks": 9379,
+          "meshDestroys": 2579,
+          "materialDestroys": 1304,
+          "injectedFailures": 773,
+          "pressureRequests": 23,
+          "pressureMeshDestroys": 10,
+          "pressureMaterialDestroys": 7,
+          "pressureRejected": 13,
+          "remaining": 0,
+          "status": "PASS"
+        },
+        "test": "test_surface_resources"
+      }
+    ],
+    "processes": [
+      {
+        "exitCode": 0,
+        "pid": 19848,
+        "exe": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\resource-ownership-tests\\ownership-v2\\test_resource_ownership.exe",
+        "timeout": false
+      },
+      {
+        "exitCode": 0,
+        "pid": 12752,
+        "exe": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\resource-ownership-tests\\ownership-v2\\test_surface_resources.exe",
+        "timeout": false
+      }
+    ],
+    "ownershipCases": [
+      "material cache allocation failure before API",
+      "mesh sequential-vector and map-node allocation failure before API",
+      "allocator armed inside successful Create remains unconsumed after API output",
+      "same-key cache reuse",
+      "success-null, failure-null, failure-nonnull, bad_alloc-after-output",
+      "failed/throwing Destroy retains quarantine; retry releases mesh then material",
+      "current-frame pressure protection",
+      "recursive same/different-key resource creation and pressure rejection",
+      "empty-cache in-flight operation retirement fence",
+      "retirement and frame changes during Create cancel stale output",
+      "recursive retirement on Destroy, bounded pending failure and recovery before cache reuse",
+      "noAPI epoch/handle dependency fence",
+      "missing Destroy capability prevents Create",
+      "both real material entry points with explicit existing asset sentinels and null device"
+    ],
+    "assetFixtureBoundary": "Existing-path sentinels only: no DDS decoding/export, texture COM methods or graphics device. Legacy function may load system d3dx9_43.dll to resolve its export; no export call occurs.",
+    "countBoundary": "Checks include recording API ownership assertions and per-resource pressure assertions; counts are not unique scenarios or native coverage."
+  },
+  "failedAttempt": {
+    "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v1",
+    "phase": "x86 compile",
+    "nativeOrGpuRun": false,
+    "reason": "fixture used position.x/position.y for actual remixapi_HardcodedVertex float[3] position; corrected only fixture to position[0]/position[1]",
+    "originalArtifactsPreserved": true
+  },
+  "openBounds": [
+    "No game run, stock Remix client/server resource execution or installation proof in this checkpoint. System D3D9 GPU fixture uses a recording Remix API.",
+    "No full renderer lifecycle closure, device-loss recovery proof, exhaustive concurrency/foreign API callback proof or all-scenes completeness.",
+    "Successful DrawInstance followed by diagnostic bad_alloc has a source catch but no CPU end-to-end draw proof here.",
+    "Independent support-group submission/partial DrawInstance transfer is a separate root stage; this checkpoint only owns API resources."
+  ],
+  "gpuFollowup": {
+    "status": "PASS",
+    "confirmedBy": "root agent and actual saved result/source inspection",
+    "result": {
+      "status": "PASS",
+      "checks": 697,
+      "nativeSourceChecks": 171,
+      "nativeMaterialChecks": 137,
+      "nativeTransportChecks": 53,
+      "nativeTextureChecks": 83,
+      "submitted": 35,
+      "rejected": 5,
+      "meshCreates": 10,
+      "materialCreates": 9,
+      "assetBytes": 2968
+    },
+    "boundary": "actual system d3d9.dll HAL device with production hooks, recording Remix API; no runtime client/server bridge or game execution",
+    "runBoundSeconds": 30,
+    "frozenHeaderMatchesCpu": true,
+    "fixtureEntryLines": [
+      387,
+      404,
+      411
+    ],
+    "sourceInventory": [
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/analyze_light_geometry.cpp",
+        "sha256": "9E02946B88C81B97FFFEC77AFB8FE7AAC7D7F82C3A1D450E7091991B7F5E9DEB",
+        "bytes": 6149
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_independent_scene.cpp",
+        "sha256": "E01AB15A8534174328B2C7CB2319D7BFCF67A7469F36A67422103E331F7163F5",
+        "bytes": 16633
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_independent_submit.cpp",
+        "sha256": "93692F590E36FE7DF43FE4A89FF3109B53D2FB3D28019B6EA34AFF47A9154234",
+        "bytes": 34094
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_material_audit.cpp",
+        "sha256": "9F8CEE5C7CD493CA205FB109C305132B3640C51B6926C6A39EB2213EA3509F99",
+        "bytes": 2818
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_material_channels.cpp",
+        "sha256": "FB1CA756327CECCF3AFA7FFAB81F862C8319CAA48AA908E5AD666B3427A427F8",
+        "bytes": 51301
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_camera.cpp",
+        "sha256": "58391C1F0338AFA4AE00046BF8807D71B88274BF072B97149CBE752E797CC8D8",
+        "bytes": 15090
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_material.h",
+        "sha256": "E69C3517C9ABD6E9DA7EF28D8F7ABBFB20036582CAB561472DE336B9AC7115B8",
+        "bytes": 14759
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_mesh_resources.cpp",
+        "sha256": "40A8FD04EA0846A8CE5A994640DF265672D3F511F3D8722D6341B9F5A58489AB",
+        "bytes": 13175
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_owner.cpp",
+        "sha256": "806133C0A24784ECC48BDF8711AFA81DE0B00223AA8F2286C0B1EC8A7E78D032",
+        "bytes": 30741
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_transport.cpp",
+        "sha256": "9C02D4F6A2A72135CCBB59F0E7781FD2A0BF7F2F54A8CF3FB38711CD7DAD8121",
+        "bytes": 33562
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_native_update.cpp",
+        "sha256": "75F0E2A9ED22CB464C660F159E2710E146FCE243A80582CB77D8EF0FE73D6C83",
+        "bytes": 20310
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_remix_material.cpp",
+        "sha256": "90378C5BD4E8C0760C92066F069EE3AEAB1FC54B4CBDD57634A8D3951DB6B98E",
+        "bytes": 29189
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_resource_ownership.cpp",
+        "sha256": "5D78CB7F2DE659817A89E35284C306C0A273308A2537A33AA0057F29BF0A1843",
+        "bytes": 17407
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_scene_geometry.cpp",
+        "sha256": "FBD5819EE4A6B53E4202AD15CEAB3BC170F12F38D8D931E5FA8C6AFE4794D765",
+        "bytes": 15402
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_scene_lights.cpp",
+        "sha256": "8EC808AA301369D4ABE3E073B92FB42DF8DC96A2767A64467BE33C0318C59428",
+        "bytes": 8141
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_surface_material.cpp",
+        "sha256": "704EDD5B18AD19887764A739EE88D474E144FB69F8A3458A02D687D6A02E13D4",
+        "bytes": 12334
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/test_surface_resources.cpp",
+        "sha256": "A79D18E06389C16F6EAD0667B40F498F8B09FC733FD6F31434FCB3F3AABFF907",
+        "bytes": 15515
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/third-party/README.md",
+        "sha256": "381892B07E0BD311AB5075847A8E9C0A8B85B2F40184AA3A68E36E1CB6858511",
+        "bytes": 1115
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/third-party/remix_light_conversion.h",
+        "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5",
+        "bytes": 8194
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/third-party/xxhash.h",
+        "sha256": "17973C0DC49D9854CA26CAA191F0E12F7A424B68858D9A78DE3860D959D85E4B",
+        "bytes": 268319
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_d3d9_probe.cpp",
+        "sha256": "78ADCCF47245C564B5E5421F4A5D5DDEA65BBD2B3195593B0C6B2AF10D260661",
+        "bytes": 75500
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_geometry_probe.h",
+        "sha256": "A61C1A56B5D61157071758E753F8D7FC1CE95E1BFA136F95E6AA184430E73EE8",
+        "bytes": 2310
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_independent_scene_source.h",
+        "sha256": "748E2E1D4AD049500053B319BCA5C439DD34560EE66F3108AA8DF8A7E54D201C",
+        "bytes": 36269
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_independent_scene_submit.h",
+        "sha256": "4DB752F8B7C64624F55FC82B09E07408DB4F1E1BBD4FA718E6C1D0597E9CF6E7",
+        "bytes": 20894
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_material_audit.h",
+        "sha256": "730E446502FE3A227231290CF87691C4BA5A9865C8945964555B7B373F121147",
+        "bytes": 9842
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_material_channel_assets.h",
+        "sha256": "A1DF91CF88E35EA97B2AF6B20E4033CC93F205B8691FCABBBB2722612E7FA20A",
+        "bytes": 3238
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_material_channels.h",
+        "sha256": "41E847DF79DD483C585006A50B2E119B9901508CCA353577C96042C6EDACB358",
+        "bytes": 5294
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_camera_source.h",
+        "sha256": "884E16F5471CCC21A1BB45A7844295F5CECFC2AE79F52E329BE120CA0A3954BF",
+        "bytes": 9366
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_draw_audit.h",
+        "sha256": "3D4B03642C0F4816DF87670C42788AB27B661922D62D32012BF4A69E995D0AB6",
+        "bytes": 9686
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_material_source.h",
+        "sha256": "4C897EBADA76C0B64BFEDB83476DCC33D18B532B0C59B323420D4CE174D829BF",
+        "bytes": 9855
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_mesh_source.h",
+        "sha256": "64AF1953A78ED5BA61CA20D6024BEFA6FF7C48CF2651F48055D1B8EECDA39044",
+        "bytes": 28978
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_owner_source.h",
+        "sha256": "57D45CB9E88EC8804BFAC494D0D283CB427F7FEB3E21FF8A56D47F9FD4D9D67E",
+        "bytes": 19155
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_transport_source.h",
+        "sha256": "E5296AF2C1C241C798EC23AEB724B4D6D785B593336A707363EADAE426CC5410",
+        "bytes": 15541
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_native_update_source.h",
+        "sha256": "30E609E1A51B471CD229C6C6EA2EDE2786D00762B841D4CEA927D87F16785A86",
+        "bytes": 13753
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_scene_audit.h",
+        "sha256": "FC8C688B97537A23312C72FC89035816CFE25D9426C29365CB02D1E7EFB15FC4",
+        "bytes": 13150
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_scene_geometry.h",
+        "sha256": "5047A7C5A2D9F2F4DC9478377A36A7353FED3BA5C4CC747807FBEB21A0C0DB1A",
+        "bytes": 15169
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_scene_lights.h",
+        "sha256": "3D2E1F68C7C3FF7570CC1ECC7BECB8A0412F5D8A6F70752B11C079DD4AD39B41",
+        "bytes": 11805
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_shader_audit.h",
+        "sha256": "9B48B5960FDB9242B9DE993DDBE1F238C2EBA3207FF002483B6A0D9FDB58F164",
+        "bytes": 8253
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_shader_semantics.h",
+        "sha256": "AE64DC62C5B72140B04F822E0584D421DAB29D3147CB3AECF6D140E70486195F",
+        "bytes": 6504
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_surface_geometry.h",
+        "sha256": "CB2EA372FA19ECAA001BE6C232C60C697B838A08738860813930625734A2CAF6",
+        "bytes": 5522
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_surface_instance.h",
+        "sha256": "F8F6CE825ABE40C33D55DE7F99A5BA0618AF971A28E2D78A506EDEED964C0A71",
+        "bytes": 1880
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_surface_material.h",
+        "sha256": "7CF3FCF34132004DE79B8E2600A2A916C2253FDFB3EA1CA430B6662C3AE1E4AA",
+        "bytes": 5435
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_surface_roles.h",
+        "sha256": "F9F7CA2844240BB7746CC0A54F6431EB77CE5802025D7E1E4AF15C897E443CEC",
+        "bytes": 13038
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/research/rtx-remix/winx_surface_submit.h",
+        "sha256": "725E1C0CD2080D1C5D8080608F38E7B26F11995EE6DA041F420C3FA2544781C5",
+        "bytes": 34300
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Analysis/PC/SparkBaseAbi.h",
+        "sha256": "E4E03E0A7C40825D3A72933AEA2836E50511107D11A13D03E3045D740D594E41",
+        "bytes": 28920
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Analysis/PC/SparkplugAbi.h",
+        "sha256": "AB8826916B749DE0CF16AC1C9C21D9D83DA79854D012828C68E6E2773A6BBA48",
+        "bytes": 223295
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Analysis/PC/spColorMath.h",
+        "sha256": "968AE057E749A23A172D53F43255898DAE39F53939D8AEC5A2108855439EA344",
+        "bytes": 513
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Analysis/PC/spNodeTransformMath.h",
+        "sha256": "FFD7353142093898F165C07E1F559E9B7BB6C30A0E96BDDED6F6E2EE22DE9052",
+        "bytes": 5131
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Analysis/PC/spRenderNodeMath.h",
+        "sha256": "409BAD8567416825E3E4DB20693CF21AD45E4498C5AAE277CC85621FA772C114",
+        "bytes": 4508
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h",
+        "sha256": "7C6C2372CC2893C1BB88EB870AC6972BB06F996BF8FD91F6888E4BB763485DE7",
+        "bytes": 5429
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h",
+        "sha256": "6D8D589CB16857A84D59F3151FA155E20982B991E251D5676B505B0B0A534E13",
+        "bytes": 2524
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/source/Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h",
+        "sha256": "BAC4042C97CBE7F3281597F28E9E5DC9B70C88F28884ADBC00C5A3708AEDAEA5",
+        "bytes": 2381
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/0EF88571D4E6F111-albedo.dds",
+        "sha256": "A0319742CA7A972D17192C738CF69B261FFF8762D2FF5261D12028D4F966E289",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/0EF88571D4E6F111-emission.dds",
+        "sha256": "D9BB561FD5EC7D3FAFE11145AFF065055C58A9C728088D1946B91A1A4B118C23",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/2EA8D68441E7DF8D-albedo.dds",
+        "sha256": "9EED6CA0AACF3D905A37F722FD4C09E55FE87633A2A3045EF766484BC57292ED",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/2EA8D68441E7DF8D-emission.dds",
+        "sha256": "9EED6CA0AACF3D905A37F722FD4C09E55FE87633A2A3045EF766484BC57292ED",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/4FD57AC1EA6BDD7D-albedo.dds",
+        "sha256": "9EED6CA0AACF3D905A37F722FD4C09E55FE87633A2A3045EF766484BC57292ED",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/565D20527D742CA3-albedo.dds",
+        "sha256": "A0319742CA7A972D17192C738CF69B261FFF8762D2FF5261D12028D4F966E289",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/565D20527D742CA3-emission.dds",
+        "sha256": "483C3A6200CED76D2CD3C2D8A9F5C4265D6BF641B4AD434E4A6FE441A19FBCCA",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/990FE16692C6ABE0-albedo.dds",
+        "sha256": "77BF347935DC3F7C2ECE4F9CF80EC696C1F1D99F06F70E367DE64818B747E094",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/AA5D01BCA1D6AEA0-albedo.dds",
+        "sha256": "0CC84E21731E219AB6496A011D451B9C04528E79CD05C45393964ADFE5703C5E",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/E500D7439688B4E9-albedo.dds",
+        "sha256": "9EED6CA0AACF3D905A37F722FD4C09E55FE87633A2A3045EF766484BC57292ED",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/E500D7439688B4E9-emission.dds",
+        "sha256": "9EED6CA0AACF3D905A37F722FD4C09E55FE87633A2A3045EF766484BC57292ED",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/transport-bound.dds",
+        "sha256": "CC5E6B3735630852C258AF16FA4EA2F28C3496D3D8D510470BC1776DC85CFDF9",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/transport-null.dds",
+        "sha256": "CC5E6B3735630852C258AF16FA4EA2F28C3496D3D8D510470BC1776DC85CFDF9",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/assets/transport-other.dds",
+        "sha256": "CC5E6B3735630852C258AF16FA4EA2F28C3496D3D8D510470BC1776DC85CFDF9",
+        "bytes": 212
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/result.json",
+        "sha256": "C148D6FA364909321D5B79031641B3E921989DF09ABB49446A2666C3A2B8DEB1",
+        "bytes": 219
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/test.cmd",
+        "sha256": "682B6C98AF3832116ECFBE672DBD337DCE8D669688E20F9E9ACADA9853D36966",
+        "bytes": 598
+      },
+      {
+        "path": "local-data/rtx-remix/material-channel-tests/independent-submit-ownership-v1/test_material_channels.exe",
+        "sha256": "9D2E7AC7939FDFF121AD3035564A9E8CCDD2FC83DC60CB9E310AC63073BD2B7C",
+        "bytes": 537088
+      }
+    ],
+    "separateStdoutStderrSaved": false,
+    "stdoutArtifact": "result.json",
+    "logBoundary": "test.cmd redirects stdout to result.json; no separate build.log/stderr.log/process.json in saved directory"
+  },
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/0000000000012345.dds",
+      "sha256": "4AB8A7963087BF3E699A01895BF1B8AE44B693E19636BD6EE10ADA8402161C28",
+      "bytes": 38
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/463584CC7F60822A-albedo.dds",
+      "sha256": "4AB8A7963087BF3E699A01895BF1B8AE44B693E19636BD6EE10ADA8402161C28",
+      "bytes": 38
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/build.cmd",
+      "sha256": "5CCB0437A33FD76EFB0B5C43D2CC2558432678A5BE2B4E555F72D01D0BEA770C",
+      "bytes": 880
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/build.log",
+      "sha256": "D2A3277CC41B5A04F2E6213832915AE6A2C57EE536B7283567D42997810AB2A9",
+      "bytes": 710
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/Test-ResourceOwnership.ps1",
+      "sha256": "B6B5695C2431FFFDFCE29A335B3EEACC5BDA53DDDA8E16916FF6E14E7AAB33D7",
+      "bytes": 5001
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_resource_ownership-process.json",
+      "sha256": "10C979DCE5FE86E2B347EB8319B7133A3BCCB6F9C7EF6891C63141A755772692",
+      "bytes": 221
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_resource_ownership-result.json",
+      "sha256": "BB3CB67200E9B5A03E65209D8010A6FEC2CA33C1771E1DCC7B7C74472CE831E7",
+      "bytes": 187
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_resource_ownership-stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "bytes": 0
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_resource_ownership.exe",
+      "sha256": "E40659E5A0354F89E59E57E4FA261F15BCC2EC5B204FBD78533E83567AE7B89E",
+      "bytes": 211968
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_surface_resources-process.json",
+      "sha256": "BF46329930AE05DBF8DC4F4A332627674238E061009385DC0E3E3981118296AC",
+      "bytes": 220
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_surface_resources-result.json",
+      "sha256": "B4E233B320FFB8ADEFC48655E29B73A9F440708D58F8254B1FBEA26AD6D1B8DC",
+      "bytes": 213
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_surface_resources-stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "bytes": 0
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/test_surface_resources.exe",
+      "sha256": "A7D9F474D144799E9A07E4FAD2A2EE573AC9175E081F852FF2DFDB84BACC458E",
+      "bytes": 176640
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v2/verification.json",
+      "sha256": "DFA6A2363165E1932E4C400CC75AAC6B67DF8C4E1EC8EEDD965C71526E119B34",
+      "bytes": 15665
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v1/build.cmd",
+      "sha256": "C7F9CD7614E216FBFE203644F786AE0B36D5C6F913BB673B937AAC2A326FF272",
+      "bytes": 880
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v1/build.log",
+      "sha256": "5BC66D70E56FFE5F2C39A3ED613B52C8730EB6757781A3CD92B602ADF9731662",
+      "bytes": 1512
+    },
+    {
+      "path": "local-data/rtx-remix/resource-ownership-tests/ownership-v1/Test-ResourceOwnership.ps1",
+      "sha256": "B6B5695C2431FFFDFCE29A335B3EEACC5BDA53DDDA8E16916FF6E14E7AAB33D7",
+      "bytes": 5001
+    }
+  ]
+}

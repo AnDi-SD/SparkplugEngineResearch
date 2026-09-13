@@ -1,0 +1,390 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "status": "closed observation checkpoint with two first-world-frame texture token gaps",
+  "provenance": "Own adapter observer and parser; frozen installed-v9 source only; no new GPU/game/producers run for this report",
+  "run": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814",
+  "pid": 20716,
+  "pidExited": true,
+  "adapterSha256": "BE7007660426518C74DE513B28E065204AD2425D22BBCBD387D41E5545C8B3BB",
+  "installedSourceRoot": "local-data/rtx-remix/independent-scene-tests/install-v9/source",
+  "independentSubmit": false,
+  "frameRange": [
+    0,
+    2476
+  ],
+  "events": {
+    "init": 1,
+    "scan": 9,
+    "frame": 2431,
+    "compare": 3422
+  },
+  "totals": {
+    "scans": 2431,
+    "candidates": 724590,
+    "selected": 286833,
+    "dirty": 319,
+    "compared": 1044930,
+    "matched": 1044930,
+    "worldDifferences": 0,
+    "materialDifferences": 0,
+    "resourceCandidates": 724590,
+    "resourceCompared": 1044930,
+    "resourceMatched": 1044930,
+    "resourceDifferences": 0,
+    "resourceRejected": 0,
+    "uploadDifferences": 0,
+    "drawCandidates": 724590,
+    "drawCompared": 1044930,
+    "drawMatched": 1044930,
+    "drawDifferences": 0,
+    "drawRejected": 0,
+    "textureCandidates": 724590,
+    "textureCompared": 1044930,
+    "textureMatched": 1043724,
+    "textureDifferences": 1206,
+    "textureRejected": 0
+  },
+  "rejected": {
+    "phase": 0,
+    "registry": 0,
+    "support": 0,
+    "hierarchy": 0,
+    "world": 8,
+    "model": 34317,
+    "callbacks": 0,
+    "material": 1500,
+    "pass": 90640,
+    "controllers": 0,
+    "override": 0,
+    "texture": 16194,
+    "mapping": 0,
+    "capacity": 0,
+    "stale": 0,
+    "missing": 49707
+  },
+  "levels": [
+    {
+      "id": 27,
+      "name": "Alfea",
+      "candidatesPerScope": 922,
+      "comparedPerFrame": 766,
+      "worldFrames": 375,
+      "textureMatchedFrames": 374,
+      "firstFrameTextureMismatch": 354
+    },
+    {
+      "id": 4,
+      "name": "Domino01",
+      "candidatesPerScope": 220,
+      "comparedPerFrame": 440,
+      "worldFrames": 1722,
+      "textureMatchedFrames": 1721,
+      "firstFrameTextureMismatch": 752
+    }
+  ],
+  "textureBoundary": {
+    "meaning": "Native COM equality and captured lifecycle/content token remains current; not pixel equality",
+    "compared": 1044930,
+    "matched": 1043724,
+    "differences": 1206,
+    "differenceFrames": [
+      354,
+      752
+    ],
+    "sampledDifferenceCount": 16,
+    "probableCause": "Enabled ResubmitTextures uses writable mip Lock/Unlock before later API submit, invalidating prepared content token; aggregate frame writes correlate but cannot attribute every failure to that caller",
+    "frameWrites": {
+      "354": 1160,
+      "355": 24,
+      "356": 0,
+      "752": 382,
+      "753": 36,
+      "754": 0
+    }
+  },
+  "sweep": {
+    "route": "F1",
+    "level": 4,
+    "status": "loaded_and_presenting",
+    "readySeconds": 9.51,
+    "verificationFrames": [
+      996,
+      1064
+    ],
+    "framesAdvanced": 68,
+    "visualMovement": "Screenshots were viewed and show view/orientation change; no player/world/view coordinate sample, so no measured world displacement claim",
+    "alfeaScreenshot": "single dialogue frame, not movement proof"
+  },
+  "reusedTests": {
+    "defaultStageCPU": 96,
+    "textureCPU": 157,
+    "systemD3D": 697,
+    "nativeSource": 171,
+    "nativeMaterial": 137,
+    "bufferTransport": 53,
+    "textureGPU": 83,
+    "repeated": false,
+    "textureInventoryPath": "local-data/rtx-remix/native-transport-tests/texture-evidence-v1/evidence.json",
+    "textureInventoryArtifacts": 179
+  },
+  "analyzer": {
+    "source": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/source/analyze_independent_scene.py",
+    "output": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/independent-scene-analysis.json",
+    "command": "python research/rtx-remix/analyze_independent_scene.py local-data/rtx-remix/runs/play-rtx-20260913-044409-814 --output local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/independent-scene-analysis.json",
+    "change": "Optional TEXTURE_COUNTERS[5], sampled ready/match/captured generation/content token, accounting/type checks; schema1 and existing fields preserved",
+    "parserChecks": 17,
+    "parserFirstAttempt": "Fixture changed resource and texture schemas together; existing resource guard correctly fired before expected texture guard. Fixture corrected; initial source/input retained.",
+    "closedOtherAnalyzers": "No existing closed analyzer JSON found in run; none rerun"
+  },
+  "x64": {
+    "sha256": "1922E8114BD7BC6D5F77E40D84D78BF27A2820D87D88489F9A4D054D359EAD17",
+    "scope": "Earlier general backend compile only, before default/texture observer refinements; not final x64 native integration"
+  },
+  "limitations": [
+    "No independent API scene submit in installed v9; D3D visibility extension retained",
+    "Candidates are unique support/Model pairs per scope; compared values include repeated successful API submits; neither is full level coverage",
+    "First-frame texture token gaps are preserved and require final CurrentTexture + resource/scene/owner fences and conservative rejection in direct route",
+    "Current-stage1 guard added after install-v9 freeze is excluded from this evidence; subsequent direct-route code excluded",
+    "Texture registry holds no retained COM refs; Reset needs fresh Create, unknown alias/hook coverage may permanently block device qualification",
+    "Offscreen completeness, durable object lifetime identity, all renderer resource shutdown and unsupported materials/geometry remain open"
+  ],
+  "artifactCount": 47,
+  "artifacts": [
+    {
+      "path": "docs/research/winx-remix-independent-packet-checkpoint-2026-09-13.md",
+      "bytes": 10225,
+      "sha256": "2326775EA32A64D79B2CB819FD9E4EAE6DD1AF7959F8027628AAFFE9C31B622E"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/independent-scene-analysis.json",
+      "bytes": 16882,
+      "sha256": "E85D9EBC42E788B1A7A86C643FCE699E8C426AE3FE69FE4B024A16727D9CFF55"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/first-frame-texture-correlation.json",
+      "bytes": 18876,
+      "sha256": "D7981D049852707E750F20B8D8C5C29D83CD8A810CD8A2A30B8BA92A624B99B1"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/parser-test-result.json",
+      "bytes": 829,
+      "sha256": "3026F62384A67C328FEE9359A38B30664CC3D05474EC70266BCB9FA14F18D324"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/test_analyzer.py",
+      "bytes": 4497,
+      "sha256": "2CD3268B4908724C3F2922930092EBCC88EE7ACFD4A98F267BEDD2B2427A0DD4"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/parser-first-attempt.json",
+      "bytes": 301,
+      "sha256": "D9CC08A02BD1507F4D283641F332721EB18FA019E7D5027601DF60992143724F"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/test_analyzer.first-attempt.py",
+      "bytes": 4440,
+      "sha256": "9FE3CD1650CAE3AC44B3EC7918A5754CDDD362E4B1C1FE17FE9F2A5D47CCCCA7"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/installation.json",
+      "bytes": 719,
+      "sha256": "F0EEB650651F85C434670FB0BE26AD022275AB9ED9B1A5100EAE2D10BB63C056"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/launch.json",
+      "bytes": 5914,
+      "sha256": "66E9CE80340A9B4874FA51F335756A3406C5458538F8FA5BECC63408BACB3713"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/d3d9.dll",
+      "bytes": 523264,
+      "sha256": "BE7007660426518C74DE513B28E065204AD2425D22BBCBD387D41E5545C8B3BB"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/independent-scene-source.jsonl",
+      "bytes": 3292578,
+      "sha256": "EF7FCE1EDBAD678C8E4D1AB4BDE971A1DA9BBFE66D03DF27ED57C55BF8BB11E0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/native-transport-source.jsonl",
+      "bytes": 657696,
+      "sha256": "850449BAEEF215D999CE4785783945C855DEBA6524BFEBAF63D2F80151D90735"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/levels/04-Domino01/result.json",
+      "bytes": 4507,
+      "sha256": "049A2706814D9D315E39D76092CF319DAF11132AA81E376A10B9D420EA989BE6"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/levels/04-Domino01/idle.png",
+      "bytes": 788438,
+      "sha256": "02E1CD68F636D9465FDA53B774B8379D981172365F214B74C19D9FA634F497EC"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/levels/04-Domino01/moved.png",
+      "bytes": 812237,
+      "sha256": "AF08242AA54DD18318B70A91F77F2FA4EEFD69F307D925088A13E2854C59F07E"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/alfea-packet-initial.png",
+      "bytes": 643619,
+      "sha256": "CDE352A25DB738A7292CF01AFE97AC0631B6FDDF43E3D639EA631D91BD78A36D"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/bridge-config-restored.json",
+      "bytes": 96,
+      "sha256": "37874BD10C44FAE115F8494703196A94371FE2D28E2BBE618BEE83A0C7D9FFA1"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/bridge.conf",
+      "bytes": 339,
+      "sha256": "2E8174D21B357ADD83DFBC7A8A034D9CBEA8866059263C2A6357C9E516BCEEBE"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/bridge.conf.before",
+      "bytes": 314,
+      "sha256": "5AC96FB3198F3E8FF7BCB16030CD199E14ACC55DEFC71916FD9F547370CB5E35"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/rtx.conf",
+      "bytes": 673,
+      "sha256": "7AF17E58743A5E28AEB0A94010857A9F910737DAA0E6469A9167CEB2677EFFE2"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/winx.ini.before",
+      "bytes": 106,
+      "sha256": "BC7D3270EE607A061AC774B02F4B90B8F5587F5F62689C168425A60C27D485E0"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-044409-814/user.conf.before",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/build-independent-backend-x64-v1/d3d9.dll",
+      "bytes": 475136,
+      "sha256": "1922E8114BD7BC6D5F77E40D84D78BF27A2820D87D88489F9A4D054D359EAD17"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/observer-default-stage-v1/result.json",
+      "bytes": 74,
+      "sha256": "7A0FD2F5D309E1AEA60023C72CF26598095EB8E19E69177E378D2921AE2A2BA7"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/observer-default-stage-v1/verification.json",
+      "bytes": 405,
+      "sha256": "085F14444C4EDF5BDAA7462B3434627937A6A2D17725BB6EC3AB45FD2E7EA04C"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/observer-default-stage-v1/test_independent_scene.exe",
+      "bytes": 179200,
+      "sha256": "84AD41BFB0D4F54A305A1C5E6DE1070CC545569C19122B095960D074B7125FFC"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/observer-default-stage-v1/source/research/rtx-remix/test_independent_scene.cpp",
+      "bytes": 16633,
+      "sha256": "E01AB15A8534174328B2C7CB2319D7BFCF67A7469F36A67422103E331F7163F5"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/observer-default-stage-v1/source/research/rtx-remix/winx_independent_scene_source.h",
+      "bytes": 35352,
+      "sha256": "8BDD9E4C1A62640030E5D2FAA5A0567D4288328D1561AC807B14AFAC74008CAA"
+    },
+    {
+      "path": "local-data/rtx-remix/native-transport-tests/texture-evidence-v1/evidence.json",
+      "bytes": 66887,
+      "sha256": "D3F44C7BF73747C583221EFE1A1359C71504385EDC1F8E6857937A4D34F50044"
+    },
+    {
+      "path": "local-data/rtx-remix/native-transport-tests/texture-cpu-v2/result.json",
+      "bytes": 96,
+      "sha256": "EF853D4798835FDB0AAE256952E6A3498BDC0D75C503C924CF65B9EC80E62F9F"
+    },
+    {
+      "path": "local-data/rtx-remix/material-channel-tests/native-texture-v1/result.json",
+      "bytes": 219,
+      "sha256": "C148D6FA364909321D5B79031641B3E921989DF09ABB49446A2666C3A2B8DEB1"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/source/analyze_independent_scene.py",
+      "bytes": 11817,
+      "sha256": "8074E5044F20D7DD7BBF6A48A66F05F9EE2A71EAB25CC98FC753A496078043ED"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/source/analyze_native_draw.py",
+      "bytes": 9921,
+      "sha256": "0C0A42E8F080BE88886DD2874C6A72C9E9F6C8F477E132EA1CFF186B3B4838B4"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/packet-checkpoint-v1/source/analyze_native_mesh_source.py",
+      "bytes": 4986,
+      "sha256": "93F45994A18FD09C88E2000F809C670FC6F7363E4ED67E9B300B37628967DAD8"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_independent_scene_source.h",
+      "bytes": 35352,
+      "sha256": "8BDD9E4C1A62640030E5D2FAA5A0567D4288328D1561AC807B14AFAC74008CAA"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_d3d9_probe.cpp",
+      "bytes": 74925,
+      "sha256": "9FC545FA9A037AE03D21088F5B719F22BAB27EC0CD22AB686A799B60F7A885B0"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_native_transport_source.h",
+      "bytes": 15541,
+      "sha256": "E5296AF2C1C241C798EC23AEB724B4D6D785B593336A707363EADAE426CC5410"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_native_mesh_source.h",
+      "bytes": 28978,
+      "sha256": "64AF1953A78ED5BA61CA20D6024BEFA6FF7C48CF2651F48055D1B8EECDA39044"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_native_update_source.h",
+      "bytes": 13753,
+      "sha256": "30E609E1A51B471CD229C6C6EA2EDE2786D00762B841D4CEA927D87F16785A86"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_native_owner_source.h",
+      "bytes": 19155,
+      "sha256": "57D45CB9E88EC8804BFAC494D0D283CB427F7FEB3E21FF8A56D47F9FD4D9D67E"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_native_material_source.h",
+      "bytes": 9855,
+      "sha256": "4C897EBADA76C0B64BFEDB83476DCC33D18B532B0C59B323420D4CE174D829BF"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_scene_geometry.h",
+      "bytes": 14654,
+      "sha256": "0515A3570F59A3002BBD91AE57DEC85B84946B681997F6558DDDB0C08AE74F19"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_surface_submit.h",
+      "bytes": 28041,
+      "sha256": "40239983947A465799D9FB5FAD60E11DD829377B2BA9DC2888933CD157E63B1B"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_surface_geometry.h",
+      "bytes": 5522,
+      "sha256": "CB2EA372FA19ECAA001BE6C232C60C697B838A08738860813930625734A2CAF6"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_surface_instance.h",
+      "bytes": 1880,
+      "sha256": "F8F6CE825ABE40C33D55DE7F99A5BA0618AF971A28E2D78A506EDEED964C0A71"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_surface_roles.h",
+      "bytes": 12973,
+      "sha256": "3D74325DBAF677E60AAB22092DA70BB7F4FB2066DF8BB7A92CBC941E5EB63666"
+    },
+    {
+      "path": "local-data/rtx-remix/independent-scene-tests/install-v9/source/research/rtx-remix/winx_material_channel_assets.h",
+      "bytes": 3238,
+      "sha256": "A1DF91CF88E35EA97B2AF6B20E4033CC93F205B8691FCABBBB2722612E7FA20A"
+    }
+  ]
+}

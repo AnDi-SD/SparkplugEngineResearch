@@ -1,0 +1,270 @@
+{
+  "schema": 1,
+  "createdUtc": "2026-09-13T00:36:34.216080+00:00",
+  "scope": "Installed native world-update phase witness checkpoint; independent geometry remains unclaimed.",
+  "sources": [
+    {
+      "path": "research/rtx-remix/winx_native_update_source.h",
+      "size": 13753,
+      "sha256": "30E609E1A51B471CD229C6C6EA2EDE2786D00762B841D4CEA927D87F16785A86"
+    },
+    {
+      "path": "research/rtx-remix/test_native_update.cpp",
+      "size": 20310,
+      "sha256": "75F0E2A9ED22CB464C660F159E2710E146FCE243A80582CB77D8EF0FE73D6C83"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeUpdate.ps1",
+      "size": 4045,
+      "sha256": "D5083F77107EE009D981A659C8EE8971DC5BDB42680FD7F7E0AE2B4BEC610B8C"
+    },
+    {
+      "path": "research/rtx-remix/analyze_native_update.py",
+      "size": 8920,
+      "sha256": "20B4A2077EBA12D7A8299491D4D13DE02A006E740198714E7D798F57880C5695"
+    }
+  ],
+  "cpu": {
+    "outerTimeoutSeconds": 30,
+    "gpu": false,
+    "schema": 1,
+    "exeSha256": "3216811A1F23038354CA05F1B488A5E11FAA5FC5A778776B4B4DA80A1EDF1B14",
+    "watchdogSeconds": 25,
+    "nativeGameCodeExecuted": false,
+    "result": {
+      "status": "PASS",
+      "checks": 97,
+      "managerCalls": 31,
+      "rootCalls": 157,
+      "nativeGameCodeExecuted": false,
+      "gpu": false,
+      "ownedX86Thunks": true
+    }
+  },
+  "cpuEvidence": [
+    {
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v3/verification.json",
+      "size": 559,
+      "sha256": "85E84F2748437C6770ED2DB0A4858F36B34E58F0AE04235ACF0ED781F8809C1E"
+    },
+    {
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v3/source-manifest.json",
+      "size": 827,
+      "sha256": "D91FA0BC07A4C0A34A96CBF833F141E790ED4C5C588D67B03F765740E1F6F91F"
+    },
+    {
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v3/result.json",
+      "size": 130,
+      "sha256": "122F03E3CD302E47FA092EEC65F01599C08A470DFDD8D54A5098F6D19AFA777B"
+    },
+    {
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v3/build.log",
+      "size": 644,
+      "sha256": "000D97CAF83F2B395EE04C09E42EF00A866145433311EDAD3447F8150950FE4D"
+    }
+  ],
+  "analyzerCheck": {
+    "path": "local-data/rtx-remix/native-update-tests/analyzer-v1/result.json",
+    "size": 2023,
+    "sha256": "4219BC743E5ECAD87D380A8EF56A2E980BEF31AF2D2B7A3636926F5A398C277D"
+  },
+  "analyzerChecks": 16,
+  "closedAlfea": {
+    "schema": 1,
+    "init": {
+      "event": "init",
+      "schema": 1,
+      "enabled": true,
+      "imageVerified": true,
+      "capacity": 64,
+      "scope": "plain System Root completion only; borrowed phase witness"
+    },
+    "bytes": 120190,
+    "sourceLogSha256": "58C45EA64586C88A43BA9FDE567EAA4C9777F4C7BA7FD2C62AD06C5394423190",
+    "logLimitBytes": 16777216,
+    "logLimitReached": false,
+    "frameRange": [
+      0,
+      739
+    ],
+    "omittedFrameNumbers": 13,
+    "events": {
+      "init": 1,
+      "frame": 727
+    },
+    "totals": {
+      "begun": 720,
+      "completed": 720,
+      "rootCalls": 1511300,
+      "recorded": 2160,
+      "published": 2160,
+      "aborted": 0,
+      "overflowed": 0,
+      "queries": 717,
+      "accepted": 717
+    },
+    "managerCalls": 720,
+    "completedManagerBatches": 720,
+    "uncompletedManagerBatches": 0,
+    "queryAcceptance": {
+      "queries": 717,
+      "accepted": 717,
+      "rejected": 0,
+      "ratio": 1.0,
+      "queriedFrames": 717,
+      "allQueriesAcceptedFrames": 717
+    },
+    "capacity": {
+      "perBatch": 64,
+      "overflowEvents": 0,
+      "maxPublishedPerLoggedFrame": 3,
+      "maxRecordedPerLoggedFrame": 3,
+      "maxManagerBeginsPerLoggedFrame": 1
+    },
+    "publishedPerFrameHistogram": {
+      "0": 7,
+      "3": 720
+    },
+    "sequence": {
+      "firstObserved": 3,
+      "lastObserved": 405082,
+      "isManagerCount": false,
+      "meaning": "Atomic phase invalidation serial; also EndFrame and standalone world producers"
+    },
+    "histories": {
+      "aborted": {
+        "frames": 0,
+        "first": [],
+        "truncated": false
+      },
+      "overflowed": {
+        "frames": 0,
+        "first": [],
+        "truncated": false
+      },
+      "uncompleted": {
+        "frames": 0,
+        "first": [],
+        "truncated": false
+      },
+      "queryRejected": {
+        "frames": 0,
+        "first": [],
+        "truncated": false
+      }
+    },
+    "limits": [
+      "Counters are render-thread observer events, not all-thread native function totals.",
+      "completed means qualified normal manager completion, not a native success return.",
+      "rootCalls includes descendant/standalone plain Node calls; published counts tokens, not unique scenes.",
+      "No per-scene/SystemRoot pointer is present in this aggregate log.",
+      "Clean aborted/overflow counters do not prove absence of every rejected root or other game/renderer error.",
+      "GetWitness acceptance is not independent mesh submission or proof of all descendant updates.",
+      "Final unpresented activity is not flushed into these frame counters."
+    ],
+    "run": "X:\\VSProjects\\SparkplugEngineResearch\\local-data\\rtx-remix\\runs\\play-rtx-20260913-032710-504",
+    "pid": 7508,
+    "pidExited": true,
+    "started": "2026-09-13T03:27:11.7288545+03:00",
+    "startLevel": 27,
+    "proxySha256": "2F5E369FF2A5BF16075647B44B55F8B2A89E794602E6BFBCC555D77D4BE6E8D8",
+    "executableSha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+    "launchSha256": "9ADEFB6EC655BA8B3D5F5AD502536CE2E7B97A74E4322CCF5B1623C5070B76AF"
+  },
+  "context": {
+    "native-owner-source.jsonl": {
+      "init": {
+        "event": "init",
+        "schema": 1,
+        "enabled": true,
+        "maxLogBytes": 16777216,
+        "scope": "exact static/partition and inherited RenderNode model calls; operation-scoped borrowed identities; no persistent instance replay"
+      },
+      "sampledScenes": [
+        69081476
+      ],
+      "sampledPartitionRoots": [
+        443785340
+      ],
+      "sampledPartitionSystems": [
+        443561300
+      ],
+      "independentFrameTotals": {}
+    },
+    "independent-scene-source.jsonl": {
+      "init": {
+        "event": "init",
+        "schema": 1,
+        "enabled": true,
+        "submit": false,
+        "maxLogBytes": 16777216,
+        "scope": "current ordinary inputs before prepare; same-operation comparison"
+      },
+      "sampledScenes": [
+        69081476
+      ],
+      "sampledPartitionRoots": [],
+      "sampledPartitionSystems": [],
+      "independentFrameTotals": {
+        "scans": 717,
+        "candidates": 325085,
+        "selected": 26726,
+        "compared": 262675,
+        "matched": 0,
+        "worldDifferences": 0,
+        "materialDifferences": 262675
+      }
+    }
+  },
+  "contextArtifacts": [
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-032710-504/native-owner-source.jsonl",
+      "size": 832118,
+      "sha256": "C3FA419BC4E474E921A05F8DE529563693A2B3723E30AC0A31A2EE6F835C506E"
+    },
+    {
+      "path": "local-data/rtx-remix/runs/play-rtx-20260913-032710-504/independent-scene-source.jsonl",
+      "size": 926073,
+      "sha256": "7AC62CA44C0DE3AB01DAB6149FF8B9D4DFC6F3F7D434F6B1B647BCF6BCADD909"
+    }
+  ],
+  "archivedProxy": {
+    "path": "local-data/rtx-remix/runs/play-rtx-20260913-032710-504/d3d9.dll",
+    "size": 489984,
+    "sha256": "2F5E369FF2A5BF16075647B44B55F8B2A89E794602E6BFBCC555D77D4BE6E8D8"
+  },
+  "buildProxy": {
+    "path": "local-data/rtx-remix/build-independent-source-v4/d3d9.dll",
+    "size": 489984,
+    "sha256": "2F5E369FF2A5BF16075647B44B55F8B2A89E794602E6BFBCC555D77D4BE6E8D8"
+  },
+  "buildCommand": {
+    "path": "local-data/rtx-remix/build-independent-source-v4/build-probe.cmd",
+    "size": 514,
+    "sha256": "B56D388409A5DD26CB354F68A0BAD525E62F0322C9F8E6DDA5222D016F81041E"
+  },
+  "buildSourceProvenance": "v4 build command compiles workspace probe. Current update header matches frozen CPU-v3 source hash; parent confirms this header unchanged in v4. No complete per-build source snapshot exists in this build directory.",
+  "failures": [
+    {
+      "stage": "CPU-v1 compile",
+      "status": "retained failure",
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v1/build.log",
+      "cause": "Fixture auto declaration mixed unsigned and LONG; corrected test only."
+    },
+    {
+      "stage": "CPU-v2 launch",
+      "status": "retained failure",
+      "path": "local-data/rtx-remix/native-update-tests/native-update-v2/failure.json",
+      "cause": "Process.Start requested elevation; explicit asInvoker manifest added. No game or GPU was involved."
+    }
+  ],
+  "limits": [
+    "No new game, GPU, DLL installation or production edits for this report.",
+    "SystemRoot is scene+14; owner.root is partition system+1D4 and is not the world producer root.",
+    "Aggregate update log has no SystemRoot addresses; three tokens per batch is not an identification of three distinct scenes.",
+    "No individual root rejection reasons or complete native/renderer error stream are exposed by update counters.",
+    "sequence is an invalidation epoch; rootCalls includes descendant and standalone calls. Only begun counts observed manager entries.",
+    "Witness correctness does not establish unchanged material inputs, all descendant updates, or independent scene submission.",
+    "Only this closed v4 Alfea run is incorporated; later material diagnostics/runs remain separate."
+  ]
+}

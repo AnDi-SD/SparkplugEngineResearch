@@ -33,12 +33,14 @@ class Sweep:
         self.pid, self.run = pid, run
         self.levels = catalog()
 
-    def control(self, key=None, hold=.08, count=1, capture=None, settle=0):
+    def control(self, key=None, hold=.08, count=1, capture=None, settle=0, menu_step=False):
         args = [sys.executable, '-B', str(ROOT / 'research/winx_remix_window.py'), '--pid', str(self.pid)]
         if key:
             args += ['--key', key, '--hold', str(hold), '--key-count', str(count), '--key-gap', '.09']
         if capture:
             args += ['--capture', str(capture), '--settle', str(settle)]
+        if menu_step:
+            args += ['--menu-step']
         done = subprocess.run(args, capture_output=True, text=True, timeout=40)
         if done.returncode:
             raise RuntimeError(done.stderr.strip() or done.stdout.strip())
@@ -98,17 +100,20 @@ class Sweep:
             print(json.dumps(dict(navigate=level, attempt=attempt, selected=state['menus'][-1]['selected'], active=state.get('active'))), flush=True)
             if delta == 0:
                 return state
-            # Debug selection polls held arrows. In fast UI/death screens an
-            # .08-second hold crosses many rows; .001 misses most input polls.
-            # Use a shorter pulse and confirm the actual index before activation.
-            self.control('down' if delta > 0 else 'up', hold=.01, count=abs(delta))
+            # Frame rates vary: fixed pulses either miss polls or repeat rows.
+            # Release on actual selection change, with a bounded maximum hold.
+            self.control('down' if delta > 0 else 'up', hold=.5, count=min(abs(delta),16), menu_step=True)
         raise RuntimeError('Could not confirm requested level selection')
 
     def shader_snapshot(self):
         path = self.run / 'shaders-client/audit.jsonl'
+        if not path.exists():
+            return None
         with path.open('rb') as f:
-            f.seek(max(0, path.stat().st_size - 131072))
-            lines = f.read().splitlines()
+            size = path.stat().st_size
+            start = max(0, size - 131072)
+            f.seek(start)
+            lines = f.read(size - start).splitlines()
         for line in reversed(lines):
             try:
                 event = json.loads(line)
@@ -116,6 +121,27 @@ class Sweep:
                     return event
             except (ValueError, UnicodeError):
                 pass
+        return None
+
+    def frame_snapshot(self, shader):
+        if shader:
+            return dict(source='shaders-client/audit.jsonl', frame=shader['frame'])
+        for name in ('independent-scene-source.jsonl', 'native-camera-source.jsonl', 'native-mesh-source.jsonl'):
+            path = self.run / name
+            if not path.exists():
+                continue
+            with path.open('rb') as stream:
+                size = path.stat().st_size
+                start = max(0, size - 131072)
+                stream.seek(start)
+                lines = stream.read(size - start).splitlines()
+            for line in reversed(lines):
+                try:
+                    row = json.loads(line)
+                    if row.get('event') == 'frame' and type(row.get('frame')) is int:
+                        return dict(source=name, frame=row['frame'])
+                except (ValueError, UnicodeError):
+                    pass
         return None
 
     def test(self, level, startup=False):
@@ -172,11 +198,13 @@ class Sweep:
             self.control(capture=folder / 'idle.png', settle=3)
             record['idleState'] = self.reader.snapshot()
             record['idleShaderSnapshot'] = self.shader_snapshot()
+            record['idleFrameSnapshot'] = self.frame_snapshot(record['idleShaderSnapshot'])
             self.control('right', hold=.25, capture=folder / 'moved.png', settle=3)
             record['movedState'] = self.reader.snapshot()
             record['movedShaderSnapshot'] = self.shader_snapshot()
-            idle, moved = record['idleShaderSnapshot'], record['movedShaderSnapshot']
-            record['framesAdvanced'] = moved['frame'] - idle['frame'] if idle and moved else None
+            record['movedFrameSnapshot'] = self.frame_snapshot(record['movedShaderSnapshot'])
+            idle, moved = record['idleFrameSnapshot'], record['movedFrameSnapshot']
+            record['framesAdvanced'] = moved['frame'] - idle['frame'] if idle and moved and idle['source'] == moved['source'] else None
             record['status'] = 'loaded_and_presenting' if record['framesAdvanced'] and record['framesAdvanced'] > 0 else 'loaded_no_frame_progress'
             record['finished'] = datetime.datetime.now().astimezone().isoformat()
             save()

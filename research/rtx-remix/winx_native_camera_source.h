@@ -36,13 +36,13 @@ static bool Capture(uint32_t scene,uint32_t camera,uint32_t main,uint32_t table,
      (next.scene!=selected.scene||next.camera!=selected.camera||memcmp(next.info.view,selected.info.view,128)))++lateUpdates;
   pending=next;++applies;return true;
 }
-static void LogPacket(remixapi_ErrorCode result,bool native) {
+static void LogPacket(remixapi_ErrorCode result,bool native,const Packet& packet) {
   if(!CanLog())return;
   fprintf(output,"{\"event\":\"camera\",\"frame\":%u,\"beforeDraw\":%u,\"scene\":%u,\"camera\":%u,\"applyAfterDraw\":%u,\"sequence\":%llu,\"native\":%s,\"result\":%d,\"viewBits\":[",
-    frameId,drawId+1,pending.scene,pending.camera,pending.afterDraw,pending.sequence,native?"true":"false",result);
-  uint32_t words[32]{};memcpy(words,pending.info.view,128);
+    packet.frame,drawId+1,packet.scene,packet.camera,packet.afterDraw,packet.sequence,native?"true":"false",result);
+  uint32_t words[32]{};memcpy(words,packet.info.view,128);
   for(unsigned i=0;i<32;++i){if(i==16)fputs("],\"projectionBits\":[",output);fprintf(output,"%s%u",i%16?",":"",words[i]);}
-  fputs("]}\n",output);fflush(output);
+  fprintf(output,"],\"accepted\":%s}\n",native&&submittedFrame==packet.frame&&selected.valid&&selected.sequence==packet.sequence?"true":"false");fflush(output);
 }
 static void Missed(const char* reason) {
   attemptedFrame=frameId;++missedFirstDraws;
@@ -50,30 +50,39 @@ static void Missed(const char* reason) {
     fprintf(output,"{\"event\":\"first_window_missed\",\"frame\":%u,\"beforeDraw\":%u,\"reason\":\"%s\"}\n",frameId,drawId+1,reason);fflush(output);
   }
 }
-static void AtDraw(IDirect3DDevice9* device,uint32_t scene,uint32_t main) {
+static void AtDraw(IDirect3DDevice9* device,uint32_t scene,uint32_t main,bool requireFirstWindow=false) {
   if(!enabled||attemptedFrame==frameId)return;
+  // Own value copy survives external reads/API reentry. A successful API
+  // result is credited only while this exact frame/apply/device remains current.
+  const Packet camera=pending;const auto frame=frameId;const auto epoch=deviceEpoch;
   D3DMATRIX view{},projection{};IDirect3DSurface9* target=nullptr;
   if(FAILED(device->GetTransform(D3DTS_VIEW,&view))||FAILED(device->GetTransform(D3DTS_PROJECTION,&projection))) {Missed("unreadable_transforms");return;}
   if(projection._34==0||projection._44!=0)return;
   // Conservatively close the window even for a foreign/offscreen perspective
   // draw: the renderer might classify it as Main. Never report a late API
   // SUCCESS as proof that first-update-wins accepted the camera this frame.
-  if(!pending.valid||pending.frame!=frameId||pending.deviceEpoch!=deviceEpoch||pending.scene!=scene||pending.camera!=main) {Missed("missing_current_native_apply");return;}
-  if(memcmp(&view,pending.info.view,64)||memcmp(&projection,pending.info.projection,64)) {++stateMismatches;Missed("different_camera");return;}
+  if(!camera.valid||camera.frame!=frame||camera.deviceEpoch!=epoch||camera.scene!=scene||camera.camera!=main) {Missed("missing_current_native_apply");return;}
+  if(memcmp(&view,camera.info.view,64)||memcmp(&projection,camera.info.projection,64)) {++stateMismatches;Missed("different_camera");return;}
   if(FAILED(device->GetRenderTarget(0,&target))||!target){Missed("unreadable_target");return;}
   const auto found=primaryTargets.find(device);const bool primary=found!=primaryTargets.end()&&found->second==target;
   target->Release();if(!primary){Missed("non_primary_target");return;}
-  if(observedFrame!=frameId){observedFrame=frameId;selected=pending;++matched;}
+  if(frameId!=frame||deviceEpoch!=epoch||!pending.valid||pending.sequence!=camera.sequence){++failures;return;}
+  if(attemptedFrame==frame||observedFrame==frame||
+     (requireFirstWindow&&(drawId||!CameraDrawsTracked(device))))return;
+  if(observedFrame!=frame){observedFrame=frame;selected=camera;++matched;}
   if(!submitEnabled) {
-    attemptedFrame=frameId;
-    if(frameId%300==0||frameId+120==traceUntilFrame)LogPacket(REMIXAPI_ERROR_CODE_SUCCESS,false);
+    attemptedFrame=frame;
+    if(frame%300==0||frame+120==traceUntilFrame)LogPacket(REMIXAPI_ERROR_CODE_SUCCESS,false,camera);
     return;
   }
-  attemptedFrame=frameId;auto api=GetRemixApi();
-  const auto result=api&&api->SetupCamera?api->SetupCamera(&pending.info):REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
-  if(result==REMIXAPI_ERROR_CODE_SUCCESS){submittedFrame=frameId;++submitted;}
+  attemptedFrame=frame;auto api=GetRemixApi();
+  if(frameId!=frame||deviceEpoch!=epoch||!pending.valid||pending.sequence!=camera.sequence||
+     (requireFirstWindow&&(drawId||!CameraDrawsTracked(device)))){++failures;return;}
+  const auto result=api&&api->SetupCamera?api->SetupCamera(&camera.info):REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
+  if(result==REMIXAPI_ERROR_CODE_SUCCESS&&frameId==frame&&deviceEpoch==epoch&&pending.valid&&
+     pending.sequence==camera.sequence&&selected.valid&&selected.sequence==camera.sequence){submittedFrame=frame;++submitted;}
   else ++failures;
-  if(result!=REMIXAPI_ERROR_CODE_SUCCESS||frameId%300==0||frameId+120==traceUntilFrame)LogPacket(result,true);
+  if(result!=REMIXAPI_ERROR_CODE_SUCCESS||submittedFrame!=frame||frame%300==0||frame+120==traceUntilFrame)LogPacket(result,true,camera);
 }
 #if defined(_M_IX86)
 static DWORD ownerThread;
@@ -113,6 +122,17 @@ static bool Install() {
   FlushInstructionCache(GetCurrentProcess(),trampoline,15);FlushInstructionCache(GetCurrentProcess(),entry,10);return true;
 }
 #endif
+static void BeforeFirstSceneInstance(IDirect3DDevice9* device,uint32_t scene,uint32_t main) {
+#if defined(_M_IX86)
+  // At this native scene boundary no tracked draw may have occurred yet.
+  // Check all four draw hooks, not only the primary render target identity.
+  if(!enabled||!submitEnabled||GetCurrentThreadId()!=ownerThread||!CameraDrawsTracked(device)||
+     drawId||attemptedFrame==frameId||observedFrame==frameId)return;
+  AtDraw(device,scene,main,true);
+#else
+  (void)device;(void)scene;(void)main;
+#endif
+}
 static void Prepare(IDirect3DDevice9* device) {
 #if defined(_M_IX86)
   if(!enabled||GetCurrentThreadId()!=ownerThread)return;

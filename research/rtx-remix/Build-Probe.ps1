@@ -1,4 +1,5 @@
-param([string]$OutputDirectory = 'local-data/rtx-remix/build', [ValidateSet('x86','x64')][string]$Platform = 'x86')
+param([string]$OutputDirectory = 'local-data/rtx-remix/build', [ValidateSet('x86','x64')][string]$Platform = 'x86',
+      [string]$SourceDirectory)
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $build = [IO.Path]::GetFullPath((Join-Path $root $OutputDirectory))
@@ -10,7 +11,16 @@ $installation = & $vswhere -latest -products '*' -requires Microsoft.VisualStudi
 if (-not $installation) { throw 'MSVC x86 tools not found' }
 $environmentScript = Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
 New-Item -ItemType Directory -Path $build -Force | Out-Null
-$source = Join-Path $PSScriptRoot 'winx_d3d9_probe.cpp'
+$sourceRoot=$PSScriptRoot
+if ($SourceDirectory) {
+    # Compile the exact source snapshot already used by the CPU/GPU fixture.
+    $sourceRoot=[IO.Path]::GetFullPath((Join-Path $root $SourceDirectory))
+    if (-not $sourceRoot.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Source snapshot must be inside the repository'
+    }
+}
+$source = Join-Path $sourceRoot 'winx_d3d9_probe.cpp'
+if (-not (Test-Path -LiteralPath $source)) { throw 'Probe source is missing' }
 $remixInclude = Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
 if (-not (Test-Path -LiteralPath (Join-Path $remixInclude 'remix/remix_c.h'))) { throw 'The read-only Remix reference headers are required' }
 $exports = Join-Path $PSScriptRoot 'winx_d3d9_probe.def'
@@ -35,3 +45,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Probe compilation failed: $LASTEXITCODE" }
 } finally { Pop-Location }
 Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll') -Algorithm SHA256
+@{schema=1;platform=$Platform;sourceDirectory=$sourceRoot;
+  sourceSha256=(Get-FileHash -LiteralPath $source).Hash;
+  exportsSha256=(Get-FileHash -LiteralPath $exports).Hash;
+  dllSha256=(Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll')).Hash} |
+    ConvertTo-Json | Set-Content -LiteralPath (Join-Path $build 'build-manifest.json') -Encoding UTF8

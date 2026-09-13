@@ -49,6 +49,21 @@ struct Geometry {
   const std::vector<sparkplug::reconstruction::spPCVertexElementForAnalysis>* layout=nullptr;
   uint32_t componentFlags=0;
   native_owner_source::Packet owner{};
+  // Independent resource reads expose identities, not owning COM references.
+  uint32_t nativeDeclaration=0;
+  void* vertexBuffer=nullptr;void* indexBuffer=nullptr;void* declaration=nullptr;
+  uint64_t vertexGeneration=0,indexGeneration=0,declarationGeneration=0;
+};
+// Own transport boundary. The caller freshly assembles this from successful
+// Create records while holding guard; final Release/reset retire those records
+// under the same guard. These are lifecycle tokens, NOT extra COM references.
+// Never construct a witness by calling methods on raw native COM pointers.
+struct TransportWitness {
+  bool valid=false;IDirect3DDevice9* device=nullptr;
+  void* vertexBuffer=nullptr;void* indexBuffer=nullptr;void* declaration=nullptr;
+  uint64_t vertexGeneration=0,indexGeneration=0,declarationGeneration=0;
+  UINT vertexBytes=0,indexBytes=0;D3DFORMAT indexFormat=D3DFMT_UNKNOWN;
+  const D3DVERTEXELEMENT9* elements=nullptr;UINT elementCount=0;
 };
 static FILE* output;
 static bool enabled,submitEnabled;
@@ -208,6 +223,29 @@ static uint32_t __fastcall MeshInitialize(void* meshInterface,void*,uint32_t ind
   }catch(...){++failures;}
   return result;
 }
+struct ResourcePair {
+  abi::spDXVertexBufferLayout vb{};abi::spDXIndexBufferLayout ib{};
+  const Bytes* vertices=nullptr;const Bytes* indices=nullptr;
+};
+static bool ReadResourceHeaders(const abi::spDXMeshObservedLayout& mesh,ResourcePair& pair) {
+  return Read(mesh.vertexBuffer,pair.vb)&&pair.vb.base.vtableAddress==abi::spDXVertexBufferVTable&&
+    Read(mesh.indexBuffer,pair.ib)&&pair.ib.base.vtableAddress==abi::spDXIndexBufferVTable;
+}
+// Shared by scoped draw matching and independent reads. Keep precisely the
+// existing pair/range checks; stricter transport checks belong to the new entry.
+static bool ResolveResourceRanges(const abi::spDXMeshObservedLayout& mesh,UINT stride,
+                                  void* vertexBuffer,void* indexBuffer,ResourcePair& pair) {
+  const auto v=buffers.find(vertexBuffer),i=buffers.find(indexBuffer);
+  if(v==buffers.end()||i==buffers.end()||v->second.generation!=i->second.generation||
+     v->second.owner!=mesh.sharedMeshData||i->second.owner!=mesh.sharedMeshData||
+     v->second.nativeBuffer!=mesh.vertexBuffer||i->second.nativeBuffer!=mesh.indexBuffer||
+     v->second.data.size()!=pair.vb.byteSize||i->second.data.size()!=pair.ib.byteSize)return false;
+  const uint64_t indexCount=mesh.indexType==2?uint64_t(mesh.base.base.primitiveCount)*3:uint64_t(mesh.base.base.primitiveCount)+2;
+  const uint64_t vertexBegin=uint64_t(mesh.vertexBegin)*stride,vertexBytes=uint64_t(mesh.base.base.vertexCount)*stride;
+  if(vertexBegin>pair.vb.byteSize||vertexBytes>pair.vb.byteSize-vertexBegin||uint64_t(mesh.indexBegin)*2+indexCount*2>pair.ib.byteSize||
+     !Covered(v->second,size_t(vertexBegin),size_t(vertexBytes))||!Covered(i->second,size_t(mesh.indexBegin)*2,size_t(indexCount)*2))return false;
+  pair.vertices=&v->second;pair.indices=&i->second;return true;
+}
 static bool Resolve(IDirect3DDevice9* device,const DrawRange& draw,void* boundVB,void* boundIB,
                     UINT streamOffset,UINT stride,Geometry& geometry) {
   if(!enabled||!active||!active->valid||GetCurrentThreadId()!=ownerThread)return false;
@@ -220,33 +258,83 @@ static bool Resolve(IDirect3DDevice9* device,const DrawRange& draw,void* boundVB
      uint32_t(draw.base)!=mesh.vertexBegin||draw.minimum||draw.vertices!=mesh.base.base.vertexCount||
      draw.start!=mesh.indexBegin||draw.count!=mesh.base.base.primitiveCount||streamOffset||stride!=mesh.vertexStride)return false;
   abi::spRendererDrawContextObservedLayout state{};
-  abi::spDXVertexBufferLayout vb{};abi::spDXIndexBufferLayout ib{};
+  ResourcePair pair{};
   if(!Read(scope.renderer+abi::spRendererDrawContextOffset,state)||state.device!=reinterpret_cast<uintptr_t>(device)||
      state.vertexBuffer!=mesh.vertexBuffer||state.indexBuffer!=mesh.indexBuffer||state.vertexDeclaration!=mesh.vertexDeclaration||
-     !Read(mesh.vertexBuffer,vb)||vb.base.vtableAddress!=abi::spDXVertexBufferVTable||vb.direct3DVertexBuffer!=reinterpret_cast<uintptr_t>(boundVB)||
-     !Read(mesh.indexBuffer,ib)||ib.base.vtableAddress!=abi::spDXIndexBufferVTable||ib.direct3DIndexBuffer!=reinterpret_cast<uintptr_t>(boundIB))return false;
+     !ReadResourceHeaders(mesh,pair)||pair.vb.direct3DVertexBuffer!=reinterpret_cast<uintptr_t>(boundVB)||
+     pair.ib.direct3DIndexBuffer!=reinterpret_cast<uintptr_t>(boundIB))return false;
   abi::spDXMaterialObservedLayout material{};
   if(!Read(state.selectedMaterial,material)||material.base.base.vtableAddress!=abi::spDXMaterialPrimaryVTable||
      material.base.materialVTable!=abi::spDXMaterialInterfaceVTable||material.base.passCount!=1)return false;
-  const auto v=buffers.find(boundVB),i=buffers.find(boundIB);
-  if(v==buffers.end()||i==buffers.end()||v->second.generation!=i->second.generation||
-     v->second.owner!=mesh.sharedMeshData||i->second.owner!=mesh.sharedMeshData||
-     v->second.nativeBuffer!=mesh.vertexBuffer||i->second.nativeBuffer!=mesh.indexBuffer||
-     v->second.data.size()!=vb.byteSize||i->second.data.size()!=ib.byteSize)return false;
-  const uint64_t indexCount=mesh.indexType==2?uint64_t(mesh.base.base.primitiveCount)*3:uint64_t(mesh.base.base.primitiveCount)+2;
-  const uint64_t vertexBegin=uint64_t(mesh.vertexBegin)*stride,vertexBytes=uint64_t(mesh.base.base.vertexCount)*stride;
-  if(vertexBegin>vb.byteSize||vertexBytes>vb.byteSize-vertexBegin||uint64_t(mesh.indexBegin)*2+indexCount*2>ib.byteSize||
-     !Covered(v->second,size_t(vertexBegin),size_t(vertexBytes))||!Covered(i->second,size_t(mesh.indexBegin)*2,size_t(indexCount)*2))return false;
+  if(!ResolveResourceRanges(mesh,stride,boundVB,boundIB,pair))return false;
   D3DMATRIX world{},boundWorld{};
   // Same native renderer world input used by recovered PC4AD540 matrix refresh.
   if(!Read(scope.renderer+0xca40,world)||FAILED(device->GetTransform(D3DTS_WORLD,&boundWorld))||
      memcmp(&world,&boundWorld,sizeof(world)))return false;
-  geometry={&v->second,&i->second,scope.mesh,scope.renderer,stride,scope.sequence,
+  geometry={pair.vertices,pair.indices,scope.mesh,scope.renderer,stride,scope.sequence,
     {primitive,INT(mesh.vertexBegin),0,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount},world};
   geometry.componentFlags=mesh.base.base.vertexComponentFlags;
   geometry.owner=scope.owner;
   geometry.layout=Layout(geometry.componentFlags);if(!geometry.layout)return false;
   ++matched;return true;
+}
+// Borrowed result: consume/copy Geometry, its Bytes and layout before unlocking
+// borrow or making ANY reentrant cache mutation/native producer/COM call. guard
+// protects our snapshots and transport retirement, not arbitrary game objects;
+// the caller must also hold its qualified scene/object/phase lifetime and fence
+// that lifetime after consuming the result. This function submits nothing and
+// never grants draw-owner credit or marks captured bytes upload-verified.
+static bool ResolveCurrentResources(const std::unique_lock<std::recursive_mutex>& borrow,
+    IDirect3DDevice9* device,uint32_t meshAddress,uint32_t renderer,const D3DMATRIX& world,
+    const TransportWitness& transport,Geometry& geometry) {
+  geometry={};
+  if(!borrow.owns_lock()||borrow.mutex()!=&guard||!enabled||GetCurrentThreadId()!=ownerThread||!device||
+     !transport.valid||transport.device!=device||!transport.vertexBuffer||!transport.indexBuffer||!transport.declaration||
+     !transport.vertexGeneration||!transport.indexGeneration||!transport.declarationGeneration||
+     transport.indexFormat!=D3DFMT_INDEX16||!transport.elements||!transport.elementCount||transport.elementCount>MAXD3DDECLLENGTH+1)return false;
+  for(const auto& row:world.m)for(float value:row)if(!std::isfinite(value))return false;
+  abi::spDXMeshObservedLayout mesh{};ResourcePair pair{};uint32_t rendererDevice=0;
+  if(scene_geometry::Word(renderer)!=abi::spPCRendererPrimaryVTable||!Read(renderer+0xc9e8,rendererDevice)||
+     rendererDevice!=reinterpret_cast<uintptr_t>(device)||!Read(meshAddress,mesh)||
+     mesh.base.base.base.base.base.vtableAddress!=abi::spDXMeshVTable||mesh.base.base.secondaryVTable!=abi::spDXMeshInterfaceVTable||
+     mesh.componentWeightCount||(mesh.base.base.vertexComponentFlags&0x3e)||
+     (mesh.indexType!=2&&mesh.indexType!=3)||mesh.vertexBegin>0x7fffffffu||mesh.vertexStride<12||
+     !mesh.base.base.vertexCount||!mesh.base.base.primitiveCount||!ReadResourceHeaders(mesh,pair)||
+     pair.vb.direct3DVertexBuffer!=reinterpret_cast<uintptr_t>(transport.vertexBuffer)||
+     pair.ib.direct3DIndexBuffer!=reinterpret_cast<uintptr_t>(transport.indexBuffer)||
+     pair.vb.byteSize!=transport.vertexBytes||pair.ib.byteSize!=transport.indexBytes||
+     !ResolveResourceRanges(mesh,mesh.vertexStride,transport.vertexBuffer,transport.indexBuffer,pair)||!pair.vertices->generation)return false;
+  abi::spDXSharedMeshDataObservedLayout shared{};
+  if(mesh.sharedMeshData&&(!Read(mesh.sharedMeshData,shared)||shared.base.vtableAddress!=abi::spDXSharedMeshDataVTable||
+     shared.vertexBuffer!=mesh.vertexBuffer||shared.indexBuffer!=mesh.indexBuffer))return false;
+  // Existing native-class-sp-vertex-declaration evidence: factory4C9C20,
+  // exact1Ch, vtable6F2E58, FVF+14, borrowed COM+18. No inferred device field.
+  uint32_t declaration[7]{};
+  if(!Read(mesh.vertexDeclaration,declaration)||declaration[0]!=0x6f2e58||declaration[5]!=mesh.fvfCode||
+     declaration[6]!=reinterpret_cast<uintptr_t>(transport.declaration))return false;
+  Geometry result{pair.vertices,pair.indices,meshAddress,renderer,mesh.vertexStride,0,
+    {mesh.indexType==2?D3DPT_TRIANGLELIST:D3DPT_TRIANGLESTRIP,INT(mesh.vertexBegin),0,
+      mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount},world};
+  result.componentFlags=mesh.base.base.vertexComponentFlags;result.layout=Layout(result.componentFlags);
+  if(!EqualLayout(result,transport.elements,transport.elementCount))return false;
+  // The emitter deliberately preserves native offsets, including padding.
+  // Every declared input must fit the actual stream stride; no packed rewrite.
+  for(const auto& element:*result.layout) {
+    if(element.stream==0xff)break;
+    const UINT size=element.type<=3?(UINT(element.type)+1)*4:element.type==4?4:0;
+    if(element.stream||!size||element.offset>mesh.vertexStride||size>mesh.vertexStride-element.offset)return false;
+  }
+  abi::spDXMeshObservedLayout finalMesh{};ResourcePair finalPair{};uint32_t finalDeclaration[7]{},finalDevice=0;
+  abi::spDXSharedMeshDataObservedLayout finalShared{};
+  if(!Read(meshAddress,finalMesh)||memcmp(&mesh,&finalMesh,sizeof(mesh))||!ReadResourceHeaders(mesh,finalPair)||
+     memcmp(&pair.vb,&finalPair.vb,sizeof(pair.vb))||memcmp(&pair.ib,&finalPair.ib,sizeof(pair.ib))||
+     !Read(mesh.vertexDeclaration,finalDeclaration)||memcmp(declaration,finalDeclaration,sizeof(declaration))||
+     (mesh.sharedMeshData&&(!Read(mesh.sharedMeshData,finalShared)||memcmp(&shared,&finalShared,sizeof(shared))))||
+     scene_geometry::Word(renderer)!=abi::spPCRendererPrimaryVTable||!Read(renderer+0xc9e8,finalDevice)||finalDevice!=rendererDevice)return false;
+  result.nativeDeclaration=mesh.vertexDeclaration;result.vertexBuffer=transport.vertexBuffer;result.indexBuffer=transport.indexBuffer;
+  result.declaration=transport.declaration;result.vertexGeneration=transport.vertexGeneration;
+  result.indexGeneration=transport.indexGeneration;result.declarationGeneration=transport.declarationGeneration;
+  geometry=result;return true;
 }
 static bool InstallSharedHook() {
   // Two complete position-independent instructions; no protected entry or
@@ -289,6 +377,8 @@ static bool InstallMeshHook() {
 }
 #else
 static bool Resolve(IDirect3DDevice9*,const DrawRange&,void*,void*,UINT,UINT,Geometry&){return false;}
+static bool ResolveCurrentResources(const std::unique_lock<std::recursive_mutex>&,IDirect3DDevice9*,
+    uint32_t,uint32_t,const D3DMATRIX&,const TransportWitness&,Geometry& geometry){geometry={};return false;}
 #endif
 static void Initialize() {
   wchar_t path[MAX_PATH]{},option[8]{},mode[32]{};

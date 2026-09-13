@@ -36,6 +36,7 @@ static remixapi_Interface* GetRemixApi() {
 #endif
 }
 
+static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base);
 #include "winx_surface_submit.h"
 
 static void InitializeSurfaceRoles() {
@@ -94,10 +95,10 @@ static uint64_t BoundSurfaceTextureHash(IDirect3DDevice9* d) {
 
 // DDS materials identify all mip levels and their layout. The mip-0 identity
 // above remains the stock texture lookup contract for the older overlay path.
-static uint64_t BoundChannelTextureHash(IDirect3DDevice9* d) {
-  IDirect3DBaseTexture9* base=nullptr;
-  if(FAILED(d->GetTexture(0,&base))||!base)return 0;
-  struct Release {IDirect3DBaseTexture9* p;~Release(){p->Release();}} release{base};
+// Caller owns a COM reference or holds a qualified transport borrow. The
+// content hash is shared by the bound-D3D and independent resource sources.
+static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base) {
+  if(!base)return 0;
   const auto cached=surfaceChannelTextureHashes.find(base);
   if(cached!=surfaceChannelTextureHashes.end())return cached->second;
   if(base->GetType()!=D3DRTYPE_TEXTURE||surfaceChannelTextureHashes.size()>=4096)return 0;
@@ -118,6 +119,12 @@ static uint64_t BoundChannelTextureHash(IDirect3DDevice9* d) {
     if(FAILED(texture->UnlockRect(level))||!valid)return 0;
   }
   const auto hash=XXH3_64bits_digest(&state);if(hash)surfaceChannelTextureHashes.emplace(base,hash);return hash;
+}
+static uint64_t BoundChannelTextureHash(IDirect3DDevice9* d) {
+  IDirect3DBaseTexture9* base=nullptr;
+  if(FAILED(d->GetTexture(0,&base))||!base)return 0;
+  struct Release {IDirect3DBaseTexture9* p;~Release(){p->Release();}} release{base};
+  return ChannelTextureHash(base);
 }
 
 struct ScopedSurfaceRole {

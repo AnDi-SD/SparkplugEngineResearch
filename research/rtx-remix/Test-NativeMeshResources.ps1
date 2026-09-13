@@ -1,7 +1,7 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name, [switch]$SkipRun)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$build=Join-Path $root "local-data/rtx-remix/native-owner-tests/$Name"
+$build=Join-Path $root "local-data/rtx-remix/native-mesh-resource-tests/$Name"
 if (Test-Path -LiteralPath $build) { throw 'Use a fresh evidence directory' }
 $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 $installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
@@ -17,14 +17,14 @@ foreach ($relative in @('Sparkplug/Analysis/PC/SparkplugAbi.h','Sparkplug/Analys
     New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $target
 }
-$source=Join-Path $snapshot 'test_native_owner.cpp'
-# Ordinary CPU fixture executable. Only the two own platform pointer slots
-# use WINX_REMIX_TEST dependency injection; game code is never executed.
+$source=Join-Path $snapshot 'test_native_mesh_resources.cpp'
+# Ordinary CPU fixture executable. Literal ABI records and borrowed transport tokens
+# use owned storage only; no game or COM method is executed.
 $commands=@"
 @echo off
 call "$environmentScript" x86
 if errorlevel 1 exit /b %errorlevel%
-cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$source" /Fe:test_native_owner.exe /link user32.lib
+cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$source" /Fe:test_native_mesh_resources.exe /link user32.lib
 exit /b %errorlevel%
 "@
 $commandFile=Join-Path $build 'build.cmd'
@@ -32,9 +32,9 @@ $commandFile=Join-Path $build 'build.cmd'
 Push-Location $build
 try {
     & $env:ComSpec /d /c $commandFile *> (Join-Path $build 'build.log')
-    if ($LASTEXITCODE -ne 0) { throw "Native owner build failed; see $build/build.log" }
-    if ($SkipRun) { Write-Output "Built CPU native owner fixture: $build"; return }
-    $exe=Join-Path $build 'test_native_owner.exe'
+    if ($LASTEXITCODE -ne 0) { throw "Native mesh resources build failed; see $build/build.log" }
+    if ($SkipRun) { Write-Output "Built CPU native mesh resources fixture: $build"; return }
+    $exe=Join-Path $build 'test_native_mesh_resources.exe'
     $process=New-Object System.Diagnostics.Process
     $process.StartInfo.FileName=$exe
     $process.StartInfo.WorkingDirectory=$build
@@ -54,9 +54,9 @@ try {
     [IO.File]::WriteAllText((Join-Path $build 'result.json'),$stdoutTask.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $build 'stderr.log'),$stderrTask.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))
     $process.Dispose()
-    if ($exitCode -ne 0) { throw "Native owner fixture failed ($exitCode); see $build/stderr.log" }
+    if ($exitCode -ne 0) { throw "Native mesh resources fixture failed ($exitCode); see $build/stderr.log" }
     $result=Get-Content -LiteralPath (Join-Path $build 'result.json') -Raw | ConvertFrom-Json
-    if ($result.status -ne 'PASS') { throw 'Native owner fixture did not report PASS' }
+    if ($result.status -ne 'PASS') { throw 'Native mesh resources fixture did not report PASS' }
     @{ schema=1; gpu=$false; nativeGameCodeExecuted=$false; watchdogSeconds=30; exeSha256=(Get-FileHash -LiteralPath $exe).Hash; result=$result } |
         ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $build 'verification.json') -Encoding UTF8
     Get-Content -LiteralPath (Join-Path $build 'result.json')

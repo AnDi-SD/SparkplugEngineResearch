@@ -134,6 +134,11 @@ static void Event(const char* event,uint32_t scene,unsigned original,unsigned ad
 }
 struct Scope;
 static thread_local Scope* active;
+// Optional own before-prepare reader. It receives the original selection and
+// the current graph before this adapter extends visibility.
+static void (*observeSelection)(Scope&,const Registry&,uint32_t);
+static bool (*skipExtendedSupport)(uint32_t);
+static void (*selectionRestarted)(uint64_t);
 __declspec(align(8)) static volatile LONG64 nextScopeSerial=0;
 struct Scope {
   // Unique adapter operation identity, not a durable native object generation.
@@ -144,7 +149,9 @@ struct Scope {
   ULONGLONG started=0;
   std::vector<uint32_t> expanded;
   std::vector<std::pair<uint32_t,uint32_t>> marks;
-  Scope(uint32_t s,uint32_t c):scene(s),camera(c) {if(parent)parent->Restore();active=this;}
+  Scope(uint32_t s,uint32_t c):scene(s),camera(c) {
+    if(parent){if(selectionRestarted)selectionRestarted(parent->serial);parent->Restore();}active=this;
+  }
   Scope(const Scope&)=delete;
   Scope& operator=(const Scope&)=delete;
   ~Scope() {Restore();active=parent;}
@@ -182,6 +189,10 @@ struct Scope {
     if(!Read(camera,cameraRaw,sizeof(cameraRaw)) || cameraRaw[0x231] || At(cameraRaw,0x138)!=0x3f800000 || At(cameraRaw,0x148)!=0) return;
     started=GetTickCount64();const auto& registry=RegistrySnapshot();
     if(!registry.valid || registry.mutationSerial!=MutationSerial()) {if(frameId%300==0)Event("registry_rejected",scene,0,0);return;}
+    if(observeSelection) {
+      try {observeSelection(*this,registry,selectedManager);}
+      catch(const std::bad_alloc&) {Event("observer_allocation_rejected",scene,0,0);}
+    }
     ExtendSelection(selectedManager,registry);
   }
   void ExtendSelection(uint32_t selectedManager,const Registry& registry) {
@@ -189,10 +200,13 @@ struct Scope {
     if(!Vector(selectedManager,0x28,expanded)) {Event("selection_rejected",scene,0,0);return;}
     const unsigned before=static_cast<unsigned>(expanded.size());
     std::set<uint32_t> present(expanded.begin(),expanded.end());
+    unsigned independentlySubmitted=0;
     for(auto support:registry.supports) if(present.insert(support).second) {
+      if(skipExtendedSupport&&skipExtendedSupport(support)){++independentlySubmitted;continue;}
       if(expanded.size()>=limit) {Event("selection_limit",scene,before,0,registry.nodes);return;}
       expanded.push_back(support);marks.emplace_back(support,Word(support+0x64));
     }
+    if(independentlySubmitted&&(frameId%300==0||triggered))Event("independent_omitted",scene,before,independentlySubmitted,registry.nodes);
     if(marks.empty()) return;
     if(!Read(selectedManager+0x2c,original,sizeof(original))) return;
     // Borrow this scope's stable storage only until original SceneRender returns.
@@ -212,7 +226,9 @@ private:
   bool registryRead=false;
   Registry registrySnapshot;
 };
-static void BeforeSelect() {if(active)active->Restore();}
+static void BeforeSelect() {
+  if(active){if(active->attempted&&selectionRestarted)selectionRestarted(active->serial);active->Restore();}
+}
 static void AfterSelect(uint32_t manager,uint32_t scene,uint32_t camera) {
   if(!active) return;
   try {active->Extend(manager,scene,camera);}

@@ -15,6 +15,7 @@ parser.add_argument("--trace", action="store_true", help="Press the adapter's F8
 parser.add_argument("--hold", type=float, default=0.15)
 parser.add_argument("--key-count", type=int, default=1, help="Repeat the selected key up to 37 times")
 parser.add_argument("--key-gap", type=float, default=0.08, help="Release interval between repeated keys")
+parser.add_argument("--menu-step", action="store_true", help="Release each arrow when the verified F1 level selection changes")
 parser.add_argument("--settle", type=float, default=0,
                     help="Allow up to 15 seconds for rendering/live config to settle before capture")
 parser.add_argument("--capture", type=Path)
@@ -27,6 +28,10 @@ parser.add_argument("--click", nargs=2, type=int, metavar=("X", "Y"),
                     help="Click inside the verified game client area")
 parser.add_argument("--wheel", type=int, default=0, help="Mouse wheel steps, bounded to -12..12")
 args = parser.parse_args()
+if args.close and args.capture:
+    parser.error("capture and close must be separate calls so the screenshot is actually saved")
+if args.menu_step and (args.key not in ("up", "down") or args.hold > .5):
+    parser.error("menu-step requires up/down with a maximum hold of 0.5 seconds")
 if not -12 <= args.wheel <= 12:
     parser.error("wheel must be between -12 and 12")
 if not 0.001 <= args.hold <= 3:
@@ -192,11 +197,35 @@ else:
         for index in range(args.key_count):
             if u.GetForegroundWindow() != hwnd:
                 raise RuntimeError("Winx lost foreground; stopping keyboard input")
-            u.keybd_event(vk, scan, flags, 0)
-            try:
-                time.sleep(args.hold)
-            finally:
-                u.keybd_event(vk, scan, flags | 2, 0)
+            if args.menu_step:
+                # Poll only the documented selection word in a verified live
+                # debug menu. No process writes; input remains ordinary keys.
+                from winx_remix_state import StateReader
+                reader = StateReader(args.pid)
+                try:
+                    state = reader.snapshot()
+                    if not state.get('debugOpen') or len(state['menus']) != 2 or state['menus'][-1]['count'] != 37:
+                        raise RuntimeError('Menu-step requires the verified F1 level selector')
+                    menu = state['menus'][-1]
+                    deadline = time.monotonic() + args.hold
+                    u.keybd_event(vk, scan, flags, 0)
+                    try:
+                        while time.monotonic() < deadline:
+                            if u.GetForegroundWindow() != hwnd:
+                                raise RuntimeError('Winx lost foreground during menu-step')
+                            if reader.u32(menu['address'] + 0x20) != menu['selected']:
+                                break
+                            time.sleep(.001)
+                    finally:
+                        u.keybd_event(vk, scan, flags | 2, 0)
+                finally:
+                    reader.close()
+            else:
+                u.keybd_event(vk, scan, flags, 0)
+                try:
+                    time.sleep(args.hold)
+                finally:
+                    u.keybd_event(vk, scan, flags | 2, 0)
             if index + 1 < args.key_count:
                 time.sleep(args.key_gap)
         time.sleep(0.8)

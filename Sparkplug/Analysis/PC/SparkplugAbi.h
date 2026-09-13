@@ -1246,8 +1246,12 @@ namespace sparkplug::evidence::pc
         float worldMatrix[16];         // 0x138: ctor identity
         float inverseWorldMatrix[16];  // 0x178: ctor identity
         float inverseWorldScale[3];    // 0x1b8: ctor1,1,1
-        Address32 callbackAllocator;   // 0x1c4: untouched
-        Address32 callbackBegin;       // 0x1c8: borrowed callback pointers
+        // CP12: borrowed membership/lifecycle listener objects. Partition-node
+        // registration426690/425660 appends reciprocal links; remove/drain
+        // dispatches listener.v2C(node,0). Also used by Enabled/dtor/transfer;
+        // these are not Model pre/post callbacks or Prepare/Draw producers.
+        Address32 callbackAllocator;   // 0x1c4: untouched vector allocator
+        Address32 callbackBegin;       // 0x1c8: borrowed listener-object pointers
         Address32 callbackEnd;         // 0x1cc
         Address32 callbackCapacity;    // 0x1d0
     };

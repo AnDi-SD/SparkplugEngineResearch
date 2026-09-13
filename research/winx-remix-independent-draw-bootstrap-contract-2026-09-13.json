@@ -1,0 +1,600 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "scope": "Read-only remaining D3D bootstrap inputs for exact ordinary independent packet; no production implementation or new runtime test",
+  "images": [
+    {
+      "path": "local-data/pc-pristine/WinxClub.exe",
+      "bytes": 22065152,
+      "sha256": "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F"
+    },
+    {
+      "path": "local-data/Winx Club/WinxClubDebug.exe",
+      "bytes": 22065152,
+      "sha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB"
+    }
+  ],
+  "nativeWindows": [
+    {
+      "name": "ModelPre",
+      "start": "00423FD0",
+      "endExclusive": "004240C2",
+      "bytes": 242,
+      "sha256": "386F4C6B4D71B1AFAF9476FF6EA55EDFCC02615E00D25CA5D8592EEF5B3399AF",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "ModelPost",
+      "start": "004240D0",
+      "endExclusive": "0042412D",
+      "bytes": 93,
+      "sha256": "48B397051113E6E8CD9D2C4DC66CAB999173D8490CED75DE8DA16786984E4690",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "ModelRender",
+      "start": "00479DC0",
+      "endExclusive": "00479E11",
+      "bytes": 81,
+      "sha256": "90F9E1718C62A3BEFBC81FB9DEF8DAAA98578D59E2665723DA45DE38B886040E",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "defaultUnusedStageCopy",
+      "start": "004BBC73",
+      "endExclusive": "004BBCFB",
+      "bytes": 136,
+      "sha256": "60A2E7E3D12C0F48F98F69FAC21CEAE2494B075F1CDCBDF6E51980455C976CB4",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "textureStateSelectorAndBatch",
+      "start": "004BBD32",
+      "endExclusive": "004BBDB3",
+      "bytes": 129,
+      "sha256": "5762B4281FA854A497E4B136B7E738A296B45B1B3C6FC11E4A046236B37BE6CF",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "finalBlend",
+      "start": "004BC410",
+      "endExclusive": "004BC49C",
+      "bytes": 140,
+      "sha256": "7F03AF5FBB29C0003FF06DEDB9B1B1C6644187D2B05A3B281515C0591C2B8617",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "materialInstallAndMode2Gate",
+      "start": "004BC571",
+      "endExclusive": "004BC5B4",
+      "bytes": 67,
+      "sha256": "51371A92B27ED44F7DE06CFA754D2C9177485616E2F92A4A0E157343738D8215",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "passUpdateAndDraw",
+      "start": "004BC5F0",
+      "endExclusive": "004BC636",
+      "bytes": 70,
+      "sha256": "4A7FC7F942768C2FB1699DEB537D0E7EC017C17012CD31E64885C2937C2EEC3B",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "SceneApplyBeforeSky",
+      "start": "0045EC70",
+      "endExclusive": "0045ECB4",
+      "bytes": 68,
+      "sha256": "5F6704527EA76A837F65D483E35CD638911BF2999288F35C14C52FC22F529A2F",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "CameraApply",
+      "start": "00427D40",
+      "endExclusive": "00427D9A",
+      "bytes": 90,
+      "sha256": "CB7E583E832A7B8ED751A0211372196918BA99A6DEECEAED2A275C279543D88E",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    },
+    {
+      "name": "textureOperationTable",
+      "start": "006F19D4",
+      "endExclusive": "006F1A54",
+      "bytes": 128,
+      "sha256": "EF6032BF6EE6C4538D1E75DEDDEFE8BCED7C5C5677DD4BCF05FE996D99EF0783",
+      "pristineDebugEqual": true,
+      "limit": "Bounded original bytes; not fresh execution or a full callgraph proof."
+    }
+  ],
+  "instructionAnchors": [
+    {
+      "address": "00424069",
+      "bytes": "8A81C4C10000",
+      "mnemonic": "mov",
+      "operands": "al, byte ptr [ecx + 0xc1c4]"
+    },
+    {
+      "address": "00424098",
+      "bytes": "89818CC10000",
+      "mnemonic": "mov",
+      "operands": "dword ptr [ecx + 0xc18c], eax"
+    },
+    {
+      "address": "004240A1",
+      "bytes": "899194C10000",
+      "mnemonic": "mov",
+      "operands": "dword ptr [ecx + 0xc194], edx"
+    },
+    {
+      "address": "004240B7",
+      "bytes": "FF5068",
+      "mnemonic": "call",
+      "operands": "dword ptr [eax + 0x68]"
+    },
+    {
+      "address": "00479DD1",
+      "bytes": "FF5020",
+      "mnemonic": "call",
+      "operands": "dword ptr [eax + 0x20]"
+    },
+    {
+      "address": "00479DF0",
+      "bytes": "FF5224",
+      "mnemonic": "call",
+      "operands": "dword ptr [edx + 0x24]"
+    },
+    {
+      "address": "004BBC73",
+      "bytes": "8B96C0C90000",
+      "mnemonic": "mov",
+      "operands": "edx, dword ptr [esi + 0xc9c0]"
+    },
+    {
+      "address": "004BBC79",
+      "bytes": "8B5A4C",
+      "mnemonic": "mov",
+      "operands": "ebx, dword ptr [edx + 0x4c]"
+    },
+    {
+      "address": "004BBCA8",
+      "bytes": "33C0",
+      "mnemonic": "xor",
+      "operands": "eax, eax"
+    },
+    {
+      "address": "004BBCAA",
+      "bytes": "3BC2",
+      "mnemonic": "cmp",
+      "operands": "eax, edx"
+    },
+    {
+      "address": "004BBCAC",
+      "bytes": "1BC0",
+      "mnemonic": "sbb",
+      "operands": "eax, eax"
+    },
+    {
+      "address": "004BBCAE",
+      "bytes": "F7D8",
+      "mnemonic": "neg",
+      "operands": "eax"
+    },
+    {
+      "address": "004BBCB0",
+      "bytes": "8B448318",
+      "mnemonic": "mov",
+      "operands": "eax, dword ptr [ebx + eax*4 + 0x18]"
+    },
+    {
+      "address": "004BBCB4",
+      "bytes": "8B4010",
+      "mnemonic": "mov",
+      "operands": "eax, dword ptr [eax + 0x10]"
+    },
+    {
+      "address": "004BBCC0",
+      "bytes": "8B6804",
+      "mnemonic": "mov",
+      "operands": "ebp, dword ptr [eax + 4]"
+    },
+    {
+      "address": "004BBCC3",
+      "bytes": "8969EC",
+      "mnemonic": "mov",
+      "operands": "dword ptr [ecx - 0x14], ebp"
+    },
+    {
+      "address": "004BBD50",
+      "bytes": "8B85B0FEFFFF",
+      "mnemonic": "mov",
+      "operands": "eax, dword ptr [ebp - 0x150]"
+    },
+    {
+      "address": "004BBD61",
+      "bytes": "8B84969CC20000",
+      "mnemonic": "mov",
+      "operands": "eax, dword ptr [esi + edx*4 + 0xc29c]"
+    },
+    {
+      "address": "004BBD68",
+      "bytes": "3BC1",
+      "mnemonic": "cmp",
+      "operands": "eax, ecx"
+    },
+    {
+      "address": "004BBD77",
+      "bytes": "FF9080000000",
+      "mnemonic": "call",
+      "operands": "dword ptr [eax + 0x80]"
+    },
+    {
+      "address": "004BC419",
+      "bytes": "E882F7FFFF",
+      "mnemonic": "call",
+      "operands": "0x4bbba0"
+    },
+    {
+      "address": "004BC435",
+      "bytes": "89511C",
+      "mnemonic": "mov",
+      "operands": "dword ptr [ecx + 0x1c], edx"
+    },
+    {
+      "address": "004BC438",
+      "bytes": "8A8EC4C10000",
+      "mnemonic": "mov",
+      "operands": "cl, byte ptr [esi + 0xc1c4]"
+    },
+    {
+      "address": "004BC442",
+      "bytes": "8B8638C70000",
+      "mnemonic": "mov",
+      "operands": "eax, dword ptr [esi + 0xc738]"
+    },
+    {
+      "address": "004BC483",
+      "bytes": "6A07",
+      "mnemonic": "push",
+      "operands": "7"
+    },
+    {
+      "address": "004BC57C",
+      "bytes": "FF526C",
+      "mnemonic": "call",
+      "operands": "dword ptr [edx + 0x6c]"
+    },
+    {
+      "address": "004BC585",
+      "bytes": "E806F3FFFF",
+      "mnemonic": "call",
+      "operands": "0x4bb890"
+    },
+    {
+      "address": "004BC594",
+      "bytes": "83793802",
+      "mnemonic": "cmp",
+      "operands": "dword ptr [ecx + 0x38], 2"
+    },
+    {
+      "address": "004BC598",
+      "bytes": "741A",
+      "mnemonic": "je",
+      "operands": "0x4bc5b4"
+    },
+    {
+      "address": "004BC5FF",
+      "bytes": "E86C2FFAFF",
+      "mnemonic": "call",
+      "operands": "0x45f570"
+    },
+    {
+      "address": "004BC607",
+      "bytes": "E804FEFFFF",
+      "mnemonic": "call",
+      "operands": "0x4bc410"
+    },
+    {
+      "address": "004BC62D",
+      "bytes": "E85EFCFFFF",
+      "mnemonic": "call",
+      "operands": "0x4bc290"
+    },
+    {
+      "address": "0045EC86",
+      "bytes": "FF503C",
+      "mnemonic": "call",
+      "operands": "dword ptr [eax + 0x3c]"
+    },
+    {
+      "address": "0045ECA7",
+      "bytes": "E8B4ED0200",
+      "mnemonic": "call",
+      "operands": "0x48da60"
+    }
+  ],
+  "references": [
+    {
+      "path": "docs/research/native-pc-material-state-map.md",
+      "bytes": 4179,
+      "sha256": "0897CC8E81FDECD8BB4F36471FF6285344AE7956A4BC1DAECEBF030151AD82EA"
+    },
+    {
+      "path": "docs/research/native-pc-texture-state-map.md",
+      "bytes": 3822,
+      "sha256": "2B655707784470BF4344B7C1AC058BCB87B2516A8CEAE59D6E245E3A48E0152F"
+    },
+    {
+      "path": "docs/research/native-pc-material-lighting.md",
+      "bytes": 3323,
+      "sha256": "8C40B0A59F9E7D02D75AC093EE0CE0EFAE8FFAAB6F13C6CDA8406D051318E0B3"
+    },
+    {
+      "path": "docs/research/native-pc-material-install.md",
+      "bytes": 3454,
+      "sha256": "57EEE4B79209DB2253270F7D337C60D1C44F3A26E306405E9C990F273E9B9042"
+    },
+    {
+      "path": "docs/research/native-pc-material-pass-states.md",
+      "bytes": 3890,
+      "sha256": "EB35CF4E345780E30B6FD55EA37F8445E7BBE1A3B05EA2739DF1999AF0DF633E"
+    },
+    {
+      "path": "docs/research/native-pc-renderer-submit.md",
+      "bytes": 4117,
+      "sha256": "86010C8C917EB5F2F52F016131D861F9357A672B3B20DD7D8D58FE742F2D793E"
+    },
+    {
+      "path": "docs/research/native-pc-renderer-fixed-draw.md",
+      "bytes": 2396,
+      "sha256": "268551D07F2F01C62443C1186588151DBFC44AAC92BB2289219901BC8D73B951"
+    },
+    {
+      "path": "docs/research/native-pc-renderer-fog.md",
+      "bytes": 2288,
+      "sha256": "BD6A6C1686953705B579A21D6F78F39E96D7D437351EB7DEC082A5AB0906CFC7"
+    },
+    {
+      "path": "docs/research/native-pc-renderer-protocol.md",
+      "bytes": 9903,
+      "sha256": "858BBD4BC385900B1CBE5469B838296AB9BC5B78E11F1688837FCC0DFE65CFB8"
+    },
+    {
+      "path": "docs/research/native-pc-model-render-world.md",
+      "bytes": 10738,
+      "sha256": "CB1F02AC160EEA98B7B681AC18E40275B3BE0B22083C3282FF2FDB8913C4B333"
+    },
+    {
+      "path": "docs/research/native-pc-render-node-runtime.md",
+      "bytes": 10616,
+      "sha256": "E361D70A684CF6BB60F1F544E8A77978D0C9D2A993548B4910EEF96F529777D6"
+    },
+    {
+      "path": "docs/research/native-pc-partition-runtime.md",
+      "bytes": 12658,
+      "sha256": "843DAEC172AE82E72F89CAE26311781B615441A8FF28DF962CA551DAD36C292D"
+    },
+    {
+      "path": "docs/research/native-pc-scene-render-runtime.md",
+      "bytes": 8993,
+      "sha256": "F89CBBBDA0E7E7FA74AB09D4EE2B99C26EF278AD1BC7D5D367F7626BF561D3B8"
+    },
+    {
+      "path": "docs/research/tool-pc-renderer-startup-states-2026-09-10.md",
+      "bytes": 6410,
+      "sha256": "8572ED33835BCE9AAF2B86B1A18A3406E0B28292351B0C411A194437C3317825"
+    },
+    {
+      "path": "docs/research/tool-pc-device-state-reference-2026-09-10.md",
+      "bytes": 6538,
+      "sha256": "B86A6EC6609E471972623F873C133DA42E263EE74E3B680504D9A1425D0E4E33"
+    },
+    {
+      "path": "docs/research/tool-renderer-fallback-material-boundary-2026-09-10.md",
+      "bytes": 6881,
+      "sha256": "146BFCA14E8CA7C05F6E52561A4AC54D2E10E7C84274D1E2122D79BD75370117"
+    },
+    {
+      "path": "docs/research/winx-remix-independent-ordinary-input-contract-2026-09-13.md",
+      "bytes": 16208,
+      "sha256": "AACC6BCA7CC79513B2EEDC6D0C4ED2C9CF0F23EBDE881F13B68763F1AA233DE0"
+    },
+    {
+      "path": "docs/research/winx-remix-native-camera-submit-2026-09-13.md",
+      "bytes": 9847,
+      "sha256": "D43A24B4555652C8816A4D6CCD0DEEE73E8B9FA77DF900F1A5AE7DA713B910A0"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h",
+      "bytes": 5429,
+      "sha256": "7C6C2372CC2893C1BB88EB870AC6972BB06F996BF8FD91F6888E4BB763485DE7"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h",
+      "bytes": 2524,
+      "sha256": "6D8D589CB16857A84D59F3151FA155E20982B991E251D5676B505B0B0A534E13"
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+      "bytes": 37665,
+      "sha256": "B8BDF324C34DC844E1662FCC2452E29A11E22B0BC205C5ACCD70069E66A79E8F"
+    },
+    {
+      "path": "Sparkplug/Analysis/PC/SparkplugAbi.h",
+      "bytes": 223295,
+      "sha256": "AB8826916B749DE0CF16AC1C9C21D9D83DA79854D012828C68E6E2773A6BBA48"
+    },
+    {
+      "path": "research/rtx-remix/winx_native_camera_source.h",
+      "bytes": 9366,
+      "sha256": "884E16F5471CCC21A1BB45A7844295F5CECFC2AE79F52E329BE120CA0A3954BF"
+    },
+    {
+      "path": "research/rtx-remix/winx_scene_geometry.h",
+      "bytes": 14654,
+      "sha256": "0515A3570F59A3002BBD91AE57DEC85B84946B681997F6558DDDB0C08AE74F19"
+    },
+    {
+      "path": "research/rtx-remix/winx_surface_material.h",
+      "bytes": 5435,
+      "sha256": "7CF3FCF34132004DE79B8E2600A2A916C2253FDFB3EA1CA430B6662C3AE1E4AA"
+    }
+  ],
+  "contract": {
+    "cohort": [
+      "Exact supported Static/Partition/RenderNode Prepare and exact Model Render/Pre/Post; no custom/reentrant producer or Model direct/group callbacks.",
+      "Single active pass, exact StdLayer/MaterialTexture, finalBlend0, native/effective lighting mode2, no material-color/UV/animated-texture controllers or static UV.",
+      "Known ordinary DXMesh/resources, no weights, NULL selected vertex shader/qualified unlit FFP path; texture source selectors0 for active stage.",
+      "The global before-Prepare snapshot is a D3D context input, not material-owned state or proof of stability across arbitrary intervening renders."
+    ],
+    "fields": [
+      {
+        "kind": "render",
+        "id": 15,
+        "name": "ALPHATESTENABLE",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "Startup requests1; not a universal runtime constant."
+      },
+      {
+        "kind": "render",
+        "id": 27,
+        "name": "ALPHABLENDENABLE",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "Startup requests1; finalBlend0 maps factors only, not enable."
+      },
+      {
+        "kind": "render",
+        "id": 171,
+        "name": "BLENDOP",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "Post-Create observation1 on the reference device; no native per-material producer."
+      },
+      {
+        "kind": "render",
+        "id": 168,
+        "name": "COLORWRITEENABLE",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "No numeric default inferred."
+      },
+      {
+        "kind": "render",
+        "id": 206,
+        "name": "SEPARATEALPHABLENDENABLE",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "No numeric default inferred; proposed cohort requires observed0."
+      },
+      {
+        "kind": "render",
+        "id": 52,
+        "name": "STENCILENABLE",
+        "classification": "inherited current D3D context; no write in the qualified uninterrupted ordinary path",
+        "nativeValueClaim": "No numeric default inferred; proposed cohort requires observed0. Shadow phase can write it outside ordinary path."
+      },
+      {
+        "kind": "sampler",
+        "stage": 0,
+        "id": 11,
+        "name": "SRGBTEXTURE",
+        "classification": "inherited; CP31 writes sampler1,2,4,5,6,7 only",
+        "guard": "observed0"
+      },
+      {
+        "kind": "textureStage",
+        "stage": 0,
+        "ids": [
+          2,
+          3,
+          5,
+          6,
+          28
+        ],
+        "name": "COLORARG1/COLORARG2/ALPHAARG1/ALPHAARG2/RESULTARG",
+        "classification": "inherited; CP31 writes stage1,4,11,24 only",
+        "guard": "TEXTURE / CURRENT-or-DIFFUSE; no modifiers; RESULTARG CURRENT; exact stage0 unlit FFP"
+      },
+      {
+        "kind": "render",
+        "id": 60,
+        "name": "TEXTUREFACTOR",
+        "classification": "inherited; Model field28 becomes rendererC194 only, not a D3D RS60 write",
+        "guard": "current D3D value; proposed TEXTURE/CURRENT-or-DIFFUSE operations do not consume TFACTOR as an argument"
+      },
+      {
+        "kind": "textureStage",
+        "stage": 1,
+        "id": 1,
+        "name": "COLOROP",
+        "classification": "producer-written, not invariant",
+        "producer": "4BBBA0 default material layer1 raw state1 and per-stage selector, then CP31 map; preserve raw-cache equality semantics"
+      }
+    ],
+    "mappedMaterialStates": {
+      "render": [
+        7,
+        8,
+        9,
+        14,
+        19,
+        20,
+        22,
+        23,
+        24,
+        25,
+        29,
+        137,
+        145,
+        148
+      ],
+      "finalBlend0": {
+        "19": 2,
+        "20": 1
+      },
+      "alphaNormalization": "Own ScopedOpaqueAlphaTest temporarily changes only25 GREATEREQUAL7 to ALWAYS8 then restores7. It does not change15; keep native enabled/function/ref provenance and normalization policy distinct."
+    },
+    "stage1Minimum": {
+      "chain": [
+        "defaultMaterial=Word(renderer+C9C0)",
+        "defaultPass=Word(defaultMaterial+4C)",
+        "defaultLayer1=Word(defaultPass+1C)",
+        "holder=Word(defaultLayer1+10)",
+        "rawColorOp=Word(holder+14)"
+      ],
+      "selector": "Word(renderer+C770)==0; C748+4*(9*stage1+state1), independent of C1C4",
+      "mapping": "Call shared ApplyPCTextureStateForAnalysis with stage1,index1,raw value; mapped stage state1 must be1/DISABLE. Of bounded raw0..15 only raw0 qualifies.",
+      "exactTypes": {
+        "materialPrimary": "006EF264",
+        "materialInterfaceAt14": "006EF238",
+        "pass": "006E7388",
+        "layer": "006E7700",
+        "holder": "006E8440"
+      },
+      "counts": "Original always reads default material pass0 and default pass layer slot1 for every unused stage>0; no default passCount or layerCount check. Requiring counts>=1/>=2 is a stronger host guard, not recovered native semantics.",
+      "nullPolicy": "Null/unreadable material,pass,layer1,holder means direct export rejection, existing D3D path retained. Native has no fallback branch here; do not synthesize disabled or choose default layer0.",
+      "resourcePolicy": "holder+34 fallbackTexture can beNULL: unused stages copy raw words without GetTexture/Update, and desired texture binding isNULL. No texture-lifetime resource requirement for this default raw-only role.",
+      "cachePolicy": "Raw-cache stage1 state1 atC8C0 can suppress a COM write. Keep observed actual stage1 DISABLE guard as well as desired native DISABLE, or otherwise prove/reproduce native cache/device behavior; desired raw alone does not repair stale device state after ignored HRESULT.",
+      "lifetime": "Read exact known object layout, keep borrowed chain/raw/selector snapshot for the current scope, recheck at use/final epoch fence. No ownership or future immutability granted.",
+      "scope": "Only stage1 COLOROP needs this producer to prove termination of first-stage equation; do not export unused default textures or infer all higher-stage settings."
+    },
+    "camera": {
+      "nativeOrder": "Scene45EC70 calls camera v3C at45EC86; successful partition branch can call Sky48DA60 at45ECA7 before Visibility/selection (CP14).",
+      "existingPrepare": "Reads engine main/scene and D3D view/projection/primary target; may set selected/attempted state and call SetupCamera. It is not a side-effect-free probe.",
+      "conclusion": "Calling Prepare at SceneSelection is not proven before first main-classified draw because Sky precedes selection. Existing guards can miss/close a pending window or API may be late under first-update-wins. No unconditional relocation endorsed.",
+      "acceptedParentPlan": "Use existing same-frame selected+submittedFrame camera whose first draw path already qualified; missing camera means direct fallback. Check scene/main/device epoch; do not treat late API SUCCESS as proof."
+    }
+  },
+  "provenanceLimits": [
+    "No new emulation, game/GPU, build, DLL or config mutation.",
+    "No global renderer writer scan was performed. Invariance is derived for the named existing recovered chain and its bounded ordinary leaves, not arbitrary callbacks/passes/threads.",
+    "CP36/42 original native fixtures used explicit default material graphs; PC constructor producer/default numeric graph remains unproven. No PS2 defaults transferred.",
+    "Read-only source hashes identify files inspected at this checkpoint, not a frozen new installation or subsequent root edits.",
+    "All native windows were byte-equal between pinned pristine/debug images; earlier behavioural CP evidence is reused, not recounted as fresh native checks."
+  ]
+}

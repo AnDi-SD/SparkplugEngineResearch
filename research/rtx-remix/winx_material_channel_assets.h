@@ -3,12 +3,12 @@
 #pragma once
 namespace material_channels {
 static size_t assetBytes;
-static inline bool WriteTexture(IDirect3DDevice9* d,const wchar_t* path,const RGB& tint) {
+// A reference or current transport borrow must outlive this synchronous read.
+// This function neither takes ownership nor changes device texture bindings.
+static inline bool WriteTextureSource(IDirect3DBaseTexture9* base,const wchar_t* path,const RGB& tint) {
   if(!Bounded(tint))return false;
   if(GetFileAttributesW(path)!=INVALID_FILE_ATTRIBUTES)return true;
-  IDirect3DBaseTexture9* base=nullptr;
-  if(FAILED(d->GetTexture(0,&base))||!base)return false;
-  struct Release {IDirect3DBaseTexture9* p;~Release(){p->Release();}} release{base};
+  if(!base)return false;
   if(base->GetType()!=D3DRTYPE_TEXTURE)return false;
   auto texture=static_cast<IDirect3DTexture9*>(base);D3DSURFACE_DESC top{};
   const auto levels=texture->GetLevelCount();
@@ -41,5 +41,13 @@ static inline bool WriteTexture(IDirect3DDevice9* d,const wchar_t* path,const RG
   const bool closed=fclose(output)==0;
   if(!written||!closed||!MoveFileExW(temporary.c_str(),path,MOVEFILE_WRITE_THROUGH)){DeleteFileW(temporary.c_str());return false;}
   assetBytes+=bytes.size()*4;return true;
+}
+static inline bool WriteTexture(IDirect3DDevice9* d,const wchar_t* path,const RGB& tint) {
+  if(!Bounded(tint))return false;
+  if(GetFileAttributesW(path)!=INVALID_FILE_ATTRIBUTES)return true;
+  IDirect3DBaseTexture9* base=nullptr;
+  if(FAILED(d->GetTexture(0,&base))||!base)return false;
+  struct Release {IDirect3DBaseTexture9* p;~Release(){p->Release();}} release{base};
+  return WriteTextureSource(base,path,tint);
 }
 }
