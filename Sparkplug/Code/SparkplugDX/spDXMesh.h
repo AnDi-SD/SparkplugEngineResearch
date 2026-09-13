@@ -3,6 +3,7 @@
 // Inferred header path for classes compiled by the exact native translation
 // unit Z:\Sparkplug\Code\SparkplugDX\spDXMesh.cpp.
 
+#include "spPCDXVertexBytes.h"
 #include "../Sparkplug/spRenderMesh.h"
 
 #include <cstddef>
@@ -81,8 +82,8 @@ namespace sparkplug::reconstruction
     {
     public:
         static constexpr spClassID ClassID = 0x193B2671;
-        static constexpr std::uint32_t ExpandedPackedFieldBytes = 12;
-        static constexpr std::size_t PackedFieldComponentOffsetIndex = 6;
+        static constexpr std::uint32_t ExpandedPackedFieldBytes = spPCDXExpandedPackedFieldBytes;
+        static constexpr std::size_t PackedFieldComponentOffsetIndex = spPCDXPackedFieldComponentOffsetIndex;
 
         spDXMesh() noexcept = default;
         ~spDXMesh() override;

@@ -5,7 +5,9 @@
 #include <algorithm>
 #include "../../Sparkplug/Analysis/PC/SparkplugAbi.h"
 #include "../../Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h"
+#include "../../Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h"
 #include "winx_native_owner_source.h"
+#include "winx_native_skin_source.h"
 #if defined(_M_IX86)
 #include <intrin.h>
 #endif
@@ -131,7 +133,10 @@ static uint32_t __fastcall Submit(void* rendererInterface,void*,uint32_t mesh) {
   Scope scope{active,mesh,uint32_t(reinterpret_cast<uintptr_t>(rendererInterface)-0x18),++nextSubmission};
   scope.valid=scene_geometry::Word(scope.renderer)==abi::spPCRendererPrimaryVTable && Read(mesh,scope.value) &&
     scene_geometry::Word(mesh)==abi::spDXMeshVTable && scope.value.base.base.secondaryVTable==abi::spDXMeshInterfaceVTable;
-  if(scope.valid)native_owner_source::Capture(mesh,scope.renderer,scope.sequence,returnAddress,scope.owner);
+  if(scope.valid) {
+    native_owner_source::Capture(mesh,scope.renderer,scope.sequence,returnAddress,scope.owner);
+    native_skin_source::Capture(mesh,scope.renderer,scope.sequence,returnAddress);
+  }
   struct Restore {Scope* previous;~Restore(){active=previous;}} restore{active};
   active=&scope;++submissions;
   return SubmitAndRestore(&scope,rendererInterface,mesh);
@@ -177,25 +182,38 @@ static uint32_t __fastcall MeshInitialize(void* meshInterface,void*,uint32_t ind
   std::lock_guard<std::recursive_mutex> lock(guard);
   abi::spIndexBufferLayout indices{};abi::spVertexBufferLayout vertices{};
   std::vector<uint8_t> indexBytes,vertexBytes;
+  uint32_t convertedStride=0;
   bool captured=false;
   try {
-    // PC429A40 -> 4AA000, shared recovered BuildVertexBytesForAnalysis:
-    // without weights/packed indices the authored vertex stream is copied
-    // unchanged. The packed/weighted conversion stays on the existing path.
+    // PC429A40 -> 4AA000: capture authored CPU bytes before the original
+    // upload and use the same recovered byte mapper as common spDXMesh.
+    // This admits weighted provenance only; Resolve still rejects its draw.
     if(Read(indexObject,indices)&&indices.base.vtableAddress==abi::spIndexBufferVTable&&indices.initialized&&
        !(indices.formatFlags&1)&&Read(vertexObject,vertices)&&vertices.base.vtableAddress==abi::spVertexBufferVTable&&
-       vertices.initialized&&!(vertices.componentFlags&0x3e)&&vertices.vertexStride>=12&&
-       uint64_t(vertices.vertexStride)*vertices.vertexCount<=vertices.vertexSize&&indices.indexCount<=4*1024*1024)
-      captured=ReadBytes(indices.indexData,indexBytes,indices.indexCount*2)&&
-        ReadBytes(vertices.vertexData,vertexBytes,vertices.vertexStride*vertices.vertexCount);
+       vertices.initialized&&vertices.vertexStride>=12&&
+       uint64_t(vertices.vertexStride)*vertices.vertexCount<=vertices.vertexSize&&indices.indexCount<=4*1024*1024) {
+      const uint64_t mappedSize=(uint64_t(vertices.vertexStride)+
+        ((vertices.componentFlags&0x20)?sparkplug::reconstruction::spPCDXExpandedPackedFieldBytes:0))*vertices.vertexCount;
+      if(mappedSize>8*1024*1024)++limited;
+      else {
+        std::vector<uint8_t> authored;
+        captured=ReadBytes(indices.indexData,indexBytes,indices.indexCount*2)&&
+          ReadBytes(vertices.vertexData,authored,vertices.vertexStride*vertices.vertexCount)&&
+          sparkplug::reconstruction::BuildPCDXVertexBytesForAnalysis(authored.data(),authored.size(),
+            vertices.vertexStride,vertices.vertexCount,vertices.componentFlags,
+            vertices.componentOffsets[sparkplug::reconstruction::spPCDXPackedFieldComponentOffsetIndex],
+            vertexBytes,convertedStride);
+      }
+    }
   }catch(...){++failures;}
   const auto result=originalMeshInitialize(meshInterface,indexObject,vertexObject,keepCPU);
   if(!(result&255)||!captured)return result;
+  void* publishedV=nullptr;void* publishedI=nullptr;
   try {
     const auto meshAddress=uint32_t(reinterpret_cast<uintptr_t>(meshInterface)-0x14);
     abi::spDXMeshObservedLayout mesh{};abi::spDXVertexBufferLayout vb{};abi::spDXIndexBufferLayout ib{};
     if(!Read(meshAddress,mesh)||scene_geometry::Word(meshAddress)!=abi::spDXMeshVTable||mesh.sharedMeshData||
-       mesh.vertexStride!=vertices.vertexStride||mesh.base.base.vertexCount!=vertices.vertexCount||
+       mesh.vertexStride!=convertedStride||mesh.base.base.vertexCount!=vertices.vertexCount||
        mesh.base.base.vertexComponentFlags!=vertices.componentFlags||mesh.indexType!=indices.type||
        !Read(mesh.vertexBuffer,vb)||vb.base.vtableAddress!=abi::spDXVertexBufferVTable||
        !Read(mesh.indexBuffer,ib)||ib.base.vtableAddress!=abi::spDXIndexBufferVTable)return result;
@@ -203,6 +221,8 @@ static uint32_t __fastcall MeshInitialize(void* meshInterface,void*,uint32_t ind
     if(!vb.direct3DVertexBuffer||!ib.direct3DIndexBuffer||vb.byteSize>8*1024*1024||ib.byteSize>8*1024*1024||
        vBegin+vertexBytes.size()>vb.byteSize||iBegin+indexBytes.size()>ib.byteSize){++failures;return result;}
     void* v=reinterpret_cast<void*>(vb.direct3DVertexBuffer);void* i=reinterpret_cast<void*>(ib.direct3DIndexBuffer);
+    if(v==i){++failures;return result;}
+    publishedV=v;publishedI=i;
     auto foundV=buffers.find(v),foundI=buffers.find(i);
     if(foundV==buffers.end()||foundI==buffers.end()||foundV->second.generation!=foundI->second.generation||
        foundV->second.nativeBuffer!=mesh.vertexBuffer||foundI->second.nativeBuffer!=mesh.indexBuffer||
@@ -215,12 +235,16 @@ static uint32_t __fastcall MeshInitialize(void* meshInterface,void*,uint32_t ind
     }
     // Bound metadata as well as byte storage, even for disjoint tiny ranges.
     if(foundV->second.ranges.size()>=4096||foundI->second.ranges.size()>=4096){++limited;return result;}
+    // Publish a fresh pair only after both interval updates finish. Allocation
+    // failure must not leave changed bytes under the previous generation.
+    foundV->second.generation=foundI->second.generation=0;
     PutRange(foundV->second,size_t(vBegin),vertexBytes);PutRange(foundI->second,size_t(iBegin),indexBytes);
     const auto generation=++nextGeneration;foundV->second.generation=foundI->second.generation=generation;++captures;
     if(output&&_ftelli64(output)<16*1024*1024)
-      fprintf(output,"{\"event\":\"capture_range\",\"generation\":%llu,\"mesh\":%u,\"nativeVB\":%u,\"nativeIB\":%u,\"vertexBegin\":%llu,\"vertexBytes\":%zu,\"indexBegin\":%llu,\"indexBytes\":%zu}\n",
-        generation,meshAddress,mesh.vertexBuffer,mesh.indexBuffer,vBegin,vertexBytes.size(),iBegin,indexBytes.size());
-  }catch(...){++failures;}
+      fprintf(output,"{\"event\":\"capture_range\",\"generation\":%llu,\"mesh\":%u,\"nativeVB\":%u,\"nativeIB\":%u,\"vertexBegin\":%llu,\"vertexBytes\":%zu,\"indexBegin\":%llu,\"indexBytes\":%zu,\"componentFlags\":%u,\"authoredStride\":%u,\"mappedStride\":%u}\n",
+        generation,meshAddress,mesh.vertexBuffer,mesh.indexBuffer,vBegin,vertexBytes.size(),iBegin,indexBytes.size(),
+        vertices.componentFlags,unsigned(vertices.vertexStride),convertedStride);
+  }catch(...){Forget(publishedV);Forget(publishedI);++failures;}
   return result;
 }
 struct ResourcePair {
@@ -236,7 +260,7 @@ static bool ReadResourceHeaders(const abi::spDXMeshObservedLayout& mesh,Resource
 static bool ResolveResourceRanges(const abi::spDXMeshObservedLayout& mesh,UINT stride,
                                   void* vertexBuffer,void* indexBuffer,ResourcePair& pair) {
   const auto v=buffers.find(vertexBuffer),i=buffers.find(indexBuffer);
-  if(v==buffers.end()||i==buffers.end()||v->second.generation!=i->second.generation||
+  if(v==buffers.end()||i==buffers.end()||!v->second.generation||v->second.generation!=i->second.generation||
      v->second.owner!=mesh.sharedMeshData||i->second.owner!=mesh.sharedMeshData||
      v->second.nativeBuffer!=mesh.vertexBuffer||i->second.nativeBuffer!=mesh.indexBuffer||
      v->second.data.size()!=pair.vb.byteSize||i->second.data.size()!=pair.ib.byteSize)return false;
@@ -250,7 +274,7 @@ static bool Resolve(IDirect3DDevice9* device,const DrawRange& draw,void* boundVB
                     UINT streamOffset,UINT stride,Geometry& geometry) {
   if(!enabled||!active||!active->valid||GetCurrentThreadId()!=ownerThread)return false;
   const auto& scope=*active;const auto& mesh=scope.value;
-  if(mesh.componentWeightCount)return false;
+  if(mesh.componentWeightCount||(mesh.base.base.vertexComponentFlags&0x3e))return false;
   // PC4BC290's table maps native type2/3 to triangle-list/strip. All other
   // primitive types stay with their original producer and D3D path.
   const auto primitive=mesh.indexType==2?D3DPT_TRIANGLELIST:mesh.indexType==3?D3DPT_TRIANGLESTRIP:D3DPT_POINTLIST;

@@ -9,7 +9,28 @@ struct ConvertedLight {
   remixapi_Float3D radiance{}, position{}, direction{};
   float radius=4, angle=0.0349f*180.0f/remix_light_conversion::kPi, softness=0, focus=0;
 };
-struct OwnedLight { remixapi_LightHandle handle=nullptr; uint64_t id=0; ConvertedLight state{}; unsigned seen=0; };
+struct OwnedLight {
+  remixapi_LightHandle handle=nullptr; uint64_t id=0; ConvertedLight state{}; unsigned seen=0;
+  bool usable=false,retiring=false;uint64_t cleanupAttempt=0;
+};
+using LightKey=std::pair<uintptr_t,uint32_t>;
+static constexpr size_t maxOwnedLights=4096,maxSeenLightScenes=128;
+static bool lightsBusy,retireAllLights;
+static uint64_t lightRevision=1,lightOperationId;
+static bool attemptedLightType[3]{},restoreLegacyPending[3]{};
+static unsigned attemptedLightFrame[3]{};
+// Reentry never edits ownership or calls the API recursively. The outer call
+// still owns all returned handles, then quarantines them on invalidation.
+static void InvalidateLights(){++lightRevision;retireAllLights=true;}
+struct LightOperation {
+  std::lock_guard<std::recursive_mutex> lock{guard};
+  bool outer=false;uint64_t revision=0;unsigned frame=frameId;float gain=sceneLightGain;
+  bool enabled=sceneLightsEnabled,comparison=keepSceneLightsForComparison;
+  LightOperation(){if(lightsBusy){InvalidateLights();return;}lightsBusy=true;outer=true;revision=lightRevision;++lightOperationId;}
+  ~LightOperation(){if(outer)lightsBusy=false;}
+  bool Stable() const{return outer&&revision==lightRevision&&frame==frameId&&gain==sceneLightGain&&
+    enabled==sceneLightsEnabled&&comparison==keepSceneLightsForComparison;}
+};
 static std::map<std::pair<uintptr_t,uint32_t>,OwnedLight> ownedLights;
 static std::map<uintptr_t,unsigned> scenesSeen;
 static uint64_t nextLightId=0x57584c0000000001ull;
@@ -27,6 +48,9 @@ static bool Normalize(remixapi_Float3D& v) {
 }
 static bool Convert(const LightRecord& source, ConvertedLight& output) {
   D3DLIGHT9 d{};memcpy(&d,source.raw+0xf0,sizeof(d));
+#if defined(WINX_REMIX_NATIVE_LIGHT_SOURCE_AVAILABLE)
+  (void)native_light_source::Resolve(source,d);
+#endif
   const auto type=At(source.raw,0xc0);if(type>2) return false;
   if(d.Type!=(type==0?D3DLIGHT_DIRECTIONAL:type==1?D3DLIGHT_POINT:D3DLIGHT_SPOT)) return false;
   const float color[3]={d.Diffuse.r,d.Diffuse.g,d.Diffuse.b};
@@ -56,33 +80,81 @@ static bool Convert(const LightRecord& source, ConvertedLight& output) {
   }
   return std::isfinite(output.radiance.x) && std::isfinite(output.radiance.y) && std::isfinite(output.radiance.z);
 }
+static auto LightApi()->decltype(GetRemixApi()) {
+  try {return GetRemixApi();}catch(const std::bad_alloc&){++lightFailures;return nullptr;}
+}
 static bool IgnoreLegacy(unsigned type,bool ignore) {
-  if(ignoredLegacy[type]==ignore) return true;
+  if(type>=3)return false;
+  if(!ignore&&attemptedLightType[type]&&attemptedLightFrame[type]==frameId) {
+    restoreLegacyPending[type]=true;return false;
+  }
+  if(ignoredLegacy[type]==ignore){restoreLegacyPending[type]=false;return true;}
   static const char* keys[]={"rtx.ignoreGameDirectionalLights","rtx.ignoreGamePointLights","rtx.ignoreGameSpotLights"};
-  auto api=GetRemixApi();if(!api) return false;
-  const auto result=api->SetConfigVariable(keys[type],ignore?"True":"False");
+  auto api=LightApi();if(!api||!api->SetConfigVariable){if(!ignore)restoreLegacyPending[type]=true;return false;}
+  remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  try {result=api->SetConfigVariable(keys[type],ignore?"True":"False");}catch(const std::bad_alloc&){}
   LightEvent("legacy_policy",0,type,0,result);
-  if(result!=REMIXAPI_ERROR_CODE_SUCCESS) {++lightFailures;return false;}
-  ignoredLegacy[type]=ignore;return true;
+  if(result!=REMIXAPI_ERROR_CODE_SUCCESS){++lightFailures;if(!ignore)restoreLegacyPending[type]=true;return false;}
+  ignoredLegacy[type]=ignore;restoreLegacyPending[type]=false;return true;
 }
-static void Destroy(OwnedLight& light,uintptr_t scene,uint32_t object) {
-  if(!light.handle) return;
-  auto api=GetRemixApi();if(!api) return;
-  const auto result=api->DestroyLight(light.handle);
-  LightEvent("destroy",scene,object,light.id,result);
-  if(result!=REMIXAPI_ERROR_CODE_SUCCESS) ++lightFailures;
-  light.handle=nullptr;++lightDestroys;
+static void MarkLightsRetired() {
+  for(auto& pair:ownedLights){pair.second.retiring=true;pair.second.usable=false;}
+  scenesSeen.clear();retireAllLights=false;
 }
-static bool Create(OwnedLight& light,const ConvertedLight& state,uintptr_t scene,uint32_t object) {
-  auto api=GetRemixApi();if(!api || !api->CreateLight || !api->DrawLightInstance || !api->DestroyLight) return false;
-  const bool update=light.handle!=nullptr;
-  // x86 bridge allocates a new client handle on every CreateLight. Remove the
-  // old mapping BEFORE recreating the same server hash; otherwise it leaks.
-  if(update) Destroy(light,scene,object);
-  if(!light.id) light.id=nextLightId++;
-  remixapi_LightInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;info.hash=light.id;info.radiance=state.radiance;
-  remixapi_LightInfoDistantEXT distant{};
-  remixapi_LightInfoSphereEXT sphere{};
+static bool Destroy(const LightKey& key) {
+  OwnedLight light{};
+  {const auto found=ownedLights.find(key);if(found==ownedLights.end())return true;
+    found->second.usable=false;found->second.retiring=true;
+    if(!found->second.handle){ownedLights.erase(found);return true;}
+    if(found->second.cleanupAttempt==lightOperationId)return false;
+    found->second.cleanupAttempt=lightOperationId;light=found->second;}
+  auto api=LightApi();if(!api||!api->DestroyLight)return false;
+  remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  try {result=api->DestroyLight(light.handle);}catch(const std::bad_alloc&){}
+  LightEvent("destroy",key.first,key.second,light.id,result);
+  // Nested operations cannot erase or replace this preexisting owner node.
+  const auto found=ownedLights.find(key);
+  if(result!=REMIXAPI_ERROR_CODE_SUCCESS){++lightFailures;return false;}
+  if(found!=ownedLights.end()&&found->second.handle==light.handle){ownedLights.erase(found);++lightDestroys;}
+  return true;
+}
+static void SweepRetiredLights() {
+  LightKey cursor{};bool first=true;
+  for(size_t n=0;n<maxOwnedLights;++n) {
+    LightKey key{};bool retiring=false;
+    {const auto it=first?ownedLights.begin():ownedLights.upper_bound(cursor);if(it==ownedLights.end())break;
+      key=it->first;retiring=it->second.retiring;}
+    first=false;cursor=key;if(retiring)Destroy(key);
+  }
+}
+static void FinishLightOperation(const LightOperation& operation) {
+  if(!operation.Stable()||retireAllLights)MarkLightsRetired();
+  SweepRetiredLights();
+  if(retireAllLights)MarkLightsRetired(); // no unbounded drain on repeated reentry
+  if(scenesSeen.empty())for(unsigned type=0;type<3;++type)IgnoreLegacy(type,false);
+}
+static bool Create(const LightKey& key,const ConvertedLight& state,const LightOperation& operation) {
+  OwnedLight before{};
+  {const auto found=ownedLights.find(key);if(found==ownedLights.end())return false;before=found->second;}
+  auto api=LightApi();if(!operation.Stable()||!api||!api->CreateLight||!api->DrawLightInstance||!api->DestroyLight)return false;
+  // Reuse the server hash only after a successful client Destroy return (no server ACK).
+  // Preserve the preallocated cache node across update; Destroy() erases only
+  // retired entries, so the update uses its own non-erasing destroy boundary.
+  if(before.handle) {
+    {auto& entry=ownedLights.find(key)->second;entry.usable=false;entry.retiring=true;
+      if(entry.cleanupAttempt==lightOperationId)return false;entry.cleanupAttempt=lightOperationId;}
+    remixapi_ErrorCode destroyed=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+    try {destroyed=api->DestroyLight(before.handle);}catch(const std::bad_alloc&){}
+    LightEvent("destroy",key.first,key.second,before.id,destroyed);
+    if(destroyed!=REMIXAPI_ERROR_CODE_SUCCESS){++lightFailures;return false;}
+    auto& entry=ownedLights.find(key)->second;entry.handle=nullptr;++lightDestroys;
+    if(!operation.Stable())return false;
+  }
+  {auto& entry=ownedLights.find(key)->second;
+    if(!entry.id){if(!nextLightId)return false;entry.id=nextLightId++;}
+    entry.state=state;entry.usable=false;entry.retiring=true;before.id=entry.id;}
+  remixapi_LightInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;info.hash=before.id;info.radiance=state.radiance;
+  remixapi_LightInfoDistantEXT distant{};remixapi_LightInfoSphereEXT sphere{};
   if(state.type==0) {
     distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;distant.direction=state.direction;
     distant.angularDiameterDegrees=state.angle;distant.volumetricRadianceScale=1;info.pNext=&distant;
@@ -91,66 +163,104 @@ static bool Create(OwnedLight& light,const ConvertedLight& state,uintptr_t scene
     sphere.radius=state.radius;sphere.volumetricRadianceScale=1;sphere.shaping_hasvalue=state.type==2;
     sphere.shaping_value={state.direction,state.angle,state.softness,state.focus};info.pNext=&sphere;
   }
-  const auto result=api->CreateLight(&info,&light.handle);
-  LightEvent(update?"update":"create",scene,object,light.id,result);
-  if(sceneLightLog && _ftelli64(sceneLightLog)<16*1024*1024)
-    fprintf(sceneLightLog,"{\"event\":\"parameters\",\"frame\":%u,\"id\":%llu,\"type\":%u,\"radiance\":[%.9g,%.9g,%.9g],\"position\":[%.9g,%.9g,%.9g],\"direction\":[%.9g,%.9g,%.9g],\"radius\":%.9g,\"angle\":%.9g}\n",frameId,light.id,state.type,state.radiance.x,state.radiance.y,state.radiance.z,state.position.x,state.position.y,state.position.z,state.direction.x,state.direction.y,state.direction.z,state.radius,state.angle);
-  if(result!=REMIXAPI_ERROR_CODE_SUCCESS || !light.handle) {++lightFailures;return false;}
-  light.state=state;if(update) ++lightUpdates;else ++lightCreates;return true;
+  remixapi_LightHandle handle=nullptr;remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  try {result=api->CreateLight(&info,&handle);}catch(const std::bad_alloc&){}
+  // No allocation after API: even an error/exception with output retains its
+  // handle in the preallocated node, unusable until cleanup succeeds.
+  {auto& entry=ownedLights.find(key)->second;entry.handle=handle;entry.state=state;
+    entry.usable=result==REMIXAPI_ERROR_CODE_SUCCESS&&handle&&operation.Stable();entry.retiring=!entry.usable;}
+  LightEvent(before.handle?"update":"create",key.first,key.second,before.id,result);
+  if(sceneLightLog&&_ftelli64(sceneLightLog)<16*1024*1024)
+    fprintf(sceneLightLog,"{\"event\":\"parameters\",\"frame\":%u,\"id\":%llu,\"type\":%u,\"radiance\":[%.9g,%.9g,%.9g],\"position\":[%.9g,%.9g,%.9g],\"direction\":[%.9g,%.9g,%.9g],\"radius\":%.9g,\"angle\":%.9g}\n",frameId,before.id,state.type,state.radiance.x,state.radiance.y,state.radiance.z,state.position.x,state.position.y,state.position.z,state.direction.x,state.direction.y,state.direction.z,state.radius,state.angle);
+  if(!ownedLights.find(key)->second.usable){++lightFailures;return false;}
+  if(before.handle)++lightUpdates;else ++lightCreates;return true;
 }
 static void ClearLights() {
-  for(auto& pair:ownedLights) Destroy(pair.second,pair.first.first,pair.first.second);
-  ownedLights.clear();scenesSeen.clear();
-  for(unsigned type=0;type<3;++type) IgnoreLegacy(type,false);
+  LightOperation operation;if(!operation.outer)return;
+  MarkLightsRetired();FinishLightOperation(operation);
 }
 static void SyncLights(uintptr_t scene) {
-  if(!sceneLightsEnabled || keepSceneLightsForComparison) {ClearLights();return;}
-  if(scenesSeen.count(scene) && scenesSeen[scene]==frameId) return;
-  scenesSeen[scene]=frameId;
-  const auto registry=ReadLights(scene);
-  if(!registry.valid) {++lightFailures;LightEvent("invalid_registry",scene,0,0,-1);ClearLights();return;}
-  std::map<uint32_t,ConvertedLight> wanted;
-  bool supported[3]={true,true,true};
-  for(const auto& light:registry.lights) {
-    const auto type=At(light.raw,0xc0);
-    // Original enabled + hierarchy-active predicate, independent of visibility.
-    if(!light.raw[0xed] || !(At(light.raw,0xb0)&0x100)) continue;
-    if(type>2) {++unsupportedLights;continue;} // Ambient is a per-object material input.
-    ConvertedLight state{};
-    if(light.raw[0xec] || !Convert(light,state)) {supported[type]=false;++unsupportedLights;continue;}
-    wanted.emplace(light.address,state);
-  }
-  // A type with unsupported source parameters stays entirely on the legacy path.
-  for(const auto& pair:wanted) if(supported[pair.second.type]) {
-    auto& light=ownedLights[{scene,pair.first}];light.seen=frameId;
-    if(!light.handle || memcmp(&light.state,&pair.second,sizeof(ConvertedLight)))
-      if(!Create(light,pair.second,scene,pair.first)) supported[pair.second.type]=false;
-  }
-  for(auto it=ownedLights.begin();it!=ownedLights.end();) {
-    if(!it->second.handle || it->first.first!=scene || it->second.seen!=frameId || !supported[it->second.state.type]) {
-      Destroy(it->second,it->first.first,it->first.second);it=ownedLights.erase(it);
-    } else ++it;
-  }
-  for(unsigned type=0;type<3;++type) if(!IgnoreLegacy(type,supported[type])) supported[type]=false;
-  auto api=GetRemixApi();if(!api) return;
-  for(auto& pair:ownedLights) if(pair.first.first==scene && pair.second.handle && supported[pair.second.state.type]) {
-    const auto result=api->DrawLightInstance(pair.second.handle);
-    if(result==REMIXAPI_ERROR_CODE_SUCCESS) ++lightDraws;else {++lightFailures;IgnoreLegacy(pair.second.state.type,false);}
-  }
+  LightOperation operation;if(!operation.outer)return;
+  if(!sceneLightsEnabled||keepSceneLightsForComparison){MarkLightsRetired();FinishLightOperation(operation);return;}
+  if(retireAllLights)MarkLightsRetired();
+  SweepRetiredLights();
+  if(!operation.Stable()){FinishLightOperation(operation);return;}
+  const auto seen=scenesSeen.find(scene);if(seen!=scenesSeen.end()&&seen->second==frameId)return;
+  try {
+    if(scenesSeen.size()>=maxSeenLightScenes&&!scenesSeen.count(scene))throw std::bad_alloc();
+    scenesSeen[scene]=frameId;
+    const auto registry=ReadLights(scene);
+    if(!registry.valid){++lightFailures;LightEvent("invalid_registry",scene,0,0,-1);MarkLightsRetired();FinishLightOperation(operation);return;}
+    std::map<uint32_t,ConvertedLight> wanted;bool supported[3]={true,true,true};
+    for(const auto& light:registry.lights) {
+      const auto type=At(light.raw,0xc0);
+      if(!light.raw[0xed]||!(At(light.raw,0xb0)&0x100))continue;
+      if(type>2){++unsupportedLights;continue;}
+      ConvertedLight state{};
+      if(light.raw[0xec]||!Convert(light,state)){supported[type]=false;++unsupportedLights;continue;}
+      wanted.emplace(light.address,state);
+    }
+    // Allocate every required owner before any Create. Allocation failure can
+    // only retire existing ownership, never strand a newly returned handle.
+    for(const auto& pair:wanted)if(supported[pair.second.type]) {
+      const LightKey key{scene,pair.first};
+      if(ownedLights.size()>=maxOwnedLights&&!ownedLights.count(key))throw std::bad_alloc();
+      auto& light=ownedLights.try_emplace(key).first->second;light.seen=frameId;
+    }
+    for(const auto& pair:wanted)if(supported[pair.second.type]) {
+      const LightKey key{scene,pair.first};const auto light=ownedLights.find(key)->second;
+      if(!light.usable||memcmp(&light.state,&pair.second,sizeof(ConvertedLight)))
+        if(!Create(key,pair.second,operation))supported[pair.second.type]=false;
+      if(!operation.Stable()){FinishLightOperation(operation);return;}
+    }
+    for(auto& pair:ownedLights)if(pair.first.first!=scene||pair.second.seen!=frameId||
+        !pair.second.usable||!supported[pair.second.state.type]){pair.second.usable=false;pair.second.retiring=true;}
+    SweepRetiredLights();
+    auto api=LightApi();if(!api||!api->DrawLightInstance) {
+      for(unsigned type=0;type<3;++type)IgnoreLegacy(type,false);
+      FinishLightOperation(operation);return;
+    }
+    for(unsigned type=0;type<3;++type) {
+      if(!operation.Stable()){FinishLightOperation(operation);return;}
+      if(!IgnoreLegacy(type,supported[type]))supported[type]=false;
+    }
+    LightKey cursor{};bool first=true;
+    for(size_t n=0;n<maxOwnedLights;++n) {
+      LightKey key{};OwnedLight light{};
+      {const auto it=first?ownedLights.begin():ownedLights.upper_bound(cursor);if(it==ownedLights.end())break;
+        key=it->first;light=it->second;}
+      first=false;cursor=key;
+      if(!operation.Stable()){FinishLightOperation(operation);return;}
+      if(key.first!=scene||!light.handle||!light.usable||!supported[light.state.type])continue;
+      // Error after submission is not proof of rollback. Keep legacy disabled
+      // for this type until frameId advances, including comparison/reset calls.
+      attemptedLightType[light.state.type]=true;attemptedLightFrame[light.state.type]=frameId;
+      remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+      try {result=api->DrawLightInstance(light.handle);}catch(const std::bad_alloc&){}
+      if(result==REMIXAPI_ERROR_CODE_SUCCESS)++lightDraws;
+      else {
+        ++lightFailures;supported[light.state.type]=false;
+        for(auto& item:ownedLights)if(item.second.state.type==light.state.type) {
+          item.second.usable=false;item.second.retiring=true;
+        }
+        IgnoreLegacy(light.state.type,false);
+      }
+    }
+  }catch(const std::bad_alloc&){++lightFailures;LightEvent("ownership_capacity_or_allocation",scene,0,0,-1);MarkLightsRetired();}
+  FinishLightOperation(operation);
 }
-
 static void RetireAbsentLights(uintptr_t scene) {
-  // Not being drawn in a frame is NOT deletion. Check the actual owner/list.
-  const auto registry=ReadLights(scene);
-  if(!registry.valid) {ClearLights();return;}
-  std::set<uint32_t> present;
-  for(const auto& light:registry.lights)
-    if(light.raw[0xed] && (At(light.raw,0xb0)&0x100)) present.insert(light.address);
-  for(auto it=ownedLights.begin();it!=ownedLights.end();) {
-    if(it->first.first!=scene || !present.count(it->first.second)) {
-      Destroy(it->second,it->first.first,it->first.second);it=ownedLights.erase(it);
-    } else ++it;
-  }
+  LightOperation operation;if(!operation.outer)return;
+  try {
+    const auto registry=ReadLights(scene);
+    if(!registry.valid){MarkLightsRetired();FinishLightOperation(operation);return;}
+    std::set<uint32_t> present;
+    for(const auto& light:registry.lights)if(light.raw[0xed]&&(At(light.raw,0xb0)&0x100))present.insert(light.address);
+    for(auto& pair:ownedLights)if(pair.first.first!=scene||!present.count(pair.first.second)) {
+      pair.second.usable=false;pair.second.retiring=true;
+    }
+  }catch(const std::bad_alloc&){++lightFailures;MarkLightsRetired();}
+  FinishLightOperation(operation);
 }
 } // namespace scene_audit
 #endif
@@ -158,6 +268,7 @@ static void RetireAbsentLights(uintptr_t scene) {
 static void PrepareSceneLights(IDirect3DDevice9* device) {
 #if defined(_M_IX86)
   using namespace scene_audit;
+  std::lock_guard<std::recursive_mutex> lightLock(guard);
   if(!sceneLightsEnabled || keepSceneLightsForComparison) return;
   const auto engine=Word(0x755274), scene=engine?Word(engine+0x18):0, camera=engine?Word(engine+0x1c):0;
   if(!scene || !camera || (scenesSeen.count(scene) && scenesSeen[scene]==frameId)) return;
@@ -178,21 +289,24 @@ static void PrepareSceneLights(IDirect3DDevice9* device) {
 
 static void ResetSceneLights() {
 #if defined(_M_IX86)
-  if(sceneLightsEnabled) scene_audit::ClearLights();
+  scene_audit::ClearLights();
 #endif
 }
 static void EndSceneLightFrame() {
 #if defined(_M_IX86)
   using namespace scene_audit;
-  if(!sceneLightsEnabled) return;
-  if(keepSceneLightsForComparison) ClearLights();
+  std::lock_guard<std::recursive_mutex> lightLock(guard);
+  if(!sceneLightsEnabled||keepSceneLightsForComparison) ClearLights();
   else if(!ownedLights.empty()) {
     const auto engine=Word(0x755274);RetireAbsentLights(engine?Word(engine+0x18):0);
   }
   for(auto it=scenesSeen.begin();it!=scenesSeen.end();) {
     if(it->second!=frameId || keepSceneLightsForComparison) it=scenesSeen.erase(it);else ++it;
   }
-  if(scenesSeen.empty()) for(unsigned type=0;type<3;++type) IgnoreLegacy(type,false);
+  {LightOperation operation;
+    if(operation.outer)for(unsigned type=0;type<3;++type)
+      if(scenesSeen.empty()||restoreLegacyPending[type])IgnoreLegacy(type,false);
+  }
   if(sceneLightLog && _ftelli64(sceneLightLog)<16*1024*1024 && (frameId%60==0 || lightCreates || lightUpdates || lightDestroys || lightFailures)) {
     fprintf(sceneLightLog,"{\"event\":\"frame\",\"frame\":%u,\"scenes\":%u,\"owned\":%u,\"creates\":%u,\"updates\":%u,\"destroys\":%u,\"draws\":%u,\"failures\":%u,\"unsupported\":%u,\"legacyIgnored\":[%d,%d,%d]}\n",frameId,static_cast<unsigned>(scenesSeen.size()),static_cast<unsigned>(ownedLights.size()),lightCreates,lightUpdates,lightDestroys,lightDraws,lightFailures,unsupportedLights,ignoredLegacy[0],ignoredLegacy[1],ignoredLegacy[2]);
     fflush(sceneLightLog);

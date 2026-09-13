@@ -246,4 +246,5 @@ static void InitializeSceneAudit() {
 #endif
 }
 
+#include "winx_native_light_source.h"
 #include "winx_scene_lights.h"

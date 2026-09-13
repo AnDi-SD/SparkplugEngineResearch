@@ -75,6 +75,7 @@ struct SurfaceWrite { const void* data; UINT offset,size,total; DWORD flags; };
 static std::map<void*,SurfaceBuffer> surfaceBuffers;
 static std::map<void*,SurfaceWrite> surfaceWrites;
 static size_t surfaceBufferBytes;
+#include "winx_native_skin_vertex_source.h"
 static void ForgetSurfaceBuffer(void* b) {
   auto it=surfaceBuffers.find(b);
   if(it!=surfaceBuffers.end()) {surfaceBufferBytes-=it->second.bytes.size();surfaceBuffers.erase(it);}

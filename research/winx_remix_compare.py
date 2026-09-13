@@ -24,6 +24,7 @@ def lane_snapshots(run):
                         ('independent-scene-source.jsonl', 'frame'),
                         ('native-mesh-source.jsonl', 'frame'),
                         ('native-camera-source.jsonl', 'frame'),
+                        ('native-light-source.jsonl', 'frame'),
                         ('renderer-instance-audit.jsonl', 'interval')):
         path = run / name
         if not path.exists():
@@ -117,7 +118,7 @@ def main():
         if not set(settings).issubset(baseline):
             parser.error('Every changed setting requires an explicit restore value in baseline')
         for key, value in settings.items():
-            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx\.(?:sceneLightGain|keepSceneGeometry|preserveUnlitColor|keepIndependentScene|keepSelectedScene))', key):
+            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx\.(?:sceneLightGain|keepSceneGeometry|preserveUnlitColor|keepIndependentScene|keepSelectedScene|keepNativeLights))', key):
                 parser.error('Unsupported live key')
             if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_., +()\-]{1,128}', value):
                 parser.error('Invalid live value')

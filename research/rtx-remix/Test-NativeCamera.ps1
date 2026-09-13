@@ -36,6 +36,8 @@ if (-not $RunOnly) {
   New-Item -ItemType Directory -Path $mappingSnapshot -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h') -Destination $mappingSnapshot
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h') -Destination $mappingSnapshot
+  Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCLightPayload.h') -Destination $mappingSnapshot
+  Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h') -Destination $mappingSnapshot
   $source=Join-Path $snapshot 'test_native_camera.cpp'
   $commands=@"
 @echo off

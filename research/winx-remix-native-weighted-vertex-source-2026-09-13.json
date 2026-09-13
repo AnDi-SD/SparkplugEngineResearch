@@ -1,0 +1,678 @@
+{
+  "status": "WEIGHTED_VERTEX_PROVENANCE_CAPTURE_COMPLETE_NO_WEIGHTED_SUBMISSION",
+  "date": "2026-09-13",
+  "origin": "Extracted existing recovered spDXMesh::BuildVertexBytesForAnalysis arithmetic into one common helper; own capture/lifetime/backend guards remain adapter code",
+  "nativeAddresses": [
+    "0x429A40",
+    "0x4A99A0",
+    "0x4AA000"
+  ],
+  "packedFieldOffset": "componentOffsets[6]*4",
+  "packedTransform": "4 unsigned bytes ->4 float32 values 0..255; stride+12; other bytes unchanged",
+  "unchangedNativeStates": "Original initializer once/full EAX; flags, buffer ownership, keepCPU and native packed-combiner stored-size behavior still produced by original code",
+  "scope": "Index16 capture plus weighted/packed vertex provenance. Both Resolve paths still reject weighted/packed flags; no renderer API calls are added",
+  "lifetime": "Post-init native identity/range/stride/count/flags match; borrowed COM identities; capture generation zero during interval updates then fresh pair generation after both; publication exception drops pair; later transport Create/lifetime witness remains mandatory",
+  "limits": {
+    "perBufferBytes": 8388608,
+    "retainedBytes": 67108864,
+    "records": 4096,
+    "rangesPerRecord": 4096
+  },
+  "hostBounds": "Non-null nonempty source, available bytes, uint32 destination-size/stride overflow and packed-field range; these are host guards rather than newly inferred game semantics",
+  "tests": {
+    "capture": {
+      "status": "PASS",
+      "checks": 535,
+      "originalCalls": 47,
+      "gpu": false,
+      "nativeGameCodeExecuted": false,
+      "comMethodsCalled": 0
+    },
+    "captureExeSha256": "C646B7B3BF7044620E8FC1B23D3BAD7A2B8B325D02A5DA5A5EAA62BD86D251D4",
+    "shared": [
+      {
+        "name": "SparkplugMeshReaderTests",
+        "exitCode": 0,
+        "exeSha256": "F49223BE50E0D90072A596C70ED4FA6CF198C07EFED0AFC7F774304DCB6E7BD1",
+        "stdout": "PASS 350/350: PC mesh reader/writer and whole composed FFPS\n"
+      },
+      {
+        "name": "SparkplugVertexDeclarationTests",
+        "exitCode": 0,
+        "exeSha256": "FAFC8D120643B2587D94B395598B5A067C5E1576C9C11CE0EBD4E83930E99B03",
+        "stdout": "PASS 338/338: portable PC vertex declaration\n"
+      }
+    ],
+    "originalSharedProfile": {
+      "schemaVersion": 2,
+      "kind": "bounded-native-profile-run",
+      "profile": "pc-mesh-readers-output",
+      "startedUtc": "2026-09-13T05:23:36.991710+00:00",
+      "updatedUtc": "2026-09-13T05:23:43.497952+00:00",
+      "deadlineUtc": null,
+      "status": "passed",
+      "exitCode": 0,
+      "expectedChildren": 6,
+      "completedChildren": 6,
+      "childTimeoutSeconds": 30,
+      "results": [
+        {
+          "id": "pc-mesh-reader-base-cross",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "base-cross"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.074
+        },
+        {
+          "id": "pc-mesh-reader-dx-cross",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "dx-cross"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.02
+        },
+        {
+          "id": "pc-mesh-reader-dx-native",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "dx-native"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.203
+        },
+        {
+          "id": "pc-mesh-reader-dx-both",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "dx-both"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.032
+        },
+        {
+          "id": "pc-mesh-reader-dx-packed",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "dx-packed"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.056
+        },
+        {
+          "id": "pc-mesh-reader-dx-unknown",
+          "platform": "pc",
+          "exitCode": 0,
+          "script": "research/compare_pc_mesh_readers.py",
+          "args": [
+            "--guest",
+            "dx-unknown"
+          ],
+          "scriptSha256": "caad3c3894fad73b755b41431d96a1f1bd8b8a0537c48f62e0dc06ee22050120",
+          "elapsedSeconds": 1.111
+        }
+      ],
+      "configurationSha256": "31379b35866a8c1b4f51e4c42aac8cef4500858d17b1166477a9640ddaf5c137",
+      "workers": 1,
+      "memoryBudgetMiB": 1024,
+      "memoryAdmissionEstimateMiB": 256,
+      "memoryAdmissionIsOSLimit": false,
+      "configurationHashMethod": "sha256-of-startup-json-sort-keys-compact-ensure-ascii",
+      "notes": "Exit results and script hashes only; NOT class coverage, native startup, binary completeness or live display proof."
+    }
+  },
+  "sources": [
+    {
+      "path": "research/rtx-remix/winx_native_mesh_source.h",
+      "currentSha256": "E8B52207CCF37B7DD3E5F75F8D27C046B3191450943B7B729DF9F5595AEBA1D2",
+      "compiledSnapshot": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_mesh_source.h",
+      "compiledSnapshotSha256": "806F7731419A5AA89C065609F172FFA323929A8736DAD721ED677BB6602DE23A",
+      "canonicalLfSha256": "E8B52207CCF37B7DD3E5F75F8D27C046B3191450943B7B729DF9F5595AEBA1D2",
+      "canonicalTextEqual": true
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h",
+      "currentSha256": "448363700B1B8027810B430E45F168F823C994A0C366D44E5FE760D7604CCBBA",
+      "compiledSnapshot": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h",
+      "compiledSnapshotSha256": "448363700B1B8027810B430E45F168F823C994A0C366D44E5FE760D7604CCBBA",
+      "canonicalLfSha256": "C98266B22766DD6EFF850B9151A303F143C792225A099463702B2D6E9DA9FB46",
+      "canonicalTextEqual": true
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.h",
+      "currentSha256": "3038A3A7819D9C0921FA16F5D05F76F7A25DD16AC81EEBBCD6EC1880B1DE06F1",
+      "compiledSnapshot": "local-data/rtx-remix/native-vertex-capture-common-v2/source/Sparkplug/Code/SparkplugDX/spDXMesh.h",
+      "compiledSnapshotSha256": "BAEBC635556AD235DE2827774A5D1240CBF7B7B14DB70E6647AF35304A80FE49",
+      "canonicalLfSha256": "3038A3A7819D9C0921FA16F5D05F76F7A25DD16AC81EEBBCD6EC1880B1DE06F1",
+      "canonicalTextEqual": true
+    },
+    {
+      "path": "Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "currentSha256": "43E12D68A9EE5219B80A03C287B49234AFD0750D8DE5BA3D6F29808CA3FCFC3C",
+      "compiledSnapshot": "local-data/rtx-remix/native-vertex-capture-common-v2/source/Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "compiledSnapshotSha256": "F3C56786B15904F90D70E6FFD1E5303156D1E50E5C50923E387670EDDFD309F2",
+      "canonicalLfSha256": "43E12D68A9EE5219B80A03C287B49234AFD0750D8DE5BA3D6F29808CA3FCFC3C",
+      "canonicalTextEqual": true
+    }
+  ],
+  "snapshotWrappers": [
+    {
+      "path": "research/rtx-remix/Test-IndependentScene.ps1",
+      "sha256": "57DD1730DE5911AC918B2E34CBACE52E5BD353ADE9837178F54A9FAC1EBBC205"
+    },
+    {
+      "path": "research/rtx-remix/Test-IndependentSubmit.ps1",
+      "sha256": "0D33E954C7CB907451845E90ED5B374BBE7BEF1609B2B7645F5843D07C49340F"
+    },
+    {
+      "path": "research/rtx-remix/Test-MaterialChannels.ps1",
+      "sha256": "D80E37A9771E07FF2669E6CA2D217FFE1A595DE676F920A45287B72770D11A9B"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeCamera.ps1",
+      "sha256": "98498A0AC625D485DBCF13F83802049D01D18709116A893899D09CA674BC4265"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeLightSource.ps1",
+      "sha256": "207944D6950DA72D3E46878F5534EAB39F61B0668F6E670600256F53F9FBB699"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeMeshResources.ps1",
+      "sha256": "D94A788740995C792CFB5CE75895A16D71510EA3998C7E29F9934E8BF8956E2C"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeOwner.ps1",
+      "sha256": "8CC1E6EF1678161C0FA87D8F58E064A6E0F460A4071E7C871274E4DFD38D38D2"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeSkinSource.ps1",
+      "sha256": "E612F17320868C89286B22442E8451EA54CC72B712AECCFD54FA95A39C6523CD"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeTransport.ps1",
+      "sha256": "127230257DBB21FB5F31E956D2CBCDE3A594DFBB0B24EB274B53D7B6B6A2A2EE"
+    },
+    {
+      "path": "research/rtx-remix/Test-NativeVertexCapture.ps1",
+      "sha256": "5C6A2A14469BFDA7C4D2181DA54EC61BC906D29FA4C0C6F930E3AEE4EA4982FE"
+    },
+    {
+      "path": "research/rtx-remix/Test-ResourceOwnership.ps1",
+      "sha256": "6D0F1010886AB9C30D8F6039277C501B495BA5546F57EDF5FA85D93ECC529BFB"
+    },
+    {
+      "path": "research/rtx-remix/Test-SelectedSubmit.ps1",
+      "sha256": "0EDE63B99D3A1F168AD9FB4CA9E362C8098A293E79E75CFE1744D2B1E0AD349C"
+    },
+    {
+      "path": "research/rtx-remix/Test-SurfaceResources.ps1",
+      "sha256": "CAEC861D90CFA812ADCDE52602C1BAA79450D71E51CB4D9D7B8CA3F387A4A903"
+    }
+  ],
+  "historicalAttempts": [
+    "local-data/rtx-remix/native-vertex-capture-common-v1",
+    "local-data/rtx-remix/native-skin-source-tests/observer-v3/build.log"
+  ],
+  "lineEndings": "Compiled snapshots use CRLF in changed files; current existing source files restored to HEAD LF. Raw hashes differ only by CRLF->LF; canonical LF equality verified. No behavior rerun for newline-only normalization.",
+  "notClaimed": [
+    "Native weighted draw replacement",
+    "Correct stock multiweight skinning",
+    "GPU execution by this task",
+    "Original instructions executed by the owned CPU capture fixture",
+    "Live run statistics or game installation evidence"
+  ],
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/build.cmd",
+      "bytes": 524,
+      "sha256": "A5A4846956D51FC73621D637CA7537499B298D7E31612320512735F16BC9F459"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/build.log",
+      "bytes": 1194,
+      "sha256": "6C5CA50263E61676D8D382639601B14B7016AC98682CEDC89F6DCA9A560F9408"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/result.json",
+      "bytes": 115,
+      "sha256": "A02F0C02B97883DF2A4FEC64AED527B04977F149B9EF97A2089C767CD001B80E"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/analyze_light_geometry.cpp",
+      "bytes": 6149,
+      "sha256": "9E02946B88C81B97FFFEC77AFB8FE7AAC7D7F82C3A1D450E7091991B7F5E9DEB"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/Test-NativeVertexCapture.ps1",
+      "bytes": 5217,
+      "sha256": "5C6A2A14469BFDA7C4D2181DA54EC61BC906D29FA4C0C6F930E3AEE4EA4982FE"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_independent_scene.cpp",
+      "bytes": 16633,
+      "sha256": "E01AB15A8534174328B2C7CB2319D7BFCF67A7469F36A67422103E331F7163F5"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_independent_submit.cpp",
+      "bytes": 41684,
+      "sha256": "659F05E7A2F154A716D73271B9AF571A7CFF6D918B4B79207B431E69BB7B583D"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_light_ownership.cpp",
+      "bytes": 12066,
+      "sha256": "67460F93756375D6F7DBC6D1CFC660CC2946D853E72C168C87641B4BB31994D0"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_material_audit.cpp",
+      "bytes": 2818,
+      "sha256": "9F8CEE5C7CD493CA205FB109C305132B3640C51B6926C6A39EB2213EA3509F99"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_material_channels.cpp",
+      "bytes": 51301,
+      "sha256": "FB1CA756327CECCF3AFA7FFAB81F862C8319CAA48AA908E5AD666B3427A427F8"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_camera.cpp",
+      "bytes": 15090,
+      "sha256": "58391C1F0338AFA4AE00046BF8807D71B88274BF072B97149CBE752E797CC8D8"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_light_source.cpp",
+      "bytes": 5609,
+      "sha256": "EE69BADC92E94A96C839426D9F194236949FBA94C2892C20D46E10526B45B1DD"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_material.h",
+      "bytes": 14759,
+      "sha256": "E69C3517C9ABD6E9DA7EF28D8F7ABBFB20036582CAB561472DE336B9AC7115B8"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_mesh_resources.cpp",
+      "bytes": 13175,
+      "sha256": "40A8FD04EA0846A8CE5A994640DF265672D3F511F3D8722D6341B9F5A58489AB"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_owner.cpp",
+      "bytes": 30741,
+      "sha256": "806133C0A24784ECC48BDF8711AFA81DE0B00223AA8F2286C0B1EC8A7E78D032"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_skin_source.cpp",
+      "bytes": 11500,
+      "sha256": "2DBA6DDAF2F64053B717CB17E303EF4905EA0BBEB4945E9C8B4F056C5B340B5A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_transport.cpp",
+      "bytes": 33562,
+      "sha256": "9C02D4F6A2A72135CCBB59F0E7781FD2A0BF7F2F54A8CF3FB38711CD7DAD8121"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_update.cpp",
+      "bytes": 20310,
+      "sha256": "75F0E2A9ED22CB464C660F159E2710E146FCE243A80582CB77D8EF0FE73D6C83"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_native_vertex_capture.cpp",
+      "bytes": 20649,
+      "sha256": "5B0B2B9D00E1F7E34803E307D351B008700CB71C8BA4787A514FA13F66742878"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_remix_material.cpp",
+      "bytes": 29189,
+      "sha256": "90378C5BD4E8C0760C92066F069EE3AEAB1FC54B4CBDD57634A8D3951DB6B98E"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_remix_skinning.cpp",
+      "bytes": 11986,
+      "sha256": "6C8FBABCC24CB3E33C306E1D4A6EE4425BC45C79D00263D78A80CCEB82CB516C"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_resource_ownership.cpp",
+      "bytes": 17407,
+      "sha256": "5D78CB7F2DE659817A89E35284C306C0A273308A2537A33AA0057F29BF0A1843"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_scene_geometry.cpp",
+      "bytes": 15402,
+      "sha256": "FBD5819EE4A6B53E4202AD15CEAB3BC170F12F38D8D931E5FA8C6AFE4794D765"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_scene_lights.cpp",
+      "bytes": 8275,
+      "sha256": "51AF899858D19CD689CF8A680D6155D95DB4F85F3AFF06928C3E7CE14DB29F3D"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_selected_submit.cpp",
+      "bytes": 26935,
+      "sha256": "36BE0EE44C0E0F230EA887A3EBDFBF18709782910517944193630A7848B33703"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_surface_material.cpp",
+      "bytes": 12334,
+      "sha256": "704EDD5B18AD19887764A739EE88D474E144FB69F8A3458A02D687D6A02E13D4"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/test_surface_resources.cpp",
+      "bytes": 15515,
+      "sha256": "A79D18E06389C16F6EAD0667B40F498F8B09FC733FD6F31434FCB3F3AABFF907"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/third-party/README.md",
+      "bytes": 1115,
+      "sha256": "381892B07E0BD311AB5075847A8E9C0A8B85B2F40184AA3A68E36E1CB6858511"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/third-party/remix_light_conversion.h",
+      "bytes": 8194,
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/third-party/xxhash.h",
+      "bytes": 268319,
+      "sha256": "17973C0DC49D9854CA26CAA191F0E12F7A424B68858D9A78DE3860D959D85E4B"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_d3d9_probe.cpp",
+      "bytes": 77271,
+      "sha256": "CCC8ADB3967356A09089C8200F5C8A14F34E0058B21F7306F7B5368B4ED77ED0"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_d3d9_state_witness.h",
+      "bytes": 8496,
+      "sha256": "490B961876CF7F5B6A06603AD525AE6FD62949BB002455EC09CBD4FF89783BAE"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_geometry_probe.h",
+      "bytes": 2310,
+      "sha256": "A61C1A56B5D61157071758E753F8D7FC1CE95E1BFA136F95E6AA184430E73EE8"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_independent_scene_source.h",
+      "bytes": 36495,
+      "sha256": "097F3B549A8349BF2ADA6B6B9C446C77079702D4A9401B3D3EF26824721AF51F"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_independent_scene_submit.h",
+      "bytes": 21494,
+      "sha256": "31598435454319DA91E99BA666A860C4BC46FD7297CA8C595D5C113638036653"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_material_audit.h",
+      "bytes": 9842,
+      "sha256": "730E446502FE3A227231290CF87691C4BA5A9865C8945964555B7B373F121147"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_material_channel_assets.h",
+      "bytes": 3238,
+      "sha256": "A1DF91CF88E35EA97B2AF6B20E4033CC93F205B8691FCABBBB2722612E7FA20A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_material_channels.h",
+      "bytes": 5294,
+      "sha256": "41E847DF79DD483C585006A50B2E119B9901508CCA353577C96042C6EDACB358"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_camera_source.h",
+      "bytes": 10860,
+      "sha256": "12D3DC8FBCF9BC80911A95A075D7EE604D7BAC01AAAB00FD1AA1AC414B6161EE"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_draw_audit.h",
+      "bytes": 9686,
+      "sha256": "3D4B03642C0F4816DF87670C42788AB27B661922D62D32012BF4A69E995D0AB6"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_light_source.h",
+      "bytes": 4240,
+      "sha256": "35D3479EC57E29E576F2A4A70BEF1A75464D28CE7C82E200E098AA2243062752"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_material_source.h",
+      "bytes": 9855,
+      "sha256": "4C897EBADA76C0B64BFEDB83476DCC33D18B532B0C59B323420D4CE174D829BF"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_mesh_source.h",
+      "bytes": 30822,
+      "sha256": "806F7731419A5AA89C065609F172FFA323929A8736DAD721ED677BB6602DE23A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_owner_source.h",
+      "bytes": 19155,
+      "sha256": "57D45CB9E88EC8804BFAC494D0D283CB427F7FEB3E21FF8A56D47F9FD4D9D67E"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_skin_source.h",
+      "bytes": 14120,
+      "sha256": "1496557EBF7648E73DECB3B3F75FC5E562CC20826F9A781549FCF927E2781588"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_transport_source.h",
+      "bytes": 15541,
+      "sha256": "E5296AF2C1C241C798EC23AEB724B4D6D785B593336A707363EADAE426CC5410"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_native_update_source.h",
+      "bytes": 13753,
+      "sha256": "30E609E1A51B471CD229C6C6EA2EDE2786D00762B841D4CEA927D87F16785A86"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_scene_audit.h",
+      "bytes": 13188,
+      "sha256": "2F0FB530FA8505E1467191A16FA4E245FB47EF37569DC9C04E69B6D1D31EB9DB"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_scene_geometry.h",
+      "bytes": 15169,
+      "sha256": "5047A7C5A2D9F2F4DC9478377A36A7353FED3BA5C4CC747807FBEB21A0C0DB1A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_scene_lights.h",
+      "bytes": 18707,
+      "sha256": "12BE16821963690775A67CDCA4949B64E914BCA289590F4D09EB53CC496DD8C1"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_selected_scene_submit.h",
+      "bytes": 14013,
+      "sha256": "8BE00B7E0209D469CB0C39AE9D920C5D25371DB291D8F506533424FC385146DF"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_shader_audit.h",
+      "bytes": 8294,
+      "sha256": "027FB442008626C0E5C657F5AEC1EDF22C25F66106838A4802D8B99C06EA51A0"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_shader_semantics.h",
+      "bytes": 6504,
+      "sha256": "AE64DC62C5B72140B04F822E0584D421DAB29D3147CB3AECF6D140E70486195F"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_surface_geometry.h",
+      "bytes": 5522,
+      "sha256": "CB2EA372FA19ECAA001BE6C232C60C697B838A08738860813930625734A2CAF6"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_surface_instance.h",
+      "bytes": 1880,
+      "sha256": "F8F6CE825ABE40C33D55DE7F99A5BA0618AF971A28E2D78A506EDEED964C0A71"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_surface_material.h",
+      "bytes": 5435,
+      "sha256": "7CF3FCF34132004DE79B8E2600A2A916C2253FDFB3EA1CA430B6662C3AE1E4AA"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_surface_roles.h",
+      "bytes": 13038,
+      "sha256": "F9F7CA2844240BB7746CC0A54F6431EB77CE5802025D7E1E4AF15C897E443CEC"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/research/rtx-remix/winx_surface_submit.h",
+      "bytes": 34475,
+      "sha256": "0FAE7A778B2850B48AD43CE11E1055C42D02871B07C7225D4BC65ACD2FCFB257"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Analysis/PC/SparkBaseAbi.h",
+      "bytes": 28920,
+      "sha256": "E4E03E0A7C40825D3A72933AEA2836E50511107D11A13D03E3045D740D594E41"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Analysis/PC/SparkplugAbi.h",
+      "bytes": 223295,
+      "sha256": "AB8826916B749DE0CF16AC1C9C21D9D83DA79854D012828C68E6E2773A6BBA48"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Analysis/PC/spColorMath.h",
+      "bytes": 513,
+      "sha256": "968AE057E749A23A172D53F43255898DAE39F53939D8AEC5A2108855439EA344"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Analysis/PC/spNodeTransformMath.h",
+      "bytes": 5131,
+      "sha256": "FFD7353142093898F165C07E1F559E9B7BB6C30A0E96BDDED6F6E2EE22DE9052"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Analysis/PC/spRenderNodeMath.h",
+      "bytes": 4508,
+      "sha256": "409BAD8567416825E3E4DB20693CF21AD45E4498C5AAE277CC85621FA772C114"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h",
+      "bytes": 4112,
+      "sha256": "448363700B1B8027810B430E45F168F823C994A0C366D44E5FE760D7604CCBBA"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugDX/spPCLightPayload.h",
+      "bytes": 2903,
+      "sha256": "CBEBA279A3126A6C943A3C059F89FC9EB21DE1C3CBDD73D7E920CBBD4B01B0E1"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h",
+      "bytes": 5429,
+      "sha256": "7C6C2372CC2893C1BB88EB870AC6972BB06F996BF8FD91F6888E4BB763485DE7"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h",
+      "bytes": 2524,
+      "sha256": "6D8D589CB16857A84D59F3151FA155E20982B991E251D5676B505B0B0A534E13"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/source/Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h",
+      "bytes": 2381,
+      "sha256": "BAC4042C97CBE7F3281597F28E9E5DC9B70C88F28884ADBC00C5A3708AEDAEA5"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/stderr.log",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/test_native_vertex_capture.exe",
+      "bytes": 212480,
+      "sha256": "C646B7B3BF7044620E8FC1B23D3BAD7A2B8B325D02A5DA5A5EAA62BD86D251D4"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/test_native_vertex_capture.obj",
+      "bytes": 3941490,
+      "sha256": "1A70E9562BA3A666A12B91D0068C23215A3A7549E3C02AA27F30B7AFFD006B63"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-tests/weighted-provenance-v1/verification.json",
+      "bytes": 21397,
+      "sha256": "D514ED5E93FA1754140B223B94138A34F02B80A3BC59C946EDFAF4B2CBE8D604"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/build.cmd",
+      "bytes": 432,
+      "sha256": "03DF3A6620DD1AC08FE89368C4921DE99171F7EE34425A26F30153954D692A2A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/build.log",
+      "bytes": 1776,
+      "sha256": "A6C343CDEE6166856A5496D76EAC9BD068A4A8F2A511F44786DF6503D6A38AE7"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/profile.json",
+      "bytes": 2908,
+      "sha256": "C95F011846ED8A1A6DCD377F89890FAF53805D1A93C8B282405FA20C2D396291"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/profile.log",
+      "bytes": 11954,
+      "sha256": "C94127A135048D850A48A28FE451B427D3B6FD81B20A427FE62EF6B2D7AD346C"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/source/research/rtx-remix/winx_native_mesh_source.h",
+      "bytes": 30822,
+      "sha256": "806F7731419A5AA89C065609F172FFA323929A8736DAD721ED677BB6602DE23A"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/source/Sparkplug/Code/SparkplugDX/spDXMesh.cpp",
+      "bytes": 43778,
+      "sha256": "F3C56786B15904F90D70E6FFD1E5303156D1E50E5C50923E387670EDDFD309F2"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/source/Sparkplug/Code/SparkplugDX/spDXMesh.h",
+      "bytes": 8928,
+      "sha256": "BAEBC635556AD235DE2827774A5D1240CBF7B7B14DB70E6647AF35304A80FE49"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/source/Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h",
+      "bytes": 4112,
+      "sha256": "448363700B1B8027810B430E45F168F823C994A0C366D44E5FE760D7604CCBBA"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugMeshReaderTests.exe",
+      "bytes": 2183168,
+      "sha256": "F49223BE50E0D90072A596C70ED4FA6CF198C07EFED0AFC7F774304DCB6E7BD1"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugMeshReaderTests.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugMeshReaderTests.stdout.txt",
+      "bytes": 61,
+      "sha256": "656B0AA0873D5BD8FD559E35663B680C0FDED43C86E26C036DE33C292B954B7B"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugVertexDeclarationTests.exe",
+      "bytes": 1959936,
+      "sha256": "FAFC8D120643B2587D94B395598B5A067C5E1576C9C11CE0EBD4E83930E99B03"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugVertexDeclarationTests.stderr.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/SparkplugVertexDeclarationTests.stdout.txt",
+      "bytes": 46,
+      "sha256": "2FFF8E7373E632F8FE6FC3378968C1AB67664F7C6CCDD9893C2C132C0E725900"
+    },
+    {
+      "path": "local-data/rtx-remix/native-vertex-capture-common-v2/tests.json",
+      "bytes": 469,
+      "sha256": "962843959D37D08311F6B7E9D074678E69A9A9C038B867F0B87F5CED9589AD4D"
+    }
+  ]
+}

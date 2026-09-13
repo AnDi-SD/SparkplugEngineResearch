@@ -28,6 +28,7 @@ param(
     [switch]$NativeMaterialSource,
     [switch]$NativeMaterialSubmit,
     [switch]$NativeOwnerSource,
+    [switch]$NativeSkinSource,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -37,6 +38,8 @@ param(
     [switch]$MaterialGeometryProbe,
     [switch]$SceneAudit,
     [switch]$SceneLights,
+    [switch]$NativeLightSource,
+    [switch]$NativeLightSubmit,
     [switch]$SceneGeometry,
     [ValidateRange(0,1000)][float]$LightGain = 10,
     [switch]$Windowed,
@@ -46,6 +49,9 @@ param(
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($NativeLightSubmit) { $NativeLightSource=$true }
+if ($NativeLightSource) { $SceneLights=$true }
+if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true; $MaterialChannels=$true }
 if ($MaterialGeometryProbe -and -not $MaterialChannels) { throw 'MaterialGeometryProbe requires MaterialChannels' }
@@ -204,6 +210,8 @@ $values = @{
     WINX_REMIX_NATIVE_MATERIAL_SOURCE=$(if ($NativeMaterialSource) { Join-Path $run 'native-material-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_MATERIAL_SUBMIT=$(if ($NativeMaterialSubmit) { '1' } else { '0' })
     WINX_REMIX_NATIVE_OWNER_SOURCE=$(if ($NativeOwnerSource) { Join-Path $run 'native-owner-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_SKIN_SOURCE=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_SKIN_VERTICES=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-vertices.jsonl' } else { $null })
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
@@ -212,6 +220,8 @@ $values = @{
     WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
+    WINX_REMIX_NATIVE_LIGHT_SOURCE=$(if ($NativeLightSource) { Join-Path $run 'native-light-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_LIGHT_SUBMIT=$(if ($NativeLightSubmit) { '1' } else { '0' })
     WINX_REMIX_SCENE_GEOMETRY=$(if ($SceneGeometry) { '1' } else { '0' })
     WINX_REMIX_GEOMETRY_AUDIT=$(if ($SceneGeometry) { Join-Path $run 'scene-geometry.jsonl' } else { $null })
     WINX_REMIX_LIGHT_GAIN=$LightGain.ToString([Globalization.CultureInfo]::InvariantCulture)
@@ -247,6 +257,7 @@ try {
         nativeMaterialSource=$NativeMaterialSource.IsPresent
         nativeMaterialSubmit=$NativeMaterialSubmit.IsPresent
         nativeOwnerSource=$NativeOwnerSource.IsPresent
+        nativeSkinSource=$NativeSkinSource.IsPresent
         nativeUpdateSource=$NativeUpdateSource.IsPresent
         independentSceneSource=$IndependentSceneSource.IsPresent
         independentSceneSubmit=$IndependentSceneSubmit.IsPresent
@@ -258,6 +269,8 @@ try {
         materialChannels=$MaterialChannels.IsPresent
         shaderSemantics=$ShaderSemantics.IsPresent
         sceneLights=$SceneLights.IsPresent
+        nativeLightSource=$NativeLightSource.IsPresent
+        nativeLightSubmit=$NativeLightSubmit.IsPresent
         sceneGeometry=$SceneGeometry.IsPresent
         sceneLightGain=$LightGain
         bridgeConfigSha256=$bridgeConfigSha256

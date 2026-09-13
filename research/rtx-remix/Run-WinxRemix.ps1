@@ -12,6 +12,7 @@ param(
     [switch]$NativeMaterialSource,
     [switch]$NativeMaterialSubmit,
     [switch]$NativeOwnerSource,
+    [switch]$NativeSkinSource,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -23,10 +24,15 @@ param(
     [switch]$Windowed,
     [switch]$AutoSurfaceRoles,
     [switch]$SceneLights,
+    [switch]$NativeLightSource,
+    [switch]$NativeLightSubmit,
     [switch]$SceneGeometry,
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($NativeLightSubmit) { $NativeLightSource=$true }
+if ($NativeLightSource) { $SceneLights=$true }
+if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true }
 if ($IndependentSceneSource) { $NativeOwnerSource=$true; $NativeUpdateSource=$true; $MaterialChannels=$true }
@@ -56,11 +62,14 @@ if ($NativeCameraSubmit) { $options.NativeCameraSubmit=$true }
 if ($NativeMaterialSource -or $NativeMaterialSubmit) { $options.NativeMaterialSource=$true }
 if ($NativeMaterialSubmit) { $options.NativeMaterialSubmit=$true }
 if ($NativeOwnerSource) { $options.NativeOwnerSource=$true }
+if ($NativeSkinSource) { $options.NativeSkinSource=$true }
 if ($NativeUpdateSource) { $options.NativeUpdateSource=$true }
 if ($IndependentSceneSource) { $options.IndependentSceneSource=$true }
 if ($IndependentSceneSubmit) { $options.IndependentSceneSubmit=$true }
 if ($SelectedSceneSubmit) { $options.SelectedSceneSubmit=$true }
 if ($BridgeInstanceAudit) { $options.BridgeInstanceAudit=$true }
+if ($NativeLightSource) { $options.NativeLightSource=$true }
+if ($NativeLightSubmit) { $options.NativeLightSubmit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

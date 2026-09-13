@@ -85,7 +85,9 @@ int main() {
   // Ambient is not made into a global lamp. Its per-object semantics are pending.
   Put(a.lights[0],0xc0,3);++frameId;SyncLights(a.address());Check(ownedLights.empty(),"ambient is explicit unsupported material input");
   Put(a.lights[0],0xc0,0);++frameId;SyncLights(a.address());ResetSceneLights();
-  Check(handles.empty() && ownedLights.empty() && !ignoredLegacy[0],"device reset releases resources and policy");
+  Check(handles.empty() && ownedLights.empty() && ignoredLegacy[0],"device reset releases resources and retains submitted-frame policy");
+  ++frameId;EndSceneLightFrame();
+  Check(!ignoredLegacy[0],"device reset restores legacy on the next frame");
   Fixture gains;++frameId;SyncLights(gains.address());
   const auto baseline=ownedLights;const unsigned gainCreates=created,gainDestroys=destroyed;
   const char* invalid[]={"", "-1", "1001", "nan", "inf", "1e99", "1e-99", "10x", "10 20"};

@@ -1,0 +1,792 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "status": "CLOSED_PALETTE_AND_CONSUMED_LIGHT_CHECKPOINT_NO_WEIGHTED_GEOMETRY",
+  "run": "play-rtx-20260913-082523-549",
+  "pid": 488,
+  "serverPid": 15220,
+  "processesExited": true,
+  "started": "2026-09-13T08:25:24.9325252+03:00",
+  "clientCleanup": "2026-09-13T08:45:04.004+03:00",
+  "serverCleanup": "2026-09-13T08:45:00.938+03:00",
+  "watcherRestored": {
+    "restored": "2026-09-13T08:45:05.2546549+03:00",
+    "originallyExisted": true
+  },
+  "identity": {
+    "proxySha256": "D12684EE8513825E1F560AC4127D4E099289311A114086EA63D5AECA676C8A0A",
+    "executableSha256": "C27EA9DB4228781A12A90AE808807D4AF1397A7E40DD8F5FFF28F3C87CC62CDB",
+    "remixClientSha256": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+    "remixServerSha256": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+    "remixRendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F"
+  },
+  "sourceSnapshot": "local-data/rtx-remix/native-skin-source-tests/observer-v4/source",
+  "verifiedInstallSourceHashes": 41,
+  "skin": {
+    "accountingStatus": "PASS",
+    "totals": {
+      "calls": 232489,
+      "callFailures": 3362,
+      "withoutMesh": 3362,
+      "attempts": 229127,
+      "matched": 167961,
+      "mismatches": 0,
+      "bones": 2687376,
+      "bitDifferences": 0
+    },
+    "rejected": {
+      "scope": 0,
+      "callsite": 0,
+      "scene": 61166,
+      "registry": 0,
+      "support": 0,
+      "skin": 0,
+      "mesh": 0,
+      "palette": 0,
+      "bone": 0,
+      "nonfinite": 0,
+      "changed": 0
+    },
+    "maxAbsoluteError": 0,
+    "maxRelativeError": 0,
+    "events": {
+      "init": 1,
+      "frame": 8744,
+      "compare": 543
+    },
+    "frameRange": [
+      0,
+      9141
+    ],
+    "capReached": false,
+    "incompleteSampleSuffix": null,
+    "sampledWeights": [
+      {
+        "weightHint": 0,
+        "meshWeights": 4,
+        "boneCount": 16,
+        "samples": 543
+      }
+    ],
+    "sampledTotals": {
+      "matched": 543,
+      "bones": 8688,
+      "bitDifferences": 0
+    },
+    "failureFrameHistoryTruncated": true
+  },
+  "light": {
+    "status": "PASS",
+    "totals": {
+      "attempts": 88484,
+      "matched": 88484,
+      "used": 87118,
+      "mismatches": 0,
+      "dirty": 0,
+      "invalid": 0
+    },
+    "strictViolations": [],
+    "sampledTypes": {
+      "1": 247,
+      "0": 28
+    }
+  },
+  "camera": {
+    "applies": 17810,
+    "foreignApplies": 18133,
+    "rejected": 0,
+    "matched": 8745,
+    "submitted": 8745,
+    "failures": 0,
+    "stateMismatches": 0,
+    "lateUpdates": 0,
+    "missedFirstDraws": 0
+  },
+  "direct": {
+    "groups": 3367433,
+    "instances": 3739532,
+    "rejected": 46758,
+    "cameraRejected": 0,
+    "queueRejected": 0,
+    "apiFailures": 0,
+    "unexpectedDraws": 0,
+    "suppressedDraws": 0,
+    "selectionTransitions": 0
+  },
+  "selected": {
+    "attempts": 1601750,
+    "calls": 1448691,
+    "instances": 1448691,
+    "rejected": 153059,
+    "apiFailures": 0,
+    "reentries": 0,
+    "postCommitFaults": 0
+  },
+  "server": {
+    "status": "VALID_RECORDED_PREFIX",
+    "totals": {
+      "apiCalls": 5788524,
+      "rendererApiSuccess": 5788524,
+      "rendererApiErrors": 0,
+      "earlyCalls": 3012118,
+      "earlySuccess": 3012118,
+      "earlyErrors": 0,
+      "invalidMeshHandles": 0,
+      "ordinaryDrawCommands": 1887393,
+      "zeroDrawCommands": 0,
+      "foreignDrawCommands": 0,
+      "foreignPresents": 0
+    },
+    "termination": "queue_exit_normal",
+    "capReached": false,
+    "categories": {
+      "qualifiedComplete": {
+        "intervals": 9142,
+        "apiCalls": 5788524,
+        "rendererApiSuccess": 5788524,
+        "rendererApiErrors": 0,
+        "earlyCalls": 3012118,
+        "earlySuccess": 3012118,
+        "earlyErrors": 0,
+        "invalidMeshHandles": 0,
+        "ordinaryDrawCommands": 1887393,
+        "zeroDrawCommands": 0,
+        "foreignDrawCommands": 0,
+        "foreignPresents": 0
+      },
+      "unqualifiedComplete": {},
+      "incomplete": {
+        "intervals": 3,
+        "apiCalls": 0,
+        "rendererApiSuccess": 0,
+        "rendererApiErrors": 0,
+        "earlyCalls": 0,
+        "earlySuccess": 0,
+        "earlyErrors": 0,
+        "invalidMeshHandles": 0,
+        "ordinaryDrawCommands": 0,
+        "zeroDrawCommands": 0,
+        "foreignDrawCommands": 0,
+        "foreignPresents": 0
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "name": "alfea-skin-light-v1",
+      "cases": [
+        {
+          "name": "native-A",
+          "frame": 664,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 664,
+            "attempts": 20,
+            "matched": 20,
+            "used": 20,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": false
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 664,
+            "calls": 18,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 18,
+            "matched": 11,
+            "mismatches": 0,
+            "bones": 176,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "name": "device-payload-B",
+          "frame": 723,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 723,
+            "attempts": 20,
+            "matched": 20,
+            "used": 0,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": true
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 723,
+            "calls": 18,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 18,
+            "matched": 11,
+            "mismatches": 0,
+            "bones": 176,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "name": "native-A2",
+          "frame": 780,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 780,
+            "attempts": 20,
+            "matched": 20,
+            "used": 20,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": false
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 780,
+            "calls": 18,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 18,
+            "matched": 11,
+            "mismatches": 0,
+            "bones": 176,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "passedAll": true,
+      "baselineFileRestored": true
+    },
+    {
+      "name": "domino-skin-light-v1",
+      "cases": [
+        {
+          "name": "native-A",
+          "frame": 2739,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 2739,
+            "attempts": 1,
+            "matched": 1,
+            "used": 1,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": false
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 2739,
+            "calls": 19,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 19,
+            "matched": 12,
+            "mismatches": 0,
+            "bones": 192,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "name": "device-payload-B",
+          "frame": 2833,
+          "cameraExact": false,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 2833,
+            "attempts": 1,
+            "matched": 1,
+            "used": 0,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": true
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 2833,
+            "calls": 19,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 19,
+            "matched": 12,
+            "mismatches": 0,
+            "bones": 192,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "passedAll": false,
+      "baselineFileRestored": true
+    },
+    {
+      "name": "domino-skin-light-v2",
+      "cases": [
+        {
+          "name": "native-A",
+          "frame": 4160,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 4160,
+            "attempts": 1,
+            "matched": 1,
+            "used": 1,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": false
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 4160,
+            "calls": 19,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 19,
+            "matched": 12,
+            "mismatches": 0,
+            "bones": 192,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "name": "device-payload-B",
+          "frame": 4253,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 4253,
+            "attempts": 1,
+            "matched": 1,
+            "used": 0,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": true
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 4253,
+            "calls": 19,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 19,
+            "matched": 12,
+            "mismatches": 0,
+            "bones": 192,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "name": "native-A2",
+          "frame": 4349,
+          "cameraExact": true,
+          "levelMatched": true,
+          "light": {
+            "event": "frame",
+            "frame": 4349,
+            "attempts": 1,
+            "matched": 1,
+            "used": 1,
+            "mismatches": 0,
+            "dirty": 0,
+            "invalid": 0,
+            "comparison": false
+          },
+          "skin": {
+            "event": "frame",
+            "frame": 4349,
+            "calls": 19,
+            "callFailures": 0,
+            "withoutMesh": 0,
+            "attempts": 19,
+            "matched": 12,
+            "mismatches": 0,
+            "bones": 192,
+            "bitDifferences": 0,
+            "maxAbsoluteError": 0,
+            "maxRelativeError": 0,
+            "rejected": [
+              0,
+              0,
+              7,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "passedAll": true,
+      "baselineFileRestored": true
+    }
+  ],
+  "transitions": [
+    {
+      "level": 4,
+      "status": "loaded_and_presenting",
+      "readySeconds": 10.51,
+      "framesAdvanced": 64,
+      "representativeFrame": 1408,
+      "skin": {
+        "event": "frame",
+        "frame": 1408,
+        "calls": 19,
+        "callFailures": 0,
+        "withoutMesh": 0,
+        "attempts": 19,
+        "matched": 12,
+        "mismatches": 0,
+        "bones": 192,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "started": "2026-09-13T08:28:00.842649+03:00",
+      "finished": "2026-09-13T08:28:48.520011+03:00"
+    },
+    {
+      "level": 27,
+      "status": "loaded_and_presenting",
+      "readySeconds": 8.51,
+      "framesAdvanced": 25,
+      "representativeFrame": 5856,
+      "skin": {
+        "event": "frame",
+        "frame": 5856,
+        "calls": 39,
+        "callFailures": 1,
+        "withoutMesh": 1,
+        "attempts": 38,
+        "matched": 31,
+        "mismatches": 0,
+        "bones": 496,
+        "bitDifferences": 0,
+        "maxAbsoluteError": 0,
+        "maxRelativeError": 0,
+        "rejected": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "started": "2026-09-13T08:35:28.275519+03:00",
+      "finished": "2026-09-13T08:36:07.113283+03:00"
+    }
+  ],
+  "restoration": [
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/winx.ini.before",
+        "bytes": 106,
+        "sha256": "BC7D3270EE607A061AC774B02F4B90B8F5587F5F62689C168425A60C27D485E0"
+      },
+      "after": {
+        "path": "local-data/Winx Club/winx.ini",
+        "bytes": 106,
+        "sha256": "BC7D3270EE607A061AC774B02F4B90B8F5587F5F62689C168425A60C27D485E0"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/user.conf.before",
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "after": {
+        "path": "local-data/Winx Club/user.conf",
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/saves-before/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "E6404EC5E5AE11E82CCDDCC72106D7B3AE9E6F2D363C956F3ABAA383E87BEE15"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Saved00.wxs",
+        "bytes": 349,
+        "sha256": "E6404EC5E5AE11E82CCDDCC72106D7B3AE9E6F2D363C956F3ABAA383E87BEE15"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/saves-before/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321A1136D05EAC8704B60F5268D99D81F56B3FD4FA123222CAEFF393256DCF"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Saved01.wxs",
+        "bytes": 349,
+        "sha256": "12321A1136D05EAC8704B60F5268D99D81F56B3FD4FA123222CAEFF393256DCF"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/saves-before/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182A3B6B840F805D1A57ACDFC6134D1568BAD0577B189C42B3FC23BC23D65"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Settings00.wxs",
+        "bytes": 40,
+        "sha256": "566182A3B6B840F805D1A57ACDFC6134D1568BAD0577B189C42B3FC23BC23D65"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/saves-before/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "A2E0125FE3FE87176BF436F522B2B8676EDAE6561FCAAB0285D5A82C294D0F01"
+      },
+      "after": {
+        "path": "local-data/Winx Club/Media/Saved/Settings01.wxs",
+        "bytes": 40,
+        "sha256": "A2E0125FE3FE87176BF436F522B2B8676EDAE6561FCAAB0285D5A82C294D0F01"
+      },
+      "equal": true
+    },
+    {
+      "before": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-082523-549/bridge.conf.before",
+        "bytes": 314,
+        "sha256": "5AC96FB3198F3E8FF7BCB16030CD199E14ACC55DEFC71916FD9F547370CB5E35"
+      },
+      "after": {
+        "path": "local-data/rtx-remix/runs/play-rtx-20260913-084907-707/bridge.conf.before",
+        "bytes": 314,
+        "sha256": "5AC96FB3198F3E8FF7BCB16030CD199E14ACC55DEFC71916FD9F547370CB5E35"
+      },
+      "equal": true,
+      "scope": "Next-launch immutable BEFORE backup plus watcher receipt, not current running bridge.conf"
+    }
+  ],
+  "lightOwnership": {
+    "eventCounts": {
+      "init": 1,
+      "legacy_policy": 33,
+      "create": 41,
+      "parameters": 41,
+      "destroy": 21
+    },
+    "recordedEventErrors": 0,
+    "lastFrame": {
+      "event": "frame",
+      "frame": 9120,
+      "scenes": 1,
+      "owned": 20,
+      "creates": 0,
+      "updates": 0,
+      "destroys": 0,
+      "draws": 20,
+      "failures": 0,
+      "unsupported": 7,
+      "legacyIgnored": [
+        1,
+        1,
+        1
+      ]
+    },
+    "shutdownRetirementProven": false
+  },
+  "cpu": {
+    "analyzerChecks": 233,
+    "analyzerTests": 14,
+    "nativeObserverChecks": 56,
+    "weightedCaptureChecks": 535,
+    "paletteExactCases": 33,
+    "nativeSkinRenderProfileCases": 5
+  },
+  "analyzer": {
+    "path": "research/rtx-remix/analyze_native_skin_source.py",
+    "bytes": 14462,
+    "sha256": "FD2A34887C46A0649C72D68E47E599416F69C63CCEF542A0BD19209B51ACF437"
+  },
+  "test": {
+    "path": "research/rtx-remix/test_analyze_native_skin_source.py",
+    "bytes": 21035,
+    "sha256": "70B40AA9B97ACBB51E2DC64BAE799E61EC1977CFB224B7EFACA368D88B2A2D06"
+  },
+  "evidence": {
+    "path": "local-data/rtx-remix/native-skin-source-tests/game-checkpoint-v2/evidence.json",
+    "bytes": 42859,
+    "sha256": "FAD8786F1689E5587ABB3E9795BDAB96C0D60BFD5DF16F9EC7735609075AECDC"
+  },
+  "closed": {
+    "path": "local-data/rtx-remix/native-skin-source-tests/game-checkpoint-v2/closed.json",
+    "bytes": 172956,
+    "sha256": "C6A4C15A8EDF699DBBEEBB75D9A51530A850CFE5C9684C743E4C589DBC519982"
+  },
+  "artifacts": 185,
+  "related": [
+    "research/winx-remix-native-skin-observer-contract-2026-09-13.json",
+    "research/winx-remix-native-weighted-vertex-source-2026-09-13.json",
+    "research/winx-remix-skin-api-paired-checkpoint-2026-09-13.json",
+    "research/winx-remix-native-light-source-checkpoint-2026-09-13.json"
+  ],
+  "limits": [
+    "Palette match is current plain Node cohort evidence; no all-Skin/all-scenes or durable lifetime coverage.",
+    "Initial Alfea11/18, Domino12/19, returnAlfea31/39 and AL-false calls are separate observed cohorts. Composite scene rejection is not classified automatically as UI.",
+    "Bit equality happened in this run; tolerance success alone would not imply equal bits.",
+    "The543 compare samples have16bones/meshWeights4/hint0; vertex weights/indices and deformed geometry are not observed here.",
+    "Stock renderer B2-B4 API deformation failed separately. No weighted geometry submit or quality improvement claimed.",
+    "Client enqueue and mesh server API success are not GPU completion or a light API acknowledgement.",
+    "Domino first A/B attempt has cameraMatched=false on B; later3/3pass does not overwrite that failure.",
+    "Final20light handles remain owned in recorded frame9120; shutdown DestroyLight not recorded.",
+    "Initial inventory assertion compared against next running session bridge config; failed attempt preserved. Restoration uses watcher and exact next-launch before backup, no next-run live logs.",
+    "Root found three unrelated snapshot wrappers with a Join-Path array argument after weighted header dependency extraction. Their correction is later wrapper-only work; current wrappers and later6CCBE DLL are excluded from frozen runtime proof."
+  ]
+}

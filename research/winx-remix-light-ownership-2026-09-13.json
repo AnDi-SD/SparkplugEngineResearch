@@ -1,0 +1,339 @@
+{
+  "date": "2026-09-13",
+  "status": "OWN_CLIENT_LEVEL_LIGHT_OWNERSHIP_CPU_VALIDATED",
+  "provenance": "Own adapter correction; native game behavior and physical conversion unchanged",
+  "sourceSnapshot": {
+    "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/source/winx_scene_lights.h",
+    "sha256": "DFADDC228414A25CD9D34D841BC4D675D4E3301D90CD5064DB548162EBA83E00"
+  },
+  "before": {
+    "path": "local-data/rtx-remix/light-ownership-before/winx_scene_lights.h",
+    "sha256": "3D2E1F68C7C3FF7570CC1ECC7BECB8A0412F5D8A6F70752B11C079DD4AD39B41"
+  },
+  "normalizeAndConvertTextUnchangedSha256": "EFCFE2CA264927B650D05F09F1D39EAC198DD2C7DF99E9BB761F732C81DBBB27",
+  "cap": {
+    "ownedIncludingQuarantine": 4096,
+    "seenScenes": 128,
+    "cleanupAttemptsPerHandlePerOuterOperation": 1,
+    "exhaustion": "reject new work; retain failed cleanup ownership; no forced drop"
+  },
+  "contract": {
+    "allocation": "all required owner nodes before first Create; no allocation to publish API output",
+    "createErrorOutput": "retained unusable in existing node, including bad_alloc after output",
+    "update": "destroy return SUCCESS before same hash recreation; node stays allocated",
+    "destroyError": "retain retiring/unusable handle; repeat on later operation",
+    "reentry": "same recursive guard + busy/revision; nested operations only invalidate/request retirement",
+    "partialDraw": "stop type; retire type; no legacy False during same attempted frame, including error/exception",
+    "legacyRestore": "existing later frame EndSceneLightFrame handles pending restore even without Sync; errors preserve pending intent",
+    "remainingLimitation": "API that allocates but never exposes handle cannot be recovered; permanent cleanup failure may retain quarantine"
+  },
+  "pinnedApiSourceEvidence": [
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-work/bridge/src/client/remix_api.cpp",
+      "sha256": "3E9820A741665DD6E207B2F0D0217E2C19F553A627CE32801FE49177C2D6FE30"
+    },
+    {
+      "path": "local-data/rtx-remix/direct-camera-bridge-work/bridge/src/server/main.cpp",
+      "sha256": "872A9AFA799136201472C8821C25C1241339E785C3216176725BA8E6A2A20E38"
+    },
+    {
+      "path": "local-data/rtx-remix/upstream/dxvk-remix/src/dxvk/rtx_render/rtx_remix_api.cpp",
+      "sha256": "7596974C635FCA923EB42BFAE6D32E0BBA855C52935C298FC3AA0C5E34DF4743"
+    }
+  ],
+  "bridgeBoundary": {
+    "clientSuccess": "enqueue only; no Create/Destroy/DrawLight ACK",
+    "serverDestroy": "ignores renderer error and invalidates mapping",
+    "serverDraw": "ignores renderer return",
+    "rendererSuccess": "EmitCs acceptance; not GPU completion",
+    "bridgeEdited": false
+  },
+  "verification": {
+    "gpu": false,
+    "executableSha256": "5ED73CD043BF5E3275F192B7439E86DECD4A026515E66D752F824695BE19D860",
+    "sourceHashes": [
+      {
+        "sha256": "67460F93756375D6F7DBC6D1CFC660CC2946D853E72C168C87641B4BB31994D0",
+        "path": "source\\test_light_ownership.cpp"
+      },
+      {
+        "sha256": "DFADDC228414A25CD9D34D841BC4D675D4E3301D90CD5064DB548162EBA83E00",
+        "path": "source\\winx_scene_lights.h"
+      },
+      {
+        "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5",
+        "path": "source\\third-party\\remix_light_conversion.h"
+      }
+    ],
+    "result": {
+      "status": "PASS",
+      "checks": 16576,
+      "issued": 4125,
+      "remaining": 0,
+      "duplicateHashes": 0,
+      "gpu": false,
+      "nativeCode": false
+    },
+    "maxSeconds": 30,
+    "status": "PASS",
+    "nativeGameCodeExecuted": false
+  },
+  "preservedAttempts": {
+    "v1": "fixture compile failure: REMIX_ALLOW_X86 absent",
+    "v2": "fixture wrong global policy expectation; unrelated unsubmitted types may restore legacy",
+    "v3": "PASS178",
+    "v4": "PASS16576 cap + scene-change + missing Draw callback",
+    "v5": "PASS16576 comment clarifies no server ACK",
+    "v6": "PASS16576; failed Draw type marked retiring/unusable"
+  },
+  "gpuExecuted": false,
+  "gameExecuted": false,
+  "installedDllChanged": false,
+  "commitCreated": false,
+  "documentation": {
+    "path": "docs/research/winx-remix-light-ownership-2026-09-13.md",
+    "sha256": "F4D3650D8FD1856FB66367D325250E3895D7D73BB088B222BD173A3DE7D7ABF8"
+  },
+  "artifacts": [
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/build.cmd",
+      "sha256": "4842FF7B2196D26AB5D9DFEB094F69570108AE29C2F67A9250836F8285621FE5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/build.log",
+      "sha256": "6798D65E80C9B5BCAB074C5C72C22A86A329E58A868A09AFA597938B7F32A567"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/source/test_light_ownership.cpp",
+      "sha256": "BBEEEDB2AA9FE41A6944DAFA7D4B96A0E0B3F9AAA263111BBC55A1829F3FA75C"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/source/winx_scene_lights.h",
+      "sha256": "76D25EF46D34F0044D8AAB22B00AD469231A87AD3617BC6023948CF73E269E71"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v1/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/build.cmd",
+      "sha256": "4A596351CB4D8CE3AFE54278D5BE417EBB8A9882591EACEC2D1290007E36F7D5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/build.log",
+      "sha256": "717AEC4858D14969A8238A723A6470A8AFE59A605D358265143EF9C71A2C391A"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/process.json",
+      "sha256": "A51CB1B13B013C957CDAA2E02F43319002C75FB132C9875EC9EA528B399B2C39"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/result.json",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/source/test_light_ownership.cpp",
+      "sha256": "DF52A89EEA24BA14DBDE7C6B4804DDBE28349132C6ECF114A155F0025D6ECABB"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/source/winx_scene_lights.h",
+      "sha256": "1DD42FB050CA704F133EF9F2C258C76646BC527118A6F3E37E0EC0C72DA40F2F"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/stderr.log",
+      "sha256": "5D6E2694066322A388D3A6CA7CFE07E6787C4414C252274F6D5A6A0BD5ECCB54"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v2/test_light_ownership.exe",
+      "sha256": "C5EC6B615B1CF7E631B6091AA55F81448C0A6F5FEDC6D59DDD18BD16E0778EF3"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/build.cmd",
+      "sha256": "BCC4FC9CB8FF8CD7A2B0710243229423CD91BB5F502689C0B4B0355672B3362A"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/build.log",
+      "sha256": "A94F74282E0D93AAD42D209C07F7088ED2F3A499CB5D869FA2071A887F61D240"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/process.json",
+      "sha256": "74551343186839F3D8B07CCE2E08AD63B67B41690491C35823822FCA033B396F"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/result.json",
+      "sha256": "F854CAFB4B476EAC554EFDBC7399B061FAFC6E821D4B043812D0CB567FD2F430"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/source/test_light_ownership.cpp",
+      "sha256": "0B9F1A369CE9506EB08099FC0749EED58BA0AA0965569412C9C0137E315D4A75"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/source/winx_scene_lights.h",
+      "sha256": "1DD42FB050CA704F133EF9F2C258C76646BC527118A6F3E37E0EC0C72DA40F2F"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/test_light_ownership.exe",
+      "sha256": "38555DB13C3847BA7F0011942A998F81ED6E124ED14CF39B407C7D93475C16BB"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v3/verification.json",
+      "sha256": "3DE0F56AC33DA0934BA34868F834CDA2D2B79CDA5FEA8050D3069ECF1E3ABF78"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/build.cmd",
+      "sha256": "FF85EA78004300CF4DFD88D0A84297873C855F9D3C3D765A67828A39D702792C"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/build.log",
+      "sha256": "5B70C1EB55D92E2459595DCB489049ADA6A6184413EE8AC188EDFDCE364A40AC"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/process.json",
+      "sha256": "9EAA3F5CF37D0C76915F54A22FE34B21EE09571672D9F2E2D642AFC1CABBCB20"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/result.json",
+      "sha256": "7981681B87B49890F03D9A266757AD14BE87DB44955AAA6B721966B50B976452"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/source/test_light_ownership.cpp",
+      "sha256": "59E46EEF7C02A2E87A6AE4C4F005FCFD9856CECD3DEB3601F1FDAACA8842AF11"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/source/winx_scene_lights.h",
+      "sha256": "1DD42FB050CA704F133EF9F2C258C76646BC527118A6F3E37E0EC0C72DA40F2F"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/test_light_ownership.exe",
+      "sha256": "6A1DCBB8B7140DBCC67F1EFB303F3DF705DE677E9FF6113283627F9D5C66C3AE"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v4/verification.json",
+      "sha256": "F2A332EB230F61FCBB17E59C045FB5B7F767B791051FCFE15953389FDA60C60B"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/build.cmd",
+      "sha256": "CDE5927CBE4E9B9F33E9FB868D75D29E126A72994AF11F0EAFC4A13DD03C57D6"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/build.log",
+      "sha256": "638FB892E00AC5DA5E89914782B6664F76394A6EF834C28339E29DDB63E54C8C"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/process.json",
+      "sha256": "56B7A934A7BDFFF252C12083CCA8036A278B428B747C6576C305B70CB77F447C"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/result.json",
+      "sha256": "7981681B87B49890F03D9A266757AD14BE87DB44955AAA6B721966B50B976452"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/source/test_light_ownership.cpp",
+      "sha256": "59E46EEF7C02A2E87A6AE4C4F005FCFD9856CECD3DEB3601F1FDAACA8842AF11"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/source/winx_scene_lights.h",
+      "sha256": "BB4F3EEA2F39A1353764931E5A50992106F644786204CCFAB9FC3E74BBB7BCC6"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/test_light_ownership.exe",
+      "sha256": "49E39D24EF4578062D1DFA7C8734CBE72A4C0C9776608466700758BDD4DEF5B7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v5/verification.json",
+      "sha256": "8FB943D7BAC349CFF826D8D199BCA446DDDB6472765C0A025636B867EA36218F"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/build.cmd",
+      "sha256": "BC574438A581409345538F5C5A63F07D7598000E6FEFEB3788846EBB76B03F32"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/build.log",
+      "sha256": "2C236E650E84D02453FAC69A2FC3DE6B40BD84C9CEE086530369AF735E807A21"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/process.json",
+      "sha256": "9CDC8C5F93052F0267BCE7A50131A58106A46EA0A25FEF56A88DFA48505E09E6"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/result.json",
+      "sha256": "7981681B87B49890F03D9A266757AD14BE87DB44955AAA6B721966B50B976452"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/source/test_light_ownership.cpp",
+      "sha256": "67460F93756375D6F7DBC6D1CFC660CC2946D853E72C168C87641B4BB31994D0"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/source/third-party/remix_light_conversion.h",
+      "sha256": "5D486DBB0E69D585C32500EA46FC8917EBFC2B233AC816053D8B9DF0B44489E5"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/source/winx_scene_lights.h",
+      "sha256": "DFADDC228414A25CD9D34D841BC4D675D4E3301D90CD5064DB548162EBA83E00"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/stderr.log",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/Test-LightOwnership.ps1",
+      "sha256": "E44032260C6E0CA384FBB23D6814EF660A5DB2AF68F26E96DC4E6A7737BD89A7"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/test_light_ownership.exe",
+      "sha256": "5ED73CD043BF5E3275F192B7439E86DECD4A026515E66D752F824695BE19D860"
+    },
+    {
+      "path": "local-data/rtx-remix/light-ownership-tests/ownership-v6/verification.json",
+      "sha256": "5B6AE710A2DF59716807C88DB59F6D78175D8E5209E7CEE6795988748A91C951"
+    }
+  ]
+}

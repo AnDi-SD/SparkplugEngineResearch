@@ -60,7 +60,10 @@ namespace native_draw_audit { static void Initialize(); static void Draw(IDirect
 namespace native_mesh_source { static void Initialize(); static void EndFrame(); }
 namespace native_camera_source { static void Initialize(); static void EndFrame(); }
 namespace native_material_source { static void Initialize(); static void EndFrame(); }
+namespace native_light_source { static void Initialize(); static void EndFrame(); }
 namespace native_owner_source { static void Initialize(); static void EndFrame(); }
+namespace native_skin_source { static void Initialize(); static void EndFrame(); }
+namespace native_skin_vertex_source { static void Initialize(); static void EndFrame(); }
 namespace native_update_source { static void Initialize(); static void EndFrame(); }
 namespace native_transport_source { static void Initialize(); static void EndFrame(); }
 namespace independent_scene_source { static void Initialize(); static void EndFrame(); }
@@ -128,10 +131,13 @@ static void Initialize() {
   native_camera_source::Initialize();
   native_material_source::Initialize();
   native_owner_source::Initialize();
+  native_skin_source::Initialize();
+  native_skin_vertex_source::Initialize();
   native_update_source::Initialize();
   native_transport_source::Initialize();
   independent_scene_source::Initialize();
   InitializeSceneAudit();
+  native_light_source::Initialize();
   material_audit::Initialize();
 }
 
@@ -740,6 +746,9 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepNativeLights"&&native_light_source::submitEnabled&&(value=="True"||value=="False")) {
+      native_light_source::keepForComparison=value=="True";continue;
+    }
     if(key=="winx.keepSelectedScene"&&independent_scene_source::selectedSubmitEnabled&&(value=="True"||value=="False")) {
       independent_scene_source::keepSelectedForComparison=value=="True";continue;
     }
@@ -818,6 +827,9 @@ static void ApplyLiveConfig() {
 }
 
 static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e) {
+  // Counters belong to the completed frame. Record its source selector before
+  // applying the next frame's diagnostic configuration.
+  native_light_source::EndFrame();
   ApplyLiveConfig();
   EndSceneLightFrame();
   native_draw_audit::EndFrame();
@@ -825,6 +837,8 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
   native_owner_source::EndFrame();
+  native_skin_source::EndFrame();
+  native_skin_vertex_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();
@@ -1058,11 +1072,14 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
 }
 static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* a,const RECT* b,HWND c,const RGNDATA* e,DWORD flags) {
   EndSceneLightFrame();
+  native_light_source::EndFrame();
   native_draw_audit::EndFrame();
   native_mesh_source::EndFrame();
   native_camera_source::EndFrame();
   native_material_source::EndFrame();
   native_owner_source::EndFrame();
+  native_skin_source::EndFrame();
+  native_skin_vertex_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();

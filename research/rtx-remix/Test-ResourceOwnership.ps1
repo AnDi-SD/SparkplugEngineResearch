@@ -12,7 +12,7 @@ $snapshot=Join-Path $build 'source/research/rtx-remix'
 New-Item -ItemType Directory -Path $snapshot -Force | Out-Null
 Get-ChildItem -LiteralPath $PSScriptRoot -File | Where-Object {$_.Extension -in '.h','.cpp'} | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $snapshot}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'third-party') -Destination $snapshot -Recurse
-foreach($relative in @('Sparkplug/Analysis/PC/SparkplugAbi.h','Sparkplug/Analysis/PC/SparkBaseAbi.h','Sparkplug/Analysis/PC/spNodeTransformMath.h','Sparkplug/Analysis/PC/spRenderNodeMath.h','Sparkplug/Analysis/PC/spColorMath.h','Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h','Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h','Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h')) {
+foreach($relative in @('Sparkplug/Analysis/PC/SparkplugAbi.h','Sparkplug/Analysis/PC/SparkBaseAbi.h','Sparkplug/Analysis/PC/spNodeTransformMath.h','Sparkplug/Analysis/PC/spRenderNodeMath.h','Sparkplug/Analysis/PC/spColorMath.h','Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h','Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h','Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h','Sparkplug/Code/SparkplugDX/spPCLightPayload.h','Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h')) {
   $target=Join-Path (Join-Path $build 'source') $relative
   New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $target

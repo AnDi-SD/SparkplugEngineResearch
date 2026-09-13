@@ -736,74 +736,12 @@ namespace sparkplug::reconstruction
         {
             return false;
         }
-        const auto sourceStride = source.GetVertexStrideForAnalysis();
-        const auto vertexCount = source.GetVertexCountForAnalysis();
-        const std::uint64_t sourceSize =
-            static_cast<std::uint64_t>(sourceStride) * vertexCount;
-        if (sourceSize > source.GetDataForAnalysis().size())
-        {
-            return false;
-        }
-
-        const bool expandsPackedField =
-            (source.GetComponentFlagsForAnalysis() & 0x20U) != 0;
-        destinationStride = sourceStride
-            + (expandsPackedField ? ExpandedPackedFieldBytes : 0U);
-        const std::uint64_t destinationSize =
-            static_cast<std::uint64_t>(destinationStride) * vertexCount;
-        if (destinationSize > std::numeric_limits<std::uint32_t>::max())
-        {
-            return false;
-        }
-
-        try
-        {
-            destination.resize(static_cast<std::size_t>(destinationSize));
-        }
-        catch (...)
-        {
-            return false;
-        }
-
-        const auto& input = source.GetDataForAnalysis();
-        // Original PC 0x429A40 -> 0x4AA000 preserves authored vertex bytes.
-        // Packed palette indices alone expand to four unnormalized floats;
-        // COLOR0 (including alpha), normals and UVs are not relit here.
-        if (!expandsPackedField)
-        {
-            std::memcpy(destination.data(), input.data(),
-                static_cast<std::size_t>(sourceSize));
-            return true;
-        }
-
-        const auto packedOffset = static_cast<std::size_t>(
-            source.GetComponentOffsetsForAnalysis()[
-                PackedFieldComponentOffsetIndex]) * sizeof(std::uint32_t);
-        if (packedOffset > sourceStride || sourceStride - packedOffset < 4)
-        {
-            return false;
-        }
-        const auto tailSize = sourceStride - packedOffset - 4U;
-        for (std::uint32_t vertex = 0; vertex < vertexCount; ++vertex)
-        {
-            const auto* const inputVertex = input.data()
-                + static_cast<std::size_t>(vertex) * sourceStride;
-            auto* const outputVertex = destination.data()
-                + static_cast<std::size_t>(vertex) * destinationStride;
-            std::memcpy(outputVertex, inputVertex, packedOffset);
-            for (std::size_t component = 0; component < 4; ++component)
-            {
-                const float expanded = static_cast<float>(
-                    std::to_integer<std::uint8_t>(
-                        inputVertex[packedOffset + component]));
-                std::memcpy(outputVertex + packedOffset
-                        + component * sizeof(float),
-                    &expanded, sizeof(expanded));
-            }
-            std::memcpy(outputVertex + packedOffset + 4U * sizeof(float),
-                inputVertex + packedOffset + 4U, tailSize);
-        }
-        return true;
+        const auto& bytes = source.GetDataForAnalysis();
+        return BuildPCDXVertexBytesForAnalysis(bytes.data(), bytes.size(),
+            source.GetVertexStrideForAnalysis(), source.GetVertexCountForAnalysis(),
+            source.GetComponentFlagsForAnalysis(),
+            source.GetComponentOffsetsForAnalysis()[PackedFieldComponentOffsetIndex],
+            destination, destinationStride);
     }
 
     std::uint32_t spDXMesh::PrimitiveCountForAnalysis(

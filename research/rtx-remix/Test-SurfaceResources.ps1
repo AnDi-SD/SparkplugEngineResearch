@@ -22,12 +22,18 @@ if ($Name) {
   New-Item -ItemType Directory -Path $abiSnapshot -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkplugAbi.h') -Destination $abiSnapshot
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Analysis/PC/SparkBaseAbi.h') -Destination $abiSnapshot
+  foreach ($file in @('spNodeTransformMath.h','spRenderNodeMath.h','spColorMath.h')) {
+    Copy-Item -LiteralPath (Join-Path $root "Sparkplug/Analysis/PC/$file") -Destination $abiSnapshot
+  }
   $layoutSnapshot=Join-Path $build 'source/Sparkplug/Code/SparkplugPC'
   New-Item -ItemType Directory -Path $layoutSnapshot -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h') -Destination $layoutSnapshot
   $mappingSnapshot=Join-Path $build 'source/Sparkplug/Code/SparkplugDX'
   New-Item -ItemType Directory -Path $mappingSnapshot -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCTextureStateMapping.h') -Destination $mappingSnapshot
+  Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h') -Destination $mappingSnapshot
+  Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCLightPayload.h') -Destination $mappingSnapshot
+  Copy-Item -LiteralPath (Join-Path $root 'Sparkplug/Code/SparkplugDX/spPCDXVertexBytes.h') -Destination $mappingSnapshot
   $source=Join-Path $snapshot 'test_surface_resources.cpp'
 }
 $commands=@"
