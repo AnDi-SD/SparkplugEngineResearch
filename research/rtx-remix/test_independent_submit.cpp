@@ -428,5 +428,7 @@ static void EarlyCamera() {
 }
 static void Run(){Basic();Rejections();PartialFailure();SequenceAndReentry();ForwardingAndAllocation();AlphaPolicy();EarlyCamera();Check(liveMeshes.empty()&&liveMaterials.empty(),"all recording API ownership retired at fixture end");}
 }
+#if !defined(WINX_INDEPENDENT_SUBMIT_FIXTURE_ONLY)
 int main(){SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOGPFAULTERRORBOX);try{direct_test::Watchdog watchdog;direct_test::Run();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"nativeGameCodeExecuted\":false,\"ownedComCalls\":%u}\n",direct_test::checks,direct_test::comCalls);return 0;}
 catch(const std::exception& error){fprintf(stderr,"FAIL %s\n",error.what());return 1;}}
+#endif

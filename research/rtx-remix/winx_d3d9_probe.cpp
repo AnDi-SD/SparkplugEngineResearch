@@ -160,6 +160,7 @@ static void Patch(void* object, unsigned slot, void* function) {
   VirtualProtect(table + slot, sizeof(void*), previous, &ignored);
 }
 
+#include "winx_d3d9_state_witness.h"
 #include "winx_shader_audit.h"
 #include "winx_scene_audit.h"
 #include "winx_native_mesh_source.h"
@@ -710,9 +711,9 @@ static HRESULT STDMETHODCALLTYPE CreateDeclaration(IDirect3DDevice9* device,cons
   return hr;
 }
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9* device) {
-  std::lock_guard<std::recursive_mutex> lock(guard);
+  d3d9_state_witness::Mutation mutation;
   using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DDevice9*);const auto references=Original<F>(device,2)(device);
-  if(!references)native_transport_source::RetireDevice(device);
+  if(!references){native_transport_source::RetireDevice(device);d3d9_state_witness::Retire(device);}
   return references;
 }
 
@@ -739,6 +740,9 @@ static void ApplyLiveConfig() {
   while(std::getline(input,line)) {
     const auto split=line.find('='); if(split==std::string::npos) continue;
     const auto key=trim(line.substr(0,split)),value=trim(line.substr(split+1));
+    if(key=="winx.keepSelectedScene"&&independent_scene_source::selectedSubmitEnabled&&(value=="True"||value=="False")) {
+      independent_scene_source::keepSelectedForComparison=value=="True";continue;
+    }
     if(key=="winx.keepIndependentScene"&&independent_scene_source::submitEnabled&&(value=="True"||value=="False")) {
       independent_scene_source::keepForComparison=value=="True";continue;
     }
@@ -968,8 +972,9 @@ static HRESULT STDMETHODCALLTYPE ChannelGetTexture(IDirect3DDevice9* device,DWOR
 static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9* device,REFIID iid,void** result) {
   std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,REFIID,void**);
   const auto hr=Original<F>(device,0)(device,iid,result);
-  if(SUCCEEDED(hr)&&result&&*result&&(*result!=device||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DDevice9))))
-    native_transport_source::BlockTextureDevice(device);
+  if(SUCCEEDED(hr)&&result&&*result&&(*result!=device||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DDevice9)))) {
+    native_transport_source::BlockTextureDevice(device);d3d9_state_witness::Block(device);
+  }
   return hr;
 }
 static void RetireFrontBufferDestination(IDirect3DSurface9* surface) {
@@ -1082,6 +1087,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
   return hr;
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
+  d3d9_state_witness::DetachedMutation mutation;
   {std::lock_guard<std::recursive_mutex> lock(guard);native_transport_source::BeginReset(d);}
   native_camera_source::Reset();
   ResetSceneLights();
@@ -1197,6 +1203,9 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     Patch(*result,51,reinterpret_cast<void*>(SetLight));
     Patch(*result,81,reinterpret_cast<void*>(Draw)); Patch(*result,82,reinterpret_cast<void*>(DrawIndexed));
     Patch(*result,83,reinterpret_cast<void*>(DrawUP)); Patch(*result,84,reinterpret_cast<void*>(DrawIndexedUP));
+    if(independent_scene_source::selectedSubmitEnabled)
+      d3d9_state_witness::Install(*result,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
+        reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>));
   }
   if(logFile) { fprintf(logFile,"{\"event\":\"create_device\",\"hr\":%ld}\n",hr); fflush(logFile); }
   return hr;

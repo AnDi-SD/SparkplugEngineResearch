@@ -73,6 +73,7 @@ template<class Shader,unsigned Slot> static HRESULT STDMETHODCALLTYPE AuditCreat
 }
 
 template<class Shader,unsigned Slot> static HRESULT STDMETHODCALLTYPE AuditSetShader(IDirect3DDevice9* d,Shader* shader) {
+  d3d9_state_witness::Mutation mutation;
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,Shader*);
   const HRESULT hr=Original<F>(d,Slot)(d,shader);
   std::lock_guard<std::recursive_mutex> lock(guard);

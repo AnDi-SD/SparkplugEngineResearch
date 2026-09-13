@@ -31,6 +31,8 @@ param(
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
+    [switch]$SelectedSceneSubmit,
+    [switch]$BridgeInstanceAudit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$SceneAudit,
@@ -44,6 +46,7 @@ param(
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true; $MaterialChannels=$true }
 if ($MaterialGeometryProbe -and -not $MaterialChannels) { throw 'MaterialGeometryProbe requires MaterialChannels' }
 if ($MaterialChannels -and (-not $AutoSurfaceRoles -or -not $SceneLights)) { throw 'MaterialChannels requires AutoSurfaceRoles and SceneLights' }
@@ -204,6 +207,8 @@ $values = @{
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
+    WINX_REMIX_SELECTED_SCENE_SUBMIT=$(if ($SelectedSceneSubmit) { Join-Path $run 'selected-scene-submit.jsonl' } else { $null })
+    REMIX_BRIDGE_INSTANCE_AUDIT=$(if ($BridgeInstanceAudit) { Join-Path $run 'renderer-instance-audit.jsonl' } else { $null })
     WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
@@ -245,6 +250,8 @@ try {
         nativeUpdateSource=$NativeUpdateSource.IsPresent
         independentSceneSource=$IndependentSceneSource.IsPresent
         independentSceneSubmit=$IndependentSceneSubmit.IsPresent
+        selectedSceneSubmit=$SelectedSceneSubmit.IsPresent
+        bridgeInstanceAudit=$BridgeInstanceAudit.IsPresent
         remixClientSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game 'd3d9.remix-original.dll')).Hash } else { $null })
         remixServerSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/NvRemixBridge.exe')).Hash } else { $null })
         remixRendererSha256=$(if ($Backend -eq 'remix') { (Get-FileHash -LiteralPath (Join-Path $game '.trex/d3d9.dll')).Hash } else { $null })

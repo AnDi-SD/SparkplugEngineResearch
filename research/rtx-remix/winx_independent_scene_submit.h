@@ -48,11 +48,10 @@ static bool DirectCameraCurrent(IDirect3DDevice9* device,const scene_geometry::S
 }
 // No COM/API calls. This fence is safe after the last external read and before
 // DrawInstance. It also rechecks the observer's native phase restrictions.
-static bool DirectNativeCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input) {
+static bool NativeInputCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input) {
   abi::spRendererDrawContextObservedLayout state{};uint8_t mode=1;
   uint32_t selectors[9]{};struct Shader {uint32_t flags[8],selected;} shader{};
-  if(native_owner_source::activeModel||native_owner_source::activeSupport||
-     !Read(input.owner.renderer+abi::spRendererDrawContextOffset,state)||state.materialOverride||
+  if(!Read(input.owner.renderer+abi::spRendererDrawContextOffset,state)||state.materialOverride||
      state.device!=reinterpret_cast<uintptr_t>(device)||!Read(queueModeAddress,mode)||mode||
      !Read(input.owner.renderer+0xc748,selectors)||!Read(input.owner.renderer+0xe454,shader)||
      shader.selected>=8||shader.flags[shader.selected])return false;
@@ -92,6 +91,9 @@ static bool DirectNativeCurrent(const std::unique_lock<std::recursive_mutex>& bo
     native_transport_source::CurrentTexture(borrow,input.textureWitness)&&native_owner_source::Current(input.owner)&&
     native_update_source::QualifyWitness(input.witness,input.owner.scene,frameId,input.owner.mutation);
 }
+static bool DirectNativeCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input) {
+  return !native_owner_source::activeModel&&!native_owner_source::activeSupport&&NativeInputCurrent(borrow,device,input);
+}
 static bool DirectCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input) {
   return !CompareDrawInput(device,input)&&DirectNativeCurrent(borrow,device,input);
 }
@@ -100,9 +102,10 @@ struct PreparedDirect {
   Input source{};
   remixapi_InstanceInfoBlendEXT blend{};remixapi_InstanceInfo instance{};
 };
-static bool PrepareDirect(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input,PreparedDirect& prepared) {
-  const auto revision=directRevision;
-  if(submissionFailed||!DirectCurrent(borrow,device,input)||submissionFailed||revision!=directRevision)return false;
+template<class Current>
+static bool PrepareNativePacket(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,
+                                const Input& input,PreparedDirect& prepared,const Current& current) {
+  if(!current())return false;
   native_mesh_source::TransportWitness transport{};native_mesh_source::Geometry geometry{};
   const auto& stamp=input.resources;
   if(!native_transport_source::Witness(borrow,device,stamp.vertexBuffer,stamp.indexBuffer,stamp.declaration,transport)||
@@ -117,9 +120,9 @@ static bool PrepareDirect(const std::unique_lock<std::recursive_mutex>& borrow,I
   // From here onward only owned expanded vertices and value stamps survive
   // COM/API calls. No borrowed native Bytes/layout pointer is consumed again.
   const auto hash=ChannelTextureHash(input.textureWitness.texture);
-  if(!hash||submissionFailed||revision!=directRevision||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
+  if(!hash||!current()||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
   const auto material=SurfaceChannelMaterial(device,hash,plan,&input.material.sampler,input.textureWitness.texture,&input.textureSrgb);
-  if(!material||submissionFailed||revision!=directRevision||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
+  if(!material||!current()||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
   prepared.mesh=SurfaceGeometryResource(expanded,material);
   prepared.key={input.owner.support,input.owner.model};prepared.source=input;
   // Same own opaque-alpha policy as the D3D path, applied to the API recipe.
@@ -129,9 +132,15 @@ static bool PrepareDirect(const std::unique_lock<std::recursive_mutex>& borrow,I
      TrivialOpaqueAlphaTest(instanceState.test,instanceState.function,instanceState.reference,
        instanceState.blendEnabled,instanceState.source,instanceState.destination,instanceState.operation))
     instanceState.function=D3DCMP_ALWAYS;
-  return prepared.mesh&&!submissionFailed&&revision==directRevision&&
+  return prepared.mesh&&
     DescribeSurfaceInstance(instanceState,input.material.contract,input.owner.world,prepared.mesh,prepared.blend,prepared.instance)&&
-    DirectCurrent(borrow,device,input)&&!submissionFailed&&revision==directRevision;
+    current();
+}
+static bool PrepareDirect(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input,PreparedDirect& prepared) {
+  const auto revision=directRevision;
+  const auto current=[&](){return !submissionFailed&&revision==directRevision&&
+    DirectCurrent(borrow,device,input)&&!submissionFailed&&revision==directRevision;};
+  return PrepareNativePacket(borrow,device,input,prepared,current);
 }
 static bool DirectSupportOmitted(uint32_t support) {
   const auto scope=scene_geometry::active;

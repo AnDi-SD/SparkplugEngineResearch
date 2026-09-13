@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "date": "2026-09-13",
+  "status": "CPU_SOURCE_CONTRACT_PASSED",
+  "implementation": "Own native-packet adapter and platform state witness; no reconstructed game logic changed",
+  "report": {
+    "path": "docs/research/winx-remix-selected-submit-contract-2026-09-13.md",
+    "bytes": 10846,
+    "sha256": "A6C75C78B18F9C92CE6BE5816D941B2884D4CB53B4F22B603A10234F1160ED60"
+  },
+  "boundary": {
+    "selectedConsumerCPU": true,
+    "selectedConsumerGPU": false,
+    "originalGameExecuted": false,
+    "bridgeExecuted": false,
+    "nativeGameCodeExecuted": false,
+    "rendererAcceptanceProven": false,
+    "gpuCompletionProven": false,
+    "noRetainedComReferences": true,
+    "systemResetExecutedByCPUFixture": false
+  },
+  "selectedResult": {
+    "status": "PASS",
+    "checks": 1544,
+    "gpu": false,
+    "nativeGameCodeExecuted": false,
+    "ownedComCalls": 5378
+  },
+  "directRegression": {
+    "status": "PASS",
+    "checks": 1132,
+    "gpu": false,
+    "nativeGameCodeExecuted": false,
+    "ownedComCalls": 5224
+  },
+  "sameFrozenSource": true,
+  "historicalDirectFixtureBodyIdenticalExceptMainGuard": true,
+  "historicalDirectCount": 1136,
+  "currentDirectCount": 1132,
+  "counterExplanation": "Check executes inside owned COM doubles; named scenario bodies are unchanged, production dependencies differ.",
+  "sourceArtifacts": [
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/winx_selected_scene_submit.h",
+      "bytes": 14013,
+      "sha256": "8BE00B7E0209D469CB0C39AE9D920C5D25371DB291D8F506533424FC385146DF"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/winx_d3d9_state_witness.h",
+      "bytes": 8496,
+      "sha256": "490B961876CF7F5B6A06603AD525AE6FD62949BB002455EC09CBD4FF89783BAE"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/winx_independent_scene_submit.h",
+      "bytes": 21494,
+      "sha256": "31598435454319DA91E99BA666A860C4BC46FD7297CA8C595D5C113638036653"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/winx_surface_submit.h",
+      "bytes": 34475,
+      "sha256": "0FAE7A778B2850B48AD43CE11E1055C42D02871B07C7225D4BC65ACD2FCFB257"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/winx_d3d9_probe.cpp",
+      "bytes": 76574,
+      "sha256": "D0142A98A8F1073539F87022923BDF2601E25CDF0CD058683E937D598B877048"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/test_selected_submit.cpp",
+      "bytes": 26935,
+      "sha256": "36BE0EE44C0E0F230EA887A3EBDFBF18709782910517944193630A7848B33703"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/source/research/rtx-remix/test_independent_submit.cpp",
+      "bytes": 41684,
+      "sha256": "659F05E7A2F154A716D73271B9AF571A7CFF6D918B4B79207B431E69BB7B583D"
+    }
+  ],
+  "buildArtifacts": [
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/test_selected_submit.exe",
+      "bytes": 472576,
+      "sha256": "285008EDB2C2C41F6A223E82A6874658D2FD6B6D5AD70BD9EE5AF5DEB53B0BA8"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/test_independent_submit.exe",
+      "bytes": 488960,
+      "sha256": "A68310CF473DADF8393ED8B70087550ECF8368422DCF09BE8EE0DB76A34EE3ED"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/verification.json",
+      "bytes": 451,
+      "sha256": "F96A758DC7DC5A1C8B3DB75F23D0E2754A80A69815FA79F4AFB5B1DCA64FB9C2"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/direct-verification.json",
+      "bytes": 485,
+      "sha256": "DFCD85A38B489AA6AC0785132E237AD077631E84F0CC726BD61A0C2F0475795D"
+    },
+    {
+      "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/Test-SelectedSubmit.ps1",
+      "bytes": 6896,
+      "sha256": "9DFBB2863461CC8F0DE07CE75A8AD33667CB248897BB34AD37BB2185539C1664"
+    }
+  ],
+  "cpuEvidence": {
+    "path": "local-data/rtx-remix/selected-submit-tests/selected-v6/evidence.json",
+    "bytes": 23335,
+    "sha256": "EBF58363AF10CBF37D6916B2CCB6EB48FB67F7A5B7A29834A3C5AE2EE27CD4F0"
+  },
+  "cpuHashesVerified": 70,
+  "priorHashesVerified": 14,
+  "gpuRegression": {
+    "evidence": {
+      "path": "local-data/rtx-remix/material-channel-tests/selected-common-v1/evidence.json",
+      "bytes": 15423,
+      "sha256": "FE65FF15F303DBA1CB3E6B2EB9413718B16EB15734C1EE1360A47AE299F9E952"
+    },
+    "hashesVerified": 59,
+    "result": {
+      "status": "PASS",
+      "checks": 697,
+      "nativeSourceChecks": 171,
+      "nativeMaterialChecks": 137,
+      "nativeTransportChecks": 53,
+      "nativeTextureChecks": 83,
+      "submitted": 35,
+      "rejected": 5,
+      "meshCreates": 10,
+      "materialCreates": 9,
+      "assetBytes": 2968
+    },
+    "gpu": true,
+    "selectedConsumerEnabled": false,
+    "scope": "Own material/resource integration using system D3D9 HAL and recording Remix API; not the game or bridge",
+    "limitation": "General backend regression with selected consumer disabled; not system D3D selected-path integration."
+  },
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File research/rtx-remix/Test-SelectedSubmit.ps1 -Name selected-v6",
+  "snapshotCurrentDifferencesAtClosure": [],
+  "priorFixtureAttempts": [
+    {
+      "name": "selected-v1",
+      "result": "fixture compile failure; two void table declarations lacked pointer declarators"
+    },
+    {
+      "name": "selected-v2",
+      "result": "fixture material expectation wrong: emission 0 despite enabled preserveUnlitColor; actual selected instance already succeeded"
+    },
+    {
+      "name": "selected-v3",
+      "result": "diagnostic confirmed material emission 1; expectation corrected in v4"
+    },
+    {
+      "name": "selected-v4",
+      "result": "PASS1360/1132 before production postCommitFaults precision fix; historical evidence preserved"
+    },
+    {
+      "name": "selected-v5",
+      "result": "counter correction and previous tests passed; new alpha fixture lacked explicit bootstrap ALPHATESTENABLE state; fixture fixed in v6"
+    }
+  ],
+  "tests": [
+    "Exact triangle position/normal/UV/color and world/material/sampler payload; repeated actual Model calls produce one instance each and reuse API resources.",
+    "Only originally selected input; camera/material/current installed material/raw renderer state/actual binding/range/CPU generation/resource content/Model-call and callback changes reject before commit.",
+    "Actual patched setters from late GetRenderTarget and reference Release invalidate witness; failed setter still changes serial and calls original once.",
+    "Actual CreateStateBlock and EndStateBlock results are hooked; late Apply rejects; final Release nulls table and nested Read/selected entry reject before freed-table access.",
+    "DetachedMutation releases recursive guard across external Reset window (bounded other-thread try_lock) but active witness reads and selected entry reject; old token never revives.",
+    "Normal API error returns committed=true and blocks later calls; no separate postCommitFault absent mutation.",
+    "Precommit allocation failure preserves fallback; exception inside entered API and allocation failure after successful API retain exactly one call and correct counters/ownership.",
+    "ScopedOpaqueAlphaTest recovers actual original native alpha only with its matching witness; comparison mode and missing-witness fallback tested; native material untouched and D3D function restored."
+  ],
+  "contract": {
+    "requires": [
+      "originallySelected input",
+      "current scene/update/owner/root and native Model/mesh submission scope",
+      "current native installed material and raw renderer cache",
+      "current bound stream/index/declaration/range/texture",
+      "current verified CPU ranges and transport lifecycle/content stamps",
+      "exact current native/D3D world/view/projection and accepted camera frame/sequence/epoch",
+      "D3D state mutation witness covering all late COM and reference releases"
+    ],
+    "preCommit": "Return false and retain previous path on any rejection or allocation failure.",
+    "commit": "Before the single DrawInstance call; return true after entering API even if error or later allocation failure.",
+    "postCommitFault": "Cannot undo an entered API call; latch selected path after error/currentness failure, no duplicate fallback for that call.",
+    "counters": [
+      "attempts = rejected + calls",
+      "calls = instances + apiFailures",
+      "postCommitFaults counts independent late faults, not the normal API error alone"
+    ],
+    "stateWitness": {
+      "deviceSetterSlots": [
+        37,
+        39,
+        44,
+        46,
+        47,
+        49,
+        57,
+        59,
+        60,
+        61,
+        65,
+        67,
+        69,
+        75,
+        87,
+        89,
+        100,
+        102,
+        104
+      ],
+      "shaderSetterSlots": [
+        92,
+        107
+      ],
+      "existingDeviceReleaseResetSlots": [
+        2,
+        16
+      ],
+      "stateBlockSlots": [
+        0,
+        2,
+        5
+      ],
+      "serial": "Changes before and after original mutation, including failed setters.",
+      "coverage": "Actual current vtable slots of device and all tracked live state blocks; fail closed for missing coverage/known alias gaps.",
+      "releaseBlock": "Mutation encloses original destructor; nested reads reject before accessing destroyed block table.",
+      "reset": "DetachedMutation keeps observation invalid across external Reset without retaining recursive guard."
+    }
+  },
+  "limitations": [
+    "No live game/server/GPU results attributed to this source contract.",
+    "No universal stable game-object lifetime or unsupported cohort claim.",
+    "Original producers still execute; selected consumer replaces only the final qualified indexed draw.",
+    "Whole-support offscreen omission policy remains a separate consumer.",
+    "Recording API SUCCESS is not renderer acceptance; current client bridge DrawInstance reports enqueue without separate ACK."
+  ]
+}

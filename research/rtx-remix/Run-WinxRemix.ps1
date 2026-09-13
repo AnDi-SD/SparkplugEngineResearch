@@ -15,6 +15,8 @@ param(
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
+    [switch]$SelectedSceneSubmit,
+    [switch]$BridgeInstanceAudit,
     [switch]$MaterialChannels,
     [switch]$MaterialGeometryProbe,
     [switch]$LiveConfig,
@@ -25,6 +27,7 @@ param(
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
 if ($IndependentSceneSubmit) { $IndependentSceneSource=$true; $NativeMeshSubmit=$true; $NativeCameraSubmit=$true; $NativeMaterialSubmit=$true }
 if ($IndependentSceneSource) { $NativeOwnerSource=$true; $NativeUpdateSource=$true; $MaterialChannels=$true }
 if ($NativeOwnerSource) { $SceneGeometry=$true }
@@ -56,6 +59,8 @@ if ($NativeOwnerSource) { $options.NativeOwnerSource=$true }
 if ($NativeUpdateSource) { $options.NativeUpdateSource=$true }
 if ($IndependentSceneSource) { $options.IndependentSceneSource=$true }
 if ($IndependentSceneSubmit) { $options.IndependentSceneSubmit=$true }
+if ($SelectedSceneSubmit) { $options.SelectedSceneSubmit=$true }
+if ($BridgeInstanceAudit) { $options.BridgeInstanceAudit=$true }
 if ($MaterialChannels) { $options.MaterialChannels=$true }
 if ($MaterialGeometryProbe) { $options.MaterialGeometryProbe=$true }
 if ($LiveConfig) { $options.LiveConfig=$true }

@@ -16,6 +16,47 @@ import time
 from winx_remix_state import ROOT, StateReader
 
 
+def lane_snapshots(run):
+    """Bounded asynchronous observations; callers must not treat them as one frame."""
+    snapshots = {}
+    for name, event in (('independent-scene-submit.jsonl', 'frame'),
+                        ('selected-scene-submit.jsonl', 'frame'),
+                        ('independent-scene-source.jsonl', 'frame'),
+                        ('native-mesh-source.jsonl', 'frame'),
+                        ('native-camera-source.jsonl', 'frame'),
+                        ('renderer-instance-audit.jsonl', 'interval')):
+        path = run / name
+        if not path.exists():
+            continue
+        with path.open('rb') as stream:
+            size = path.stat().st_size
+            start = max(0, size - 131072)
+            stream.seek(start)
+            data = stream.read(size - start)
+        lines = data.split(b'\n')
+        if start:
+            lines = lines[1:]  # The leading bounded fragment may be partial.
+        if not data.endswith(b'\n'):
+            lines = lines[:-1]
+        for line in reversed(lines):
+            try:
+                row = json.loads(line)
+            except (ValueError, UnicodeError):
+                continue
+            if row.get('event') == event:
+                snapshots[name] = dict(row=row, bytesAtRead=size,
+                                       possiblyCapped=size >= 16 * 1024 * 1024)
+                break
+    return snapshots
+
+
+def player(reader):
+    try:
+        return reader.player_snapshot()
+    except (OSError, RuntimeError, ValueError) as error:
+        return dict(available=False, reason=str(error))
+
+
 def camera(reader):
     snapshot = reader.camera_snapshot()
     main = next((x for x in snapshot['cameras'] if x['address'] == snapshot['mainCamera']), None)
@@ -76,7 +117,7 @@ def main():
         if not set(settings).issubset(baseline):
             parser.error('Every changed setting requires an explicit restore value in baseline')
         for key, value in settings.items():
-            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx\.(?:sceneLightGain|keepSceneGeometry|preserveUnlitColor))', key):
+            if not re.fullmatch(r'(?:rtx\.[A-Za-z0-9_.]+|winx\.(?:sceneLightGain|keepSceneGeometry|preserveUnlitColor|keepIndependentScene|keepSelectedScene))', key):
                 parser.error('Unsupported live key')
             if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_., +()\-]{1,128}', value):
                 parser.error('Invalid live value')
@@ -106,12 +147,15 @@ def main():
         for case in cases:
             settings = {**baseline, **case['settings']}
             before = camera(reader)
+            player_before = player(reader)
             apply(settings)
             path = folder / (case['name'] + '.png')
             control(launch['pid'], capture=path, settle=settle)
             after = camera(reader)
             result = dict(name=case['name'], settings=settings, before=before, after=after,
                           cameraMatched=before == after == reference,
+                          playerBefore=player_before, playerAfter=player(reader),
+                          laneSnapshots=lane_snapshots(run), laneSnapshotsAreAsynchronous=True,
                           state=reader.snapshot(), captured=datetime.datetime.now(datetime.timezone.utc).isoformat())
             result['levelMatched'] = result['state'].get('active') == report['state'].get('active')
             report['cases'].append(result)

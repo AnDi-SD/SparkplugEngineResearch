@@ -385,6 +385,7 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
                                  const ScopedOpaqueAlphaTest* alphaNormalization=nullptr) {
   bool submitted=false;
   try {
+  if(channels&&independent_scene_source::TrySelectedDraw(d,{type,base,minVertex,vertices,start,count},alphaNormalization))return true;
   auto api=GetRemixApi();
   if(!api || !api->CreateMesh || !api->DrawInstance || !api->CreateMaterial || count>32768 || vertices>65536) return SurfaceSubmitFailure(__LINE__);
   surface_material::Contract contract;
@@ -494,3 +495,4 @@ static bool SubmitSurfaceOverlay(IDirect3DDevice9* d,D3DPRIMITIVETYPE type,INT b
   }
 }
 #include "winx_independent_scene_submit.h"
+#include "winx_selected_scene_submit.h"

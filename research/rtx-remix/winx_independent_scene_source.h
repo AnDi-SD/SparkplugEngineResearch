@@ -15,6 +15,9 @@ static bool enabled;
 static bool submitEnabled,keepForComparison;
 static void InitializeDirect();
 static void DirectEndFrame();
+static void InitializeSelected();
+static void SelectedEndFrame();
+static bool TrySelectedDraw(IDirect3DDevice9*,const native_mesh_source::DrawRange&,const ScopedOpaqueAlphaTest*);
 static FILE* output;
 static unsigned scans,candidates,selectedCandidates,dirtyCandidates,compared,matched,worldDifferences,materialDifferences;
 static unsigned failureSamples;
@@ -495,9 +498,11 @@ static void Initialize() {
 #endif
   if(output){fprintf(output,"{\"event\":\"init\",\"schema\":1,\"enabled\":%s,\"submit\":false,\"maxLogBytes\":16777216,\"scope\":\"current ordinary inputs before prepare; same-operation comparison\"}\n",enabled?"true":"false");fflush(output);}
   InitializeDirect();
+  InitializeSelected();
 }
 static void EndFrame() {
   DirectEndFrame();
+  SelectedEndFrame();
   if(CanLog()&&(scans||compared||frameId%300==0)) {
     fprintf(output,"{\"event\":\"frame\",\"frame\":%u,\"scans\":%u,\"candidates\":%u,\"selected\":%u,\"dirty\":%u,\"compared\":%u,\"matched\":%u,\"worldDifferences\":%u,\"materialDifferences\":%u,\"resourceCandidates\":%u,\"resourceCompared\":%u,\"resourceMatched\":%u,\"resourceDifferences\":%u,\"resourceRejected\":%u,\"uploadDifferences\":%u,\"drawCandidates\":%u,\"drawCompared\":%u,\"drawMatched\":%u,\"drawDifferences\":%u,\"drawRejected\":%u,\"textureCandidates\":%u,\"textureCompared\":%u,\"textureMatched\":%u,\"textureDifferences\":%u,\"textureRejected\":%u,\"rejected\":[",
       frameId,scans,candidates,selectedCandidates,dirtyCandidates,compared,matched,worldDifferences,materialDifferences,
